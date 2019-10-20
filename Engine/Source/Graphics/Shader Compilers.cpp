@@ -155,8 +155,10 @@ static void Compile(API api)
 
       src.New("Dither", "Draw_VS", "Dither_PS");
 
-                              src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
-      REPD(sample, ms ? 3 : 2)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
+                              src.New("SetAlphaFromDepth", "Draw_VS", "SetAlphaFromDepth_PS");
+                              src.New("ReplaceAlpha"     , "Draw_VS", "ReplaceAlpha_PS");
+                              src.New("CombineAlpha"     , "Draw_VS", "CombineAlpha_PS");
+      REPD(sample, ms ? 3 : 2)src.New("Combine"          , "Draw_VS", "Combine_PS")("SAMPLE", sample);
 
       if(ms)src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
       src.New("SetDepth", "Draw_VS", "SetDepth_PS");

@@ -191,11 +191,11 @@ private:
 };
 /******************************************************************************/
 // manually draw a set of particles
-Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha                      ); // call this at start of drawing particles, 'glow'=glow amount 0..255, 'motion_affects_alpha'=if motion stretching affects opacity, false on fail, this function should be called only in RM_PALETTE, RM_PALETTE1 and RM_BLEND rendering modes
-void DrawParticleAdd  (C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel); // call this repeatedly for each particle
-void DrawParticleEnd  (                                                                          ); // call this after drawing  all  particles
+Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha                              ); // call this at start of drawing particles, 'glow'=glow amount 0..255, 'motion_affects_alpha'=if motion stretching affects opacity, false on fail, this function should be called only in RM_PALETTE, RM_PALETTE1 and RM_BLEND rendering modes
+void DrawParticleAdd  (C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel=VecZero); // call this repeatedly for each particle
+void DrawParticleEnd  (                                                                                  ); // call this after drawing  all  particles
 
-inline void DrawParticle(C Image &image, Byte glow, C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel) // draw a single particle
+inline void DrawParticle(C Image &image, Byte glow, C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel=VecZero) // draw a single particle
 {
    if(DrawParticleBegin(image, glow, true))
    {

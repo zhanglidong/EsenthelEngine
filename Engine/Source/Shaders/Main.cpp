@@ -287,9 +287,20 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // use VecH4 becaus
 /******************************************************************************/
 // COMBINE
 /******************************************************************************/
-Half CombineSSAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half SetAlphaFromDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    return DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
+}
+VecH4 ReplaceAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+{
+   return VecH4(0, 0, 0, TexLod(Img1, inTex).x); // use linear filtering because 'Img1' can be of different size
+}
+VecH4 CombineAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+{
+   VecH4 col;
+   col.rgb=TexLod(Img , inTex).rgb; // use linear filtering because 'Img'  can be of different size
+   col.w  =TexLod(Img1, inTex).x  ; // use linear filtering because 'Img1' can be of different size
+   return col;
 }
 VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  NOPERSP PIXEL              ):TARGET
@@ -299,7 +310,7 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #if   SAMPLE==0 // single sample
    col.w=DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
 #elif SAMPLE==1 // super sample
-   col.w=TexLod(Img1, inTex).x; // use linear filtering because 'Img' can be of different size
+   col.w=TexLod(Img1, inTex).x; // use linear filtering because 'Img1' can be of different size
 #elif SAMPLE==2 // multi sample
    col.w =0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)col.w+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
    col.w/=MS_SAMPLES;

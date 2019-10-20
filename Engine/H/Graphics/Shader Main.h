@@ -232,7 +232,9 @@ struct MainShaderClass
       *Combine,
       *CombineMS,
       *CombineSS,
-      *CombineSSAlpha,
+      *SetAlphaFromDepth,
+      *ReplaceAlpha,
+      *CombineAlpha,
 
       // FOG
       *Fog[3]    , // [MultiSample]

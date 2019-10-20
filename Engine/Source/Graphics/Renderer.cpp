@@ -426,13 +426,47 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.Img[1]->set(rt0);
    GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode())->draw(src);
 }
-INLINE Shader* GetCombine       () {Shader* &s=Sh.Combine       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine0"      ); return s;}
-INLINE Shader* GetCombineSS     () {Shader* &s=Sh.CombineSS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine1"      ); return s;}
-INLINE Shader* GetCombineMS     () {Shader* &s=Sh.CombineMS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine2"      ); return s;}
-INLINE Shader* GetCombineSSAlpha() {Shader* &s=Sh.CombineSSAlpha; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineSSAlpha"); return s;}
+INLINE Shader* GetCombine          () {Shader* &s=Sh.Combine          ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine0"         ); return s;}
+INLINE Shader* GetCombineSS        () {Shader* &s=Sh.CombineSS        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine1"         ); return s;}
+INLINE Shader* GetCombineMS        () {Shader* &s=Sh.CombineMS        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine2"         ); return s;}
+INLINE Shader* GetSetAlphaFromDepth() {Shader* &s=Sh.SetAlphaFromDepth; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"); return s;}
+INLINE Shader* GetReplaceAlpha     () {Shader* &s=Sh.ReplaceAlpha     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"     ); return s;}
+INLINE Shader* GetCombineAlpha     () {Shader* &s=Sh.CombineAlpha     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"     ); return s;}
 void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 {
    Bool alpha_premultiplied=false;
+   if(_alpha)
+   {
+      // merge _col with _alpha
+      // FIXME multi-sample
+      Sh.Img[0]->set(_col  );
+      Sh.Img[1]->set(_alpha);
+      if(_col->w()<_final->w() // upscale
+      && D.densityFilter()!=FILTER_LINEAR) // non-linear filtering
+      { // to temp RT which we'll upscale later
+         if(ImageTI[_col->hwType()].a>=8) // if RT already has alpha-channel, then just reuse RT and replace that channel
+         {
+            D.alpha(ALPHA_KEEP_SET);
+            set(_col, null, true);
+            GetReplaceAlpha()->draw();
+         }else
+         {
+            D.alpha(ALPHA_NONE);
+            ImageRTPtr temp=_col; temp.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(true, rt_prec))); // here Alpha is used for storing image opacity
+            set(temp, null, true);
+            GetCombineAlpha()->draw();
+           _col=temp;
+         }
+         alpha_premultiplied=true;
+      }else
+      { // directly into '_final'
+         set(_final, null, true);
+         D.alpha(ALPHA_MERGE);
+         GetCombineAlpha()->draw();
+        _col=_final;
+      }
+     _alpha.clear();
+   }else
    if(_ds->multiSample() && Sh.CombineMS) // '_col' could have been resolved already, so check '_ds' instead
    {
       ImageRTPtr resolve=_final; if(resolve->compatible(*_ds_1s))D.alpha(ALPHA_BLEND);else
@@ -466,7 +500,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
       ImageRTPtr alpha; alpha.get(ImageRTDesc(_ds_1s->w(), _ds_1s->h(), IMAGERT_ONE));
       set(alpha, null, true);
       D.alpha(ALPHA_NONE);
-      GetCombineSSAlpha()->draw();
+      GetSetAlphaFromDepth()->draw();
       Sh.Img[1]->set(alpha);
       set(_final, null, true);
       D.alpha(ALPHA_BLEND);
@@ -1330,8 +1364,25 @@ void RendererClass::light()
 {
    if(slowCombine() && D.independentBlendAvailable()) // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
    {
+      D.alpha(ALPHA_NONE);
      _alpha.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_ONE, _col->samples()));
-      // FIXME setup '_alpha'
+      /*if(_alpha->multiSample()) FIXME
+      {
+         set(_alpha, _ds_1s, true, NEED_DEPTH_READ);
+         if(hasStencilAttached())
+         {
+            D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetCombineMS()->draw(_col);
+                            D.stencilRef(0               ); GetCombine  ()->draw(_col);
+            D.stencil(STENCIL_NONE     );
+         }else
+         {
+            GetCombineMS()->draw(_col); // we have to run all at multi-sampled frequency
+         }
+      }else*/
+      {
+         set(_alpha, null, true);
+         GetSetAlphaFromDepth()->draw();
+      }
    }
    if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering solid
    {

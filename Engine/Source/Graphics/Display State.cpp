@@ -580,6 +580,12 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
       break;
 
+      case ALPHA_KEEP_SET:
+         glEnable           (GL_BLEND);
+         glBlendEquation    (GL_FUNC_ADD);
+         glBlendFuncSeparate(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO);
+      break;
+
       /*case ALPHA_NONE_ADD:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
@@ -1040,29 +1046,21 @@ void DisplayState::create()
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_FONT_DEC].create(desc);
    }
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=false;
-      desc.RenderTarget[0].RenderTargetWriteMask=0;
-      BlendStates[ALPHA_NULL].create(desc);
-   }*/
-   /*{
+   {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALPHA;
-      BlendStates[ALPHA_NONE_WRITE_A].create(desc);
-   }*/
+      BlendStates[ALPHA_KEEP_SET].create(desc);
+   }
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
-      BlendStates[ALPHA_NONE_WRITE_RGB].create(desc);
+      BlendStates[ALPHA_SET_KEEP].create(desc);
    }*/
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);

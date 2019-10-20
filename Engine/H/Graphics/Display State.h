@@ -13,15 +13,15 @@ enum ALPHA_MODE : Byte // Alpha Blending Modes
 #if EE_PRIVATE
    ALPHA_SETBLEND_SET  , // Color:set blended, Alpha:set
    ALPHA_FACTOR        , // Color:factor     , Alpha:factor
+   ALPHA_FONT          , // Color:clear type , Alpha:increase
+   ALPHA_FONT_DEC      , // Color:clear type , Alpha:decrease
+   ALPHA_KEEP_SET      , // Color:keep       , Alpha:set
    ALPHA_INVERT        , // invert destination
-   ALPHA_FONT          , // Color:clear type, Alpha:increase
-   ALPHA_FONT_DEC      , // Color:clear type, Alpha:decrease
+ //ALPHA_SET_KEEP      , // Color:set        , Alpha:keep
  //ALPHA_ADD_COVERAGE  , // Color:add   with Alpha To Coverage
  //ALPHA_ADDBLEND_KEEP , // Color:add blended              , Alpha:keep
  //ALPHA_ADD_FACTOR    , // Color:add                      , Alpha:add   with factor
  //ALPHA_NONE_ADD      , // Color:set        , Alpha:add
- //ALPHA_NONE_WRITE_A  , // no blending, write only to A
- //ALPHA_NONE_WRITE_RGB, // no blending, write only to RGB
  //ALPHA_NONE_COVERAGE , // no blending with Alpha To Coverage
    ALPHA_NUM           , // number of alpha blending modes
 #endif
