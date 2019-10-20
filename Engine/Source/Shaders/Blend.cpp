@@ -54,12 +54,13 @@ void VS
 VecH4 PS
 (
 #if LAYOUT
-   Vec2  inTex  :TEXCOORD  ,
+    Vec2  inTex  :TEXCOORD  ,
 #endif
 #if REFLECT
-   VecH  inRfl  :REFLECTION,
+    VecH  inRfl  :REFLECTION,
 #endif
-   VecH4 inColor:COLOR
+    VecH4 inColor:COLOR,
+out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {
    Half smooth=Material.smooth,
@@ -77,6 +78,7 @@ VecH4 PS
    inColor.rgb=Lerp(inColor.rgb, TexCube(Env, inRfl).rgb*EnvColor, reflct);
 #endif
 
-   return inColor;
+   outAlpha=inColor.a;
+   return   inColor;
 }
 /******************************************************************************/

@@ -399,7 +399,9 @@ Flt LinearizeDepth2_PS(NOPERSP PIXEL,
 /******************************************************************************/
 // PALETTE
 /******************************************************************************/
-VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 PaletteDraw_PS(NOPERSP Vec2  inTex  :TEXCOORD,
+                         out Half outAlpha:TARGET2 // #RTOutput.Blend
+                    ):TARGET
 {
    VecH4 particle=TexLod(Img, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
    clip(Length2(particle)-Sqr(Half(EPS_COL))); // 'clip' is faster than "BRANCH if(Length2(particle)>Sqr(EPS_COL))" (branch is however slightly faster when entire majority of pixels have some effect, however in most cases majority of pixels doesn't have anything so stick with 'clip')
@@ -410,6 +412,8 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
          c2=TexLod(Img1, VecH2(particle.z, 2.5/4)),
          c3=TexLod(Img1, VecH2(particle.w, 3.5/4));
    Half  a =Max(c0.a, c1.a, c2.a, c3.a);
+
+   outAlpha=a;
 
    return VecH4((c0.rgb*c0.a
                 +c1.rgb*c1.a

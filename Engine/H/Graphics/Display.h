@@ -105,6 +105,7 @@ enum SHADER_MODEL : Byte
    SM_UNKNOWN  , // unknown
    SM_GL_ES_3  , //           (OpenGL ES      3.0)
    SM_GL_ES_3_1, //           (OpenGL ES      3.1)
+   SM_GL_ES_3_2, //           (OpenGL ES      3.2)
    SM_GL_3     , //           (OpenGL Desktop 3.2)
    SM_GL_4     , //           (OpenGL Desktop 4.0)
    SM_4        , // Model 4.0 (DirectX 10        )
@@ -583,9 +584,10 @@ private:
    static VecI2 glVer();
    static Ptr   glGetProcAddress(CChar8 *name);
 #endif
-   Bool gatherAvailable      ()C;
-   Bool deferredUnavailable  ()C;
-   Bool deferredMSUnavailable()C;
+   Bool gatherAvailable          ()C;
+   Bool independentBlendAvailable()C;
+   Bool deferredUnavailable      ()C;
+   Bool deferredMSUnavailable    ()C;
 
    void     monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C;
    void  curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size) ;

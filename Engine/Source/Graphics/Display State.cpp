@@ -511,6 +511,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+         if(D.independentBlendAvailable())glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
       break;
 
       case ALPHA_ADD:
@@ -544,6 +545,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         if(D.independentBlendAvailable())glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
       break;
     /*case ALPHA_ADD_FACTOR:
          glEnable           (GL_BLEND);
@@ -867,6 +869,15 @@ void DisplayState::create()
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_BLEND_DEC].create(desc);
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      {
+         desc.IndependentBlendEnable=true;
+         for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
+         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
+         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+      }
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -941,6 +952,15 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      {
+         desc.IndependentBlendEnable=true;
+         for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
+         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
+         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+      }
       BlendStates[ALPHA_BLEND_FACTOR].create(desc);
    }
    /*{

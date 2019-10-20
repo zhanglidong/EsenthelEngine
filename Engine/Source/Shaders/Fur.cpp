@@ -126,6 +126,7 @@ VecH4 Soft_PS
 #if SIZE
  , Half inLen :LENGTH
 #endif
+, out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {
    Half fur=Tex(FurCol, inTex*Material.det_scale).r;
@@ -139,6 +140,8 @@ VecH4 Soft_PS
    color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*inLen))
 #endif
 
+   outAlpha=color.a;
+   
    if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
               color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, PosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;

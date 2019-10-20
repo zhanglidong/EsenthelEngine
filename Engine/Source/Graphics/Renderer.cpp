@@ -548,6 +548,7 @@ void RendererClass::cleanup ()
   _nrm         .clear();
   _ext         .clear();
   _vel         .clear();
+  _alpha       .clear();
   _lum         .clear();
   _lum_1s      .clear();
   _shd_1s      .clear();
@@ -1327,6 +1328,11 @@ void RendererClass::ao()
 INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade][glow]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade, glow); return s;}
 void RendererClass::light()
 {
+   if(slowCombine() && D.independentBlendAvailable()) // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
+   {
+     _alpha.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_ONE, _col->samples()));
+      // FIXME setup '_alpha'
+   }
    if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering solid
    {
       /*
@@ -1552,7 +1558,7 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true;
-   set(_col,  blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput
+   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use less equal for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
@@ -1597,7 +1603,7 @@ void RendererClass::palette(Int index)
 
       D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
-      set(_col, null, true); // #RTOutput
+      set(_col, null, _alpha, null, null, true); // #RTOutput.Blend
       D .alpha(ALPHA_BLEND_DEC);
       Sh.Img[1]->set(palette());
       Sh.PaletteDraw->draw(intensity);

@@ -881,6 +881,7 @@ CChar8* GLSLVersion()
       case SM_GL_4     : return "#version 400\n";
       case SM_GL_ES_3  : return "#version 300 es\n";
       case SM_GL_ES_3_1: return "#version 310 es\n";
+      case SM_GL_ES_3_2: return "#version 320 es\n";
    }
 }
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering

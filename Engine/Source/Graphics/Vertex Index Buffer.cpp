@@ -4,12 +4,6 @@
 namespace EE{
 /******************************************************************************
 
-   GL_ES does not support VI._vtx_drawing because:
-      -'glDrawElements' does not have place for '_vtx_drawing'
-      -'glDrawElementsBaseVertex' is needed but requires GLES 3.2 TODO: add in the future
-
-   'glMapBufferRange' requires GL3.0 and GLES3.0
-
    Can't use GL_MAP_PERSISTENT_BIT because it requires GL4.4+
 
    GL ES may not support Half / F16 / GL_HALF_FLOAT / Float16 !!

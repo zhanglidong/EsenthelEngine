@@ -475,6 +475,7 @@ Str8 Display::shaderModelName()C
       default          : return "Unknown"; // SM_UNKNOWN
       case SM_GL_ES_3  : return "GL ES 3";
       case SM_GL_ES_3_1: return "GL ES 3.1";
+      case SM_GL_ES_3_2: return "GL ES 3.2";
       case SM_GL_3     : return "GL 3";
       case SM_GL_4     : return "GL 4";
       case SM_4        : return "4";
@@ -565,6 +566,16 @@ Bool Display::gatherAvailable()C
    return shaderModel()>=SM_4_1;
 #elif GL_ES
    return shaderModel()>=SM_GL_ES_3_1; // 3.1+ GLES required
+#elif GL
+   return shaderModel()>=SM_GL_4; // 4.0+ GL required
+#endif
+}
+Bool Display::independentBlendAvailable()C
+{
+#if DX11
+   return shaderModel()>=SM_4_1;
+#elif GL_ES
+   return shaderModel()>=SM_GL_ES_3_2; // 3.2+ GLES required
 #elif GL
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
@@ -1309,12 +1320,13 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1,/*LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB :*/IMAGE_R8G8B8A8, IMAGE_GL_RB, samples); // #WebSRGB currently web doesn't support SRGB SwapChain
+      Renderer._main   .forceInfo(width, height, 1,/*LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB :*/IMAGE_R8G8B8A8, IMAGE_GL_RB, samples); // #WebSRGB currently web doesn't support sRGB SwapChain
       Renderer._main_ds.forceInfo(width, height, 1,  attrs.stencil ? IMAGE_D24S8         :  IMAGE_D24X8   , IMAGE_GL_RB, samples);
    #endif
 
       VecI2 ver=glVer();
    #if GL_ES
+      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_ES_3_2;else
       if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
       if(Compare(ver, VecI2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
                                        Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");

@@ -122,6 +122,9 @@ VecH4 Particle_PS(PIXEL,
                #if ANIM==ANIM_SMOOTH
                 , Vec   inAnim:TEXCOORD2
                #endif
+               #if !PALETTE
+                , out Half outAlpha:TARGET2 // #RTOutput.Blend
+               #endif
                  ):TARGET
 {
    VecH4 tex=Tex(Img, inTex);
@@ -136,7 +139,11 @@ VecH4 Particle_PS(PIXEL,
           tex.a*=Sat(z1/(z1-z0+HALF_MIN));                             // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    #endif
-   if(PALETTE)return inCol*tex.a;
-   else       return inCol*tex  ;
+   if(PALETTE)inCol*=tex.a;
+   else       inCol*=tex  ;
+#if !PALETTE
+   outAlpha=inCol.a;
+#endif
+   return inCol;
 }
 /******************************************************************************/

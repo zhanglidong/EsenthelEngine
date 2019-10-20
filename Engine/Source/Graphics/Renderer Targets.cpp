@@ -13,6 +13,7 @@ namespace EE{
   _nrm      : D.renderW, D.renderH,                         D.highPrecNrmRT ? IMAGERT_RGB_H : (D.signedNrmRT ? IMAGERT_RGB_S : IMAGERT_RGB) , D.samples, NRM   XYZ
   _ext      : D.renderW, D.renderH,                                                                                            IMAGERT_TWO  , D.samples, SMOOTH   , REFLECT
   _vel      : D.renderW, D.renderH, alpha ? (D.signedVelRT ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT ? IMAGERT_RGB_S : IMAGERT_RGB ), D.samples, VEL   XYZ
+  _alpha    : D.renderW, D.renderH,                                                                                            IMAGERT_ONE  , D.samples, OPACITY
   _lum      : D.renderW, D.renderH,                                                        D.highPrecLumRT ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, D.samples, LIGHT RGB, LIGHT SPEC
   _lum_1s   : D.renderW, D.renderH,                                                        D.highPrecLumRT ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'
 
@@ -22,6 +23,15 @@ namespace EE{
   _water_lum: D.renderW, D.renderH,                                                                                            IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC
 
   '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
+
+   if using Renderer.combine (Renderer.slowCombine && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
+     -'_alpha' RT is created and set as RT2
+     -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
+     -all alpha-blended effects output alpha into RT2:
+         -particles
+         -mesh 3D shaders (blend, blend light)
+         -palette apply
+         -post process effects operate on alpha as well (eyeAdapt, bloom, motionBlur, dof)
 
    If '_ds' is multi-sampled on DX10+ then:
       In Deferred Renderer:
@@ -73,6 +83,7 @@ void RendererClass::rtClear()
   _nrm         .clear();
   _ext         .clear();
   _vel         .clear();
+  _alpha       .clear();
   _lum         .clear();
   _lum_1s      .clear();
   _shd_1s      .clear();
