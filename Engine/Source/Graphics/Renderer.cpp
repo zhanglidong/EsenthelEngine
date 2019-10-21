@@ -245,7 +245,7 @@ INLINE Shader* GetBloom  (Bool dither, Bool gamma                               
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
    // process bloom in sRGB gamma, because it will provide sharper results
-
+   // '_alpha' from 'combine' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    Bool gamma=LINEAR_GAMMA, swap=(gamma && src.canSwapSRV() && dest.canSwapRTV()); if(swap){gamma=false; src.swapSRV(); dest.swapRTV();}
 
    const Int     shift=(D.bloomHalf() ? 1 : 2);
