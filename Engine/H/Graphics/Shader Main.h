@@ -229,13 +229,12 @@ struct MainShaderClass
       *ResolveDepth,
       *SetDepth,
       *Dither,
-      *Combine,
-      *CombineMS,
-      *CombineSS,
       *SetAlphaFromDepth,
       *SetAlphaFromDepthMS,
-      *ReplaceAlpha,
+      *SetAlphaFromDepthAndCol,
+      *SetAlphaFromDepthAndColMS,
       *CombineAlpha,
+      *ReplaceAlpha,
 
       // FOG
       *Fog[3]    , // [MultiSample]
@@ -321,9 +320,9 @@ struct MainShaderClass
       *BloomParams;
    Shader
       *BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
-      *Bloom  [2][2]         ; // [Dither] [Gamma]
+      *Bloom  [2][2][2]      ; // [Dither] [Gamma] [Alpha]
    Shader* getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma);
-   Shader* getBloom  (Bool dither, Bool gamma);
+   Shader* getBloom  (Bool dither, Bool gamma, Bool alpha);
 
    // SUN
    Shader

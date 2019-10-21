@@ -303,42 +303,27 @@ Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL):TARGET
    return alpha/MS_SAMPLES;
 }
 #endif
-VecH4 ReplaceAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+
+Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   return VecH4(0, 0, 0, TexLod(Img1, inTex).x); // use linear filtering because 'Img1' can be of different size
+   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(inTex))); // treat luminance as opacity
 }
+Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+{
+   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, index))); // treat luminance as opacity
+}
+
+
 VecH4 CombineAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 col;
    col.rgb=TexLod(Img , inTex).rgb; // use linear filtering because 'Img'  can be of different size
-   col.w  =TexLod(Img1, inTex).x  ; // use linear filtering because 'Img1' can be of different size
+   col.w  =TexLod(ImgX, inTex).x  ; // use linear filtering because 'ImgX' can be of different size
    return col;
 }
-VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                 NOPERSP PIXEL              ):TARGET
+VecH4 ReplaceAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   VecH4 col=TexLod(Img, inTex); // use linear filtering because 'Img' can be of different size
-
-#if   SAMPLE==0 // single sample
-   col.w=DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
-#elif SAMPLE==1 // super sample
-   col.w=TexLod(Img1, inTex).x; // use linear filtering because 'Img1' can be of different size
-#elif SAMPLE==2 // multi sample
-   col.w =0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)col.w+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
-   col.w/=MS_SAMPLES;
-   // here col.rgb is not premultiplied by alpha (it is at full scale), which means that it will not work as smooth when doing the blended support below
-
-   // if any of the neighbor pixels are transparent then assume that there's no blended graphics in the area, and then return just the solid pixel to keep AA
-   // use linear filtering because 'Img' can be of different size
-   if(Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 0, SQRT2)).rgb)<=0.15
-   || Max(TexLod(Img, inTex+ImgSize.xy*Vec2(-1,    -1)).rgb)<=0.15
-   || Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 1,    -1)).rgb)<=0.15)return col; // there can be bloom around solid pixels, so allow some tolerance
-#endif
-
-   // support blended graphics (pixels with colors but without depth)
-      col.w=Max(col); // treat luminance as opacity
-   if(col.w>0)col.rgb/=col.w;
-   return col;
+   return VecH4(0, 0, 0, TexLod(ImgX, inTex).x); // use linear filtering because 'ImgX' can be of different size
 }
 /******************************************************************************/
 // MULTI SAMPLE

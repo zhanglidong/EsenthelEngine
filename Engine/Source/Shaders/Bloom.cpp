@@ -86,11 +86,17 @@ VecH4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
                NOPERSP PIXEL              ):TARGET
 {
    // final=src*original + Sat((src-cut)*scale)
-   VecH col=TexLod(Img, inTex).rgb; // original, can't use 'TexPoint' because 'Img' can be supersampled
-   if(GAMMA)col=LinearToSRGBFast(col);
-   col=col*BloomParams.x + TexLod(Img1, inTex).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller
+   VecH4 col;
+   col.rgb=TexLod(Img, inTex).rgb; // original, can't use 'TexPoint' because 'Img' can be supersampled
+   if(GAMMA)col.rgb=LinearToSRGBFast(col.rgb);
+   col.rgb=col.rgb*BloomParams.x + TexLod(Img1, inTex).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller
    if(DITHER)ApplyDither(col.rgb, pixel.xy, false); // here we always have sRGB gamma
-   if(GAMMA)col=SRGBToLinearFast(col);
-   return VecH4(col, 1); // force full alpha so back buffer effects can work ok
+   if(GAMMA)col.rgb=SRGBToLinearFast(col.rgb);
+#if ALPHA
+   col.a=TexLod(ImgX, inTex).r; // can't use 'TexPoint' because 'ImgX' can be supersampled
+#else
+   col.a=1; // force full alpha so back buffer effects can work ok
+#endif
+   return col;
 }
 /******************************************************************************/

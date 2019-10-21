@@ -183,7 +183,7 @@ void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_a
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 /******************************************************************************/
 Shader* MainShaderClass::getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {return get(S8+"BloomDS"+glow+uv_clamp+half_res+saturate+gamma);}
-Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                           ) {return get(S8+"Bloom"  +dither+gamma);}
+Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma, Bool alpha                               ) {return get(S8+"Bloom"  +dither+gamma+alpha);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
@@ -458,7 +458,8 @@ void MainShaderClass::getTechniques()
 
    REPD(dither, 2)
    REPD(gamma , 2)
-      Bloom[dither][gamma]=getBloom(dither, gamma);
+   REPD(alpha , 2)
+      Bloom[dither][gamma][alpha]=getBloom(dither, gamma, alpha);
 #endif
 
    // BLUR
@@ -482,13 +483,12 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-                              Combine            =get("Combine0");
-                              CombineSS          =get("Combine1");
-   if(D.shaderModel()>=SM_4  )CombineMS          =get("Combine2");
-                              SetAlphaFromDepth  =get("SetAlphaFromDepth");
-   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS=get("SetAlphaFromDepthMS");
-                              ReplaceAlpha       =get("ReplaceAlpha");
-                              CombineAlpha       =get("CombineAlpha");
+                              SetAlphaFromDepth        =get("SetAlphaFromDepth");
+   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS      =get("SetAlphaFromDepthMS");
+                              SetAlphaFromDepthAndCol  =get("SetAlphaFromDepthAndCol");
+   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthAndColMS=get("SetAlphaFromDepthAndColMS");
+                              CombineAlpha             =get("CombineAlpha");
+                              ReplaceAlpha             =get("ReplaceAlpha");
 #endif
 
    // SKY

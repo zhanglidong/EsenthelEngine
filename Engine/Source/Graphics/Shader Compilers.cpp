@@ -155,11 +155,12 @@ static void Compile(API api)
 
       src.New("Dither", "Draw_VS", "Dither_PS");
 
-                              src.New("SetAlphaFromDepth"  , "Draw_VS", "SetAlphaFromDepth_PS");
-                              src.New("SetAlphaFromDepthMS", "Draw_VS", "SetAlphaFromDepthMS_PS").multiSample();
-                              src.New("ReplaceAlpha"       , "Draw_VS", "ReplaceAlpha_PS");
-                              src.New("CombineAlpha"       , "Draw_VS", "CombineAlpha_PS");
-      REPD(sample, ms ? 3 : 2)src.New("Combine"            , "Draw_VS", "Combine_PS")("SAMPLE", sample);
+            src.New("SetAlphaFromDepth"        , "Draw_VS", "SetAlphaFromDepth_PS");
+      if(ms)src.New("SetAlphaFromDepthMS"      , "Draw_VS", "SetAlphaFromDepthMS_PS").multiSample();
+            src.New("SetAlphaFromDepthAndCol"  , "Draw_VS", "SetAlphaFromDepthAndCol_PS");
+      if(ms)src.New("SetAlphaFromDepthAndColMS", "Draw_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
+            src.New("CombineAlpha"             , "Draw_VS", "CombineAlpha_PS");
+            src.New("ReplaceAlpha"             , "Draw_VS", "ReplaceAlpha_PS");
 
       if(ms)src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
       src.New("SetDepth", "Draw_VS", "SetDepth_PS");
@@ -189,10 +190,13 @@ static void Compile(API api)
       REPD(clamp   , 2)
       REPD(half_res, 2)
       REPD(saturate, 2)
-      REPD(gamma   , 2)src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res, "SATURATE", saturate)("GAMMA", gamma);
+      REPD(gamma   , 2)
+         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res, "SATURATE", saturate)("GAMMA", gamma);
 
       REPD(dither, 2)
-      REPD(gamma , 2)src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma);
+      REPD(gamma , 2)
+      REPD(alpha , 2)
+         src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma, "ALPHA", alpha);
    }
    { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
