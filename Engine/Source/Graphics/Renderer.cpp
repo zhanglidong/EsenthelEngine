@@ -620,6 +620,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       sky       (); MEASURE(_t_sky[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
+      if(hasDof())resolveDepth1();
     /*if(stage)switch(stage) check this earlier together with other stages, to avoid doing a single extra check here
       {
          case RS_DEPTH: if(show(_ds_1s, false))goto finished; break;
@@ -1145,6 +1146,16 @@ void RendererClass::resolveDepth()
 
       D.stencil(STENCIL_NONE);
       if(swap)_col->swapSRV(); // restore
+   }
+}
+void RendererClass::resolveDepth1()
+{
+   if(_ds->multiSample() && _ds->depthTexture())
+   {
+      // always resolve '_ds' into '_ds_1s'
+      set(null, _ds_1s, true);
+      D.depthFunc(FUNC_LESS);   D.depthLock  (true); Sh.ResolveDepth->draw();
+    /*D.depthFunc(FUNC_LESS);*/ D.depthUnlock(    );
    }
 }
 void RendererClass::overlay()
