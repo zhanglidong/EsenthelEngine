@@ -417,6 +417,7 @@ static void Compile(API api)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Depth of Field", model, api).New(src_path+"Depth of Field.cpp");
    REPD(clamp    , 2)
    REPD(realistic, 2)
+   REPD(alpha    , 2)
    REPD(half_res , 2)
    REPD(gather   , 2)
       src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("GATHER", gather).gather(gather);
@@ -424,9 +425,8 @@ static void Compile(API api)
    REPD(alpha, 2)
    for(Int range=2; range<=12; range++)
    {
-      src.New("DofBlurX", "Draw_VS", "DofBlurX_PS")("RANGE", range);
-      src.New("DofBlurY", "Draw_VS", "DofBlurY_PS")("RANGE", range);
       src.New("DofBlurX", "Draw_VS", "DofBlurX_PS")("ALPHA", alpha, "RANGE", range);
+      src.New("DofBlurY", "Draw_VS", "DofBlurY_PS")("ALPHA", alpha, "RANGE", range);
    }
 
    REPD(dither   , 2)
