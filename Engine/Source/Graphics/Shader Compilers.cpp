@@ -418,7 +418,8 @@ static void Compile(API api)
    REPD(clamp    , 2)
    REPD(realistic, 2)
    REPD(half_res , 2)
-   REPD(gather   , 2)src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "HALF_RES", half_res, "GATHER", gather).gather(gather);
+   REPD(gather   , 2)
+      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "HALF_RES", half_res, "GATHER", gather).gather(gather);
 
    for(Int range=2; range<=12; range++)
    {
@@ -427,7 +428,9 @@ static void Compile(API api)
    }
 
    REPD(dither   , 2)
-   REPD(realistic, 2)src.New("Dof", "Draw_VS", "Dof_PS")("DITHER", dither, "REALISTIC", realistic);
+   REPD(realistic, 2)
+   REPD(alpha    , 2)
+      src.New("Dof", "Draw_VS", "Dof_PS")("DITHER", dither, "REALISTIC", realistic, "ALPHA", alpha);
 }
 #endif
 
@@ -530,7 +533,9 @@ static void Compile(API api)
 
    REPD(clamp, 2)src.New("SetDirs", "Draw_VS", "SetDirs_PS")("CLAMP", clamp);
 
-   REPD(dither, 2)src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither);
+   REPD(dither, 2)
+   REPD(alpha , 2)
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha);
 
    Int ranges[]={1, 2, 4, 6, 8, 12, 16, 24, 32};
    REPD (diagonal, 2)

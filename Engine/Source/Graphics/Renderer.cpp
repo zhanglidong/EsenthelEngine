@@ -400,12 +400,12 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither, Bool co
 
    Sh.Img[1]->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()]->draw(src); // here blurring may generate high precision values
+   Mtn.Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()][combine]->draw(src); // here blurring may generate high precision values
 
    return false;
 }
 INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half_res); return s;}
-INLINE Shader* GetDof  (Bool dither, Bool realistic               ) {Shader* &s=Dof.Dof  [dither][realistic]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic          ); return s;}
+INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha   ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]   ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha   ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
@@ -430,7 +430,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
 
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img[1]->set(rt0);
-   GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode())->draw(src);
+   GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), combine)->draw(src);
 }
 INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}
 INLINE Shader* GetSetAlphaFromDepthMS      () {Shader* &s=Sh.SetAlphaFromDepthMS      ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthMS"      ); return s;}

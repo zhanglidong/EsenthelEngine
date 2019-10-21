@@ -687,7 +687,9 @@ void MotionBlur::load()
 
       REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
 
-      REPD(d, 2)Blur[d]=shader->get(S8+"Blur"+d);
+      REPD(dither, 2)
+      REPD(alpha , 2)
+         Blur[dither][alpha]=shader->get(S8+"Blur"+dither+alpha);
 
       pixels[0].pixels=1;
       pixels[1].pixels=2;
@@ -718,7 +720,7 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
 }
 /******************************************************************************/
 Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+half_res+D.gatherAvailable());}
-Shader* DepthOfField::get  (Bool dither, Bool realistic               ) {return shader->get(S8+"Dof"+dither+realistic);}
+Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha   ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
 
 void DepthOfField::load()
 {
@@ -727,12 +729,15 @@ void DepthOfField::load()
       DofParams=GetShaderParam("DofParams");
 
    #if !SLOW_SHADER_LOAD
-      REPD(c, 2)
-      REPD(r, 2)
-      REPD(h, 2)DofDS[c][r][h]=getDS(c, r, h);
+      REPD(clamp    , 2)
+      REPD(realistic, 2)
+      REPD(half_res , 2)
+         DofDS[clamp][realistic][half_res]=getDS(clamp, realistic, half_res);
 
-      REPD(d, 2)
-      REPD(r, 2)Dof[d][r]=get(d, r);
+      REPD(dither   , 2)
+      REPD(realistic, 2)
+      REPD(alpha    , 2)
+         Dof[dither][realistic][alpha]=get(dither, realistic, alpha);
    #endif
 
       pixels[ 0].pixels=2;
