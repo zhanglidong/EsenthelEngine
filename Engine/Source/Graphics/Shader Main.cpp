@@ -719,8 +719,8 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
    return p;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+half_res+D.gatherAvailable());}
-Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha   ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
+Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+D.gatherAvailable());}
+Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
 
 void DepthOfField::load()
 {
@@ -731,8 +731,9 @@ void DepthOfField::load()
    #if !SLOW_SHADER_LOAD
       REPD(clamp    , 2)
       REPD(realistic, 2)
+      REPD(alpha    , 2)
       REPD(half_res , 2)
-         DofDS[clamp][realistic][half_res]=getDS(clamp, realistic, half_res);
+         DofDS[clamp][realistic][alpha][half_res]=getDS(clamp, realistic, alpha, half_res);
 
       REPD(dither   , 2)
       REPD(realistic, 2)
@@ -754,17 +755,17 @@ void DepthOfField::load()
       ASSERT(ELMS(pixels)==11);
    }
 }
-C DepthOfField::Pixel& DepthOfField::pixel(Int pixel)
+C DepthOfField::Pixel& DepthOfField::pixel(Bool alpha, Int pixel)
 {
    Pixel *p;
    FREPA(pixels) // start from the smallest to find exact match or bigger, order is important
    {
       p=&pixels[i]; if(p->pixels>=pixel)break; // if this covers desired range of pixels to blur
    }
-   if(!p->BlurX)
+   if(!p->BlurX[alpha])
    {
-      p->BlurX=shader->get(S8+"DofBlurX"+p->pixels);
-      p->BlurY=shader->get(S8+"DofBlurY"+p->pixels);
+      p->BlurX[alpha]=shader->get(S8+"DofBlurX"+alpha+p->pixels);
+      p->BlurY[alpha]=shader->get(S8+"DofBlurY"+alpha+p->pixels);
    }
    return *p;
 }

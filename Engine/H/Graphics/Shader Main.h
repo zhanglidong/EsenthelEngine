@@ -423,7 +423,6 @@ struct MotionBlur
 
    void load();
  C Pixel* pixel(Int pixel, Bool diagonal);
-
 }extern
    Mtn;
 
@@ -431,21 +430,20 @@ struct DepthOfField
 {
    ShaderFile  *shader;
    ShaderParam *DofParams;
-   Shader      *DofDS[2][2][2], // [Clamp ][Realistic][Half]
-               *Dof  [2][2][2]; // [Dither][Realistic][Alpha]
+   Shader      *DofDS[2][2][2][2], // [Clamp ][Realistic][Alpha][Half]
+               *Dof  [2][2][2]   ; // [Dither][Realistic][Alpha]
 
    struct Pixel
    {
       Int     pixels;
-      Shader *BlurX,
-             *BlurY;
+      Shader *BlurX[2], // [Alpha]
+             *BlurY[2]; // [Alpha]
    }pixels[11];
 
    void load();
-   Shader* getDS(Bool clamp , Bool realistic, Bool half_res);
+   Shader* getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res);
    Shader* get  (Bool dither, Bool realistic, Bool alpha);
- C Pixel& pixel(Int pixel);
-
+ C Pixel&  pixel(Bool alpha, Int pixel);
 }extern
    Dof;
 

@@ -9,6 +9,13 @@
 #ifndef CLAMP
 #define CLAMP 0
 #endif
+#if !ALPHA
+   #define MASK rgb
+   #define OPT(non_alpha, alpha) non_alpha
+#else
+   #define MASK rgba
+   #define OPT(non_alpha, alpha) alpha
+#endif
 /******************************************************************************
 TODO: add slow but high quality circular bokeh DoF
    -create small / quarter res (or maybe even smaller) RT containing info about biggest blur radius
@@ -47,14 +54,18 @@ inline Flt Blur(Flt z)
 #endif
 }
 /******************************************************************************/
-// CLAMP, REALISTIC, HALF_RES, GATHER
-VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+// CLAMP, REALISTIC, ALPHA, HALF_RES, GATHER
+VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
+                #if ALPHA
+                 , out Half outBlur:TARGET1
+                #endif
+):TARGET
 {
    VecH4 ret; // RGB=col, W=Blur
    Flt   depth;
    if(HALF_RES)
    {
-      ret.rgb=TexLod(Img, UVClamp(inTex, CLAMP)).rgb; // use linear filtering because we're downsampling
+      ret.MASK=TexLod(Img, UVClamp(inTex, CLAMP)).MASK; // use linear filtering because we're downsampling
    #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
       depth=DEPTH_MIN(TexDepthGather(inTex));
    #else
@@ -74,11 +85,11 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
            t01=Vec2(tex_min.x, tex_max.y),
            t11=Vec2(tex_max.x, tex_max.y);
       // use linear filtering because we're downsampling
-      ret.rgb=(TexLod(Img, t00).rgb
-              +TexLod(Img, t10).rgb
-              +TexLod(Img, t01).rgb
-              +TexLod(Img, t11).rgb)/4;
-   #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
+      ret.MASK=(TexLod(Img, t00).MASK
+               +TexLod(Img, t10).MASK
+               +TexLod(Img, t01).MASK
+               +TexLod(Img, t11).MASK)/4;
+   #if GATHER // "gather" is available since SM_4_1, GL 4.0, GL ES 3.1
       depth=DEPTH_MIN(DEPTH_MIN(TexDepthGather(t00)),
                       DEPTH_MIN(TexDepthGather(t10)),
                       DEPTH_MIN(TexDepthGather(t01)),
@@ -91,19 +102,17 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                       TexDepthRawPoint(t11));
    #endif
    }
+#if ALPHA
+   outBlur=Blur(LinearizeDepth(depth));
+#else
    ret.w=Blur(LinearizeDepth(depth))*0.5+0.5;
+#endif
    return ret;
 }
 /******************************************************************************/
-inline Flt Center(Flt center_blur_u) // center_blur_u=0..1 (0.5=focus) here we can offload some of the calculation done for each sample, by making necessary adjustments to 'center_blur_u'
-{
-   return center_blur_u*2-1;
-}
-inline Flt Weight(Flt center_blur, Flt test_blur_u, Int dist, Int range) // center_blur=-1..1 (0=focus), center_blur_u=0..1 (0.5=focus), test_blur_u=0..1 (0.5=focus)
+inline Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-1..1 (0=focus), test_blur=-1..1 (0=focus)
 {
    Flt f=dist/Flt(range+1),
-     //center_blur=center_blur_u*2-1, // -1..1, we've already done this in 'Center'
-         test_blur=  test_blur_u*2-1, // -1..1
       cb=Abs(center_blur), // 0..1
       tb=Abs(  test_blur), // 0..1
        b=Max(tb, cb // have to extend search radius for cases when center is in the front
@@ -127,73 +136,104 @@ inline Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all 
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Use HighPrec because we operate on lot of samples
-// RANGE
+// ALPHA, RANGE
 
-#define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
-VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD
+                   #if ALPHA
+                    , out Half outBlur:TARGET1
+                   #endif
+):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
-
-   Vec4 center=TexPoint(Img, inTex);
-   Flt  center_blur=Center(center.a),
+   Vec4 center     =TexPoint(Img, inTex);
+   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
         weight=0,
+     #if ALPHA
+        blur=0,
+     #endif
         blur_abs=0;
-   Vec4 color =0;
+   Vec4 color=0;
    Vec2 t; t.y=inTex.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.x=inTex.x+RTSize.x*i;
       Vec4 c=TexPoint(Img, t);
-      Flt  test_blur=c.a,
+      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
-      color   +=w*    c;
-      blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
+      color   +=w*c;
+   #if ALPHA
+      blur    +=w*    test_blur ;
+   #endif
+      blur_abs+=w*Abs(test_blur);
    }
    Flt b=Abs(center_blur),
        w=Lerp(WeightSum(RANGE)-weight, 1, b);
-   color   +=w*    center;
-   blur_abs+=w*Abs(center.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    weight  +=w;
+   color   +=w*center;
+#if ALPHA
+   blur    +=w*center_blur;
+#endif
+   blur_abs+=w*b;
 
-   blur_abs/=weight;
- //return VecH4(color.rgb/weight, color.a/weight);
-   return VecH4(color.rgb/weight, (color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
+   color.MASK/=weight;
+   blur_abs  /=weight;
+#if ALPHA
+   outBlur=((blur   >=0         ) ?     blur_abs     :    -blur_abs    ); // blur/weight>=0 -> blur>=0*weight -> blur>=0
+#else
+   color.a=((color.a>=0.5*weight) ? 0.5+blur_abs*0.5 : 0.5-blur_abs*0.5); // color.a/weight>=0.5 -> color.a>=0.5*weight
+#endif
+   return color;
 }
-#undef  SCALE
-#define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
-VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD
+                   #if ALPHA
+                    , out Half outBlur:TARGET1
+                   #endif
+):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
-
-   Vec4 center=TexPoint(Img, inTex);
-   Flt  center_blur=Center(center.a),
+   Vec4 center     =TexPoint(Img, inTex);
+   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
         weight=0,
+     #if ALPHA
+        blur=0,
+     #endif
         blur_abs=0;
-   Vec4 color =0;
+   Vec4 color=0;
    Vec2 t; t.x=inTex.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.y=inTex.y+RTSize.y*i;
       Vec4 c=TexPoint(Img, t);
-      Flt  test_blur=c.a,
+      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
-      color   +=w*    c;
-      blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
+      color   +=w*c;
+   #if ALPHA
+      blur    +=w*    test_blur ;
+   #endif
+      blur_abs+=w*Abs(test_blur);
    }
    Flt b=Abs(center_blur),
        w=Lerp(WeightSum(RANGE)-weight, 1, b);
-   color   +=w*    center;
-   blur_abs+=w*Abs(center.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    weight  +=w;
+   color   +=w*center;
+#if ALPHA
+   blur    +=w*center_blur;
+#endif
+   blur_abs+=w*b;
 
-   blur_abs/=weight;
- //color.a  =((color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
-   return VecH4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs);
+   color.MASK/=weight;
+   blur_abs  /=weight;
+#if ALPHA
+   outBlur=(FINAL_MODE ? ((blur   >=0         ) ? 0 : blur_abs) : blur_abs); // blur/weight>=0 -> blur>=0*weight -> blur>=0
+#else
+   color.a=(FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs); // color.a/weight>=0.5 -> color.a>=0.5*weight
+#endif
+   return color;
 }
 /******************************************************************************/
-// DITHER, REALISTIC
+// DITHER, REALISTIC, ALPHA
 VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
              NOPERSP PIXEL              ):TARGET
 {
@@ -208,9 +248,11 @@ VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
      #if SHOW_SMOOTH_BLUR
         col.rgb=blur.a;
      #else
-        col.rgb=Lerp(focus.rgb, blur.rgb, FinalBlur(b, blur.a));
+        col.MASK=Lerp(focus.MASK, blur.MASK, FinalBlur(b, OPT(blur.a, TexLod(ImgX, inTex).x))); // use linear filtering because 'ImgX' may be smaller RT
      #endif
+     #if !ALPHA
         col.a=1; // force full alpha so back buffer effects can work ok
+      #endif
 #if DITHER
    ApplyDither(col.rgb, pixel.xy);
 #endif

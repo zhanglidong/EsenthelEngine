@@ -9,6 +9,11 @@
 #ifndef RANGE
 #define RANGE 0
 #endif
+#if ALPHA
+   #define MASK rgba
+#else
+   #define MASK rgb
+#endif
 /******************************************************************************
 
    TexCoord.x=0 -> Left, TexCoord.x=1 -> Right
@@ -412,11 +417,6 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // goes simultaneously in b
    return dirs;
 }
 /******************************************************************************/
-#if ALPHA
-   #define MASK rgba
-#else
-   #define MASK rgb
-#endif
 VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
               NOPERSP PIXEL              ):TARGET // no need to do clamp because we've already done that in 'SetDirs'
 {

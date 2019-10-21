@@ -404,32 +404,39 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither, Bool co
 
    return false;
 }
-INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half_res); return s;}
-INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha   ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]   ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha   ); return s;}
+INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, alpha, half_res); return s;}
+INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha               ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha          ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half_res
    ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
    ImageRTPtr  rt0(rt_desc),
-               rt1(rt_desc);
+               rt1(rt_desc), blur_smooth[2];
+   if(combine)
+   {
+      rt_desc.rt_type=IMAGERT_ONE_S;
+      blur_smooth[0].get(rt_desc);
+      blur_smooth[1].get(rt_desc);
+   }
 
    Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
    Dof.load();
    D.alpha(ALPHA_NONE);
- C DepthOfField::Pixel &pixel=Dof.pixel(Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
+ C DepthOfField::Pixel &pixel=Dof.pixel(combine, Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
 
    Flt range_inv=1.0f/Max(D.dofRange(), EPS);
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
-   set(rt0, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
-   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half_res)->draw(src, rect);
+   set(rt0, blur_smooth[0], null, null, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
+   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), combine, half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-                   set(rt1, null, false); pixel.BlurX->draw(rt0, rect);
-   rt0->discard(); set(rt0, null, false); pixel.BlurY->draw(rt1, rect);
+                   set(rt1, blur_smooth[1], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[0]); pixel.BlurX[combine]->draw(rt0, rect);
+   rt0->discard(); set(rt0, blur_smooth[0], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[1]); pixel.BlurY[combine]->draw(rt1, rect);
 
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Sh.Img[1]->set(rt0);
+   Sh.Img [1]->set(          rt0 );
+   Sh.ImgX[0]->set(blur_smooth[0]);
    GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), combine)->draw(src);
 }
 INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}

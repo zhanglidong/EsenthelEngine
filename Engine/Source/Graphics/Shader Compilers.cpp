@@ -419,12 +419,14 @@ static void Compile(API api)
    REPD(realistic, 2)
    REPD(half_res , 2)
    REPD(gather   , 2)
-      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "HALF_RES", half_res, "GATHER", gather).gather(gather);
+      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("GATHER", gather).gather(gather);
 
+   REPD(alpha, 2)
    for(Int range=2; range<=12; range++)
    {
       src.New("DofBlurX", "Draw_VS", "DofBlurX_PS")("RANGE", range);
       src.New("DofBlurY", "Draw_VS", "DofBlurY_PS")("RANGE", range);
+      src.New("DofBlurX", "Draw_VS", "DofBlurX_PS")("ALPHA", alpha, "RANGE", range);
    }
 
    REPD(dither   , 2)
