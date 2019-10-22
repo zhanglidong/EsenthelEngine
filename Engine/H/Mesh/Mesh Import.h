@@ -11,7 +11,7 @@ struct XMaterial // Material stored in external formats
    Vec4               color    ; // color          (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
    Vec                ambient  ; // ambient          (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt                smooth   , // smoothness             0 .. 1        , default=0
-                      reflect  , // reflectivity           0 .. 1        , default=0.04
+                      reflect  , // reflectivity           0 .. 1        , default=MATERIAL_REFLECT
                       glow     , // glow amount            0 .. 1        , default=0
                       normal   , // normal map sharpness   0 .. 1        , default=1
                       bump     , // bumpiness              0 .. 0.09     , default=0.03

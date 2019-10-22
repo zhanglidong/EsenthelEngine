@@ -17,7 +17,7 @@ XMaterial::XMaterial()
    color        =1;
    ambient      =0;
    smooth       =0;
-   reflect      =0.04f;
+   reflect      =MATERIAL_REFLECT;
    glow         =0;
    normal       =1;
    bump         =0.03f;

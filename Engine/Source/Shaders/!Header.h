@@ -1504,7 +1504,7 @@ inline Half LightSpecular(VecH nrm, Half smooth, VecH light_dir, VecH eye_dir)
    VecH H=Normalize(light_dir-eye_dir);
    smooth=1-Sqr(1-smooth); // this matches blur from 'Env' map based on pre-generated mip blurs in 'PBR'
    Half exp=Pow(2, smooth*9+1); // Pow(1024, smooth) is same as Pow(2, 10*smooth); value was chosen to match Sun reflection size on a flat smooth surface
-   return Pow(Sat(Dot(nrm, H)), exp)*Sqr(smooth);
+   return Pow(Sat(Dot(nrm, H)), exp)*Cube(smooth); // 'Cube' matches blur from 'Env' map based on pre-generated mip blurs in 'PBR'
 }
 /******************************************************************************/
 // PBR REFLECTION
@@ -1520,7 +1520,7 @@ inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, VecH2 ext, Vec eye_dir, 
    Half smooth =ext.x, // #RTOutput
         reflect=ext.y;
    VecH reflect_col=ReflectCol(unlit_col, reflect); // set before adjusting 'reflect'
-   reflect=reflect + (1-reflect)*Quint(d)*smooth; // increase reflectivity based on angle and smoothness
+   reflect=reflect + (1-reflect)*Quint(d*smooth); // increase reflectivity based on angle and smoothness
    return Lerp(lit_col, TexCubeLodI(Env, env_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflect) // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
          +spec*reflect_col;
 }

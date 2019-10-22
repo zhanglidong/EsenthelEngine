@@ -33,8 +33,6 @@ enum MTRL_TEX_LAYOUT : Byte
 
 #define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 
-#define REFLECT_DEFAULT_PAR 0.04f
-
 // #MaterialTextureLayout
 // base_0
 #define    GLOW_CHANNEL 3
@@ -72,7 +70,7 @@ Material::Material()
    color_l.set(1, 1, 1, 1);
    ambient.set(0, 0, 0);
    smooth   =0;
-   reflect  =REFLECT_DEFAULT_PAR;
+   reflect  =MATERIAL_REFLECT;
    glow     =0;
    normal   =1;
    bump     =BUMP_DEFAULT_PAR;
@@ -383,7 +381,7 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
       if((new_base_tex&BT_SMOOTH) && smooth<=EPS_COL8)smooth=1;
 
    if(changed&BT_REFLECT)
-      if((new_base_tex&BT_REFLECT) && reflect<=REFLECT_DEFAULT_PAR+EPS_COL8)reflect=1;
+      if((new_base_tex&BT_REFLECT) && reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;
 
    if(changed&BT_GLOW)
       if((new_base_tex&BT_GLOW) && glow<=EPS_COL8)glow=1;
@@ -441,7 +439,7 @@ Bool Material::loadData(File &f, CChar *path)
                              base_2=null;
          f.getStr(temp); detail_map.require(temp, path);
          f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f.getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f.getStr(temp);  light_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
@@ -455,7 +453,7 @@ Bool Material::loadData(File &f, CChar *path)
                                base_2=null;
          f._getStr1(temp); detail_map.require(temp, path);
          f._getStr1(temp);  macro_map.require(temp, path);
-         f._getStr1(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f._getStr1(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr1(temp);  light_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
@@ -469,7 +467,7 @@ Bool Material::loadData(File &f, CChar *path)
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
@@ -483,7 +481,7 @@ Bool Material::loadData(File &f, CChar *path)
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr8();
       }break;
@@ -495,7 +493,7 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
          f._getStr8();
@@ -508,7 +506,7 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
       }break;
@@ -520,7 +518,7 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map.require(f._getStr8(), path);
           macro_map=null;
       }break;
@@ -534,7 +532,7 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map=null;
           macro_map=null;
       }break;
@@ -548,7 +546,7 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map=null;
           macro_map=null;
       }break;
@@ -570,7 +568,7 @@ Bool Material::loadData(File &f, CChar *path)
          f>>temp;     base_1.require(temp, path);
                       base_2=null;
          f>>temp; detail_map.require(temp, path);
-         f>>temp; if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+         f>>temp; if(!Is(temp))reflect=MATERIAL_REFLECT;
                    light_map=null;
                    macro_map=null;
       }break;

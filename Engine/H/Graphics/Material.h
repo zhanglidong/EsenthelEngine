@@ -21,12 +21,14 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_NUM                   , // number of Material Techniques
 };
 /******************************************************************************/
+#define MATERIAL_REFLECT 0.03f // default Material reflectivity value
+/******************************************************************************/
 struct MaterialParams // Material Parameters
 {
    Vec4 color_l  ; // color Linear Gamma (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
    Vec  ambient  ; // ambient              (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt  smooth   , // smoothness                 0 .. 1        , default=0
-        reflect  , // reflectivity               0 .. 1        , default=0.04
+        reflect  , // reflectivity               0 .. 1        , default=MATERIAL_REFLECT
         glow     , // glow amount                0 .. 1        , default=0
         normal   , // normal map sharpness       0 .. 1        , default=1
         bump     , // bumpiness                  0 .. 0.09     , default=0.03
