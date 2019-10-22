@@ -481,15 +481,17 @@ RendererClass& RendererClass::operator()(void (&render)())
    if(Kb.b(KB_NP1))stage=RS_COLOR;else
    if(Kb.b(KB_NP2))stage=RS_NORMAL;else
    if(Kb.b(KB_NP3))stage=RS_VEL;else
-   if(Kb.b(KB_NP4))stage=(Kb.b(KB_NP5) ? RS_LIGHT_AO : RS_LIGHT);else
-   if(Kb.b(KB_NP5))stage=RS_AO;else
-   if(Kb.b(KB_NP6))stage=RS_LIT_COLOR;else
-   if(Kb.b(KB_NP7))stage=RS_WATER_COLOR;else
-   if(Kb.b(KB_NP8))stage=RS_WATER_NORMAL;else
-   if(Kb.b(KB_NP9))stage=RS_WATER_LIGHT;else
-   if(Kb.b(KB_NPDIV))stage=RS_REFLECTION;else
+   if(Kb.b(KB_NP4))stage=RS_SMOOTH;else
+   if(Kb.b(KB_NP5))stage=RS_REFLECT;else
+   if(Kb.b(KB_NP7))stage=(Kb.b(KB_NP8) ? RS_LIGHT_AO : RS_LIGHT);else
+   if(Kb.b(KB_NP8))stage=RS_AO;else
+   if(Kb.b(KB_NPDEL))stage=RS_LIT_COLOR;else
+   if(Kb.b(KB_NPDIV))stage=RS_WATER_COLOR;else
+   if(Kb.b(KB_NPMUL))stage=RS_WATER_NORMAL;else
+   if(Kb.b(KB_NPSUB))stage=RS_WATER_LIGHT;else
+   if(Kb.b(KB_NPADD))stage=RS_REFLECTION;else
    if(Kb.br(KB_NP0) || Kb.br(KB_NP1) || Kb.br(KB_NP2) || Kb.br(KB_NP3) || Kb.br(KB_NP4) || Kb.br(KB_NP5) || Kb.br(KB_NP6) || Kb.br(KB_NP7) || Kb.br(KB_NP8) || Kb.br(KB_NP9)
-   || Kb.br(KB_NPDIV))stage=RS_DEFAULT;
+   || Kb.br(KB_NPDIV) || Kb.br(KB_NPMUL) || Kb.br(KB_NPSUB) || Kb.br(KB_NPADD) || Kb.br(KB_NPDEL))stage=RS_DEFAULT;
 #endif
 
    // Shadow Settings
