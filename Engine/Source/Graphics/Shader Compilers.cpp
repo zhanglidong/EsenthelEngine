@@ -262,7 +262,7 @@ static void Compile(API api)
       REPD(  cel_shade , 2)
       REPD(night_shade , 2)
       REPD(glow        , 2)
-         src.New("ApplyLight", "Draw_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade)("GLOW", glow);
+         src.New("ApplyLight", "DrawPosXY_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade)("GLOW", glow);
    }
    { // SHADOW
       ShaderCompiler::Source &src=compiler.New(src_path+"Shadow.cpp");

@@ -161,10 +161,11 @@
 #define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
 #define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
 
-#define TexLod(    image, uv    )   image.SampleLevel(SamplerDefault, uv , 0) // access 2D   texture's 0-th MipMap (LOD level=0)
-#define TexLodI(   image, uv , i)   image.SampleLevel(SamplerDefault, uv , i) // access 2D   texture's i-th MipMap (LOD level=i)
-#define Tex3DLod(  image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access 3D   texture's 0-th MipMap (LOD level=0)
-#define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
+#define TexLod(     image, uv      )   image.SampleLevel(SamplerDefault, uv ,   0) // access 2D   texture's   0-th MipMap (LOD level=  0)
+#define TexLodI(    image, uv , lod)   image.SampleLevel(SamplerDefault, uv , lod) // access 2D   texture's lod-th MipMap (LOD level=lod)
+#define Tex3DLod(   image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access 3D   texture's   0-th MipMap (LOD level=  0)
+#define TexCubeLod( image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access Cube texture's   0-th MipMap (LOD level=  0)
+#define TexCubeLodI(image, uvw, lod)   image.SampleLevel(SamplerDefault, uvw, lod) // access Cube texture's lod-th MipMap (LOD level=lod)
 
 #define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
 
@@ -437,7 +438,7 @@ ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
 
-Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
+Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
@@ -1501,10 +1502,10 @@ inline Half LightDiffuse (VecH nrm,                VecH light_dir               
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)
 {
 #if 1 // blinn
-   return Pow(Sat(Dot(nrm, Normalize(light_dir+eye_dir))), power)*specular;
+   return Pow(Sat(Dot(nrm, Normalize(light_dir-eye_dir))), power)*specular;
 #else // phong
    Vec reflection=Normalize(nrm*(2*Dot(nrm, light_dir)) - light_dir);
-   return Pow(Sat(Dot(reflection, eye_dir)), power)*specular;
+   return Pow(Sat(-Dot(reflection, eye_dir)), power)*specular;
 #endif
 }
 /******************************************************************************/

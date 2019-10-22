@@ -262,6 +262,7 @@ void MainShaderClass::getTechniques()
 
    ImgMS[0]=ShaderImages("ImgMS" );
    ImgMS[1]=ShaderImages("ImgMS1");
+   ImgMS[2]=ShaderImages("ImgMS2");
 
    ImgX[0] =ShaderImages("ImgX"   );
    ImgX[1] =ShaderImages("ImgX1"  );

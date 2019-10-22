@@ -514,8 +514,8 @@ VecH4 PS
          // specular
          BRANCH if(lum*smooth>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (-I.pos);
-            Half spec   =LightSpecular(   nrm, smooth, light_dir, eye_dir); if(LIGHT_DIR_SHD)spec*=shadow;
+            VecH eye_dir=Normalize    (I.pos);
+            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir); if(LIGHT_DIR_SHD)spec*=shadow;
             total_specular+=LightDir.color.rgb*spec;
          }  total_lum     +=LightDir.color.rgb*lum ;
       }
@@ -537,8 +537,8 @@ VecH4 PS
          // specular
          BRANCH if(lum*smooth>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (-I.pos);
-            Half spec   =LightSpecular(   nrm, smooth, light_dir, eye_dir);
+            VecH eye_dir=Normalize    (I.pos);
+            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
             total_specular+=LightPoint.color.rgb*(spec*power);
          }  total_lum     +=LightPoint.color.rgb*(lum *power);
       }
@@ -560,8 +560,8 @@ VecH4 PS
          // specular
          BRANCH if(lum*smooth>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (-I.pos);
-            Half spec   =LightSpecular(   nrm, smooth, light_dir, eye_dir);
+            VecH eye_dir=Normalize    (I.pos);
+            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
             total_specular+=LightLinear.color.rgb*(spec*power);
          }  total_lum     +=LightLinear.color.rgb*(lum *power);
       }
@@ -584,8 +584,8 @@ VecH4 PS
          // specular
          BRANCH if(lum*smooth>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (-I.pos);
-            Half spec   =LightSpecular(   nrm, smooth, light_dir, eye_dir);
+            VecH eye_dir=Normalize    (I.pos);
+            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
             total_specular+=LightCone.color.rgb*(spec*power);
          }  total_lum     +=LightCone.color.rgb*(lum *power);
       }

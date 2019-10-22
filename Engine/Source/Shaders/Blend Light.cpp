@@ -275,8 +275,8 @@ void PS
    /* don't use specular at all
       BRANCH if(lum*specular>EPS_LUM)
       {
-         Vec eye_dir=Normalize    (-I.pos);
-         Flt spec   =LightSpecular( nrm, specular, light_dir, eye_dir); if(SHADOW_MAPS)spec*=shd;
+         VecH eye_dir=Normalize    (I.pos);
+         Half spec   =LightSpecular(nrm, specular, light_dir, eye_dir); if(SHADOW_MAPS)spec*=shd;
          total_specular+=LightDir.color.rgb*spec;
       }*/total_lum     +=LightDir.color.rgb*lum ;
    #else

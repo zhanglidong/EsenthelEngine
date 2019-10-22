@@ -1319,9 +1319,6 @@ void RendererClass::light()
        SortLights();
        DrawLights();
 
-           _nrm.clear();
-   //_water_nrm.clear(); we may still need it for refraction
-
       getLumRT();
 
       // add ambient light from meshes
@@ -1339,21 +1336,27 @@ void RendererClass::light()
 
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL), glow=(_has_glow && ImageTI[_col->hwType()].a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
-      Sh.Img [1]->set(_lum_1s             );
-      Sh.Img [2]->set( cel_shade_palette());
-      Sh.ImgX[0]->set(_ao                 );
-      D .alpha(ALPHA_NONE);
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
            use_last_frag_color=(has_last_frag_color && (D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8)==D.litColRTPrecision());
       if(!use_last_frag_color)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(D.glowAllow(), D.litColRTPrecision()), _col->samples())); // glow requires alpha
 
+      Sh.Img  [0]->set(_nrm                );
+      Sh.Img  [1]->set( src                );
+      Sh.Img  [2]->set(_lum_1s             );
+      Sh.Img  [3]->set( cel_shade_palette());
+      Sh.ImgX [0]->set(_ao                 );
+      Sh.ImgXY   ->set(_ext                );
+
+      D.alpha(ALPHA_NONE);
       set(_col, _ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
       if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
-      if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow)->draw(src);else
+      if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow)->draw();else
       {
-         Sh.ImgMS[0]->set( src);
-         Sh.ImgMS[1]->set(_lum);
+         Sh.ImgMS[0]->set(_nrm);
+         Sh.ImgMS[1]->set( src);
+         Sh.ImgMS[2]->set(_lum);
+         Sh.ImgXYMS ->set(_ext);
          if(hasStencilAttached())
          {
             D.stencil   (STENCIL_MSAA_TEST, 0); GetApplyLight(1, ao, cel_shade, night_shade, glow)->draw(); // 1 sample
@@ -1367,10 +1370,12 @@ void RendererClass::light()
          }
       }
       D.depth2DOff();
-      src.clear();
       if(_lum!=_lum_1s && (_has_fur || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
-     _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
-     _ext.clear(); // FIXME can this be cleared earlier?
+            src.clear();
+           _nrm.clear();
+   //_water_nrm.clear(); we may still need it for refraction
+           _ext.clear();
+           _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
    }
 }
 Bool RendererClass::waterPostLight()
