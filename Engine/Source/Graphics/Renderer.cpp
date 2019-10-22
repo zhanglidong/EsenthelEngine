@@ -219,7 +219,7 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
    }
    return null;
 }
-void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
+void RendererClass::adaptEye(ImageRT &src, ImageRT &dest)
 {
    Hdr.load();
    D.alpha(ALPHA_NONE);
@@ -237,13 +237,13 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
       temp=next;
    }
    Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                  ->draw();
-                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
+   Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
+                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res, saturate, gamma); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool gamma, Bool alpha                               ) {Shader* &s=Sh.Bloom  [dither][gamma][alpha]                     ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma, alpha                     ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
+void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 {
    // process bloom in sRGB gamma, because it will provide sharper results
    // '_alpha' from 'combine' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
@@ -289,7 +289,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither, Bool combine
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
-   GetBloom(dither /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), gamma, _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
+   GetBloom(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), gamma, _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
   _alpha.clear(); // already merged with '_col'
    if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
@@ -310,7 +310,7 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
    Mtn.MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
 }
 // !! Assumes that 'ImgClamp' was already set !!
-Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
+Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 {
    const Bool camera_object=_has_vel; // remember motion blur mode (keep as bool in case codes operate on "Bool _has_vel" for case when '_vel' RT alpha channel is used for something, or if just '_vel' is used, however since it's cleared below, then we must remember it before clearing)
    if(stage==RS_VEL && camera_object && show(_vel, false, D.signedVelRT()))return true;
@@ -400,14 +400,14 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither, Bool co
 
    Sh.Img[1]->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()][combine]->draw(src); // here blurring may generate high precision values
+   Mtn.Blur[D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision()][combine]->draw(src); // here blurring may generate high precision values
 
    return false;
 }
 INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, alpha, half_res); return s;}
 INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha               ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha          ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
+void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half_res
    ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
@@ -437,7 +437,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither, Bool combine)
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set(          rt0 );
    Sh.ImgX[0]->set(blur_smooth[0]);
-   GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), combine)->draw(src);
+   GetDof(D.dither() && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), combine)->draw(src);
 }
 INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}
 INLINE Shader* GetSetAlphaFromDepthMS      () {Shader* &s=Sh.SetAlphaFromDepthMS      ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthMS"      ); return s;}
@@ -1808,7 +1808,6 @@ void RendererClass::postProcess()
         dof      = hasDof     (),
         combine  = slowCombine(), // shader combine
         upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
-        fx_dither=(D.dither() && !upscale), // allow post process dither only if we're not going to upscale the image (because it would look bad)
         alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
    ImageRTPtr  dest;
@@ -1822,14 +1821,14 @@ void RendererClass::postProcess()
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
    if(!_get_target) // if we're going to output to the monitor
    {
-      IMAGE_PRECISION monitor_prec=D.monitorPrecision();
-      if(fx_dither && monitor_prec==IMAGE_PRECISION_8)monitor_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
-      MIN(rt_prec,    monitor_prec);
+      IMAGE_PRECISION  monitor_prec=D.monitorPrecision();
+      if(D.dither() && monitor_prec==IMAGE_PRECISION_8)monitor_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
+      MIN(rt_prec,     monitor_prec);
    }
    if(eye_adapt)
    {
       if(!--fxs)dest=_final;else{rt_desc.rt_type=GetImageRTType(_has_glow, rt_prec); dest.get(rt_desc);} // can't read and write to the same RT, glow requires Alpha channel
-      T.adaptEye(*_col, *dest, fx_dither); Swap(_col, dest); // Eye Adaptation keeps Alpha
+      T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
 
    rt_desc.rt_type=GetImageRTType(combine, rt_prec); // we need alpha channel after bloom only if we use combining
@@ -1837,7 +1836,7 @@ void RendererClass::postProcess()
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.bloom(*_col, *dest, fx_dither, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
+      T.bloom(*_col, *dest, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
    }else
    if(combine) // merge '_col' with '_alpha' (only if no bloom, because bloom already merged)
    {
@@ -1867,12 +1866,12 @@ void RendererClass::postProcess()
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      if(T.motionBlur(*_col, *dest, fx_dither, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
+      if(T.motionBlur(*_col, *dest, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }
    if(dof) // after Motion Blur
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.dof(*_col, *dest, fx_dither, combine); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
+      T.dof(*_col, *dest, combine); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
    }
    if(ms_samples_color.a && D.multiSample())
    {
