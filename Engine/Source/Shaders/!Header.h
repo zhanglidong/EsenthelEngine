@@ -1292,19 +1292,6 @@ inline VecH GetNormalMS(VecI2 pixel, UInt sample, Bool dequantize=false)
 inline VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
 inline VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
 /******************************************************************************/
-// PBR REFLECTION
-/******************************************************************************/
-inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, VecH2 ext, Vec eye_dir)
-{
-   Vec  env_dir=Transform3(reflect(eye_dir, nrm), CamMatrix);
-   Half d=Sat(1+Dot((VecH)eye_dir, nrm));
-   Half smooth =ext.x, // #RTOutput
-        reflect=ext.y;
-   VecH reflect_col=unlit_col*reflect + (1-reflect); // Lerp(VecH(1,1,1), unlit_col, reflect) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
-   reflect=reflect + (1-reflect)*Quint(d)*smooth; // increase reflectivity based on angle and smoothness
-   return Lerp(lit_col, TexCubeLodI(Env, env_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflect); // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
-}
-/******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
 inline Flt GetLod(Vec2 tex_coord, Flt tex_size)
@@ -1511,15 +1498,31 @@ inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLine
 inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
 inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
 
-inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
-inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)
+inline Half LightDiffuse (VecH nrm,              VecH light_dir              ) {return Sat(Dot(nrm, light_dir));}
+inline Half LightSpecular(VecH nrm, Half smooth, VecH light_dir, VecH eye_dir)
 {
-#if 1 // blinn
-   return Pow(Sat(Dot(nrm, Normalize(light_dir-eye_dir))), power)*specular;
-#else // phong
-   Vec reflection=Normalize(nrm*(2*Dot(nrm, light_dir)) - light_dir);
-   return Pow(Sat(-Dot(reflection, eye_dir)), power)*specular;
-#endif
+   VecH H=Normalize(light_dir-eye_dir);
+   smooth=1-Sqr(1-smooth); // this matches blur from 'Env' map based on pre-generated mip blurs in 'PBR'
+   Half exp=Pow(2, smooth*9+1); // Pow(1024, smooth) is same as Pow(2, 10*smooth); value was chosen to match Sun reflection size on a flat smooth surface
+   return Pow(Sat(Dot(nrm, H)), exp)*Sqr(smooth);
+}
+/******************************************************************************/
+// PBR REFLECTION
+/******************************************************************************/
+inline VecH ReflectCol(VecH unlit_col, Half reflect)
+{
+   return unlit_col*reflect + (1-reflect); // Lerp(VecH(1,1,1), unlit_col, reflect) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+}
+inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, VecH2 ext, Vec eye_dir, VecH spec)
+{
+   Vec  env_dir=Transform3(reflect(eye_dir, nrm), CamMatrix);
+   Half d=Sat(1+Dot((VecH)eye_dir, nrm));
+   Half smooth =ext.x, // #RTOutput
+        reflect=ext.y;
+   VecH reflect_col=ReflectCol(unlit_col, reflect); // set before adjusting 'reflect'
+   reflect=reflect + (1-reflect)*Quint(d)*smooth; // increase reflectivity based on angle and smoothness
+   return Lerp(lit_col, TexCubeLodI(Env, env_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflect) // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+         +spec*reflect_col;
 }
 /******************************************************************************/
 // SHADOWS

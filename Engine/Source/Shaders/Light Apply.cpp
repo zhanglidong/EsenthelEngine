@@ -37,8 +37,7 @@ inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH ni
       max_lum=CelShade(max_lum);
       lum.rgb=max_lum;
    }
-   Half spec   =lum.w/Max(max_lum, HALF_MIN);
-   VecH lit_col=(color.rgb+spec)*lum.rgb;
+   VecH lit_col=color.rgb*lum.rgb;
    if(NIGHT_SHADE)
    {
    #if LINEAR_GAMMA
@@ -51,11 +50,14 @@ inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH ni
       if(apply_ao)night_shade_intensity*=ao;
          lit_col+=night_shade_intensity*night_shade_col;
    }
+   Half spec=lum.w/Max(max_lum, HALF_MIN);
+   VecH spec_col=spec*lum.rgb;
 #if REFLECT
-   return PBR(color.rgb, lit_col, nrm, ext, eye_dir);
+   lit_col=PBR(color.rgb, lit_col, nrm, ext, eye_dir, spec_col);
 #else
-   return lit_col;
+   lit_col+=spec_col*ReflectCol(color.rgb, ext.y); // #RTOutput
 #endif
+   return lit_col;
 }
 /******************************************************************************/
 // Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img3=CelShade
