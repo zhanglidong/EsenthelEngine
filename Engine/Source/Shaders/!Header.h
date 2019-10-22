@@ -1292,6 +1292,19 @@ inline VecH GetNormalMS(VecI2 pixel, UInt sample, Bool dequantize=false)
 inline VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
 inline VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
 /******************************************************************************/
+// PBR REFLECTION
+/******************************************************************************/
+inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, VecH2 ext, Vec eye_dir)
+{
+   Vec  env_dir=Transform3(reflect(eye_dir, nrm), CamMatrix);
+   Half d=Sat(1+Dot((VecH)eye_dir, nrm));
+   Half smooth =ext.x, // #RTOutput
+        reflect=ext.y;
+   VecH reflect_col=unlit_col*reflect + (1-reflect); // Lerp(VecH(1,1,1), unlit_col, reflect) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+   reflect=reflect + (1-reflect)*Quint(d)*smooth; // increase reflectivity based on angle and smoothness
+   return Lerp(lit_col, TexCubeLodI(Env, env_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflect); // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+}
+/******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
 inline Flt GetLod(Vec2 tex_coord, Flt tex_size)

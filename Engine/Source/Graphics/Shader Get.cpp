@@ -76,7 +76,7 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
 }
 static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL;} // FIXME perhaps this should be always true? because of angles, what about smoothness?
+static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL || material.smooth>EPS_COL;}
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL) ? material.light_map ? 2 : 1 : 0;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
@@ -138,7 +138,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LOD's>0
    if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0 and layout<2 (no bump channel)
    if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
-   if(!normal                                                )reflect=false; // reflection requires vtx normals
+   if(!normal || !D.envAllow()                               )reflect=false; // reflection requires vtx normals
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient
 

@@ -9,14 +9,15 @@ BUFFER_END
 
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
 
+// MULTI_SAMPLE, AO, CEL_SHADE, NIGHT_SHADE, GLOW, REFLECT
+
 #ifndef DEQUANTIZE
 #define DEQUANTIZE false
 #endif
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img3, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
-//Flt Smooth; // FIXME
-inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, VecH eye_dir)
+inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
 #if GLOW
       // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
@@ -50,15 +51,11 @@ inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH ni
       if(apply_ao)night_shade_intensity*=ao;
          lit_col+=night_shade_intensity*night_shade_col;
    }
-
-   VecH env_texcoord=Transform3(reflect(eye_dir, nrm), CamMatrix); // #ShaderHalf
-   /*Half d=Sat(Dot(eye_dir, nrm));
-   lit_col=d;
-   lit_col+=NightShadeColor*0.001;*/
-   lit_col=Lerp(lit_col, TexCubeLodI(Env, env_texcoord, (1-ext.x)*10).rgb*EnvColor, ext.y);
-   //lit_col=Lerp(lit_col, TexCubeLodI(Env, env_texcoord, (1-Smooth)*10).rgb*EnvColor, 0.999);
-
+#if REFLECT
+   return PBR(color.rgb, lit_col, nrm, ext, eye_dir);
+#else
    return lit_col;
+#endif
 }
 /******************************************************************************/
 // Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img3=CelShade
@@ -68,7 +65,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 {
    Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
    VecI p=VecI(pixel.xy, 0);
-   VecH eye_dir=Normalize(Vec(inPosXY, 1));
+   Vec  eye_dir=Normalize(Vec(inPosXY, 1));
    if(MULTI_SAMPLE==0)
    {
    #if !GL // does not work on SpirV -> GLSL
@@ -82,7 +79,8 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH2 ext=GetExt   (inTex);
 
       if(AO && !AO_ALL)lum.rgb+=ambient;
-             color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir); if(AO && AO_ALL)color*=ao;
+      color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
+      if(AO && AO_ALL)color*=ao;
       return color;
    }else
    if(MULTI_SAMPLE==1) // 1 sample
@@ -94,7 +92,8 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH4  lum1s=Img2.Load(p);
              lum +=lum1s;
       if(AO && !AO_ALL)lum.rgb+=ambient;
-             color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir); if(AO && AO_ALL)color*=ao;
+      color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
+      if(AO && AO_ALL)color*=ao;
       return color;
    }else // n samples
    {

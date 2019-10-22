@@ -197,7 +197,7 @@ Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool
 Shader* MainShaderClass::getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool dequantize, Bool image) {return get(S8+"DrawLightConeFlat"+shadow+multi_sample+(dequantize && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
 #endif
 
-Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow);}
+Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow+reflect);}
 
 Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+mask);}
 Shader* MainShaderClass::getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +mask+dither+jitter+gamma);}
@@ -596,7 +596,8 @@ void MainShaderClass::getTechniques()
       REPD(  cel_shade , 2)
       REPD(night_shade , 2)
       REPD(glow        , 2)
-         ApplyLight[multi_sample][ao][cel_shade][night_shade][glow]=getApplyLight(multi_sample, ao, cel_shade, night_shade, glow);
+      REPD(reflect     , 2)
+         ApplyLight[multi_sample][ao][cel_shade][night_shade][glow][reflect]=getApplyLight(multi_sample, ao, cel_shade, night_shade, glow, reflect);
    #endif
    }
 

@@ -732,6 +732,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _ns_color_l.zero();
 
   _env_color=1;
+  _env_allow=true;
 
   _vol_light=false;
   _vol_add  =false;
@@ -2912,8 +2913,9 @@ Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nigh
 Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
 Display& Display::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_ns_color_l!=c){_ns_color_l=c; ambientSet();} return T;}
 /******************************************************************************/
-Display& Display::envColor(  Flt      color) {if(_env_color!=color)Sh.EnvColor->set(_env_color=color ); return T;}
-Display& Display::envMap  (C ImagePtr &cube) {   _env_map   =cube; Sh.Env     ->set(           cube()); return T;}
+Display& Display::envAllow(  Bool      allow) {if(_env_allow!=allow){_env_allow=allow; setShader();}     return T;}
+Display& Display::envColor(  Flt       color) {if(_env_color!=color)Sh.EnvColor->set(_env_color=color ); return T;}
+Display& Display::envMap  (C ImagePtr &cube ) {   _env_map   =cube; Sh.Env     ->set(           cube()); return T;}
 /******************************************************************************/
 Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
 Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                     return T;}

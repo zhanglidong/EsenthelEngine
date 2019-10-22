@@ -42,6 +42,7 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_NORMAL      , // display Normals            (available only in RT_DEFERRED)
    RS_SMOOTH      , // display Smoothness         (available only in RT_DEFERRED)
    RS_REFLECT     , // display Reflectivity       (available only in RT_DEFERRED)
+   RS_GLOW        , // display Glow               (available only in RT_DEFERRED)
    RS_VEL         , // display Velocity           (available only in RT_DEFERRED)
    RS_LIGHT       , // display Light              (available only in RT_DEFERRED)
    RS_LIGHT_AO    , // display combined Light+AO  (available only in RT_DEFERRED)

@@ -483,6 +483,7 @@ RendererClass& RendererClass::operator()(void (&render)())
    if(Kb.b(KB_NP3))stage=RS_VEL;else
    if(Kb.b(KB_NP4))stage=RS_SMOOTH;else
    if(Kb.b(KB_NP5))stage=RS_REFLECT;else
+   if(Kb.b(KB_NP6))stage=RS_GLOW;else
    if(Kb.b(KB_NP7))stage=(Kb.b(KB_NP8) ? RS_LIGHT_AO : RS_LIGHT);else
    if(Kb.b(KB_NP8))stage=RS_AO;else
    if(Kb.b(KB_NPDEL))stage=RS_LIT_COLOR;else
@@ -569,6 +570,7 @@ RendererClass& RendererClass::operator()(void (&render)())
          case RS_NORMAL : if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
          case RS_SMOOTH : if(                          show(_ext  , false, false, 0       ))goto finished; break; // #RTOutput
          case RS_REFLECT: if(                          show(_ext  , false, false, 1       ))goto finished; break; // #RTOutput
+         case RS_GLOW   : if(                          show(_col  , false, false, 3       ))goto finished; break; // #RTOutput
          case RS_DEPTH  : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
       }
       waterPreLight(); MEASURE(water)
@@ -943,7 +945,7 @@ start:
    }
 #endif
 
-   const Bool clear_col=((!Sky.isActual() || stage==RS_COLOR || stage==RS_LIT_COLOR || _col->multiSample()) && !fastCombine()); // performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), always have to clear for multi-sampled to allow for proper detection of MSAA pixels using 'Sh.DetectMSCol' (this is needed for all renderers, not only Deferred, without this edges of sky/meshes may not get multi-sampled, especially when there's small variation in material color texture or no texture at all having just a single color)
+   const Bool clear_col=((!Sky.isActual() || stage==RS_COLOR || stage==RS_GLOW || stage==RS_LIT_COLOR || _col->multiSample()) && !fastCombine()); // performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), always have to clear for multi-sampled to allow for proper detection of MSAA pixels using 'Sh.DetectMSCol' (this is needed for all renderers, not only Deferred, without this edges of sky/meshes may not get multi-sampled, especially when there's small variation in material color texture or no texture at all having just a single color) #RTOutput
    switch(_cur_type)
    {
       case RT_DEFERRED:
@@ -1292,7 +1294,7 @@ void RendererClass::setAlphaFromDepthAndCol()
       GetSetAlphaFromDepthAndCol()->draw();
    }
 }
-INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade][glow]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade, glow); return s;}
+INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade][glow][reflect]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade, glow, reflect); return s;}
 void RendererClass::light()
 {
    if(slowCombine() && D.independentBlendAvailable())setAlphaFromDepth(); // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
@@ -1351,7 +1353,7 @@ void RendererClass::light()
       D.alpha(ALPHA_NONE);
       set(_col, _ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
       if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
-      if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow)->draw();else
+      if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow, D.envAllow())->draw();else
       {
          Sh.ImgMS[0]->set(_nrm);
          Sh.ImgMS[1]->set( src);
@@ -1359,14 +1361,14 @@ void RendererClass::light()
          Sh.ImgXYMS ->set(_ext);
          if(hasStencilAttached())
          {
-            D.stencil   (STENCIL_MSAA_TEST, 0); GetApplyLight(1, ao, cel_shade, night_shade, glow)->draw(); // 1 sample
-            if(Sky.isActual())D.depth2DOff();                                                               // multi-sampled always fill fully when sky will be rendered
-            D.stencilRef(STENCIL_REF_MSAA    ); GetApplyLight(2, ao, cel_shade, night_shade, glow)->draw(); // n samples
+            D.stencil   (STENCIL_MSAA_TEST, 0); GetApplyLight(1, ao, cel_shade, night_shade, glow, D.envAllow())->draw(); // 1 sample
+            if(Sky.isActual())D.depth2DOff();                                                                             // multi-sampled always fill fully when sky will be rendered
+            D.stencilRef(STENCIL_REF_MSAA    ); GetApplyLight(2, ao, cel_shade, night_shade, glow, D.envAllow())->draw(); // n samples
             D.stencil   (STENCIL_NONE        );
          }else
          {
-            if(Sky.isActual())D.depth2DOff();                           // multi-sampled always fill fully when sky will be rendered
-            GetApplyLight(2, ao, cel_shade, night_shade, glow)->draw(); // n samples
+            if(Sky.isActual())D.depth2DOff();                                         // multi-sampled always fill fully when sky will be rendered
+            GetApplyLight(2, ao, cel_shade, night_shade, glow, D.envAllow())->draw(); // n samples
          }
       }
       D.depth2DOff();
