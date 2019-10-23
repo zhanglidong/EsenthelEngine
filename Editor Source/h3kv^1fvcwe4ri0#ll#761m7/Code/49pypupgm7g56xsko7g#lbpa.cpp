@@ -44,7 +44,8 @@ class ImageConvert
               alpha_lum=false,
               has_color=true ,
               has_alpha=true ,
-           ignore_alpha=false;
+           ignore_alpha=false, 
+                    env=false;
    byte        downsize=    0;
    int         mip_maps=   -1,
                max_size=    0;
@@ -62,7 +63,7 @@ class ImageConvert
    }
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmImage &data, IMAGE_TYPE type)
    {
-      T.family=ELM_IMAGE; T.src=src; T.dest=dest; T.time=time; T.pow2=data.pow2(); T.mip_maps=(data.mipMaps() ? 0 : 1); T.alpha_lum=data.alphaLum(); T.has_color=data.hasColor(); T.has_alpha=data.hasAlpha3(); T.ignore_alpha=data.ignoreAlpha(); T.type=type; T.mode=data.mode; T.size=data.size;
+      T.family=ELM_IMAGE; T.src=src; T.dest=dest; T.time=time; T.pow2=data.pow2(); T.mip_maps=(data.mipMapsActual() ? 0 : 1); T.alpha_lum=data.alphaLum(); T.has_color=data.hasColor(); T.has_alpha=data.hasAlpha3(); T.ignore_alpha=data.ignoreAlpha(); T.env=data.envActual(); T.type=type; T.mode=data.mode; T.size=data.size;
    }
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmIcon &data, IMAGE_TYPE type)
    {
@@ -104,7 +105,7 @@ class ImageConvert
       {
          case ELM_IMAGE:
          {
-            Image image; if(image.ImportTry(src))if(EditToGameImage(image, image, pow2, true, alpha_lum, ElmImage.COMPRESSED, mode, mip_maps, has_color, has_alpha, ignore_alpha, size, &type)) // sRGB is ignored here because we force custom type
+            Image image; if(image.ImportTry(src))if(EditToGameImage(image, image, pow2, true, alpha_lum, ElmImage.COMPRESSED, mode, mip_maps, has_color, has_alpha, ignore_alpha, env, size, &type)) // sRGB is ignored here because we force custom type
             {
                File f; if(image.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
             }

@@ -586,7 +586,7 @@ VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2)
    if(pow2)size.set(NearestPow2(size.x), NearestPow2(size.y), NearestPow2(size.z));
    return size;
 }
-bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, C VecI2 &custom_size, C int *force_type)
+bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, bool env, C VecI2 &custom_size, C int *force_type)
 {
    VecI size=edit.size3();
    if(!edit.cube() && IsCube((IMAGE_MODE)mode))switch(edit.cubeLayout())
@@ -632,11 +632,11 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_
          Swap(temp, temp2); src=&temp;
       }
    }
-   return src->copyTry(game, size.x, size.y, size.z, dest_type, mode, mip_maps, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
+   return src->copyTry(game, size.x, size.y, size.z, dest_type, mode, mip_maps, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT|(env ? IC_ENV_CUBE : 0));
 }
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type)
 {
-   return EditToGameImage(edit, game, data.pow2(), data.sRGB(), data.alphaLum(), data.type, data.mode, data.mipMaps() ? 0 : 1, data.hasColor(), data.hasAlpha3(), data.ignoreAlpha(), data.size, force_type);
+   return EditToGameImage(edit, game, data.pow2(), data.sRGB(), data.alphaLum(), data.type, data.mode, data.mipMapsActual() ? 0 : 1, data.hasColor(), data.hasAlpha3(), data.ignoreAlpha(), data.envActual(), data.size, force_type);
 }
 /******************************************************************************/
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines)

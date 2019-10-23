@@ -128,7 +128,7 @@ class ImageEditor : PropWin
    Image      edit_image, image_2d;
    ImagePtr   game_image;
    CubeFace   cube_faces[6];
-   Property  *width=null, *height=null, *type=null, *mip_maps=null, *mem_size=null, *chn=null, *nos=null, *src=null;
+   Property  *mip_maps=null, *width=null, *height=null, *type=null, *i_mip_maps=null, *mem_size=null, *chn=null, *nos=null, *src=null;
    Edit.Undo<Change> undos(true);   void undoVis() {SetUndo(undos, undo, redo);}
 
    ElmImage* data()C {return elm ? elm.imageData() : null;}
@@ -138,12 +138,14 @@ class ImageEditor : PropWin
       IMAGE_MODE mode;
       cchar8    *name;
       cchar     *desc;
+      bool       env;
    }
    static ImageMode ImageModes[]=
    {
-      {IMAGE_2D  , "2D Texture", null},
-      {IMAGE_CUBE, "Cube Texture", u"SkyBox"},
-      {IMAGE_SOFT, "Software", u"This mode is used for custom processing only\nIt cannot be used for drawing"},
+      {IMAGE_2D  , "2D Texture", null, false},
+      {IMAGE_CUBE, "Cube Texture", u"SkyBox", false},
+      {IMAGE_SOFT, "Software", u"This mode is used for custom processing only\nIt cannot be used for drawing", false},
+      {IMAGE_CUBE, "Environment", u"SkyBox that can be used as Environment map", true},
    };
    static cchar8 *Channels[]=
    {
@@ -156,8 +158,8 @@ class ImageEditor : PropWin
 
    static void Type    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){int i=TextInt(t); if(InRange(i, ElmImage.NUM))d.type=ElmImage.TYPE(i); d.type_time.getUTC();}}
    static Str  Type    (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.type; return -1;}
-   static void Mode    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){int i=TextInt(t); if(InRange(i, ImageModes)){d.mode=ImageModes[i].mode; d.mode_time.getUTC();}}}
-   static Str  Mode    (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())REPA(ImageModes)if(ImageModes[i].mode==d.mode)return i; return -1;}
+   static void Mode    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){int i=TextInt(t); if(InRange(i, ImageModes)){d.mode=ImageModes[i].mode; d.mode_time.getUTC(); d.env(ImageModes[i].env); d.env_time.getUTC();}}}
+   static Str  Mode    (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())REPA(ImageModes)if(d.mode==ImageModes[i].mode && d.envActual()==ImageModes[i].env)return i; return -1;}
    static void MipMaps (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.mipMaps(TextBool(t)); d.mip_maps_time.getUTC();}}
    static Str  MipMaps (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.mipMaps(); return S;}
    static void Pow2    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.pow2(TextBool(t)); d.pow2_time.getUTC();}}
@@ -188,27 +190,27 @@ class ImageEditor : PropWin
       {
          ListColumn(MEMBER(ImageMode, name), LCW_MAX_DATA_PARENT, "name"),
       };
-      add("Type"                , MemberDesc(         ).setFunc(Type    , Type    )).setEnum().combobox.setColumns(lct, Elms(lct)).setData(ElmImage.ImageTypes, ElmImage.ImageTypesElms).menu.list.setElmDesc(MEMBER(NameDesc, desc));
-      add("Mip Maps"            , MemberDesc(DATA_BOOL).setFunc(MipMaps , MipMaps ));
-      add("Power of 2"          , MemberDesc(DATA_BOOL).setFunc(Pow2    , Pow2    )).desc("Resize image to nearest power of 2");
-    //add("sRGB"                , MemberDesc(DATA_BOOL).setFunc(SRGB    , SRGB    )).desc("Use sRGB gamma\nThis should be enabled when storing RGB colors (almost all the time)");
-      add("Alpha from Luminance", MemberDesc(DATA_BOOL).setFunc(AlphaLum, AlphaLum)).desc("Set image opacity from its brightness");
-      add("Mode"                , MemberDesc(         ).setFunc(Mode    , Mode    )).setEnum().combobox.setColumns(lcm, Elms(lcm)).setData(ImageModes, Elms(ImageModes)).menu.list.setElmDesc(MEMBER(ImageMode, desc));
-      add("Width"               , MemberDesc(DATA_INT ).setFunc(Width   , Width   )).range(-1, 65536).desc("Set custom image width (0=default, -1=keep original)");
-      add("Height"              , MemberDesc(DATA_INT ).setFunc(Height  , Height  )).range(-1, 65536).desc("Set custom image height (0=default, -1=keep original)");
-                add();
-                add("Info:");
-      width   =&add();
-      height  =&add();
-      type    =&add();
-      mip_maps=&add();
-      mem_size=&add();
-                add();
-                add("Display:");
-      chn     =&add("Channels", MemberDesc(MEMBER(ImageEditor, channels))).setEnum(Channels, Elms(Channels));
-      nos     =&add("No Scale", MemberDesc(MEMBER(ImageEditor, no_scale)));
-      src     =&add("Source"  , MemberDesc(MEMBER(ImageEditor, source  ))).desc("Display source cube face images separately");
-      autoData(this);
+                  add("Type"                , MemberDesc(         ).setFunc(Type    , Type    )).setEnum().combobox.setColumns(lct, Elms(lct)).setData(ElmImage.ImageTypes, ElmImage.ImageTypesElms).menu.list.setElmDesc(MEMBER(NameDesc, desc));
+        mip_maps=&add("Mip Maps"            , MemberDesc(DATA_BOOL).setFunc(MipMaps , MipMaps ));
+                  add("Power of 2"          , MemberDesc(DATA_BOOL).setFunc(Pow2    , Pow2    )).desc("Resize image to nearest power of 2");
+                //add("sRGB"                , MemberDesc(DATA_BOOL).setFunc(SRGB    , SRGB    )).desc("Use sRGB gamma\nThis should be enabled when storing RGB colors (almost all the time)");
+                  add("Alpha from Luminance", MemberDesc(DATA_BOOL).setFunc(AlphaLum, AlphaLum)).desc("Set image opacity from its brightness");
+                  add("Mode"                , MemberDesc(         ).setFunc(Mode    , Mode    )).setEnum().combobox.setColumns(lcm, Elms(lcm)).setData(ImageModes, Elms(ImageModes)).menu.list.setElmDesc(MEMBER(ImageMode, desc));
+                  add("Width"               , MemberDesc(DATA_INT ).setFunc(Width   , Width   )).range(-1, 65536).desc("Set custom image width (0=default, -1=keep original)");
+                  add("Height"              , MemberDesc(DATA_INT ).setFunc(Height  , Height  )).range(-1, 65536).desc("Set custom image height (0=default, -1=keep original)");
+                  add();
+                  add("Info:");
+        width   =&add();
+        height  =&add();
+        type    =&add();
+      i_mip_maps=&add();
+        mem_size=&add();
+                  add();
+                  add("Display:");
+        chn     =&add("Channels", MemberDesc(MEMBER(ImageEditor, channels))).setEnum(Channels, Elms(Channels));
+        nos     =&add("No Scale", MemberDesc(MEMBER(ImageEditor, no_scale)));
+        src     =&add("Source"  , MemberDesc(MEMBER(ImageEditor, source  ))).desc("Display source cube face images separately");
+        autoData(this);
 
       flt h=0.043;
       super.create("Image Editor", Vec2(0.02, -0.07), 0.036, h, 0.28); super.changed(Changed, PreChanged); chn.changed(null, null); nos.changed(null, null); src.changed(null, null);
@@ -235,14 +237,15 @@ class ImageEditor : PropWin
    }
    void setInfo()
    {
-      if(width   )width   .name.set(S+"Width: "   +        (game_image ? game_image->w           () : 0));
-      if(height  )height  .name.set(S+"Height: "  +        (game_image ? game_image->h           () : 0));
-      if(type    )type    .name.set(S+"Type: "    + ImageTI[game_image ? game_image->type        () : IMAGE_NONE].name);
-      if(mip_maps)mip_maps.name.set(S+"Mip Maps: "+        (game_image ? game_image->mipMaps     () : 0));
-      if(mem_size)mem_size.name.set(S+"Size: "    +FileSize(game_image ? game_image->typeMemUsage() : 0)); // use 'typeMemUsage' because we need this only for stats
-      if(chn     )chn.visible(data() && !IsCube(data().mode));
-      if(nos     )nos.visible(data() && !IsCube(data().mode));
-      if(src     )src.visible(data() &&  IsCube(data().mode));
+      if(  mip_maps)  mip_maps.visible(!data() || !data().envActual());
+      if(  width   )  width   .name.set(S+"Width: "   +        (game_image ? game_image->w           () : 0));
+      if(  height  )  height  .name.set(S+"Height: "  +        (game_image ? game_image->h           () : 0));
+      if(  type    )  type    .name.set(S+"Type: "    + ImageTI[game_image ? game_image->type        () : IMAGE_NONE].name);
+      if(i_mip_maps)i_mip_maps.name.set(S+"Mip Maps: "+        (game_image ? game_image->mipMaps     () : 0));
+      if(  mem_size)  mem_size.name.set(S+"Size: "    +FileSize(game_image ? game_image->typeMemUsage() : 0)); // use 'typeMemUsage' because we need this only for stats
+      if(  chn     )  chn.visible(data() && !IsCube(data().mode));
+      if(  nos     )  nos.visible(data() && !IsCube(data().mode));
+      if(  src     )  src.visible(data() &&  IsCube(data().mode));
       REPAO(cube_faces).visible(src && src.visible() && source);
    }
 

@@ -288,9 +288,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& nightShadeColorS(C Vec &srgb_color);     Vec  nightShadeColorS()C;                      // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
 
    // Environment
-   Display& envAllow(  Bool      allow);   Bool      envAllow()C {return _env_allow;} // set/get Environment allowed (true/false, default=true), the change is NOT instant, avoid calling   real-time
-   Display& envColor(  Flt       color);   Flt       envColor()C {return _env_color;} // set/get Environment color   (0..1      , default=1   ), the change is     instant, you can call it real-time
-   Display& envMap  (C ImagePtr &cube ); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                               , the change is     instant, you can call it real-time
+   Display& envColor(  Flt       color);   Flt       envColor()C {return _env_color;} // set/get Environment color (0..1, default=1), the change is         instant, you can call it real-time
+   Display& envMap  (C ImagePtr &cube ); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                    , the change may not be instant, avoid   calling real-time
 
    // Shadowing
    Display& shadowMode         (SHADOW_MODE mode    );   SHADOW_MODE shadowMode         ()C {return _shd_mode      ;} // set/get Shadow Mode                                  (SHADOW_MODE         , default=SHADOW_MAP (SHADOW_NONE for Mobile)), the change is instant, you can call it real-time
@@ -498,7 +497,7 @@ private:
    FILTER_TYPE       _density_filter;
    Bool              _full, _sync, _exclusive, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
-                     _bloom_allow, _glow_allow, _ao_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow, _env_allow,
+                     _bloom_allow, _glow_allow, _ao_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow,
                      _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,

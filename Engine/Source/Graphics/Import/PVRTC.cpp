@@ -683,7 +683,7 @@ static int pvrtcDecompress(	PVRTuint8 *pCompressedData,
 /******************************************************************************/
 Bool (*CompressPVRTC)(C Image &src, Image &dest, Int quality);
 /******************************************************************************/
-Bool DecompressPVRTC(C Image &src, Image &dest)
+Bool DecompressPVRTC(C Image &src, Image &dest, Int max_mip_maps)
 {
    if(src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_2_SRGB
    || src.hwType()==IMAGE_PVRTC1_4 || src.hwType()==IMAGE_PVRTC1_4_SRGB)
@@ -693,7 +693,7 @@ Bool DecompressPVRTC(C Image &src, Image &dest)
       Byte  bits=((src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_2_SRGB) ? 2 : 4);
       Int   src_faces1=src.faces()-1;
       Image temp; // define outside of loop so we can reuse it
-      REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
+      REPD(mip, Min(src.mipMaps(), dest.mipMaps(), max_mip_maps))
       {
          Int src_mip_hwW=PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType()),
              src_mip_hwH=PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType());

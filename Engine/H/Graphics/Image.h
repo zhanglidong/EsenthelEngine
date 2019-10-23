@@ -224,6 +224,7 @@ enum IMAGE_COPY_FLAG
    IC_NO_ALT_TYPE  =1<<3, // don't try using alternative IMAGE_TYPE if a specified is not supported
    IC_CONVERT_GAMMA=1<<4, // make sure gamma conversion is performed (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
    IC_IGNORE_GAMMA =1<<5, // make sure gamma conversion is ignored   (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
+   IC_ENV_CUBE     =1<<6, // cube image is meant to be used as Environment Map and will have its mip maps blurred in a special way
 };
 #if EE_PRIVATE
    inline Bool IcWrap (UInt flag) {return  FlagTest(flag, IC_WRAP);}
@@ -447,8 +448,8 @@ struct Image // Image (Texture)
    Bool accessible()C;
    Bool compatible(C Image &image)C;
 
-   Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool rgba_on_fail=true); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
-   Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                      ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
+   Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target, 'flags'=IMAGE_COPY_FLAG
+   Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                   ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
 #endif
 
    Bool raycast(C Vec &start, C Vec &move, C Matrix *image_matrix=null, Flt *hit_frac=null, Vec *hit_pos=null, Flt precision=1.0f)C; // perform ray casting from 'start' position along 'move' vector, return true if collision encountered with the image, by default the Image is on XY plane with its pixel values extending it towards the Z axis, 'image_matrix'=image transformation matrix, 'hit_frac'=fraction of the movement where collision occurs, 'hit_pos'=position where collision occurs, 'precision'=affects number of pixels to advance in a single step (lower value makes calculations faster but less precise)
@@ -742,9 +743,10 @@ Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert im
 #if EE_PRIVATE
 struct ImageThreadsClass : Threads
 {
-   void init()
+   ImageThreadsClass& init()
    {
       if(!created())createIfEmpty(false, Cpu.threads()-1, 0, "EE.Image"); // -1 because we will do processing on the caller thread too
+      return T;
    }
    T1(USER_DATA) void process(Int elms, void func(IntPtr elm_index, USER_DATA &user, Int thread_index), USER_DATA &user)
    {

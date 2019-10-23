@@ -14,7 +14,8 @@ class ImageConvert
               alpha_lum,
               has_color ,
               has_alpha ,
-           ignore_alpha;
+           ignore_alpha, 
+                    env;
    byte        downsize;
    int         mip_maps,
                max_size;

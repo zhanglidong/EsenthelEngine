@@ -1549,7 +1549,7 @@ Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
    return T;
 }
 /******************************************************************************/
-static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created, this always ignores gamma
+static Bool Decompress(C Image &src, Image &dest, Int max_mip_maps=INT_MAX) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created, this always ignores gamma
 {
    void (*decompress_block       )(C Byte *b, Color  (&block)[4][4])=null, (*decompress_block_pitch       )(C Byte *b, Color  *dest, Int pitch)=null;
    void (*decompress_block_SByte )(C Byte *b, SByte  (&block)[4][4])=null, (*decompress_block_pitch_SByte )(C Byte *b, SByte  *dest, Int pitch)=null;
@@ -1561,7 +1561,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
-         return DecompressPVRTC(src, dest);
+         return DecompressPVRTC(src, dest, max_mip_maps);
 
       case IMAGE_BC1         : case IMAGE_BC1_SRGB       : decompress_block       =DecompressBlockBC1      ; decompress_block_pitch       =DecompressBlockBC1      ; break;
       case IMAGE_BC2         : case IMAGE_BC2_SRGB       : decompress_block       =DecompressBlockBC2      ; decompress_block_pitch       =DecompressBlockBC2      ; break;
@@ -1590,7 +1590,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
    {
       Int src_faces1=src.faces()-1,
           x_mul     =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
-      REPD(mip , Min(src.mipMaps(), dest.mipMaps()))
+      REPD(mip , Min(src.mipMaps(), dest.mipMaps(), max_mip_maps))
       REPD(face, dest.faces())
       {
          if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))return false;
@@ -1825,7 +1825,7 @@ static Bool Compress(C Image &src, Image &dest) // assumes that 'src' and 'dest'
    return false;
 }
 /******************************************************************************/
-static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma) // this assumes that "&src != &dest", returns how many mip-maps were copied
+static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma, Int max_mip_maps=INT_MAX) // this assumes that "&src != &dest", returns how many mip-maps were copied
 {
    if(CanDoRawCopy(src, dest, ignore_gamma)
    && dest.w()<=src.w()
@@ -1838,7 +1838,7 @@ static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma) // this ass
           src_mip_d=Max(1, src.d()>>i);
       if( src_mip_w==dest.w() && src_mip_h==dest.h() && src_mip_d==dest.d()) // i-th 'src' mip-map is the same as first 'dest' mip-map
       {
-         Int mip_maps  =Min(src.mipMaps()-i, dest.mipMaps()), // how many to copy
+         Int mip_maps  =Min(src.mipMaps()-i, dest.mipMaps(), max_mip_maps), // how many to copy
             dest_faces =dest.faces(),
              src_faces1= src.faces()-1;
          FREPD(mip ,  mip_maps )
@@ -1867,6 +1867,12 @@ static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma) // this ass
    return 0;
 }
 /******************************************************************************/
+static Bool BlurCubeMipMaps(Image &src, Image &dest, Int type, Int mode, FILTER_TYPE filter, UInt flags)
+{
+   return src.blurCubeMipMaps(0.005f*PI, 1.55f, &ImageThreads.init())
+       && src.copyTry(dest, -1, -1, -1, IMAGE_TYPE(type), IMAGE_MODE(mode), -1, filter, flags&~IC_ENV_CUBE); // disable IC_ENV_CUBE because we've already blurred mip-maps
+}
+/******************************************************************************/
 Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
    if(!is()){dest.del(); return true;}
@@ -1875,8 +1881,6 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(type<=0)type=T.type(); // get type before 'fromCube' because it may change it
    if(mode< 0)mode=T.mode();
 
-   Bool rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE);
-
  C Image *src=this; Image temp_src;
    if(src->cube() && !IsCube(IMAGE_MODE(mode))) // if converting from cube to non-cube
    {
@@ -1884,7 +1888,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    }else
    if(!src->cube() && IsCube((IMAGE_MODE)mode)) // if converting from non-cube to cube
    {
-      return dest.toCube(*src, -1, (w>0) ? w : h, type, mode, mip_maps, filter, rgba_on_fail);
+      return dest.toCube(*src, -1, (w>0) ? w : h, type, mode, mip_maps, filter, flags);
    }
 
    // calculate dimensions after cube conversion
@@ -1904,8 +1908,11 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
+   Bool rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
+        env=(FlagTest(flags, IC_ENV_CUBE) && IsCube((IMAGE_MODE)mode) && mip_maps>1);
+
    // check if doesn't require conversion
-   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps()) // here check 'T' instead of 'src' (which could've already encountered some cube conversion, however here we want to check if we can just return without doing any conversions at all)
+   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps() && !env) // here check 'T' instead of 'src' (which could've already encountered some cube conversion, however here we want to check if we can just return without doing any conversions at all)
    {
       if(type==T.type())return true;
       if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type, IgnoreGamma(flags, T.hwType(), IMAGE_TYPE(type))))
@@ -1916,18 +1923,20 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    {
       // create destination
       Image temp_dest, &target=((src==&dest) ? temp_dest : dest);
-      if(!target.createTry(w, h, d, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps, rgba_on_fail))return false;
+      if(!target.createTry(w, h, d, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, rgba_on_fail))return false; // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
       Bool ignore_gamma=IgnoreGamma(flags, src->hwType(), target.hwType()); // calculate after knowing 'target.hwType'
 
       // copy
-      Int  copied_mip_maps=0;
+      Int  copied_mip_maps=0,
+              max_mip_maps=(env ? 1 : INT_MAX); // for 'env' copy only the first mip map, the rest will be blurred manually
       Bool same_size=(src->size3()==target.size3());
       if(same_size // if we use the same size (for which case 'filter' and IC_KEEP_EDGES are ignored)
       || (
             (filter==FILTER_BEST || filter==FILTER_DOWN) // we're going to use default filter for downsampling (which is typically used for mip-map generation)
          && !FlagTest(flags, IC_KEEP_EDGES)              // we're not keeping the edges                        (which is typically used for mip-map generation)
+         && !env                                         // for 'env' allow copying only if we have same size, so we can copy only first mip-map (in case others are blurred specially)
          )
-      )copied_mip_maps=CopyMipMaps(*src, target, ignore_gamma);
+      )copied_mip_maps=CopyMipMaps(*src, target, ignore_gamma, max_mip_maps);
       if(!copied_mip_maps)
       {
       /* This case is already handled in 'CopyMipMaps'
@@ -1942,13 +1951,13 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             {
                if(same_size && ignore_gamma && !target.compressed()) // if match in size, can ignore gamma and just want to be decompressed
                {
-                  if(!Decompress(*src, target))return false; // decompress directly to 'target'
-                  copied_mip_maps=src->mipMaps();
+                  copied_mip_maps=(env ? 1 : src->mipMaps());
+                  if(!Decompress(*src, target, copied_mip_maps))return false; // decompress directly to 'target'
                   goto finish;
                }
-               if(!Decompress(*src, decompressed_src))return false; src=&decompressed_src; // take decompressed source
+               if(!Decompress(*src, decompressed_src, max_mip_maps))return false; src=&decompressed_src; // take decompressed source
             }
-            if(target.compressed()) // target wants to be compressed
+            if(target.compressed()) // target wants to be compressed (always false for 'env')
             {
                Image resized_src;
                if(!same_size) // resize needed
@@ -1963,7 +1972,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                goto skip_mip_maps; // we've already set mip maps, so skip them
             }else
             {
-               copied_mip_maps=(same_size ? src->mipMaps() : 1); // if resize is needed, copy/resize only 1 mip map, and remaining set with 'updateMipMaps' below
+               copied_mip_maps=((same_size && !env) ? src->mipMaps() : 1); // if resize is needed, copy/resize only 1 mip map, and remaining set with 'updateMipMaps' below
                if(!src->copySoft(target, filter, flags, copied_mip_maps))return false;
             }
             // !! can't access 'src' here because it may point to 'resized_src' which is now invalid !!
@@ -1971,6 +1980,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
          // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' which are now invalid !!
       }
    finish:
+      if(env)return BlurCubeMipMaps(target, dest, type, mode, filter, flags);
       target.updateMipMaps(FILTER_BEST, flags, copied_mip_maps-1);
    skip_mip_maps:
       if(&target!=&dest)Swap(dest, target);
@@ -1979,7 +1989,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
 }
 void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
-   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować Image"));
+   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować 'Image'"));
 }
 /******************************************************************************/
 CUBE_LAYOUT Image::cubeLayout()C
@@ -1990,7 +2000,7 @@ CUBE_LAYOUT Image::cubeLayout()C
  //if( aspect>Avg(  one_aspect, cross_aspect))return CUBE_LAYOUT_CROSS; TODO: not yet supported
                                               return CUBE_LAYOUT_ONE;
 }
-Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, Bool rgba_on_fail)
+Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)
 {
    if(!src.cube() && src.is())
    {
@@ -1999,12 +2009,18 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
       if(size  < 0                )size    =((layout==CUBE_LAYOUT_CROSS) ? src.w()/4 : src.h());
       if(!IsCube(IMAGE_MODE(mode)))mode    =(IsSoft(src.mode()) ? IMAGE_SOFT_CUBE : IMAGE_CUBE);
       if(mip_maps<0               )mip_maps=((src.mipMaps()==1) ? 1 : 0); // if source has 1 mip map, then create only 1, else create full
-      Image temp;
-      if(temp.createTry(size, size, 1, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps, rgba_on_fail))
+
+      Int dest_total_mip_maps=TotalMipMaps(size, size, 1, IMAGE_TYPE(type));
+      if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
+      else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
+
+      Bool  rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
+            env=(FlagTest(flags, IC_ENV_CUBE) && mip_maps>1);
+      Image temp; if(temp.createTry(size, size, 1, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, rgba_on_fail)) // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
       {
          if(layout==CUBE_LAYOUT_ONE)
          {
-            REP(6)if(!temp.injectMipMap(src, 0, DIR_ENUM(i), filter))return false;
+            REP(6)if(!temp.injectMipMap(src, 0, DIR_ENUM(i), filter, flags))return false;
          }else
          {
           C Image *s=&src;
@@ -2024,9 +2040,10 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
                   case 4: cube_face=DIR_DOWN   ; break;
                   case 5: cube_face=DIR_UP     ; break;
                }
-               if(!temp.injectMipMap(face, 0, cube_face, filter))return false; // inject face
+               if(!temp.injectMipMap(face, 0, cube_face, filter, flags))return false; // inject face
             }
          }
+         if(env)return BlurCubeMipMaps(temp, T, type, mode, filter, flags);
          Swap(T, temp.updateMipMaps());
          return true;
       }

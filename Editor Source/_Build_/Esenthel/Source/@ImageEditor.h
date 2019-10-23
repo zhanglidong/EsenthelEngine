@@ -40,7 +40,7 @@ public:
    Image      edit_image, image_2d;
    ImagePtr   game_image;
    CubeFace   cube_faces[6];
-   Property  *width, *height, *type, *mip_maps, *mem_size, *chn, *nos, *src;
+   Property  *mip_maps, *width, *height, *type, *i_mip_maps, *mem_size, *chn, *nos, *src;
    Edit::Undo<Change> undos;   void undoVis();                             
 
    ElmImage* data()C;
@@ -50,6 +50,7 @@ public:
       IMAGE_MODE mode;
       cchar8    *name;
       cchar     *desc;
+      bool       env;
    };
    static ImageMode ImageModes[]
 ;

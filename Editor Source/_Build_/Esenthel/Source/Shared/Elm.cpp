@@ -1373,6 +1373,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="Type")type=EditEnums::TYPE(n.asInt());
       }
    }
+   bool         ElmImage::envActual()C {return mode==IMAGE_CUBE && env();}
+   bool     ElmImage::mipMapsActual()C {return envActual() ? true : mipMaps();}
    bool       ElmImage::ignoreAlpha()C {return IsCube(mode);}
    bool       ElmImage::mipMaps()C {return FlagTest(flag, MIP_MAPS );}
    void ElmImage::mipMaps(bool on) {FlagSet(flag, MIP_MAPS , on);}
@@ -1380,6 +1382,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmImage::pow2(bool on) {FlagSet(flag, POW2     , on);}
    bool       ElmImage::sRGB()C {return FlagTest(flag, SRGB     );}
    void ElmImage::sRGB(bool on) {FlagSet(flag, SRGB     , on);}
+   bool       ElmImage::env()C {return FlagTest(flag, ENV      );}
+   void ElmImage::env(bool on) {FlagSet(flag, ENV      , on);}
    bool       ElmImage::alphaLum()C {return FlagTest(flag, ALPHA_LUM);}
    void ElmImage::alphaLum(bool on) {FlagSet(flag, ALPHA_LUM, on);}
    bool       ElmImage::hasColor()C {return FlagTest(flag, HAS_COLOR);}
@@ -1391,12 +1395,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3()               ? (sRGB() ? IMAGE_ETC2_RGBA_SRGB : IMAGE_ETC2_RGBA) : (sRGB() ? IMAGE_ETC2_RGB_SRGB : IMAGE_ETC2_RGB) : IMAGE_NONE;}
    IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?                             (sRGB() ? IMAGE_PVRTC1_4_SRGB  : IMAGE_PVRTC1_4 )                                                   : IMAGE_NONE;}
    IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? (sRGB() ? IMAGE_BC3_SRGB       : IMAGE_BC3      )                                                   : IMAGE_NONE;}
-   bool ElmImage::equal(C ElmImage &src)C {return super::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && srgb_time==src.srgb_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
-   bool ElmImage::newer(C ElmImage &src)C {return super::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || srgb_time> src.srgb_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
+   bool ElmImage::equal(C ElmImage &src)C {return super::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && srgb_time==src.srgb_time && env_time==src.env_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
+   bool ElmImage::newer(C ElmImage &src)C {return super::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || srgb_time> src.srgb_time || env_time> src.env_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
    bool ElmImage::mayContain(C UID &id)C {return false;}
    void ElmImage::newData()
 {
-      super::newData(); mip_maps_time++; pow2_time++; srgb_time++; alpha_lum_time++; type_time++; mode_time++; size_time++; file_time++;
+      super::newData(); mip_maps_time++; pow2_time++; srgb_time++; env_time++; alpha_lum_time++; type_time++; mode_time++; size_time++; file_time++;
    }
    uint ElmImage::undo(C ElmImage &src)
    {
@@ -1409,6 +1413,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(Undo( mip_maps_time, src. mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
       if(Undo(     pow2_time, src.     pow2_time)){changed|=CHANGE_AFFECT_FILE; pow2    (src.pow2    ());}
       if(Undo(     srgb_time, src.     srgb_time)){changed|=CHANGE_AFFECT_FILE; sRGB    (src.sRGB    ());}
+      if(Undo(      env_time, src.      env_time)){changed|=CHANGE_AFFECT_FILE; env     (src.env     ());}
       if(Undo(alpha_lum_time, src.alpha_lum_time)){changed|=CHANGE_AFFECT_FILE; alphaLum(src.alphaLum());}
 
       // do not undo 'hasColor, hasAlpha' as they're inherited from image data
@@ -1427,6 +1432,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(Sync( mip_maps_time, src. mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
       if(Sync(     pow2_time, src.     pow2_time)){changed|=CHANGE_AFFECT_FILE; pow2    (src.pow2    ());}
       if(Sync(     srgb_time, src.     srgb_time)){changed|=CHANGE_AFFECT_FILE; sRGB    (src.sRGB    ());}
+      if(Sync(      env_time, src.      env_time)){changed|=CHANGE_AFFECT_FILE; env     (src.env     ());}
       if(Sync(alpha_lum_time, src.alpha_lum_time)){changed|=CHANGE_AFFECT_FILE; alphaLum(src.alphaLum());}
 
       // do not sync 'hasColor, hasAlpha' as they're inherited from image data
@@ -1446,14 +1452,20 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmImage::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(3);
-      f<<flag<<type<<mode<<size<<mip_maps_time<<pow2_time<<srgb_time<<alpha_lum_time<<type_time<<mode_time<<size_time<<file_time;
+      f.cmpUIntV(4);
+      f<<flag<<type<<mode<<size<<mip_maps_time<<pow2_time<<srgb_time<<env_time<<alpha_lum_time<<type_time<<mode_time<<size_time<<file_time;
       return f.ok();
    }
    bool ElmImage::load(File &f)
 {
       if(super::load(f))switch(f.decUIntV())
       {
+         case 4:
+         {
+            f>>flag>>type>>mode>>size>>mip_maps_time>>pow2_time>>srgb_time>>env_time>>alpha_lum_time>>type_time>>mode_time>>size_time>>file_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
             f>>flag>>type>>mode>>size>>mip_maps_time>>pow2_time>>srgb_time>>alpha_lum_time>>type_time>>mode_time>>size_time>>file_time;
@@ -1489,12 +1501,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
                     nodes.New().set("MipMaps", mipMaps());
       if(pow2    ())nodes.New().set("Pow2");
       if(sRGB    ())nodes.New().set("sRGB");
+      if(env     ())nodes.New().set("Environment");
       if(alphaLum())nodes.New().set("AlphaFromLum");
       if(hasColor())nodes.New().set("HasColor");
       if(hasAlpha())nodes.New().set("HasAlpha");
       nodes.New().set("MipMapsTime"     ,  mip_maps_time.text());
       nodes.New().set("Pow2Time"        ,      pow2_time.text());
       nodes.New().set("sRGBTime"        ,      srgb_time.text());
+      nodes.New().set("EnvironmentTime" ,       env_time.text());
       nodes.New().set("AlphaFromLumTime", alpha_lum_time.text());
       nodes.New().set("TypeTime"        ,      type_time.text());
       nodes.New().set("ModeTime"        ,      mode_time.text());
@@ -1513,12 +1527,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="MipMaps"     )mipMaps (n.asBool1());else
          if(n.name=="Pow2"        )pow2    (n.asBool1());else
          if(n.name=="sRGB"        )sRGB    (n.asBool1());else
+         if(n.name=="Environment" )env     (n.asBool1());else
          if(n.name=="AlphaFromLum")alphaLum(n.asBool1());else
          if(n.name=="HasColor"    )hasColor(n.asBool1());else
          if(n.name=="HasAlpha"    )hasAlpha(n.asBool1());else
          if(n.name=="MipMapsTime"     ) mip_maps_time=n.value;else
          if(n.name=="Pow2Time"        )     pow2_time=n.value;else
          if(n.name=="sRGBTime"        )     srgb_time=n.value;else
+         if(n.name=="EnvironmentTime" )      env_time=n.value;else
          if(n.name=="AlphaFromLumTime")alpha_lum_time=n.value;else
          if(n.name=="TypeTime"        )     type_time=n.value;else
          if(n.name=="ModeTime"        )     mode_time=n.value;else
