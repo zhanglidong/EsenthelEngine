@@ -4,11 +4,12 @@
 /******************************************************************************
 SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
 /******************************************************************************/
-#define HEIGHTMAP   0
-#define TESSELATE   0
-#define SET_TEX     (LAYOUT || BUMP_MODE>SBUMP_FLAT)
-#define VTX_REFLECT (REFLECT && BUMP_MODE<=SBUMP_FLAT)
-#define SET_POS     (REFLECT || TESSELATE)
+#define HEIGHTMAP    0
+#define TESSELATE    0
+#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT)
+#define VTX_REFLECT  (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define SET_POS      (REFLECT || TESSELATE)
+#define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
 /******************************************************************************/
 struct VS_PS
 {
@@ -22,10 +23,10 @@ struct VS_PS
 
    VecH4 color:COLOR;
 
-#if   BUMP_MODE> SBUMP_FLAT
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -95,11 +96,11 @@ void VS
       if(BUMP_MODE>SBUMP_FLAT)tan=Normalize(tan);
    }
 
-#if   BUMP_MODE> SBUMP_FLAT
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 
@@ -131,6 +132,7 @@ VecH4 PS
 #endif
 
    // normal
+#if PIXEL_NORMAL
    VecH nrm;
    #if   BUMP_MODE==SBUMP_ZERO
       nrm=0;
@@ -141,8 +143,9 @@ VecH4 PS
       nrm.z =CalcZ(nrm.xy);
       nrm   =Normalize(Transform(nrm, I.mtrx));
    #endif
+#endif
 
-/*#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+/*#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    BackFlip(nrm, front);
 #endif*/
 

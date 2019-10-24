@@ -19,12 +19,12 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored in 'vtx.col' or 'vtx.lum'
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW))
-#define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT) || TESSELATE)
+#define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
-#define VTX_REFLECT    (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
-#define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || (REFLECT && !VTX_REFLECT)) // if calculate normal in the pixel shader
+#define VTX_REFLECT    (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
 #define GRASS_FADE     (FX==FX_GRASS)
 /******************************************************************************/
 struct VS_PS
@@ -37,10 +37,10 @@ struct VS_PS
    Vec2 tex:TEXCOORD;
 #endif
 
-#if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT && (PER_PIXEL || TESSELATE)
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -172,11 +172,11 @@ void VS
    O.rfl=ReflectDir(Normalize(pos), nrm);
 #endif
 
-#if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && (PER_PIXEL || TESSELATE)
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 
@@ -678,7 +678,7 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-#if   BUMP_MODE> SBUMP_FLAT
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=I[0].mtrx[0]*B.z + I[1].mtrx[0]*B.x + I[2].mtrx[0]*B.y;
    O.mtrx[1]=I[0].mtrx[1]*B.z + I[1].mtrx[1]*B.x + I[2].mtrx[1]*B.y;
    SetDSPosNrm(O.pos, O.mtrx[2], I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);

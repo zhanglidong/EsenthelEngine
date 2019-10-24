@@ -4,13 +4,14 @@
 #include "Sky.h"
 /******************************************************************************/
 // SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
-#define USE_VEL     ALPHA_TEST
-#define HEIGHTMAP   0
-#define SET_POS     (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT) || TESSELATE)
-#define SET_TEX     (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
-#define VTX_REFLECT (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
-#define ALPHA_CLIP  0.5
-#define GRASS_FADE  (FX==FX_GRASS)
+#define USE_VEL      ALPHA_TEST
+#define HEIGHTMAP    0
+#define SET_POS      (USE_VEL || SHADOW_MAPS || REFLECT || TESSELATE)
+#define SET_TEX      (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define VTX_REFLECT  (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define ALPHA_CLIP   0.5
+#define GRASS_FADE   (FX==FX_GRASS)
+#define PIXEL_NORMAL (PER_PIXEL || REFLECT) // if calculate normal in the pixel shader
 /******************************************************************************/
 struct VS_PS
 {
@@ -28,10 +29,10 @@ struct VS_PS
    Half  env_col:ENV;
 #endif
 
-#if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT && PER_PIXEL
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -154,11 +155,11 @@ void VS
    O.rfl=ReflectDir(pos/dist, nrm);
 #endif
 
-#if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && PER_PIXEL
+#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 
@@ -199,7 +200,7 @@ void PS
    VS_PS I,
  //PIXEL,
 
-#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    IS_FRONT,
 #endif
 
@@ -230,7 +231,7 @@ void PS
 #endif
 
    // normal
-#if PER_PIXEL
+#if PIXEL_NORMAL
    VecH nrm;
    #if   BUMP_MODE==SBUMP_ZERO
       nrm=0;
@@ -243,7 +244,7 @@ void PS
    #endif
 #endif
 
-#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    BackFlip(nrm, front);
 #endif
 
