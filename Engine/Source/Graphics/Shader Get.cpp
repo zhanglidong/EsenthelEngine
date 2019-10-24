@@ -76,7 +76,7 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
 }
 static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL || material.smooth>EPS_COL;}
+static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL;}
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL) ? material.light_map ? 2 : 1 : 0;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
