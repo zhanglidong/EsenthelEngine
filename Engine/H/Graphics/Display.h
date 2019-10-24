@@ -289,7 +289,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
 
    // Environment
    Display& envColor(  Flt       color);   Flt       envColor()C {return _env_color;} // set/get Environment color (0..1, default=1), the change is         instant, you can call it real-time
-   Display& envMap  (C ImagePtr &cube ); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                    , the change may not be instant, avoid   calling real-time
+   Display& envMap  (C ImagePtr &cube ); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                    , the change may not be instant, avoid   calling real-time, default=ImagePtr().get("Img/Environment.img")
 
    // Shadowing
    Display& shadowMode         (SHADOW_MODE mode    );   SHADOW_MODE shadowMode         ()C {return _shd_mode      ;} // set/get Shadow Mode                                  (SHADOW_MODE         , default=SHADOW_MAP (SHADOW_NONE for Mobile)), the change is instant, you can call it real-time

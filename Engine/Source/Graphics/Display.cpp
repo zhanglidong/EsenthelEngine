@@ -1452,6 +1452,7 @@ D._linear_gamma^=1; D.linearGamma(!D._linear_gamma); // set after loading shader
          D.viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
         Renderer.create();
+                 envMap(ImagePtr().get("Img/Environment.img"));
            colorPalette(ImagePtr().get("Img/Color Palette.img"));
         VR.createImages(); // !! call this before 'after', because VR gui image may affect aspect ratio of display !!
                   after(false);
