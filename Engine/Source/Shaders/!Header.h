@@ -1513,14 +1513,21 @@ inline VecH ReflectCol(VecH unlit_col, Half reflect)
 {
    return unlit_col*reflect + (1-reflect); // Lerp(VecH(1,1,1), unlit_col, reflect) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 }
-inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+inline Vec ReflectDir(Vec eye_dir, VecH nrm)
 {
-   Vec  env_dir=Transform3(reflect(eye_dir, nrm), CamMatrix);
+   return Transform3(reflect(eye_dir, nrm), CamMatrix);
+}
+inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec, Vec reflect_dir)
+{
    Half d=Sat(1+Dot((VecH)eye_dir, nrm));
    VecH reflect_col=ReflectCol(unlit_col, reflectivity); // set before adjusting 'reflectivity'
    reflectivity=reflectivity + (1-reflectivity)*Quint(d*smooth); // increase reflectivity based on angle and smoothness
-   return Lerp(lit_col, TexCubeLodI(Env, env_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflectivity) // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+   return Lerp(lit_col, TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflectivity) // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
          +spec*reflect_col;
+}
+inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+{
+   return PBR(unlit_col, lit_col, nrm, smooth, reflectivity, eye_dir, spec, ReflectDir(eye_dir, nrm));
 }
 /******************************************************************************/
 // SHADOWS

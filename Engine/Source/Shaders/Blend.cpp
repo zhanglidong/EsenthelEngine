@@ -4,10 +4,11 @@
 /******************************************************************************
 SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
 /******************************************************************************/
-#define HEIGHTMAP 0
-#define TESSELATE 0
-#define SET_POS   (REFLECT)
-#define SET_TEX   (LAYOUT || BUMP_MODE>SBUMP_FLAT)
+#define HEIGHTMAP   0
+#define TESSELATE   0
+#define SET_TEX     (LAYOUT || BUMP_MODE>SBUMP_FLAT)
+#define VTX_REFLECT (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define SET_POS     (REFLECT)
 /******************************************************************************/
 struct VS_PS
 {
@@ -29,6 +30,10 @@ struct VS_PS
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
+#endif
+
+#if VTX_REFLECT
+   Vec rfl:REFLECTION;
 #endif
 };
 void VS
@@ -83,6 +88,7 @@ void VS
 
    // normalize (have to do all at the same time, so all have the same lengths)
    if(BUMP_MODE>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
+   || VTX_REFLECT // per-vertex reflection
    || TESSELATE) // needed for tesselation
    {
                               nrm=Normalize(nrm);
@@ -95,6 +101,10 @@ void VS
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
 #elif BUMP_MODE==SBUMP_FLAT
    O.nrm=nrm;
+#endif
+
+#if VTX_REFLECT
+   O.rfl=ReflectDir(Normalize(pos), nrm);
 #endif
 
 #if SET_POS
@@ -140,7 +150,12 @@ VecH4 PS
 
 #if REFLECT // reflection
    Vec eye_dir=Normalize(I.pos);
-   I.color.rgb=PBR(I.color.rgb, I.color.rgb, nrm, smooth, reflectivity, eye_dir, 0);
+   #if VTX_REFLECT
+      Vec reflect_dir=I.rfl;
+   #else
+      Vec reflect_dir=ReflectDir(eye_dir, nrm);
+   #endif
+   I.color.rgb=PBR(I.color.rgb, I.color.rgb, nrm, smooth, reflectivity, eye_dir, 0, reflect_dir);
 #endif
 
    outAlpha=I.color.a;
