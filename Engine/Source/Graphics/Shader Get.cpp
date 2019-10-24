@@ -206,7 +206,7 @@ Shader* DefaultShaders::Shadow()C
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, reflect));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, Min(bump, SBUMP_NORMAL), reflect)); // blend currently supports only up to normal mapping
    return null;
 }
 Shader* DefaultShaders::Overlay()C

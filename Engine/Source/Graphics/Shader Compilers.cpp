@@ -48,7 +48,7 @@ Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int al
 
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
 Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int reflect) {return S8+skin+color+layout+reflect;}
+Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect) {return S8+skin+color+layout+bump_mode+reflect;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
@@ -400,8 +400,9 @@ static void Compile(API api)
    REPD(skin   , 2)
    REPD(color  , 2)
    REPD(layout , 3)
-   REPD(reflect, 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "REFLECT", reflect);
+   for(Int bump_mode=SBUMP_ZERO; bump_mode<=SBUMP_NORMAL; bump_mode++)
+   REPD(reflect, (bump_mode==SBUMP_ZERO) ? 1 : 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect);
 }
 #endif
 

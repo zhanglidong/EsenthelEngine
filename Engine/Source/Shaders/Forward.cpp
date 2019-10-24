@@ -280,7 +280,7 @@ VecH4 PS
 #if PIXEL_NORMAL
    VecH nrm;
 #endif
-   Half glow, smooth, reflct;
+   Half glow, smooth, reflectivity;
 
 #if SET_COL
    col=I.col;
@@ -298,9 +298,9 @@ VecH4 PS
    #if LAYOUT==0
    {
       if(DETAIL)col+=det.z;
-      glow  =Material.glow;
-      smooth=Material.smooth;
-      reflct=Material.reflect;
+      glow        =Material.glow;
+      smooth      =Material.smooth;
+      reflectivity=Material.reflect;
    }
    #elif LAYOUT==1
    {
@@ -312,10 +312,10 @@ VecH4 PS
       #endif
          AlphaTest(tex_col.a);
       }
-      col  *=tex_col.rgb; if(DETAIL)col+=det.z;
-      glow  =Material.glow;
-      smooth=Material.smooth;
-      reflct=Material.reflect;
+      col        *=tex_col.rgb; if(DETAIL)col+=det.z;
+      glow        =Material.glow;
+      smooth      =Material.smooth;
+      reflectivity=Material.reflect;
    }
    #elif LAYOUT==2
    {
@@ -328,10 +328,10 @@ VecH4 PS
          AlphaTest(tex_ext.w);
       }
       VecH4 tex_col=Tex(Col, I.tex);
-      col  *=tex_col.rgb; if(DETAIL)col+=det.z;
-      glow  =Material.glow   *tex_col.w;
-      smooth=Material.smooth *tex_ext.x;
-      reflct=Material.reflect*tex_ext.y;
+      col        *=tex_col.rgb; if(DETAIL)col+=det.z;
+      glow        =Material.glow   *tex_col.w;
+      smooth      =Material.smooth *tex_ext.x;
+      reflectivity=Material.reflect*tex_ext.y;
    }
    #endif
 
@@ -400,8 +400,8 @@ VecH4 PS
       if(MATERIALS>=3)sr+=MultiMaterial2.base2_add*I.material.z;
       if(MATERIALS>=4)sr+=MultiMaterial3.base2_add*I.material.w;
    }
-   smooth=sr.x;
-   reflct=sr.y;
+   smooth      =sr.x;
+   reflectivity=sr.y;
 
    // Color + Detail + Macro + Glow !! do this second after modifying 'I.material' !!
    VecH4 rgb_glow;
@@ -605,8 +605,8 @@ VecH4 PS
       #else
          Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
       #endif
-         col=Lerp(col, TexCube(Env, rfl).rgb*EnvColor, reflct);
-      }else col*=1-reflct;
+         col=Lerp(col, TexCube(Env, rfl).rgb*EnvColor, reflectivity);
+      }else col*=1-reflectivity;
    }
    #endif
 

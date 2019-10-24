@@ -53,7 +53,7 @@ inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH ni
    Half spec=lum.w/Max(max_lum, HALF_MIN);
    VecH spec_col=spec*lum.rgb;
 #if REFLECT
-   lit_col=PBR(color.rgb, lit_col, nrm, ext, eye_dir, spec_col);
+   lit_col=PBR(color.rgb, lit_col, nrm, ext.x, ext.y, eye_dir, spec_col); // #RTOutput
 #else
    lit_col+=spec_col*ReflectCol(color.rgb, ext.y); // #RTOutput
 #endif
