@@ -169,7 +169,7 @@ void VS
    }
 
 #if VTX_REFLECT
-   O.rfl=Transform3(reflect((VecH)Normalize(pos), nrm), CamMatrix);
+   O.rfl=ReflectDir(Normalize(pos), nrm);
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL

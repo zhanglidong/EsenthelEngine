@@ -151,7 +151,7 @@ void VS
    Flt dist=Length(pos);
 
 #if VTX_REFLECT
-   O.rfl=Transform3(reflect(VecH(pos/dist), nrm), CamMatrix);
+   O.rfl=ReflectDir(pos/dist, nrm);
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
