@@ -11,7 +11,7 @@ namespace EE{
 #define  EXT_CLEAR_START 0 // TODO: which is better?
 #define  VEL_CLEAR_START 0 // this is not needed because "ClearDeferred" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware
 inline Bool NeedBackgroundNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
-inline Bool NeedBackgroundExt() {return Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT || Renderer.stage==RS_LIT_COLOR;}
+inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) || Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT || Renderer.stage==RS_LIT_COLOR;}
 /******************************************************************************
 
    Graphics API differences:
