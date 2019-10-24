@@ -8,7 +8,7 @@ SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
 #define TESSELATE   0
 #define SET_TEX     (LAYOUT || BUMP_MODE>SBUMP_FLAT)
 #define VTX_REFLECT (REFLECT && BUMP_MODE<=SBUMP_FLAT)
-#define SET_POS     (REFLECT)
+#define SET_POS     (REFLECT || TESSELATE)
 /******************************************************************************/
 struct VS_PS
 {
