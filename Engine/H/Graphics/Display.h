@@ -223,7 +223,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
 
    // Color Palette
    Display& colorPaletteAllow(  Bool      on     );   Bool      colorPaletteAllow()C {return _color_palette_allow;} // set/get if RM_PALETTE/RM_PALETTE1 rendering modes are allowed, disabling them increases rendering performance, default=true (false for Mobile)
-   Display& colorPalette     (C ImagePtr &palette); C ImagePtr& colorPalette     ()C {return _color_palette[0]   ;} // set/get color palette image that is used during RM_PALETTE  rendering mode, palette textures need to have a height of 4 pixels (width can be set freely), where each row represents an intensity color palette for respectively (red, green, blue, alpha) components when rendering in RM_PALETTE  mode, default=ImagePtr().get("Img/color palette.img")
+   Display& colorPalette     (C ImagePtr &palette); C ImagePtr& colorPalette     ()C {return _color_palette[0]   ;} // set/get color palette image that is used during RM_PALETTE  rendering mode, palette textures need to have a height of 4 pixels (width can be set freely), where each row represents an intensity color palette for respectively (red, green, blue, alpha) components when rendering in RM_PALETTE  mode, default=ImagePtr().get("Img/Color Palette.img")
    Display& colorPalette1    (C ImagePtr &palette); C ImagePtr& colorPalette1    ()C {return _color_palette[1]   ;} // set/get color palette image that is used during RM_PALETTE1 rendering mode, palette textures need to have a height of 4 pixels (width can be set freely), where each row represents an intensity color palette for respectively (red, green, blue, alpha) components when rendering in RM_PALETTE1 mode, default=null
 
    // Particles

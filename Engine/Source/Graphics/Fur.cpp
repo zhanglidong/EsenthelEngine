@@ -20,7 +20,7 @@ static void SetupFur(Int res=256)
       FREPD(y, img.h())
       FREPD(x, img.w())img.pixB(x, y)=random(256);
       img.unlock().updateMipMaps();
-      if(1)img.save("C:/Esenthel/Data/Img/fur.img");
+      if(1)img.save("C:/Esenthel/Data/Img/Fur.img");
    }
    GetShaderImage("FurCol")->set(img);
 }
@@ -28,7 +28,7 @@ static void SetupFur(Int res=256)
 /******************************************************************************/
 void InitFur()
 {
-   if(D.canDraw() && FurCol.get("Img/fur.img"))GetShaderImage("FurCol")->set(FurCol());
+   if(D.canDraw() && FurCol.get("Img/Fur.img"))GetShaderImage("FurCol")->set(FurCol());
    FurStep =GetShaderParam("FurStep");
    FurLight=GetShaderImage("FurLight");
 }
