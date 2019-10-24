@@ -151,16 +151,16 @@ void VS
 
    Flt dist=Length(pos);
 
-#if VTX_REFLECT
-   O.rfl=ReflectDir(pos/dist, nrm);
-#endif
-
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
 #elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
+#endif
+
+#if VTX_REFLECT
+   O.rfl=ReflectDir(pos/dist, nrm);
 #endif
 
    // sky

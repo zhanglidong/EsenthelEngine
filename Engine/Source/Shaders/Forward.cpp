@@ -168,16 +168,16 @@ void VS
       if(BUMP_MODE>SBUMP_FLAT)tan=Normalize(tan);
    }
 
-#if VTX_REFLECT
-   O.rfl=ReflectDir(Normalize(pos), nrm);
-#endif
-
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
 #elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
+#endif
+
+#if VTX_REFLECT
+   O.rfl=ReflectDir(Normalize(pos), nrm);
 #endif
 
    //  per-vertex light
