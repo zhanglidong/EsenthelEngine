@@ -705,7 +705,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
                         #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
-                           if(type==VS)
+                           if(type==ST_VS)
                            {
                               Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
                               Str t=S+"static Byte VS_Code["+size+"]={";
@@ -874,7 +874,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                   outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
                #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
-                  if(type==VS)
+                  if(type==ST_VS)
                   {
                      Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
                      Str t=S+"static Byte VS_Code["+size+"]={";
@@ -1565,13 +1565,13 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       if(f.flushOK())return true;
 
    error:
-      f.del(); FDelFile(dest);
-   }
+      f.del(); FDelFile(dest); error("Can't save data to file");
+   }else error(S+"Can't write to file \""+dest+"\"");
    return false;
 }
 void ShaderCompiler::compile(Threads &threads)
 {
-   if(!compileTry(threads))Exit(S+"Failed to compile:"+messages);
+   if(!compileTry(threads))Exit(S+"Failed to compile"+(messages.is() ? ":\n" : null)+messages);
 }
 /******************************************************************************/
 }

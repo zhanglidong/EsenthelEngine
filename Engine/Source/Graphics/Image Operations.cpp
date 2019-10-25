@@ -2775,7 +2775,7 @@ struct BlurCube
    {
       switch(0)
       {
-         case 0: return 1-f; // Linear (similar to Cos)
+         case 0: return 1-f; // Linear (similar to Cos but faster)
          case 1: return Cos(f*PI_2); // Cos (similar to Linear)
          case 2: return 1-_SmoothCube(f); // SmoothCube (sharper than Linear/Cos)
       }
@@ -3026,7 +3026,7 @@ struct BlurCube
       }
    }
 };
-static Flt AngleRange(Flt start, Flt growth, Int i)
+static Flt AngleRange(Flt start, Flt growth, Int i) // !! if changed then adjust 'LightSpecular' in the shader !!
 {
 #if 1 // better - sharper at the start, and more blurry at the end
    return start*(Pow(growth, i)-1)/(growth-1);
