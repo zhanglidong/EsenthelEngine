@@ -998,6 +998,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC(10) VecH4 _material:ATTR10;
    LOC(11) VecH4 _color   :ATTR11;
 #else
+   // !! IF MAKING ANY CHANGE (EVEN PRECISION) THEN DON'T FORGET TO RE-CREATE "VS_Code" FOR 'CreateInputLayout' !!
    Vec4  _pos     :POSITION0   ;
    VecH  _hlp     :POSITION1   ;
    VecH  _nrm     :NORMAL      ;
