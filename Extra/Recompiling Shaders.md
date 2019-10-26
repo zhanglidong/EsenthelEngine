@@ -3,7 +3,7 @@ Shader sources are located inside [Engine/Source/Shaders](../Engine/Source/Shade
 
 Sources are compiled into binary format and stored inside [Data/Shader](../Data/Shader) folder, which has sub-folders for different platforms and shader models (such as "4" - DirectX 11 Shader Model 4+, and "GL" - OpenGL)
 
-These shader binary files are further placed inside "Engine.pak" file (all resources needed by the engine to start) by the "Esenthel Builder" tool (using the "Create Engine.pak" button)
+These shader binary files are further placed inside ["Engine.pak"](../Editor/Bin) file (all resources needed by the engine to start) by the ["Esenthel Builder"](../) tool (using the "Create Engine.pak" button)
 
 
 Currently compiling shaders is supported only from the Windows platform.
