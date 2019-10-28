@@ -4,6 +4,11 @@
 /******************************************************************************/
 #define FORCE_LOG_SHADER_CODE (DEBUG && 0)
 
+#define SKIP_OPTIMIZATION (DEBUG && 0)
+#if     SKIP_OPTIMIZATION
+   #pragma message("!! Warning: Use this only for debugging !!")
+#endif
+
 #if DX_SHADER_COMPILER
 const UINT32 CP_UTF16=1200;
 namespace llvm
@@ -579,7 +584,8 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          arguments.add(L"/Od"); // skip optimizations
       }else
       {
-         arguments.add(L"/O3");
+         if(SKIP_OPTIMIZATION)arguments.add(L"/Od"); // skip optimizations
+         else                 arguments.add(L"/O3");
          if(compiler->api!=API_DX)arguments.add(L"-spirv");
       }
 
@@ -785,7 +791,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
-      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
+      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
       if(error_blob)
       {
          CChar8 *e=(Char8*)error_blob->GetBufferPointer();
@@ -1521,6 +1527,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
 
+   if(!dest.is())return true;
    File f; if(f.writeTry(dest))
    {
       f.putUInt (CC4_SHDR); // CC4
