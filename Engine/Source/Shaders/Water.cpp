@@ -202,7 +202,7 @@ void Surface_PS
       Half diffuse=LightDiffuse(view_nrm, LightDir.dir); if(SHADOW)diffuse*=shd;
 
       // specular
-      Half specular=LightSpecular(view_nrm, WaterSpc, LightDir.dir, view); if(SHADOW)specular*=shd;
+      Half specular=LightSpecular(view_nrm, 1, 0.02, LightDir.dir, view); if(SHADOW)specular*=shd;
 
       lum=VecH4(LightDir.color.rgb*diffuse, LightDir.color.a*specular);
    }
@@ -216,7 +216,7 @@ void Surface_PS
    water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
    // glow and specular
-   //water_col.a  +=lum.w*      0.5; // glow
+ //water_col.a  +=lum.w*      0.5; // glow
    water_col.rgb+=lum.w*lum.w*0.5; // specular
 
    if(SOFT)
