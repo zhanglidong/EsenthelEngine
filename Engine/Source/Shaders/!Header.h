@@ -1499,32 +1499,132 @@ inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLine
 inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
 inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
 
-inline Half LightDiffuse (VecH nrm,              VecH light_dir              ) {return Sat(Dot(nrm, light_dir));}
-inline Half LightSpecular(VecH nrm, Half smooth, VecH light_dir, VecH eye_dir)
+Half F_Schlick(Half f0, Half f90, Half c)
 {
-   VecH H=Normalize(light_dir-eye_dir);
-   smooth=1-Sqr(1-smooth); // this matches blur from 'Env' map based on pre-generated mip blurs in 'PBR'
-   Half exp=Pow(2, smooth*9+1); // Pow(1024, smooth) is same as Pow(2, 10*smooth); value was chosen to match Sun reflection size on a flat smooth surface
-   return Pow(Sat(Dot(nrm, H)), exp)*Cube(smooth); // 'Cube' matches blur from 'Env' map based on pre-generated mip blurs in 'PBR'
+   return (f90-f0)*Quint(1-c) + f0; // Quint(1-c) = ~exp2(-9.28*c)
 }
+Half D_GGX(Half NdotH, Half roughness) // Trowbridge-Reitz
+{
+#if 1
+   Half roughness2=Sqr(roughness);
+   Half f=(NdotH*roughness2-NdotH)*NdotH+1;
+   return roughness2/(f*f);
+#else // this could be used with Half's FIXME
+   VecH NxH=Cross(n, h);
+   Half a=NdotH*roughness;
+   Half k=roughness/(Dot(NxH, NxH)+a*a);
+   return Sqr(k);
+#endif
+}
+Half Vis_Smith(Half roughness, Half NdotL, Half NdotV)
+{
+   Half roughness2=Sqr(roughness);
+#if 1
+   Half view =NdotV+Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
+	Half light=NdotL+Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+	return rcp(view*light);
+#else // gives same results but has 2 MUL and 1 ADD, instead of 2 ADD 1 MUL, don't use in case MUL is slower than ADD
+   // Warning: "NdotL*" and "NdotV*" are exchanged on purpose
+   Half view =NdotL*Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
+   Half light=NdotV*Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+   return 0.5/(view+light);
+#endif
+}
+Half Vis_SmithFast(Half roughness, Half NdotV, Half NdotL) // fast approximation of 'Vis_Smith'
+{
+	Half view =NdotL*(NdotV*(1-roughness)+roughness);
+	Half light=NdotV*(NdotL*(1-roughness)+roughness);
+	return 0.5/(view+light);
+}
+
+struct LightParams
+{
+   Half NdotL, NdotV, VdotL, NdotH, LdotH; // VdotH=LdotH, because H is in the middle between L and V
+
+   void set(VecH N, VecH L)
+   {
+      NdotL=Dot(N, L); // 'Sat' not needed !! instead do "NdotL>0" checks !!
+   }
+   void set(VecH N, VecH L, VecH nV) // nV=-V
+   {
+	   NdotV=Sat(-Dot(N, nV)); // 'Sat' needed, otherwise Burley has black artifacts on smooth pixels, FIXME add 1e-5f?
+	   VdotL=    -Dot(nV, L) ; // 'Sat' should not be applied as it destroys calculations
+   #if 0
+      VecH H=Normalize(L-nV); // L+V
+      NdotH=Dot(N, H); // 'Sat' not needed
+      LdotH=Dot(L, H); // 'Sat' not needed
+   #else // faster
+    //VdotL=2*LdotH*LdotH-1
+	   Half VL=rsqrt(VdotL*2+2);
+	   NdotH=((NdotL+NdotV)*VL); // 'Sat' not needed
+	   LdotH=(     VL*VdotL+VL); // 'Sat' not needed
+   #endif
+   }
+
+   Half diffuseBurley(Half smooth) // aka Disney
+   {
+      Half roughness=1-smooth;
+
+    //Half f90=0.5+(2*LdotH*LdotH)*roughness; 2*LdotH*LdotH=1+VdotL;
+      Half f90=0.5+roughness+roughness*VdotL;
+      Half light_scatter=F_Schlick(1, f90, NdotL);
+      Half  view_scatter=F_Schlick(1, f90, NdotV);
+
+      return 0.965521237*light_scatter*view_scatter;
+   }
+   Half diffuseOrenNayar(Half smooth)
+   {
+      Half roughness=1-smooth;
+	   Half a=Sqr(roughness);
+	   Half s=a;
+	   Half s2=s*s;
+	   Half Cosri=VdotL - NdotV*NdotL;
+	   Half C1=1 - 0.5*s2/(s2+0.33);
+	   Half C2=0.45*s2/(s2+0.09)*Cosri*(Cosri>=0 ? rcp(Max(NdotL, NdotV)) : 1);
+	   return (C1+C2)*(1+roughness*0.5);
+   }
+   Half specular(Half smooth, Half reflectivity)
+   {
+      const Half light_radius=0.036;
+
+      Flt roughness=1-smooth;
+   #if 0
+      if( Q)roughness=Lerp(Pow(light_radius, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
+      roughness=(E ? Quart(roughness) : Sqr(roughness));
+      if(!Q)roughness=Lerp(light_radius, 1, roughness);
+   #else
+      roughness =Sqr(roughness);
+      roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
+   #endif
+
+      Half D  =D_GGX    (NdotH, roughness);
+      Half F  =F_Schlick(reflectivity, 1, LdotH);
+      Half Vis=Vis_Smith(roughness, NdotV, NdotL);
+      return D*F*Vis/PI;
+   }
+};
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-inline VecH ReflectCol(VecH unlit_col, Half reflect)
+inline VecH ReflectCol(VecH unlit_col, Half reflectivity)
 {
-   return unlit_col*reflect + (1-reflect); // Lerp(VecH(1,1,1), unlit_col, reflect) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 }
 inline Vec ReflectDir(Vec eye_dir, VecH nrm)
 {
    return Transform3(reflect(eye_dir, nrm), CamMatrix);
 }
-inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec, Vec reflect_dir)
+inline VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
-   Half d=Sat(1+Dot((VecH)eye_dir, nrm));
-   VecH reflect_col=ReflectCol(unlit_col, reflectivity); // set before adjusting 'reflectivity'
-   reflectivity=reflectivity + (1-reflectivity)*Quint(d*smooth); // increase reflectivity based on angle and smoothness
-   return Lerp(lit_col, TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb*reflect_col*EnvColor, reflectivity) // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
-         +spec*reflect_col;
+   return TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb; // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+}
+inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, VecH eye_dir, VecH spec, Vec reflect_dir)
+{
+   return lit_col*(1-reflectivity)
+         +ReflectCol(unlit_col, reflectivity)*
+            (ReflectTex(reflect_dir, smooth)*(EnvColor*
+            )
+            +spec);
 }
 inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
