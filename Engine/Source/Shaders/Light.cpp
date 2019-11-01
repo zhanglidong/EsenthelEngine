@@ -49,21 +49,33 @@ VecH4 LightDir_PS
    Half shd; if(SHADOW)shd=TexPoint(ImgX, inTex).x;
 #endif
 
-   // normal + ext
+   // normal
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
-   VecH2 ext=GetExtMS   (pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
 #else
-   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
-   VecH2 ext=GetExt   (inTex);
+   VecH nrm=GetNormal(inTex, DEQUANTIZE);
 #endif
 
-   // diffuse
-   Half lum=LightDiffuse(nrm.xyz, LightDir.dir); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+   // light
+   LightParams lp; lp.set(nrm, LightDir.dir);
+   Half lum=lp.NdotL; if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+
+   // ext
+#if MULTI_SAMPLE
+   VecH2 ext=GetExtMS(pixel.xy, index);
+#else
+   VecH2 ext=GetExt(inTex);
+#endif
+
+   // light #1
+   VecH eye_dir=Normalize(Vec(inPosXY, 1));
+   lp.set(nrm, LightDir.dir, eye_dir);
 
    // specular
-   VecH eye_dir =Normalize    (Vec(inPosXY, 1));
-   Half specular=LightSpecular(nrm.xyz, ext.x, LightDir.dir, eye_dir); if(SHADOW)specular*=shd;
+   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+
+   // diffuse !! after specular because it adjusts 'lum' !!
+   //if(Q)lum*=lp.diffuseBurley(ext.x); // #RTOutput
 
    return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
 }
@@ -103,6 +115,7 @@ VecH4 LightPoint_PS
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
    Half power=LightPointDist(inv_dist2); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
+   return 0; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
    VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
@@ -118,9 +131,9 @@ VecH4 LightPoint_PS
 
    // specular
    VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, light_dir, eye_dir)*power;
+   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
 
-   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);
+   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);*/
 }
 /******************************************************************************/
 VecH4 LightLinear_PS
@@ -158,6 +171,7 @@ VecH4 LightLinear_PS
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
    Half power=LightLinearDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
+   return 0; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
    VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
@@ -173,9 +187,9 @@ VecH4 LightLinear_PS
 
    // specular
    VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, light_dir, eye_dir)*power;
+   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
 
-   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);
+   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);*/
 }
 /******************************************************************************/
 VecH4 LightCone_PS
@@ -215,6 +229,7 @@ VecH4 LightCone_PS
    Flt  dist =Length(delta);
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
+   return LightMapScale; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
    VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
@@ -230,13 +245,13 @@ VecH4 LightCone_PS
 
    // specular
    VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, light_dir, eye_dir)*power;
+   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
 
 #if IMAGE
    VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
    return VecH4(LightCone.color.rgb*lum*map_col, LightCone.color.a*specular);
 #else
    return VecH4(LightCone.color.rgb*lum, LightCone.color.a*specular);
-#endif
+#endif*/
 }
 /******************************************************************************/
