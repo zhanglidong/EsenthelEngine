@@ -159,31 +159,41 @@ VecD  ScaleFactor(C VecD  &vec);   VecD  ScaleFactorR(C VecD  &vec);
 Vec4  ScaleFactor(C Vec4  &vec);   Vec4  ScaleFactorR(C Vec4  &vec);
 VecD4 ScaleFactor(C VecD4 &vec);   VecD4 ScaleFactorR(C VecD4 &vec);
 
-constexpr Int   Sqr  (  Int   x) {return x*x     ;} // square  = x**2
-constexpr UInt  Sqr  (  UInt  x) {return x*x     ;} // square  = x**2
-constexpr Long  Sqr  (  Long  x) {return x*x     ;} // square  = x**2
-constexpr ULong Sqr  (  ULong x) {return x*x     ;} // square  = x**2
-constexpr Flt   Sqr  (  Flt   x) {return x*x     ;} // square  = x**2
-constexpr Dbl   Sqr  (  Dbl   x) {return x*x     ;} // square  = x**2
-inline    Vec2  Sqr  (C Vec2 &x) {return x*x     ;} // square  = x**2
-inline    Vec   Sqr  (C Vec  &x) {return x*x     ;} // square  = x**2
-inline    Vec4  Sqr  (C Vec4 &x) {return x*x     ;} // square  = x**2
-constexpr Int   Cube (  Int   x) {return x*x*x   ;} // cube    = x**3
-constexpr UInt  Cube (  UInt  x) {return x*x*x   ;} // cube    = x**3
-constexpr Long  Cube (  Long  x) {return x*x*x   ;} // cube    = x**3
-constexpr ULong Cube (  ULong x) {return x*x*x   ;} // cube    = x**3
-constexpr Flt   Cube (  Flt   x) {return x*x*x   ;} // cube    = x**3
-constexpr Dbl   Cube (  Dbl   x) {return x*x*x   ;} // cube    = x**3
-constexpr Int   Quart(  Int   x) {return Sqr(x*x);} // quartic = x**4
-constexpr UInt  Quart(  UInt  x) {return Sqr(x*x);} // quartic = x**4
-constexpr Long  Quart(  Long  x) {return Sqr(x*x);} // quartic = x**4
-constexpr ULong Quart(  ULong x) {return Sqr(x*x);} // quartic = x**4
-constexpr Flt   Quart(  Flt   x) {return Sqr(x*x);} // quartic = x**4
-constexpr Dbl   Quart(  Dbl   x) {return Sqr(x*x);} // quartic = x**4
-constexpr Int   SqrS (  Int   x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
-constexpr Long  SqrS (  Long  x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
-constexpr Flt   SqrS (  Flt   x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
-constexpr Dbl   SqrS (  Dbl   x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
+constexpr Int   Sqr(  Int   x) {return x*x;} // square  = x**2
+constexpr UInt  Sqr(  UInt  x) {return x*x;} // square  = x**2
+constexpr Long  Sqr(  Long  x) {return x*x;} // square  = x**2
+constexpr ULong Sqr(  ULong x) {return x*x;} // square  = x**2
+constexpr Flt   Sqr(  Flt   x) {return x*x;} // square  = x**2
+constexpr Dbl   Sqr(  Dbl   x) {return x*x;} // square  = x**2
+inline    Vec2  Sqr(C Vec2 &x) {return x*x;} // square  = x**2
+inline    Vec   Sqr(C Vec  &x) {return x*x;} // square  = x**2
+inline    Vec4  Sqr(C Vec4 &x) {return x*x;} // square  = x**2
+
+constexpr Int   Cube(Int   x) {return x*x*x;} // cube = x**3
+constexpr UInt  Cube(UInt  x) {return x*x*x;} // cube = x**3
+constexpr Long  Cube(Long  x) {return x*x*x;} // cube = x**3
+constexpr ULong Cube(ULong x) {return x*x*x;} // cube = x**3
+constexpr Flt   Cube(Flt   x) {return x*x*x;} // cube = x**3
+constexpr Dbl   Cube(Dbl   x) {return x*x*x;} // cube = x**3
+
+constexpr Int   Quart(Int   x) {return Sqr(x*x);} // quartic = x**4
+constexpr UInt  Quart(UInt  x) {return Sqr(x*x);} // quartic = x**4
+constexpr Long  Quart(Long  x) {return Sqr(x*x);} // quartic = x**4
+constexpr ULong Quart(ULong x) {return Sqr(x*x);} // quartic = x**4
+constexpr Flt   Quart(Flt   x) {return Sqr(x*x);} // quartic = x**4
+constexpr Dbl   Quart(Dbl   x) {return Sqr(x*x);} // quartic = x**4
+
+constexpr Int   Quint(Int   x) {return Quart(x)*x;} // quintic = x**5
+constexpr UInt  Quint(UInt  x) {return Quart(x)*x;} // quintic = x**5
+constexpr Long  Quint(Long  x) {return Quart(x)*x;} // quintic = x**5
+constexpr ULong Quint(ULong x) {return Quart(x)*x;} // quintic = x**5
+constexpr Flt   Quint(Flt   x) {return Quart(x)*x;} // quintic = x**5
+constexpr Dbl   Quint(Dbl   x) {return Quart(x)*x;} // quintic = x**5
+
+constexpr Int  SqrS(Int  x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
+constexpr Long SqrS(Long x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
+constexpr Flt  SqrS(Flt  x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
+constexpr Dbl  SqrS(Dbl  x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
 
 // make square
 inline Int  & SQR(Int   &x) {return x*=x;}

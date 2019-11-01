@@ -598,15 +598,15 @@ inline Vec   Quart(Vec   x) {return Sqr(x*x);}
 inline VecH4 Quart(VecH4 x) {return Sqr(x*x);}
 inline Vec4  Quart(Vec4  x) {return Sqr(x*x);}
 
-inline Int   Quint(Int   x) {return Sqr(x*x)*x;}
-inline Half  Quint(Half  x) {return Sqr(x*x)*x;}
-inline Flt   Quint(Flt   x) {return Sqr(x*x)*x;}
-inline VecH2 Quint(VecH2 x) {return Sqr(x*x)*x;}
-inline Vec2  Quint(Vec2  x) {return Sqr(x*x)*x;}
-inline VecH  Quint(VecH  x) {return Sqr(x*x)*x;}
-inline Vec   Quint(Vec   x) {return Sqr(x*x)*x;}
-inline VecH4 Quint(VecH4 x) {return Sqr(x*x)*x;}
-inline Vec4  Quint(Vec4  x) {return Sqr(x*x)*x;}
+inline Int   Quint(Int   x) {return Quart(x)*x;}
+inline Half  Quint(Half  x) {return Quart(x)*x;}
+inline Flt   Quint(Flt   x) {return Quart(x)*x;}
+inline VecH2 Quint(VecH2 x) {return Quart(x)*x;}
+inline Vec2  Quint(Vec2  x) {return Quart(x)*x;}
+inline VecH  Quint(VecH  x) {return Quart(x)*x;}
+inline Vec   Quint(Vec   x) {return Quart(x)*x;}
+inline VecH4 Quint(VecH4 x) {return Quart(x)*x;}
+inline Vec4  Quint(Vec4  x) {return Quart(x)*x;}
 
 inline Half Length(VecH2 v) {return length(v);}
 inline Flt  Length(Vec2  v) {return length(v);}

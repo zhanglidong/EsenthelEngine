@@ -183,6 +183,7 @@ static void Compile(API api)
 
       src.New("Params0", S, "Params0_PS").dummy=true;
       src.New("Params1", S, "Params1_PS").dummy=true;
+      src.New("Params2", S, "Params2_PS").dummy=true;
    }
    { // BLOOM
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");

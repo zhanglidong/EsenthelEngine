@@ -8,6 +8,7 @@
 #include "Fog.h"
 #include "Fur.h"
 #include "Overlay.h"
+#include "Light Apply.h"
 /******************************************************************************/
 #ifdef MODE
 VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
@@ -457,6 +458,7 @@ void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision 
 /******************************************************************************/
 Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].lin.x+FurVel[0].x+FurStep+Material.color.a+MultiMaterial0.color.a+MultiMaterial1.color.a+MultiMaterial2.color.a+MultiMaterial3.color.a+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
 Flt Params1_PS():TARGET {return CamAngVel.x+CamMatrix[0].x+AmbientContrast+HdrBrightness+LocalFogColor.x+OverlayOpaqueFrac()+BehindBias+Step;}
+Flt Params2_PS():TARGET {return NightShadeColor.x;}
 /******************************************************************************/
 #if GL // #WebSRGB
 VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}

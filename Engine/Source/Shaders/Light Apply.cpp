@@ -1,11 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "!Set SP.h"
-BUFFER(ApplyLight)
-   VecH AmbientColor,
-     NightShadeColor;
-BUFFER_END
-#include "!Set LP.h"
+#include "Light Apply.h"
 
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
 
@@ -50,8 +45,7 @@ inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH ni
       if(apply_ao)night_shade_intensity*=ao;
          lit_col+=night_shade_intensity*night_shade_col;
    }
-   Half spec=lum.w/Max(max_lum, HALF_MIN);
-   VecH spec_col=spec*lum.rgb;
+   VecH spec_col=(lum.w/Max(max_lum, HALF_MIN))*lum.rgb;
 #if REFLECT
    lit_col=PBR(color.rgb, lit_col, nrm, ext.x, ext.y, eye_dir, spec_col); // #RTOutput
 #else
@@ -79,7 +73,6 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    #endif
       VecH  nrm=GetNormal(inTex, DEQUANTIZE);
       VecH2 ext=GetExt   (inTex);
-
       if(AO && !AO_ALL)lum.rgb+=ambient;
       color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       if(AO && AO_ALL)color*=ao;

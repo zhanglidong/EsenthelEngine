@@ -256,7 +256,7 @@ void PS
       #endif
          tpos.xy*=-scale;
 
-         Flt length=Length(tpos.xy) * TexSize.x / Pow(2, lod); // how many pixels
+         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
          if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
          I.tex-=tpos.xy*0.5;
@@ -479,7 +479,7 @@ void PS
       #endif
          tpos.xy*=-scale;
 
-         Flt length=Length(tpos.xy) * TexSize.x / Pow(2, lod); // how many pixels
+         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
          if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
          //I.tex-=tpos.xy*0.5;
