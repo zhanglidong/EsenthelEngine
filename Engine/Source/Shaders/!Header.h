@@ -1575,12 +1575,10 @@ struct LightParams
    Half diffuseOrenNayar(Half smooth)
    {
       Half roughness=1-smooth;
-	   Half a=Sqr(roughness);
-	   Half s=a;
-	   Half s2=s*s;
+	   Half a=Sqr(roughness), a2=Sqr(a*a);
 	   Half Cosri=VdotL - NdotV*NdotL;
-	   Half C1=1 - 0.5*s2/(s2+0.33);
-	   Half C2=0.45*s2/(s2+0.09)*Cosri*(Cosri>=0 ? rcp(Max(NdotL, NdotV)) : 1);
+	   Half C1=1 - 0.5*a2/(a2+0.33);
+	   Half C2=0.45*a2/(a2+0.09)*Cosri*((Cosri>=0) ? rcp(Max(NdotL, NdotV)) : 1);
 	   return (C1+C2)*(1+roughness*0.5);
    }
    Half specular(Half smooth, Half reflectivity)
