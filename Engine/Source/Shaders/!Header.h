@@ -1564,12 +1564,10 @@ struct LightParams
    Half diffuseBurley(Half smooth) // aka Disney, highlights edges from smooth = 0.5 -> 0 and darkens from smooth = 0.5 -> 1.0
    {
       Half roughness=1-smooth;
-
     //Half f90=0.5+(2*LdotH*LdotH)*roughness; 2*LdotH*LdotH=1+VdotL;
       Half f90=0.5+roughness+roughness*VdotL;
       Half light_scatter=F_Schlick(1, f90,     NdotL );
       Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
-
       return 0.965521237*light_scatter*view_scatter;
    }
    Half diffuseOrenNayar(Half smooth) // highlights edges from smooth = 1 -> 0
