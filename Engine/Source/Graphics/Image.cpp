@@ -1869,7 +1869,7 @@ static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma, Int max_mip
 /******************************************************************************/
 static Bool BlurCubeMipMaps(Image &src, Image &dest, Int type, Int mode, FILTER_TYPE filter, UInt flags)
 {
-   return src.blurCubeMipMaps(0.005f*PI, 1.55f, &ImageThreads.init())
+   return src.blurCubeMipMaps(&ImageThreads.init())
        && src.copyTry(dest, -1, -1, -1, IMAGE_TYPE(type), IMAGE_MODE(mode), -1, filter, flags&~IC_ENV_CUBE); // disable IC_ENV_CUBE because we've already blurred mip-maps
 }
 /******************************************************************************/

@@ -326,7 +326,7 @@ struct Image // Image (Texture)
 #endif
    Image& updateMipMaps(FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP, Int mip_start=0); // update mip maps of the image, 'flags'=IMAGE_COPY_FLAG, 'mip_start'=index of the mip map to start with (this mip map will be taken, and downsampled to following mip maps)
 
-   Bool blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads=null); // blur mip maps based on specified angle parameters, this method is only for Cube Images, false on fail
+   Bool blurCubeMipMaps(Threads *threads=null); // blur mip maps based on increasing angles per mip-map, this method is only for Cube Images, false on fail
 
    Image& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 

@@ -3026,21 +3026,19 @@ struct BlurCube
       }
    }
 };
-static Flt AngleRange(Flt start, Flt growth, Int i) // !! if changed then adjust 'LightSpecular' in the shader !!
-{
-#if 1 // better - sharper at the start, and more blurry at the end
-   return start*(Pow(growth, i)-1)/(growth-1);
-#else
-   return start*Pow(i, growth);
-#endif
-}
-Bool Image::blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads)
+Bool Image::blurCubeMipMaps(Threads *threads)
 {
    if(cube() && mipMaps()>1)
    {
       Image *img=this, temp;
       if(img->mode()!=IMAGE_SOFT_CUBE || img->compressed())if(img->copyTry(temp, -1, -1, -1, ImageTypeUncompressed(img->type()), IMAGE_SOFT_CUBE))img=&temp;else return false;
-      for(Int i=1; i<img->mipMaps(); i++)BlurCube(*img, i-1, *img, i, AngleRange(angle_start, angle_growth, i), threads);
+      Flt last=0;
+      for(Int i=1; i<img->mipMaps(); i++)
+      {
+         Flt angle=Sqr(i/Flt(img->mipMaps()-1))*PI;
+         BlurCube(*img, i-1, *img, i, angle-last, threads);
+         last=angle;
+      }
       if(img!=this && !img->copyTry(T, -1, -1, -1, type(), mode()))return false; // convert to original type and mode
    }
    return true;
