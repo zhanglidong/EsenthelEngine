@@ -1561,7 +1561,7 @@ struct LightParams
    #endif
    }
 
-   Half diffuseBurley(Half smooth) // aka Disney
+   Half diffuseBurley(Half smooth) // aka Disney, highlights edges from smooth = 0.5 -> 0 and darkens from smooth = 0.5 -> 1.0
    {
       Half roughness=1-smooth;
 
@@ -1572,7 +1572,7 @@ struct LightParams
 
       return 0.965521237*light_scatter*view_scatter;
    }
-   Half diffuseOrenNayar(Half smooth)
+   Half diffuseOrenNayar(Half smooth) // highlights edges from smooth = 1 -> 0
    {
       Half roughness=1-smooth;
 	   Half a=Sqr(roughness), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
