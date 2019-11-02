@@ -1606,23 +1606,6 @@ struct LightParams
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
-{
-#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
-   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity)
-#else // square version, better
-   Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
-#endif
-}
-inline Vec ReflectDir(Vec eye_dir, VecH nrm)
-{
-   return Transform3(reflect(eye_dir, nrm), CamMatrix);
-}
-inline VecH ReflectTex(Vec reflect_dir, Half smooth)
-{
-   return TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb; // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
-}
-/******************************************************************************/
 inline VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
 {
    return TexLodClamp(EnvDFG, VecH2(smooth, NdotV)).xy;
@@ -1698,27 +1681,46 @@ inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV)
+inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality=true)
 {
    VecH2 mad;
-        mad=EnvDFGLazarovKaris(smooth, NdotV);
+   if(quality)mad=EnvDFGTex         (smooth, NdotV);
+   else       mad=EnvDFGLazarovKaris(smooth, NdotV);
 
-   // increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
+   // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
+#if 1 // Esenthel version
    mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity);
-   // another option is something like Lerp(reflectivity*mad.x + mad.y, 1, Sqr(reflectivity))
-
    return reflectivity*mad.x + mad.y;
+#else // same results but slower
+   return (reflectivity*mad.x + mad.y)*(1+reflectivity*(1/(mad.x+mad.y)-1));
+#endif
 }
-inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, VecH eye_dir, VecH spec, Vec reflect_dir)
+inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+{
+#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity)
+#else // square version, better
+   Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
+#endif
+}
+inline Vec ReflectDir(Vec eye_dir, VecH nrm)
+{
+   return Transform3(reflect(eye_dir, nrm), CamMatrix);
+}
+inline VecH ReflectTex(Vec reflect_dir, Half smooth)
+{
+   return TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb; // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+}
+inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir)
 {
    return lit_col*(1-reflectivity)
          +ReflectCol(unlit_col, reflectivity)*
-            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir)))
+            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV))
             +spec);
 }
 inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
-   return PBR(unlit_col, lit_col, nrm, smooth, reflectivity, eye_dir, spec, ReflectDir(eye_dir, nrm));
+   return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm));
 }
 /******************************************************************************/
 // SHADOWS
