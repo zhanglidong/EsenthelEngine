@@ -1565,7 +1565,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                   {
                      Vec4 c=image.color3DF(x, y, z); Vec &n=c.xyz;
                      n=n*2-1;
-                     if(!image.highPrecision())n=DequantizeNormal(n); // TODO: image could have 'MakeHighPrec'
+                     n.normalize();
                      n.z*=scale;
                      n.normalize();
                      n=n*0.5f+0.5f;
