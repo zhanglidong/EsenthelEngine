@@ -1606,9 +1606,13 @@ struct LightParams
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-inline VecH ReflectCol(VecH unlit_col, Half reflectivity)
+inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity) non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity)
+#else // square version, better
+   Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
+#endif
 }
 inline Vec ReflectDir(Vec eye_dir, VecH nrm)
 {
