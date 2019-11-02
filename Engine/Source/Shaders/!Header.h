@@ -433,7 +433,7 @@ Image     Ext, Ext1, Ext2, Ext3,
 Image     Img, Img1, Img2, Img3;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
-ImageH2   ImgXY;
+ImageH2   ImgXY, EnvDFG;
 ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
@@ -1622,12 +1622,98 @@ inline VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
    return TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb; // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
 }
+/******************************************************************************/
+inline VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
+{
+   return TexLodClamp(EnvDFG, VecH2(smooth, NdotV)).xy;
+}
+/* https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
+originally developed by Lazarov, modified by Karis */
+inline VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV) 
+{
+   const VecH4 m={-1, -0.0275, -0.572,  0.022},
+               a={ 1,  0.0425,  1.04 , -0.04 };
+#if 0
+   VecH4 r=roughness*m+a;
+#else
+   // roughness=1-smooth
+   VecH4 r=smooth*(-m)+(a+m);
+#endif
+   Half mul=Min(r.x*r.x, Quint(1-NdotV))*r.x + r.y;
+   return VecH2(-1.04, 1.04)*mul + r.zw;
+}
+/*
+http://miciwan.com/SIGGRAPH2015/course_notes_wip.pdf
+NO because has overshots in low reflectivity
+inline VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
+{
+   Half bias=exp2(-(7*NdotV+4*roughness));
+   Half scale=1-bias-roughness*Max(bias, Min(Sqrt(roughness), 0.739 + 0.323*NdotV)-0.434);
+   return VecH2(scale, bias);
+}
+
+https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
+NO because for low reflect and high smooth, 'EnvDFGLazarovKaris' looks better
+inline VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
+{
+   smooth=Sqr(smooth);
+   VecH4 p0 = VecH4( 0.5745, 1.548, -0.02397, 1.301 );
+   VecH4 p1 = VecH4( 0.5753, -0.2511, -0.02066, 0.4755 );
+
+   VecH4 t = smooth * p0 + p1;
+
+   Half bias  = Sat( t.x * Min( t.y, exp2( -7.672 * NdotV ) ) + t.z );
+   Half delta = Sat( t.w );
+   Half scale = delta - bias;
+
+   return VecH2(scale, bias);
+}
+
+https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
+NO because for low reflect, and high smooth it looks the same for long smooth range
+inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
+{
+   smooth=Sqr(smooth);
+
+   Half x = smooth;
+   Half y = NdotV;
+
+   Half b1 = -0.1688;
+   Half b2 = 1.895;
+   Half b3 = 0.9903;
+   Half b4 = -4.853;
+   Half b5 = 8.404;
+   Half b6 = -5.069;
+   Half bias = Sat( Min( b1 * x + b2 * x * x, b3 + b4 * y + b5 * y * y + b6 * y * y * y ) );
+ 
+   Half d0 = 0.6045;
+   Half d1 = 1.699;
+   Half d2 = -0.5228;
+   Half d3 = -3.603;
+   Half d4 = 1.404;
+   Half d5 = 0.1939;
+   Half d6 = 2.661;
+   Half delta = Sat( d0 + d1 * x + d2 * y + d3 * x * x + d4 * x * y + d5 * y * y + d6 * x * x * x );
+   Half scale = delta - bias;
+ 
+   return VecH2(scale, bias);
+}*/
+inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV)
+{
+   VecH2 mad;
+        mad=EnvDFGLazarovKaris(smooth, NdotV);
+
+   // increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
+   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity);
+   // another option is something like Lerp(reflectivity*mad.x + mad.y, 1, Sqr(reflectivity))
+
+   return reflectivity*mad.x + mad.y;
+}
 inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, VecH eye_dir, VecH spec, Vec reflect_dir)
 {
    return lit_col*(1-reflectivity)
          +ReflectCol(unlit_col, reflectivity)*
-            (ReflectTex(reflect_dir, smooth)*(EnvColor*
-            )
+            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir)))
             +spec);
 }
 inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)

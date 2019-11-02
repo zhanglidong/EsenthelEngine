@@ -143,6 +143,14 @@ void RendererClass::create()
    Sky   .create();
    Clouds.create();
    Water .create();
+
+   if(_env_dfg.load("Img/Environment DFG.img"))
+   {
+      ShaderImage *env_dfg=GetShaderImage("EnvDFG"); env_dfg->set(_env_dfg);
+   #if GL
+      env_dfg->_sampler=&SamplerLinearClamp; // have to force Linear Clamp sampler on GL in case it's used during 3D (Forward Renderer where default sampler is set to wrap)
+   #endif
+   }
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
 {
@@ -761,9 +769,9 @@ Bool RendererClass::wantEdgeSoften()C
    {
       case EDGE_SOFTEN_FXAA: return /*Sh.FXAA[0]!=null &&*/ Sh.FXAA[1]!=null; // check 'FXAA[1]' only, because it's set only if all loaded OK
    #if SUPPORT_MLAA
-      case EDGE_SOFTEN_MLAA: return Sh.MLAAEdge && Sh.MLAABlend && Sh.MLAA && _mlaa_area;
+      case EDGE_SOFTEN_MLAA: return Sh.MLAAEdge && Sh.MLAABlend && Sh.MLAA && _mlaa_area.is();
    #endif
-      case EDGE_SOFTEN_SMAA: return /*Sh.SMAAEdge[0] && Sh.SMAAEdge[1] && Sh.SMAABlend && Sh.SMAA && _smaa_area &&*/ _smaa_search!=null; // check '_smaa_search' only, because it's set only if all loaded OK
+      case EDGE_SOFTEN_SMAA: return /*Sh.SMAAEdge[0] && Sh.SMAAEdge[1] && Sh.SMAABlend && Sh.SMAA && _smaa_area.is() &&*/ _smaa_search.is(); // check '_smaa_search' only, because it's set only if all loaded OK
    }
    return false;
 }
@@ -1738,23 +1746,23 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          {
            _col->copyHw(*dest, false, D.viewRect());
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.MLAAEdge ->draw(_col ()); Sh.Img[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.MLAABlend->draw( edge()); Sh.Img[1]->set( blend    ()); edge.clear();
-                                                                               set(dest (), _ds_1s(), true);               Sh.MLAA     ->draw(_col ());                               D.stencil(STENCIL_NONE          );
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.MLAAEdge ->draw(_col ()); Sh.Img[1]->set(_mlaa_area); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.MLAABlend->draw( edge()); Sh.Img[1]->set( blend  ()); edge.clear();
+                                                                               set(dest (), _ds_1s(), true);               Sh.MLAA     ->draw(_col ());                             D.stencil(STENCIL_NONE          );
          }break;
       #endif
 
          case EDGE_SOFTEN_SMAA:
          {
          #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-            D.texBind(GL_TEXTURE_2D, _smaa_search->_txtr);
+            D.texBind(GL_TEXTURE_2D, _smaa_search._txtr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          #endif
 
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area()); Sh.Img[2]->set(_smaa_search()); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis

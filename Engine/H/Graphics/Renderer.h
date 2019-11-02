@@ -273,9 +273,9 @@ private:
    PlaneM        _mirror_plane;
    Shader       *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;
 #if SUPPORT_MLAA
-   ImagePtr      _mlaa_area;
+   Image         _mlaa_area;
 #endif
-   ImagePtr      _smaa_area, _smaa_search;
+   Image         _smaa_area, _smaa_search, _env_dfg;
    void        (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
    ImageRT       _main, _main_ds,

@@ -2541,13 +2541,13 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
          }break;
 
       #if SUPPORT_MLAA
-         case EDGE_SOFTEN_MLAA: if(!Renderer._mlaa_area)
+         case EDGE_SOFTEN_MLAA: if(!Renderer._mlaa_area.is())
          {
             Sh.MLAAEdge =Sh.find("MLAAEdge" );
             Sh.MLAABlend=Sh.find("MLAABlend");
             Sh.MLAA     =Sh.find("MLAA"     );
 
-            Renderer._mlaa_area.get("Img/MLAA Area.img");
+            Renderer._mlaa_area.load("Img/MLAA Area.img");
          }break;
       #endif
 
@@ -2559,12 +2559,12 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
             if(Sh.SMAAEdge[1]=Sh.find("SMAAEdge1"))
             if(Sh.SMAABlend  =Sh.find("SMAABlend"))
             if(Sh.SMAA       =Sh.find("SMAA"     ))
-            if(Renderer._smaa_area  .get("Img/SMAA Area.img"))
-            if(Renderer._smaa_search.get("Img/SMAA Search.img"))
+            if(Renderer._smaa_area  .load("Img/SMAA Area.img"))
+            if(Renderer._smaa_search.load("Img/SMAA Search.img"))
                break; // all OK
             // failed
-            Renderer._smaa_area  .clear();
-            Renderer._smaa_search.clear();
+            Renderer._smaa_area  .del();
+            Renderer._smaa_search.del();
          }break;
       }
    }

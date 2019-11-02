@@ -19,6 +19,36 @@ namespace EE{
 
    When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
 
+   https://seblagarde.wordpress.com/2011/08/17/feeding-a-physical-based-lighting-mode/
+
+   Water Reflectivity, Index of Refraction (IOR) of Water is 1.33:
+      F(0)=Sqr(1.33-1)/Sqr(1.33+1)=0.020059312=~0.02 (2%)
+   Reflectivity:
+      Ice       0.018
+      Water     0.02
+      Skin      0.028
+      Glass     0.04
+      Plastic   0.04 .. 0.05
+      Fabric	 0.04 .. 0.056
+      Ruby      0.077271957
+      Crystal   0.111111111
+      Diamond   0.171968833
+
+   Metals Linear Specular/Color:
+                  R           G           B
+      Silver      0.971519    0.959915    0.915324
+      Aluminium   0.913183    0.921494    0.924524
+      Gold        1           0.765557    0.336057
+      Copper      0.955008    0.637427    0.538163
+      Chromium    0.549585    0.556114    0.554256
+      Nickel      0.659777    0.608679    0.525649
+      Titanium    0.541931    0.496791    0.449419
+      Cobalt      0.662124    0.654864    0.633732
+      Platinum    0.672411    0.637331    0.585456
+
+   https://marmoset.co/posts/basic-theory-of-physically-based-rendering/
+   https://www.substance3d.com/system/files/software/download/build/PBR_Guide_Vol.1.pdf
+
 /******************************************************************************/
 enum MTRL_TEX_LAYOUT : Byte
 {
