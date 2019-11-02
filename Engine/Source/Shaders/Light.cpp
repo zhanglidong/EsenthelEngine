@@ -51,9 +51,9 @@ VecH4 LightDir_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH nrm=GetNormal(inTex, DEQUANTIZE);
+   VecH nrm=GetNormal(inTex);
 #endif
 
    // light
@@ -75,7 +75,8 @@ VecH4 LightDir_PS
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
-   //if(Q)lum*=lp.diffuseBurley(ext.x); // #RTOutput
+   //if(Q)lum*=lp.diffuseBurley(ext.x);else // #RTOutput
+   //if(W)lum*=lp.diffuseOrenNayar(ext.x);
 
    return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
 }
@@ -118,10 +119,10 @@ VecH4 LightPoint_PS
    return 0; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
+   VecH  nrm=GetNormalMS(pixel.xy, index);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
+   VecH  nrm=GetNormal(inTex);
    VecH2 ext=GetExt   (inTex);
 #endif
 
@@ -174,10 +175,10 @@ VecH4 LightLinear_PS
    return 0; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
+   VecH  nrm=GetNormalMS(pixel.xy, index);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
+   VecH  nrm=GetNormal(inTex);
    VecH2 ext=GetExt   (inTex);
 #endif
 
@@ -232,10 +233,10 @@ VecH4 LightCone_PS
    return LightMapScale; /* FIXME
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
+   VecH  nrm=GetNormalMS(pixel.xy, index);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
+   VecH  nrm=GetNormal(inTex);
    VecH2 ext=GetExt   (inTex);
 #endif
 

@@ -5,10 +5,6 @@
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
 
 // MULTI_SAMPLE, AO, CEL_SHADE, NIGHT_SHADE, GLOW, REFLECT
-
-#ifndef DEQUANTIZE
-#define DEQUANTIZE false
-#endif
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img3, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
@@ -71,7 +67,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH4 color=TexPoint(Img1, inTex),
             lum  =TexPoint(Img2, inTex);
    #endif
-      VecH  nrm=GetNormal(inTex, DEQUANTIZE);
+      VecH  nrm=GetNormal(inTex);
       VecH2 ext=GetExt   (inTex);
       if(AO && !AO_ALL)lum.rgb+=ambient;
       color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
@@ -82,7 +78,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    {
       VecH4  color=TexSample  (ImgMS1, pixel.xy, 0),
              lum  =TexSample  (ImgMS2, pixel.xy, 0); // needed because Mesh Ambient is stored only in Multi Sampled Lum
-      VecH   nrm  =GetNormalMS(        pixel.xy, 0, DEQUANTIZE);
+      VecH   nrm  =GetNormalMS(        pixel.xy, 0);
       VecH2  ext  =GetExtMS   (        pixel.xy, 0);
       VecH4  lum1s=Img2.Load(p);
              lum +=lum1s;
@@ -99,7 +95,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       {
          VecH4 color=TexSample  (ImgMS1, pixel.xy, i),
                lum  =TexSample  (ImgMS2, pixel.xy, i);
-         VecH  nrm  =GetNormalMS(        pixel.xy, i, DEQUANTIZE);
+         VecH  nrm  =GetNormalMS(        pixel.xy, i);
          VecH2 ext  =GetExtMS   (        pixel.xy, i);
          if(AO && !AO_ALL)lum.rgb+=ambient;
          color.rgb =LitCol(color, nrm, ext, lum, ao, (NIGHT_SHADE && AO && !AO_ALL) ? night_shade_col : NightShadeColor, false, eye_dir); // we've already adjusted 'night_shade_col' by 'ao', so set 'apply_ao' as false

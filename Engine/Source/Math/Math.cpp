@@ -307,8 +307,8 @@ Dbl AbsAngleBetweenN(C VecD  &a, C VecD  &b) {return ACosSin(CosBetweenN(a, b), 
 
 Flt AngleBetween(C Vec  &a, C Vec  &b, C Vec  &z) {Flt angle=AbsAngleBetween(a, b); if(Dot(Cross(a, b), z)<0)CHS(angle); return angle;}
 Dbl AngleBetween(C VecD &a, C VecD &b, C VecD &z) {Dbl angle=AbsAngleBetween(a, b); if(Dot(Cross(a, b), z)<0)CHS(angle); return angle;}
-/******************************************************************************/
-Vec DequantizeNormal(C Vec &n)
+/******************************************************************************
+Vec DequantizeNormal(C Vec &n) // improve precision of normal, assuming it was generated from 8-bit values
 {
    Vec dn;
    switch(Abs(n).maxI())

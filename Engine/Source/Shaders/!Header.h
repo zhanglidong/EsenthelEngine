@@ -1267,24 +1267,21 @@ inline void AlphaTest(Half alpha)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH nrm, Bool dequantize)
+inline void UnpackNormal(in out VecH nrm)
 {
 #if !SIGNED_NRM_RT
    nrm=nrm*2-1;
 #endif
-   if(dequantize)
-   {
-      if(nrm.z<-SQRT2_2)nrm.z=-CalcZ(nrm.xy);
-   }
+   nrm=Normalize(nrm); // normalize needed even for F16 formats because it improves quality for specular
 }
-inline VecH GetNormal(Vec2 tex, Bool dequantize=false)
+inline VecH GetNormal(Vec2 tex)
 {
-   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm, dequantize);
+   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm);
    return nrm;
 }
-inline VecH GetNormalMS(VecI2 pixel, UInt sample, Bool dequantize=false)
+inline VecH GetNormalMS(VecI2 pixel, UInt sample)
 {
-   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm, dequantize);
+   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm);
    return nrm;
 }
 /******************************************************************************/

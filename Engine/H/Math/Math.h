@@ -347,7 +347,6 @@ inline Dbl CosSinPrecise(Dbl cos_sin) {return Sin   (Acos(cos_sin));} // this is
 #endif
 
 inline Flt CalcZ(C Vec2 &v) {return Sqrt(1 - v.x*v.x - v.y*v.y);}
-       Vec DequantizeNormal(C Vec &n); // improve precision of normal, assuming it was generated from 8-bit values
 
 // angle between vectors
        Flt    AngleBetween (C Vec2  &a, C Vec2  &b);                                  // -PI..PI, 'a b'=direction vectors (they DON'T NEED to be normalized)
