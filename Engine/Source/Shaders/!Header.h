@@ -1547,17 +1547,17 @@ struct LightParams
    }
    void set(VecH N, VecH L, VecH nV) // nV=-V
    {
-	   NdotV=Sat(-Dot(N, nV)); // 'Sat' needed, otherwise Burley has black artifacts on smooth pixels, FIXME add 1e-5f?
-	   VdotL=    -Dot(nV, L) ; // 'Sat' should not be applied as it destroys calculations
+	   NdotV=-Dot(N, nV);
+	   VdotL=-Dot(nV, L);
    #if 0
       VecH H=Normalize(L-nV); // L+V
-      NdotH=Dot(N, H); // 'Sat' not needed
-      LdotH=Dot(L, H); // 'Sat' not needed
+      NdotH=Dot(N, H);
+      LdotH=Dot(L, H);
    #else // faster
     //VdotL=2*LdotH*LdotH-1
 	   Half VL=rsqrt(VdotL*2+2);
-	   NdotH=((NdotL+NdotV)*VL); // 'Sat' not needed
-	   LdotH=(     VL*VdotL+VL); // 'Sat' not needed
+	   NdotH=((NdotL+NdotV)*VL);
+	   LdotH=(     VL*VdotL+VL);
    #endif
    }
 
@@ -1575,11 +1575,11 @@ struct LightParams
    Half diffuseOrenNayar(Half smooth)
    {
       Half roughness=1-smooth;
-	   Half a=Sqr(roughness), a2=Sqr(a*a);
-	   Half Cosri=VdotL - NdotV*NdotL;
-	   Half C1=1 - 0.5*a2/(a2+0.33);
-	   Half C2=0.45*a2/(a2+0.09)*Cosri*((Cosri>=0) ? rcp(Max(NdotL, NdotV)) : 1);
-	   return (C1+C2)*(1+roughness*0.5);
+	   Half a=Sqr(roughness), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
+	   Half s=VdotL - NdotV*NdotL;
+	   Half A=1-0.5*a2/(a2+0.33);
+	   Half B= 0.45*a2/(a2+0.09)*s; if(s>=0)B/=Max(NdotL, NdotV);
+	   return (A+B)*(a*0.5+1);
    }
    Half specular(Half smooth, Half reflectivity)
    {
