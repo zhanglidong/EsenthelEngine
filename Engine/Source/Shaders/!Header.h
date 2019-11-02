@@ -1567,8 +1567,8 @@ struct LightParams
 
     //Half f90=0.5+(2*LdotH*LdotH)*roughness; 2*LdotH*LdotH=1+VdotL;
       Half f90=0.5+roughness+roughness*VdotL;
-      Half light_scatter=F_Schlick(1, f90, NdotL);
-      Half  view_scatter=F_Schlick(1, f90, NdotV);
+      Half light_scatter=F_Schlick(1, f90,     NdotL );
+      Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
 
       return 0.965521237*light_scatter*view_scatter;
    }
