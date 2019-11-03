@@ -2913,8 +2913,8 @@ Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nigh
 Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
 Display& Display::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_ns_color_l!=c){_ns_color_l=c; ambientSet();} return T;}
 /******************************************************************************/
-Display& Display::envColor(  Flt       color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                return T;}
-Display& Display::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
+Display& Display::envColor(  Flt       color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                                                                          return T;}
+Display& Display::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
 /******************************************************************************/
 Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
 Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                     return T;}

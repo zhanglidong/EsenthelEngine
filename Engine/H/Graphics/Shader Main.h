@@ -102,6 +102,7 @@ struct MainShaderClass
       *AmbientColorNS_l  =&Dummy, // Vec Linear Gamma + NightShade
       *NightShadeColor   =&Dummy,
       *EnvColor          =&Dummy,
+      *EnvMipMaps        =&Dummy,
 
       *HdrBrightness=&Dummy,
       *HdrExp       =&Dummy,

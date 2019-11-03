@@ -351,6 +351,7 @@ void MainShaderClass::getTechniques()
    BendFactor      =GetShaderParam("BendFactor");
 
    EnvColor          =GetShaderParam    ("EnvColor"          ); EnvColor->set(D.envColor());
+   EnvMipMaps        =GetShaderParam    ("EnvMipMaps"        ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
    FirstPass         =GetShaderParamBool("FirstPass"         );
    NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
    AmbientColor_l    =GetShaderParam    ("AmbientColor"      ); // set in 'D.ambientSet()'

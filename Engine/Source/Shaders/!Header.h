@@ -349,6 +349,7 @@ BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
    VecH  AmbientNSColor            ; // ambient combined with night shade
    Half  EnvColor                  ; // environment map color
+   Half  EnvMipMaps                ; // environment map mip-maps
    VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
 BUFFER_END
 
@@ -1702,7 +1703,7 @@ inline Vec ReflectDir(Vec eye_dir, VecH nrm)
 }
 inline VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
-   return TexCubeLodI(Env, reflect_dir, (1-smooth)*10).rgb; // assumes 1024x1024 res (11 mip maps, with #10 being the last one)
+   return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
 }
 inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir)
 {
