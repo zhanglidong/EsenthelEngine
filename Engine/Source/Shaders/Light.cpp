@@ -68,7 +68,7 @@ VecH4 LightDir_PS
 
    // light
    LightParams lp; lp.set(nrm, LightDir.dir);
-   Half lum=lp.NdotL; if(SHADOW)lum*=shd; clip(lum-EPS_LUM); // !! have to skip when <= NdotL to don't apply negative values to RT !!
+   Half lum=lp.NdotL; if(SHADOW)lum*=shd; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
 
    // ext
 #if WATER
@@ -138,7 +138,7 @@ VecH4 LightPoint_PS
    // light
    VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
    LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when <= NdotL to don't apply negative values to RT !!
+   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
 
    // ext
 #if WATER
@@ -208,7 +208,7 @@ VecH4 LightLinear_PS
    // light
    VecH light_dir=delta/dist; // Normalize(delta);
    LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when <= NdotL to don't apply negative values to RT !!
+   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
 
    // ext
 #if WATER
@@ -280,7 +280,7 @@ VecH4 LightCone_PS
    // light
    VecH light_dir=delta/dist; // Normalize(delta);
    LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when <= NdotL to don't apply negative values to RT !!
+   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
 
    // ext
 #if WATER
