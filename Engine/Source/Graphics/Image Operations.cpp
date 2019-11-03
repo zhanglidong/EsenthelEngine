@@ -3044,7 +3044,7 @@ Bool Image::blurCubeMipMaps(Threads *threads)
       Flt last=0;
       for(Int i=1; i<img->mipMaps(); i++)
       {
-         Flt angle=Sqr(i/Flt(img->mipMaps()-1))*PI;
+         Flt angle=Sqr(i/Flt(img->mipMaps()-1))*PI; // !! this angle must match specular highlights in the shader depending on smoothness !!
          BlurCube(*img, i-1, *img, i, angle-last*0.5f, threads); // make angle range smaller by a factor of angle from last step to approximately match results if 0th mip was always used as the source (which would be very slow)
          last=angle;
       }
