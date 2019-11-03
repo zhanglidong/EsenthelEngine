@@ -3045,7 +3045,7 @@ Bool Image::blurCubeMipMaps(Threads *threads)
       for(Int i=1; i<img->mipMaps(); i++)
       {
          Flt angle=Sqr(i/Flt(img->mipMaps()-1))*PI;
-         BlurCube(*img, i-1, *img, i, angle-last, threads);
+         BlurCube(*img, i-1, *img, i, angle-last/2, threads);
          last=angle;
       }
       if(img!=this && !img->copyTry(T, -1, -1, -1, type(), mode()))return false; // convert to original type and mode
