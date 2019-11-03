@@ -115,27 +115,40 @@ VecH4 LightPoint_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
-   Half power=LightPointDist(inv_dist2); if(SHADOW)power*=shd; clip(power-EPS_LUM);
+   Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
 
-   return 0; /* FIXME
-   // normal + ext
+   // normal
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
-   VecH2 ext=GetExtMS   (pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
-   VecH2 ext=GetExt   (inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
-   // diffuse
+   // light
    VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
-   Half lum      =LightDiffuse(nrm.xyz, light_dir)*power;
+   LightParams lp; lp.set(nrm, light_dir);
+   lum*=lp.NdotL; clip(lum-EPS_LUM);
+
+   // ext
+#if WATER
+   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+#elif MULTI_SAMPLE
+   VecH2 ext=GetExtMS(pixel.xy, index);
+#else
+   VecH2 ext=GetExt(inTex);
+#endif
+
+   // light #1
+   VecH eye_dir=Normalize(pos);
+   lp.set(nrm, light_dir, eye_dir);
 
    // specular
-   VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
+   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
 
-   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);*/
+   // diffuse !! after specular because it adjusts 'lum' !!
+   lum*=lp.diffuse(ext.x); // #RTOutput
+
+   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);
 }
 /******************************************************************************/
 VecH4 LightLinear_PS
@@ -171,27 +184,40 @@ VecH4 LightLinear_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
-   Half power=LightLinearDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
+   Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
 
-   return 0; /* FIXME
-   // normal + ext
+   // normal
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
-   VecH2 ext=GetExtMS   (pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
-   VecH2 ext=GetExt   (inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
-   // diffuse
+   // light
    VecH light_dir=delta/dist; // Normalize(delta);
-   Half lum      =LightDiffuse(nrm.xyz, light_dir)*power;
+   LightParams lp; lp.set(nrm, light_dir);
+   lum*=lp.NdotL; clip(lum-EPS_LUM);
+
+   // ext
+#if WATER
+   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+#elif MULTI_SAMPLE
+   VecH2 ext=GetExtMS(pixel.xy, index);
+#else
+   VecH2 ext=GetExt(inTex);
+#endif
+
+   // light #1
+   VecH eye_dir=Normalize(pos);
+   lp.set(nrm, light_dir, eye_dir);
 
    // specular
-   VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
+   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
 
-   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);*/
+   // diffuse !! after specular because it adjusts 'lum' !!
+   lum*=lp.diffuse(ext.x); // #RTOutput
+
+   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);
 }
 /******************************************************************************/
 VecH4 LightCone_PS
@@ -229,31 +255,44 @@ VecH4 LightCone_PS
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
-   Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
+   Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
 
-   return LightMapScale; /* FIXME
-   // normal + ext
+   // normal
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
-   VecH2 ext=GetExtMS   (pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
-   VecH2 ext=GetExt   (inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
-   // diffuse
+   // light
    VecH light_dir=delta/dist; // Normalize(delta);
-   Half lum      =LightDiffuse(nrm.xyz, light_dir)*power;
+   LightParams lp; lp.set(nrm, light_dir);
+   lum*=lp.NdotL; clip(lum-EPS_LUM);
+
+   // ext
+#if WATER
+   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+#elif MULTI_SAMPLE
+   VecH2 ext=GetExtMS(pixel.xy, index);
+#else
+   VecH2 ext=GetExt(inTex);
+#endif
+
+   // light #1
+   VecH eye_dir=Normalize(pos);
+   lp.set(nrm, light_dir, eye_dir);
 
    // specular
-   VecH eye_dir =Normalize    (pos);
-   Half specular=LightSpecular(nrm.xyz, ext.x, ext.y, light_dir, eye_dir)*power;
+   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+
+   // diffuse !! after specular because it adjusts 'lum' !!
+   lum*=lp.diffuse(ext.x); // #RTOutput
 
 #if IMAGE
    VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
    return VecH4(LightCone.color.rgb*lum*map_col, LightCone.color.a*specular);
 #else
    return VecH4(LightCone.color.rgb*lum, LightCone.color.a*specular);
-#endif*/
+#endif
 }
 /******************************************************************************/
