@@ -661,6 +661,28 @@ Bool CanDoRawCopy(C Image &src, C Image &dest, Bool ignore_gamma)
    return src_hwType==dest_hwType
      && (dest_type  ==dest_hwType || src_type==dest_type); // check 'type' too in case we have to perform color adjustment
 }
+Bool CanCompress(IMAGE_TYPE dest)
+{
+   switch(dest)
+   {
+      default: return true;
+
+      case IMAGE_BC6: case IMAGE_BC7: case IMAGE_BC7_SRGB:
+         return CompressBC67!=null;
+
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    : case IMAGE_ETC2_R_SIGN    :
+      case IMAGE_ETC2_RG   : case IMAGE_ETC2_RG_SIGN   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
+         return CompressETC!=null;
+
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
+         return CompressPVRTC!=null;
+   }
+}
 /******************************************************************************/
 #if GL
 UInt SourceGLFormat(IMAGE_TYPE type)
@@ -1989,7 +2011,12 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
 }
 void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
-   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować 'Image'"));
+   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))
+   {
+      Str s="Can't copy Image";
+      if(!CanCompress((IMAGE_TYPE)type))s+="\n'SupportCompress*' function was not called";
+      Exit(s);
+   }
 }
 /******************************************************************************/
 CUBE_LAYOUT Image::cubeLayout()C

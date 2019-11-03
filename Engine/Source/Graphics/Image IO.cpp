@@ -67,23 +67,7 @@ static IMAGE_TYPE OldImageType0(Byte type)
 Bool Image::saveData(File &f)C
 {
    IMAGE_TYPE file_type=T.type(); // set image type as to be stored in the file
-   switch(file_type) // if compressing to format which isn't supported then store as current 'hwType'
-   {
-      case IMAGE_BC6: case IMAGE_BC7: case IMAGE_BC7_SRGB:
-         if(!CompressBC67)file_type=T.hwType(); break;
-
-      case IMAGE_ETC1      :
-      case IMAGE_ETC2_R    : case IMAGE_ETC2_R_SIGN    :
-      case IMAGE_ETC2_RG   : case IMAGE_ETC2_RG_SIGN   :
-      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
-      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
-      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
-         if(!CompressETC)file_type=T.hwType(); break;
-
-      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
-         if(!CompressPVRTC)file_type=T.hwType(); break;
-   }
+   if(!CanCompress(file_type))file_type=T.hwType(); // if compressing to format which isn't supported then store as current 'hwType'
    if(file_type>=IMAGE_TYPES               // don't allow saving private formats
    || mode()   >=IMAGE_RT   )return false; // don't allow saving private modes
    ASSERT(IMAGE_2D==0 && IMAGE_3D==1 && IMAGE_CUBE==2 && IMAGE_SOFT==3 && IMAGE_SOFT_CUBE==4 && IMAGE_RT==5);
