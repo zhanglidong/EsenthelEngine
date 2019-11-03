@@ -92,7 +92,7 @@ Bool Image::ImportDDS(File &f, Int type, Int mode, Int mip_maps)
    {
       DDS_HEADER header; if(IMAGE_TYPE file_type=header.load(f))
       {
-         if(type    <=0)type    =file_type; if(type>=IMAGE_TYPES)type=IMAGE_R8G8B8A8_SRGB;
+         if(type    <=0)type    =file_type; if(type>=IMAGE_TYPES || type==IMAGE_BC1_SRGB)type=IMAGE_R8G8B8A8_SRGB; // don't return types not supported officially, also convert BC1 because it may contain alpha however engine assumes it doesn't #BC1RGB
          if(mode    < 0)mode    =IMAGE_SOFT; // always default to SOFT like all other file formats
          if(mip_maps< 0)mip_maps=1; // Max((Int)header.MipMapCount, ); loading mip maps from DDS is not yet supported
 
