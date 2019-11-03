@@ -81,6 +81,7 @@ MaterialTech mtrl_techs[]=
          Str desc=Replace(text, '\n', ' '); if(C ImagePtr &image=getImage())desc+=S+", "+image->w()+'x'+image->h();
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
+         desc+=S+"\nUse Ctrl+Click to Explore";
          T.desc(desc);
       }
       void MaterialRegion::Texture::setFile(Str file)
@@ -165,13 +166,15 @@ MaterialTech mtrl_techs[]=
             rect_color=((Gui.msLit()==this && Gui.skin) ? Gui.skin->keyboard_highlight_color : Gui.borderColor());
             REPA(MT)if(MT.bp(i) && MT.guiObj(i)==this)
             {
-               UID id;
-               if(file.is() && !DecodeFileName(file, id)) // texture path
+               if(file.is()) // texture path has anything
                {
-                  if(Kb.ctrl()) // Ctrl+Click -> explore file path
+                  if(Kb.ctrlCmd()) // Ctrl+Click -> explore file path
                   {
-                     Mems<Edit::FileParams> fps=Edit::FileParams::Decode(file); if(fps.elms()>=1)Explore(FFirstUp(fps[0].name));
-                     goto skip;
+                     Mems<Edit::FileParams> fps=Edit::FileParams::Decode(file); if(fps.elms()>=1)
+                     {
+                        UID id; if(id.fromFileName(fps[0].name))Proj.elmLocate(id, true);else Explore(FFirstUp(fps[0].name));
+                     }
+                     goto skip_win_io;
                   }else
                   {
                      SetPath(win_io, file);
@@ -185,7 +188,8 @@ MaterialTech mtrl_techs[]=
                   SetPath(win_io, (mtrl_path.length()>color_path.length()) ? mtrl_path : color_path);
                }
                win_io.activate();
-            skip:;
+            skip_win_io:
+               break;
             }
          }
          remove.visible((Gui.ms()==this || Gui.ms()==&remove) && file.is());
