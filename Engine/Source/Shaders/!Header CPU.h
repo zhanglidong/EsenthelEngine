@@ -13,6 +13,12 @@
 #define SBUMP_PARALLAX_MIN SBUMP_PARALLAX2 // ignore SBUMP_PARALLAX1 because just 1 sample is not worth to keep as separate shader
 #define SBUMP_PARALLAX_MAX SBUMP_PARALLAX4
 
+// Shader Diffuse Modes
+#define SDIFFUSE_LAMBERT    0
+#define SDIFFUSE_OREN_NAYAR 1
+#define SDIFFUSE_BURLEY     2
+#define SDIFFUSE_NUM        3
+
 // Effects
 #define FX_NONE  0
 #define FX_GRASS 1

@@ -61,7 +61,9 @@ VecH4 LightDir_PS
    Half lum=lp.NdotL; if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
 
    // ext
-#if MULTI_SAMPLE
+#if WATER
+   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput
+#elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else
    VecH2 ext=GetExt(inTex);
@@ -75,8 +77,7 @@ VecH4 LightDir_PS
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
-   //if(Q)lum*=lp.diffuseBurley(ext.x);else // #RTOutput
-   //if(W)lum*=lp.diffuseOrenNayar(ext.x);
+   lum*=lp.diffuse(ext.x); // #RTOutput
 
    return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
 }

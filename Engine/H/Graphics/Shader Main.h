@@ -298,17 +298,17 @@ struct MainShaderClass
 
    // LIGHT
    Shader
-      *DrawLightDir   [2][2]   , // [Shadow] [MultiSample]
-      *DrawLightPoint [2][2]   , // [Shadow] [MultiSample]
-      *DrawLightLinear[2][2]   , // [Shadow] [MultiSample]
-      *DrawLightCone  [2][2][2]; // [Shadow] [MultiSample] [Image]
-   Shader* getDrawLightDir   (Bool shadow, Bool multi_sample);
-   Shader* getDrawLightPoint (Bool shadow, Bool multi_sample);
-   Shader* getDrawLightLinear(Bool shadow, Bool multi_sample);
-   Shader* getDrawLightCone  (Bool shadow, Bool multi_sample, Bool image);
+      *DrawLightDir   [DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
+      *DrawLightPoint [DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
+      *DrawLightLinear[DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
+      *DrawLightCone  [DIFFUSE_NUM][2][2][2][2]; // [Diffuse] [Shadow] [MultiSample] [Water] [Image]
+   Shader* getDrawLightDir   (Int diffuse, Bool shadow, Bool multi_sample, Bool water);
+   Shader* getDrawLightPoint (Int diffuse, Bool shadow, Bool multi_sample, Bool water);
+   Shader* getDrawLightLinear(Int diffuse, Bool shadow, Bool multi_sample, Bool water);
+   Shader* getDrawLightCone  (Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image);
 #if !DEPTH_CLIP_SUPPORTED
-   Shader *   DrawLightConeFlat[2][2][2]; // [Shadow] [MultiSample] [Image]
-   Shader* getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool image);
+   Shader *   DrawLightConeFlat[DIFFUSE_NUM][2][2][2][2]; // [Diffuse] [Shadow] [MultiSample] [Water] [Image]
+   Shader* getDrawLightConeFlat(Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image);
 #endif
 
    // APPLY LIGHT

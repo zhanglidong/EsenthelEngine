@@ -13,6 +13,13 @@ enum ASPECT_MODE : Byte // Aspect Ratio Mode, controls setting the sizes of scre
    ASPECT_SMALLER, // this mode is useful for Mobile devices which can be rotated and changed aspect will not affect the display scale, 1.0 will be set to D.w and D.h will be set proportionally (if width is smaller than height) and 1.0 will be set to D.h and D.w will be set proportionally (if height is smaller than width)
    ASPECT_NUM    , // number of aspect ratio modes
 };
+enum DIFFUSE_MODE : Byte // Diffuse Shading Mode
+{
+   DIFFUSE_LAMBERT   , // fastest
+   DIFFUSE_OREN_NAYAR, // based on roughness
+   DIFFUSE_BURLEY    , // based on roughness (aka Disney)
+   DIFFUSE_NUM       , // number of diffuse modes
+};
 enum BUMP_MODE : Byte // Bump Mapping Mode
 {
    BUMP_FLAT    , // flat
@@ -187,6 +194,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& scale            (Flt              scale       );   Flt              scale             ()C {return _scale          ;} // get/set Draw Scale                             (0..Inf                             , default=                1                             ), changing display scale affects display screen sizes D.w and D.h, the change is NOT instant, avoid calling real-time
    Display& aspectMode       (ASPECT_MODE      mode        );   ASPECT_MODE      aspectMode        ()C {return _aspect_mode    ;} // set/get Aspect Mode                            (ASPECT_MODE                        , default=         ASPECT_Y (ASPECT_SMALLER  for Mobile))
    Display& aspectRatio      (Flt              aspect_ratio);   Flt              aspectRatio       ()C {return _aspect_ratio   ;} // set/get Display Aspect Ratio                   (0=autodetect, 4/3, 5/4, 16/9, 16/10, default=                0                             )
+   Display& diffuseMode      (DIFFUSE_MODE     mode        );   DIFFUSE_MODE     diffuseMode       ()C {return _diffuse_mode   ;} // set/get Diffuse Shading Mode                   (DIFFUSE_MODE                       , default=   DIFFUSE_BURLEY (DIFFUSE_LAMBERT for Mobile)), this affects only RT_DEFERRED renderer, RT_FORWARD always uses DIFFUSE_LAMBERT, the change is instant, you can call it real-time
    Display& bumpMode         (BUMP_MODE        mode        );   BUMP_MODE        bumpMode          ()C {return _bump_mode      ;} // set/get Bump Mapping Mode                      (BUMP_MODE                          , default=    BUMP_PARALLAX (BUMP_FLAT       for Mobile)), using this method during application runtime requires setting 'D.set_shader' (please check comments on 'D.set_shader' for more info), the change is NOT instant, avoid calling real-time
    Display& gamma            (Flt              gamma       );   Flt              gamma             ()C {return _gamma          ;} // set/get Gamma value                            (-Inf..Inf                          , default=                0                             ), using gamma modifies hardware color processing and does not reduce rendering performance
    Display& highPrecColRT    (Bool             on          );   Bool             highPrecColRT     ()C {return _hp_col_rt      ;} // set/get Color     Render Target High Precision (true/false                         , default=            false                             ), enabling high precision render targets gives higher quality graphics at the cost of slower performance and more memory usage, high precision means that Render Targets are created using a different format, that is more precise but also uses more memory and bandwidth, Color     Render Target is used for storing colors                   in Deferred Renderer , this affects precision of color textures adjusted by material colors, the change is NOT instant, avoid calling real-time
@@ -483,6 +491,7 @@ private:
    };
 
    ASPECT_MODE       _aspect_mode;
+   DIFFUSE_MODE      _diffuse_mode;
    BUMP_MODE         _bump_mode;
    AMBIENT_MODE      _amb_mode;
    SHADOW_MODE       _shd_mode;

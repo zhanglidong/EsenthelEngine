@@ -751,6 +751,8 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _shd_map_split      .set(2, 1);
   _cld_map_size       =128;
 
+  _diffuse_mode=(MOBILE ? DIFFUSE_LAMBERT : DIFFUSE_BURLEY);
+
   _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_PARALLAX);
 
   _mtn_mode  =MOTION_NONE;
@@ -2811,6 +2813,13 @@ void     Display::gammaSet()
       #endif
       }
    }
+}
+/******************************************************************************/
+Display& Display::diffuseMode(DIFFUSE_MODE mode)
+{
+   Clamp(mode, DIFFUSE_MODE(0), DIFFUSE_MODE(DIFFUSE_NUM-1));
+   if(_diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
+   return T;
 }
 /******************************************************************************/
 Display& Display::bumpMode(BUMP_MODE mode)

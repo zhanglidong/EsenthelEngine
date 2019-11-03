@@ -202,7 +202,7 @@ void Surface_PS
       Half diffuse=LightDiffuse(view_nrm, LightDir.dir); if(SHADOW)diffuse*=shd;
 
       // specular
-      Half specular=LightSpecular(view_nrm, 1, 0.02, LightDir.dir, view); if(SHADOW)specular*=shd;
+      Half specular=LightSpecular(view_nrm, WATER_SMOOTH, WATER_REFLECT, LightDir.dir, view); if(SHADOW)specular*=shd;
 
       lum=VecH4(LightDir.color.rgb*diffuse, LightDir.color.a*specular);
    }
