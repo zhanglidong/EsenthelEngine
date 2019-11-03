@@ -48,6 +48,7 @@ VecH4 LightDir_PS
 #else
    Half shd; if(SHADOW)shd=TexPoint(ImgX, inTex).x;
 #endif
+   if(SHADOW)clip(shd-EPS_LUM);
 
    // normal
 #if MULTI_SAMPLE
@@ -103,10 +104,11 @@ VecH4 LightPoint_PS
 
    // shadow
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW){shd=ShadowFinal(TexPoint(ImgX, inTex).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
+   if(SHADOW)clip(shd-EPS_LUM);
 
    // distance
 #if MULTI_SAMPLE
@@ -172,10 +174,11 @@ VecH4 LightLinear_PS
 
    // shadow
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW){shd=ShadowFinal(TexPoint(ImgX, inTex).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
+   if(SHADOW)clip(shd-EPS_LUM);
 
    // distance
 #if MULTI_SAMPLE
@@ -241,10 +244,11 @@ VecH4 LightCone_PS
 
    // shadow
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW){shd=ShadowFinal(TexPoint(ImgX, inTex).x); clip(shd-EPS_LUM);}
+   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
+   if(SHADOW)clip(shd-EPS_LUM);
 
    // distance & angle
 #if MULTI_SAMPLE
