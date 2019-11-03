@@ -1593,7 +1593,7 @@ struct LightParams
 
    Half specular(Half smooth, Half reflectivity)
    {
-      const Half light_radius=0.036;
+      const Half light_radius=0.0036;
 
       Flt roughness=1-smooth;
    #if 0
