@@ -1585,7 +1585,7 @@ struct LightParams
    #if DIFFUSE_MODE==SDIFFUSE_OREN_NAYAR
       return diffuseOrenNayar(smooth);
    #elif DIFFUSE_MODE==SDIFFUSE_BURLEY
-      return diffuseBurley(smooth)
+      return diffuseBurley(smooth);
    #else
       return 1;
    #endif
