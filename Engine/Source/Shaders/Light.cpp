@@ -3,8 +3,8 @@
    These shaders use 'clip' a few times to skip processing if light is known to be zero.
 
    However using 'clip' is not free:
-      if zero pixels are discarded, then performance will be slower than without 'clip'
-      if all  pixels are discarded, then performance will be higher than without 'clip'
+      if no  pixels are discarded, then performance will be slower than without 'clip'
+      if all pixels are discarded, then performance will be higher than without 'clip'
       benefit depends on amount of discarded pixels and the GPU
 
 /******************************************************************************/
@@ -51,7 +51,7 @@ VecH4 LightDir_PS
 #endif
 ):TARGET
 {
-   // shadow
+   // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shd; if(SHADOW)shd=TexSample(ImgXMS, pixel.xy, index).x;
 #else
@@ -111,7 +111,7 @@ VecH4 LightPoint_PS
    Vec2 inPosXY=ScreenToPosXY(inTex);
 #endif
 
-   // shadow
+   // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
@@ -181,7 +181,7 @@ VecH4 LightLinear_PS
    Vec2 inPosXY=ScreenToPosXY(inTex);
 #endif
 
-   // shadow
+   // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
@@ -251,7 +251,7 @@ VecH4 LightCone_PS
    Vec2 inPosXY=ScreenToPosXY(inTex);
 #endif
 
-   // shadow
+   // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
