@@ -21,9 +21,7 @@ enum FILTER_TYPE : Byte // Filtering Type
 /******************************************************************************/
 enum LOCK_MODE : Byte
 {
-#if EE_PRIVATE
    LOCK_NONE      =0, // no lock
-#endif
    LOCK_READ      =1, // lock for reading only
    LOCK_WRITE     =2, // lock for writing only (if the image is stored in the GPU then any previous image data may get lost when using this mode, use if you wish to replace the whole image data)
    LOCK_READ_WRITE=3, // lock for reading and writing
@@ -263,12 +261,14 @@ struct Image // Image (Texture)
    Bool            hw()C {return IsHW  (mode())   ;} // if this is a hardware image NOT (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool          cube()C {return IsCube(mode())   ;} // if this is a cube     image     (IMAGE_CUBE, IMAGE_SOFT_CUBE or IMAGE_RT_CUBE)
 
-   Int      lMipMap  ()C {return _lmm   ;} // get index              of locked mip map
-   DIR_ENUM lCubeFace()C {return _lcf   ;} // get                       locked cube face
-   UInt     pitch    ()C {return _pitch ;} // get width        pitch of locked mip map
-   UInt     pitch2   ()C {return _pitch2;} // get width*height pitch of locked mip map
-   Byte*    data     ()  {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
- C Byte*    data     ()C {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
+   Int       lMipMap  ()C {return _lmm       ;} // get index              of locked mip map
+   DIR_ENUM  lCubeFace()C {return _lcf       ;} // get                       locked cube face
+   UInt      pitch    ()C {return _pitch     ;} // get width        pitch of locked mip map
+   UInt      pitch2   ()C {return _pitch2    ;} // get width*height pitch of locked mip map
+   Byte*     data     ()  {return _data      ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
+ C Byte*     data     ()C {return _data      ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
+   LOCK_MODE lockMode ()C {return _lock_mode ;} // get current lock mode
+   Int       lockCount()C {return _lock_count;} // get current lock count
 
    Flt                    aspect()C {return Flt(w())/h()                    ;} // get          aspect ratio of image "width/height"
    Flt                 invAspect()C {return Flt(h())/w()                    ;} // get inversed aspect ratio of image "height/width"

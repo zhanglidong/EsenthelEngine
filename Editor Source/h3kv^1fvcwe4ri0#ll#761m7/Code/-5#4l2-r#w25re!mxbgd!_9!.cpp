@@ -144,8 +144,8 @@ class ImageEditor : PropWin
    {
       {IMAGE_2D  , "2D Texture", null, false},
       {IMAGE_CUBE, "Cube Texture", u"SkyBox", false},
-      {IMAGE_SOFT, "Software", u"This mode is used for custom processing only\nIt cannot be used for drawing", false},
-      {IMAGE_CUBE, "Environment", u"SkyBox that can be used as Environment map", true},
+      {IMAGE_CUBE, "Environment", u"SkyBox with mip-maps blurred in a special way, allowing it to be used as Environment map for PBR", true},
+      {IMAGE_SOFT, "Software", u"This mode is used for software processing on the CPU only\nIt cannot be used for drawing", false},
    };
    static cchar8 *Channels[]=
    {

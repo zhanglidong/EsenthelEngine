@@ -2982,13 +2982,22 @@ struct BlurCube
          }
          if(weight)col/=weight;else
          {
-            SyncLocker locker(lock); if(src.lockRead(src_mip, f))
+            SyncLocker locker(lock);
+            LOCK_MODE lock_mode; Int lock_mip_map; DIR_ENUM lock_cube_face; Int lock_count=src.lockCount(); if(lock_count) // if 'src' is already locked ('src' can be 'dest') then we have to unlock it first (check 'lockCount' instead of 'lockMode', in case 'lockMode' is not set for SOFT)
+            { // remember which mip and face
+               lock_mode     =src.lockMode ();
+               lock_mip_map  =src.lMipMap  ();
+               lock_cube_face=src.lCubeFace();
+               REP(lock_count)src.unlock();
+            }
+            if(src.lockRead(src_mip, f))
             {
                Vec2 tex(dir_f.x*src_DirToCubeFace_mul+src_DirToCubeFace_add, -dir_f.y*src_DirToCubeFace_mul+src_DirToCubeFace_add);
                if(BLUR_CUBE_LINEAR_GAMMA)col=src.areaColorLLinear(tex, src_area_size);
                else                      col=src.areaColorFLinear(tex, src_area_size);
                src.unlock();
             }
+            REP(lock_count)ConstCast(src).lock(lock_mode, lock_mip_map, lock_cube_face); // restore lock
          }
          if(BLUR_CUBE_LINEAR_GAMMA)dest.colorL(x, y, col);
          else                      dest.colorF(x, y, col);
