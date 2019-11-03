@@ -158,7 +158,7 @@ static void                SetWaterLum  ()
    }
    D.alpha(ALPHA_ADD);
    Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
- //Sh.ImgXY ->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext);
+ //Sh.ImgXY ->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext); Water doesn't have EXT #WaterExt
 }
 
 static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=null)

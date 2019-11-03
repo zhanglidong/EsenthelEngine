@@ -19,6 +19,7 @@ namespace EE{
 
   _water_col: D.renderW, D.renderH,                                                                                            IMAGERT_SRGB , 1        , COLOR RGB
   _water_nrm: D.renderW, D.renderH,                                                            D.signedNrmRT ? IMAGERT_RGB_S : IMAGERT_RGB  , 1        , NRM   XYZ
+   there's no _water_ext #WaterExt
   _water_ds : D.renderW, D.renderH,                                                                                            IMAGERT_DS   , 1        , Water Depth
   _water_lum: D.renderW, D.renderH,                                                                                            IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC
 

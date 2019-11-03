@@ -62,7 +62,7 @@ VecH4 LightDir_PS
 
    // ext
 #if WATER
-   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput
+   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else
