@@ -67,7 +67,9 @@ class EditMaterial
       {
          case MTECH_ALPHA_TEST:
          case MTECH_GRASS     :
-         case MTECH_LEAF      : color_s.w=0.5; break;
+         case MTECH_GRASS_3D  :
+         case MTECH_LEAF      :
+            color_s.w=0.5; break;
 
          default: color_s.w=1; break;
       }
