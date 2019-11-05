@@ -1531,16 +1531,15 @@ Half Vis_Smith(Half roughness, Half NdotL, Half NdotV)
    return 0.5/(view+light);
 #endif
 }
-Half Vis_SmithFast(Half roughness, Half NdotV, Half NdotL) // fast approximation of 'Vis_Smith'
+Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith'
 {
 	Half view =NdotL*(NdotV*(1-roughness)+roughness);
 	Half light=NdotV*(NdotL*(1-roughness)+roughness);
 	return 0.5/(view+light);
 }
-
 struct LightParams
 {
-   Half NdotL, NdotV, VdotL, NdotH, LdotH; // VdotH=LdotH, because H is in the middle between L and V
+   Half NdotL, NdotV, VdotL, NdotH, VdotH; // VdotH=LdotH, because H is in the middle between L and V
 
    void set(VecH N, VecH L)
    {
@@ -1553,12 +1552,12 @@ struct LightParams
    #if 0
       VecH H=Normalize(L-nV); // L+V
       NdotH=Dot(N, H);
-      LdotH=Dot(L, H);
+      VdotH=Dot(L, H);
    #else // faster
-    //VdotL=2*LdotH*LdotH-1
+    //VdotL=2*VdotH*VdotH-1
 	   Half VL=rsqrt(VdotL*2+2);
-	   NdotH=((NdotL+NdotV)*VL);
-	   LdotH=(     VL*VdotL+VL);
+	   NdotH=(NdotL+NdotV)*VL;
+	   VdotH=     VL*VdotL+VL;
    #endif
    }
 
@@ -1574,7 +1573,7 @@ struct LightParams
    Half diffuseBurley(Half smooth) // aka Disney, highlights edges starting from smooth = 0.5 -> 0 and darkens starting from smooth = 0.5 -> 1.0
    {
       Half roughness=1-smooth;
-    //Half f90=0.5+(2*LdotH*LdotH)*roughness; 2*LdotH*LdotH=1+VdotL;
+    //Half f90=0.5+(2*VdotH*VdotH)*roughness; 2*VdotH*VdotH=1+VdotL;
       Half f90=0.5+roughness+roughness*VdotL;
       Half light_scatter=F_Schlick(1, f90,     NdotL );
       Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
@@ -1606,8 +1605,8 @@ struct LightParams
    #endif
 
       Half D  =D_GGX    (NdotH, roughness);
-      Half F  =F_Schlick(reflectivity, 1, LdotH);
-      Half Vis=Vis_Smith(roughness, NdotV, NdotL);
+      Half F  =F_Schlick(reflectivity, 1, VdotH);
+      Half Vis=Vis_Smith(roughness, NdotL, Abs(NdotV)); // use "Abs(NdotV)" as it helps greatly with faces away from the camera (helpful for balls but critical for double sided leafs with flipped normal)
       return D*F*Vis/PI;
    }
 };
