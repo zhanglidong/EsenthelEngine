@@ -78,6 +78,7 @@ void Base_PS
    output.color   (col);
    output.glow    (0);
    output.normal  (inNrm);
+   output.trans   (0);
    output.smooth  (Material.smooth);
    output.velocity(inVel, inPos);
    output.reflect (Material.reflect);

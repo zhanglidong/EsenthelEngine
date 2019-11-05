@@ -145,7 +145,7 @@ VecH4 PS
    #endif
 #endif
 
-/*#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+/*#if PIXEL_NORMAL && FX!=FX_GRASS_2D
    BackFlip(nrm, front);
 #endif*/
 

@@ -1271,21 +1271,21 @@ inline void AlphaTest(Half alpha)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH nrm)
+inline void UnpackNormal(in out VecH4 nrm)
 {
 #if !SIGNED_NRM_RT
-   nrm=nrm*2-1;
+   nrm.xyz=nrm.xyz*2-1;
 #endif
-   nrm=Normalize(nrm); // normalize needed even for F16 formats because it improves quality for specular
+   nrm.xyz=Normalize(nrm.xyz); // normalize needed even for F16 formats because it improves quality for specular
 }
-inline VecH GetNormal(Vec2 tex)
+inline VecH4 GetNormal(Vec2 tex)
 {
-   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm);
+   VecH4  nrm=TexPoint(Img, tex); UnpackNormal(nrm);
    return nrm;
 }
-inline VecH GetNormalMS(VecI2 pixel, UInt sample)
+inline VecH4 GetNormalMS(VecI2 pixel, UInt sample)
 {
-   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm);
+   VecH4  nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm);
    return nrm;
 }
 /******************************************************************************/
@@ -1557,7 +1557,7 @@ struct LightParams
     //VdotL=2*VdotH*VdotH-1
 	   Half VL=rsqrt(VdotL*2+2);
 	   NdotH=(NdotL+NdotV)*VL;
-	   VdotH=     VL*VdotL+VL;
+	   VdotH=    VL*VdotL +VL;
    #endif
    }
 
@@ -1839,7 +1839,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
 {
    // #RTOutput
    VecH4 out0:TARGET0; // Col, Glow
-   VecH  out1:TARGET1; // Nrm XYZ
+   VecH4 out1:TARGET1; // Nrm XYZ, Translucent
    VecH2 out2:TARGET2; // Smooth, Reflect
    VecH  out3:TARGET3; // Vel XYZ
 
@@ -1854,6 +1854,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
       out1.xyz=normal*0.5+0.5; // -1..1 -> 0..1
    #endif
    }
+   inline void trans(Half trans) {out1.w=trans;}
 
    inline void smooth (Half smooth ) {out2.x=smooth ;}
    inline void reflect(Half reflect) {out2.y=reflect;}

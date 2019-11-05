@@ -189,7 +189,7 @@ void PS
 (
    VS_PS I,
 
-#if FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if FX!=FX_GRASS_2D
    IS_FRONT,
 #endif
 
@@ -686,13 +686,14 @@ void PS
 
    col+=Highlight.rgb;
 
-#if FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if FX!=FX_GRASS_2D
    BackFlip(nrm, front);
 #endif
 
    output.color   (col         );
    output.glow    (glow        );
    output.normal  (nrm         );
+   output.trans   (FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
    output.smooth  (smooth      );
    output.reflect (reflect     );
    output.velocity(I.vel, I.pos);

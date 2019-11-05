@@ -1,10 +1,10 @@
 /******************************************************************************
 
-   These shaders use 'clip' a few times to skip processing if light is known to be zero.
+   These shaders use 'discard' a few times to skip processing if light is known to be zero.
 
-   However using 'clip' is not free:
-      if no  pixels are discarded, then performance will be slower than without 'clip'
-      if all pixels are discarded, then performance will be higher than without 'clip'
+   However using 'discard' is not free:
+      if no  pixels are discarded, then performance will be slower than without 'discard'
+      if all pixels are discarded, then performance will be higher than without 'discard'
       benefit depends on amount of discarded pixels and the GPU
 
 /******************************************************************************/
@@ -57,18 +57,22 @@ VecH4 LightDir_PS
 #else
    Half shd; if(SHADOW)shd=TexPoint(ImgX, inTex).x;
 #endif
-   if(SHADOW)clip(shd-EPS_LUM);
+   if(SHADOW && shd<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
-   VecH nrm=GetNormalMS(pixel.xy, index);
+   VecH4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH nrm=GetNormal(inTex);
+   VecH4 nrm=GetNormal(inTex);
 #endif
 
    // light
-   LightParams lp; lp.set(nrm, LightDir.dir);
-   Half lum=lp.NdotL; if(SHADOW)lum*=shd; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   LightParams lp; lp.set(nrm.xyz, LightDir.dir);
+   Half lum=lp.NdotL; if(SHADOW)lum*=shd; if(lum<=EPS_LUM)
+   {
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightDir.color.rgb*(lum*-0.5), 0); // translucent
+      discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   }
 
    // ext
 #if WATER
@@ -81,7 +85,7 @@ VecH4 LightDir_PS
 
    // light #1
    VecH eye_dir=Normalize(Vec(inPosXY, 1));
-   lp.set(nrm, LightDir.dir, eye_dir);
+   lp.set(nrm.xyz, LightDir.dir, eye_dir);
 
    // specular
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
@@ -117,7 +121,7 @@ VecH4 LightPoint_PS
 #else
    Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW)clip(shd-EPS_LUM);
+   if(SHADOW && shd<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
@@ -126,19 +130,23 @@ VecH4 LightPoint_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
-   Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+   Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
-   VecH nrm=GetNormalMS(pixel.xy, index);
+   VecH4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH nrm=GetNormal(inTex);
+   VecH4 nrm=GetNormal(inTex);
 #endif
 
    // light
    VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
-   LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   LightParams lp; lp.set(nrm.xyz, light_dir);
+   lum*=lp.NdotL; if(lum<=EPS_LUM)
+   {
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightPoint.color.rgb*(lum*-0.5), 0); // translucent
+      discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   }
 
    // ext
 #if WATER
@@ -151,7 +159,7 @@ VecH4 LightPoint_PS
 
    // light #1
    VecH eye_dir=Normalize(pos);
-   lp.set(nrm, light_dir, eye_dir);
+   lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
@@ -187,7 +195,7 @@ VecH4 LightLinear_PS
 #else
    Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW)clip(shd-EPS_LUM);
+   if(SHADOW && shd<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
@@ -196,19 +204,23 @@ VecH4 LightLinear_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
-   Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+   Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
-   VecH nrm=GetNormalMS(pixel.xy, index);
+   VecH4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH nrm=GetNormal(inTex);
+   VecH4 nrm=GetNormal(inTex);
 #endif
 
    // light
    VecH light_dir=delta/dist; // Normalize(delta);
-   LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   LightParams lp; lp.set(nrm.xyz, light_dir);
+   lum*=lp.NdotL; if(lum<=EPS_LUM)
+   {
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightLinear.color.rgb*(lum*-0.5), 0); // translucent
+      discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   }
 
    // ext
 #if WATER
@@ -221,7 +233,7 @@ VecH4 LightLinear_PS
 
    // light #1
    VecH eye_dir=Normalize(pos);
-   lp.set(nrm, light_dir, eye_dir);
+   lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
@@ -257,7 +269,7 @@ VecH4 LightCone_PS
 #else
    Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW)clip(shd-EPS_LUM);
+   if(SHADOW && shd<=EPS_LUM)discard;
 
    // distance & angle
 #if MULTI_SAMPLE
@@ -268,19 +280,32 @@ VecH4 LightCone_PS
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
-   Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+   Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
-   VecH nrm=GetNormalMS(pixel.xy, index);
+   VecH4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH nrm=GetNormal(inTex);
+   VecH4 nrm=GetNormal(inTex);
 #endif
 
    // light
    VecH light_dir=delta/dist; // Normalize(delta);
-   LightParams lp; lp.set(nrm, light_dir);
-   lum*=lp.NdotL; clip(lum-EPS_LUM); // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   LightParams lp; lp.set(nrm.xyz, light_dir);
+   lum*=lp.NdotL; if(lum<=EPS_LUM)
+   {
+      if(!WATER && nrm.w && -lum>EPS_LUM) // translucent
+      {
+         lum*=-0.5;
+      #if IMAGE
+         VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
+         return VecH4(LightCone.color.rgb*lum*map_col, 0);
+      #else
+         return VecH4(LightCone.color.rgb*lum, 0);
+      #endif
+      }
+      discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
+   }
 
    // ext
 #if WATER
@@ -293,7 +318,7 @@ VecH4 LightCone_PS
 
    // light #1
    VecH eye_dir=Normalize(pos);
-   lp.set(nrm, light_dir, eye_dir);
+   lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
    Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput

@@ -448,7 +448,8 @@ void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision 
 {
    output.color  (0);
    output.glow   (0);
-   output.normal (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.normal (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.trans  (0);
    output.smooth (0);
    output.reflect(0);
    output.velocityRaw(inVel);

@@ -10,7 +10,7 @@ namespace EE{
   _ds       : D.renderW, D.renderW,                                                                                            IMAGERT_DS   , D.samples
   _ds_1s    : D.renderW, D.renderW,                                                                                            IMAGERT_DS   , 1        , if '_ds' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_ds'
   _col      : D.renderW, D.renderH,                                                        D.highPrecColRT ? IMAGERT_SRGBA_P : IMAGERT_SRGBA, D.samples, COLOR RGB, GLOW
-  _nrm      : D.renderW, D.renderH,                         D.highPrecNrmRT ? IMAGERT_RGB_H : (D.signedNrmRT ? IMAGERT_RGB_S : IMAGERT_RGB) , D.samples, NRM   XYZ
+  _nrm      : D.renderW, D.renderH,                D.highPrecNrmRT ? IMAGERT_RGB_A1_H : (D.signedNrmRT ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1) , D.samples, NRM   XYZ, TRANSLUCENCY (used for double sided lighting for plants)
   _ext      : D.renderW, D.renderH,                                                                                            IMAGERT_TWO  , D.samples, SMOOTH   , REFLECT
   _vel      : D.renderW, D.renderH, alpha ? (D.signedVelRT ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT ? IMAGERT_RGB_S : IMAGERT_RGB ), D.samples, VEL   XYZ
   _alpha    : D.renderW, D.renderH,                                                                                            IMAGERT_ONE  , D.samples, OPACITY

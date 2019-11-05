@@ -270,7 +270,7 @@ VecH4 PS
    VS_PS I,
    PIXEL
 
-#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS_2D
  , IS_FRONT
 #endif
 
@@ -453,9 +453,11 @@ VecH4 PS
 
    col+=Highlight.rgb;
 
-#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS_2D
    BackFlip(nrm, front);
 #endif
+
+   Bool trans=(FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 

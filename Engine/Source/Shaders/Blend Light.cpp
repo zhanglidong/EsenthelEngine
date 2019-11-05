@@ -200,7 +200,7 @@ void PS
    VS_PS I,
  //PIXEL,
 
-#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS_2D
    IS_FRONT,
 #endif
 
@@ -244,13 +244,14 @@ void PS
    #endif
 #endif
 
-#if PIXEL_NORMAL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+#if PIXEL_NORMAL && FX!=FX_GRASS_2D
    BackFlip(nrm, front);
 #endif
 
    // calculate lighting
 #if BUMP_MODE>=SBUMP_FLAT && (PER_PIXEL || SHADOW_MAPS)
  //VecH total_specular=0;
+   Bool trans=(FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
 
    VecH total_lum=AmbientNSColor;
  /*if(FirstPass)

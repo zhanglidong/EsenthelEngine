@@ -973,8 +973,8 @@ start:
                      clear_vel  =(VEL_CLEAR_START && _vel);
                      ASSERT(!VEL_CLEAR_START); // some of codes below clear velocity to constant value, however we always need to use "ClearDeferred" because of camera angular velocities
 
-        _ext.get(ImageRTDesc(_col->w(), _col->h(),                     IMAGERT_TWO                                                    , _col->samples()));
-        _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_H : (D.signedNrmRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples())); // here Alpha is unused
+        _ext.get(ImageRTDesc(_col->w(), _col->h(),                     IMAGERT_TWO                                                             , _col->samples()));
+        _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_A1_H : (D.signedNrmRT() ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1), _col->samples())); // here Alpha is unused
 
          if(!merged_clear)
          {

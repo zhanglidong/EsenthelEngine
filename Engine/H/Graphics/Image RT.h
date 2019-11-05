@@ -33,6 +33,10 @@ enum IMAGERT_TYPE : Byte // Image Render Target Type, this describes a group of 
 
    IMAGERT_RGBA_SP=IMAGERT_RGBA_H , // (at least signed 10-bit per channel with Alpha)
    IMAGERT_RGB_S  =IMAGERT_RGBA_S , // (         signed 32-bit total       no   Alpha)
+
+   IMAGERT_RGB_A1_H=IMAGERT_RGBA_H,
+   IMAGERT_RGB_A1_S=IMAGERT_RGB_S ,
+   IMAGERT_RGB_A1  =IMAGERT_RGB   ,
 };
 /******************************************************************************/
 #if EE_PRIVATE
