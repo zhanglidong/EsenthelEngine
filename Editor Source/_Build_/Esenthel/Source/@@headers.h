@@ -643,7 +643,7 @@ const int           ServerNetworkCompressionLevel=9           , ClientNetworkCom
 // TYPEDEFS
 /******************************************************************************/
 typedef CacheElmPtr<EditObject, EditObjects> EditObjectPtr;
-ASSERT(MTECH_DEFAULT==0 && MTECH_ALPHA_TEST==1 && MTECH_FUR==2 && MTECH_GRASS==3 && MTECH_LEAF==4 && MTECH_BLEND==5 && MTECH_BLEND_LIGHT==6 && MTECH_BLEND_LIGHT_GRASS==7 && MTECH_BLEND_LIGHT_LEAF==8 && MTECH_TEST_BLEND_LIGHT==9 && MTECH_TEST_BLEND_LIGHT_GRASS==10 && MTECH_TEST_BLEND_LIGHT_LEAF==11);
+ASSERT(MTECH_DEFAULT==0 && MTECH_ALPHA_TEST==1 && MTECH_FUR==2 && MTECH_GRASS==3 && MTECH_LEAF==4 && MTECH_BLEND==5 && MTECH_BLEND_LIGHT==6 && MTECH_BLEND_LIGHT_GRASS==7 && MTECH_BLEND_LIGHT_LEAF==8 && MTECH_TEST_BLEND_LIGHT==9 && MTECH_TEST_BLEND_LIGHT_GRASS==10 && MTECH_TEST_BLEND_LIGHT_LEAF==11 && MTECH_GRASS_3D==12 && MTECH_NUM==13);
 ASSERT(CIPHER_NONE==0 && CIPHER_1==1 && CIPHER_2==2 && CIPHER_3==3 && CIPHER_NUM==4);
 ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && OBJ_ACCESS_OVERLAY==3);
 /******************************************************************************/
