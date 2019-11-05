@@ -17,7 +17,7 @@
 #endif
 
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
-#define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
+#define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D
 #define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
 //#define THICKNESS 0.05 // assume all pixels are at least 5 cm thick, slightly improves quality
 /******************************************************************************/
