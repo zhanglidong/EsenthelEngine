@@ -110,7 +110,7 @@ void VS
                                BendLeafs(vtx.hlp(), vtx.size(), pos          );
    }
 
-   Vec local_pos; if(FX==FX_GRASS)local_pos=pos;
+   Vec local_pos; if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)local_pos=pos;
    if(!SKIN)
    {
       if(true) // instance
