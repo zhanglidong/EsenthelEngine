@@ -22,7 +22,7 @@
 
 #define SET_TEX    (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
-#define GRASS_FADE (FX==FX_GRASS)
+#define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 /******************************************************************************
 SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
@@ -123,7 +123,7 @@ void VS
          O.nrm    =TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS)BendGrass(pos, O.pos, vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(pos, O.pos, vtx.instance());
       #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
@@ -139,7 +139,7 @@ void VS
          O.nrm    =TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS)BendGrass(pos, O.pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(pos, O.pos);
       #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
@@ -693,7 +693,7 @@ void PS
    output.color   (col         );
    output.glow    (glow        );
    output.normal  (nrm         );
-   output.trans   (FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
+   output.trans   (FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
    output.smooth  (smooth      );
    output.reflect (reflect     );
    output.velocity(I.vel, I.pos);

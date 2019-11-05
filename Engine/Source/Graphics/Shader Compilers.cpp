@@ -81,7 +81,7 @@ static void Compile(API api)
 
    Bool ms  =(api==API_DX), // if support multi-sampling in shaders
         tess=(api==API_DX); // if support tesselation    in shaders
-   Int fxs[]={FX_GRASS, FX_LEAF, FX_LEAFS};
+   Int fxs[]={FX_GRASS_2D, FX_GRASS_3D, FX_LEAF, FX_LEAFS};
 
 #ifdef MAIN
 {

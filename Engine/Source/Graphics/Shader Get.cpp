@@ -157,7 +157,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    alpha_blend_light=(                                               materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
     mtrl_blend      =(                                               materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
    tesselate        =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
-   fx               =(grass ? FX_GRASS : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
+   fx               =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
 
    if(bump==SBUMP_ZERO){/*materials=1; can't return same shader for multi/single*/ layout=0; alpha_test=detail=macro=mtrl_blend=heightmap=false; fx=FX_NONE; MIN(ambient, 1);} // shaders with SBUMP_ZERO currently are very limited
    if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL); ambient=0;} // shaders with effects currently don't support detail/macro/tesselate/fancy bump/ambient

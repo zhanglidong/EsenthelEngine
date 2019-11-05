@@ -17,7 +17,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define LIGHT          (LIGHT_DIR || LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE)
 #define SHADOW         (LIGHT_DIR_SHD || LIGHT_POINT_SHD || LIGHT_LINEAR_SHD || LIGHT_CONE_SHD)
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
-#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored in 'vtx.col' or 'vtx.lum'
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
@@ -25,7 +25,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && BUMP_MODE<=SBUMP_FLAT)
 #define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
-#define GRASS_FADE     (FX==FX_GRASS)
+#define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 /******************************************************************************/
 struct VS_PS
 {
@@ -124,7 +124,7 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos, vtx.instance());
       #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
@@ -139,7 +139,7 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS)BendGrass(local_pos, pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos);
       #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
@@ -457,7 +457,7 @@ VecH4 PS
    BackFlip(nrm, front);
 #endif
 
-   Bool trans=(FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
+   Bool trans=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 

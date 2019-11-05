@@ -20,10 +20,11 @@
 #define SDIFFUSE_NUM        3
 
 // Effects
-#define FX_NONE  0
-#define FX_GRASS 1
-#define FX_LEAF  2
-#define FX_LEAFS 3
+#define FX_NONE     0
+#define FX_GRASS_2D 1
+#define FX_GRASS_3D 2
+#define FX_LEAF     3
+#define FX_LEAFS    4
 
 #define MAX_MOTION_BLUR_PIXEL_RANGE 24
 

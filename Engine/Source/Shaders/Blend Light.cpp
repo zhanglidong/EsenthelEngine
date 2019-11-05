@@ -10,8 +10,8 @@
 #define SET_TEX      (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define VTX_REFLECT  (REFLECT && BUMP_MODE<=SBUMP_FLAT)
 #define ALPHA_CLIP   0.5
-#define GRASS_FADE   (FX==FX_GRASS)
 #define PIXEL_NORMAL (PER_PIXEL || REFLECT) // if calculate normal in the pixel shader
+#define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 /******************************************************************************/
 struct VS_PS
 {
@@ -86,7 +86,7 @@ void VS
                                BendLeafs(vtx.hlp(), vtx.size(), pos          );
    }
 
-   Vec local_pos; if(USE_VEL || FX==FX_GRASS)local_pos=pos;
+   Vec local_pos; if(USE_VEL || FX==FX_GRASS_2D || FX==FX_GRASS_3D)local_pos=pos;
    if(!SKIN)
    {
       if(true) // instance
@@ -103,8 +103,8 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
-         if(GRASS_FADE  )  O.col.a*=1-GrassFadeOut(vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos, vtx.instance());
+         if(GRASS_FADE                        )  O.col.a*=1-GrassFadeOut(vtx.instance());
       }else
       {
          pos=TransformPos(pos);
@@ -119,8 +119,8 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS)BendGrass(local_pos, pos);
-         if(GRASS_FADE  )O.col.a*=1-GrassFadeOut();
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos);
+         if(GRASS_FADE                        )O.col.a*=1-GrassFadeOut();
       }
    }else
    {
@@ -251,7 +251,7 @@ void PS
    // calculate lighting
 #if BUMP_MODE>=SBUMP_FLAT && (PER_PIXEL || SHADOW_MAPS)
  //VecH total_specular=0;
-   Bool trans=(FX==FX_GRASS || FX==FX_LEAF || FX==FX_LEAFS);
+   Bool trans=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
 
    VecH total_lum=AmbientNSColor;
  /*if(FirstPass)

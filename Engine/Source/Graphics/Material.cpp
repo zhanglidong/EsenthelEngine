@@ -131,19 +131,114 @@ static Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
    {
       case MTECH_ALPHA_TEST            :
       case MTECH_GRASS                 :
+      case MTECH_GRASS_3D              :
       case MTECH_LEAF                  :
       case MTECH_TEST_BLEND_LIGHT      :
       case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF : return true;
+      case MTECH_TEST_BLEND_LIGHT_LEAF :
+         return true;
 
       default: return false;
    }
 }
-Bool Material::hasAlpha          ()C {return technique==MTECH_ALPHA_TEST || technique==MTECH_GRASS || technique==MTECH_LEAF || technique==MTECH_BLEND || technique==MTECH_BLEND_LIGHT || technique==MTECH_BLEND_LIGHT_GRASS || technique==MTECH_BLEND_LIGHT_LEAF || technique==MTECH_TEST_BLEND_LIGHT || technique==MTECH_TEST_BLEND_LIGHT_GRASS || technique==MTECH_TEST_BLEND_LIGHT_LEAF;}
-Bool Material::hasAlphaBlend     ()C {return                                                                                   technique==MTECH_BLEND || technique==MTECH_BLEND_LIGHT || technique==MTECH_BLEND_LIGHT_GRASS || technique==MTECH_BLEND_LIGHT_LEAF || technique==MTECH_TEST_BLEND_LIGHT || technique==MTECH_TEST_BLEND_LIGHT_GRASS || technique==MTECH_TEST_BLEND_LIGHT_LEAF;}
-Bool Material::hasAlphaBlendLight()C {return                                                                                                             technique==MTECH_BLEND_LIGHT || technique==MTECH_BLEND_LIGHT_GRASS || technique==MTECH_BLEND_LIGHT_LEAF || technique==MTECH_TEST_BLEND_LIGHT || technique==MTECH_TEST_BLEND_LIGHT_GRASS || technique==MTECH_TEST_BLEND_LIGHT_LEAF;}
-Bool Material::hasGrass          ()C {return                                technique==MTECH_GRASS ||                                                                                    technique==MTECH_BLEND_LIGHT_GRASS ||                                                                           technique==MTECH_TEST_BLEND_LIGHT_GRASS                                          ;}
-Bool Material::hasLeaf           ()C {return                                                          technique==MTECH_LEAF ||                                                                                                 technique==MTECH_BLEND_LIGHT_LEAF ||                                                                                 technique==MTECH_TEST_BLEND_LIGHT_LEAF;}
+Bool Material::hasAlpha()C
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST:
+      case MTECH_GRASS:
+      case MTECH_GRASS_3D:
+      case MTECH_LEAF:
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasAlphaBlend()C
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasAlphaBlendLight()C
+{
+   switch(technique)
+   {
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasGrass()C
+{
+   switch(technique)
+   {
+      case MTECH_GRASS:
+      case MTECH_GRASS_3D:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasGrass2D()C
+{
+   switch(technique)
+   {
+      case MTECH_GRASS:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasGrass3D()C
+{
+   switch(technique)
+   {
+      case MTECH_GRASS_3D:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasLeaf()C
+{
+   switch(technique)
+   {
+      case MTECH_LEAF:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
 /******************************************************************************/
 Bool Material::wantTanBin()C
 {

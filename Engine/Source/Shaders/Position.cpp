@@ -40,17 +40,17 @@ void VS
 
    if(!SKIN)
    {
-      Vec local_pos; if(FX==FX_GRASS)local_pos=pos;
+      Vec local_pos; if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)local_pos=pos;
       if(true) // instance
       {
                       pos=          TransformPos(pos, vtx.instance());
          if(TESSELATE)nrm=Normalize(TransformDir(nrm, vtx.instance()));
-         if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos, vtx.instance());
       }else
       {
                       pos=          TransformPos(pos);
          if(TESSELATE)nrm=Normalize(TransformDir(nrm));
-         if(FX==FX_GRASS)BendGrass(local_pos, pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos);
       }
    }else
    {

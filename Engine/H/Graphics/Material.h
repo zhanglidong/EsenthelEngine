@@ -18,6 +18,7 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_TEST_BLEND_LIGHT      , // works like MTECH_BLEND_LIGHT       with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting
    MTECH_TEST_BLEND_LIGHT_GRASS, // works like MTECH_BLEND_LIGHT_GRASS with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting
    MTECH_TEST_BLEND_LIGHT_LEAF , // works like MTECH_BLEND_LIGHT_LEAF  with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting
+   MTECH_GRASS_3D              , // mesh vertexes will bend on the wind like grass, bending intensity is determined by mesh vertex source Y position, which should be in the range from 0 to 1
    MTECH_NUM                   , // number of Material Techniques
 };
 /******************************************************************************/
@@ -80,8 +81,10 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
    Bool hasAlphaBlend     ()C;                          // if material technique involves Alpha Blending
    Bool hasAlphaTest      ()C {return _has_alpha_test;} // if material technique involves Alpha Testing
    Bool hasAlphaBlendLight()C;                          // if material technique involves Alpha Blending with Light
-   Bool hasGrass          ()C;                          // if material technique involves Grass Bending
-   Bool hasLeaf           ()C;                          // if material technique involves Leaf  Bending
+   Bool hasGrass          ()C;                          // if material technique involves    Grass Bending
+   Bool hasGrass2D        ()C;                          // if material technique involves 2D Grass Bending
+   Bool hasGrass3D        ()C;                          // if material technique involves 3D Grass Bending
+   Bool hasLeaf           ()C;                          // if material technique involves    Leaf  Bending
 
    void setSolid     (     )C;
    void setAmbient   (     )C;
