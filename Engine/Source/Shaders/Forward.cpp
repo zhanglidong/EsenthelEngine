@@ -19,7 +19,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
-#define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
+#define SET_POS        (((LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE) && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
@@ -40,7 +40,7 @@ struct VS_PS
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -172,7 +172,7 @@ void VS
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 
@@ -637,12 +637,11 @@ VS_PS HS
    VS_PS O;
    O.pos=I[cp_id].pos;
 
-#if   BUMP_MODE> SBUMP_FLAT
+#if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx=I[cp_id].mtrx;
-#elif BUMP_MODE==SBUMP_FLAT
+#else
    O.nrm =I[cp_id].nrm;
 #endif
-
 
 #if SET_TEX
    O.tex=I[cp_id].tex;
@@ -684,7 +683,7 @@ void DS
    O.mtrx[0]=I[0].mtrx[0]*B.z + I[1].mtrx[0]*B.x + I[2].mtrx[0]*B.y;
    O.mtrx[1]=I[0].mtrx[1]*B.z + I[1].mtrx[1]*B.x + I[2].mtrx[1]*B.y;
    SetDSPosNrm(O.pos, O.mtrx[2], I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
-#elif BUMP_MODE==SBUMP_FLAT
+#else
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
