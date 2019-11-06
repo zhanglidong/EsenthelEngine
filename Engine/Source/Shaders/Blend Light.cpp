@@ -204,7 +204,7 @@ void VS
 
       // STORE
       #if LIGHT_IN_COL
-         O.col*=total_lum;
+         O.col.rgb*=total_lum;
       #else
          O.lum=total_lum;
       #endif
@@ -319,14 +319,19 @@ void PS
    #if REFLECT
    {
    #if VTX_REFLECT
-      Vec rfl=I.rfl;
+      Vec reflect_dir=I.reflect_dir;
    #else
-      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
+      Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      I.col.rgb=Lerp(I.col.rgb, TexCube(Env, rfl).rgb*I.env_col, reflectivity);
+      I.col.rgb=PBR1(I.col.rgb, I.col.rgb*total_lum, smooth, reflectivity, total_specular, -Dot(nrm, eye_dir), reflect_dir, false);
    }
+   #else
+      I.col.rgb=I.col.rgb*total_lum + total_specular*ReflectCol(I.col.rgb, reflectivity);
    #endif
 
+#if SET_FOG
+   I.col.rgb*=I.fog_rev;
+#endif
    I.col.rgb+=I.col_add; // add after lighting and reflection because this could have fog
 
    outCol  =I.col;

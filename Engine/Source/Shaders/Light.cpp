@@ -67,10 +67,11 @@ VecH4 LightDir_PS
 #endif
 
    // light
-   LightParams lp; lp.set(nrm.xyz, LightDir.dir);
+   VecH light_dir=LightDir.dir;
+   LightParams lp; lp.set(nrm.xyz, light_dir);
    Half lum=lp.NdotL; if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightDir.color.rgb*(lum*-0.5), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightDir.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -85,7 +86,7 @@ VecH4 LightDir_PS
 
    // light #1
    VecH eye_dir=Normalize(Vec(inPosXY, 1));
-   lp.set(nrm.xyz, LightDir.dir, eye_dir);
+   lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
    Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
@@ -144,7 +145,7 @@ VecH4 LightPoint_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightPoint.color.rgb*(lum*-0.5), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -218,7 +219,7 @@ VecH4 LightLinear_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightLinear.color.rgb*(lum*-0.5), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -296,7 +297,7 @@ VecH4 LightCone_PS
    {
       if(!WATER && nrm.w && -lum>EPS_LUM) // #RTOutput translucent
       {
-         lum*=-0.5;
+         lum*=-TRANSLUCENT_VAL;
       #if IMAGE
          VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
          return VecH4(LightCone.color.rgb*lum*map_col, 0);
