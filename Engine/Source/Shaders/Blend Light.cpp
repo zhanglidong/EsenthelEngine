@@ -164,7 +164,7 @@ void VS
 #endif
 
    // sky
-   O.col.a*=(Half)Sat(dist*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   O.col.a*=Sat(dist*SkyFracMulAdd.x + SkyFracMulAdd.y);
 
    // fog
    Half fog_rev=    VisibleOpacity(FogDensity, dist); // fog_rev=1-fog
