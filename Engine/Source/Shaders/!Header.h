@@ -1854,7 +1854,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
       out1.xyz=normal*0.5+0.5; // -1..1 -> 0..1
    #endif
    }
-   inline void trans(Half trans) {out1.w=trans;}
+   inline void translucent(Half translucent) {out1.w=translucent;}
 
    inline void smooth (Half smooth ) {out2.x=smooth ;}
    inline void reflect(Half reflect) {out2.y=reflect;}

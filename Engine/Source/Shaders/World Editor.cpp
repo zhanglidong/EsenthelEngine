@@ -45,7 +45,7 @@ void Color_PS
 #endif
    output.glow        (0);
    output.normal      (Normalize(inNrm));
-   output.trans       (0);
+   output.translucent (0);
    output.smooth      (0);
    output.velocityZero( );
    output.reflect     (0);

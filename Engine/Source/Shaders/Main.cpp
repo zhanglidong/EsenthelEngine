@@ -446,12 +446,12 @@ void ClearDeferred_VS(VtxInput vtx,
 void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
            out DeferredSolidOutput output) // #RTOutput
 {
-   output.color  (0);
-   output.glow   (0);
-   output.normal (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
-   output.trans  (0);
-   output.smooth (0);
-   output.reflect(0);
+   output.color      (0);
+   output.glow       (0);
+   output.normal     (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.translucent(0);
+   output.smooth     (0);
+   output.reflect    (0);
    output.velocityRaw(inVel);
 }
 /******************************************************************************/

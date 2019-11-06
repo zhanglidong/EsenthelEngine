@@ -690,13 +690,13 @@ void PS
    BackFlip(nrm, front);
 #endif
 
-   output.color   (col         );
-   output.glow    (glow        );
-   output.normal  (nrm         );
-   output.trans   (FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
-   output.smooth  (smooth      );
-   output.reflect (reflect     );
-   output.velocity(I.vel, I.pos);
+   output.color      (col         );
+   output.glow       (glow        );
+   output.normal     (nrm         );
+   output.translucent(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
+   output.smooth     (smooth      );
+   output.reflect    (reflect     );
+   output.velocity   (I.vel, I.pos);
 }
 /******************************************************************************/
 // HULL / DOMAIN

@@ -75,13 +75,13 @@ void Base_PS
 
    inNrm=Normalize(inNrm);
 
-   output.color   (col);
-   output.glow    (0);
-   output.normal  (inNrm);
-   output.trans   (0);
-   output.smooth  (Material.smooth);
-   output.velocity(inVel, inPos);
-   output.reflect (Material.reflect);
+   output.color      (col);
+   output.glow       (0);
+   output.normal     (inNrm);
+   output.translucent(0);
+   output.smooth     (Material.smooth);
+   output.velocity   (inVel, inPos);
+   output.reflect    (Material.reflect);
 }
 /******************************************************************************/
 void Soft_VS
