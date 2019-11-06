@@ -4,14 +4,23 @@
 #include "Sky.h"
 /******************************************************************************/
 // SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
-#define USE_VEL      ALPHA_TEST
-#define HEIGHTMAP    0
-#define SET_POS      (USE_VEL || SHADOW_MAPS || REFLECT || TESSELATE)
-#define SET_TEX      (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
-#define VTX_REFLECT  (REFLECT && BUMP_MODE<=SBUMP_FLAT)
-#define ALPHA_CLIP   0.5
-#define PIXEL_NORMAL (PER_PIXEL || REFLECT) // if calculate normal in the pixel shader
+#define NO_AMBIENT  0 // this could be set to 1 for Secondary Passes, if we would use this then we could remove 'FirstPass'
+#define HAS_AMBIENT (!NO_AMBIENT)
+
+#define HEIGHTMAP      0
+#define LIGHT          1
+#define SHADOW         (SHADOW_MAPS>0)
+#define VTX_LIGHT      (LIGHT && !PER_PIXEL)
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
+#define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
+#define USE_VEL        ALPHA_TEST
+#define SET_POS        (USE_VEL || SHADOW || REFLECT || TESSELATE)
+#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
+#define VTX_REFLECT    (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+#define ALPHA_CLIP     0.5
 /******************************************************************************/
 struct VS_PS
 {
@@ -47,7 +56,7 @@ struct VS_PS
    VecH rfl:REFLECTION;
 #endif
 
-#if !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT && SHADOW_MAPS
+#if SET_LUM
    VecH lum:LUM;
 #endif
 };
@@ -142,14 +151,12 @@ void VS
    // normalize (have to do all at the same time, so all have the same lengths)
    if(BUMP_MODE>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
    || VTX_REFLECT // per-vertex reflection
-   || !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT // per-vertex lighting
+   || VTX_LIGHT   // per-vertex lighting
    || TESSELATE) // needed for tesselation
    {
                               nrm=Normalize(nrm);
       if(BUMP_MODE>SBUMP_FLAT)tan=Normalize(tan);
    }
-
-   Flt dist=Length(pos);
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    O.mtrx[0]=tan;
@@ -158,6 +165,8 @@ void VS
 #elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
+
+   Flt dist=Length(pos);
 
 #if VTX_REFLECT
    O.rfl=ReflectDir(pos/dist, nrm);
@@ -175,7 +184,7 @@ void VS
 #endif
 
    //  per-vertex light
-   #if !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT
+   #if VTX_LIGHT
    {
       Half d  =Sat(Dot(nrm, LightDir.dir));
       VecH lum=LightDir.color.rgb*d;
