@@ -43,7 +43,7 @@ struct VS_PS
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -164,7 +164,7 @@ void VS
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 

@@ -465,6 +465,7 @@ VecH4 PS
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 
+   // lighting
    VecH ambient;
    if(HAS_AMBIENT && !AMBIENT_IN_VTX)
    {
