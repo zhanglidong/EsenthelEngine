@@ -254,7 +254,7 @@ FRST* DefaultShaders::Frst()C
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;
       key.heightmap =heightmap;
-      key.tesselate =tesselate;
+      key.tesselate =(tesselate && SUPPORT_FORWARD_TESSELATE);
       return Frsts(key);
    }
    return null;

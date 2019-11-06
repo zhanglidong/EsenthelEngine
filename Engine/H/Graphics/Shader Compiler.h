@@ -20,6 +20,8 @@
    #define COMPRESS_GL_SHADER_LEVEL 5
 #endif
 
+#define SUPPORT_FORWARD_TESSELATE 0 // disable to reduce shader size
+
 #pragma pack(push, 1)
 struct ConstantIndex
 {
