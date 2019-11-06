@@ -186,13 +186,25 @@ void VS
    //  per-vertex light
    #if VTX_LIGHT
    {
-      Half d  =Sat(Dot(nrm, LightDir.dir));
-      VecH lum=LightDir.color.rgb*d;
-   #if SHADOW_MAPS
-      O.lum=lum;
-   #else
-      O.col.rgb*=lum+AmbientNSColor;
-   #endif
+      VecH total_lum;
+
+      // AMBIENT
+      if(HAS_AMBIENT && AMBIENT_IN_VTX)
+      {
+         total_lum=AmbientNSColor;
+         /*if(MATERIALS<=1 && FirstPass)*/total_lum+=Material.ambient;
+      }else total_lum=0;
+
+      // LIGHTS
+      Half lum=Sat(Dot(nrm, LightDir.dir));
+      total_lum+=LightDir.color.rgb*lum;
+
+      // STORE
+      #if LIGHT_IN_COL
+         O.col*=total_lum;
+      #else
+         O.lum=total_lum;
+      #endif
    }
    #endif
 
