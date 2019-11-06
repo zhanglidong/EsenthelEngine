@@ -53,11 +53,11 @@ VecH4 LightDir_PS
 {
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW)shd=TexSample(ImgXMS, pixel.xy, index).x;
+   Half shadow; if(SHADOW)shadow=TexSample(ImgXMS, pixel.xy, index).x;
 #else
-   Half shd; if(SHADOW)shd=TexPoint(ImgX, inTex).x;
+   Half shadow; if(SHADOW)shadow=TexPoint(ImgX, inTex).x;
 #endif
-   if(SHADOW && shd<=EPS_LUM)discard;
+   if(SHADOW && shadow<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
@@ -68,7 +68,7 @@ VecH4 LightDir_PS
 
    // light
    LightParams lp; lp.set(nrm.xyz, LightDir.dir);
-   Half lum=lp.NdotL; if(SHADOW)lum*=shd; if(lum<=EPS_LUM)
+   Half lum=lp.NdotL; if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)
    {
       if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightDir.color.rgb*(lum*-0.5), 0); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
@@ -117,11 +117,11 @@ VecH4 LightPoint_PS
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW && shd<=EPS_LUM)discard;
+   if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
@@ -130,7 +130,7 @@ VecH4 LightPoint_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
-   Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
+   Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
@@ -191,11 +191,11 @@ VecH4 LightLinear_PS
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW && shd<=EPS_LUM)discard;
+   if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
@@ -204,7 +204,7 @@ VecH4 LightLinear_PS
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
-   Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
+   Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE
@@ -265,11 +265,11 @@ VecH4 LightCone_PS
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
-   Half shd; if(SHADOW)shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shd; if(SHADOW)shd=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
 #endif
-   if(SHADOW && shd<=EPS_LUM)discard;
+   if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance & angle
 #if MULTI_SAMPLE
@@ -280,7 +280,7 @@ VecH4 LightCone_PS
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
-   Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shd; if(lum<=EPS_LUM)discard;
+   Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
 #if MULTI_SAMPLE

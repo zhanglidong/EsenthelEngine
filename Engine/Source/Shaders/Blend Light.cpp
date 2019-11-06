@@ -13,10 +13,12 @@
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
+#define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
 #define SET_POS        (USE_VEL || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
+#define SET_FOG        (!FOG_IN_COL)
 #define VTX_REFLECT    (REFLECT && BUMP_MODE<=SBUMP_FLAT)
 #define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
@@ -34,8 +36,8 @@ struct VS_PS
 
    VecH4 col    :COLOR;
    VecH  col_add:COLOR_ADD;
-#if REFLECT
-   Half  env_col:ENV;
+#if SET_FOG
+   Half  fog_rev:FOG;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
@@ -53,7 +55,7 @@ struct VS_PS
 #endif
 
 #if VTX_REFLECT
-   VecH rfl:REFLECTION;
+   Vec reflect_dir:REFLECTION;
 #endif
 
 #if SET_LUM
@@ -169,7 +171,7 @@ void VS
    Flt dist=Length(pos);
 
 #if VTX_REFLECT
-   O.rfl=ReflectDir(pos/dist, nrm);
+   O.reflect_dir=ReflectDir(pos/dist, nrm);
 #endif
 
    // sky
@@ -177,10 +179,11 @@ void VS
 
    // fog
    Half fog_rev=    VisibleOpacity(FogDensity, dist); // fog_rev=1-fog
-   O.col.rgb*=                              fog_rev ; //       *=1-fog
    O.col_add =Lerp(FogColor, Highlight.rgb, fog_rev); //         1-fog
-#if REFLECT
-   O.env_col=EnvColor*fog_rev;
+#if FOG_IN_COL
+   O.col.rgb*=                              fog_rev ; //       *=1-fog
+#else
+   O.fog_rev =fog_rev;
 #endif
 
    //  per-vertex light

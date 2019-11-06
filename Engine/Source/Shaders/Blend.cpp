@@ -34,7 +34,7 @@ struct VS_PS
 #endif
 
 #if VTX_REFLECT
-   Vec rfl:REFLECTION;
+   Vec reflect_dir:REFLECTION;
 #endif
 };
 void VS
@@ -105,7 +105,7 @@ void VS
 #endif
 
 #if VTX_REFLECT
-   O.rfl=ReflectDir(Normalize(pos), nrm);
+   O.reflect_dir=ReflectDir(Normalize(pos), nrm);
 #endif
 
 #if SET_POS
@@ -157,7 +157,7 @@ VecH4 PS
 #if REFLECT // reflection
    Vec eye_dir=Normalize(I.pos);
    #if VTX_REFLECT
-      Vec reflect_dir=I.rfl;
+      Vec reflect_dir=I.reflect_dir;
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
