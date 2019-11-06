@@ -14,7 +14,7 @@
 #define SBUMP_PARALLAX_MAX SBUMP_PARALLAX4
 
 // Shader Diffuse Modes
-#define SDIFFUSE_LAMBERT    0
+#define SDIFFUSE_LAMBERT    0 // set Lambert as 0 to be the default mode for Forward/Blend shaders which don't have DIFFUSE_MODE specified
 #define SDIFFUSE_OREN_NAYAR 1
 #define SDIFFUSE_BURLEY     2
 #define SDIFFUSE_NUM        3
