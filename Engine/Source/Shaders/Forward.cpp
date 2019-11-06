@@ -56,7 +56,7 @@ struct VS_PS
 #endif
 
 #if VTX_REFLECT
-   VecH rfl:REFLECTION;
+   Vec reflect_dir:REFLECTION;
 #endif
 
 #if GRASS_FADE
@@ -177,7 +177,7 @@ void VS
 #endif
 
 #if VTX_REFLECT
-   O.rfl=ReflectDir(Normalize(pos), nrm);
+   O.reflect_dir=ReflectDir(Normalize(pos), nrm);
 #endif
 
    //  per-vertex light
@@ -660,7 +660,7 @@ VS_PS HS
 #endif
 
 #if VTX_REFLECT
-   O.rfl=I[cp_id].rfl;
+   O.reflect_dir=I[cp_id].reflect_dir;
 #endif
 
 #if SET_LUM
@@ -704,7 +704,7 @@ void DS
 #endif
 
 #if VTX_REFLECT
-   O.rfl=I[0].rfl*B.z + I[1].rfl*B.x + I[2].rfl*B.y;
+   O.reflect_dir=I[0].reflect_dir*B.z + I[1].reflect_dir*B.x + I[2].reflect_dir*B.y;
 #endif
 
 #if SET_LUM
