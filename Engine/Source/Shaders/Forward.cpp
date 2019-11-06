@@ -197,8 +197,7 @@ void VS
       {
          // diffuse
          VecH light_dir=LightDir.dir;
-         Half lum      =LightDiffuse(nrm, light_dir);
-
+         Half lum      =Sat(Dot(nrm, light_dir));
          total_lum+=LightDir.color.rgb*lum;
       }
       #endif
@@ -207,13 +206,12 @@ void VS
       {
          // distance
          Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
-         Half power=LightPointDist(inv_dist2);
+         Half lum  =LightPointDist(inv_dist2);
 
          // diffuse
          VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         total_lum+=LightPoint.color.rgb*(lum*power);
+         lum*=Sat(Dot(nrm, light_dir));
+         total_lum+=LightPoint.color.rgb*lum;
       }
       #endif
 
@@ -221,28 +219,29 @@ void VS
       {
          // distance
          Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
-         Half power=LightLinearDist(dist);
+         Half lum  =LightLinearDist(dist);
 
          // diffuse
          VecH light_dir=delta/dist; // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         total_lum+=LightLinear.color.rgb*(lum*power);
+         lum*=Sat(Dot(nrm, light_dir));
+         total_lum+=LightLinear.color.rgb*lum;
       }
       #endif
 
       #if LIGHT_CONE
       {
          // distance & angle
-         Vec  delta=LightCone.pos-pos; Flt dist=Length(delta);
-         Vec  dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z;
-         Half power=LightConeAngle(dir.xy)*LightConeDist(dist); power*=(dir.z>0);
+         Vec delta=LightCone.pos-pos;
+         Vec dir  =TransformTP(delta, LightCone.mtrx); if(dir.z>0)
+         {
+            Flt  dist=Length(delta);
+            Half lum =LightConeAngle(dir.xy/dir.z)*LightConeDist(dist);
 
-         // diffuse
-         VecH light_dir=delta/dist; // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         total_lum+=LightCone.color.rgb*(lum*power);
+            // diffuse
+            VecH light_dir=delta/dist; // Normalize(delta);
+            lum*=Sat(Dot(nrm, light_dir));
+            total_lum+=LightCone.color.rgb*lum;
+         }
       }
       #endif
 
@@ -480,9 +479,9 @@ VecH4 PS
       }
    }else ambient=0;
 
-   VecH total_specular;
+   VecH total_lum,
+        total_specular=0;
 
-   // lighting
    #if VTX_LIGHT // per-vertex
    {
       Half shadow;
@@ -502,29 +501,39 @@ VecH4 PS
       light=1;
    #endif
 
-      col*=light*shadow+ambient;
+      total_lum=light*shadow+ambient;
    }
    #else // per-pixel
    {
-      VecH total_lum=ambient;
-           total_specular=0;
+      total_lum=ambient;
 
       #if LIGHT_DIR
       {
          // shadow
          Half shadow; if(LIGHT_DIR_SHD)shadow=Sat(ShadowDirValue(I.pos, jitter_value, true, LIGHT_DIR_SHD_NUM, false));
 
-         // diffuse
+         // light
          VecH light_dir=LightDir.dir;
-         Half lum      =LightDiffuse(nrm, light_dir); if(LIGHT_DIR_SHD)lum*=shadow;
-
-         // specular
-         BRANCH if(lum*smooth>EPS_LUM)
+         LightParams lp; lp.set(nrm, light_dir);
+         Half lum=lp.NdotL; if(SHADOW)lum*=shadow;
+         if(translucent && -lum>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (I.pos);
-            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir); if(LIGHT_DIR_SHD)spec*=shadow;
-            total_specular+=LightDir.color.rgb*spec;
-         }  total_lum     +=LightDir.color.rgb*lum ;
+            total_lum+=LightDir.color.rgb*(lum*-TRANSLUCENT_VAL);
+         }
+         BRANCH if(lum>EPS_LUM)
+         {
+            // light #1
+            lp.set(nrm, light_dir, eye_dir);
+            
+            // specular
+            Half specular=lp.specular(smooth, reflectivity, false)*lum;
+
+            // diffuse !! after specular because it adjusts 'lum' !!
+            lum*=lp.diffuse(smooth);
+
+            total_lum     +=LightDir.color.rgb*lum     ;
+            total_specular+=LightDir.color.rgb*specular;
+         }
       }
       #endif
 
@@ -535,19 +544,30 @@ VecH4 PS
 
          // distance
          Vec  delta=LightPoint.pos-I.pos; Flt inv_dist2=1/Length2(delta);
-         Half power=LightPointDist(inv_dist2); if(LIGHT_POINT_SHD)power*=shadow;
+         Half lum  =LightPointDist(inv_dist2); if(LIGHT_POINT_SHD)lum*=shadow;
 
-         // diffuse
+         // light
          VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         // specular
-         BRANCH if(lum*smooth>EPS_LUM)
+         LightParams lp; lp.set(nrm, light_dir);
+         lum*=lp.NdotL;
+         if(translucent && -lum>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (I.pos);
-            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
-            total_specular+=LightPoint.color.rgb*(spec*power);
-         }  total_lum     +=LightPoint.color.rgb*(lum *power);
+            total_lum+=LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL);
+         }
+         BRANCH if(lum>EPS_LUM)
+         {
+            // light #1
+            lp.set(nrm, light_dir, eye_dir);
+            
+            // specular
+            Half specular=lp.specular(smooth, reflectivity, false)*lum;
+
+            // diffuse !! after specular because it adjusts 'lum' !!
+            lum*=lp.diffuse(smooth);
+
+            total_lum     +=LightPoint.color.rgb*lum     ;
+            total_specular+=LightPoint.color.rgb*specular;
+         }
       }
       #endif
 
@@ -558,19 +578,30 @@ VecH4 PS
 
          // distance
          Vec  delta=LightLinear.pos-I.pos; Flt dist=Length(delta);
-         Half power=LightLinearDist(dist); if(LIGHT_LINEAR_SHD)power*=shadow;
+         Half lum  =LightLinearDist(dist); if(LIGHT_LINEAR_SHD)lum*=shadow;
 
-         // diffuse
+         // light
          VecH light_dir=delta/dist; // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         // specular
-         BRANCH if(lum*smooth>EPS_LUM)
+         LightParams lp; lp.set(nrm, light_dir);
+         lum*=lp.NdotL;
+         if(translucent && -lum>EPS_LUM)
          {
-            VecH eye_dir=Normalize    (I.pos);
-            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
-            total_specular+=LightLinear.color.rgb*(spec*power);
-         }  total_lum     +=LightLinear.color.rgb*(lum *power);
+            total_lum+=LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL);
+         }
+         BRANCH if(lum>EPS_LUM)
+         {
+            // light #1
+            lp.set(nrm, light_dir, eye_dir);
+            
+            // specular
+            Half specular=lp.specular(smooth, reflectivity, false)*lum;
+
+            // diffuse !! after specular because it adjusts 'lum' !!
+            lum*=lp.diffuse(smooth);
+
+            total_lum     +=LightLinear.color.rgb*lum     ;
+            total_specular+=LightLinear.color.rgb*specular;
+         }
       }
       #endif
 
@@ -580,45 +611,59 @@ VecH4 PS
          Half shadow; if(LIGHT_CONE_SHD)shadow=ShadowFinal(ShadowConeValue(I.pos, jitter_value, true));
 
          // distance & angle
-         Vec  delta=LightCone.pos-I.pos; Flt dist=Length(delta);
-         Vec  dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; // clip(Vec(1-Abs(dir.xy), dir.z));
-         Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(LIGHT_CONE_SHD)power*=shadow; power*=(dir.z>0);
-
-         // diffuse
-         VecH light_dir=delta/dist; // Normalize(delta);
-         Half lum      =LightDiffuse(nrm, light_dir);
-
-         // specular
-         BRANCH if(lum*smooth>EPS_LUM)
+         Vec delta=LightCone.pos-I.pos;
+         Vec dir  =TransformTP(delta, LightCone.mtrx); if(dir.z>0)
          {
-            VecH eye_dir=Normalize    (I.pos);
-            Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir);
-            total_specular+=LightCone.color.rgb*(spec*power);
-         }  total_lum     +=LightCone.color.rgb*(lum *power);
+            Flt  dist=Length(delta);
+            Half lum =LightConeAngle(dir.xy/dir.z)*LightConeDist(dist); if(LIGHT_CONE_SHD)lum*=shadow; 
+
+            // light
+            VecH light_dir=delta/dist; // Normalize(delta);
+            LightParams lp; lp.set(nrm, light_dir);
+            lum*=lp.NdotL;
+            if(translucent && -lum>EPS_LUM)
+            {
+               total_lum+=LightCone.color.rgb*(lum*-TRANSLUCENT_VAL);
+            }
+            BRANCH if(lum>EPS_LUM)
+            {
+               // light #1
+               lp.set(nrm, light_dir, eye_dir);
+            
+               // specular
+               Half specular=lp.specular(smooth, reflectivity, false)*lum;
+
+               // diffuse !! after specular because it adjusts 'lum' !!
+               lum*=lp.diffuse(smooth);
+
+               total_lum     +=LightCone.color.rgb*lum     ;
+               total_specular+=LightCone.color.rgb*specular;
+            }
+         }
       }
       #endif
-
-      col*=total_lum;
    }
    #endif
 
    // reflection
    #if REFLECT
    {
-      if(FirstPass)
+      VecH reflect_col=ReflectCol(col, reflectivity); // calc 'reflect_col' from unlit color
+      col=col*total_lum*(1-reflectivity) + reflect_col*total_specular;
+
+      if(FirstPass) // add reflection only for the fist pass
       {
       #if VTX_REFLECT
-         Vec rfl=I.rfl;
+         Vec reflect_dir=I.reflect_dir;
       #else
-         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
+         Vec reflect_dir=ReflectDir(eye_dir, nrm);
       #endif
-         col=Lerp(col, TexCube(Env, rfl).rgb*EnvColor, reflectivity);
-      }else col*=1-reflectivity;
+         col+=reflect_col*
+            ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir), false));
+      }
    }
-   #endif
-
-   #if !VTX_LIGHT
-      col+=total_specular;
+   #else
+      col=col*total_lum + total_specular*ReflectCol(col, reflectivity);
    #endif
 
    return VecH4(col, glow);

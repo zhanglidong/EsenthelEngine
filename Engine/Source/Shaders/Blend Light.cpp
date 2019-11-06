@@ -154,7 +154,7 @@ void VS
    if(BUMP_MODE>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
    || VTX_REFLECT // per-vertex reflection
    || VTX_LIGHT   // per-vertex lighting
-   || TESSELATE) // needed for tesselation
+   || TESSELATE)  // needed for tesselation
    {
                               nrm=Normalize(nrm);
       if(BUMP_MODE>SBUMP_FLAT)tan=Normalize(tan);
@@ -199,8 +199,7 @@ void VS
       }else total_lum=0;
 
       // LIGHTS
-      Half lum=Sat(Dot(nrm, LightDir.dir));
-      total_lum+=LightDir.color.rgb*lum;
+      total_lum+=LightDir.color.rgb*Sat(Dot(nrm, LightDir.dir));
 
       // STORE
       #if LIGHT_IN_COL
@@ -330,7 +329,7 @@ void PS
          if(translucent && -lum>EPS_LUM)
          {
             total_lum+=LightDir.color.rgb*(lum*-TRANSLUCENT_VAL);
-         }else
+         }
          BRANCH if(lum>EPS_LUM)
          {
             // light #1
