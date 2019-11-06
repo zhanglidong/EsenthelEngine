@@ -1596,7 +1596,7 @@ struct LightParams
    {
       const Half light_radius=0.0036;
 
-      Flt roughness=1-smooth;
+      Half roughness=1-smooth;
    #if 0
       if( Q)roughness=Lerp(Pow(light_radius, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
       roughness=(E ? Quart(roughness) : Sqr(roughness));
