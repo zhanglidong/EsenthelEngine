@@ -19,7 +19,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
-#define SET_POS        (((LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE) && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
+#define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
@@ -457,7 +457,11 @@ VecH4 PS
    BackFlip(nrm, front);
 #endif
 
-   Bool trans=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
+#if (LIGHT && PER_PIXEL) || REFLECT
+   Vec eye_dir=Normalize(I.pos);
+#endif
+
+   Bool translucent=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 

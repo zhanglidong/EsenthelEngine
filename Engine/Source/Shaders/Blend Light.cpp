@@ -15,7 +15,7 @@
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
-#define SET_POS        (USE_VEL || SHADOW || REFLECT || TESSELATE)
+#define SET_POS        ((LIGHT && PER_PIXEL) || USE_VEL || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define SET_FOG        (!FOG_IN_COL)
