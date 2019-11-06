@@ -75,7 +75,7 @@ out VecH4   outExt   :TARGET2
    col.a   =ext.a;
 #endif
    col  *=Material.color;
-   col.a*=Sat((Half)inTex.z)*OverlayAlpha();
+   col.a*=Sat(inTex.z)*OverlayAlpha();
 
    VecH nrm;
 #if NORMALS

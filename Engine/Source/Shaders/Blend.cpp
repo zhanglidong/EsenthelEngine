@@ -113,12 +113,15 @@ void VS
 #endif
    O_vtx=Project(pos);
 
-   O.color.a*=(Half)Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   O.color.a*=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
 }
 /******************************************************************************/
 VecH4 PS
 (
    VS_PS I,
+/*#if PIXEL_NORMAL && FX!=FX_GRASS_2D
+   IS_FRONT,
+#endif*/
    out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {

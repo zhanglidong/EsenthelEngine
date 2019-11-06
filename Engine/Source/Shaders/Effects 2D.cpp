@@ -21,7 +21,7 @@ VecH4 ColTransHB_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    VecH color     =Tex(Img, inTex).rgb;
    Half brightness=Max(color); color=Transform(color, ColTransMatrix);
    Half max       =Max(color);
-   if(  max)color*=Half(ColTransHsb.z)*brightness/max;
+   if(  max)color*=ColTransHsb.z*brightness/max;
    return VecH4(color, Step);
 }
 VecH4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET

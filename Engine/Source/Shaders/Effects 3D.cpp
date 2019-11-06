@@ -226,7 +226,7 @@ VecH4 Decal_PS(PIXEL,
 {
    Vec  pos  =GetPosPoint(PixelToScreen(pixel));
         pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);
-   Half alpha=Sat(Half(Abs(pos.z))*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
+   Half alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
 
    clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));
 

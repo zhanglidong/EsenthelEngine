@@ -176,9 +176,9 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
 {
    VecH2 clouds=TexLod(ImgXY, inTex).xy; // can't use TexPoint because image may be smaller
 #if 1
-   clouds.y*=(Half)Sat(TexDepthPoint(inTex)*Length(inPos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
+   clouds.y*=Sat(TexDepthPoint(inTex)*Length(inPos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else
-   Vec pos=GetPosPoint(inTex, inPosXY); clouds.y*=(Half)Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
+   Vec pos=GetPosPoint(inTex, inPosXY); clouds.y*=Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #endif
    VecH c=Color[0].rgb*clouds.x;
 #if GAMMA
