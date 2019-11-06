@@ -586,7 +586,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       }
 
       MemtN<LPCWSTR, 16> arguments;
-      arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a,b) a##b"
+      arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a, b) a##b"
       arguments.add(L"-flegacy-resource-reservation"); // will prevent other cbuffers from reusing indexes from explicit buffers
       arguments.add(L"/Zpc"); // D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
       if(model>=SM_6_2)arguments.add(L"-enable-16bit-types");

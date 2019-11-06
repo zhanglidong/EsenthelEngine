@@ -435,10 +435,10 @@ void PS
 
       UNROLL for(Int i=0; i<steps; i++) // I.tex+=h*tpos.xy;
       {
-                    Half h =Tex(BUMP_IMAGE   , tex0).BUMP_CHANNEL*bump_mul.x+bump_add.x
-                           +Tex(BUMP_IMAGE##1, tex1).BUMP_CHANNEL*bump_mul.y+bump_add.y;
-         if(MATERIALS>=3)h+=Tex(BUMP_IMAGE##2, tex2).BUMP_CHANNEL*bump_mul.z+bump_add.z;
-         if(MATERIALS>=4)h+=Tex(BUMP_IMAGE##3, tex3).BUMP_CHANNEL*bump_mul.w+bump_add.w;
+                    Half h =Tex(       BUMP_IMAGE    , tex0).BUMP_CHANNEL*bump_mul.x+bump_add.x
+                           +Tex(CONCAT(BUMP_IMAGE, 1), tex1).BUMP_CHANNEL*bump_mul.y+bump_add.y;
+         if(MATERIALS>=3)h+=Tex(CONCAT(BUMP_IMAGE, 2), tex2).BUMP_CHANNEL*bump_mul.z+bump_add.z;
+         if(MATERIALS>=4)h+=Tex(CONCAT(BUMP_IMAGE, 3), tex3).BUMP_CHANNEL*bump_mul.w+bump_add.w;
 
          Vec2 offset=h*tpos.xy; // keep as HP to avoid multiple conversions below
 
@@ -508,10 +508,10 @@ void PS
             if(MATERIALS>=4)tex3+=tex_step;
 
             //height_next=TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL;
-                            height_next =TexLodI(BUMP_IMAGE   , tex0, lod).BUMP_CHANNEL*I.material.x
-                                        +TexLodI(BUMP_IMAGE##1, tex1, lod).BUMP_CHANNEL*I.material.y;
-            if(MATERIALS>=3)height_next+=TexLodI(BUMP_IMAGE##2, tex2, lod).BUMP_CHANNEL*I.material.z;
-            if(MATERIALS>=4)height_next+=TexLodI(BUMP_IMAGE##3, tex3, lod).BUMP_CHANNEL*I.material.w;
+                            height_next =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x
+                                        +TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
+            if(MATERIALS>=3)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
+            if(MATERIALS>=4)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
 
             if(i>=steps || height_next>=ray)break;
             height_prev=height_next;
@@ -536,11 +536,11 @@ void PS
             BRANCH if(lod<=0) // extra step (needed only for closeup)
             {
                Half ray_cur=ray+stp*frac,
-                             //height_cur =TexLodI(BUMP_IMAGE  , I.tex, lod).BUMP_CHANNEL;
-                               height_cur =TexLodI(BUMP_IMAGE   , tex0, lod).BUMP_CHANNEL*I.material.x
-                                          +TexLodI(BUMP_IMAGE##1, tex1, lod).BUMP_CHANNEL*I.material.y;
-               if(MATERIALS>=3)height_cur+=TexLodI(BUMP_IMAGE##2, tex2, lod).BUMP_CHANNEL*I.material.z;
-               if(MATERIALS>=4)height_cur+=TexLodI(BUMP_IMAGE##3, tex3, lod).BUMP_CHANNEL*I.material.w;
+                             //height_cur =TexLodI(       BUMP_IMAGE    ,I.tex, lod).BUMP_CHANNEL;
+                               height_cur =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x
+                                          +TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
+               if(MATERIALS>=3)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
+               if(MATERIALS>=4)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
 
                if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
                {
