@@ -272,48 +272,82 @@ void PS
    BackFlip(nrm, front);
 #endif
 
-   // calculate lighting
-#if BUMP_MODE>=SBUMP_FLAT && (PER_PIXEL || SHADOW_MAPS)
- //VecH total_specular=0;
-   Bool trans=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
-
-   VecH total_lum=AmbientNSColor;
- /*if(FirstPass)
-   {
-      if(LIGHT_MAP)total_lum+=Material.ambient*Tex(Lum, I.tex).rgb;
-      else         total_lum+=Material.ambient;
-   }*/
-
-   // directional light
-   {
-      // shadow
-      Half shd;
-   #if SHADOW_MAPS
-      shd=Sat(ShadowDirValue(I.pos, 0, false, SHADOW_MAPS, false)); // for improved performance don't use shadow jittering because it's not much needed for blended objects
-   #endif
-
-      // diffuse
-   #if PER_PIXEL
-      VecH light_dir=LightDir.dir;
-      Half lum      =LightDiffuse(nrm, light_dir); if(SHADOW_MAPS)lum*=shd;
-
-      // specular
-   /* don't use specular at all
-      BRANCH if(lum*specular>EPS_LUM)
-      {
-         VecH eye_dir=Normalize    (I.pos);
-         Half spec   =LightSpecular(nrm, smooth, light_dir, eye_dir); if(SHADOW_MAPS)spec*=shd;
-         total_specular+=LightDir.color.rgb*spec;
-      }*/total_lum     +=LightDir.color.rgb*lum ;
-   #else
-      if(SHADOW_MAPS)I.lum*=shd;
-      total_lum+=I.lum;
-   #endif
-   }
-
-   // perform lighting
-   I.col.rgb=I.col.rgb*total_lum;// + total_specular;
+#if (LIGHT && PER_PIXEL) || REFLECT
+   Vec eye_dir=Normalize(I.pos);
 #endif
+
+   Bool translucent=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
+
+   // lighting
+   VecH ambient;
+   if(HAS_AMBIENT && !AMBIENT_IN_VTX)
+   {
+      ambient=AmbientNSColor;
+      /*if(MATERIALS<=1 && FirstPass)*/
+      {
+      #if LIGHT_MAP
+         ambient+=Material.ambient*Tex(Lum, I.tex).rgb;
+      #else
+         ambient+=Material.ambient;
+      #endif
+      }
+   }else ambient=0;
+
+   VecH total_lum,
+        total_specular=0;
+
+   #if VTX_LIGHT // per-vertex
+   {
+      Half shadow;
+   #if SHADOW
+      shadow=Sat(ShadowDirValue(I.pos, 0, false, SHADOW_MAPS, false)); // for improved performance don't use shadow jittering because it's not much needed for blended objects
+   #else
+      shadow=1;
+   #endif
+
+      VecH light;
+   #if SET_LUM
+      light=I.lum;
+   #else
+      light=1;
+   #endif
+
+      total_lum=light*shadow+ambient;
+   }
+   #else // per-pixel
+   {
+      total_lum=ambient;
+
+      // directional light
+      {
+         // shadow
+         Half shadow; if(SHADOW)shadow=Sat(ShadowDirValue(I.pos, 0, false, SHADOW_MAPS, false));
+
+         // light
+         VecH light_dir=LightDir.dir;
+         LightParams lp; lp.set(nrm, light_dir);
+         Half lum=lp.NdotL; if(SHADOW)lum*=shadow;
+         if(translucent && -lum>EPS_LUM)
+         {
+            total_lum+=LightDir.color.rgb*(lum*-TRANSLUCENT_VAL);
+         }else
+         BRANCH if(lum>EPS_LUM)
+         {
+            // light #1
+            lp.set(nrm, light_dir, eye_dir);
+            
+            // specular
+            Half specular=lp.specular(smooth, reflectivity, false)*lum;
+
+            // diffuse !! after specular because it adjusts 'lum' !!
+            lum*=lp.diffuse(smooth);
+
+            total_lum     +=LightDir.color.rgb*lum     ;
+            total_specular+=LightDir.color.rgb*specular;
+         }
+      }
+   }
+   #endif
 
    // reflection
    #if REFLECT
