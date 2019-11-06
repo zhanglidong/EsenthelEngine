@@ -20,6 +20,7 @@
    #define COMPRESS_GL_SHADER_LEVEL 5
 #endif
 
+#define SUPPORT_FORWARD_DETAIL    0 // disable to reduce shader size
 #define SUPPORT_FORWARD_TESSELATE 0 // disable to reduce shader size
 
 #pragma pack(push, 1)
@@ -55,7 +56,7 @@ struct ShaderCompiler
    {
       Str8 name;
       Int  array_elms, cpu_data_size=0, gpu_data_size;
-      Mems<ShaderParam::Translation> translation;
+      Memc<ShaderParam::Translation> translation;
       Mems<Byte> data;
 
       Bool operator==(C Param &p)C;

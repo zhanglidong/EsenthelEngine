@@ -249,7 +249,7 @@ FRST* DefaultShaders::Frst()C
       key.alpha_test=alpha_test;
       key.reflect   =reflect;
       key.light_map =(ambient>1);
-      key.detail    =detail;
+      key.detail    =(detail && SUPPORT_FORWARD_DETAIL);
       key.color     =color;
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;

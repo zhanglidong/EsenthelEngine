@@ -38,6 +38,7 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    Int  addNum    (Int num);
    Int  addNumZero(Int num);
    void reserve   (Int num);
+   void reserveAdd(Int num);
 
    Bool binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
 

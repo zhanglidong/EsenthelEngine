@@ -42,6 +42,7 @@ void _Memc::reserve(Int num)
      _Realloc(_data, maxElms()*elmSize(), elms()*elmSize());
    }
 }
+void _Memc::reserveAdd(Int num) {reserve(elms()+num);}
 void _Memc::setNum(Int num)
 {
    MAX(num, 0);

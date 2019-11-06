@@ -56,7 +56,7 @@ static Bool HasData(CPtr data, Int size)
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
    return false;
 }
-static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File &f, Int elms)
+static void SaveTranslation(C Memc<ShaderParam::Translation> &translation, File &f, Int elms)
 {
    if(elms<=1)translation.saveRaw(f);else
    {
@@ -209,8 +209,8 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
       min16float  b; // offset=16
 */
    if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
-   Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
-   FREP(elms)switch(type_desc.Class)
+   Int elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
+   switch(type_desc.Class)
    {
       case D3D_SVC_SCALAR        : // for example: Flt f,f[];
       case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
@@ -231,24 +231,28 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
                if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
                else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
                                                                   +base_size*type_desc.Rows;                      //       except last line  uses what was specified
-               if(offset/16 != (offset+gpu_size-1)/16 || (was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+               translation.reserveAdd((type_desc.Class==D3D_SVC_MATRIX_COLUMNS) ? elms*type_desc.Rows*type_desc.Columns : elms);
+               FREP(elms)
+               {
+                  if(offset/16 != (offset+gpu_size-1)/16 || (was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
 
-               if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
-               { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
-                  FREPD(y, type_desc.Rows   )
-                  FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*(y+x*4), base_size);
-               }
+                  if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
+                  { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
+                     FREPD(y, type_desc.Rows   )
+                     FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*(y+x*4), base_size);
+                  }
                   
-               cpu_data_size+=cpu_size;
-                      offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
-               was_min16=min16;
+                  cpu_data_size+=cpu_size;
+                         offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
+                  was_min16=min16;
+               }
             }break;
 
             default: Exit(S+"Unhandled Shader Parameter Type for \""+name+'"'); break;
          }
       }break;
 
-      case D3D_SVC_STRUCT:
+      case D3D_SVC_STRUCT: FREP(elms)
       {
          offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
          FREP(type_desc.Members) // iterate all struct members
@@ -264,8 +268,8 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
 void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, Bool true_half)
 {
    if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
-   Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
-   FREP(elms)switch(type_desc.Class)
+   Int elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
+   switch(type_desc.Class)
    {
       case D3D_SVC_SCALAR        : // for example: Flt f,f[];
       case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
@@ -287,29 +291,33 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
                if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
                else                                       gpu_size= up_size*          4   *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
                                                                   + up_size*type_desc.Rows                     ; //       except last line  uses what was specified
-               if(!half)
+               translation.reserveAdd((type_desc.Class==D3D_SVC_MATRIX_COLUMNS) ? elms*type_desc.Rows*type_desc.Columns : elms);
+               FREP(elms)
                {
-                                                    cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
-                  if(type_desc.Type==D3D_SVT_DOUBLE)offset       =Ceil8(offset       ); // on GPU Dbl is 8-byte aligned
-                  else                              offset       =Ceil4(offset       ); // on GPU Flt is 4-byte aligned
-               }
-               if(offset/16 != (offset+gpu_size-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+                  if(!half)
+                  {
+                                                       cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
+                     if(type_desc.Type==D3D_SVT_DOUBLE)offset       =Ceil8(offset       ); // on GPU Dbl is 8-byte aligned
+                     else                              offset       =Ceil4(offset       ); // on GPU Flt is 4-byte aligned
+                  }
+                  if(offset/16 != (offset+gpu_size-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
 
-               if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
-               { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
-                  FREPD(y, type_desc.Rows   )
-                  FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*y+x*up_size*4, base_size);
-               }
+                  if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
+                  { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
+                     FREPD(y, type_desc.Rows   )
+                     FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*y+x*up_size*4, base_size);
+                  }
                   
-               cpu_data_size+=cpu_size;
-                      offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
+                  cpu_data_size+=cpu_size;
+                         offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
+               }
             }break;
 
             default: Exit(S+"Unhandled Shader Parameter Type for \""+name+'"'); break;
          }
       }break;
 
-      case D3D_SVC_STRUCT:
+      case D3D_SVC_STRUCT: FREP(elms)
       {
          offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
          FREP(type_desc.Members) // iterate all struct members
@@ -332,19 +340,21 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
    unsigned      array_stride    =0; if(array_elms>1)spvc_compiler_type_struct_member_array_stride(compiler, parent, var_i, &array_stride);
    spvc_basetype type            =spvc_type_get_basetype(var);
    Bool          is_struct       =(type==SPVC_BASETYPE_STRUCT); Str8 names_name; if(is_struct){names_name.reserve(names.length()+1+Length(name)); names_name=names; if(names_name.is())names_name+='.'; names_name+=name;}
-   Int  elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
-   FREP(elms)
+   Int           elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
+   if(!is_struct)
    {
-      if(!is_struct)
+      if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
+      auto vec_size=spvc_type_get_vector_size(var),
+           cols    =spvc_type_get_columns    (var);
+      if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
+      if(cols    <=0 || cols    >4)Exit("Invalid Shader Param Columns");
+      Int base_size=SIZE(Flt),
+           cpu_size=base_size*cols*vec_size;
+      Bool matrix  =(cols>1);
+      translation.reserveAdd(matrix ? elms*cols*vec_size : elms);
+      FREP(elms)
       {
-         if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
-         auto vec_size=spvc_type_get_vector_size(var),
-              cols    =spvc_type_get_columns    (var);
-         if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
-         if(cols    <=0 || cols    >4)Exit("Invalid Shader Param Columns");
-         Int base_size=SIZE(Flt),
-              cpu_size=base_size*cols*vec_size;
-         if(cols>1) // matrix
+         if(matrix) // matrix
          {
             unsigned matrix_stride=0; spvc_compiler_type_struct_member_matrix_stride(compiler, parent, var_i, &matrix_stride);
             FREPD(y, cols    )
@@ -354,9 +364,13 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
             translation.New().set(cpu_data_size, offset, cpu_size);
          }
          cpu_data_size+=cpu_size;
-      }else
+         offset       +=array_stride;
+      }
+   }else
+   {
+      auto members=spvc_type_get_num_member_types(var);
+      FREP(elms)
       {
-         auto members=spvc_type_get_num_member_types(var);
          FREP(members)
          {
             auto member=spvc_type_get_member_type(var, i);
@@ -364,8 +378,8 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
             unsigned member_offset=0; spvc_compiler_type_struct_member_offset(compiler, var, i, &member_offset);
             addTranslation(compiler, var_id, var, member, member_handle, i, offset+member_offset, names_name);
          }
+         offset+=array_stride;
       }
-      offset+=array_stride;
    }
 }
 #endif
