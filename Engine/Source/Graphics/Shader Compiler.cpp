@@ -553,8 +553,8 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
    {
    #if DX_SHADER_COMPILER
       Int params=shader->params.elms()+shader->extra_params.elms();
-      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM+get_default_val+1); Int defs =0;
-      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM                  ); Int temps=0;
+      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM+get_default_val+1+(compiler->api==API_GL)); Int defs =0;
+      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM                                          ); Int temps=0;
       FREPA(shader->params)
       {
          DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->params[i];
@@ -583,6 +583,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          DxcDefine &define=defines[defs++];
          define.Name =L"DX_SHADER_COMPILER";
          define.Value=L"1";
+      }
+      if(compiler->api==API_GL) // 'smooth' is a keyword in GLSL
+      {
+         DxcDefine &define=defines[defs++];
+         define.Name =L"smooth";
+         define.Value=L"gloss";
       }
 
       MemtN<LPCWSTR, 16> arguments;
