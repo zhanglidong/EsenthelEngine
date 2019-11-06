@@ -1590,7 +1590,7 @@ struct LightParams
    #endif
    }
 
-   Half specular(Half smooth, Half reflectivity)
+   Half specular(Half smooth, Half reflectivity, Bool quality)
    {
       const Half light_radius=0.0036;
 
@@ -1606,7 +1606,7 @@ struct LightParams
 
       Half D  =D_GGX    (NdotH, roughness);
       Half F  =F_Schlick(reflectivity, 1, VdotH);
-      Half Vis=Vis_Smith(roughness, NdotL, Abs(NdotV)); // use "Abs(NdotV)" as it helps greatly with faces away from the camera (helpful for balls but critical for double sided leafs with flipped normal)
+      Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return D*F*Vis/PI;
    }
 };
@@ -1688,7 +1688,7 @@ inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality=true)
+inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
 {
    VecH2 mad;
    if(quality)mad=EnvDFGTex         (smooth, NdotV);
@@ -1718,16 +1718,16 @@ inline VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
    return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
 }
-inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir)
+inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
 {
    return lit_col*(1-reflectivity)
          +ReflectCol(unlit_col, reflectivity)*
-            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV))
+            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV, quality))
             +spec);
 }
 inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
-   return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm));
+   return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm), true);
 }
 /******************************************************************************/
 // SHADOWS

@@ -88,7 +88,7 @@ VecH4 LightDir_PS
    lp.set(nrm.xyz, LightDir.dir, eye_dir);
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
    lum*=lp.diffuse(ext.x); // #RTOutput
@@ -162,7 +162,7 @@ VecH4 LightPoint_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
    lum*=lp.diffuse(ext.x); // #RTOutput
@@ -236,7 +236,7 @@ VecH4 LightLinear_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
    lum*=lp.diffuse(ext.x); // #RTOutput
@@ -321,7 +321,7 @@ VecH4 LightCone_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y)*lum; // #RTOutput
+   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
 
    // diffuse !! after specular because it adjusts 'lum' !!
    lum*=lp.diffuse(ext.x); // #RTOutput

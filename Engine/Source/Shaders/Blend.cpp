@@ -161,7 +161,7 @@ VecH4 PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-   I.color.rgb=PBR(I.color.rgb, I.color.rgb, nrm, smooth, reflectivity, eye_dir, 0, reflect_dir);
+   I.color.rgb=PBR1(I.color.rgb, I.color.rgb, smooth, reflectivity, 0, -Dot(nrm, eye_dir), reflect_dir, false);
 #endif
 
    outAlpha=I.color.a;
