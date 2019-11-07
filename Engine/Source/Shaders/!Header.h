@@ -109,6 +109,7 @@
 /******************************************************************************/
 #define MAX_MATRIX 256 // maximum number of matrixes
 #define HALF_MIN   0.00006103515625                   // Minimum positive value of 16-bit real (Half)
+#define HALF_MAX   65504                              // Maximum possible value of 16-bit real (Half)
 #define EPS        0.0001                             // float epsilon
 #define EPS_COL    (1.0/256)                          // color epsilon
 #define EPS_LUM    (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
@@ -1507,31 +1508,37 @@ Half F_Schlick(Half f0, Half f90, Half c) // High Precision not needed
 {
    return (f90-f0)*Quint(1-c) + f0; // Quint(1-c) = ~exp2(-9.28*c)
 }
-Flt D_GGX(Flt NdotH, Flt roughness) // Trowbridge-Reitz, High Precision required
+Half Vis_SmithR2Inv(Half roughness2, Half NdotL, Half NdotV) // High Precision not needed, "roughness2=Sqr(roughness)", result is inversed 1/x
 {
-   Flt roughness2=Sqr(roughness);
-   Flt f=(NdotH*roughness2-NdotH)*NdotH+1;
-   return roughness2/(f*f);
-}
-Half Vis_Smith(Half roughness, Half NdotL, Half NdotV) // High Precision not needed
-{
-   Half roughness2=Sqr(roughness);
 #if 1
    Half view =NdotV+Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
 	Half light=NdotL+Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
-	return rcp(view*light);
+	return view*light;
 #else // gives same results but has 2 MUL and 1 ADD, instead of 2 ADD 1 MUL, don't use in case MUL is slower than ADD
    // Warning: "NdotL*" and "NdotV*" are exchanged on purpose
    Half view =NdotL*Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
    Half light=NdotV*Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
-   return 0.5/(view+light);
+   return (view+light)*2;
 #endif
 }
-Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed
+Half Vis_SmithFastInv(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed, result is inversed 1/x
 {
 	Half view =NdotL*(NdotV*(1-roughness)+roughness);
 	Half light=NdotV*(NdotL*(1-roughness)+roughness);
-	return 0.5/(view+light);
+	return (view+light)*2;
+}
+/*Half D_GGX(Half roughness, Flt NdotH) // Trowbridge-Reitz, High Precision required
+{
+   Flt roughness2=Sqr(roughness);
+   Flt f=(NdotH*roughness2-NdotH)*NdotH+1;
+   return roughness2/(f*f); // NaN
+}*/
+Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool quality) // D_GGX and Vis_Smith combined together
+{
+   Half roughness2=Sqr(roughness);
+   Flt  f=(NdotH*roughness2-NdotH)*NdotH+1;
+   Flt  div=f*f*(quality ? Vis_SmithR2Inv(roughness2, NdotL, NdotV) : Vis_SmithFastInv(roughness, NdotL, NdotV));
+   return div ? roughness2/div : HALF_MAX;
 }
 struct LightParams
 {
@@ -1545,13 +1552,13 @@ struct LightParams
    }
    void set(Vec N, Vec L, Vec nV) // nV=-V, High Precision required for all 3 vectors (this was tested)
    {
-      /*if(Q)N=HALF(N);
+    /*if(Q)N=HALF(N);
       if(W)L=HALF(L);
       if(E)nV=HALF(nV);*/
 	   NdotV=NdotV_HP=-Dot(N, nV);
 	   VdotL=VdotL_HP=-Dot(nV, L);
    #if 0
-      VecH H=Normalize(L-nV); // L+V
+      Vec H=Normalize(L-nV); // L+V
       NdotH_HP=Dot(N, H);
       VdotH   =Dot(L, H);
    #else // faster
@@ -1560,7 +1567,7 @@ struct LightParams
 	   NdotH_HP=(NdotL_HP+NdotV_HP)*VL;
 	   VdotH   =       VL*VdotL_HP +VL;
    #endif
-      /*if(Q)NdotV=HALF(NdotV);
+    /*if(Q)NdotV=HALF(NdotV);
       if(W)VdotL=HALF(VdotL);
       if(E)NdotV_HP=HALF(NdotV_HP);
       if(R)NdotH_HP=HALF(NdotH_HP);*/
@@ -1610,10 +1617,15 @@ struct LightParams
       roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
    #endif
 
-      Half D  =D_GGX    (NdotH_HP, roughness);
-      Half F  =F_Schlick(reflectivity, 1, VdotH);
+      Half F=F_Schlick(reflectivity, 1, VdotH);
+   #if 0
+      Half D=D_GGX(roughness, NdotH_HP);
       Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
-      return D*F*Vis/PI;
+      return F*D*Vis/PI;
+   #else
+      Half D_Vis=D_GGX_Vis_Smith(roughness, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
+      return F*D_Vis/PI;
+   #endif
    }
 };
 /******************************************************************************/
