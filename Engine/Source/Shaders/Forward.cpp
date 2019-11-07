@@ -23,7 +23,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
-#define VTX_REFLECT    (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 /******************************************************************************/

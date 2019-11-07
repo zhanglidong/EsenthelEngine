@@ -4,10 +4,13 @@
 /******************************************************************************
 SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
 /******************************************************************************/
+#ifndef PER_PIXEL
+#define PER_PIXEL 1
+#endif
 #define HEIGHTMAP    0
 #define TESSELATE    0
 #define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT)
-#define VTX_REFLECT  (REFLECT && BUMP_MODE<=SBUMP_FLAT)
+#define VTX_REFLECT  (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
 /******************************************************************************/
@@ -26,7 +29,7 @@ struct VS_PS
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
@@ -100,7 +103,7 @@ void VS
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
+#elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
    O.nrm=nrm;
 #endif
 
