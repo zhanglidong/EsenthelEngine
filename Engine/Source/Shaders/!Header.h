@@ -1535,9 +1535,9 @@ Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation
 }
 struct LightParams
 {
-   Flt  NdotL_HP, NdotV_HP, VdotL_HP, // High Precision needed for 'NdotH, VdotH' calculation
-        NdotH_HP                    ; // High Precision needed for 'D_GGX'
-   Half NdotL, NdotV, VdotL, VdotH; // VdotH=LdotH, because H is in the middle between L and V
+   Flt                                       NdotH_HP, // High Precision needed for 'D_GGX'
+        NdotL_HP, NdotV_HP, VdotL_HP                 ; // High Precision needed for 'NdotH, VdotH' calculation
+   Half NdotL   , NdotV   , VdotL   , VdotH          ; // VdotH=LdotH, because H is in the middle between L and V
 
    void set(Vec N, Vec L) // operate on High Precision since it's needed below anyway
    {
