@@ -196,7 +196,7 @@ void VS
       #if LIGHT_DIR
       {
          // diffuse
-         VecH light_dir=LightDir.dir;
+         Vec  light_dir=LightDir.dir;
          Half lum      =Sat(Dot(nrm, light_dir));
          total_lum+=LightDir.color.rgb*lum;
       }
@@ -209,7 +209,7 @@ void VS
          Half lum  =LightPointDist(inv_dist2);
 
          // diffuse
-         VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
+         Vec light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
          lum*=Sat(Dot(nrm, light_dir));
          total_lum+=LightPoint.color.rgb*lum;
       }
@@ -222,7 +222,7 @@ void VS
          Half lum  =LightLinearDist(dist);
 
          // diffuse
-         VecH light_dir=delta/dist; // Normalize(delta);
+         Vec light_dir=delta/dist; // Normalize(delta);
          lum*=Sat(Dot(nrm, light_dir));
          total_lum+=LightLinear.color.rgb*lum;
       }
@@ -238,7 +238,7 @@ void VS
             Half lum =LightConeAngle(dir.xy/dir.z)*LightConeDist(dist);
 
             // diffuse
-            VecH light_dir=delta/dist; // Normalize(delta);
+            Vec light_dir=delta/dist; // Normalize(delta);
             lum*=Sat(Dot(nrm, light_dir));
             total_lum+=LightCone.color.rgb*lum;
          }
@@ -277,7 +277,7 @@ VecH4 PS
 {
    VecH col;
 #if PIXEL_NORMAL
-   VecH nrm;
+   VecH nrmh;
 #endif
    Half glow, smooth, reflectivity;
 
@@ -337,15 +337,15 @@ VecH4 PS
    // normal
    #if PIXEL_NORMAL
       #if   BUMP_MODE==SBUMP_ZERO
-         nrm=0;
+         nrmh=0;
       #elif BUMP_MODE==SBUMP_FLAT
-                    nrm    =Normalize(I.Nrm());
-         if(DETAIL){nrm.xy+=det.xy; nrm=Normalize(nrm);}
+                    nrmh=I.Nrm();
+         if(DETAIL){nrmh=Normalize(nrmh); nrmh.xy+=det.xy;}
       #else
-                   nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
-         if(DETAIL)nrm.xy+=det.xy;
-                   nrm.z  =CalcZ(nrm.xy);
-                   nrm    =Normalize(Transform(nrm, I.mtrx));
+                   nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
+         if(DETAIL)nrmh.xy+=det.xy;
+                   nrmh.z  =CalcZ(nrmh.xy);
+                   nrmh    =Transform(nrmh, I.mtrx);
       #endif
    #endif
 
@@ -418,33 +418,33 @@ VecH4 PS
    // normal
    #if PIXEL_NORMAL
       #if   BUMP_MODE==SBUMP_ZERO
-         nrm=0;
+         nrmh=0;
       #elif BUMP_MODE==SBUMP_FLAT
-         nrm=Normalize(I.Nrm());
+         nrmh=I.Nrm();
          if(DETAIL)
          {
-                            nrm.xy+=det0.xy*I.material.x;
-                            nrm.xy+=det1.xy*I.material.y;
-            if(MATERIALS>=3)nrm.xy+=det2.xy*I.material.z;
-            if(MATERIALS>=4)nrm.xy+=det3.xy*I.material.w;
-            nrm=Normalize(nrm);
+            nrmh=Normalize(nrmh);
+                            nrmh.xy+=det0.xy*I.material.x;
+                            nrmh.xy+=det1.xy*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=det2.xy*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=det3.xy*I.material.w;
          }
       #else
          if(DETAIL)
          {
-                            nrm.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                                  + (Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
-            if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
-            if(MATERIALS>=4)nrm.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
+                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
+                                   + (Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
          }else
          {
-                            nrm.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                                  + Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
-            if(MATERIALS>=3)nrm.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
-            if(MATERIALS>=4)nrm.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
+                            nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
+                                   + Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
+            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
+            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
          }
-         nrm.z=CalcZ(nrm.xy);
-         nrm  =Normalize(Transform(nrm, I.mtrx));
+         nrmh.z=CalcZ(nrmh.xy);
+         nrmh  =Transform(nrmh, I.mtrx);
       #endif
    #endif
 
@@ -452,8 +452,11 @@ VecH4 PS
 
    col+=Highlight.rgb;
 
-#if PIXEL_NORMAL && FX!=FX_GRASS_2D
-   BackFlip(nrm, front);
+#if PIXEL_NORMAL
+   #if FX!=FX_GRASS_2D
+      BackFlip(nrmh, front);
+   #endif
+   Vec nrm=Normalize(Vec(nrmh)); // normalize after converting to HP, needed for HQ specular
 #endif
 
 #if (LIGHT && PER_PIXEL) || REFLECT
@@ -513,7 +516,7 @@ VecH4 PS
          Half shadow; if(LIGHT_DIR_SHD)shadow=Sat(ShadowDirValue(I.pos, jitter_value, true, LIGHT_DIR_SHD_NUM, false));
 
          // light
-         VecH light_dir=LightDir.dir;
+         Vec light_dir=LightDir.dir;
          LightParams lp; lp.set(nrm, light_dir);
          Half lum=lp.NdotL; if(SHADOW)lum*=shadow;
          if(translucent && -lum>EPS_LUM)
@@ -547,7 +550,7 @@ VecH4 PS
          Half lum  =LightPointDist(inv_dist2); if(LIGHT_POINT_SHD)lum*=shadow;
 
          // light
-         VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
+         Vec light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
          LightParams lp; lp.set(nrm, light_dir);
          lum*=lp.NdotL;
          if(translucent && -lum>EPS_LUM)
@@ -581,7 +584,7 @@ VecH4 PS
          Half lum  =LightLinearDist(dist); if(LIGHT_LINEAR_SHD)lum*=shadow;
 
          // light
-         VecH light_dir=delta/dist; // Normalize(delta);
+         Vec light_dir=delta/dist; // Normalize(delta);
          LightParams lp; lp.set(nrm, light_dir);
          lum*=lp.NdotL;
          if(translucent && -lum>EPS_LUM)
@@ -618,7 +621,7 @@ VecH4 PS
             Half lum =LightConeAngle(dir.xy/dir.z)*LightConeDist(dist); if(LIGHT_CONE_SHD)lum*=shadow; 
 
             // light
-            VecH light_dir=delta/dist; // Normalize(delta);
+            Vec light_dir=delta/dist; // Normalize(delta);
             LightParams lp; lp.set(nrm, light_dir);
             lum*=lp.NdotL;
             if(translucent && -lum>EPS_LUM)

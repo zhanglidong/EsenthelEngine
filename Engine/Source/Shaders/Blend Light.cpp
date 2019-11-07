@@ -255,20 +255,22 @@ void PS
 
    // normal
 #if PIXEL_NORMAL
-   VecH nrm;
+   VecH nrmh;
    #if   BUMP_MODE==SBUMP_ZERO
-      nrm=0;
+      nrmh=0;
    #elif BUMP_MODE==SBUMP_FLAT
-      nrm=Normalize(I.Nrm());
+      nrmh=I.Nrm();
    #else
-      nrm.xy=Tex(Nrm, I.tex).xy*Material.normal;
-      nrm.z =CalcZ(nrm.xy);
-      nrm   =Normalize(Transform(nrm, I.mtrx));
+      nrmh.xy=Tex(Nrm, I.tex).xy*Material.normal;
+      nrmh.z =CalcZ(nrmh.xy);
+      nrmh   =Transform(nrmh, I.mtrx);
    #endif
-#endif
 
-#if PIXEL_NORMAL && FX!=FX_GRASS_2D
-   BackFlip(nrm, front);
+   #if FX!=FX_GRASS_2D
+      BackFlip(nrmh, front);
+   #endif
+
+   Vec nrm=Normalize(Vec(nrmh)); // normalize after converting to HP, needed for HQ specular
 #endif
 
 #if (LIGHT && PER_PIXEL) || REFLECT
@@ -323,7 +325,7 @@ void PS
          Half shadow; if(SHADOW)shadow=Sat(ShadowDirValue(I.pos, 0, false, SHADOW_MAPS, false));
 
          // light
-         VecH light_dir=LightDir.dir;
+         Vec light_dir=LightDir.dir;
          LightParams lp; lp.set(nrm, light_dir);
          Half lum=lp.NdotL; if(SHADOW)lum*=shadow;
          if(translucent && -lum>EPS_LUM)
