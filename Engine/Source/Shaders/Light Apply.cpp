@@ -8,7 +8,7 @@
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img3, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
-inline VecH LitCol(VecH4 color, VecH nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
+inline VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
 #if GLOW
       // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
@@ -67,7 +67,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH4 color=TexPoint(Img1, inTex),
             lum  =TexPoint(Img2, inTex);
    #endif
-      VecH  nrm=GetNormal(inTex).xyz;
+      Vec   nrm=GetNormal(inTex).xyz;
       VecH2 ext=GetExt   (inTex);
       if(AO && !AO_ALL)lum.rgb+=ambient;
       color.rgb=LitCol(color, nrm, ext, lum, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
@@ -78,7 +78,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    {
       VecH4  color=TexSample  (ImgMS1, pixel.xy, 0),
              lum  =TexSample  (ImgMS2, pixel.xy, 0); // needed because Mesh Ambient is stored only in Multi Sampled Lum
-      VecH   nrm  =GetNormalMS(        pixel.xy, 0).xyz;
+      Vec    nrm  =GetNormalMS(        pixel.xy, 0).xyz;
       VecH2  ext  =GetExtMS   (        pixel.xy, 0);
       VecH4  lum1s=Img2.Load(p);
              lum +=lum1s;
@@ -95,7 +95,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       {
          VecH4 color=TexSample  (ImgMS1, pixel.xy, i),
                lum  =TexSample  (ImgMS2, pixel.xy, i);
-         VecH  nrm  =GetNormalMS(        pixel.xy, i).xyz;
+         Vec   nrm  =GetNormalMS(        pixel.xy, i).xyz;
          VecH2 ext  =GetExtMS   (        pixel.xy, i);
          if(AO && !AO_ALL)lum.rgb+=ambient;
          color.rgb =LitCol(color, nrm, ext, lum, ao, (NIGHT_SHADE && AO && !AO_ALL) ? night_shade_col : NightShadeColor, false, eye_dir); // we've already adjusted 'night_shade_col' by 'ao', so set 'apply_ao' as false

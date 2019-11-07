@@ -61,13 +61,13 @@ VecH4 LightDir_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(inTex);
 #endif
 
    // light
-   VecH light_dir=LightDir.dir;
+   Vec light_dir=LightDir.dir;
    LightParams lp; lp.set(nrm.xyz, light_dir);
    Half lum=lp.NdotL; if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)
    {
@@ -85,7 +85,7 @@ VecH4 LightDir_PS
 #endif
 
    // light #1
-   VecH eye_dir=Normalize(Vec(inPosXY, 1));
+   Vec eye_dir=Normalize(Vec(inPosXY, 1));
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
@@ -135,13 +135,13 @@ VecH4 LightPoint_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(inTex);
 #endif
 
    // light
-   VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
+   Vec light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
@@ -159,7 +159,7 @@ VecH4 LightPoint_PS
 #endif
 
    // light #1
-   VecH eye_dir=Normalize(pos);
+   Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
@@ -209,13 +209,13 @@ VecH4 LightLinear_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(inTex);
 #endif
 
    // light
-   VecH light_dir=delta/dist; // Normalize(delta);
+   Vec light_dir=delta/dist; // Normalize(delta);
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
@@ -233,7 +233,7 @@ VecH4 LightLinear_PS
 #endif
 
    // light #1
-   VecH eye_dir=Normalize(pos);
+   Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
@@ -285,13 +285,13 @@ VecH4 LightCone_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(inTex);
 #endif
 
    // light
-   VecH light_dir=delta/dist; // Normalize(delta);
+   Vec light_dir=delta/dist; // Normalize(delta);
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
@@ -318,7 +318,7 @@ VecH4 LightCone_PS
 #endif
 
    // light #1
-   VecH eye_dir=Normalize(pos);
+   Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    // specular
