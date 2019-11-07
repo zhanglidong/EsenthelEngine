@@ -464,6 +464,12 @@ SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
    #define SamplerLinearWrap  SamplerDefault
 #endif
 /******************************************************************************/
+// force convert to Half (can be used for testing Precisions)
+inline Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
+inline VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
+inline VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
+inline VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
+
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
 inline Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
@@ -1274,23 +1280,17 @@ inline void AlphaTest(Half alpha)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH4 nrm)
+inline Vec4 UnpackNormal(VecH4 nrm)
 {
 #if !SIGNED_NRM_RT
    nrm.xyz=nrm.xyz*2-1;
 #endif
-   nrm.xyz=Normalize(nrm.xyz); // normalize needed even for F16 formats because it improves quality for specular
+   Vec4 nrm_hp=nrm; // convert to HP before normalization
+   nrm_hp.xyz=Normalize(nrm_hp.xyz); // normalize needed even if source was F16 format because it improves quality for specular
+   return nrm_hp;
 }
-inline VecH4 GetNormal(Vec2 tex)
-{
-   VecH4  nrm=TexPoint(Img, tex); UnpackNormal(nrm);
-   return nrm;
-}
-inline VecH4 GetNormalMS(VecI2 pixel, UInt sample)
-{
-   VecH4  nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm);
-   return nrm;
-}
+inline Vec4 GetNormal  (Vec2  tex               ) {return UnpackNormal(TexPoint (Img  , tex          ));}
+inline Vec4 GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS, pixel, sample));}
 /******************************************************************************/
 // EXT
 /******************************************************************************/
@@ -1461,7 +1461,7 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 #include "!Set SP.h"
 struct GpuLightDir
 {
-   VecH  dir;
+   Vec   dir;
    VecH4 color; // a=spec
    VecH  vol_exponent_steam;
 };
@@ -1503,24 +1503,17 @@ inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLine
 inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
 inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
 
-Half F_Schlick(Half f0, Half f90, Half c)
+Half F_Schlick(Half f0, Half f90, Half c) // High Precision not needed
 {
    return (f90-f0)*Quint(1-c) + f0; // Quint(1-c) = ~exp2(-9.28*c)
 }
-Half D_GGX(Half NdotH, Half roughness) // Trowbridge-Reitz
+Flt D_GGX(Flt NdotH, Flt roughness) // Trowbridge-Reitz, High Precision required
 {
-#if 1
-   Half roughness2=Sqr(roughness);
-   Half f=(NdotH*roughness2-NdotH)*NdotH+1;
+   Flt roughness2=Sqr(roughness);
+   Flt f=(NdotH*roughness2-NdotH)*NdotH+1;
    return roughness2/(f*f);
-#else // this could be used with Half's FIXME
-   VecH NxH=Cross(n, h);
-   Half a=NdotH*roughness;
-   Half k=roughness/(Dot(NxH, NxH)+a*a);
-   return Sqr(k);
-#endif
 }
-Half Vis_Smith(Half roughness, Half NdotL, Half NdotV)
+Half Vis_Smith(Half roughness, Half NdotL, Half NdotV) // High Precision not needed
 {
    Half roughness2=Sqr(roughness);
 #if 1
@@ -1534,7 +1527,7 @@ Half Vis_Smith(Half roughness, Half NdotL, Half NdotV)
    return 0.5/(view+light);
 #endif
 }
-Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith'
+Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed
 {
 	Half view =NdotL*(NdotV*(1-roughness)+roughness);
 	Half light=NdotV*(NdotL*(1-roughness)+roughness);
@@ -1542,28 +1535,38 @@ Half Vis_SmithFast(Half roughness, Half NdotL, Half NdotV) // fast approximation
 }
 struct LightParams
 {
-   Half NdotL, NdotV, VdotL, NdotH, VdotH; // VdotH=LdotH, because H is in the middle between L and V
+   Flt  NdotL_HP, NdotV_HP, VdotL_HP, // High Precision needed for 'NdotH, VdotH' calculation
+        NdotH_HP                    ; // High Precision needed for 'D_GGX'
+   Half NdotL, NdotV, VdotL, VdotH; // VdotH=LdotH, because H is in the middle between L and V
 
-   void set(VecH N, VecH L)
+   void set(Vec N, Vec L) // operate on High Precision since it's needed below anyway
    {
-      NdotL=Dot(N, L); // 'Sat' not needed !! instead do "NdotL>0" checks !!
+      NdotL=NdotL_HP=Dot(N, L); // 'Sat' not needed !! instead do "NdotL>0" checks !!
    }
-   void set(VecH N, VecH L, VecH nV) // nV=-V
+   void set(Vec N, Vec L, Vec nV) // nV=-V, High Precision required for all 3 vectors (this was tested)
    {
-	   NdotV=-Dot(N, nV);
-	   VdotL=-Dot(nV, L);
+      /*if(Q)N=HALF(N);
+      if(W)L=HALF(L);
+      if(E)nV=HALF(nV);*/
+	   NdotV=NdotV_HP=-Dot(N, nV);
+	   VdotL=VdotL_HP=-Dot(nV, L);
    #if 0
       VecH H=Normalize(L-nV); // L+V
-      NdotH=Dot(N, H);
-      VdotH=Dot(L, H);
+      NdotH_HP=Dot(N, H);
+      VdotH   =Dot(L, H);
    #else // faster
     //VdotL=2*VdotH*VdotH-1
-	   Half VL=rsqrt(VdotL*2+2);
-	   NdotH=(NdotL+NdotV)*VL;
-	   VdotH=    VL*VdotL +VL;
+	   Flt VL=rsqrt(VdotL_HP*2+2);
+	   NdotH_HP=(NdotL_HP+NdotV_HP)*VL;
+	   VdotH   =       VL*VdotL_HP +VL;
    #endif
+      /*if(Q)NdotV=HALF(NdotV);
+      if(W)VdotL=HALF(VdotL);
+      if(E)NdotV_HP=HALF(NdotV_HP);
+      if(R)NdotH_HP=HALF(NdotH_HP);*/
    }
 
+   // High Precision not needed for Diffuse
    Half diffuseOrenNayar(Half smooth) // highlights edges starting from smooth = 1 -> 0
    {
       Half roughness=1-smooth;
@@ -1607,7 +1610,7 @@ struct LightParams
       roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
    #endif
 
-      Half D  =D_GGX    (NdotH, roughness);
+      Half D  =D_GGX    (NdotH_HP, roughness);
       Half F  =F_Schlick(reflectivity, 1, VdotH);
       Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return D*F*Vis/PI;
@@ -1713,7 +1716,7 @@ inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with lo
    Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
 #endif
 }
-inline Vec ReflectDir(Vec eye_dir, VecH nrm)
+inline Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
 {
    return Transform3(reflect(eye_dir, nrm), CamMatrix);
 }
@@ -1728,7 +1731,7 @@ inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, V
             (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV, quality))
             +spec);
 }
-inline VecH PBR(VecH unlit_col, VecH lit_col, VecH nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+inline VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
    return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm), true);
 }
