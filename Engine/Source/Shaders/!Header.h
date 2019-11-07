@@ -1461,7 +1461,7 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 #include "!Set SP.h"
 struct GpuLightDir
 {
-   Vec   dir;
+   Vec   dir; // high precision needed for HQ specular
    VecH4 color; // a=spec
    VecH  vol_exponent_steam;
 };
