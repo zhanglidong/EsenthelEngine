@@ -9,33 +9,42 @@ DEFINE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr, "Water Material");
 /******************************************************************************/
 // WATER PARAMETERS
 /******************************************************************************/
+Vec  WaterMtrlParams::colorS(              )C {return        LinearToSRGB(color  ) ;}
+void WaterMtrlParams::colorS(C Vec &color_s)  {return colorL(SRGBToLinear(color_s));}
+
+Vec  WaterMtrl::colorUnderwater0S(              )C {return                   LinearToSRGB(color_underwater0) ;}
+void WaterMtrl::colorUnderwater0S(C Vec &color_s)  {return colorUnderwater0L(SRGBToLinear(color_s          ));}
+
+Vec  WaterMtrl::colorUnderwater1S(              )C {return                   LinearToSRGB(color_underwater1) ;}
+void WaterMtrl::colorUnderwater1S(C Vec &color_s)  {return colorUnderwater1L(SRGBToLinear(color_s          ));}
+/******************************************************************************/
 WaterMtrl::WaterMtrl()
 {
+   colorS           (Vec(0.42f, 0.50f, 0.58f));
+   colorUnderwater0S(Vec(0.26f, 0.35f, 0.42f));
+   colorUnderwater1S(Vec(0.10f, 0.20f, 0.30f));
+
+   smooth                =1;
+   reflect               =0.02f;
+   normal                =1;
+   wave_scale            =0.25f;
+
+   scale_color           =1.0f/200;
+   scale_normal          =1.0f/10;
+   scale_bump            =1.0f/100;
+
    density               =0.3f;
    density_add           =0.45f;
    density_underwater    =0.02f;
    density_underwater_add=0.6f;
-   scale_color           =200;
-   scale_normal          =10;
-   scale_bump            =100;
-   rough                 =1;
-   reflect_tex           =0.1f;
-   reflect_world         =0.18f;
+
    refract               =0.10f;
    refract_reflection    =0.06f;
    refract_underwater    =0.01f;
-   specular              =1.5f;
-   wave_scale            =0.25f;
-   fresnel_pow           =5.5f;
-   fresnel_rough         =4;
-   fresnel_color    .set(0.10f, 0.10f, 0.10f);
-   color            .set(0.42f, 0.50f, 0.58f);
-   color_underwater0.set(0.26f, 0.35f, 0.42f);
-   color_underwater1.set(0.10f, 0.20f, 0.30f);
 }
-WaterMtrl& WaterMtrl::    normalMap(C ImagePtr &image) {T.    _normal_map=image; return T;}
-WaterMtrl& WaterMtrl::reflectionMap(C ImagePtr &image) {T._reflection_map=image; return T;}
-WaterMtrl& WaterMtrl::     colorMap(C ImagePtr &image) {T.     _color_map=image; return T;}
+/******************************************************************************/
+WaterMtrl& WaterMtrl:: colorMap(C ImagePtr &image) {T. _color_map=image; return T;}
+WaterMtrl& WaterMtrl::normalMap(C ImagePtr &image) {T._normal_map=image; return T;}
 WaterMtrl& WaterMtrl::reset()
 {
    T=WaterMtrl();
@@ -51,59 +60,64 @@ void WaterMtrl::set()
    if(WaterMtrlLast!=this)
    {
       WaterMtrlLast=this;
-
-      // TODO: optimize (struct Water)
-      SPSet("WaterScaleDif"    , scale_color  );
-      SPSet("WaterScaleNrm"    , scale_normal );
-      SPSet("WaterScaleBump"   , scale_bump   );
-      SPSet("WaterRfr"         , refract      );
-      SPSet("WaterRgh_4"       , rough*0.25f  );
-      SPSet("WaterRflFake"     , reflect_tex  );
-      SPSet("WaterSpc"         , specular     );
-      SPSet("WaterWave"        , wave_scale   );
-      SPSet("WaterFresnelPow"  , fresnel_pow  );
-      SPSet("WaterFresnelRough", fresnel_rough);
-      SPSet("WaterFresnelColor", SRGBToDisplay(fresnel_color));
-      SPSet("WaterCol"         , SRGBToDisplay(color        ));
-      SPSet("WaterDns"         , Vec2(Mid(density, 0.0f, 1-EPS_GPU), density_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
-      if(Renderer._mirror_rt)
-      {
-         SPSet("WaterRfl"   , reflect_world     );
-         SPSet("WaterRfrRfl", refract_reflection);
-      }else
-      {
-         SPSet("WaterRfl"   , 0);
-         SPSet("WaterRfrRfl", 0);
-      }
+      WS.WaterMaterial->set<WaterMtrlParams>(T);
       Sh.Col[0]->set( _color_map());
       Sh.Nrm[0]->set(_normal_map());
-    //Sh.Ext[0]->set( _extra_map()); // FIXME
+    //Sh.Ext[0]->set( _extra_map());
    }
 }
 /******************************************************************************/
 Bool WaterMtrl::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(0); // version
-   f<<density<<density_add<<density_underwater<<density_underwater_add<<scale_color<<scale_normal<<scale_bump<<rough<<reflect_tex<<reflect_world<<refract<<refract_reflection<<refract_underwater<<specular<<wave_scale<<fresnel_pow<<fresnel_rough;
-   f<<fresnel_color<<color<<color_underwater0<<color_underwater1;
+   f.cmpUIntV(1); // version
 
-   f._putStr(     _color_map.name(path));
-   f._putStr(    _normal_map.name(path));
-   f._putStr(_reflection_map.name(path));
+   f<<SCAST(C WaterMtrlParams, T)
+    <<color_underwater0
+    <<color_underwater1
+    <<density_underwater
+    <<density_underwater_add
+    <<refract_underwater;
+
+   // textures
+   f.putStr( _color_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(_normal_map.name(path));
 
    return f.ok();
 }
 Bool WaterMtrl::load(File &f, CChar *path)
 {
+   Char temp[MAX_LONG_PATH];
    switch(f.decUIntV()) // version
    {
+      case 1:
+      {
+         f>>SCAST(WaterMtrlParams, T)
+          >>color_underwater0
+          >>color_underwater1
+          >>density_underwater
+          >>density_underwater_add
+          >>refract_underwater;
+         f.getStr(temp);  _color_map.require(temp, path);
+         f.getStr(temp); _normal_map.require(temp, path);
+         if(f.ok())return true;
+      }break;
+
       case 0:
       {
-         f>>density>>density_add>>density_underwater>>density_underwater_add>>scale_color>>scale_normal>>scale_bump>>rough>>reflect_tex>>reflect_world>>refract>>refract_reflection>>refract_underwater>>specular>>wave_scale>>fresnel_pow>>fresnel_rough;
-         f>>fresnel_color>>color>>color_underwater0>>color_underwater1;
-              colorMap(ImagePtr().require(f._getStr(), path));
-             normalMap(ImagePtr().require(f._getStr(), path));
-         reflectionMap(ImagePtr().require(f._getStr(), path));
+         Flt temp_flt;
+         Vec temp_vec;
+         reset();
+         f>>density>>density_add>>density_underwater>>density_underwater_add>>scale_color>>scale_normal>>scale_bump>>normal>>temp_flt>>temp_flt>>refract>>refract_reflection>>refract_underwater>>temp_flt>>wave_scale>>temp_flt>>temp_flt;
+         f>>temp_vec>>color>>color_underwater0>>color_underwater1;
+         colorS           (color);
+         colorUnderwater0S(color_underwater0);
+         colorUnderwater1S(color_underwater1);
+         scale_color =1/scale_color ;
+         scale_normal=1/scale_normal;
+         scale_bump  =1/scale_bump  ;
+          _color_map.require(f._getStr(), path);
+         _normal_map.require(f._getStr(), path);
+                             f._getStr();
          if(f.ok())return true;
       }break;
    }
@@ -248,14 +262,14 @@ void WaterClass::prepare() // this is called at the start
            _y_mul_add.y=0;
          #endif
 
-            if(reflection_allow && reflect_world>EPS_COL)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
+            if(reflection_allow && reflect>EPS_COL)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
             WS.load();
          }
       }
    }
 
    // test for lake reflections
-   if(reflection_allow && reflect_world>EPS_COL && !Renderer._mirror_want)
+   if(reflection_allow && reflect>EPS_COL && !Renderer._mirror_want)
       if(!(_under_mtrl && _under_step>=1))
    {
      _mode=MODE_REFLECTION; Renderer.mode(RM_WATER); Renderer._render();
@@ -276,10 +290,10 @@ void WaterClass::setEyeViewportCam()
          if(Renderer._eye)offs.x-=1;
          offs.x-=ProjMatrixEyeOffset[Renderer._eye]*0.5f;
       }
-      SPSet("WaterRflMulAdd", Vec4(scale, offs));
+      WS.WaterReflectMulAdd->set(Vec4(scale, offs));
    }else
    {
-      SPSet("WaterRflMulAdd", Vec4(1, 1, 0, 0));
+      WS.WaterReflectMulAdd->set(Vec4(1, 1, 0, 0));
    }
 }
 /******************************************************************************/
@@ -341,17 +355,17 @@ void WaterClass::begin()
       D.cull      (true);
       D.sampler3D (    );
       D.stencil   (STENCIL_WATER_SET, STENCIL_REF_WATER);
-      SPSet("WaterFlow", Time.time()*3);
-      SPSet("WaterOfs" , _offset      );
+      WS.WaterFlow->set(Time.time()*3);
+      WS.WaterOfs ->set(_offset      );
       Rect uv=D.screenToUV(D.viewRect()); // UV
       if(Renderer._mirror_rt)
       {
          uv=Round(uv*Renderer._mirror_rt->size()); // convert to RectI of RT size
          uv.extend(-0.5f)/=Renderer._mirror_rt->size(); // decrease half pixel to avoid tex filtering issues and convert back to UV
-         SPSet("WaterPlnPos", Renderer._mirror_plane.pos   *CamMatrixInv      );
-         SPSet("WaterPlnNrm", Renderer._mirror_plane.normal*CamMatrixInv.orn());
+         WS.WaterPlanePos->set(Renderer._mirror_plane.pos   *CamMatrixInv      );
+         WS.WaterPlaneNrm->set(Renderer._mirror_plane.normal*CamMatrixInv.orn());
       }
-      SPSet("WaterClamp", uv);
+      WS.WaterClamp->set(uv);
       setEyeViewportCam();
    }
 }
@@ -385,10 +399,10 @@ void WaterClass::end()
 /******************************************************************************/
 void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 {
-   Flt step=(Dist(CamMatrix.pos, plane)-D.viewFromActual())/-WATER_SMOOTH+1;
+   Flt step=(Dist(CamMatrix.pos, plane)-D.viewFromActual())/-WATER_TRANSITION+1;
    if( step>EPS_COL)
    {
-      if(!_under_mtrl || step>_under_step){_under_mtrl=&mtrl; _under_step=step; _under_plane=plane; _under_plane.pos+=_under_plane.normal*(D.viewFromActual()+WATER_SMOOTH);}
+      if(!_under_mtrl || step>_under_step){_under_mtrl=&mtrl; _under_step=step; _under_plane=plane; _under_plane.pos+=_under_plane.normal*(D.viewFromActual()+WATER_TRANSITION);}
    }
 }
 /******************************************************************************/
@@ -412,9 +426,8 @@ Bool WaterClass::ocean()
 }
 Shader* WaterClass::shader()
 {
-   Bool fake_reflect=(_reflection_map!=null);
-   return _use_secondary_rt ? (ocean() ? WS.Ocean  : WS.Lake )[fake_reflect]
-                            : (ocean() ? WS.OceanL : WS.LakeL)[fake_reflect][_shader_shadow][_shader_soft];
+   return _use_secondary_rt ? (ocean() ? WS.Ocean  : WS.Lake )
+                            : (ocean() ? WS.OceanL : WS.LakeL)[_shader_shadow][_shader_soft][D.envMap()!=null][Renderer._mirror_rt!=null];
 }
 /******************************************************************************/
 void WaterClass::drawSurfaces()
@@ -435,9 +448,9 @@ void WaterClass::drawSurfaces()
 
          if(ocean())
          {
-            SPSet("WaterPlnPos" , plane.pos   *CamMatrixInv      );
-            SPSet("WaterPlnNrm" , plane.normal*CamMatrixInv.orn());
-            SPSet("WaterYMulAdd", _y_mul_add                     );
+            WS.WaterPlanePos->set(plane.pos   *CamMatrixInv      );
+            WS.WaterPlaneNrm->set(plane.normal*CamMatrixInv.orn());
+            WS.WaterYMulAdd ->set(_y_mul_add                     );
             shader->begin(); _mshr.set().draw();
          }else
          {
@@ -556,9 +569,8 @@ Shader* WaterMesh::shader()C
 {
    if(WaterMtrl *mtrl=getMaterial())
    {
-      Bool fake_reflect=(mtrl->_reflection_map!=null);
-      return Water._use_secondary_rt ? (_lake ? WS.Lake  : WS.River )[fake_reflect]
-                                     : (_lake ? WS.LakeL : WS.RiverL)[fake_reflect][Water._shader_shadow][Water._shader_soft];
+      return Water._use_secondary_rt ? (_lake ? WS.Lake  : WS.River )
+                                     : (_lake ? WS.LakeL : WS.RiverL)[Water._shader_shadow][Water._shader_soft][D.envMap()!=null][Renderer._mirror_rt!=null];
    }
    return null;
 }
@@ -590,7 +602,7 @@ void WaterMesh::draw()C
       {
          if(_mshb.vtxs())
          {
-            Flt  depth, eps=D.viewFromActual()+WATER_SMOOTH;
+            Flt  depth, eps=D.viewFromActual()+WATER_TRANSITION;
             VecD test=CamMatrix.pos; test.y-=eps;
             if(under(test, &depth))
             {
@@ -771,6 +783,129 @@ void WaterDrops::draw(AnimatedSkeleton &anim_skel)
 {
    anim_skel.setMatrix();
    draw();
+}
+/******************************************************************************/
+UInt WaterCreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+{
+   // #WaterMaterialTextureLayout
+   UInt  ret=0;
+   Image dest_0, dest_1;
+   {
+      Image     col_temp; C Image *    col_src=&    col; if(    col_src->compressed())if(    col_src->copyTry(    col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))    col_src=&    col_temp;else goto error;
+    //Image   alpha_temp; C Image *  alpha_src=&  alpha; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
+      Image    bump_temp; C Image *   bump_src=&   bump; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
+      Image  normal_temp; C Image * normal_src=& normal; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
+    //Image  smooth_temp; C Image * smooth_src=& smooth; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
+    //Image reflect_temp; C Image *reflect_src=&reflect; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
+    //Image    glow_temp; C Image *   glow_src=&   glow; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+
+      /*// set alpha
+      if(!alpha_src->is() && ImageTI[col_src->type()].a) // if there's no alpha map but there is alpha in color map
+      {
+         Byte min_alpha=255;
+         alpha_src=&alpha_temp.create(col_src->w(), col_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
+         if(col_src->lockRead())
+         {
+            REPD(y, col_src->h())
+            REPD(x, col_src->w())
+            {
+               Byte a=col_src->color(x, y).a;
+                    alpha_temp.pixel(x, y, a);
+               MIN(min_alpha, a);
+            }
+            col_src->unlock();
+         }
+         if(min_alpha>=254)alpha_temp.del(); // alpha channel in color map is fully white
+      }else
+      if(alpha_src->is() && ImageTI[alpha_src->type()].channels>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
+         if(alpha_src->lockRead())
+      {
+         Byte min_alpha=255, min_lum=255;
+         REPD(y, alpha_src->h())
+         REPD(x, alpha_src->w())
+         {
+            Color c=alpha_src->color(x, y);
+            MIN(min_alpha, c.a    );
+            MIN(min_lum  , c.lum());
+         }
+         alpha_src->unlock();
+         if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
+      }*/
+
+      // set what textures do we have (set this before 'normal' is generated from 'bump')
+      if(    col_src->is())ret|=BT_COLOR  ;
+    //if(  alpha_src->is())ret|=BT_ALPHA  ;
+      if(   bump_src->is())ret|=BT_BUMP   ;
+      if( normal_src->is())ret|=BT_NORMAL ;
+    //if( smooth_src->is())ret|=BT_SMOOTH ;
+    //if(reflect_src->is())ret|=BT_REFLECT;
+    //if(   glow_src->is())ret|=BT_GLOW   ;
+
+      // base_1 NRM !! do this first before base_0 RGB_Bump which resizes bump !!
+    C Image *bump_to_normal=null;
+      if(  bump_src->is() && !normal_src->is()           )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
+      if(normal_src->is() &&  normal_src->monochromatic())bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
+      if(bump_to_normal) // create normal from bump
+      {
+         // it's best to resize bump instead of normal
+         Int w=bump_to_normal->w(),
+             h=bump_to_normal->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
+         flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
+      }
+      if(normal_src->is())
+      {
+         Int w=normal_src->w(),
+             h=normal_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if(normal_src->w()!=w || normal_src->h()!=h)if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+         if(normal_src->lockRead())
+         {
+            dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
+            Vec4 c; c.zw=0;
+            REPD(y, dest_1.h())
+            REPD(x, dest_1.w())
+            {
+               c.xy=normal_src->colorF(x, y).xy*2-1;
+               if(flip_normal_y)CHS(c.y);
+               dest_1.colorF(x, y, c);
+            }
+            normal_src->unlock();
+         }
+      }
+
+      // base_0, put bump in W channel
+      {
+         Int w=Max(col_src->w(), bump_src->w()),
+             h=Max(col_src->h(), bump_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if( col_src->is() && ( col_src->w()!=w ||  col_src->h()!=h))if( col_src->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT)) col_src=& col_temp;else goto error;
+         if(bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP                ))bump_src=&bump_temp;else goto error;
+         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
+         if(!col_src->is() || col_src->lockRead())
+         {
+            if(!bump_src->is() || bump_src->lockRead())
+            {
+               REPD(y, dest_0.h())
+               REPD(x, dest_0.w())
+               {
+                  Color c=(col_src->is() ? col_src->color(x, y) : WHITE);
+                  if(bump_src->is())
+                  {
+                     Color bump=bump_src->color(x, y); c.a=bump.lum();
+                  }else                                c.a=255; // use 255 so BC1 can be selected or BC7 with best quality
+                  dest_0.color(x, y, c);
+               }
+               bump_src->unlock();
+            }
+            col_src->unlock();
+         }
+      }
+   }
+
+error:
+   Swap(dest_0, base_0);
+   Swap(dest_1, base_1);
+   return ret;
 }
 /******************************************************************************/
 }
