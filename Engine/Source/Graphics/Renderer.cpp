@@ -1426,10 +1426,11 @@ Bool RendererClass::waterPostLight()
       Sh.Img[0]->set(_water_nrm); // 'Img0' required by shader 'GetNormal', 'GetNormalMS' functions
       Sh.Img[3]->set(_water_col);
       Sh.Col[0]->set(_water_lum); MaterialClear(); // have to re-use Material texture shader image, because there are no other left, so have to call 'MaterialClear', no need for 'WaterMtrlLast' because we will don't draw any water after this, and later 'WaterMtrlLast' is automatically cleared at start of new water rendering
+      Shader *shader=WS.Apply[refract][depth_test][D.envMap()!=null][Renderer._mirror_rt!=null]; // we need to output depth only if we need it for depth testing
       REPS(_eye, _eye_num)
       {
          Water.setEyeViewportCam();
-         WS.Apply[refract][depth_test]->draw(); // we need to output depth only if we need it for depth testing
+         shader->draw();
       }
       if(depth_test)
       {
@@ -1796,24 +1797,25 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
       WS.load();
     C WaterMtrl &under=*Water._under_mtrl;
 
-      Flt    under_step =Sat(Water._under_step),
-             refract_val=under_step*under.refract_underwater;
-      Bool   refract=(refract_val>EPS_MATERIAL_BUMP);
-      if(   !refract)downSample        (); // we're modifying existing RT, so downSample if needed
-      else           resolveMultiSample(); // we're writing to new RT so resolve the old first
+      Flt   under_step =Sat(Water._under_step),
+            refract_val=under_step*under.refract_underwater;
+      Bool  refract=(refract_val>EPS_MATERIAL_BUMP);
+      if(  !refract)downSample        (); // we're modifying existing RT, so downSample if needed
+      else          resolveMultiSample(); // we're writing to new RT so resolve the old first
       ImageRTPtr src=_col;
-      if(    refract)_col.get(ImageRTDesc(Min(_col->w(), _final->w()), Min(_col->h(), _final->h()), GetImageRTType(_has_glow, D.litColRTPrecision())));
+      if(   refract)_col.get(ImageRTDesc(Min(_col->w(), _final->w()), Min(_col->h(), _final->h()), GetImageRTType(_has_glow, D.litColRTPrecision()))); // #RTOutput
 
       set(_col, null, true);
       D .alpha(refract ? ALPHA_NONE : ALPHA_BLEND_DEC);
       Sh.Step->set(Time.time());
-      SPSet("WaterPlnPos"   , Water._under_plane.pos   *CamMatrixInv      );
-      SPSet("WaterPlnNrm"   , Water._under_plane.normal*CamMatrixInv.orn());
-      SPSet("WaterUnder"    ,        under_step);
-      SPSet("WaterUnderRfr" ,       refract_val);
-      SPSet("WaterDns"      , Vec2(Mid(under.density_underwater , 0.0f, 1-EPS_GPU), under.density_underwater_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
-      SPSet("WaterUnderCol0", SRGBToDisplay(under.color_underwater0));
-      SPSet("WaterUnderCol1", SRGBToDisplay(under.color_underwater1));
+      WS.WaterPlanePos               ->set(Water._under_plane.pos   *CamMatrixInv      );
+      WS.WaterPlaneNrm               ->set(Water._under_plane.normal*CamMatrixInv.orn());
+      WS.WaterUnderStep              ->set(under_step);
+      WS.Water_refract_underwater    ->set(refract_val);
+      WS.Water_density_underwater    ->set(Mid(under.density_underwater , 0.0f, 1-EPS_GPU)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      WS.Water_density_underwater_add->set(under.density_underwater_add);
+      WS.Water_color_underwater0     ->set(under.color_underwater0);
+      WS.Water_color_underwater1     ->set(under.color_underwater1);
       REPS(_eye, _eye_num)WS.Under[refract]->draw(src, setEyeParams());
    }
 }

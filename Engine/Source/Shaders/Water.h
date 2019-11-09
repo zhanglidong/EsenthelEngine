@@ -1,34 +1,40 @@
 /******************************************************************************/
 #include "!Set SP.h"
-BUFFER(WaterSurface)
-   Half WaterRgh_4,
-        WaterFresnelRough,
-        WaterFresnelPow,
-        WaterRflFake,
-        WaterSpc;
-   Flt  WaterScaleDif,
-        WaterScaleNrm,
-        WaterScaleBump;
-   VecH WaterCol,
-        WaterFresnelColor;
+struct WaterMaterialClass
+{
+   VecH color                 ;
+   Half smooth                ,
+        reflect               ,
+        normal                ;
+   Flt  wave_scale            ,
+        scale_color           ,
+        scale_normal          ,
+        scale_bump            ,
+
+        density               ,
+        density_add           ,
+
+        refract               ,
+        refract_reflection    ;
+};
+BUFFER(WaterMaterial)
+   WaterMaterialClass WaterMaterial;
 BUFFER_END
 
 BUFFER(Water)
-   Half WaterRfl;
-   Half WaterWave;
-   Flt  WaterRfr,
-        WaterRfrRfl,
-        WaterUnder,
-        WaterUnderRfr,
-        WaterFlow;
+   VecH Water_color_underwater0     ,
+        Water_color_underwater1     ;
+   Flt  Water_density_underwater    ,
+        Water_density_underwater_add,
+        Water_refract_underwater    ;
+
+   Half WaterUnderStep;
    Vec2 WaterOfs;
-   Vec2 WaterDns;
    Vec2 WaterYMulAdd;
-   Vec  WaterUnderCol0,
-        WaterUnderCol1;
-   Vec  WaterPlnPos,
-        WaterPlnNrm;
-   Vec4 WaterRflMulAdd,
+   Vec  WaterPlanePos,
+        WaterPlaneNrm;
+   Flt  WaterFlow;
+   Vec4 WaterReflectMulAdd,
         WaterClamp;
 BUFFER_END
 #include "!Set LP.h"
