@@ -444,21 +444,37 @@ struct DepthOfField
    void load();
    Shader* getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res);
    Shader* get  (Bool dither, Bool realistic, Bool alpha);
- C Pixel&  pixel(Bool alpha, Int pixel);
+ C Pixel&  pixel(Bool alpha , Int pixel);
 }extern
    Dof;
 
 struct WaterShader
 {
    ShaderFile *shader;
-   Shader     *Ocean [2]      , // [FakeReflect]
-              *Lake  [2]      , // [FakeReflect]
-              *River [2]      , // [FakeReflect]
-              *OceanL[2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *LakeL [2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *RiverL[2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *Apply [2][2]   , // [Refract] [Depth]
-              *Under [2]      ; // [Refract]
+   Shader     *Ocean             , //
+              *Lake              , //
+              *River             , //
+              *OceanL[7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
+              *LakeL [7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
+              *RiverL[7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
+              *Apply [2][2][2][2], // [Refract] [Depth] [ReflectEnv] [ReflectMirror]
+              *Under [2]         ; // [Refract]
+
+   ShaderParam
+      *WaterMaterial,
+      *Water_color_underwater0     ,
+      *Water_color_underwater1     ,
+      *Water_density_underwater    ,
+      *Water_density_underwater_add,
+      *Water_refract_underwater    ,
+      *WaterUnderStep,
+      *WaterOfs,
+      *WaterYMulAdd,
+      *WaterPlanePos,
+      *WaterPlaneNrm,
+      *WaterFlow,
+      *WaterReflectMulAdd,
+      *WaterClamp;
 
    void load();
 }extern

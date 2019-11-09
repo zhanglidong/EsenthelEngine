@@ -61,8 +61,6 @@ enum MTRL_TEX_LAYOUT : Byte
 #define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 #define BUMP_DEFAULT_PAR 0.03f
 
-#define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
-
 // #MaterialTextureLayout
 // base_0
 #define    GLOW_CHANNEL 3
@@ -92,7 +90,7 @@ const Material        *MaterialLast,
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
-Vec4 MaterialParams::colorS(               )C {return LinearToSRGB(color_l);}
+Vec4 MaterialParams::colorS(               )C {return        LinearToSRGB(color_l) ;}
 void MaterialParams::colorS(C Vec4 &color_s)  {return colorL(SRGBToLinear(color_s));}
 /******************************************************************************/
 Material::Material()

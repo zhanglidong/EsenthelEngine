@@ -1,36 +1,41 @@
 /******************************************************************************/
-#if EE_PRIVATE
-#define WATER_SMOOTH 0.1f
-#endif
-/******************************************************************************/
-struct WaterMtrl // Water Material
+struct WaterMtrlParams // Water Material Parameters
 {
-   Flt density               , //                 density                       ,       0..1      , default=0.3
-       density_add           , // factor added to density                       ,       0..1      , default=0.45
-       density_underwater    , //                 density when viewed underwater,       0..1      , default=0.02
-       density_underwater_add, // factor added to density when viewed underwater,       0..1      , default=0.6
-       scale_color           , // scale color  texture                          ,       0..Inf    , default=200
-       scale_normal          , // scale normal texture                          ,       0..Inf    , default=10
-       scale_bump            , // scale bump   texture                          ,       0..Inf    , default=100
-       rough                 , // roughness                                     ,       0..Inf    , default=1
-       reflect_tex           , // reflection power of texture                   ,       0..1      , default=0.1
-       reflect_world         , // reflection power of world                     ,       0..1      , default=0.18 (0 is the fastest)
-       refract               , // refraction power                              ,       0..1      , default=0.10 (0 is the fastest)
-       refract_reflection    , // refraction of the reflection                  ,       0..1      , default=0.06
-       refract_underwater    , // refraction when viewed underwater             ,       0..1      , default=0.01 (0 is the fastest)
-       specular              , // specular amount                               ,       0..Inf    , default=1.5
-       wave_scale            , // vertical wave scale                           ,       0..1      , default=0.25 (0 is the fastest)
-       fresnel_pow           , // fresnel term power                            ,       0..Inf    , default=5.5
-       fresnel_rough         ; // fresnel term roughness                        ,       0..Inf    , default=4
-   Vec fresnel_color         , // fresnel term color                            , (0,0,0)..(1,1,1), default=(0.10, 0.10, 0.10)
-       color                 , // color                                         , (0,0,0)..(1,1,1), default=(0.42, 0.50, 0.58)
-       color_underwater0     , // color when viewed underwater on surface       , (0,0,0)..(1,1,1), default=(0.26, 0.35, 0.42)
-       color_underwater1     ; // color when viewed underwater deep             , (0,0,0)..(1,1,1), default=(0.10, 0.20, 0.30)
+   Vec color             ; // color Linear Gamma          , (0,0,0)..(1,1,1)
+   Flt smooth            , // smoothness                  ,       0..1      , default=1
+       reflect           , // reflectivity                ,       0..1      , default=0.02
+       normal            , // normal map sharpness        ,       0..1      , default=1
+       wave_scale        , // vertical wave scale         ,       0..1      , default=0.25 (0 is the fastest)
+       scale_color       , // scale color  texture        ,       0..Inf    , default=1/200
+       scale_normal      , // scale normal texture        ,       0..Inf    , default=1/10
+       scale_bump        , // scale bump   texture        ,       0..Inf    , default=1/100
+
+       density           , //                 density     ,       0..1      , default=0.3
+       density_add       , // factor added to density     ,       0..1      , default=0.45
+
+       refract           , // refraction power            ,       0..1      , default=0.10 (0 is the fastest)
+       refract_reflection; // refraction of the reflection,       0..1      , default=0.06
+
+ C Vec& colorL()C {return color;}   void colorL(C Vec &color_l) {T.color=color_l;} // get/set Linear Gamma color
+   Vec  colorS()C;                  void colorS(C Vec &color_s);                   // get/set sRGB   Gamma color, default=(0.42, 0.50, 0.58)
+};
+struct WaterMtrl : WaterMtrlParams // Water Material
+{
+   Vec color_underwater0     , // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
+       color_underwater1     ; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
+   Flt density_underwater    , //                 density when viewed underwater      ,       0..1      , default=0.02
+       density_underwater_add, // factor added to density when viewed underwater      ,       0..1      , default=0.6
+       refract_underwater    ; // refraction when viewed underwater                   ,       0..1      , default=0.01 (0 is the fastest)
+
+ C Vec& colorUnderwater0L()C {return color_underwater0;}   void colorUnderwater0L(C Vec &color_l) {T.color_underwater0=color_l;} // get/set Linear Gamma color
+   Vec  colorUnderwater0S()C;                              void colorUnderwater0S(C Vec &color_s);                               // get/set sRGB   Gamma color, default=(0.26, 0.35, 0.42)
+
+ C Vec& colorUnderwater1L()C {return color_underwater1;}   void colorUnderwater1L(C Vec &color_l) {T.color_underwater1=color_l;} // get/set Linear Gamma color
+   Vec  colorUnderwater1S()C;                              void colorUnderwater1S(C Vec &color_s);                               // get/set sRGB   Gamma color, default=(0.10, 0.20, 0.30)
 
    // set / get
-   WaterMtrl&      colorMap(C ImagePtr &image);   C ImagePtr&      colorMap()C {return _color_map     ;} // set/get color      map
-   WaterMtrl&     normalMap(C ImagePtr &image);   C ImagePtr&     normalMap()C {return _normal_map    ;} // set/get normal     map
-   WaterMtrl& reflectionMap(C ImagePtr &image);   C ImagePtr& reflectionMap()C {return _reflection_map;} // set/get reflection map
+   WaterMtrl&  colorMap(C ImagePtr &image);   C ImagePtr&  colorMap()C {return  _color_map;} // set/get color  map
+   WaterMtrl& normalMap(C ImagePtr &image);   C ImagePtr& normalMap()C {return _normal_map;} // set/get normal map
 
    // operations
    WaterMtrl& reset   (); // reset to default values
@@ -51,13 +56,15 @@ struct WaterMtrl // Water Material
 #if !EE_PRIVATE
 private:
 #endif
-   ImagePtr _color_map, _normal_map, _reflection_map;
+   ImagePtr _color_map, _normal_map;
 };
 /******************************************************************************/
 DECLARE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr); // Water Material Cache
 #if EE_PRIVATE
 extern WaterMtrl   *WaterMtrlLast; // Last set Water Material
 extern WaterMtrlPtr WaterMtrlNull;
+
+#define WATER_TRANSITION 0.1f // transition between above and under surface
 #endif
 /******************************************************************************/
 struct WaterClass : WaterMtrl // Main water control
@@ -152,4 +159,6 @@ private:
    MeshRender   _mshr    ;
    WaterMtrlPtr _material;
 };
+/******************************************************************************/
+UInt WaterCreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, FILTER_TYPE filter=FILTER_BEST); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, returns bit combination of BASE_TEX enums of what the base textures have
 /******************************************************************************/

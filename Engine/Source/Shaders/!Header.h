@@ -400,13 +400,10 @@ struct MaterialClass // this is used when a MeshPart has only one material
    Flt   det_scale,
          tex_scale;
 };
-#include "!Set LP.h"
-
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
 BUFFER_END
 /******************************************************************************/
-#include "!Set SP.h"
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
@@ -414,12 +411,12 @@ struct MultiMaterialClass // this is used when a MeshPart has multiple materials
    Half  glow, normal, bump, det_mul, det_add, macro;
    Flt   tex_scale, det_scale;
 };
-#include "!Set LP.h"
-
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
 BUFFER(MultiMaterial2) MultiMaterialClass MultiMaterial2; BUFFER_END
 BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
+/******************************************************************************/
+#include "!Set LP.h"
 /******************************************************************************/
 // IMAGES
 /******************************************************************************/
