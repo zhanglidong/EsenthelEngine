@@ -427,14 +427,16 @@ Bool WaterClass::ocean()
 Shader* WaterClass::shader()
 {
    return _use_secondary_rt ? (ocean() ? WS.Ocean  : WS.Lake )
-                            : (ocean() ? WS.OceanL : WS.LakeL)[_shader_shadow][_shader_soft][D.envMap()!=null][Renderer._mirror_rt!=null];
+                            : (ocean() ? WS.OceanL : WS.LakeL)[_shader_shadow][_shader_soft][_shader_reflect_env][_shader_reflect_mirror];
 }
 /******************************************************************************/
 void WaterClass::drawSurfaces()
 {
    // these are used only when '_use_secondary_rt' is disabled
-  _shader_shadow=((Lights.elms() && Lights[0].type==LIGHT_DIR && Lights[0].shadow) ? D.shadowMapNumActual() : 0);
-  _shader_soft  =Renderer.canReadDepth();
+  _shader_shadow        =((Lights.elms() && Lights[0].type==LIGHT_DIR && Lights[0].shadow) ? D.shadowMapNumActual() : 0);
+  _shader_soft          =Renderer.canReadDepth();
+  _shader_reflect_env   =(         D.envMap()!=null);
+  _shader_reflect_mirror=(Renderer._mirror_rt!=null);
 
    REPS(Renderer._eye, Renderer._eye_num)
    {
@@ -570,7 +572,7 @@ Shader* WaterMesh::shader()C
    if(WaterMtrl *mtrl=getMaterial())
    {
       return Water._use_secondary_rt ? (_lake ? WS.Lake  : WS.River )
-                                     : (_lake ? WS.LakeL : WS.RiverL)[Water._shader_shadow][Water._shader_soft][D.envMap()!=null][Renderer._mirror_rt!=null];
+                                     : (_lake ? WS.LakeL : WS.RiverL)[Water._shader_shadow][Water._shader_soft][Water._shader_reflect_env][Water._shader_reflect_mirror];
    }
    return null;
 }

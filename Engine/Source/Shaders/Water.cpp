@@ -37,62 +37,50 @@ void Surface_VS
       pos.y=pos.y*WaterYMulAdd.x + WaterYMulAdd.y;
 
       Vec dir =Normalize(Vec(FracToPosXY(pos.xy), 1));
-      Flt dist=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm, dir);
+      Flt dist=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, dir);
       if( dist>0)
       {
          pos=dir*dist;
       }else
       {
-         pos=PointOnPlane(dir*Viewport.range, WaterPlnPos, WaterPlnNrm);
+         pos=PointOnPlane(dir*Viewport.range, WaterPlanePos, WaterPlaneNrm);
       }
 
       outPos=pos;
       pos   =Transform(pos, CamMatrix);
    }
 
-   if(RIVER)
-   {
-      Vec2 tex=vtx.tex(); tex.y-=WaterFlow;
-      outTex     =( tex  )/WaterScaleDif  +      WaterOfs ;
-      outTexN0.xy=( tex  )/WaterScaleNrm  +      WaterOfs ;
-      outTexN0.zw=(-tex  )/WaterScaleNrm  +      WaterOfs ;
-      outTexN1.xy=( tex/8)/WaterScaleNrm  + Perp(WaterOfs);
-      outTexN1.zw=(-tex/8)/WaterScaleNrm  + Perp(WaterOfs);
-   #if WAVES
-      outTexB .xy=( tex  )/WaterScaleBump +      WaterOfs ;
-      outTexB .zw=(-tex  )/WaterScaleBump +      WaterOfs ;
-   #endif
-   }else
-   {
-      outTex     =( pos.xz  )/WaterScaleDif  +      WaterOfs ;
-      outTexN0.xy=( pos.xz  )/WaterScaleNrm  +      WaterOfs ;
-      outTexN0.zw=(-pos.xz  )/WaterScaleNrm  +      WaterOfs ;
-      outTexN1.xy=( pos.xz/8)/WaterScaleNrm  + Perp(WaterOfs);
-      outTexN1.zw=(-pos.xz/8)/WaterScaleNrm  + Perp(WaterOfs);
-   #if WAVES
-      outTexB .xy=( pos.xz  )/WaterScaleBump +      WaterOfs ;
-      outTexB .zw=(-pos.xz  )/WaterScaleBump +      WaterOfs ;
-   #endif
-   }
-
+   Vec2 tex;
+   if(RIVER){tex=vtx.tex(); tex.y-=WaterFlow;}
+   else     {tex=pos.xz;}
+   outTex     =tex*  WaterMaterial.scale_color    +     WaterOfs ;
+   outTexN0.xy=tex*  WaterMaterial.scale_normal   +     WaterOfs ;
+   outTexN0.zw=tex* -WaterMaterial.scale_normal   +     WaterOfs ;
+   outTexN1.xy=tex*( WaterMaterial.scale_normal/8)+Perp(WaterOfs);
+   outTexN1.zw=tex*(-WaterMaterial.scale_normal/8)+Perp(WaterOfs);
 #if WAVES
-   Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
+   outTexB .xy=tex*  WaterMaterial.scale_bump     +     WaterOfs ;
+   outTexB .zw=tex* -WaterMaterial.scale_bump     +     WaterOfs ;
+#endif
+
+#if WAVES // #WaterMaterialTextureLayout
+   Flt dist_scale=LerpRS(Sqr(150), Sqr(100), Length2(outPos)),
        bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
        bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
-       outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
+       outPos   +=WaterPlaneNrm*(WaterMaterial.wave_scale*bump*dist_scale);
 #else
    outPos=TransformPos(pos);
 #endif
 
 #if LIGHT
-   outPDF=2-Abs(DistPointPlane(outPos, WaterPlnPos, WaterPlnNrm)); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
+   outPDF=2-Abs(DistPointPlane(outPos, WaterPlanePos, WaterPlaneNrm)); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
 #endif
 
    outVtx=Project(outPos);
 }
 /******************************************************************************/
 
-// Col, Nrm, Rfl = water material textures
+// Col, Nrm = water material textures
 // ImgXF = solid underwater depth
 // these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=solid underwater
 

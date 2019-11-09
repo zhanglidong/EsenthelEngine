@@ -107,7 +107,7 @@ struct WaterClass : WaterMtrl // Main water control
 private:
 #endif
    Bool         _max_1_light, _draw_plane_surface, _use_secondary_rt, _began, _swapped_ds;
-   Byte         _mode, _shader_shadow, _shader_soft;
+   Byte         _mode, _shader_shadow, _shader_soft, _shader_reflect_env, _shader_reflect_mirror;
    Flt          _under_step;
    Vec2         _offset, _y_mul_add;
    Quad         _quad;
