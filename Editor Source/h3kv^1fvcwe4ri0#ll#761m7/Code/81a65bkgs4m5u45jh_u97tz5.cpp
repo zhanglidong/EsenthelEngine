@@ -1708,6 +1708,12 @@ class ProjectEx : ProjectHierarchy
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
       return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
+   uint createBaseTextures(Image &base_0, Image &base_1, C EditWaterMtrl &material, bool changed_flip_normal_y)
+   {
+      MtrlImages mtrl_images;
+             mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
+      return mtrl_images.createWaterBaseTextures(base_0, base_1);
+   }
    uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
@@ -1753,6 +1759,42 @@ class ProjectEx : ProjectHierarchy
             saveTex(base_2, material.base_2_tex);
          }
          Server.setTex(material.base_2_tex);
+      }
+
+      return bt;
+   }
+   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y)
+   {
+      // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
+      Image      base_0, base_1;
+      uint       bt=createBaseTextures(base_0, base_1, material, changed_flip_normal_y);
+      UID        old_tex_id;
+      IMAGE_TYPE ct;
+
+      // base 0
+         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0);
+      if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(base_0.is())
+      {
+         if(includeTex(material.base_0_tex))
+         {
+            base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+            saveTex(base_0, material.base_0_tex);
+         }
+         Server.setTex(material.base_0_tex);
+      }
+
+      // base 1
+         old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, MTRL_BASE_1);
+      if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(base_1.is())
+      {
+         if(includeTex(material.base_1_tex))
+         {
+            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+            saveTex(base_1, material.base_1_tex);
+         }
+         Server.setTex(material.base_1_tex);
       }
 
       return bt;

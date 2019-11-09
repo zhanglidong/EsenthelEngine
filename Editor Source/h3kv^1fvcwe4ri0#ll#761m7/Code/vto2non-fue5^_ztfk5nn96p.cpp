@@ -504,9 +504,36 @@ class MtrlImages
 
       resize(size);
    }
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false)
+   {
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
+      bool col_ok=proj.loadImages(  color, material.  color_map, true , false),
+         alpha_ok=proj.loadImages(  alpha, material.  alpha_map, false, false, WHITE, &color),
+        smooth_ok=proj.loadImages( smooth, material. smooth_map, false, false, WHITE, &color),
+       reflect_ok=proj.loadImages(reflect, material.reflect_map, false, false, WHITE, &color, &smooth),
+          bump_ok=proj.loadImages(   bump, material.   bump_map, false, false, GREY , &color, &smooth),
+           nrm_ok=proj.loadImages( normal, material. normal_map, false, false, Color(128, 128, 255), &color, &smooth, &bump),
+          glow_ok=proj.loadImages(   glow, material.   glow_map, false, false);
+
+      if(! col_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
+      if(!bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
+
+      ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex,
+         col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
+
+      T.flip_normal_y=(nrm_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+
+      if(process_alpha)processAlpha();
+
+      resize(size);
+   }
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
       return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+   }
+   uint createWaterBaseTextures(Image &base_0, Image &base_1)C
+   {
+      return CreateWaterBaseTextures(base_0, base_1, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
    }
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
    { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)

@@ -602,6 +602,46 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(reflect && !(tex&BT_REFLECT))reflect.del();
    if(glow    && !(tex&BT_GLOW   ))glow   .del();
 }
+void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size=-1)
+{ // #WaterMaterialTextureLayout
+   uint tex=0;
+   if(base_0.valid() && (col || bump))
+   {
+      Image b0; LoadTexture(proj, base_0, b0, size);
+      if(col )col .createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(bump)bump.createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+      REPD(y, b0.h())
+      REPD(x, b0.w())
+      {
+         Color c=b0.color(x, y);
+         if(col ){col .color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+         if(bump){bump.pixel(x, y, c.a); if(c.a<254                      )tex|=BT_BUMP ;}
+      }
+   }
+   if(base_1.valid() && normal)
+   {
+      Image b1; LoadTexture(proj, base_1, b1, size);
+      normal.createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+      REPD(y, b1.h())
+      REPD(x, b1.w())
+      {
+         Vec4 n; n.xy=b1.colorF(x, y).xy;
+         if(Abs(n.x)>1.5/127
+         || Abs(n.y)>1.5/127)tex|=BT_NORMAL;
+         n.z=CalcZ(n.xy);
+         n.xyz=n.xyz*0.5+0.5;
+         n.w=1;
+         normal.colorF(x, y, n);
+      }
+   }
+   if(col     && !(tex&BT_COLOR  ))col    .del();
+   if(alpha   && !(tex&BT_ALPHA  ))alpha  .del();
+   if(bump    && !(tex&BT_BUMP   ))bump   .del();
+   if(normal  && !(tex&BT_NORMAL ))normal .del();
+   if(smooth  && !(tex&BT_SMOOTH ))smooth .del();
+   if(reflect && !(tex&BT_REFLECT))reflect.del();
+   if(glow    && !(tex&BT_GLOW   ))glow   .del();
+}
 void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size=-1)
 {
    uint tex=0;

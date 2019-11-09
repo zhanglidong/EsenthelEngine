@@ -787,7 +787,7 @@ void WaterDrops::draw(AnimatedSkeleton &anim_skel)
    draw();
 }
 /******************************************************************************/
-UInt WaterCreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
    // #WaterMaterialTextureLayout
    UInt  ret=0;

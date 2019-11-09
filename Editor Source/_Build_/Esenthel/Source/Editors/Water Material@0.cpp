@@ -55,46 +55,42 @@ WaterMtrlRegion WaterMtrlEdit;
    }
    void WaterMtrlRegion::PreChanged(C Property &prop) {WaterMtrlEdit.undos.set(&prop);}
    void    WaterMtrlRegion::Changed(C Property &prop) {WaterMtrlEdit.setChanged();}
+   Str  WaterMtrlRegion::Col(C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
+   void WaterMtrlRegion::Col(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
+   Str  WaterMtrlRegion::Smooth(C WaterMtrlRegion &mr          ) {return mr.edit.smooth;}
+   void WaterMtrlRegion::Smooth(  WaterMtrlRegion &mr, C Str &t) {mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
+   Str  WaterMtrlRegion::Reflect(C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
+   void WaterMtrlRegion::Reflect(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
+   void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
+   Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
+   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
+   Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
+   void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
+   Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_color;}
+   void WaterMtrlRegion::ScaleColor(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_color=1/TextFlt(t); mr.edit.scale_color_time.getUTC();}
+   Str  WaterMtrlRegion::ScaleNormal(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_normal;}
+   void WaterMtrlRegion::ScaleNormal(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_normal=1/TextFlt(t); mr.edit.scale_normal_time.getUTC();}
+   Str  WaterMtrlRegion::ScaleBump(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_bump;}
+   void WaterMtrlRegion::ScaleBump(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=1/TextFlt(t); mr.edit.scale_bump_time.getUTC();}
    Str  WaterMtrlRegion::Density(C WaterMtrlRegion &mr          ) {return mr.edit.density;}
    void WaterMtrlRegion::Density(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density=TextFlt(t); mr.edit.density_time.getUTC();}
    Str  WaterMtrlRegion::DensityAdd(C WaterMtrlRegion &mr          ) {return mr.edit.density_add;}
    void WaterMtrlRegion::DensityAdd(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_add=TextFlt(t); mr.edit.density_time.getUTC();}
-   Str  WaterMtrlRegion::DensityUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater;}
-   void WaterMtrlRegion::DensityUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::DensityUnderwaterAdd(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater_add;}
-   void WaterMtrlRegion::DensityUnderwaterAdd(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater_add=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return mr.edit.scale_color;}
-   void WaterMtrlRegion::ScaleColor(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_color=TextFlt(t); mr.edit.scale_color_time.getUTC();}
-   Str  WaterMtrlRegion::ScaleNormal(C WaterMtrlRegion &mr          ) {return mr.edit.scale_normal;}
-   void WaterMtrlRegion::ScaleNormal(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_normal=TextFlt(t); mr.edit.scale_normal_time.getUTC();}
-   Str  WaterMtrlRegion::ScaleBump(C WaterMtrlRegion &mr          ) {return mr.edit.scale_bump;}
-   void WaterMtrlRegion::ScaleBump(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=TextFlt(t); mr.edit.scale_bump_time.getUTC();}
-   Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
-   void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
-   Str  WaterMtrlRegion::Reflect(C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
-   void WaterMtrlRegion::Reflect(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
    Str  WaterMtrlRegion::Refract(C WaterMtrlRegion &mr          ) {return mr.edit.refract;}
    void WaterMtrlRegion::Refract(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract=TextFlt(t); mr.edit.refract_time.getUTC();}
    Str  WaterMtrlRegion::RefractReflection(C WaterMtrlRegion &mr          ) {return mr.edit.refract_reflection;}
    void WaterMtrlRegion::RefractReflection(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_reflection=TextFlt(t); mr.edit.refract_reflection_time.getUTC();}
-   Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
-   void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
-   void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
-   Str  WaterMtrlRegion::FresnelPow(C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_pow;}
-   void WaterMtrlRegion::FresnelPow(  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_pow=TextFlt(t); mr.edit.fresnel_pow_time.getUTC();}
-   Str  WaterMtrlRegion::FresnelRough(C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_rough;}
-   void WaterMtrlRegion::FresnelRough(  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_rough=TextFlt(t); mr.edit.fresnel_rough_time.getUTC();}
-   Str  WaterMtrlRegion::FresnelColor(C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_color;}
-   void WaterMtrlRegion::FresnelColor(  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_color=TextVec(t); mr.edit.fresnel_color_time.getUTC();}
-   Str  WaterMtrlRegion::Col(C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
-   void WaterMtrlRegion::Col(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater0(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater0;}
    void WaterMtrlRegion::ColorUnderwater0(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater1(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
    void WaterMtrlRegion::ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
+   Str  WaterMtrlRegion::DensityUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater;}
+   void WaterMtrlRegion::DensityUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
+   Str  WaterMtrlRegion::DensityUnderwaterAdd(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater_add;}
+   void WaterMtrlRegion::DensityUnderwaterAdd(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater_add=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
+   Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
+   void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
    EditMaterial& WaterMtrlRegion::getEditMtrl(){return edit;}
    C ImagePtr    & WaterMtrlRegion::getBase0(){return game->  colorMap();}
    C ImagePtr    & WaterMtrlRegion::getBase1(){return game-> normalMap();}
@@ -105,26 +101,30 @@ WaterMtrlRegion WaterMtrlEdit;
 
       flt e=0.01f, prop_height=0.044f;
       props.clear();
-      props.New().create("Density"                 , MemberDesc(DATA_REAL).setFunc(Density              , Density              )).range(0, 1);
-      props.New().create("Density Base"            , MemberDesc(DATA_REAL).setFunc(DensityAdd           , DensityAdd           )).range(0, 1);
-      props.New().create("Density Underwater"      , MemberDesc(DATA_REAL).setFunc(DensityUnderwater    , DensityUnderwater    )).range(0, 1);
-      props.New().create("Density Underwater Base" , MemberDesc(DATA_REAL).setFunc(DensityUnderwaterAdd , DensityUnderwaterAdd )).range(0, 1);
+      props.New().create("Color"                   , MemberDesc(DATA_VEC ).setFunc(Col                  , Col                  )).setColor();
+      props.New().create("Smoothness"              , MemberDesc(DATA_REAL).setFunc(Smooth               , Smooth               )).range(0, 1);
+      props.New().create("Reflectivity"            , MemberDesc(DATA_REAL).setFunc(Reflect              , Reflect              )).range(0, 1);
+      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale             , NrmScale             )).range(0, 2);
+      props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY                  , FNY                  ));
+      props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale            , WaveScale            )).range(0, 1);
+
       props.New().create("Scale Color"             , MemberDesc(DATA_REAL).setFunc(ScaleColor           , ScaleColor           )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Scale Normal"            , MemberDesc(DATA_REAL).setFunc(ScaleNormal          , ScaleNormal          )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Scale Bump"              , MemberDesc(DATA_REAL).setFunc(ScaleBump            , ScaleBump            )).min(5).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale             , NrmScale             )).range(0, 3);
-      props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY                  , FNY                  ));
-      props.New().create("Reflection"              , MemberDesc(DATA_REAL).setFunc(Reflect              , Reflect              )).range(0, 1).mouseEditSpeed(0.5f);
+
+      props.New().create("Density"                 , MemberDesc(DATA_REAL).setFunc(Density              , Density              )).range(0, 1);
+      props.New().create("Density Base"            , MemberDesc(DATA_REAL).setFunc(DensityAdd           , DensityAdd           )).range(0, 1);
+
       props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract              , Refract              )).range(0, 0.50f).mouseEditSpeed(0.25f);
       props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection    , RefractReflection    )).range(0, 0.25f).mouseEditSpeed(0.10f);
-      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04f).mouseEditSpeed(0.02f);
-      props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale            , WaveScale            )).range(0, 1);
-      props.New().create("Fresnel Term Power"      , MemberDesc(DATA_REAL).setFunc(FresnelPow           , FresnelPow           )).min(0);
-      props.New().create("Fresnel Term Roughness"  , MemberDesc(DATA_REAL).setFunc(FresnelRough         , FresnelRough         )).min(0);
-      props.New().create("Fresnel Term Color"      , MemberDesc(DATA_VEC ).setFunc(FresnelColor         , FresnelColor         )).setColor();
-      props.New().create("Color"                   , MemberDesc(DATA_VEC ).setFunc(Col                  , Col                  )).setColor();
+
       props.New().create("Underwater Surface Color", MemberDesc(DATA_VEC ).setFunc(ColorUnderwater0     , ColorUnderwater0     )).setColor();
       props.New().create("Underwater Depths Color" , MemberDesc(DATA_VEC ).setFunc(ColorUnderwater1     , ColorUnderwater1     )).setColor();
+
+      props.New().create("Density Underwater"      , MemberDesc(DATA_REAL).setFunc(DensityUnderwater    , DensityUnderwater    )).range(0, 1);
+      props.New().create("Density Underwater Base" , MemberDesc(DATA_REAL).setFunc(DensityUnderwaterAdd , DensityUnderwaterAdd )).range(0, 1);
+
+      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04f).mouseEditSpeed(0.02f);
 
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.135f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
 
@@ -132,7 +132,7 @@ WaterMtrlRegion WaterMtrlEdit;
       texs.clear();
       sub+=texs.New().create(TEX_COLOR  , MEMBER(EditWaterMtrl,      color_map), MEMBER(EditWaterMtrl,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T); i-=3;
       sub+=texs.New().create(TEX_BUMP   , MEMBER(EditWaterMtrl,       bump_map), MEMBER(EditWaterMtrl,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T); i-=3;
-      sub+=texs.New().create(TEX_NORMAL , MEMBER(EditWaterMtrl,     normal_map), MEMBER(EditWaterMtrl,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3*4-2;
+      sub+=texs.New().create(TEX_NORMAL , MEMBER(EditWaterMtrl,     normal_map), MEMBER(EditWaterMtrl,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3;
     /*sub+=texs.New().create(TEX_RFL_U  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3;
       sub+=texs.New().create(TEX_RFL_D  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect\nDown" , T); i-=3;
       sub+=texs.New().create(TEX_RFL_ALL, MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*4, i*prop_height), tex_size, tex_size), "Reflect\nAll"  , T);
