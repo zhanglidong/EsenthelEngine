@@ -153,7 +153,7 @@ void WaterClass::create()
    del();
 
    // create mesh
-   MeshBase mshb; mshb.createPlane(80, 130).scaleMove(Vec(1, -1, 1), Vec(0, 1, 0));
+   MeshBase mshb; mshb.createPlane(128, 192).scaleMove(Vec(1, -1, 1), Vec(0, 1, 0));
 
    REPA(mshb.vtx)
    {

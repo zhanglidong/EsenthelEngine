@@ -14,6 +14,15 @@
 #ifndef REFRACT
 #define REFRACT 0
 #endif
+/******************************************************************************/
+Half Wave(Vec2 world_pos)
+{
+   Half wave=TexLod(Col, world_pos* WaterMaterial.scale_bump + WaterOfs).a // #WaterMaterialTextureLayout
+            +TexLod(Col, world_pos*-WaterMaterial.scale_bump + WaterOfs).a;
+   wave=wave-1; // Avg(a,b)*2-1 = (a+b)-1
+   return wave;
+}
+/******************************************************************************/
 void Surface_VS
 (
    VtxInput vtx,
@@ -22,7 +31,7 @@ void Surface_VS
    out Vec4 outTexN0:TEXCOORD1,
    out Vec4 outTexN1:TEXCOORD2,
 #if WAVES
-   out Vec4 outTexB :TEXCOORD3,
+   out VecH outWaveN:NORMAL,
 #endif
 #if LIGHT
    out Vec  outPos      :POS,
@@ -61,14 +70,25 @@ void Surface_VS
    outTexN0.zw=tex* -WaterMaterial.scale_normal   +     WaterOfs ;
    outTexN1.xy=tex*( WaterMaterial.scale_normal/8)+Perp(WaterOfs);
    outTexN1.zw=tex*(-WaterMaterial.scale_normal/8)+Perp(WaterOfs);
-#if WAVES
-   outTexB .xy=tex*  WaterMaterial.scale_bump     +     WaterOfs ;
-   outTexB .zw=tex* -WaterMaterial.scale_bump     +     WaterOfs ;
 
-   Flt dist_scale=LerpRS(Sqr(150), Sqr(100), Length2(view_pos)),
-       bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a; // #WaterMaterialTextureLayout
-       bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
-       view_pos +=WaterPlaneNrm*(WaterMaterial.wave_scale*bump*dist_scale);
+#if WAVES
+   Flt  dist=Length(view_pos);
+   Half dist_scale;
+   dist_scale=Sat(16/dist-0.25 )*WaterMaterial.wave_scale;
+ //dist_scale=Sat(12/dist-0.125)*WaterMaterial.wave_scale;
+ //dist_scale=Sat( 6/dist      )*WaterMaterial.wave_scale;
+
+   #define DERIVATIVE 0.125
+   Half wave  =Wave(tex),
+        wave_r=Wave(tex+Vec2(DERIVATIVE, 0)),
+        wave_f=Wave(tex+Vec2(0, DERIVATIVE));
+
+   outWaveN.x=wave_r-wave;
+   outWaveN.y=wave_f-wave;
+   outWaveN.z=DERIVATIVE/dist_scale;
+   outWaveN=Normalize(outWaveN);
+
+   view_pos+=WaterPlaneNrm*(wave*dist_scale);
 #endif
 
 #if LIGHT
@@ -89,7 +109,7 @@ void Surface_PS
    Vec4 inTexN0:TEXCOORD1,
    Vec4 inTexN1:TEXCOORD2,
 #if WAVES
-   Vec4 inTexB :TEXCOORD3,
+   VecH inWaveN:NORMAL,
 #endif
 #if LIGHT
    Vec  inPos      :POS,
@@ -105,8 +125,8 @@ void Surface_PS
 {
    VecH nrm_flat; // #WaterMaterialTextureLayout
         nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterMaterial.normal
-#if WAVES // FIXME perhaps make it dependent on bump from VS, use some ddx (+delta) and scale by wave_scale
-   nrm_flat.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*(WaterMaterial.wave_scale*0.5); // Avg(Tex(Nrm, inTexB.xy).xy, -Tex(Nrm, inTexB.zw).xy))*WaterMaterial.wave_scale
+#if WAVES
+   nrm_flat.xy+=inWaveN.xy;
 #endif
    nrm_flat.z=CalcZ(nrm_flat.xy);
 

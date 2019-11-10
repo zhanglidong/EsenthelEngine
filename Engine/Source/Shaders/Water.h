@@ -5,9 +5,9 @@ struct WaterMaterialClass
    VecH color;
    Half smooth,
         reflect,
-        normal;
-   Flt  wave_scale,
-        scale_color,
+        normal,
+        wave_scale;
+   Flt  scale_color,
         scale_normal,
         scale_bump,
 
