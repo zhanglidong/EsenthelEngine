@@ -85,15 +85,12 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::ColorUnderwater0(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater1(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
    void WaterMtrlRegion::ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::DensityUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater;}
-   void WaterMtrlRegion::DensityUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::DensityUnderwaterAdd(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater_add;}
-   void WaterMtrlRegion::DensityUnderwaterAdd(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater_add=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
    Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
    void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
    EditMaterial& WaterMtrlRegion::getEditMtrl(){return edit;}
    C ImagePtr    & WaterMtrlRegion::getBase0(){return game->  colorMap();}
    C ImagePtr    & WaterMtrlRegion::getBase1(){return game-> normalMap();}
+   bool          WaterMtrlRegion::water()C {return true;}
    void WaterMtrlRegion::create()
    {
       undos.replaceClass<Change>();
@@ -101,30 +98,27 @@ WaterMtrlRegion WaterMtrlEdit;
 
       flt e=0.01f, prop_height=0.044f;
       props.clear();
-      props.New().create("Color"                   , MemberDesc(DATA_VEC ).setFunc(Col                  , Col                  )).setColor();
-      props.New().create("Smoothness"              , MemberDesc(DATA_REAL).setFunc(Smooth               , Smooth               )).range(0, 1);
-      props.New().create("Reflectivity"            , MemberDesc(DATA_REAL).setFunc(Reflect              , Reflect              )).range(0, 1);
-      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale             , NrmScale             )).range(0, 2);
-      props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY                  , FNY                  ));
-      props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale            , WaveScale            )).range(0, 1);
+      props.New().create("Color"                   , MemberDesc(DATA_VEC ).setFunc(Col              , Col              )).setColor();
+      props.New().create("Smoothness"              , MemberDesc(DATA_REAL).setFunc(Smooth           , Smooth           )).range(0, 1);
+      props.New().create("Reflectivity"            , MemberDesc(DATA_REAL).setFunc(Reflect          , Reflect          )).range(0, 1);
+      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale         , NrmScale         )).range(0, 2);
+      props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY              , FNY              ));
+      props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale        , WaveScale        )).range(0, 1);
 
-      props.New().create("Scale Color"             , MemberDesc(DATA_REAL).setFunc(ScaleColor           , ScaleColor           )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-      props.New().create("Scale Normal"            , MemberDesc(DATA_REAL).setFunc(ScaleNormal          , ScaleNormal          )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-      props.New().create("Scale Bump"              , MemberDesc(DATA_REAL).setFunc(ScaleBump            , ScaleBump            )).min(5).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+      props.New().create("Scale Color"             , MemberDesc(DATA_REAL).setFunc(ScaleColor       , ScaleColor       )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+      props.New().create("Scale Normal"            , MemberDesc(DATA_REAL).setFunc(ScaleNormal      , ScaleNormal      )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+      props.New().create("Scale Bump"              , MemberDesc(DATA_REAL).setFunc(ScaleBump        , ScaleBump        )).min(5).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
 
-      props.New().create("Density"                 , MemberDesc(DATA_REAL).setFunc(Density              , Density              )).range(0, 1);
-      props.New().create("Density Base"            , MemberDesc(DATA_REAL).setFunc(DensityAdd           , DensityAdd           )).range(0, 1);
+      props.New().create("Density"                 , MemberDesc(DATA_REAL).setFunc(Density          , Density          )).range(0, 1);
+      props.New().create("Density Base"            , MemberDesc(DATA_REAL).setFunc(DensityAdd       , DensityAdd       )).range(0, 1);
 
-      props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract              , Refract              )).range(0, 0.50f).mouseEditSpeed(0.25f);
-      props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection    , RefractReflection    )).range(0, 0.25f).mouseEditSpeed(0.10f);
+      props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract          , Refract          )).range(0, 0.50f).mouseEditSpeed(0.25f);
+      props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection, RefractReflection)).range(0, 0.25f).mouseEditSpeed(0.10f);
 
-      props.New().create("Underwater Surface Color", MemberDesc(DATA_VEC ).setFunc(ColorUnderwater0     , ColorUnderwater0     )).setColor();
-      props.New().create("Underwater Depths Color" , MemberDesc(DATA_VEC ).setFunc(ColorUnderwater1     , ColorUnderwater1     )).setColor();
+      props.New().create("Underwater Surface Color", MemberDesc(DATA_VEC ).setFunc(ColorUnderwater0 , ColorUnderwater0 )).setColor();
+      props.New().create("Underwater Depths Color" , MemberDesc(DATA_VEC ).setFunc(ColorUnderwater1 , ColorUnderwater1 )).setColor();
 
-      props.New().create("Density Underwater"      , MemberDesc(DATA_REAL).setFunc(DensityUnderwater    , DensityUnderwater    )).range(0, 1);
-      props.New().create("Density Underwater Base" , MemberDesc(DATA_REAL).setFunc(DensityUnderwaterAdd , DensityUnderwaterAdd )).range(0, 1);
-
-      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04f).mouseEditSpeed(0.02f);
+      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater, RefractUnderwater)).range(0, 0.04f).mouseEditSpeed(0.02f);
 
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.135f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
 

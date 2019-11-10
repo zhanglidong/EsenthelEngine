@@ -99,11 +99,11 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
          plane[6].normal.chs();
          if(density<1)
          {
-            // underwater opacity = Sat(pow(1-WaterDns, x)-WaterDnsAdd);
-            // pow(1-WaterDns, x)-WaterDnsAdd = eps
-            // pow(1-WaterDns, x) = eps+WaterDnsAdd
+            // underwater opacity = Sat(pow(1-Water.density, x)-Water.density_add);
+            // pow(1-Water.density, x)-Water.density_add = eps
+            // pow(1-Water.density, x) = eps+Water.density_add
             // a**c=b <=> loga(b)=c
-            // (1-WaterDns)**x=eps+WaterDnsAdd <=> log 1-WaterDns (eps+WaterDnsAdd)=x
+            // (1-Water.density)**x=eps+Water.density_add <=> log 1-Water.density (eps+Water.density_add)=x
 
             plane[6]+=plane[6].normal*Max(0,Log(0.015f+Water.density_add,1-Water.density));
          }

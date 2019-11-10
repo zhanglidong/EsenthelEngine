@@ -58,8 +58,8 @@ MaterialTech mtrl_techs[]=
                          &macro =mr->getMacro   (),
                          &detail=mr->getDetail  (),
                          &light =mr->getLight   ();
-            switch(type)
-            { //#MaterialTextureLayout
+            if(!mr->water())switch(type) // #MaterialTextureLayout
+            {
                case TEX_COLOR   : if(em.    color_map.is()                       )return base_0; break;
                case TEX_ALPHA   : if(em.    color_map.is() || em.alpha_map.is()  )return base_2 ? base_2 : base_0; break;
                case TEX_BUMP    : if(em.      hasBumpMap()                       )return base_2; break;
@@ -72,6 +72,11 @@ MaterialTech mtrl_techs[]=
                case TEX_DET_COL : if(em.detail_color .is()                       )return detail; break;
                case TEX_DET_BUMP: if(em.detail_bump  .is()                       )return detail; break;
                case TEX_DET_NRM : if(em.detail_normal.is() || em.detail_bump.is())return detail; break;
+            }else switch(type) // #WaterMaterialTextureLayout
+            {
+               case TEX_COLOR   : if(em.    color_map.is()                       )return base_0; break;
+               case TEX_BUMP    : if(em.      hasBumpMap()                       )return base_0; break;
+               case TEX_NORMAL  : if(em.    hasNormalMap()                       )return base_1; break;
             }
          }
          return null;
@@ -208,7 +213,7 @@ MaterialTech mtrl_techs[]=
                          &detail=mr->getDetail    (),
                          &light =mr->getLight     ();
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-            switch(type) // #MaterialTextureLayout
+            if(!mr->water())switch(type) // #MaterialTextureLayout
             {
                case TEX_COLOR   : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
                case TEX_ALPHA   : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0 || base_2){VI.shader(ShaderFiles("Main")->get(base_2 ? "DrawTexWG" : "DrawTexWG" )); if(base_2)base_2->drawFit(rect);else base_0->drawFit(rect); tex=true;} break;
@@ -240,6 +245,11 @@ MaterialTech mtrl_techs[]=
                   i.drawCubeFace(WHITE, TRANSPARENT, Rect(x[1], y[2], x[2], y[3]), DIR_UP     );
                   tex=true;
                }break;*/
+            }else switch(type) // #WaterMaterialTextureLayout
+            {
+               case TEX_COLOR   : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP    : if(em.      hasBumpMap()                       )if(base_0          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      base_0->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL  : if(em.    hasNormalMap()                       )if(base_1          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      base_1->drawFit(rect); tex=true;} break;
             }
             D.alpha(alpha);
          }
@@ -605,6 +615,7 @@ MaterialTech mtrl_techs[]=
    C ImagePtr    & MaterialRegion::getDetail() {return game->detail_map;}
    C ImagePtr    & MaterialRegion::getMacro() {return game->macro_map;}
    C ImagePtr    & MaterialRegion::getLight() {return game->light_map;}
+   bool          MaterialRegion::water()C{return false;}
    void MaterialRegion::setBottom(C Rect &prop_rect)
    {
       reload_base_textures.rect(Rect_LU(0.10f, prop_rect.min.y-0.02f, 0.42f, 0.053f));

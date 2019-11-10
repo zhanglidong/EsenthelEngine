@@ -462,18 +462,16 @@ struct WaterShader
 
    ShaderParam
       *WaterMaterial,
-      *Water_color_underwater0     ,
-      *Water_color_underwater1     ,
-      *Water_density_underwater    ,
-      *Water_density_underwater_add,
-      *Water_refract_underwater    ,
+      *Water_color_underwater0,
+      *Water_color_underwater1,
+      *Water_refract_underwater,
       *WaterUnderStep,
       *WaterOfs,
       *WaterYMulAdd,
       *WaterPlanePos,
       *WaterPlaneNrm,
       *WaterFlow,
-      *WaterReflectMulAdd,
+      *WaterReflectMulAdd=&Sh.Dummy,
       *WaterClamp;
 
    void load();

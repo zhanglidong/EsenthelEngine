@@ -345,7 +345,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, Normalize(Vec(inPosXY, 1)));
       if( to_surface>0)dist=Min(to_surface, dist);
 
-      Flt refract_len=Sat(AccumulatedDensity(Water_density_underwater, dist)+Water_density_underwater_add)*Water_refract_underwater;
+      Flt refract_len=Sat(AccumulatedDensity(WaterMaterial.density, dist)+WaterMaterial.density_add)*Water_refract_underwater;
 
    #if 1 // viewport size adjusted
       inTex+=Sin(inTex.yx*14/Viewport.size+Step)*refract_len*Viewport.size; // add refraction
@@ -362,7 +362,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, ray);
    if( to_surface>0)dist=Min(to_surface, dist);
 
-   Half opacity=Sat(AccumulatedDensity(Water_density_underwater, dist)+Water_density_underwater_add)*WaterUnderStep;
+   Half opacity=Sat(AccumulatedDensity(WaterMaterial.density, dist)+WaterMaterial.density_add)*WaterUnderStep;
 
    Flt depth_0=-DistPointPlane(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm),
        depth_1=-DistPointPlane(ray*dist    , WaterPlanePos, WaterPlaneNrm);
@@ -379,8 +379,8 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       LOOP for(Int i=0; i<steps; i++)
       {
          Flt depth=Lerp(depth_0, depth_1, i/Flt(steps-1));
-         Flt d    =AccumulatedDensity(Water_density_underwater, depth);
-         opacity      *=1-Water_density_underwater;
+         Flt d    =AccumulatedDensity(WaterMaterial.density, depth);
+         opacity      *=1-WaterMaterial.density;
          water_density+=opacity*d;
          total_opacity+=opacity;
       }
@@ -390,9 +390,9 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /**/
    // approximation:
    {
-      Half density_0=AccumulatedDensity(Water_density_underwater, depth_0),
-           density_1=AccumulatedDensity(Water_density_underwater, depth_1),
-           blend    =0.5/(1+dist*(Water_density_underwater/3));
+      Half density_0=AccumulatedDensity(WaterMaterial.density, depth_0),
+           density_1=AccumulatedDensity(WaterMaterial.density, depth_1),
+           blend    =0.5/(1+dist*(WaterMaterial.density/3));
       water_density=Lerp(density_0, density_1, blend);
    }
 

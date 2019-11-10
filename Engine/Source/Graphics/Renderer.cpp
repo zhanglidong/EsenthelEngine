@@ -1808,14 +1808,13 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
       set(_col, null, true);
       D .alpha(refract ? ALPHA_NONE : ALPHA_BLEND_DEC);
       Sh.Step->set(Time.time());
-      WS.WaterPlanePos               ->set(Water._under_plane.pos   *CamMatrixInv      );
-      WS.WaterPlaneNrm               ->set(Water._under_plane.normal*CamMatrixInv.orn());
-      WS.WaterUnderStep              ->set(under_step);
-      WS.Water_refract_underwater    ->set(refract_val);
-      WS.Water_density_underwater    ->set(Mid(under.density_underwater , 0.0f, 1-EPS_GPU)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
-      WS.Water_density_underwater_add->set(under.density_underwater_add);
-      WS.Water_color_underwater0     ->set(under.color_underwater0);
-      WS.Water_color_underwater1     ->set(under.color_underwater1);
+      under.set();
+      WS.WaterPlanePos           ->set(Water._under_plane.pos   *CamMatrixInv      );
+      WS.WaterPlaneNrm           ->set(Water._under_plane.normal*CamMatrixInv.orn());
+      WS.WaterUnderStep          ->set(under_step);
+      WS.Water_refract_underwater->set(refract_val);
+      WS.Water_color_underwater0 ->set(under.color_underwater0);
+      WS.Water_color_underwater1 ->set(under.color_underwater1);
       REPS(_eye, _eye_num)WS.Under[refract]->draw(src, setEyeParams());
    }
 }

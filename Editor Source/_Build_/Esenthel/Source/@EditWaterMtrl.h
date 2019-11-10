@@ -3,14 +3,13 @@
 class EditWaterMtrl : EditMaterial
 {
    flt density, density_add,
-       density_underwater, density_underwater_add,
        scale_color, scale_normal, scale_bump,
        refract, refract_reflection, refract_underwater,
        wave_scale;
    Vec color_underwater0,
        color_underwater1;
 
-   TimeStamp density_time, density_underwater_time,
+   TimeStamp density_time,
              scale_color_time, scale_normal_time, scale_bump_time,
              refract_time, refract_reflection_time, refract_underwater_time,
              wave_scale_time,

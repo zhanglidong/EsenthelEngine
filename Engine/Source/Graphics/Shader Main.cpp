@@ -778,20 +778,18 @@ void WaterShader::load()
 {
    if(!shader)if(shader=ShaderFiles("Water"))
    {
-      WaterMaterial               =GetShaderParam("WaterMaterial");
-      Water_color_underwater0     =GetShaderParam("Water_color_underwater0");
-      Water_color_underwater1     =GetShaderParam("Water_color_underwater1");
-      Water_density_underwater    =GetShaderParam("Water_density_underwater");
-      Water_density_underwater_add=GetShaderParam("Water_density_underwater_add");
-      Water_refract_underwater    =GetShaderParam("Water_refract_underwater");
-      WaterUnderStep              =GetShaderParam("WaterUnderStep");
-      WaterOfs                    =GetShaderParam("WaterOfs");
-      WaterYMulAdd                =GetShaderParam("WaterYMulAdd");
-      WaterPlanePos               =GetShaderParam("WaterPlanePos");
-      WaterPlaneNrm               =GetShaderParam("WaterPlaneNrm");
-      WaterFlow                   =GetShaderParam("WaterFlow");
-      WaterReflectMulAdd          =GetShaderParam("WaterReflectMulAdd");
-      WaterClamp                  =GetShaderParam("WaterClamp");
+      WaterMaterial           =GetShaderParam("WaterMaterial");
+      Water_color_underwater0 =GetShaderParam("Water_color_underwater0");
+      Water_color_underwater1 =GetShaderParam("Water_color_underwater1");
+      Water_refract_underwater=GetShaderParam("Water_refract_underwater");
+      WaterUnderStep          =GetShaderParam("WaterUnderStep");
+      WaterOfs                =GetShaderParam("WaterOfs");
+      WaterYMulAdd            =GetShaderParam("WaterYMulAdd");
+      WaterPlanePos           =GetShaderParam("WaterPlanePos");
+      WaterPlaneNrm           =GetShaderParam("WaterPlaneNrm");
+      WaterFlow               =GetShaderParam("WaterFlow");
+      WaterReflectMulAdd      =GetShaderParam("WaterReflectMulAdd");
+      WaterClamp              =GetShaderParam("WaterClamp");
 
       Lake =shader->get(S8+"Lake" +0+0+0+0+0);
       River=shader->get(S8+"River"+0+0+0+0+0);

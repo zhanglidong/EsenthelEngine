@@ -308,13 +308,14 @@ public:
    void resizeBase2(C VecI2 &size, bool relative=false);
    void bumpFromCol(int blur);
 
-   virtual   EditMaterial& getEditMtrl();
-   virtual C ImagePtr    & getBase0   ();
-   virtual C ImagePtr    & getBase1   ();
-   virtual C ImagePtr    & getBase2   ();
-   virtual C ImagePtr    & getDetail  ();
-   virtual C ImagePtr    & getMacro   ();
-   virtual C ImagePtr    & getLight   ();
+   virtual   EditMaterial& getEditMtrl(); 
+   virtual C ImagePtr    & getBase0   (); 
+   virtual C ImagePtr    & getBase1   (); 
+   virtual C ImagePtr    & getBase2   (); 
+   virtual C ImagePtr    & getDetail  (); 
+   virtual C ImagePtr    & getMacro   (); 
+   virtual C ImagePtr    & getLight   (); 
+   virtual   bool          water      ()C;
 
    void setBottom(C Rect &prop_rect);
    void create();

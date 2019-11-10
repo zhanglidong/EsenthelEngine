@@ -2,9 +2,9 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-WaterClass   Water;
-WaterMtrl   *WaterMtrlLast;
-WaterMtrlPtr WaterMtrlNull;
+      WaterClass   Water;
+const WaterMtrl   *WaterMtrlLast;
+      WaterMtrlPtr WaterMtrlNull;
 DEFINE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr, "Water Material");
 /******************************************************************************/
 // WATER PARAMETERS
@@ -24,23 +24,21 @@ WaterMtrl::WaterMtrl()
    colorUnderwater0S(Vec(0.26f, 0.35f, 0.42f));
    colorUnderwater1S(Vec(0.10f, 0.20f, 0.30f));
 
-   smooth                =1;
-   reflect               =0.02f;
-   normal                =1;
-   wave_scale            =0.25f;
+   smooth            =1;
+   reflect           =0.02f;
+   normal            =1;
+   wave_scale        =0.25f;
 
-   scale_color           =1.0f/200;
-   scale_normal          =1.0f/10;
-   scale_bump            =1.0f/100;
+   scale_color       =1.0f/200;
+   scale_normal      =1.0f/10;
+   scale_bump        =1.0f/100;
 
-   density               =0.3f;
-   density_add           =0.45f;
-   density_underwater    =0.02f;
-   density_underwater_add=0.6f;
+   density           =0.3f;
+   density_add       =0.45f;
 
-   refract               =0.10f;
-   refract_reflection    =0.06f;
-   refract_underwater    =0.01f;
+   refract           =0.10f;
+   refract_reflection=0.06f;
+   refract_underwater=0.01f;
 }
 /******************************************************************************/
 WaterMtrl& WaterMtrl:: colorMap(C ImagePtr &image) {T. _color_map=image; return T;}
@@ -55,7 +53,7 @@ WaterMtrl& WaterMtrl::validate()
    if(WaterMtrlLast==this)WaterMtrlLast=null;
    return T;
 }
-void WaterMtrl::set()
+void WaterMtrl::set()C
 {
    if(WaterMtrlLast!=this)
    {
@@ -74,8 +72,6 @@ Bool WaterMtrl::save(File &f, CChar *path)C
    f<<SCAST(C WaterMtrlParams, T)
     <<color_underwater0
     <<color_underwater1
-    <<density_underwater
-    <<density_underwater_add
     <<refract_underwater;
 
    // textures
@@ -94,8 +90,6 @@ Bool WaterMtrl::load(File &f, CChar *path)
          f>>SCAST(WaterMtrlParams, T)
           >>color_underwater0
           >>color_underwater1
-          >>density_underwater
-          >>density_underwater_add
           >>refract_underwater;
          f.getStr(temp);  _color_map.require(temp, path);
          f.getStr(temp); _normal_map.require(temp, path);
@@ -107,7 +101,7 @@ Bool WaterMtrl::load(File &f, CChar *path)
          Flt temp_flt;
          Vec temp_vec;
          reset();
-         f>>density>>density_add>>density_underwater>>density_underwater_add>>scale_color>>scale_normal>>scale_bump>>normal>>temp_flt>>temp_flt>>refract>>refract_reflection>>refract_underwater>>temp_flt>>wave_scale>>temp_flt>>temp_flt;
+         f>>density>>density_add>>temp_flt>>temp_flt>>scale_color>>scale_normal>>scale_bump>>normal>>temp_flt>>temp_flt>>refract>>refract_reflection>>refract_underwater>>temp_flt>>wave_scale>>temp_flt>>temp_flt;
          f>>temp_vec>>color>>color_underwater0>>color_underwater1;
          colorS           (color);
          colorUnderwater0S(color_underwater0);
@@ -262,8 +256,8 @@ void WaterClass::prepare() // this is called at the start
            _y_mul_add.y=0;
          #endif
 
-            if(reflection_allow && reflect>EPS_COL)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
             WS.load();
+            if(reflection_allow && reflect>EPS_COL)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
          }
       }
    }

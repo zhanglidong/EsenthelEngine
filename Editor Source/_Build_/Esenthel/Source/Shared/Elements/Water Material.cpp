@@ -3,12 +3,12 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1);}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1);}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
       return super::equal(src)
-         && density_time==src.density_time && density_underwater_time==src.density_underwater_time
+         && density_time==src.density_time
          && scale_color_time==src.scale_color_time && scale_normal_time==src.scale_normal_time && scale_bump_time==src.scale_bump_time
          && refract_time==src.refract_time && refract_reflection_time==src.refract_reflection_time && refract_underwater_time==src.refract_underwater_time
          && wave_scale_time==src.wave_scale_time
@@ -17,7 +17,7 @@
    bool EditWaterMtrl::newer(C EditWaterMtrl &src)C
    {
       return super::newer(src)
-         || density_time>src.density_time || density_underwater_time>src.density_underwater_time
+         || density_time>src.density_time
          || scale_color_time>src.scale_color_time || scale_normal_time>src.scale_normal_time || scale_bump_time>src.scale_bump_time
          || refract_time>src.refract_time || refract_reflection_time>src.refract_reflection_time || refract_underwater_time>src.refract_underwater_time
          || wave_scale_time>src.wave_scale_time
@@ -27,7 +27,7 @@
    void EditWaterMtrl::newData()
    {
       super::newData();
-      density_time++; density_underwater_time++;
+      density_time++;
       scale_color_time++; scale_normal_time++; scale_bump_time++;
       refract_time++; refract_reflection_time++; refract_underwater_time++;
       wave_scale_time++;
@@ -46,8 +46,6 @@
       scale_bump            =src.scale_bump; scale_bump_time=time;
       density               =src.density;
       density_add           =src.density_add; density_time=time;
-      density_underwater    =src.density_underwater;
-      density_underwater_add=src.density_underwater_add; density_underwater_time=time;
       refract               =src.refract; refract_time=time;
       refract_reflection    =src.refract_reflection; refract_reflection_time=time;
       refract_underwater    =src.refract_underwater; refract_underwater_time=time;
@@ -59,22 +57,20 @@
    void EditWaterMtrl::copyTo(WaterMtrl &dest, C Project &proj)C
    {
       dest.colorS(color_s.xyz);
-      dest.smooth                =smooth                ;
-      dest.reflect               =reflect               ;
-      dest.normal                =normal                ;
-      dest.wave_scale            =wave_scale            ;
-      dest.scale_color           =scale_color           ;
-      dest.scale_normal          =scale_normal          ;
-      dest.scale_bump            =scale_bump            ;
-      dest.density               =density               ;
-      dest.density_add           =density_add           ;
-      dest.density_underwater    =density_underwater    ;
-      dest.density_underwater_add=density_underwater_add;
-      dest.refract               =refract               ;
-      dest.refract_reflection    =refract_reflection    ;
-      dest.refract_underwater    =refract_underwater    ;
-      dest.color_underwater0     =color_underwater0     ;
-      dest.color_underwater1     =color_underwater1     ;
+      dest.smooth                =smooth            ;
+      dest.reflect               =reflect           ;
+      dest.normal                =normal            ;
+      dest.wave_scale            =wave_scale        ;
+      dest.scale_color           =scale_color       ;
+      dest.scale_normal          =scale_normal      ;
+      dest.scale_bump            =scale_bump        ;
+      dest.density               =density           ;
+      dest.density_add           =density_add       ;
+      dest.refract               =refract           ;
+      dest.refract_reflection    =refract_reflection;
+      dest.refract_underwater    =refract_underwater;
+      dest.color_underwater0     =color_underwater0 ;
+      dest.color_underwater1     =color_underwater1 ;
       dest. colorMap(proj.texPath(base_0_tex))
           .normalMap(proj.texPath(base_1_tex));
       dest.validate();
@@ -94,12 +90,6 @@
          changed|=CHANGED_PARAM;
          density    =src.density;
          density_add=src.density_add;
-      }
-      if(Sync(density_underwater_time, src.density_underwater_time))
-      {
-         changed|=CHANGED_PARAM;
-         density_underwater     =src.density_underwater;
-         density_underwater_add =src.density_underwater_add;
       }
       if(Sync(color_underwater_time, src.color_underwater_time))
       {
@@ -125,12 +115,6 @@
          density    =src.density;
          density_add=src.density_add;
       }
-      if(Undo(density_underwater_time, src.density_underwater_time))
-      {
-         changed|=CHANGED_PARAM;
-         density_underwater     =src.density_underwater;
-         density_underwater_add =src.density_underwater_add;
-      }
       if(Undo(color_underwater_time, src.color_underwater_time))
       {
          changed|=CHANGED_PARAM;
@@ -144,13 +128,12 @@
       f.cmpUIntV(1); // version
       super::save(f);
       f<<density<<density_add
-       <<density_underwater<<density_underwater_add
        <<scale_color<<scale_normal<<scale_bump
        <<refract<<refract_reflection<<refract_underwater
        <<wave_scale
        <<color_underwater0
        <<color_underwater1
-       <<density_time<<density_underwater_time
+       <<density_time
        <<scale_color_time<<scale_normal_time<<scale_bump_time
        <<refract_time<<refract_reflection_time<<refract_underwater_time
        <<wave_scale_time
@@ -164,13 +147,12 @@
          case 2: if(super::load(f))
          {
             f>>density>>density_add
-             >>density_underwater>>density_underwater_add
              >>scale_color>>scale_normal>>scale_bump
              >>refract>>refract_reflection>>refract_underwater
              >>wave_scale
              >>color_underwater0
              >>color_underwater1
-             >>density_time>>density_underwater_time
+             >>density_time
              >>scale_color_time>>scale_normal_time>>scale_bump_time
              >>refract_time>>refract_reflection_time>>refract_underwater_time
              >>wave_scale_time
@@ -181,10 +163,10 @@
          case 1: if(super::load(f))
          {
             flt temp_flt; Vec temp_vec; TimeStamp temp_time;
-            f>>density>>density_add>>density_underwater>>density_underwater_add>>scale_color>>scale_normal>>scale_bump
+            f>>density>>density_add>>temp_flt>>temp_flt>>scale_color>>scale_normal>>scale_bump
              >>temp_flt>>refract>>refract_reflection>>refract_underwater>>wave_scale
              >>temp_flt>>temp_flt>>temp_vec>>color_underwater0>>color_underwater1
-             >>density_time>>density_underwater_time>>scale_color_time>>scale_normal_time>>scale_bump_time
+             >>density_time>>temp_time>>scale_color_time>>scale_normal_time>>scale_bump_time
              >>temp_time>>refract_time>>refract_reflection_time>>refract_underwater_time>>wave_scale_time
              >>temp_time>>temp_time>>temp_time>>color_underwater_time;
             scale_color =1/scale_color ;

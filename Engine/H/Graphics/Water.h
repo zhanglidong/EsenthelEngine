@@ -21,11 +21,9 @@ struct WaterMtrlParams // Water Material Parameters
 };
 struct WaterMtrl : WaterMtrlParams // Water Material
 {
-   Vec color_underwater0     , // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
-       color_underwater1     ; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
-   Flt density_underwater    , //                 density when viewed underwater      ,       0..1      , default=0.02
-       density_underwater_add, // factor added to density when viewed underwater      ,       0..1      , default=0.6
-       refract_underwater    ; // refraction when viewed underwater                   ,       0..1      , default=0.01 (0 is the fastest)
+   Vec color_underwater0 , // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
+       color_underwater1 ; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
+   Flt refract_underwater; // refraction when viewed underwater                   ,       0..1      , default=0.01 (0 is the fastest)
 
  C Vec& colorUnderwater0L()C {return color_underwater0;}   void colorUnderwater0L(C Vec &color_l) {T.color_underwater0=color_l;} // get/set Linear Gamma color
    Vec  colorUnderwater0S()C;                              void colorUnderwater0S(C Vec &color_s);                               // get/set sRGB   Gamma color, default=(0.26, 0.35, 0.42)
@@ -41,7 +39,7 @@ struct WaterMtrl : WaterMtrlParams // Water Material
    WaterMtrl& reset   (); // reset to default values
    WaterMtrl& validate(); // this needs to be called after manually changing the parameters/textures
 #if EE_PRIVATE
-   void set();
+   void set()C;
 #endif
 
    // io
@@ -61,8 +59,8 @@ private:
 /******************************************************************************/
 DECLARE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr); // Water Material Cache
 #if EE_PRIVATE
-extern WaterMtrl   *WaterMtrlLast; // Last set Water Material
-extern WaterMtrlPtr WaterMtrlNull;
+extern const WaterMtrl   *WaterMtrlLast; // Last set Water Material
+extern       WaterMtrlPtr WaterMtrlNull;
 
 #define WATER_TRANSITION 0.1f // transition between above and under surface
 #endif

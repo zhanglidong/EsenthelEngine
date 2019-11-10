@@ -496,15 +496,10 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             Texture *t1; if(t1=GetTexture(publish_texs, data->base_1_tex)){t1->srgb=false; if(ForceHQMtrlBase1)t1->quality=1; t1->normal=true;}
             Texture *t2; if(t2=GetTexture(publish_texs, data->base_2_tex)){t2->srgb=false; if(ForceHQMtrlBase2)t2->quality=1;}
 
-            // check which base textures use Alpha Channel, #MaterialTextureLayout
-            if(t2)
-            {
-               if(t0 && data->usesTexGlow ())t0->uses_alpha=true; // t0 Alpha used for glow
-               if(      data->usesTexAlpha())t2->uses_alpha=true; // t2 Alpha used for opacity
-            }else
+            // check which base textures use Alpha Channel, #WaterMaterialTextureLayout
             if(t0)
             {
-               if(data->usesTexAlpha())t0->uses_alpha=true; // Alpha used for opacity
+               if(data->usesTexBump())t0->uses_alpha=true; // Alpha used for bump
             }
          }
 
