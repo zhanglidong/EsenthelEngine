@@ -129,14 +129,7 @@ void Surface_PS
    nrm_flat.xy+=inWaveN.xy;
 #endif
    nrm_flat.z=CalcZ(nrm_flat.xy);
-
-   Matrix3 mtrx; // FIXME precision
-   mtrx[0]=ViewMatrixX();
-   mtrx[1]=ViewMatrixZ();
-   mtrx[2]=ViewMatrixY();
-
-   Vec nrm=Transform(nrm_flat, mtrx); // convert to view space
-   // FIXME try to use TransformDir(nrm_flat.xzy) or TransformDir(nrm_flat).xzy
+   Vec nrm=Normalize(TransformDir(nrm_flat.xzy)); // convert to view space
 
    VecH4 water_col;
    water_col.rgb=Tex(Col, inTexC).rgb*WaterMaterial.color;
