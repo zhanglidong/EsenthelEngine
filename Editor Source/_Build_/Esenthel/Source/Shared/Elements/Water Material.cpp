@@ -49,8 +49,8 @@
       refract               =src.refract; refract_time=time;
       refract_reflection    =src.refract_reflection; refract_reflection_time=time;
       refract_underwater    =src.refract_underwater; refract_underwater_time=time;
-      color_underwater0     =src.color_underwater0; color_underwater_time=time;
-      color_underwater1     =src.color_underwater1;
+      color_underwater0     =src.colorUnderwater0S(); color_underwater_time=time;
+      color_underwater1     =src.colorUnderwater1S();
       base_0_tex=src. colorMap().id();
       base_1_tex=src.normalMap().id();
    }
@@ -69,8 +69,8 @@
       dest.refract               =refract           ;
       dest.refract_reflection    =refract_reflection;
       dest.refract_underwater    =refract_underwater;
-      dest.color_underwater0     =color_underwater0 ;
-      dest.color_underwater1     =color_underwater1 ;
+      dest.colorUnderwater0S     (color_underwater0);
+      dest.colorUnderwater1S     (color_underwater1);
       dest. colorMap(proj.texPath(base_0_tex))
           .normalMap(proj.texPath(base_1_tex));
       dest.validate();
