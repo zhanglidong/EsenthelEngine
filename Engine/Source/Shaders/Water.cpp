@@ -2,7 +2,7 @@
 #include "!Header.h"
 #include "Water.h"
 /******************************************************************************/
-// LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, WAVES, RIVER
+// LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, GATHER, WAVES, RIVER
 #ifndef WAVES
 #define WAVES 0
 #endif
@@ -242,7 +242,7 @@ void Surface_PS
 /******************************************************************************/
 // Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
-// REFRACT, SET_DEPTH
+// REFRACT, SET_DEPTH, REFLECT_ENV, REFLECT_MIRROR, GATHER
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1
             #if SET_DEPTH
