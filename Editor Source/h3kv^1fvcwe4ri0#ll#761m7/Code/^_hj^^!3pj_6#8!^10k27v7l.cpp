@@ -143,7 +143,7 @@ class EditWaterMtrl : EditMaterial
    // io
    bool save(File &f)C
    {
-      f.cmpUIntV(1); // version
+      f.cmpUIntV(2); // version
       super.save(f);
       f<<density<<density_add
        <<scale_color<<scale_normal<<scale_bump
