@@ -1157,7 +1157,7 @@ void Light::draw()
             }
 
             SetWaterLum();
-            DrawLightDir(false, false);
+            DrawLightDir(false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1238,7 +1238,7 @@ void Light::draw()
 
             SetWaterLum();
             D.depth2DOn(depth_func);
-            DrawLightPoint(light_matrix, false, false);
+            DrawLightPoint(light_matrix, false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1321,7 +1321,7 @@ void Light::draw()
 
             SetWaterLum();
             D.depth2DOn(depth_func);
-            DrawLightLinear(light_matrix, false, false);
+            DrawLightLinear(light_matrix, false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1402,7 +1402,7 @@ void Light::draw()
 
             SetWaterLum();
             D.depth2DOn(depth_func);
-            DrawLightCone(light_matrix, false, false);
+            DrawLightCone(light_matrix, false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
