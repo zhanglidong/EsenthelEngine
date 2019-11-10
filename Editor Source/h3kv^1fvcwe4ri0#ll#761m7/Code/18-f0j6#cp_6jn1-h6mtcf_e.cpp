@@ -208,12 +208,32 @@ class WaterMtrlRegion : MaterialRegion
    {
       if(elm && game)
       {
+         uint new_base_tex;
          if(auto_reload || always)
          {
-            Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y);
+            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }
+         }else new_base_tex=edit.baseTex(); // set approximate
+
          setChanged();
+         if(adjust_params)
+         {
+            TimeStamp time; time.getUTC();
+            uint changed=(old_base_tex^new_base_tex);
+            if(changed&BT_BUMP)
+            {
+               if(!(new_base_tex&BT_BUMP)            )game->wave_scale=0;else
+               if(game->wave_scale<=EPS_MATERIAL_BUMP)game->wave_scale=0.1;
+            }
+            if(changed&(BT_BUMP|BT_NORMAL))
+            {
+               if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))game->normal=0;else
+               if(                              game->normal<=EPS_COL8)game->normal=1;
+            }
+            SyncByValueEqual(edit.wave_scale_time, time, edit.wave_scale, game->wave_scale);
+            SyncByValueEqual(edit.    normal_time, time, edit.normal    , game->normal    );
+         }
+         Proj.mtrlTexChanged();
 
          toGui();
       }

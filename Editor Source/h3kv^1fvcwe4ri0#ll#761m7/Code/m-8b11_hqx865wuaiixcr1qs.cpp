@@ -1114,14 +1114,10 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          {
             new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else
-         {
-            new_base_tex=edit.baseTex(); // set approximate
-         }
+         }else new_base_tex=edit.baseTex(); // set approximate
          setChanged();
-         Proj.mtrlTexChanged();
-
          if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
+         Proj.mtrlTexChanged();
          D.setShader(game());
          toGui();
 
