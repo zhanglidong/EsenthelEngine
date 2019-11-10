@@ -135,7 +135,7 @@ WaterClass::WaterClass()
    draw                 =false;
    reflection_allow     =!MOBILE;
    reflection_shadows   =false;
-   reflection_resolution=2;
+   reflection_resolution=1;
    plane.normal.y       =1;
   _max_1_light          =true;
   _draw_plane_surface   =false;

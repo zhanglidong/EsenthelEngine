@@ -70,7 +70,7 @@ struct WaterClass : WaterMtrl // Main water control
    Bool   draw                 , // if draw the water plane      , true/false, default=false                  , it can be drawn only after setting 'draw' to true, and setting valid water images in parameters
           reflection_allow     , // if allow rendering reflection, true/false, default=true (false for Mobile)
           reflection_shadows   ; // if use shadows in reflection , true/false, default=false                  , to have shadows in reflection you must also enable global shadowing
-   Byte   reflection_resolution; // reflection resolution        ,    0..4   , default=2                      , the bigger value the worse quality but faster rendering
+   Byte   reflection_resolution; // reflection resolution        ,    0..4   , default=1                      , the bigger value the worse quality but faster rendering
    PlaneM plane                ; // water plane                  ,           , default=(pos(0,0,0), normal(0,1,0))
 
    WaterClass& reflectionRenderer(RENDER_TYPE type);   RENDER_TYPE reflectionRenderer()C {return _reflect_renderer;} // set/get Renderer used for rendering the reflaction , default=RT_DEFERRED (RT_FORWARD for Mobile)
