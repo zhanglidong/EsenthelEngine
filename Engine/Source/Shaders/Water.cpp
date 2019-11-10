@@ -18,41 +18,44 @@ void Surface_VS
 (
    VtxInput vtx,
 
-   out Vec  outPos  :TEXCOORD0,
-   out Vec2 outTex  :TEXCOORD1,
-   out Vec4 outTexN0:TEXCOORD2,
-   out Vec4 outTexN1:TEXCOORD3,
+   out Vec2 outTex  :TEXCOORD0,
+   out Vec4 outTexN0:TEXCOORD1,
+   out Vec4 outTexN1:TEXCOORD2,
 #if WAVES
-   out Vec4 outTexB :TEXCOORD4,
+   out Vec4 outTexB :TEXCOORD3,
 #endif
 #if LIGHT
-   out Half outPDF  :TEXCOORD5,
+   out Vec  outPos      :POS,
+   out Half outPlaneDist:PLANE_DIST,
 #endif
-   out Vec4 outVtx  :POSITION
+   out Vec4 outVtx:POSITION
 )
 {
-   Vec pos=vtx.pos();
+   Vec world_pos=vtx.pos(), view_pos;
    if(WAVES)
    {
-      pos.y=pos.y*WaterYMulAdd.x + WaterYMulAdd.y;
+      world_pos.y=world_pos.y*WaterYMulAdd.x + WaterYMulAdd.y;
 
-      Vec dir =Normalize(Vec(FracToPosXY(pos.xy), 1));
+      Vec dir =Normalize(Vec(FracToPosXY(world_pos.xy), 1));
       Flt dist=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, dir);
       if( dist>0)
       {
-         pos=dir*dist;
+         world_pos=dir*dist;
       }else
       {
-         pos=PointOnPlane(dir*Viewport.range, WaterPlanePos, WaterPlaneNrm);
+         world_pos=PointOnPlane(dir*Viewport.range, WaterPlanePos, WaterPlaneNrm);
       }
 
-      outPos=pos;
-      pos   =Transform(pos, CamMatrix);
+       view_pos=world_pos;
+      world_pos=Transform(world_pos, CamMatrix);
+   }else
+   {
+      view_pos=TransformPos(world_pos);
    }
 
    Vec2 tex;
    if(RIVER){tex=vtx.tex(); tex.y-=WaterFlow;}
-   else     {tex=pos.xz;}
+   else     {tex=world_pos.xz;}
    outTex     =tex*  WaterMaterial.scale_color    +     WaterOfs ;
    outTexN0.xy=tex*  WaterMaterial.scale_normal   +     WaterOfs ;
    outTexN0.zw=tex* -WaterMaterial.scale_normal   +     WaterOfs ;
@@ -61,22 +64,18 @@ void Surface_VS
 #if WAVES
    outTexB .xy=tex*  WaterMaterial.scale_bump     +     WaterOfs ;
    outTexB .zw=tex* -WaterMaterial.scale_bump     +     WaterOfs ;
-#endif
 
-#if WAVES // #WaterMaterialTextureLayout
-   Flt dist_scale=LerpRS(Sqr(150), Sqr(100), Length2(outPos)),
-       bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
+   Flt dist_scale=LerpRS(Sqr(150), Sqr(100), Length2(view_pos)),
+       bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a; // #WaterMaterialTextureLayout
        bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
-       outPos   +=WaterPlaneNrm*(WaterMaterial.wave_scale*bump*dist_scale);
-#else
-   outPos=TransformPos(pos);
+       view_pos +=WaterPlaneNrm*(WaterMaterial.wave_scale*bump*dist_scale);
 #endif
 
 #if LIGHT
-   outPDF=2-Abs(DistPointPlane(outPos, WaterPlanePos, WaterPlaneNrm)); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
+   outPos      =view_pos;
+   outPlaneDist=DistPointPlane(view_pos, WaterPlanePos, WaterPlaneNrm); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
 #endif
-
-   outVtx=Project(outPos);
+   outVtx=Project(view_pos);
 }
 /******************************************************************************/
 
@@ -86,15 +85,15 @@ void Surface_VS
 
 void Surface_PS
 (
-   Vec  inPos  :TEXCOORD0,
-   Vec2 inTex  :TEXCOORD1,
-   Vec4 inTexN0:TEXCOORD2,
-   Vec4 inTexN1:TEXCOORD3,
+   Vec2 inTexC :TEXCOORD0,
+   Vec4 inTexN0:TEXCOORD1,
+   Vec4 inTexN1:TEXCOORD2,
 #if WAVES
-   Vec4 inTexB :TEXCOORD4,
+   Vec4 inTexB :TEXCOORD3,
 #endif
 #if LIGHT
-   Half inPDF  :TEXCOORD5,
+   Vec  inPos      :POS,
+   Half inPlaneDist:PLANE_DIST,
 #endif
    PIXEL,
 
@@ -104,70 +103,107 @@ void Surface_PS
 #endif
 ) // #RTOutput
 {
-   VecH nrm; // #WaterMaterialTextureLayout
-        nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterMaterial.normal
+   VecH nrm_flat; // #WaterMaterialTextureLayout
+        nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterMaterial.normal
 #if WAVES // FIXME perhaps make it dependent on bump from VS, use some ddx (+delta) and scale by wave_scale
-   nrm.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*(WaterMaterial.wave_scale*0.5); // Avg(Tex(Nrm, inTexB.xy).xy, -Tex(Nrm, inTexB.zw).xy))*WaterMaterial.wave_scale
+   nrm_flat.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*(WaterMaterial.wave_scale*0.5); // Avg(Tex(Nrm, inTexB.xy).xy, -Tex(Nrm, inTexB.zw).xy))*WaterMaterial.wave_scale
 #endif
-   nrm.z=CalcZ(nrm.xy);
+   nrm_flat.z=CalcZ(nrm_flat.xy);
 
    Matrix3 mtrx; // FIXME precision
    mtrx[0]=ViewMatrixX();
    mtrx[1]=ViewMatrixZ();
    mtrx[2]=ViewMatrixY();
 
-   /*VecH fresnel_nrm    =nrm;
-        fresnel_nrm.xy*=WaterFresnelRough;
-        fresnel_nrm.z  =CalcZ(fresnel_nrm.xy);
-        fresnel_nrm    =Transform(fresnel_nrm, mtrx); // convert to view space*/
-   Vec    view_nrm    =Transform(nrm        , mtrx); // convert to view space
-   // FIXME try to use TransformDir(nrm.xzy) or TransformDir(nrm).xzy
+   Vec nrm=Transform(nrm_flat, mtrx); // convert to view space
+   // FIXME try to use TransformDir(nrm_flat.xzy) or TransformDir(nrm_flat).xzy
 
    VecH4 water_col;
-   water_col.rgb=Tex(Col, inTex).rgb*WaterMaterial.color;
+   water_col.rgb=Tex(Col, inTexC).rgb*WaterMaterial.color;
    water_col.a  =0;
 
 #if !LIGHT
    O_col=water_col;
 
    #if SIGNED_NRM_RT
-      O_nrm.xyz=view_nrm;
+      O_nrm.xyz=nrm;
    #else
-      O_nrm.xyz=view_nrm*0.5+0.5; // -1..1 -> 0..1
+      O_nrm.xyz=nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 #else
-   Vec view=Normalize(inPos);
+   Vec eye_dir=Normalize(inPos);
 
-      /*{
-   #if FAKE_REFLECTION // add fake reflection
-      col.rgb=Lerp(col.rgb, TexCube(Env, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*EnvColor, WaterRflFake); // #ShaderHalf
+   // shadow
+   Half shadow; if(SHADOW)shadow=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
+
+   // light
+   VecH total_lum     =AmbientNSColor,
+        total_specular=0;
+
+   Vec light_dir=LightDir.dir;
+   LightParams lp; lp.set(nrm, light_dir);
+   Half lum=lp.NdotL; if(SHADOW)lum*=shadow;
+   BRANCH if(lum>EPS_LUM)
+   {
+      // light #1
+      lp.set(nrm, light_dir, eye_dir);
+            
+      // specular
+      Half specular=lp.specular(WaterMaterial.smooth, WaterMaterial.reflect, false)*lum;
+
+      // diffuse !! after specular because it adjusts 'lum' !!
+      lum*=lp.diffuse(WaterMaterial.smooth);
+
+      total_lum     +=LightDir.color.rgb*lum     ;
+      total_specular+=LightDir.color.rgb*specular;
+   }
+   water_col.rgb*=total_lum;
+
+   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 refract=nrm_flat.xy*Viewport.size; // FIXME
+
+   // reflection
+   #if REFLECT_ENV || REFLECT_MIRROR
+   {
+      water_col.rgb*=1-WaterMaterial.reflect;
+      Half reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
+
+   #if REFLECT_ENV
+      Vec  reflect_dir=ReflectDir(eye_dir, nrm); if(1)reflect_dir.y=Max(0, reflect_dir.y); // don't go below water level (to skip showing ground)
+      VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.smooth)*EnvColor;
    #endif
-      // fresnel
-      {
-         Half dot_prod=Sat(-Dot(view, fresnel_nrm)),
-              fresnel =Pow(1-dot_prod, WaterFresnelPow);
-         col.rgb+=fresnel*WaterFresnelColor;
-      }
-   }*/
+   #if REFLECT_MIRROR
+      Vec2 reflect_tex=Mid((inTex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
+      VecH reflect_mirror=TexLodClamp(Img1, reflect_tex).rgb;
+      Half reflect_mirror_power=Sat(2-Abs(inPlaneDist)); // can use mirror reflection only if water position is close to water plane
+   #endif
 
-        inTex      =PixelToScreen(pixel);
+   #if REFLECT_ENV && REFLECT_MIRROR // both available
+      VecH reflect=Lerp(reflect_env, reflect_mirror, reflect_mirror_power)*reflect_power;
+   #elif REFLECT_ENV
+      VecH reflect=reflect_env*reflect_power;
+   #else
+      VecH reflect=reflect_mirror*(reflect_mirror_power*reflect_power);
+   #endif
+
+      total_specular+=reflect;
+   }
+   #endif
+
    Flt  water_z    =inPos.z,
          back_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
          back_z    =(SOFT ? LinearizeDepth(back_z_raw) : water_z+DEFAULT_DEPTH);
    Half alpha=0;
 
-   Vec2 back_tex=inTex;
-
-   Vec2 refract=nrm.xy*Viewport.size;
-
    Flt dz   =(SOFT ? back_z-water_z : DEFAULT_DEPTH);
        alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
 
-   Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    if(SOFT)
    {
-      Flt test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
-      if( test_z>water_z)
+      Vec2 back_tex=inTex;
+      Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+      Flt  test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
+      if(  test_z>water_z) // only if it's not in front of water (leaking)
       {
          back_z  =test_z;
          back_tex=test_tex;
@@ -177,45 +213,13 @@ void Surface_PS
          dz   =back_z-water_z;
          alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
       }
-   }else
-   {
-      back_tex=test_tex;
-   }
-
-   // light
-   /*VecH4 lum;
-   {
-      // shadow
-      Half shd; if(SHADOW)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
-
-      // diffuse
-      Half diffuse=LightDiffuse(view_nrm, LightDir.dir); if(SHADOW)diffuse*=shd;
-
-      // specular
-      Half specular=LightSpecular(view_nrm, WaterMaterial.smooth, WaterMaterial.reflect, LightDir.dir, view); if(SHADOW)specular*=shd;
-
-      lum=VecH4(LightDir.color.rgb*diffuse, LightDir.color.a*specular);
-   }
-
-   // col light
-   water_col.rgb*=lum.rgb+AmbientNSColor;*/
-
-   // reflection
-   //Half  rfl=WaterRfl*Sat(inPDF);
-       inTex=Mid ((inTex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-   //FIXME water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
-
-   // specular
-   //water_col.rgb+=lum.w*lum.w*0.5;
-
-   if(SOFT)
-   {
-           VecH4 back_col=TexLodClamp(Img2, back_tex);
-      O_col=Lerp(back_col, water_col, alpha);
+      VecH4 back_col=TexLodClamp(Img2, back_tex);
+      O_col=((alpha==1) ? water_col : Lerp(back_col, water_col, alpha));
    }else
    {
       O_col=water_col;
    }
+   O_col.rgb+=total_specular; // independent of alpha
 #endif
 }
 /******************************************************************************/

@@ -331,7 +331,7 @@ void WaterClass::begin()
       }else
       {
          if(Lights.elms() && Lights[0].type==LIGHT_DIR)Lights[0].dir.set();else LightDir(Vec(0,-1,0), VecZero, 0).set();
-         // we're going to draw water on top of existing RT, including refraction, so we need to have a color copy of what's underwater (solid) for the refraction, also we want to do softing so we need to backup depth because we can't read and write to depth in the same time
+         // we're going to draw water on top of existing RT, including refraction, so we need to have a color copy of what's underwater (background) for the refraction, also we want to do softing so we need to backup depth because we can't read and write to depth in the same time
          Renderer._water_col.get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), GetImageRTType(Renderer._col->type()))); // create RT for the copy
          Renderer._col->copyHw(*Renderer._water_col, false, D.viewRect()); // copy
          if(_shader_soft)
@@ -404,8 +404,8 @@ void WaterClass::setImages(Image *src, Image *depth)
 {
    // these are used by both draw surface and apply water shaders
    Sh.Img  [1]->set(Renderer._mirror_rt); Sh.Img[1]->_sampler=&SamplerLinearClamp; // reflection
-   Sh.Img  [2]->set(          src      ); Sh.Img[2]->_sampler=&SamplerLinearClamp; // solid underwater
-   Sh.ImgXF[0]->set(          depth    );                                          // solid depth
+   Sh.Img  [2]->set(          src      ); Sh.Img[2]->_sampler=&SamplerLinearClamp; // background underwater
+   Sh.ImgXF[0]->set(          depth    );                                          // background depth
 }
 void WaterClass::endImages()
 {
