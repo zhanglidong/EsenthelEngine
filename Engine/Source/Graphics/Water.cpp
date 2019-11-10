@@ -34,7 +34,7 @@ WaterMtrl::WaterMtrl()
    scale_bump        =1.0f/100;
 
    density           =0.3f;
-   density_add       =0.45f;
+   density_add       =0;
 
    refract           =0.10f;
    refract_reflection=0.06f;

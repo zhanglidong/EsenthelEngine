@@ -11,7 +11,7 @@ struct WaterMtrlParams // Water Material Parameters
        scale_bump        , // scale bump   texture        ,       0..Inf    , default=1/100
 
        density           , //                 density     ,       0..1      , default=0.3
-       density_add       , // factor added to density     ,       0..1      , default=0.45
+       density_add       , // factor added to density     ,       0..1      , default=0
 
        refract           , // refraction power            ,       0..1      , default=0.10 (0 is the fastest)
        refract_reflection; // refraction of the reflection,       0..1      , default=0.06
