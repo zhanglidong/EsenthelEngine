@@ -4,7 +4,7 @@
 /******************************************************************************/
 #define DEFAULT_DEPTH 1.0
 /******************************************************************************/
-// LIGHT, SHADOW, SOFT, FAKE_REFLECTION, WAVES, RIVER
+// LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, WAVES, RIVER
 #ifndef WAVES
 #define WAVES 0
 #endif
@@ -111,7 +111,7 @@ void Surface_PS
 #endif
    nrm.z=CalcZ(nrm.xy);
 
-   Matrix3 mtrx;
+   Matrix3 mtrx; // FIXME precision
    mtrx[0]=ViewMatrixX();
    mtrx[1]=ViewMatrixZ();
    mtrx[2]=ViewMatrixY();
@@ -120,23 +120,10 @@ void Surface_PS
         fresnel_nrm.xy*=WaterFresnelRough;
         fresnel_nrm.z  =CalcZ(fresnel_nrm.xy);
         fresnel_nrm    =Transform(fresnel_nrm, mtrx); // convert to view space*/
-   VecH    view_nrm    =Transform(nrm        , mtrx); // convert to view space
-
-   VecH view=Normalize(inPos);
+   Vec    view_nrm    =Transform(nrm        , mtrx); // convert to view space
+   // FIXME try to use TransformDir(nrm.xzy) or TransformDir(nrm).xzy
 
    VecH4 col=VecH4(Tex(Col, inTex).rgb*WaterMaterial.color, 0);
-   /*{
-   #if FAKE_REFLECTION // add fake reflection
-      col.rgb=Lerp(col.rgb, TexCube(Env, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*EnvColor, WaterRflFake); // #ShaderHalf
-   #endif
-      // fresnel
-      {
-         Half dot_prod=Sat(-Dot(view, fresnel_nrm)),
-              fresnel =Pow(1-dot_prod, WaterFresnelPow);
-         col.rgb+=fresnel*WaterFresnelColor;
-      }
-   }
-   col.rgb=Sat(col.rgb);*/
 
 #if !LIGHT
    O_col=col; // in O_col.w you can encode: reflection, refraction, glow
@@ -147,6 +134,20 @@ void Surface_PS
       O_nrm.xyz=view_nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 #else
+   Vec view=Normalize(inPos);
+
+      /*{
+   #if FAKE_REFLECTION // add fake reflection
+      col.rgb=Lerp(col.rgb, TexCube(Env, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*EnvColor, WaterRflFake); // #ShaderHalf
+   #endif
+      // fresnel
+      {
+         Half dot_prod=Sat(-Dot(view, fresnel_nrm)),
+              fresnel =Pow(1-dot_prod, WaterFresnelPow);
+         col.rgb+=fresnel*WaterFresnelColor;
+      }
+   }*/
+
         inTex      =PixelToScreen(pixel);
    Flt  water_z    =inPos.z,
         solid_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
@@ -181,7 +182,7 @@ void Surface_PS
    }
 
    // light
-   VecH4 lum;
+   /*VecH4 lum;
    {
       // shadow
       Half shd; if(SHADOW)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
@@ -196,7 +197,7 @@ void Surface_PS
    }
 
    // col light
-   water_col.rgb*=lum.rgb+AmbientNSColor;
+   water_col.rgb*=lum.rgb+AmbientNSColor;*/
 
    // reflection
    //Half  rfl=WaterRfl*Sat(inPDF);
@@ -204,7 +205,7 @@ void Surface_PS
    //FIXME water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
    // specular
-   water_col.rgb+=lum.w*lum.w*0.5;
+   //water_col.rgb+=lum.w*lum.w*0.5;
 
    if(SOFT)
    {
@@ -249,13 +250,13 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
          VecH4 lum=TexLod(Col, inTex); // water surface light
-         VecH  nrm=GetNormal(inTex).xyz; // water surface normals
+         Vec   nrm=GetNormal(inTex).xyz; // water surface normals
 
-         MatrixH3 mtrx;
+         /*MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();
          mtrx[1]=ViewMatrixZ();
          mtrx[2]=ViewMatrixY();
-         nrm=TransformTP(nrm, mtrx);
+         nrm=TransformTP(nrm, mtrx);*/
          Vec2 refract=nrm.xy*Viewport.size;
 
          Flt dz   =solid_z-water_z;
@@ -306,13 +307,13 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          VecH4 water_col; water_col.rgb=TexLod(Img3, inTex); water_col.a=0; // water surface color
          VecH4 lum=TexLod(Col, inTex); // water surface light
-         VecH  nrm=GetNormal(inTex).xyz; // water surface normals
+         Vec   nrm=GetNormal(inTex).xyz; // water surface normals
 
-         MatrixH3 mtrx;
+         /*MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();
          mtrx[1]=ViewMatrixZ();
          mtrx[2]=ViewMatrixY();
-         nrm=TransformTP(nrm, mtrx);
+         nrm=TransformTP(nrm, mtrx);*/
          Vec2 refract=nrm.xy*Viewport.size;
 
          // col light

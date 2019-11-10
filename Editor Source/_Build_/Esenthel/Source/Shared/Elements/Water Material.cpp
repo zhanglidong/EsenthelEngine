@@ -3,7 +3,7 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1);}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {color_s.set(0.42f, 0.50f, 0.58f, 1); smooth=1; reflect=0.02f;}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
