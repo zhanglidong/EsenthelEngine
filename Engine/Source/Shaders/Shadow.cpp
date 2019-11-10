@@ -96,7 +96,7 @@ Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
    Vec2 pixel =uv*RTSize.zw+0.5,
         pixeli=Floor(pixel),
         f     =pixel-pixeli; Flt fx1=1-f.x;
-        uv    =pixeli*RTSize.xy;
+        uv    =pixeli*RTSize.xy; // adjust 'uv' to make sure pixels will be selected based on 'pixeli' (because of precision issues)
    Vec4 t=TexDepthGather(uv);
 
    Flt v=Lerp(t.w*fx1 + t.z*f.x,
