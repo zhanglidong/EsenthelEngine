@@ -192,11 +192,9 @@ void Surface_PS
 
    Flt  water_z    =inPos.z,
          back_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
-         back_z    =(SOFT ? LinearizeDepth(back_z_raw) : water_z+DEFAULT_DEPTH);
-   Half alpha=0;
-
-   Flt dz   =(SOFT ? back_z-water_z : DEFAULT_DEPTH);
-       alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
+         back_z    =(SOFT ? LinearizeDepth(back_z_raw) : water_z+DEFAULT_DEPTH),
+             dz    =(SOFT ? back_z-water_z : DEFAULT_DEPTH);
+   Half alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
 
    if(SOFT)
    {
