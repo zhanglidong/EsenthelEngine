@@ -27,7 +27,7 @@ WaterMtrl::WaterMtrl()
    smooth            =1;
    reflect           =0.02f;
    normal            =1;
-   wave_scale        =0.25f;
+   wave_scale        =0;
 
    scale_color       =1.0f/200;
    scale_normal      =1.0f/10;

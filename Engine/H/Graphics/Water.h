@@ -5,7 +5,7 @@ struct WaterMtrlParams // Water Material Parameters
    Flt smooth            , // smoothness                  ,       0..1      , default=1
        reflect           , // reflectivity                ,       0..1      , default=0.02
        normal            , // normal map sharpness        ,       0..1      , default=1
-       wave_scale        , // vertical wave scale         ,       0..1      , default=0.25 (0 is the fastest)
+       wave_scale        , // vertical wave scale         ,       0..1      , default=0 (0 is the fastest)
        scale_color       , // scale color  texture        ,       0..Inf    , default=1/200
        scale_normal      , // scale normal texture        ,       0..Inf    , default=1/10
        scale_bump        , // scale bump   texture        ,       0..Inf    , default=1/100
