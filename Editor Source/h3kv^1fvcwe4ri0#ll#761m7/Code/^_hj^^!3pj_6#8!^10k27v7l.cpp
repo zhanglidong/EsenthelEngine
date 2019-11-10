@@ -14,7 +14,7 @@ class EditWaterMtrl : EditMaterial
              wave_scale_time,
              color_underwater_time;
 
-   EditWaterMtrl() {color_s.set(0.42, 0.50, 0.58, 1); smooth=1; reflect=0.02;}
+   EditWaterMtrl() {smooth=1; reflect=0.02;}
 
    // get
    bool usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}

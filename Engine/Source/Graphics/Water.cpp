@@ -20,7 +20,7 @@ void WaterMtrl::colorUnderwater1S(C Vec &color_s)  {return colorUnderwater1L(SRG
 /******************************************************************************/
 WaterMtrl::WaterMtrl()
 {
-   colorS           (Vec(0.42f, 0.50f, 0.58f));
+   color=1;
    colorUnderwater0S(Vec(0.26f, 0.35f, 0.42f));
    colorUnderwater1S(Vec(0.10f, 0.20f, 0.30f));
 
