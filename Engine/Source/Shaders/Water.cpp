@@ -2,8 +2,6 @@
 #include "!Header.h"
 #include "Water.h"
 /******************************************************************************/
-#define DEFAULT_DEPTH 1.0
-/******************************************************************************/
 // LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, WAVES, RIVER
 #ifndef WAVES
 #define WAVES 0
@@ -98,11 +96,9 @@ void Surface_VS
    outVtx=Project(view_pos);
 }
 /******************************************************************************/
-
 // Col, Nrm = water material textures
 // ImgXF = background underwater depth
 // these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=background underwater
-
 void Surface_PS
 (
    Vec2 inTexC :TEXCOORD0,
@@ -173,7 +169,7 @@ void Surface_PS
    water_col.rgb*=total_lum;
 
    Vec2 inTex  =PixelToScreen(pixel);
-   Vec2 refract=nrm_flat.xy*Viewport.size; // FIXME
+   Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
    // reflection
    #if REFLECT_ENV || REFLECT_MIRROR
@@ -203,29 +199,39 @@ void Surface_PS
    }
    #endif
 
-   Flt  water_z    =inPos.z,
-         back_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
-         back_z    =(SOFT ? LinearizeDepth(back_z_raw) : water_z+DEFAULT_DEPTH),
-             dz    =(SOFT ? back_z-water_z : DEFAULT_DEPTH);
-   Half alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-
    if(SOFT)
    {
-      Vec2 back_tex=inTex;
-      Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
-      Flt  test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
-      if(  test_z>water_z) // only if it's not in front of water (leaking)
-      {
-         back_z  =test_z;
-         back_tex=test_tex;
+      Flt  water_z=inPos.z;
+      Vec2 back_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+      Flt  back_z_raw; // we will use linear filtering so have to check all 4 pixels for depth
+   #if GATHER
+      back_z_raw=DEPTH_MAX(TexGather(ImgXF, back_tex)); // use Max to check if any depth sample is Z_BACK (not set)
+   #else
+      { // simulate gather
+         Vec2 pixel  =back_tex*RTSize.zw+0.5,
+              pixeli =Floor(pixel),
+              tex_min=(pixeli-0.5)*RTSize.xy,
+              tex_max=(pixeli+0.5)*RTSize.xy;
+         back_z_raw=DEPTH_MAX(TexPoint(ImgXF, Vec2(tex_min.x, tex_min.y)),
+                              TexPoint(ImgXF, Vec2(tex_max.x, tex_min.y)),
+                              TexPoint(ImgXF, Vec2(tex_min.x, tex_max.y)),
+                              TexPoint(ImgXF, Vec2(tex_max.x, tex_max.y)));
       }
-      if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
-      {
-         dz   =back_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
+   #endif
+      Flt back_z=LinearizeDepth(back_z_raw);
+      if( back_z<=water_z) // if sample is in front of water (leaking)
+      { // skip refract
+         back_tex  =inTex;
+         back_z_raw=TexPoint(ImgXF, inTex).x;
+         back_z    =LinearizeDepth(back_z_raw);
       }
-      VecH4 back_col=TexLodClamp(Img2, back_tex);
-      O_col=((alpha==1) ? water_col : Lerp(back_col, water_col, alpha));
+      if(DEPTH_BACKGROUND(back_z_raw))O_col=water_col;else // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
+      {
+         Flt   dz=back_z-water_z;
+         Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
+         VecH4 back_col=TexLodClamp(Img2, back_tex);
+         O_col=Lerp(back_col, water_col, alpha);
+      }
    }else
    {
       O_col=water_col;
@@ -234,11 +240,9 @@ void Surface_PS
 #endif
 }
 /******************************************************************************/
-
 // Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
 // REFRACT, SET_DEPTH
-
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1
             #if SET_DEPTH

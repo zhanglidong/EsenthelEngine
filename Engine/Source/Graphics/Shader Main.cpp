@@ -795,18 +795,19 @@ void WaterShader::load()
       River=shader->get(S8+"River"+0+0+0+0+0);
       Ocean=shader->get(S8+"Ocean"+0+0+0+0+0);
 
+      Bool gather=D.gatherAvailable();
       REPD(reflect_env   , 2)
       REPD(reflect_mirror, 2)
       {
          REPD(shadow, 7)
          REPD(soft  , 2)
          {
-            LakeL [shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Lake" +1+shadow+soft+reflect_env+reflect_mirror);
-            RiverL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"River"+1+shadow+soft+reflect_env+reflect_mirror);
-            OceanL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Ocean"+1+shadow+soft+reflect_env+reflect_mirror);
+            LakeL [shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Lake" +1+shadow+soft+reflect_env+reflect_mirror+gather);
+            RiverL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"River"+1+shadow+soft+reflect_env+reflect_mirror+gather);
+            OceanL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Ocean"+1+shadow+soft+reflect_env+reflect_mirror+gather);
          }
          REPD(refract, 2)
-         REPD(depth  , 2)Apply[refract][depth][reflect_env][reflect_mirror]=shader->get(S8+"Apply"+refract+depth+reflect_env+reflect_mirror);
+         REPD(depth  , 2)Apply[refract][depth][reflect_env][reflect_mirror]=shader->get(S8+"Apply"+refract+depth+reflect_env+reflect_mirror+gather);
       }
 
       REPD(refract, 2)Under[refract]=shader->get(S8+"Under"+refract);
