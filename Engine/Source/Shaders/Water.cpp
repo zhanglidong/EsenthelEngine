@@ -81,8 +81,8 @@ void Surface_VS
 /******************************************************************************/
 
 // Col, Nrm = water material textures
-// ImgXF = solid underwater depth
-// these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=solid underwater
+// ImgXF = background underwater depth
+// these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=background underwater
 
 void Surface_PS
 (
@@ -123,10 +123,12 @@ void Surface_PS
    Vec    view_nrm    =Transform(nrm        , mtrx); // convert to view space
    // FIXME try to use TransformDir(nrm.xzy) or TransformDir(nrm).xzy
 
-   VecH4 col=VecH4(Tex(Col, inTex).rgb*WaterMaterial.color, 0);
+   VecH4 water_col;
+   water_col.rgb=Tex(Col, inTex).rgb*WaterMaterial.color;
+   water_col.a  =0;
 
 #if !LIGHT
-   O_col=col; // in O_col.w you can encode: reflection, refraction, glow
+   O_col=water_col;
 
    #if SIGNED_NRM_RT
       O_nrm.xyz=view_nrm;
@@ -150,35 +152,34 @@ void Surface_PS
 
         inTex      =PixelToScreen(pixel);
    Flt  water_z    =inPos.z,
-        solid_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
-        solid_z    =(SOFT ? LinearizeDepth(solid_z_raw) : water_z+DEFAULT_DEPTH);
+         back_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
+         back_z    =(SOFT ? LinearizeDepth(back_z_raw) : water_z+DEFAULT_DEPTH);
    Half alpha=0;
 
-   Vec2    col_tex=inTex;
-   VecH4 water_col=col;
+   Vec2 back_tex=inTex;
 
    Vec2 refract=nrm.xy*Viewport.size;
 
-   Flt dz   =(SOFT ? solid_z-water_z : DEFAULT_DEPTH);
-       alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add)*Sat(dz/0.03);
+   Flt dz   =(SOFT ? back_z-water_z : DEFAULT_DEPTH);
+       alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
 
-   Vec2 test_tex=Mid(col_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+   Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    if(SOFT)
    {
       Flt test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
       if( test_z>water_z)
       {
-         solid_z=test_z;
-         col_tex=test_tex;
+         back_z  =test_z;
+         back_tex=test_tex;
       }
-      if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+      if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
       {
-         dz   =solid_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add)*Sat(dz/0.03);
+         dz   =back_z-water_z;
+         alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
       }
    }else
    {
-      col_tex=test_tex;
+      back_tex=test_tex;
    }
 
    // light
@@ -209,8 +210,8 @@ void Surface_PS
 
    if(SOFT)
    {
-           VecH4 solid_col=TexLodClamp(Img2, col_tex);
-      O_col=Lerp(solid_col, water_col, alpha);
+           VecH4 back_col=TexLodClamp(Img2, back_tex);
+      O_col=Lerp(back_col, water_col, alpha);
    }else
    {
       O_col=water_col;
@@ -220,7 +221,7 @@ void Surface_PS
 /******************************************************************************/
 
 // Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
-// these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=solid underwater
+// these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
 // REFRACT, SET_DEPTH
 
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -231,7 +232,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
               ):TARGET
 {
    Flt  water_z    =TexPoint        (ImgXF, inTex).x,
-        solid_z_raw=TexDepthRawPoint(       inTex);
+         back_z_raw=TexDepthRawPoint(       inTex);
    Half alpha=0;
 
 #if SET_DEPTH
@@ -240,13 +241,13 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    if(REFRACT)
    {
-      Vec2  col_tex=inTex;
+      Vec2  back_tex=inTex;
       VecH4 water_col=0;
 
-      BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
+      BRANCH if(DEPTH_SMALLER(water_z, back_z_raw)) // branch works faster when most of the screen is above water
       {
-             water_z=LinearizeDepth(water_z    );
-         Flt solid_z=LinearizeDepth(solid_z_raw);
+            water_z=LinearizeDepth(water_z    );
+         Flt back_z=LinearizeDepth( back_z_raw);
 
          water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
          VecH4 lum=TexLod(Col, inTex); // water surface light
@@ -259,21 +260,21 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          nrm=TransformTP(nrm, mtrx);*/
          Vec2 refract=nrm.xy*Viewport.size;
 
-         Flt dz   =solid_z-water_z;
-             alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add)*Sat(dz/0.03);
+         Flt dz   =back_z-water_z;
+             alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
 
-         Vec2 test_tex=Mid(col_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+         Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
          Flt  test_z  =TexDepthLinear(test_tex); // use linear filtering because texcoords are not rounded
          if(  test_z  >water_z)
          {
-            solid_z=test_z;
-            col_tex=test_tex;
+            back_z  =test_z;
+            back_tex=test_tex;
          }
 
-         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
          {
-            dz   =solid_z-water_z;
-            alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add)*Sat(dz/0.03);
+            dz   =back_z-water_z;
+            alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
          }
 
          // col light
@@ -289,20 +290,20 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          // specular
          water_col.rgb+=lum.w*lum.w*0.5;
       }
-            VecH4 solid_col=TexLodClamp(Img2, col_tex);
-      return Lerp(solid_col, water_col, alpha);
+            VecH4 back_col=TexLodClamp(Img2, back_tex);
+      return Lerp(back_col, water_col, alpha);
    }else
    {
-      VecH4 solid_col=TexLodClamp(Img2, inTex);
-      BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
+      VecH4 back_col=TexLodClamp(Img2, inTex);
+      BRANCH if(DEPTH_SMALLER(water_z, back_z_raw)) // branch works faster when most of the screen is above water
       {
-             water_z=LinearizeDepth(water_z    );
-         Flt solid_z=LinearizeDepth(solid_z_raw);
+            water_z=LinearizeDepth(water_z    );
+         Flt back_z=LinearizeDepth( back_z_raw);
 
-         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
          {
-            Flt dz   =solid_z-water_z;
-                alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add)*Sat(dz/0.03);
+            Flt dz   =back_z-water_z;
+                alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
          }
 
          VecH4 water_col; water_col.rgb=TexLod(Img3, inTex); water_col.a=0; // water surface color
@@ -329,9 +330,9 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          // specular
          water_col.rgb+=lum.w*lum.w*0.5;
 
-         solid_col=Lerp(solid_col, water_col, alpha);
+         back_col=Lerp(back_col, water_col, alpha);
       }
-      return solid_col;
+      return back_col;
    }
 }
 /******************************************************************************/
