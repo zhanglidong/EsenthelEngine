@@ -251,7 +251,7 @@ class WaterMtrlRegion : MaterialRegion
       TimeStamp time; time.getUTC();
       VecI2 size0=size;
 
-      //if(relative || game && game->base_2 && game->base_2->size()!=size0)edit.separateAlphaMap(Proj, time); // separate if needed (alpha can be in base0/base2), and before reverting
+      if(relative || game && game->normalMap() && game->normalMap()->size()!=size0)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
