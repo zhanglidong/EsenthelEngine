@@ -22,18 +22,17 @@ BUFFER(WaterMaterial)
 BUFFER_END
 
 BUFFER(Water)
-   VecH Water_color_underwater0,
-        Water_color_underwater1;
-   Flt  Water_refract_underwater;
-
-   Half WaterUnderStep;
+   Vec4 WaterReflectMulAdd,
+        WaterClamp;
    Vec2 WaterOfs;
    Vec2 WaterYMulAdd;
    Vec  WaterPlanePos,
         WaterPlaneNrm;
+   VecH Water_color_underwater0,
+        Water_color_underwater1;
+   Half WaterUnderStep;
+   Flt  Water_refract_underwater;
    Flt  WaterFlow;
-   Vec4 WaterReflectMulAdd,
-        WaterClamp;
 BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/

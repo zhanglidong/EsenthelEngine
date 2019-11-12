@@ -276,7 +276,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       water_col.a=0;
       VecH4 lum=TexLod(Col, inTex); // water surface light
       Vec   nrm=GetNormal(inTex).xyz; // water surface normals
-      Vec   nrm_flat=TransformTP(nrm, ViewMatrix[0]).xzy;
+      Vec   nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
       Vec2  refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
       VecH total_lum     =lum.rgb,
