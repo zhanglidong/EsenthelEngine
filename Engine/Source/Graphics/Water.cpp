@@ -421,7 +421,7 @@ Bool WaterClass::ocean()
 Shader* WaterClass::shader()
 {
    return _use_secondary_rt ? (ocean() ? WS.Ocean  : WS.Lake )
-                            : (ocean() ? WS.OceanL : WS.LakeL)[_shader_shadow][_shader_soft][_shader_reflect_env][_shader_reflect_mirror];
+                            : (ocean() ? WS.OceanL : WS.LakeL)[_shader_shadow][_shader_soft][_shader_reflect_env][_shader_reflect_mirror][refract>EPS_MATERIAL_BUMP];
 }
 /******************************************************************************/
 void WaterClass::drawSurfaces()
@@ -566,7 +566,7 @@ Shader* WaterMesh::shader()C
    if(WaterMtrl *mtrl=getMaterial())
    {
       return Water._use_secondary_rt ? (_lake ? WS.Lake  : WS.River )
-                                     : (_lake ? WS.LakeL : WS.RiverL)[Water._shader_shadow][Water._shader_soft][Water._shader_reflect_env][Water._shader_reflect_mirror];
+                                     : (_lake ? WS.LakeL : WS.RiverL)[Water._shader_shadow][Water._shader_soft][Water._shader_reflect_env][Water._shader_reflect_mirror][mtrl->refract>EPS_MATERIAL_BUMP];
    }
    return null;
 }

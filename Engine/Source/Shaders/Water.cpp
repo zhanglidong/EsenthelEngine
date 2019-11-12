@@ -99,6 +99,35 @@ void Surface_VS
 // Col, Nrm = water material textures
 // ImgXF = background underwater depth
 // these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=background underwater
+void WaterReflectColor(inout VecH water_col, inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex, Vec2 refract, Half plane_dist)
+{
+   #if REFLECT_ENV || REFLECT_MIRROR
+   {
+      water_col.rgb*=1-WaterMaterial.reflect;
+      Half reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
+
+   #if REFLECT_ENV
+      Vec  reflect_dir=ReflectDir(eye_dir, nrm); if(1)reflect_dir.y=Max(0, reflect_dir.y); // don't go below water level (to skip showing ground)
+      VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.smooth)*EnvColor;
+   #endif
+   #if REFLECT_MIRROR
+      Vec2 reflect_tex=Mid((tex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
+      VecH reflect_mirror=TexLodClamp(Img1, reflect_tex).rgb;
+      Half reflect_mirror_power=Sat(2-Abs(plane_dist)); // can use mirror reflection only if water position is close to water plane
+   #endif
+
+   #if REFLECT_ENV && REFLECT_MIRROR // both available
+      VecH reflect=Lerp(reflect_env, reflect_mirror, reflect_mirror_power)*reflect_power;
+   #elif REFLECT_ENV
+      VecH reflect=reflect_env*reflect_power;
+   #else
+      VecH reflect=reflect_mirror*(reflect_mirror_power*reflect_power);
+   #endif
+
+      total_specular+=reflect;
+   }
+   #endif
+}
 void Surface_PS
 (
    Vec2 inTexC :TEXCOORD0,
@@ -125,7 +154,7 @@ void Surface_PS
    nrm_flat.xy+=inWaveN.xy;
 #endif
    nrm_flat.z=CalcZ(nrm_flat.xy);
-   Vec nrm=Normalize(TransformDir(nrm_flat.xzy)); // convert to view space
+   Vec nrm=Normalize(Vec(TransformDir(nrm_flat.xzy))); // convert to view space, convert to HP before Normalize
 
    VecH4 water_col;
    water_col.rgb=Tex(Col, inTexC).rgb*WaterMaterial.color;
@@ -140,7 +169,9 @@ void Surface_PS
       O_nrm.xyz=nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 #else
-   Vec eye_dir=Normalize(inPos);
+   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
+   Vec  eye_dir=Normalize(inPos);
 
    // shadow
    Half shadow; if(SHADOW)shadow=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
@@ -168,63 +199,37 @@ void Surface_PS
    }
    water_col.rgb*=total_lum;
 
-   Vec2 inTex  =PixelToScreen(pixel);
-   Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
-
    // reflection
-   #if REFLECT_ENV || REFLECT_MIRROR
-   {
-      water_col.rgb*=1-WaterMaterial.reflect;
-      Half reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
-
-   #if REFLECT_ENV
-      Vec  reflect_dir=ReflectDir(eye_dir, nrm); if(1)reflect_dir.y=Max(0, reflect_dir.y); // don't go below water level (to skip showing ground)
-      VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.smooth)*EnvColor;
-   #endif
-   #if REFLECT_MIRROR
-      Vec2 reflect_tex=Mid((inTex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-      VecH reflect_mirror=TexLodClamp(Img1, reflect_tex).rgb;
-      Half reflect_mirror_power=Sat(2-Abs(inPlaneDist)); // can use mirror reflection only if water position is close to water plane
-   #endif
-
-   #if REFLECT_ENV && REFLECT_MIRROR // both available
-      VecH reflect=Lerp(reflect_env, reflect_mirror, reflect_mirror_power)*reflect_power;
-   #elif REFLECT_ENV
-      VecH reflect=reflect_env*reflect_power;
-   #else
-      VecH reflect=reflect_mirror*(reflect_mirror_power*reflect_power);
-   #endif
-
-      total_specular+=reflect;
-   }
-   #endif
+   WaterReflectColor(water_col.rgb, total_specular, nrm, eye_dir, inTex, refract, inPlaneDist);
 
    if(SOFT)
    {
-      Flt  water_z=inPos.z;
+      Flt water_z=inPos.z;
+   #if REFRACT
       Vec2 back_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
-      Flt  back_z_raw; // we will use linear filtering so have to check all 4 pixels for depth
    #if GATHER
-      back_z_raw=DEPTH_MAX(TexGather(ImgXF, back_tex)); // use Max to check if any depth sample is Z_BACK (not set)
-   #else
-      { // simulate gather
-         Vec2 pixel  =back_tex*RTSize.zw+0.5,
-              pixeli =Floor(pixel),
-              tex_min=(pixeli-0.5)*RTSize.xy,
-              tex_max=(pixeli+0.5)*RTSize.xy;
-         back_z_raw=DEPTH_MAX(TexPoint(ImgXF, Vec2(tex_min.x, tex_min.y)),
-                              TexPoint(ImgXF, Vec2(tex_max.x, tex_min.y)),
-                              TexPoint(ImgXF, Vec2(tex_min.x, tex_max.y)),
-                              TexPoint(ImgXF, Vec2(tex_max.x, tex_max.y)));
-      }
-   #endif
-      Flt back_z=LinearizeDepth(back_z_raw);
-      if( back_z<=water_z) // if sample is in front of water (leaking)
-      { // skip refract
+      Flt back_z_raw=DEPTH_MAX(TexGather(ImgXF, back_tex)); // use Max to check if any depth sample is Z_BACK (not set), we will use linear filtering so have to check all 4 pixels for depth
+   #else // simulate gather
+      Vec2 pixel  =back_tex*RTSize.zw+0.5,
+           pixeli =Floor(pixel),
+           tex_min=(pixeli-0.5)*RTSize.xy,
+           tex_max=(pixeli+0.5)*RTSize.xy;
+      Flt  back_z_raw=DEPTH_MAX(TexPoint(ImgXF, Vec2(tex_min.x, tex_min.y)),
+                                TexPoint(ImgXF, Vec2(tex_max.x, tex_min.y)),
+                                TexPoint(ImgXF, Vec2(tex_min.x, tex_max.y)),
+                                TexPoint(ImgXF, Vec2(tex_max.x, tex_max.y)));
+   #endif // GATHER
+      Flt back_z=LinearizeDepth(back_z_raw); if(back_z<=water_z) // if refracted sample is in front of water (leaking)
+      { // skip refracted sample
          back_tex  =inTex;
          back_z_raw=TexPoint(ImgXF, inTex).x;
          back_z    =LinearizeDepth(back_z_raw);
       }
+   #else // NO REFRACT
+      Vec2 back_tex  =inTex;
+      Flt  back_z_raw=TexPoint(ImgXF, inTex).x;
+      Flt  back_z    =LinearizeDepth(back_z_raw);
+   #endif // REFRACT
       if(DEPTH_BACKGROUND(back_z_raw))O_col=water_col;else // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
       {
          Flt   dz=back_z-water_z;
@@ -250,109 +255,68 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             #endif
               ):TARGET
 {
-   Flt  water_z    =TexPoint        (ImgXF, inTex).x,
-         back_z_raw=TexDepthRawPoint(       inTex);
-   Half alpha=0;
+   Vec2 back_tex=inTex;
+   Flt  back_z_raw=TexDepthRawPoint(    back_tex),
+       water_z_raw=TexPoint        (ImgXF, inTex).x;
 
 #if SET_DEPTH
-   depth=water_z;
+   depth=water_z_raw;
 #endif
 
-   if(REFRACT)
+   BRANCH if(DEPTH_SMALLER(water_z_raw, back_z_raw)) // branch works faster when most of the screen is above water
    {
-      Vec2  back_tex=inTex;
-      VecH4 water_col=0;
+      Flt water_z=LinearizeDepth(water_z_raw);
+      Flt  back_z=LinearizeDepth( back_z_raw);
 
-      BRANCH if(DEPTH_SMALLER(water_z, back_z_raw)) // branch works faster when most of the screen is above water
-      {
-            water_z=LinearizeDepth(water_z    );
-         Flt back_z=LinearizeDepth( back_z_raw);
+      Vec pos=Vec(inPosXY*water_z, water_z);
+      Vec eye_dir=Normalize(pos);
 
-         water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
-         VecH4 lum=TexLod(Col, inTex); // water surface light
-         Vec   nrm=GetNormal(inTex).xyz; // water surface normals
+      VecH4 water_col;
+      water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
+      water_col.a=0;
+      VecH4 lum=TexLod(Col, inTex); // water surface light
+      Vec   nrm=GetNormal(inTex).xyz; // water surface normals
+      Vec   nrm_flat=TransformTP(nrm, ViewMatrix[0]).xzy;
+      Vec2  refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
-         /*MatrixH3 mtrx;
-         mtrx[0]=ViewMatrixX();
-         mtrx[1]=ViewMatrixZ();
-         mtrx[2]=ViewMatrixY();
-         nrm=TransformTP(nrm, mtrx);*/
-         Vec2 refract=nrm.xy*Viewport.size;
+      VecH total_lum     =lum.rgb,
+           total_specular=(lum.w/Max(Max(lum.rgb), HALF_MIN))*lum.rgb;
 
-         Flt dz   =back_z-water_z;
-             alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
+      water_col.rgb*=total_lum;
+      WaterReflectColor(water_col.rgb, total_specular, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
 
-         Vec2 test_tex=Mid(back_tex+refract*(WaterMaterial.refract*alpha/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
-         Flt  test_z  =TexDepthLinear(test_tex); // use linear filtering because texcoords are not rounded
-         if(  test_z  >water_z)
-         {
-            back_z  =test_z;
-            back_tex=test_tex;
-         }
-
-         if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
-         {
-            dz   =back_z-water_z;
-            alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         }
-
-         // col light
-         water_col.rgb*=lum.rgb;
-
-         // reflection FIXME
-         /*Vec   pos=Vec(inPosXY*water_z, water_z);
-         Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm))), // plane distance factor, must be = 1 for dist=0..1 (wave scale)
-               rfl=WaterRfl*pdf;
-             inTex=Mid ((inTex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-         water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region*/
-
-         // specular
-         water_col.rgb+=lum.w*lum.w*0.5;
+   #if REFRACT
+      Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+   #if GATHER
+      Flt test_z_raw=DEPTH_MAX(TexDepthGather(test_tex)); // use Max to check if any depth sample is Z_BACK (not set)
+   #else // simulate gather
+      Vec2 pixel  =test_tex*RTSize.zw+0.5,
+           pixeli =Floor(pixel),
+           tex_min=(pixeli-0.5)*RTSize.xy,
+           tex_max=(pixeli+0.5)*RTSize.xy;
+      Flt  test_z_raw=DEPTH_MAX(TexPoint(Depth, Vec2(tex_min.x, tex_min.y)),
+                                TexPoint(Depth, Vec2(tex_max.x, tex_min.y)),
+                                TexPoint(Depth, Vec2(tex_min.x, tex_max.y)),
+                                TexPoint(Depth, Vec2(tex_max.x, tex_max.y)));
+   #endif // GATHER
+      if(DEPTH_SMALLER(water_z_raw, test_z_raw)) // if refracted sample is behind water (not leaking)
+      { // use refracted sample
+         back_tex  =test_tex;
+         back_z_raw=test_z_raw;
       }
-            VecH4 back_col=TexLodClamp(Img2, back_tex);
-      return Lerp(back_col, water_col, alpha);
-   }else
-   {
-      VecH4 back_col=TexLodClamp(Img2, inTex);
-      BRANCH if(DEPTH_SMALLER(water_z, back_z_raw)) // branch works faster when most of the screen is above water
+   #endif // REFRACT
+      if(DEPTH_FOREGROUND(back_z_raw)) // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
       {
-            water_z=LinearizeDepth(water_z    );
-         Flt back_z=LinearizeDepth( back_z_raw);
-
-         if(DEPTH_BACKGROUND(back_z_raw))alpha=1;else // always force full opacity when there's no background pixel set to avoid remains in the RenderTarget from previous usage
-         {
-            Flt dz   =back_z-water_z;
-                alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         }
-
-         VecH4 water_col; water_col.rgb=TexLod(Img3, inTex); water_col.a=0; // water surface color
-         VecH4 lum=TexLod(Col, inTex); // water surface light
-         Vec   nrm=GetNormal(inTex).xyz; // water surface normals
-
-         /*MatrixH3 mtrx;
-         mtrx[0]=ViewMatrixX();
-         mtrx[1]=ViewMatrixZ();
-         mtrx[2]=ViewMatrixY();
-         nrm=TransformTP(nrm, mtrx);*/
-         Vec2 refract=nrm.xy*Viewport.size;
-
-         // col light
-         water_col.rgb*=lum.rgb;
-
-         // reflection FIXME
-         /*Vec   pos=Vec(inPosXY*water_z, water_z);
-         Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm))), // plane distance factor, needs to be = 1 for dist=0..1 (wave scale)
-               rfl=WaterRfl*pdf;
-             inTex=Mid ((inTex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-         water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl);*/
-
-         // specular
-         water_col.rgb+=lum.w*lum.w*0.5;
-
-         back_col=Lerp(back_col, water_col, alpha);
+         Flt   back_z=LinearizeDepth(back_z_raw);
+         Flt   dz=back_z-water_z;
+         Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
+         VecH4 back_col=TexLodClamp(Img2, back_tex);
+         water_col=Lerp(back_col, water_col, alpha);
       }
-      return back_col;
+      water_col.rgb+=total_specular; // independent of alpha
+      return water_col;
    }
+   return TexLodClamp(Img2, inTex);
 }
 /******************************************************************************/
 // REFRACT

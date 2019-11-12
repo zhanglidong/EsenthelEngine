@@ -791,26 +791,26 @@ void WaterShader::load()
       WaterReflectMulAdd      =GetShaderParam("WaterReflectMulAdd");
       WaterClamp              =GetShaderParam("WaterClamp");
 
-      Lake =shader->get(S8+"Lake" +0+0+0+0+0);
-      River=shader->get(S8+"River"+0+0+0+0+0);
-      Ocean=shader->get(S8+"Ocean"+0+0+0+0+0);
-
       Bool gather=D.gatherAvailable();
-      REPD(reflect_env   , 2)
-      REPD(reflect_mirror, 2)
+      Lake =shader->get(S8+"Lake" +0+0+0+0+0+0);
+      River=shader->get(S8+"River"+0+0+0+0+0+0);
+      Ocean=shader->get(S8+"Ocean"+0+0+0+0+0+0);
+      REPD(refract, 2)
       {
-         REPD(shadow, 7)
-         REPD(soft  , 2)
+         REPD(reflect_env   , 2)
+         REPD(reflect_mirror, 2)
          {
-            LakeL [shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Lake" +1+shadow+soft+reflect_env+reflect_mirror+gather);
-            RiverL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"River"+1+shadow+soft+reflect_env+reflect_mirror+gather);
-            OceanL[shadow][soft][reflect_env][reflect_mirror]=shader->get(S8+"Ocean"+1+shadow+soft+reflect_env+reflect_mirror+gather);
+            REPD(shadow, 7)
+            REPD(soft  , 2)
+            {
+               LakeL [shadow][soft][reflect_env][reflect_mirror][refract]=shader->get(S8+"Lake" +1+shadow+soft+reflect_env+reflect_mirror+refract+gather);
+               RiverL[shadow][soft][reflect_env][reflect_mirror][refract]=shader->get(S8+"River"+1+shadow+soft+reflect_env+reflect_mirror+refract+gather);
+               OceanL[shadow][soft][reflect_env][reflect_mirror][refract]=shader->get(S8+"Ocean"+1+shadow+soft+reflect_env+reflect_mirror+refract+gather);
+            }
+            REPD(depth, 2)Apply[depth][reflect_env][reflect_mirror][refract]=shader->get(S8+"Apply"+depth+reflect_env+reflect_mirror+refract+gather);
          }
-         REPD(refract, 2)
-         REPD(depth  , 2)Apply[refract][depth][reflect_env][reflect_mirror]=shader->get(S8+"Apply"+refract+depth+reflect_env+reflect_mirror+gather);
+         Under[refract]=shader->get(S8+"Under"+refract);
       }
-
-      REPD(refract, 2)Under[refract]=shader->get(S8+"Under"+refract);
    }
 }
 /******************************************************************************/

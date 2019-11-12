@@ -451,14 +451,14 @@ struct DepthOfField
 struct WaterShader
 {
    ShaderFile *shader;
-   Shader     *Ocean             , //
-              *Lake              , //
-              *River             , //
-              *OceanL[7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
-              *LakeL [7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
-              *RiverL[7][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror]
-              *Apply [2][2][2][2], // [Refract] [Depth] [ReflectEnv] [ReflectMirror]
-              *Under [2]         ; // [Refract]
+   Shader     *Ocean                , //
+              *Lake                 , //
+              *River                , //
+              *OceanL[7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
+              *LakeL [7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
+              *RiverL[7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
+              *Apply    [2][2][2][2], //           [Depth] [ReflectEnv] [ReflectMirror] [Refract]
+              *Under             [2]; //                                                [Refract]
 
    ShaderParam
       *WaterMaterial,
