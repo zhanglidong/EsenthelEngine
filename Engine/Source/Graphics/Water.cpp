@@ -781,11 +781,11 @@ void WaterDrops::draw(AnimatedSkeleton &anim_skel)
    draw();
 }
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
    // #WaterMaterialTextureLayout
    UInt  ret=0;
-   Image dest_0, dest_1;
+   Image dest_0, dest_1, dest_2;
    {
       Image     col_temp; C Image *    col_src=&    col; if(    col_src->compressed())if(    col_src->copyTry(    col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))    col_src=&    col_temp;else goto error;
     //Image   alpha_temp; C Image *  alpha_src=&  alpha; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
@@ -901,6 +901,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image
 error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
+   Swap(dest_2, base_2);
    return ret;
 }
 /******************************************************************************/

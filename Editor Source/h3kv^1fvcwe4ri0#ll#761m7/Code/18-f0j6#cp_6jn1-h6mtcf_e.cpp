@@ -204,6 +204,102 @@ class WaterMtrlRegion : MaterialRegion
 
    void set(C WaterMtrlPtr &mtrl) {activate(Proj.findElm(mtrl.id()));}
 
+   virtual void resizeBase(C VecI2 &size, bool relative=false)override
+   {
+      undos.set("resizeBase");
+      TimeStamp time; time.getUTC();
+      VecI2 sizes[3]={size, size, size};
+
+      if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
+         if(Proj.forceImageSize(edit.  color_map, 0, relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)
+         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
+         |  Proj.forceImageSize(edit. normal_map, 0, relative, edit. normal_map_time, time)
+         |  Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)
+         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
+         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
+      {
+         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.waterBaseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
+         REPA(sizes)
+         {
+            sizes[i].set(Max(1, Shl(sizes[i].x, size.x)), Max(1, Shl(sizes[i].y, size.y)));
+            sizes[i].set(NearestPow2(sizes[i].x), NearestPow2(sizes[i].y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
+         }
+         // #WaterMaterialTextureLayout
+         if(sizes[0]!=sizes[1])edit.separateNormalMap(time); // normal can be from bump
+         relative=false; // we now have the sizes known, so disable relative mode
+      }
+
+      // #WaterMaterialTextureLayout
+      if(Proj.forceImageSize(edit.  color_map,                                 sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
+    //|  Proj.forceImageSize(edit.  alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit.  alpha_map_time, time)
+      |  Proj.forceImageSize(edit.   bump_map,                                 sizes[0], relative, edit.   bump_map_time, time)
+      |  Proj.forceImageSize(edit. normal_map,                                 sizes[1], relative, edit. normal_map_time, time)
+    //|  Proj.forceImageSize(edit. smooth_map,                                 sizes[2], relative, edit. smooth_map_time, time)
+    //|  Proj.forceImageSize(edit.reflect_map,                                 sizes[2], relative, edit.reflect_map_time, time)
+    //|  Proj.forceImageSize(edit.   glow_map,                                 sizes[0], relative, edit.   glow_map_time, time)
+      )
+      {
+         edit.cleanupMaps();
+         rebuildBase(edit.baseTex());
+      }
+   }
+   virtual void resizeBase0(C VecI2 &size, bool relative=false)override
+   {
+      // #WaterMaterialTextureLayout
+      undos.set("resizeBase");
+      TimeStamp time; time.getUTC();
+      VecI2 size0=size;
+
+      //if(relative || game && game->base_2 && game->base_2->size()!=size0)edit.separateAlphaMap(Proj, time); // separate if needed (alpha can be in base0/base2), and before reverting
+
+      if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
+         if(Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit. bump_map, 0, relative, edit. bump_map_time, time)
+         )
+      {
+         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.waterBaseTextureSizes(&size0, null, null); // calculate actual sizes
+         size0.set(Max(1, Shl(size0.x, size.x)), Max(1, Shl(size0.y, size.y)));
+         size0.set(NearestPow2(size0.x), NearestPow2(size0.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
+         relative=false; // we now have the sizes known, so disable relative mode
+      }
+
+      if(Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit. bump_map, size0, relative, edit. bump_map_time, time)
+      )
+      {
+         edit.cleanupMaps();
+         rebuildBase(edit.baseTex());
+      }
+   }
+   virtual void resizeBase1(C VecI2 &size, bool relative=false)override
+   {
+      // #WaterMaterialTextureLayout
+      undos.set("resizeBase");
+      TimeStamp time; time.getUTC();
+      VecI2 size1=size;
+
+      if(relative || game && game->colorMap() && game->colorMap()->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
+
+      if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
+         if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
+      {
+         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.waterBaseTextureSizes(null, &size1, null); // calculate actual sizes
+         size1.set(Max(1, Shl(size1.x, size.x)), Max(1, Shl(size1.y, size.y)));
+         size1.set(NearestPow2(size1.x), NearestPow2(size1.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
+         relative=false; // we now have the sizes known, so disable relative mode
+      }
+
+      if(Proj.forceImageSize(edit.normal_map, size1, relative, edit.normal_map_time, time))
+      {
+         edit.cleanupMaps();
+         rebuildBase(edit.baseTex());
+      }
+   }
+   virtual void resizeBase2(C VecI2 &size, bool relative=false)override
+   {
+   }
+
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false)override
    {
       if(elm && game)
@@ -216,23 +312,7 @@ class WaterMtrlRegion : MaterialRegion
          }else new_base_tex=edit.baseTex(); // set approximate
 
          setChanged();
-         if(adjust_params)
-         {
-            TimeStamp time; time.getUTC();
-            uint changed=(old_base_tex^new_base_tex);
-            if(changed&BT_BUMP)
-            {
-               if(!(new_base_tex&BT_BUMP)            )game->wave_scale=0;else
-               if(game->wave_scale<=EPS_MATERIAL_BUMP)game->wave_scale=0.1;
-            }
-            if(changed&(BT_BUMP|BT_NORMAL))
-            {
-               if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))game->normal=0;else
-               if(                              game->normal<=EPS_COL8)game->normal=1;
-            }
-            SyncByValueEqual(edit.wave_scale_time, time, edit.wave_scale, game->wave_scale);
-            SyncByValueEqual(edit.    normal_time, time, edit.normal    , game->normal    );
-         }
+         if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
          Proj.mtrlTexChanged();
 
          toGui();

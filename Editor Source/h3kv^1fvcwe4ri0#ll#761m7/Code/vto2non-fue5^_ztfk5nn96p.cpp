@@ -531,13 +531,20 @@ class MtrlImages
    {
       return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
    }
-   uint createWaterBaseTextures(Image &base_0, Image &base_1)C
+   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateWaterBaseTextures(base_0, base_1, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+      return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
    }
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
    { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)
       Image base[3]; createBaseTextures(base[0], base[1], base[2]);
+      if(size0)*size0=base[0].size();
+      if(size1)*size1=base[1].size();
+      if(size2)*size2=base[2].size();
+   }
+   void waterBaseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
+   { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)
+      Image base[3]; createWaterBaseTextures(base[0], base[1], base[2]);
       if(size0)*size0=base[0].size();
       if(size1)*size1=base[1].size();
       if(size2)*size2=base[2].size();

@@ -579,7 +579,7 @@ class MaterialRegion : Region
    void downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds  ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds  ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
    void texQuality       (int               q  ) {if(edit.tex_quality        !=q   ){undos.set("tq"   ); edit.tex_quality        =q   ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
 
-   void resizeBase(C VecI2 &size, bool relative=false)
+   virtual void resizeBase(C VecI2 &size, bool relative=false)
    {
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
@@ -619,7 +619,7 @@ class MaterialRegion : Region
          rebuildBase(edit.baseTex());
       }
    }
-   void resizeBase0(C VecI2 &size, bool relative=false)
+   virtual void resizeBase0(C VecI2 &size, bool relative=false)
    {
       // #MaterialTextureLayout
       undos.set("resizeBase");
@@ -649,7 +649,7 @@ class MaterialRegion : Region
          rebuildBase(edit.baseTex());
       }
    }
-   void resizeBase1(C VecI2 &size, bool relative=false)
+   virtual void resizeBase1(C VecI2 &size, bool relative=false)
    {
       // #MaterialTextureLayout
       undos.set("resizeBase");
@@ -673,7 +673,7 @@ class MaterialRegion : Region
          rebuildBase(edit.baseTex());
       }
    }
-   void resizeBase2(C VecI2 &size, bool relative=false)
+   virtual void resizeBase2(C VecI2 &size, bool relative=false)
    {
       // #MaterialTextureLayout
       undos.set("resizeBase");
@@ -709,6 +709,7 @@ class MaterialRegion : Region
    void bumpFromCol(int blur)
    {
       undos.set("bumpFromCol");
+      EditMaterial &edit=getEditMtrl();
       uint base_tex=edit.baseTex(); // get current state of textures before making any change
       edit.bump_map=BumpFromColTransform(edit.color_map, blur); edit.bump_map_time.now();
       rebuildBase(base_tex);
@@ -849,7 +850,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBaseDouble  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Color+Glow Textures"); resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size."); // #MaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Color+Bump Textures" : "Resize Color+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase0_128 , T);
          resize.New().create( "256x256" , ResizeBase0_256 , T);
          resize.New().create( "512x512" , ResizeBase0_512 , T);
@@ -877,7 +878,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBase0_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout
+         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase1_128 , T);
          resize.New().create( "256x256" , ResizeBase1_256 , T);
          resize.New().create( "512x512" , ResizeBase1_512 , T);
@@ -904,8 +905,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Original", ResizeBase1_Original, T);
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
+      if(!water())
       {
-         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size."); // #MaterialTextureLayout
+         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);
@@ -1115,6 +1117,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
             new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
             Time.skipUpdate(); // compressing textures can be slow
          }else new_base_tex=edit.baseTex(); // set approximate
+
          setChanged();
          if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
          Proj.mtrlTexChanged();

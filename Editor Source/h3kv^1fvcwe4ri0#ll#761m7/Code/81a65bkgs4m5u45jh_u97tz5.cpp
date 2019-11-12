@@ -1570,6 +1570,15 @@ class ProjectEx : ProjectHierarchy
       }
       return false;
    }
+   bool mtrlGet(C UID &elm_id, EditWaterMtrl &mtrl)
+   {
+      if(C Elm *elm=findElm(elm_id, ELM_WATER_MTRL))
+      {
+         if(WaterMtrlEdit.elm_id==elm_id){mtrl=WaterMtrlEdit.edit; return true;}
+         return mtrl.load(editPath(elm_id));
+      }
+      return false;
+   }
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync")
    {
       if(Elm *elm=findElm(elm_id))
@@ -1597,12 +1606,34 @@ class ProjectEx : ProjectHierarchy
             }
             return true;
          }
+         if(WaterMtrlEdit.elm_id==elm_id)
+         {
+            WaterMtrlEdit.undos.set(undo_change_type);
+               uint base_tex =WaterMtrlEdit.edit.baseTex(); // get current state of textures before making any change
+               bool light_map=WaterMtrlEdit.edit.hasLightMap();
+            if(uint changed  =WaterMtrlEdit.edit.sync(mtrl))
+            {
+               if(reload_textures)
+               {
+                  if(changed&EditMaterial.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditMaterial.CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
+                  if(changed&EditMaterial.CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
+                  if(changed&EditMaterial.CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
+               }else
+               {
+                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
+               }
+               WaterMtrlEdit.toGui();
+               WaterMtrlEdit.setChanged();
+             //D.setShader(WaterMtrlEdit.game());
+            }
+            return true;
+         }
          switch(elm.type)
          {
             case ELM_MTRL:
             {
-               // load
-               EditMaterial edit; if(!mtrlGet(elm_id, edit))return false;
+               EditMaterial edit; if(!mtrlGet(elm_id, edit))return false; // load
                uint         old_base_tex =edit.baseTex();
                bool         old_light_map=edit.hasLightMap();
                if(uint changed=edit.sync(mtrl)) // if changed anything
@@ -1634,7 +1665,105 @@ class ProjectEx : ProjectHierarchy
                   D.setShader(game());
                }
             }return true;
+
+            case ELM_WATER_MTRL:
+            {
+               EditWaterMtrl edit; if(!mtrlGet(elm_id, edit))return false; // load
+               uint          old_base_tex =edit.baseTex();
+               bool          old_light_map=edit.hasLightMap();
+               if(uint changed=edit.sync(mtrl)) // if changed anything
+               {
+                  WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
+                //bool         want_tan_bin=game->wantTanBin();
+                  uint         new_base_tex=edit.baseTex(); // use estimated base tex
+
+                  if(reload_textures)
+                  {
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
+                     if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
+                     if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
+                  }
+
+                  edit.copyTo(*game, T);
+                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
+
+                  // save
+                  if(ElmWaterMtrl *data=elm.waterMtrlData()){data.newVer(); data.from(edit);}
+                  Save( edit, editPath(elm_id));
+                  Save(*game, gamePath(elm_id)); savedGame(*elm);
+                  Server.setElmLong(elm_id);
+
+                  // process dependencies
+                //if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
+                //D.setShader(game());
+               }
+            }return true;
          }
+      }
+      return false;
+   }
+   bool mtrlSync(C UID &elm_id, C EditWaterMtrl &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync")
+   {
+      if(Elm *elm=findElm(elm_id, ELM_WATER_MTRL))
+      {
+         if(WaterMtrlEdit.elm_id==elm_id)
+         {
+            WaterMtrlEdit.undos.set(undo_change_type);
+               uint base_tex =WaterMtrlEdit.edit.baseTex(); // get current state of textures before making any change
+               bool light_map=WaterMtrlEdit.edit.hasLightMap();
+            if(uint changed  =WaterMtrlEdit.edit.sync(mtrl))
+            {
+               if(reload_textures)
+               {
+                  if(changed&EditWaterMtrl.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditWaterMtrl.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditWaterMtrl.CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
+                  if(changed&EditWaterMtrl.CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
+                  if(changed&EditWaterMtrl.CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
+               }else
+               {
+                  if(changed&(EditWaterMtrl.CHANGED_BASE|EditWaterMtrl.CHANGED_DET|EditWaterMtrl.CHANGED_MACRO|EditWaterMtrl.CHANGED_LIGHT))mtrlTexChanged();
+               }
+               WaterMtrlEdit.toGui();
+               WaterMtrlEdit.setChanged();
+             //D.setShader(WaterMtrlEdit.game());
+            }
+            return true;
+         }
+         // load
+         EditWaterMtrl edit; if(!mtrlGet(elm_id, edit))return false;
+         uint          old_base_tex =edit.baseTex();
+         bool          old_light_map=edit.hasLightMap();
+         if(uint changed=edit.sync(mtrl)) // if changed anything
+         {
+            WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
+          //bool         want_tan_bin=game->wantTanBin();
+            uint         new_base_tex=edit.baseTex(); // use estimated base tex
+
+            if(reload_textures)
+            {
+               if(changed&EditWaterMtrl.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditWaterMtrl.CHANGED_FNY)); // get precise base tex
+               if(changed&EditWaterMtrl.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
+               if(changed&EditWaterMtrl.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
+               if(changed&EditWaterMtrl.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
+            }
+
+            edit.copyTo(*game, T);
+            if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
+
+            // save
+            if(ElmWaterMtrl *data=elm.waterMtrlData()){data.newVer(); data.from(edit);}
+            Save( edit, editPath(elm_id));
+            Save(*game, gamePath(elm_id)); savedGame(*elm);
+            Server.setElmLong(elm_id);
+
+            // process dependencies
+          //if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+            if(changed&(EditWaterMtrl.CHANGED_BASE|EditWaterMtrl.CHANGED_DET|EditWaterMtrl.CHANGED_MACRO|EditWaterMtrl.CHANGED_LIGHT))mtrlTexChanged();
+          //D.setShader(game());
+         }
+         return true;
       }
       return false;
    }
@@ -1708,11 +1837,11 @@ class ProjectEx : ProjectHierarchy
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
       return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, C EditWaterMtrl &material, bool changed_flip_normal_y)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
-      return mtrl_images.createWaterBaseTextures(base_0, base_1);
+      return mtrl_images.createWaterBaseTextures(base_0, base_1, base_2);
    }
    uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y)
    {
@@ -1766,8 +1895,8 @@ class ProjectEx : ProjectHierarchy
    uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
-      Image      base_0, base_1;
-      uint       bt=createBaseTextures(base_0, base_1, material, changed_flip_normal_y);
+      Image      base_0, base_1, base_2;
+      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -1795,6 +1924,19 @@ class ProjectEx : ProjectHierarchy
             saveTex(base_1, material.base_1_tex);
          }
          Server.setTex(material.base_1_tex);
+      }
+
+      // base 2
+         old_tex_id =material.base_2_tex; ImageProps(base_2, &material.base_2_tex, &ct, MTRL_BASE_2);
+      if(old_tex_id!=material.base_2_tex)material.smooth_map_time.getUTC(); // in order for 'base_2_tex' to sync, a base 2 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(base_2.is())
+      {
+         if(includeTex(material.base_2_tex))
+         {
+            base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+            saveTex(base_2, material.base_2_tex);
+         }
+         Server.setTex(material.base_2_tex);
       }
 
       return bt;

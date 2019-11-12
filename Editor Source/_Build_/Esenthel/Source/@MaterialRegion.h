@@ -302,10 +302,10 @@ public:
    void downsizeTexMobile(byte              ds );
    void texQuality       (int               q  );
 
-   void resizeBase(C VecI2 &size, bool relative=false);
-   void resizeBase0(C VecI2 &size, bool relative=false);
-   void resizeBase1(C VecI2 &size, bool relative=false);
-   void resizeBase2(C VecI2 &size, bool relative=false);
+   virtual void resizeBase(C VecI2 &size, bool relative=false);
+   virtual void resizeBase0(C VecI2 &size, bool relative=false);
+   virtual void resizeBase1(C VecI2 &size, bool relative=false);
+   virtual void resizeBase2(C VecI2 &size, bool relative=false);
    void bumpFromCol(int blur);
 
    virtual   EditMaterial& getEditMtrl(); 

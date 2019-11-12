@@ -75,6 +75,7 @@
           .normalMap(proj.texPath(base_1_tex));
       dest.validate();
    }
+   uint EditWaterMtrl::sync(C EditMaterial  &src) {return super::sync(src);}
    uint EditWaterMtrl::sync(C EditWaterMtrl &src)
    {
       uint changed=super::sync(src);

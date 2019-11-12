@@ -91,6 +91,7 @@ class EditWaterMtrl : EditMaterial
           .normalMap(proj.texPath(base_1_tex));
       dest.validate();
    }
+   uint sync(C EditMaterial  &src) {return super.sync(src);}
    uint sync(C EditWaterMtrl &src)
    {
       uint changed=super.sync(src);

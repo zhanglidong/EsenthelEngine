@@ -28,6 +28,7 @@ class EditWaterMtrl : EditMaterial
    void newData();
    void create(C WaterMtrl &src, C TimeStamp &time=TimeStamp().getUTC());
    void copyTo(WaterMtrl &dest, C Project &proj)C;
+   uint sync(C EditMaterial  &src);            
    uint sync(C EditWaterMtrl &src);
    uint undo(C EditWaterMtrl &src);
 

@@ -16,8 +16,9 @@ class MtrlImages
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false);
    void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false);
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
-   uint createWaterBaseTextures(Image &base_0, Image &base_1)C;
+   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
+   void waterBaseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    void processAlpha();
 
 public:
