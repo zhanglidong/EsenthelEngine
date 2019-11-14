@@ -194,11 +194,11 @@ Vec Refract(C Vec &dir, C Vec &nrm, Flt ior)
    {
       ior=1/ior;
       Flt k=1-ior*ior*(1-cos*cos);
-      return (k<0) ? VecZero : ior*dir - (ior*cos+SqrtFast(k))*nrm;
+      return (k<0) ? -Reflect(dir, nrm) : ior*dir - (ior*cos+SqrtFast(k))*nrm;
    }else
    {
       Flt k=1-ior*ior*(1-cos*cos);
-      return (k<0) ? VecZero : ior*dir - (ior*cos-SqrtFast(k))*nrm;
+      return (k<0) ? -Reflect(dir, nrm) : ior*dir - (ior*cos-SqrtFast(k))*nrm;
    }
 #else
    Flt cos=Dot(dir, nrm);
