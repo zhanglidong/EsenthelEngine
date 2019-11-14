@@ -187,7 +187,7 @@ Vec   Mirror(C Vec   &vec, C Vec   &plane_pos, C Vec   &plane_nrm) {return vec-p
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C Vec   &plane_nrm) {return vec-plane_nrm*(2*DistPointPlane(vec, plane_pos, plane_nrm));}
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C VecD  &plane_nrm) {return vec-plane_nrm*(2*DistPointPlane(vec, plane_pos, plane_nrm));}
 
-Vec Refract(C Vec &dir, C Vec &nrm, Flt ior)
+Vec Refract(C Vec &dir, C Vec &nrm, Flt ior) // https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel
 {
 #if 1
    Flt cos=Dot(dir, nrm); if(cos<0)
@@ -206,7 +206,7 @@ Vec Refract(C Vec &dir, C Vec &nrm, Flt ior)
    if(cos<0){n= nrm; CHS(cos); ior=1/ior;}
    else     {n=-nrm;}
    Flt k=1-ior*ior*(1-cos*cos);
-   return (k<0) ? VecZero : ior*dir + (ior*cos-SqrtFast(k))*n;
+   return (k<0) ? -Reflect(dir, nrm) : ior*dir + (ior*cos-SqrtFast(k))*n;
 #endif
 }
 
