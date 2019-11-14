@@ -12,11 +12,12 @@
 #ifndef REFRACT
 #define REFRACT 0
 #endif
+#define DUAL_NORMAL 1
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   Half wave=TexLod(Col, world_pos* WaterMaterial.scale_bump + WaterOfs).a // #WaterMaterialTextureLayout
-            +TexLod(Col, world_pos*-WaterMaterial.scale_bump + WaterOfs).a;
+   Half wave=TexLod(Col, (WaterOfs+world_pos)*WaterMaterial.scale_bump).a  // it's better to scale 'WaterOfs' too #WaterMaterialTextureLayout
+            +TexLod(Col, (WaterOfs-world_pos)*WaterMaterial.scale_bump).a; // it's better to scale 'WaterOfs' too
    wave=wave-1; // Avg(a,b)*2-1 = (a+b)-1
    return wave;
 }
@@ -27,7 +28,9 @@ void Surface_VS
 
    out Vec2 outTex  :TEXCOORD0,
    out Vec4 outTexN0:TEXCOORD1,
+#if DUAL_NORMAL
    out Vec4 outTexN1:TEXCOORD2,
+#endif
 #if WAVES
    out VecH outWaveN:NORMAL,
 #endif
@@ -63,11 +66,13 @@ void Surface_VS
    Vec2 tex;
    if(RIVER){tex=vtx.tex(); tex.y-=WaterFlow;}
    else     {tex=world_pos.xz;}
-   outTex     =tex*  WaterMaterial.scale_color    +     WaterOfs ;
-   outTexN0.xy=tex*  WaterMaterial.scale_normal   +     WaterOfs ;
-   outTexN0.zw=tex* -WaterMaterial.scale_normal   +     WaterOfs ;
-   outTexN1.xy=tex*( WaterMaterial.scale_normal/8)+Perp(WaterOfs);
-   outTexN1.zw=tex*(-WaterMaterial.scale_normal/8)+Perp(WaterOfs);
+   outTex     =(WaterOfs+tex)*WaterMaterial.scale_color ; // it's better to scale 'WaterOfs' too
+   outTexN0.xy=(WaterOfs+tex)*WaterMaterial.scale_normal;
+   outTexN0.zw=(WaterOfs-tex)*WaterMaterial.scale_normal;
+#if DUAL_NORMAL
+   outTexN1.xy=(WaterOfs+tex/8)*WaterMaterial.scale_normal;
+   outTexN1.zw=(WaterOfs-tex/8)*WaterMaterial.scale_normal;
+#endif
 
 #if WAVES
    Flt  dist=Length(view_pos);
@@ -132,7 +137,9 @@ void Surface_PS
 (
    Vec2 inTexC :TEXCOORD0,
    Vec4 inTexN0:TEXCOORD1,
+#if DUAL_NORMAL
    Vec4 inTexN1:TEXCOORD2,
+#endif
 #if WAVES
    VecH inWaveN:NORMAL,
 #endif
@@ -149,7 +156,11 @@ void Surface_PS
 ) // #RTOutput
 {
    VecH nrm_flat; // #WaterMaterialTextureLayout
-        nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterMaterial.normal
+#if DUAL_NORMAL
+   nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+#else
+   nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy)*(WaterMaterial.normal/2); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+#endif
 #if WAVES
    nrm_flat.xy+=inWaveN.xy;
 #endif

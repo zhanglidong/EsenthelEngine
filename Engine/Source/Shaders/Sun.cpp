@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 struct SunClass
 {
    Vec2 pos2;
@@ -11,7 +11,7 @@ struct SunClass
 BUFFER(Sun)
    SunClass Sun;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/
 Half SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                     NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET

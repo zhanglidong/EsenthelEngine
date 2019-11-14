@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 struct WaterMaterialClass
 {
    VecH color;
@@ -34,5 +34,5 @@ BUFFER(Water)
    Flt  Water_refract_underwater;
    Flt  WaterFlow;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/

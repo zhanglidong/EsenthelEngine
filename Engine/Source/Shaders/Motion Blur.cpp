@@ -29,11 +29,13 @@
 #define                ROUND  1 // if apply rounding (makes smaller res buffers look more similar to full res), default=1
 #define TEST_DEPTH            0
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 BUFFER(MotionBlur)
    Vec4 MotionUVMulAdd;
    Vec4 MotionVelScaleLimit;
    Vec2 MotionPixelSize;
 BUFFER_END
+#include "!Set Prec Default.h"
 /******************************************************************************/
 #define DEPTH_TOLERANCE 0.1 // 10 cm
 inline Half DepthBlend(Flt z_test, Flt z_base)

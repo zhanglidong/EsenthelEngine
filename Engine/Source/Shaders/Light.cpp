@@ -9,9 +9,13 @@
 
 /******************************************************************************/
 #include "!Header.h"
+#include "Water.h"
+
+#include "!Set Prec Struct.h"
 BUFFER(LightMap)
    Flt LightMapScale=1;
 BUFFER_END
+#include "!Set Prec Default.h"
 /******************************************************************************/
 void Geom_VS // for 3D Geom
 (
@@ -77,7 +81,7 @@ VecH4 LightDir_PS
 
    // ext
 #if WATER
-   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else
@@ -151,7 +155,7 @@ VecH4 LightPoint_PS
 
    // ext
 #if WATER
-   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else
@@ -225,7 +229,7 @@ VecH4 LightLinear_PS
 
    // ext
 #if WATER
-   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else
@@ -310,7 +314,7 @@ VecH4 LightCone_PS
 
    // ext
 #if WATER
-   VecH2 ext={WATER_SMOOTH, WATER_REFLECT}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext=GetExtMS(pixel.xy, index);
 #else

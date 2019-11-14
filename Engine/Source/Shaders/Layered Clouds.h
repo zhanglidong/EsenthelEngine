@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 struct CloudLayer
 {
    VecH4 color;
@@ -12,7 +12,7 @@ BUFFER(CloudLayer)
    Vec2 LCRange;
    Flt  LCScaleY;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/
 inline Flt CloudAlpha(Flt y) {return y*8-0.15;}
 /******************************************************************************/

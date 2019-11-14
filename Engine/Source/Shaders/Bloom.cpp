@@ -1,10 +1,11 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "!Set SP.h"
+
+#include "!Set Prec Struct.h"
 BUFFER(Bloom)
    VecH BloomParams; // x=original, y=scale, z=cut
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
 #ifndef GLOW
    #define GLOW 0

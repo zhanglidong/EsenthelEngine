@@ -32,9 +32,11 @@ TODO: add slow but high quality circular bokeh DoF
 #define FINAL_MODE  1 // 1(default)=maximize smooth blur only if it's closer, 0=always maximize smooth blur
 #define FINAL_SCALE 4.0 // final blur scale, increases transition between sharp and blurred in 0..1/FINAL_SCALE step, instead of 0..1
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 BUFFER(Dof)
    Vec4 DofParams; // Intensity, Focus, SimpleMulAdd
 BUFFER_END
+#include "!Set Prec Default.h"
 
 inline Flt DofIntensity() {return DofParams.x;}
 inline Flt DofFocus    () {return DofParams.y;}

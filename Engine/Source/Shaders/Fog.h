@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(Fog)
    VecH FogColor;
    Flt  FogDensity;
@@ -10,5 +10,5 @@ BUFFER(LocalFog)
    Flt  LocalFogDensity;
    Vec  LocalFogInside;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/

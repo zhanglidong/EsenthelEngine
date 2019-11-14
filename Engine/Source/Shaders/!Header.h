@@ -129,9 +129,6 @@
 #define ColorLumWeight  VecH(0.2126, 0.7152, 0.0722)
 #define ColorLumWeight2 VecH(0.2990, 0.5870, 0.1140)
 
-#define WATER_SMOOTH  1
-#define WATER_REFLECT 0.02
-
 #define TRANSLUCENT_VAL 0.5
 /******************************************************************************/
 // RENDER TARGETS
@@ -200,7 +197,7 @@
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 
 struct ViewportClass
 {
@@ -416,11 +413,11 @@ BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
 BUFFER(MultiMaterial2) MultiMaterialClass MultiMaterial2; BUFFER_END
 BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
 /******************************************************************************/
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/
 // IMAGES
 /******************************************************************************/
-#include "!Set IP.h"
+#include "!Set Prec Image.h"
 // #MaterialTextureLayout
 Image     Col, Col1, Col2, Col3;
 ImageH2   Nrm, Nrm1, Nrm2, Nrm3;
@@ -447,7 +444,7 @@ Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
        SAMPLER(SamplerDefault    , SSI_DEFAULT     );
        SAMPLER(SamplerPoint      , SSI_POINT       );
@@ -758,9 +755,11 @@ inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1
 #endif
 /******************************************************************************/
 #if !GL // FIXME broken for Mac - https://feedbackassistant.apple.com/feedback/7116525
+#include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Matrix ViewMatrix[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
 BUFFER_END
+#include "!Set Prec Default.h"
 
 inline Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx]);}
 inline VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx]);}
@@ -775,9 +774,11 @@ inline Vec ViewMatrixPos(UInt mtrx=0) {return ViewMatrix[mtrx][3];}
 
 inline Matrix GetViewMatrix() {return ViewMatrix[0];}
 #else // Mac currently has no known workaround and must use this. Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3 however a workaround was found to declare layout additionally for struct instead of just member.
+#include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Vec4 ViewMatrix[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
 BUFFER_END
+#include "!Set Prec Default.h"
 
 inline Vec TransformPos(Vec pos)
 {
@@ -1403,9 +1404,12 @@ inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm,
 /******************************************************************************/
 // DEPTH WEIGHT
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 BUFFER(DepthWeight)
    Flt DepthWeightScale=0.005;
 BUFFER_END
+#include "!Set Prec Default.h"
+
 #if 0
 Flt P1=0.004, P2=2;
 inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
@@ -1456,14 +1460,13 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 /******************************************************************************/
 // LIGHTS
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 struct GpuLightDir
 {
    Vec   dir; // high precision needed for HQ specular
    VecH4 color; // a=spec
    VecH  vol_exponent_steam;
 };
-
 struct GpuLightPoint
 {
    Flt   power;
@@ -1471,7 +1474,6 @@ struct GpuLightPoint
    Vec   pos;
    VecH4 color; // a=spec
 };
-
 struct GpuLightLinear
 {
    Flt   neg_inv_range;
@@ -1479,7 +1481,6 @@ struct GpuLightLinear
    Vec   pos;
    VecH4 color; // a=spec
 };
-
 struct GpuLightCone
 {
    Flt      neg_inv_range;
@@ -1489,12 +1490,12 @@ struct GpuLightCone
    VecH4    color; // a=spec
    MatrixH3 mtrx;
 };
-#include "!Set LP.h"
 
 BUFFER(LightDir   ) GpuLightDir    LightDir   ; BUFFER_END
 BUFFER(LightPoint ) GpuLightPoint  LightPoint ; BUFFER_END
 BUFFER(LightLinear) GpuLightLinear LightLinear; BUFFER_END
 BUFFER(LightCone  ) GpuLightCone   LightCone  ; BUFFER_END
+#include "!Set Prec Default.h"
 /******************************************************************************/
 inline Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*LightPoint .power    ), LightPoint.lum_max);} // LightPoint.power/Length2(pos), NaN
 inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLinear.neg_inv_range + 1             );} // 1-Length(pos)/LightLinear.range
@@ -1747,7 +1748,7 @@ inline VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflect
 /******************************************************************************/
 // SHADOWS
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;
@@ -1758,12 +1759,12 @@ BUFFER(Shadow)
    Matrix4 ShdMatrix4[6] ;
 BUFFER_END
 
-#include "!Set IP.h"
+#include "!Set Prec Image.h"
 
 ImageShadow ShdMap;
 ImageH      ShdMap1;
 
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
 inline Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 

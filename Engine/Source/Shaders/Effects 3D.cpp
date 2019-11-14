@@ -16,6 +16,7 @@
 /******************************************************************************/
 // VOLUME
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 struct VolumeClass
 {
    Flt min_steps,
@@ -30,6 +31,7 @@ struct VolumeClass
 BUFFER(Volume)
    VolumeClass Volume;
 BUFFER_END
+#include "!Set Prec Default.h"
 
 void Volume_VS(VtxInput vtx,
            out Vec4    outVtx:POSITION ,
@@ -182,11 +184,11 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
 // DECAL
 /******************************************************************************/
 // FULLSCREEN, LAYOUT, MODE 0-default, 1-normals, 2-palette
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(Decal)
    VecH2 DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
 inline Half DecalOpaqueFracMul() {return DecalParams.x;}
 inline Half DecalOpaqueFracAdd() {return DecalParams.y;}

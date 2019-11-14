@@ -5,12 +5,12 @@
    Keep here effects that are rarely used.
 
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(ColTrans)
    Vec     ColTransHsb;
    MatrixH ColTransMatrix;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
 VecH4 ColTrans_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -30,6 +30,7 @@ VecH4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    return VecH4(HsbToRgb(Vec(hsb.x+ColTransHsb.x, hsb.y*ColTransHsb.y, hsb.z*ColTransHsb.z)), Step);
 }
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 struct RippleClass
 {
    Flt  xx, xy,
@@ -44,6 +45,7 @@ struct RippleClass
 BUFFER(Ripple)
    RippleClass Rppl;
 BUFFER_END
+#include "!Set Prec Default.h"
 
 VecH4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -54,6 +56,7 @@ VecH4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    return c;
 }
 /******************************************************************************
+#include "!Set Prec Struct.h"
 struct TitlesClass
 {
    Flt stp;
@@ -66,6 +69,7 @@ struct TitlesClass
 BUFFER(Titles)
    TitlesClass Ttls;
 BUFFER_END
+#include "!Set Prec Default.h"
 
 VecH4 Titles_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {

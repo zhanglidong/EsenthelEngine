@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 struct OverlayClass
 {
    VecH4  param;
@@ -9,7 +9,7 @@ struct OverlayClass
 BUFFER(Overlay)
    OverlayClass OverlayParams;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 
 inline Half OverlayOpaqueFrac() {return OverlayParams.param.x;}
 inline Half OverlayAlpha     () {return OverlayParams.param.y;}

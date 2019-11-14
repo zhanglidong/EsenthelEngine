@@ -996,28 +996,31 @@
     <ClInclude Include="H\Misc\Printer.h">
       <Filter>H\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\!Set LP.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Shaders\Fur.h">
       <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
     <ClInclude Include="Source\Shaders\Overlay.h">
       <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\!Set SP.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\!Set HP.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\!Set IP.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="H\Graphics\Shader Compiler.h">
       <Filter>H\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Source\Shaders\Light Apply.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\!Set Prec Default.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\!Set Prec High.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\!Set Prec Image.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\!Set Prec Low.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\!Set Prec Struct.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
   </ItemGroup>

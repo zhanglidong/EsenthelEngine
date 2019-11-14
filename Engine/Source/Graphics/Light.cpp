@@ -145,7 +145,7 @@ void RendererClass::getLumRT() // this is called after drawing all lights, in or
    }
 }
 
-static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGBA));} // here Alpha is used for specular
+static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGBA)); Water.set();} // here Alpha is used for specular, set main water material to set default "smoothness, reflectivity" in case we don't use '_water_ext' #WaterExt
        void RendererClass::getWaterLumRT() {if(!_water_lum){GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorD(), 0));}}
 static void                SetWaterLum  ()
 {

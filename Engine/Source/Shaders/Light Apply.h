@@ -1,8 +1,8 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(ApplyLight)
    VecH AmbientColor,
      NightShadeColor;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/

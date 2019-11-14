@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(Font)
    Half FontShadow,
         FontContrast=1,
@@ -9,7 +9,7 @@ BUFFER(Font)
    Flt  FontDepth;
    VecH FontLum;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/
 void Font_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex  :TEXCOORD0,

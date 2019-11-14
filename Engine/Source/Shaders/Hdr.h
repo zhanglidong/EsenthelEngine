@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set SP.h"
+#include "!Set Prec Struct.h"
 BUFFER(Hdr)
    Flt  HdrBrightness,
         HdrExp       ,
@@ -7,5 +7,5 @@ BUFFER(Hdr)
         HdrMaxBright ;
    VecH HdrWeight    ;
 BUFFER_END
-#include "!Set LP.h"
+#include "!Set Prec Default.h"
 /******************************************************************************/

@@ -6,9 +6,11 @@
 #define ANIM_YES    1
 #define ANIM_SMOOTH 2
 
+#include "!Set Prec Struct.h"
 BUFFER(Particle)
    Vec2 ParticleFrames=Vec2(1, 1);
 BUFFER_END
+#include "!Set Prec Default.h"
 /******************************************************************************/
 void Particle_VS(VtxInput vtx,
              out Vec4  outVtx :POSITION ,

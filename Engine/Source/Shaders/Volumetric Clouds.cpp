@@ -2,6 +2,7 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************/
+#include "!Set Prec Struct.h"
 struct VolCloudClass
 {
    Flt  AC4_bottom,
@@ -20,9 +21,11 @@ struct VolCloudMapClass
 BUFFER(VolCloud)
    VolCloudClass Cloud;
 BUFFER_END
+
 BUFFER(VolCloudMap)
    VolCloudMapClass CloudMap;
 BUFFER_END
+#include "!Set Prec Default.h"
 /******************************************************************************/
 // CLOUDS
 /******************************************************************************
