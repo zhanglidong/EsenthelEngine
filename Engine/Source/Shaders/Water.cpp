@@ -1,6 +1,63 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Water.h"
+/******************************************************************************
+This code calculates lighting by taking samples along the view ray, which is refracted by water
+-calculate view direction
+-refract   view direction
+-keep moving along view direction
+-calculate total density at that point (based on travelled distance inside water)
+-calculate light intensity at that point (based on distance to surface along refracted 'light_dir'
+{
+   static Flt min=FLT_MAX, max=0;
+   Vec light_dir=-Sun.pos;
+   Flt d=Dot(light_dir, Water.plane.normal);
+   //if(d<0)
+      Vec under_water_light_dir=Refract(light_dir, Water.plane.normal, 1.33f);
+   
+   //Water.density=Mid(Ms.pos().y, 0.1f, 0.99f);
+   Int res=128;
+   REPD(x, res)
+   REPD(y, res)
+   {
+      Flt fx=x/Flt(res-1), fy=y/Flt(res-1);
+      Vec2 screen=D.rect().lerp(fx, fy);
+      Vec pos, dir; ScreenToPosDir(screen, pos, dir);
+      Vec nrm, hit_pos; if(SweepPointPlane(pos, dir*D.viewRange(), Water.plane, null, &nrm, &hit_pos))
+      {
+         Vec view=Refract(dir, nrm, 1.33f);
+         Vec pos=0;
+         Flt density=0;
+         Flt light=0;
+         for(;;)
+         {
+            pos+=view/16;
+            Flt step_density=AccumulatedDensity(Water.density, pos.length());
+            Flt gained_density=step_density-density;
+            Flt dist_plane_ray=Abs(DistPointPlaneRay(pos, Water.plane.normal, under_water_light_dir));
+            Flt l=VisibleOpacity(Water.density, dist_plane_ray);
+            light+=gained_density*l;
+            density=step_density;
+            if(density>=0.99f)break;
+         }
+         MIN(min, light);
+         MAX(max, light);
+         light/=0.582f;
+         if(Kb.shift()) // approximation
+         {
+            Flt p=Sat(1+Dot(dir, nrm));
+            p=1-Sqr(1-p);
+            light=Lerp(0.815f, 1.0f, p);
+         }
+         light*=Sat(-Dot(light_dir, nrm));
+         if(Kb.ctrl())light=LinearToSRGB(light);
+         Color c=ColorBrightness(TURQ, light);
+         VI.dot(c, screen, 0.014f);
+      }
+   }
+   VI.end();
+   D.text(0,0.8f,S+min/max+' '+max);
+}
 /******************************************************************************/
 // LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, GATHER, WAVES, RIVER
 #ifndef WAVES
@@ -203,7 +260,7 @@ void Surface_PS
       Half specular=lp.specular(WaterMaterial.smooth, WaterMaterial.reflect, false)*lum;
 
       // diffuse !! after specular because it adjusts 'lum' !!
-      lum*=lp.diffuse(WaterMaterial.smooth);
+      lum*=lp.diffuseWater();
 
       total_lum     +=LightDir.color.rgb*lum     ;
       total_specular+=LightDir.color.rgb*specular;

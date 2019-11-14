@@ -1590,9 +1590,22 @@ struct LightParams
       Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
       return 0.965521237*light_scatter*view_scatter;
    }
+   Half diffuseWater() // simulate light intensity based on angle between view and water surface normal as described in "Water.cpp"
+   {
+      const Half min=0.25;
+   #if 0 // original
+      Half d=Sat(1-NdotV);
+      d=1-Sqr(1-d);
+      return Lerp(min, 1.0, d);
+   #else // optimized
+      return Lerp(1.0, min, Sqr(NdotV));
+   #endif
+   }
    Half diffuse(Half smooth)
    {
-   #if DIFFUSE_MODE==SDIFFUSE_OREN_NAYAR
+   #if WATER
+      return diffuseWater();
+   #elif DIFFUSE_MODE==SDIFFUSE_OREN_NAYAR
       return diffuseOrenNayar(smooth);
    #elif DIFFUSE_MODE==SDIFFUSE_BURLEY
       return diffuseBurley(smooth);
