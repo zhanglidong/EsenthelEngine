@@ -2348,7 +2348,7 @@ Vec   Mirror(C Vec   &vec, C Vec   &plane_pos, C Vec   &plane_nrm); //          
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C Vec   &plane_nrm); //                                            result/  |  \vec
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C VecD  &plane_nrm); //
 
-// refract vector (result is on the same side of the plane)
+// refract vector
 Vec Refract(C Vec &dir, C Vec &plane_nrm, Flt ior); // 'dir'=direction vector (must be normalized), 'plane_nrm'=plane normal (must be normalized), 'ior'=index of refraction (use 1.33 for air<->water)
 
 #if EE_PRIVATE
