@@ -107,7 +107,7 @@ bool UpdateGame()
    UpdateGameCam();
    Game.World.update(ActiveCam.matrix.pos);
    Clouds.layered.update();
-   Water.update(0.02);
+   Water.update(0.64);
    Ms.visible(Players.elms() && ViewMode==VIEW_ISO);
    Ms.clip   (null, Ms.hidden());
    if(Ms.hidden())Ms.freeze();

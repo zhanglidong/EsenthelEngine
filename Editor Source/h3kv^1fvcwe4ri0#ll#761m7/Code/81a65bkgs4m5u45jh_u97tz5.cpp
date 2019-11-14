@@ -4964,7 +4964,7 @@ bool UpdateProject()
    Server   .update(&Proj, false);
    Importer .update();
    Builder  .update(true);
-   Water    .update(0.02);
+   Water    .update(0.64);
    D        .grassUpdate();
    Clouds   .layered.update();
    Physics  .stopSimulation().startSimulation(); // to visualize actors used in physical material editors
