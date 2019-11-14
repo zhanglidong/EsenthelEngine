@@ -110,7 +110,7 @@ bool UpdateProject()
    Server   .update(&Proj, false);
    Importer .update();
    Builder  .update(true);
-   Water    .update(0.64f);
+   Water    .update(0.4f);
    D        .grassUpdate();
    Clouds   .layered.update();
    Physics  .stopSimulation().startSimulation(); // to visualize actors used in physical material editors
