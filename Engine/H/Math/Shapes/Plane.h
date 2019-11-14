@@ -52,6 +52,7 @@ struct Plane // Plane 3D
 
    Plane() {}
    Plane(C Vec &pos, C Vec &normal) {set(pos, normal);}
+   Plane(C PlaneM &plane);
 };
 /******************************************************************************/
 struct PlaneM // Plane 3D (mixed precision)
@@ -75,6 +76,8 @@ struct PlaneD // Plane 3D (double precision)
    PlaneD() {}
    PlaneD(C VecD &pos, C VecD &normal) {set(pos, normal);}
 };
+/******************************************************************************/
+inline Plane::Plane(C PlaneM &plane) {set(plane.pos, plane.normal);}
 /******************************************************************************/
 // distance between point and a plane ('plane_normal' must be normalized)
 inline Flt DistPointPlane(C Vec2  &point,                     C Vec2  &plane_normal) {return Dot(point, plane_normal);} // this function assumes that plane position is Vec2 (0,0)
