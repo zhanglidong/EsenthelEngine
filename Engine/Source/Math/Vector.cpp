@@ -187,6 +187,29 @@ Vec   Mirror(C Vec   &vec, C Vec   &plane_pos, C Vec   &plane_nrm) {return vec-p
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C Vec   &plane_nrm) {return vec-plane_nrm*(2*DistPointPlane(vec, plane_pos, plane_nrm));}
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C VecD  &plane_nrm) {return vec-plane_nrm*(2*DistPointPlane(vec, plane_pos, plane_nrm));}
 
+Vec Refract(C Vec &dir, C Vec &nrm, Flt ior)
+{
+#if 1
+   Flt cos=Dot(dir, nrm); if(cos<0)
+   {
+      ior=1/ior;
+      Flt k=1-ior*ior*(1-cos*cos);
+      return (k<0) ? VecZero : ior*dir - (ior*cos+SqrtFast(k))*nrm;
+   }else
+   {
+      Flt k=1-ior*ior*(1-cos*cos);
+      return (k<0) ? VecZero : ior*dir - (ior*cos-SqrtFast(k))*nrm;
+   }
+#else
+   Flt cos=Dot(dir, nrm);
+   Vec n;
+   if(cos<0){n= nrm; CHS(cos); ior=1/ior;}
+   else     {n=-nrm;}
+   Flt k=1-ior*ior*(1-cos*cos);
+   return (k<0) ? VecZero : ior*dir + (ior*cos-SqrtFast(k))*n;
+#endif
+}
+
 Int Closer(C Vec2  &p, C Vec2  &p0, C Vec2  &p1) {return Dist2(p1, p)<Dist2(p0, p);}
 Int Closer(C VecD2 &p, C VecD2 &p0, C VecD2 &p1) {return Dist2(p1, p)<Dist2(p0, p);}
 Int Closer(C Vec   &p, C Vec   &p0, C Vec   &p1) {return Dist2(p1, p)<Dist2(p0, p);}

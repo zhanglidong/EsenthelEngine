@@ -2348,6 +2348,9 @@ Vec   Mirror(C Vec   &vec, C Vec   &plane_pos, C Vec   &plane_nrm); //          
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C Vec   &plane_nrm); //                                            result/  |  \vec
 VecD  Mirror(C VecD  &vec, C VecD  &plane_pos, C VecD  &plane_nrm); //
 
+// refract vector (result is on the same side of the plane)
+Vec Refract(C Vec &dir, C Vec &plane_nrm, Flt ior); // 'dir'=direction vector (must be normalized), 'plane_nrm'=plane normal (must be normalized), 'ior'=index of refraction (use 1.33 for air<->water)
+
 #if EE_PRIVATE
 // index of closer point to 'p' (returns 1 if 'p1' is closer to 'p', and 0 if 'p0' is closer to 'p')
 Int Closer(C Vec2  &p, C Vec2  &p0, C Vec2  &p1);
