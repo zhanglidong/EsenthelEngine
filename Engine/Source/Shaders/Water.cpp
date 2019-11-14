@@ -86,8 +86,8 @@ void Surface_VS
         wave_r=Wave(tex+Vec2(DERIVATIVE, 0)),
         wave_f=Wave(tex+Vec2(0, DERIVATIVE));
 
-   outWaveN.x=wave_r-wave;
-   outWaveN.y=wave_f-wave;
+   outWaveN.x=wave-wave_r;
+   outWaveN.y=wave-wave_f;
    outWaveN.z=DERIVATIVE/dist_scale;
    outWaveN=Normalize(outWaveN);
 
