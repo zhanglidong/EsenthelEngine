@@ -106,8 +106,8 @@ private:
 #endif
    Bool         _max_1_light, _draw_plane_surface, _use_secondary_rt, _began, _swapped_ds;
    Byte         _mode, _shader_shadow, _shader_soft, _shader_reflect_env, _shader_reflect_mirror;
-   Flt          _under_step;
-   Vec2         _offset, _y_mul_add;
+   Flt          _under_step, _offset_nrm, _offset_bump;
+   Vec2         _offset_col, _y_mul_add;
    Quad         _quad;
    PlaneM       _under_plane;
    MeshRender   _mshr;

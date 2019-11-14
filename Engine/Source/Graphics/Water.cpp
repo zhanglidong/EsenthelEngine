@@ -349,8 +349,10 @@ void WaterClass::begin()
       D.cull      (true);
       D.sampler3D (    );
       D.stencil   (STENCIL_WATER_SET, STENCIL_REF_WATER);
-      WS.WaterFlow->set(Time.time()*3);
-      WS.WaterOfs ->set(_offset      );
+      WS.WaterFlow   ->set(Time.time()*3);
+      WS.WaterOfsCol ->set(_offset_col  );
+      WS.WaterOfsNrm ->set(_offset_nrm  );
+      WS.WaterOfsBump->set(_offset_bump );
       Rect uv=D.screenToUV(D.viewRect()); // UV
       if(Renderer._mirror_rt)
       {
@@ -468,7 +470,9 @@ void WaterClass::drawSurfaces()
 /******************************************************************************/
 WaterClass& WaterClass::update(C Vec2 &vel)
 {
-  _offset+=vel*Time.d();
+  _offset_col +=vel *Time.d();
+  _offset_nrm +=0.5f*Time.d();
+  _offset_bump+=1.2f*Time.d();
    return T;
 }
 /******************************************************************************/

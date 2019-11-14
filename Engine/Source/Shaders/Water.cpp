@@ -16,8 +16,8 @@
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   Half wave=TexLod(Col, (WaterOfs+world_pos)*WaterMaterial.scale_bump).a  // it's better to scale 'WaterOfs' too #WaterMaterialTextureLayout
-            +TexLod(Col, (WaterOfs-world_pos)*WaterMaterial.scale_bump).a; // it's better to scale 'WaterOfs' too
+   Half wave=TexLod(Col, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).a  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
+            +TexLod(Col, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).a; // it's better to scale 'WaterOfsBump' too
    wave=wave-1; // Avg(a,b)*2-1 = (a+b)-1
    return wave;
 }
@@ -66,12 +66,12 @@ void Surface_VS
    Vec2 tex;
    if(RIVER){tex=vtx.tex(); tex.y-=WaterFlow;}
    else     {tex=world_pos.xz;}
-   outTex     =(WaterOfs+tex)*WaterMaterial.scale_color ; // it's better to scale 'WaterOfs' too
-   outTexN0.xy=(WaterOfs+tex)*WaterMaterial.scale_normal;
-   outTexN0.zw=(WaterOfs-tex)*WaterMaterial.scale_normal;
+   outTex     =(WaterOfsCol+tex)*WaterMaterial.scale_color ; // it's better to scale 'WaterOfsCol' too
+   outTexN0.xy=(WaterOfsNrm+tex)*WaterMaterial.scale_normal;
+   outTexN0.zw=(WaterOfsNrm-tex)*WaterMaterial.scale_normal;
 #if DUAL_NORMAL
-   outTexN1.xy=(WaterOfs+tex/8)*WaterMaterial.scale_normal;
-   outTexN1.zw=(WaterOfs-tex/8)*WaterMaterial.scale_normal;
+   outTexN1.xy=(WaterOfsNrm+tex/8)*WaterMaterial.scale_normal;
+   outTexN1.zw=(WaterOfsNrm-tex/8)*WaterMaterial.scale_normal;
 #endif
 
 #if WAVES

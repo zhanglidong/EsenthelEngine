@@ -783,7 +783,9 @@ void WaterShader::load()
       Water_color_underwater1 =GetShaderParam("Water_color_underwater1");
       Water_refract_underwater=GetShaderParam("Water_refract_underwater");
       WaterUnderStep          =GetShaderParam("WaterUnderStep");
-      WaterOfs                =GetShaderParam("WaterOfs");
+      WaterOfsCol             =GetShaderParam("WaterOfsCol");
+      WaterOfsNrm             =GetShaderParam("WaterOfsNrm");
+      WaterOfsBump            =GetShaderParam("WaterOfsBump");
       WaterYMulAdd            =GetShaderParam("WaterYMulAdd");
       WaterPlanePos           =GetShaderParam("WaterPlanePos");
       WaterPlaneNrm           =GetShaderParam("WaterPlaneNrm");

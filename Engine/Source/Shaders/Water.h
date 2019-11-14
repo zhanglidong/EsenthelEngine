@@ -24,7 +24,7 @@ BUFFER_END
 BUFFER(Water)
    Vec4 WaterReflectMulAdd,
         WaterClamp;
-   Vec2 WaterOfs;
+   Vec2 WaterOfsCol;
    Vec2 WaterYMulAdd;
    Vec  WaterPlanePos,
         WaterPlaneNrm;
@@ -32,7 +32,9 @@ BUFFER(Water)
         Water_color_underwater1;
    Half WaterUnderStep;
    Flt  Water_refract_underwater;
-   Flt  WaterFlow;
+   Flt  WaterFlow,
+        WaterOfsNrm,
+        WaterOfsBump;
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
