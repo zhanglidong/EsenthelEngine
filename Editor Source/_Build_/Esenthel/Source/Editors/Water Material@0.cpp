@@ -101,7 +101,7 @@ WaterMtrlRegion WaterMtrlEdit;
       props.New().create("Color"                   , MemberDesc(DATA_VEC ).setFunc(Col              , Col              )).setColor();
       props.New().create("Smoothness"              , MemberDesc(DATA_REAL).setFunc(Smooth           , Smooth           )).range(0, 1);
       props.New().create("Reflectivity"            , MemberDesc(DATA_REAL).setFunc(Reflect          , Reflect          )).range(0, 1);
-      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale         , NrmScale         )).range(0, 2);
+      props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale         , NrmScale         )).range(0, 1);
       props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY              , FNY              ));
       props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale        , WaveScale        )).range(0, 1);
 
