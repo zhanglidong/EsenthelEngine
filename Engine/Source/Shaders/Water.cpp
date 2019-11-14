@@ -12,7 +12,7 @@
 #ifndef REFRACT
 #define REFRACT 0
 #endif
-#define DUAL_NORMAL 1
+#define DUAL_NORMAL 0
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
