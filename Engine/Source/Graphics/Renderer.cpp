@@ -1426,7 +1426,7 @@ Bool RendererClass::waterPostLight()
       Sh.Img[0]->set(_water_nrm); // 'Img0' required by shader 'GetNormal', 'GetNormalMS' functions
       Sh.Img[3]->set(_water_col);
       Sh.Col[0]->set(_water_lum); MaterialClear(); // have to re-use Material texture shader image, because there are no other left, so have to call 'MaterialClear', no need for 'WaterMtrlLast' because we will don't draw any water after this, and later 'WaterMtrlLast' is automatically cleared at start of new water rendering
-      Shader *shader=WS.Apply[refract][depth_test][Water._shader_reflect_env][Water._shader_reflect_mirror]; // we need to output depth only if we need it for depth testing
+      Shader *shader=WS.Apply[depth_test][Water._shader_reflect_env][Water._shader_reflect_mirror][refract]; // we need to output depth only if we need it for depth testing
       REPS(_eye, _eye_num)
       {
          Water.setEyeViewportCam();
