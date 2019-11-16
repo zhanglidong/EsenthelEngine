@@ -278,7 +278,8 @@ struct Image // Image (Texture)
    Bool               compressed()C {return ImageTI[_hw_type].    compressed;} // if  hardware type is compressed
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].     precision;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].high_precision;} // if  image requires high precision storage (for example Flt/Vec4 instead of Byte/Color)
-   Bool                     sRGB()C {return  IsSRGB(_hw_type)               ;} // if  this is a sRGB image
+   Bool                     sRGB()C {return IsSRGB (_hw_type)               ;} // if  this is a sRGB image
+   Bool                  isSByte()C {return IsSByte(_hw_type)               ;} // if  this is a signed byte/8-bit precision
 #if EE_PRIVATE
    constexpr Bool     filterable()C {return ImageTI[_hw_type].  filterable();}
 #endif

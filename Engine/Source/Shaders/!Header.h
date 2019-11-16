@@ -983,6 +983,9 @@ inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDep
 Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
 Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
 
+VecH2 SRGBToLinear(VecH2 s) {return VecH2(SRGBToLinear(s.x), SRGBToLinear(s.y));}
+VecH2 LinearToSRGB(VecH2 l) {return VecH2(LinearToSRGB(l.x), LinearToSRGB(l.y));}
+
 VecH SRGBToLinear(VecH s) {return VecH(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 VecH LinearToSRGB(VecH l) {return VecH(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 

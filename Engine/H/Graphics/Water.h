@@ -34,6 +34,7 @@ struct WaterMtrl : WaterMtrlParams // Water Material
    // set / get
    WaterMtrl&  colorMap(C ImagePtr &image);   C ImagePtr&  colorMap()C {return  _color_map;} // set/get color  map
    WaterMtrl& normalMap(C ImagePtr &image);   C ImagePtr& normalMap()C {return _normal_map;} // set/get normal map
+   WaterMtrl&   bumpMap(C ImagePtr &image);   C ImagePtr&   bumpMap()C {return   _bump_map;} // set/get bump   map
 
    // operations
    WaterMtrl& reset   (); // reset to default values
@@ -54,7 +55,7 @@ struct WaterMtrl : WaterMtrlParams // Water Material
 #if !EE_PRIVATE
 private:
 #endif
-   ImagePtr _color_map, _normal_map;
+   ImagePtr _color_map, _normal_map, _bump_map;
 };
 /******************************************************************************/
 DECLARE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr); // Water Material Cache

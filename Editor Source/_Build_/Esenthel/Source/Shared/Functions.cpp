@@ -318,9 +318,17 @@ bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always) // returns if any 
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
 {
    bool sign=false;
-   if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
-   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
-   if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
+   if(flags&WATER_MTRL)
+   {
+      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #WaterMaterialTextureLayout
+      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
+      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC4_SIGN; compress_type=null;}} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
+   }else
+   {
+      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
+      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
+      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
+   }
    if(md5 || compress_type)
    {
       // set initial values
@@ -381,7 +389,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
             if(                      min.a<254)bc1=false; // BC1 supports only           A=255 #BC1RGB
             if(max.g>1 || max.b>1 || min.a<254)bc4=false; // BC4 supports only G=0, B=0, A=255
             if(           max.b>1 || min.a<254)bc5=false; // BC5 supports only      B=0, A=255
-            if((flags&MTRL_BASE_2) && max.b-min.b>1)bc1=false; // if this is Base2 Ext and have bump map #MaterialTextureLayout then disable BC1 and use high quality BC7
+            if((flags&MTRL_BASE_2) && !(flags&WATER_MTRL) && max.b-min.b>1)bc1=false; // if this is Base2 Ext and have bump map #MaterialTextureLayout then disable BC1 and use high quality BC7
 
             if(bc4 && !srgb            )*compress_type=                         IMAGE_BC4 ;else // BC4 is 4-bit HQ so use it always if possible (doesn't support sRGB)
             if(bc1 && !(flags&FORCE_HQ))*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // use BC1 only if we don't want HQ
@@ -473,20 +481,18 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
 { // #WaterMaterialTextureLayout
    uint tex=0;
-   if(base_0.valid() && (col || bump))
+   if(base_0.valid() && col)
    {
       Image b0; LoadTexture(proj, base_0, b0, size);
-      if(col )col ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-      if(bump)bump->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+      if(col)col->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, b0.h())
       REPD(x, b0.w())
       {
          Color c=b0.color(x, y);
-         if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-         if(bump){bump->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_BUMP ;}
+         if(col){col->color(x, y, c); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
       }
    }
    if(base_1.valid() && normal)
@@ -503,6 +509,17 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Ima
          n.xyz=n.xyz*0.5f+0.5f;
          n.w=1;
          normal->colorF(x, y, n);
+      }
+   }
+   if(base_2.valid() && bump)
+   {
+      Image b2; LoadTexture(proj, base_2, b2, size);
+      if(bump)bump->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+      REPD(y, b2.h())
+      REPD(x, b2.w())
+      {
+         flt c=b2.pixelF(x, y);
+         if(bump){if(Abs(c)>1.5f/127)tex|=BT_BUMP; bump->pixelF(x, y, c*0.5f+0.5f);}
       }
    }
    if(col     && !(tex&BT_COLOR  ))col    ->del();

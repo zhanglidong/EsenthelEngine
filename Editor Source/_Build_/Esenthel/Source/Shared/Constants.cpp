@@ -371,7 +371,7 @@ const Pose PoseIdentity;
       if(! col_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(!bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
-      ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex,
+      ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
          col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
 
       T.flip_normal_y=(nrm_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment

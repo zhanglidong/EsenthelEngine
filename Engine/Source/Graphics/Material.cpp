@@ -796,11 +796,11 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
              h=Max(col_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( col_src->is() && ( col_src->w()!=w ||  col_src->h()!=h))if( col_src->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT)) col_src=& col_temp;else goto error;
          if(glow_src->is() && (glow_src->w()!=w || glow_src->h()!=h))if(glow_src->copyTry(glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))glow_src=&glow_temp;else goto error;
-         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!col_src->is() || col_src->lockRead())
          {
             if(!glow_src->is() || glow_src->lockRead())
             {
+               dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
                REPD(y, dest_0.h())
                REPD(x, dest_0.w())
                {
@@ -821,11 +821,11 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
              h=Max(col_src->h(), alpha_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if(  col_src->is() && (  col_src->w()!=w ||   col_src->h()!=h))if(  col_src->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))  col_src=&  col_temp;else goto error;
          if(alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP                ))alpha_src=&alpha_temp;else goto error;
-         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!col_src->is() || col_src->lockRead())
          {
             if(!alpha_src->is() || alpha_src->lockRead())
             {
+               dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
                Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                REPD(y, dest_0.h())
                REPD(x, dest_0.w()){Color c=(col_src->is() ? col_src->color(x, y) : WHITE); c.a=(alpha_src->is() ? alpha_src->color(x, y).c[alpha_component] : 255); dest_0.color(x, y, c);} // full alpha
@@ -852,8 +852,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
       {
          Int w=normal_src->w(),
              h=normal_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if(normal_src->w()!=w || normal_src->h()!=h)if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
-         if(normal_src->lockRead())
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+         if(!normal_src->is() || normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
             Vec4 c; c.zw=0;
@@ -874,8 +874,6 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
          Int w=Max(1, Max(smooth_src->w(), reflect_src->w(), bump_src->w(), alpha_src->w())), // Max 1 in case all images are empty, but we still need it
              h=Max(1, Max(smooth_src->h(), reflect_src->h(), bump_src->h(), alpha_src->h())); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-         dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
-
          if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP)) smooth_src=& smooth_temp;else goto error;
          if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))reflect_src=&reflect_temp;else goto error;
          if(   bump_src->is() && (   bump_src->w()!=w ||    bump_src->h()!=h))if(   bump_src->copyTry(   bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))   bump_src=&   bump_temp;else goto error;
@@ -889,6 +887,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
                {
                   if(!alpha_src->is() || alpha_src->lockRead())
                   {
+                     dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
                      Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())

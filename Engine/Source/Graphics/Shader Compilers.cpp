@@ -115,6 +115,10 @@ static void Compile(API api)
       src.New("DrawTexZG", "Draw2DTex_VS", "DrawTexZG_PS");
       src.New("DrawTexWG", "Draw2DTex_VS", "DrawTexWG_PS");
 
+      src.New("DrawTexXSG" , "Draw2DTex_VS", "DrawTexXSG_PS");
+      src.New("DrawTexXYSG", "Draw2DTex_VS", "DrawTexXYSG_PS");
+      src.New("DrawTexSG"  , "Draw2DTex_VS", "DrawTexSG_PS");
+
       src.New("DrawTexNrm", "Draw2DTex_VS", "DrawTexNrm_PS");
       src.New("Draw"      ,      "Draw_VS",  "Draw2DTex_PS");
       src.New("DrawC"     ,      "Draw_VS", "Draw2DTexC_PS");

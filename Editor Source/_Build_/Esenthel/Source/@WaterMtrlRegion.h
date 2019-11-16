@@ -63,7 +63,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual   EditMaterial& getEditMtrl()override; 
    virtual C ImagePtr    & getBase0   ()override; 
    virtual C ImagePtr    & getBase1   ()override; 
- //virtual C ImagePtr    & getBase2   ()override  {return game->            ;}
+   virtual C ImagePtr    & getBase2   ()override; 
  //virtual C ImagePtr    & getDetail  ()override  {return game->detail_map  ;}
  //virtual C ImagePtr    & getMacro   ()override  {return game-> macro_map  ;}
  //virtual C ImagePtr    & getLight   ()override  {return game-> light_map  ;}

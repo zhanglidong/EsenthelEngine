@@ -60,6 +60,9 @@ This code calculates lighting by taking samples along the view ray, which is ref
 }
 /******************************************************************************/
 // LIGHT, SHADOW, SOFT, REFLECT_ENV, REFLECT_MIRROR, GATHER, WAVES, RIVER
+// Col, Nrm, Ext = water material textures
+// ImgXF = background underwater depth
+// these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=background underwater
 #ifndef WAVES
 #define WAVES 0
 #endif
@@ -73,10 +76,8 @@ This code calculates lighting by taking samples along the view ray, which is ref
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   Half wave=TexLod(Col, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).a  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
-            +TexLod(Col, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).a; // it's better to scale 'WaterOfsBump' too
-   wave=wave-1; // Avg(a,b)*2-1 = (a+b)-1
-   return wave;
+   return Avg(TexLod(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
+              TexLod(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
 }
 /******************************************************************************/
 void Surface_VS
@@ -158,9 +159,6 @@ void Surface_VS
    outVtx=Project(view_pos);
 }
 /******************************************************************************/
-// Col, Nrm = water material textures
-// ImgXF = background underwater depth
-// these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=background underwater
 void WaterReflectColor(inout VecH water_col, inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex, Vec2 refract, Half plane_dist)
 {
    #if REFLECT_ENV || REFLECT_MIRROR

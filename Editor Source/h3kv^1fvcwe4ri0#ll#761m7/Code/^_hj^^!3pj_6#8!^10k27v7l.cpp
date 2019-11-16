@@ -69,6 +69,7 @@ class EditWaterMtrl : EditMaterial
       color_underwater1     =src.colorUnderwater1S();
       base_0_tex=src. colorMap().id();
       base_1_tex=src.normalMap().id();
+      base_2_tex=src.  bumpMap().id();
    }
    void copyTo(WaterMtrl &dest, C Project &proj)C
    {
@@ -88,7 +89,8 @@ class EditWaterMtrl : EditMaterial
       dest.colorUnderwater0S     (color_underwater0);
       dest.colorUnderwater1S     (color_underwater1);
       dest. colorMap(proj.texPath(base_0_tex))
-          .normalMap(proj.texPath(base_1_tex));
+          .normalMap(proj.texPath(base_1_tex))
+          .  bumpMap(proj.texPath(base_2_tex));
       dest.validate();
    }
    uint sync(C EditMaterial  &src) {return super.sync(src);}

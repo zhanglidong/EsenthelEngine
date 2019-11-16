@@ -68,8 +68,15 @@ class SizeStatistics : ClosableWindow
             ALPHA_MODE alpha=D.alpha();
             if(!list_elm.proj_elm)D.alpha(ALPHA_NONE); // disable alpha blending for textures
             Rect rect=image.fit(D.viewRect());
-            if(image.mode()==IMAGE_CUBE)image.drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD);
-            else                        image.draw        (rect);
+            if(image.mode()==IMAGE_CUBE)image.drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD);else
+            {
+               if(image.isSByte())
+               {
+                  int channels=ImageTI[image.type()].channels;
+                  VI.shader(ShaderFiles("Main")->get((channels==1) ? "DrawTexXSG" : (channels==2) ? "DrawTexXYSG" : "DrawTexSG"));
+               }
+               image.draw(rect);
+            }
             D.alpha(alpha);
             TextStyleParams ts; ts.align.set(1, 1); D.text(ts, D.viewRect().ld(), S+image.w()+'x'+image.h()+' '+ImageTI[image.type()].name+", "+image.mipMaps()+" MipMap"+CountS(image.mipMaps()));
          }else // other elements preview as normal for simplification

@@ -2,16 +2,28 @@
 /******************************************************************************/
 class Texture
 {
+   enum
+   {
+      SRGB      =1<<0, // if sRGB gamma
+      SIGN      =1<<1, // if signed
+      DYNAMIC   =1<<2, // if texture is dynamically generated
+      REGENERATE=1<<3, // if this texture needs to be regenerated
+   };
    UID id; // texture id
-   bool  uses_alpha, // if uses alpha channel
-            dynamic, // if texture is dynamically generated
-               srgb , // if sRGB gamma
-             normal, // if normal map
-         regenerate; // if this texture needs to be regenerated
-   sbyte    quality; // -1=PVRTC1_2, 0=default, 1=BC7
-   byte    downsize; // downsize
+   sbyte  quality; // -1=PVRTC1_2, 0=default, 1=BC7
+   byte  downsize, // downsize
+         channels, // assume RGB by default (no alpha used)
+            flags;
 
    Texture& downSize(int size);
+   
+   Texture& usesAlpha ();
+   Texture& normal    ();
+
+   bool sRGB      ()C;   Texture& sRGB      (bool on);
+   bool sign      ()C;   Texture& sign      (bool on);
+   bool dynamic   ()C;   Texture& dynamic   (bool on);
+   bool regenerate()C;   Texture& regenerate(bool on);
 
    static int CompareTex(C Texture &tex, C UID &tex_id);
 

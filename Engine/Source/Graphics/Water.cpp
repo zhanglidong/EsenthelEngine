@@ -43,6 +43,7 @@ WaterMtrl::WaterMtrl()
 /******************************************************************************/
 WaterMtrl& WaterMtrl:: colorMap(C ImagePtr &image) {T. _color_map=image; return T;}
 WaterMtrl& WaterMtrl::normalMap(C ImagePtr &image) {T._normal_map=image; return T;}
+WaterMtrl& WaterMtrl::  bumpMap(C ImagePtr &image) {T.  _bump_map=image; return T;}
 WaterMtrl& WaterMtrl::reset()
 {
    T=WaterMtrl();
@@ -59,9 +60,9 @@ void WaterMtrl::set()C
    {
       WaterMtrlLast=this;
       WS.WaterMaterial->set<WaterMtrlParams>(T);
-      Sh.Col[0]->set( _color_map());
+      Sh.Col[0]->set( _color_map()); // #WaterMaterialTextureLayout
       Sh.Nrm[0]->set(_normal_map());
-    //Sh.Ext[0]->set( _extra_map());
+      Sh.Ext[0]->set(  _bump_map());
    }
 }
 /******************************************************************************/
@@ -77,6 +78,7 @@ Bool WaterMtrl::save(File &f, CChar *path)C
    // textures
    f.putStr( _color_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
    f.putStr(_normal_map.name(path));
+   f.putStr(  _bump_map.name(path));
 
    return f.ok();
 }
@@ -93,6 +95,7 @@ Bool WaterMtrl::load(File &f, CChar *path)
           >>refract_underwater;
          f.getStr(temp);  _color_map.require(temp, path);
          f.getStr(temp); _normal_map.require(temp, path);
+         f.getStr(temp);   _bump_map.require(temp, path);
          if(f.ok())return true;
       }break;
 
@@ -418,7 +421,7 @@ void WaterClass::endImages()
 Bool WaterClass::ocean()
 {
    #define EPS_WAVE_SCALE 0.001f // 1 mm
-   return _color_map && wave_scale>EPS_WAVE_SCALE;
+   return _bump_map && wave_scale>EPS_WAVE_SCALE;
 }
 Shader* WaterClass::shader()
 {
@@ -799,39 +802,6 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
     //Image reflect_temp; C Image *reflect_src=&reflect; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
     //Image    glow_temp; C Image *   glow_src=&   glow; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
 
-      /*// set alpha
-      if(!alpha_src->is() && ImageTI[col_src->type()].a) // if there's no alpha map but there is alpha in color map
-      {
-         Byte min_alpha=255;
-         alpha_src=&alpha_temp.create(col_src->w(), col_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
-         if(col_src->lockRead())
-         {
-            REPD(y, col_src->h())
-            REPD(x, col_src->w())
-            {
-               Byte a=col_src->color(x, y).a;
-                    alpha_temp.pixel(x, y, a);
-               MIN(min_alpha, a);
-            }
-            col_src->unlock();
-         }
-         if(min_alpha>=254)alpha_temp.del(); // alpha channel in color map is fully white
-      }else
-      if(alpha_src->is() && ImageTI[alpha_src->type()].channels>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
-         if(alpha_src->lockRead())
-      {
-         Byte min_alpha=255, min_lum=255;
-         REPD(y, alpha_src->h())
-         REPD(x, alpha_src->w())
-         {
-            Color c=alpha_src->color(x, y);
-            MIN(min_alpha, c.a    );
-            MIN(min_lum  , c.lum());
-         }
-         alpha_src->unlock();
-         if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
-      }*/
-
       // set what textures do we have (set this before 'normal' is generated from 'bump')
       if(    col_src->is())ret|=BT_COLOR  ;
     //if(  alpha_src->is())ret|=BT_ALPHA  ;
@@ -841,7 +811,26 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
     //if(reflect_src->is())ret|=BT_REFLECT;
     //if(   glow_src->is())ret|=BT_GLOW   ;
 
-      // base_1 NRM !! do this first before base_0 RGB_Bump which resizes bump !!
+      // base_0
+      {
+         Int w=col_src->w(),
+             h=col_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if( col_src->is() && (col_src->w()!=w || col_src->h()!=h))if(col_src->copyTry(col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))col_src=&col_temp;else goto error;
+         if(!col_src->is() || col_src->lockRead())
+         {
+            dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8_SRGB);
+            REPD(y, dest_0.h())
+            REPD(x, dest_0.w())
+            {
+               Color c=(col_src->is() ? col_src->color(x, y) : WHITE);
+               c.a=255; // force full alpha
+               dest_0.color(x, y, c);
+            }
+            col_src->unlock();
+         }
+      }
+
+      // base_1 NRM !! do this first before base_2 Bump which resizes bump !!
     C Image *bump_to_normal=null;
       if(  bump_src->is() && !normal_src->is()           )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
       if(normal_src->is() &&  normal_src->monochromatic())bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
@@ -858,8 +847,8 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=normal_src->w(),
              h=normal_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if(normal_src->w()!=w || normal_src->h()!=h)if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
-         if(normal_src->lockRead())
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+         if(!normal_src->is() || normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
             Vec4 c; c.zw=0;
@@ -874,30 +863,23 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
          }
       }
 
-      // base_0, put bump in W channel
+      // base_2 BUMP
+      if(bump_src->is())
       {
-         Int w=Max(col_src->w(), bump_src->w()),
-             h=Max(col_src->h(), bump_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( col_src->is() && ( col_src->w()!=w ||  col_src->h()!=h))if( col_src->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT)) col_src=& col_temp;else goto error;
-         if(bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP                ))bump_src=&bump_temp;else goto error;
-         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-         if(!col_src->is() || col_src->lockRead())
+         Int w=bump_src->w(),
+             h=bump_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_src=&bump_temp;else goto error;
+         if(!bump_src->is() || bump_src->lockRead())
          {
-            if(!bump_src->is() || bump_src->lockRead())
+            dest_2.createSoftTry(w, h, 1, IMAGE_R8_SIGN);
+            Vec4 c=0;
+            REPD(y, dest_2.h())
+            REPD(x, dest_2.w())
             {
-               REPD(y, dest_0.h())
-               REPD(x, dest_0.w())
-               {
-                  Color c=(col_src->is() ? col_src->color(x, y) : WHITE);
-                  if(bump_src->is())
-                  {
-                     Color bump=bump_src->color(x, y); c.a=bump.lum();
-                  }else                                c.a=255; // use 255 so BC1 can be selected or BC7 with best quality
-                  dest_0.color(x, y, c);
-               }
-               bump_src->unlock();
+               c.x=(bump_src->is() ? bump_src->colorF(x, y).xyz.max()*2-1 : 0);
+               dest_2.colorF(x, y, c);
             }
-            col_src->unlock();
+            bump_src->unlock();
          }
       }
    }
