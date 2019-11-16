@@ -995,6 +995,7 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 /******************************************************************************/
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
+#include "!Set Prec Struct.h"
 #if GL
    // !! LOC, ATTR numbers AND list order, must be in sync with GL_VTX_SEMANTIC !!
    LOC( 0) Vec4  _pos     :ATTR0 ;
@@ -1025,6 +1026,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 _color   :COLOR1      ;
 #endif
    UInt  _instance:SV_InstanceID;
+#include "!Set Prec Default.h"
 
    VecH  nrm      (                                        ) {return _nrm                                                                  ;} // vertex normal
    VecH  tan      (VecH nrm          , Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
