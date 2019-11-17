@@ -187,8 +187,8 @@ void Image::bumpToNormal(Image &dest, Flt scale, Bool high_precision)C
       if(   normal.createTry(src->w(), src->h(), 1, high_precision ? IMAGE_F32_4 : IMAGE_R8G8B8A8, IMAGE_SOFT, 1) && normal.lock(LOCK_WRITE))
       {
          high_precision=(normal.hwType()==IMAGE_F32_4); // verify in case it was created as different type
-         Bool src_hp=src->highPrecision(),
-              src_1c=(ImageTI[src->type()].channels==1);
+         Bool src_hp= src->highPrecision(),
+              src_1c=(src->typeChannels ()==1);
          if( !src_hp)scale/=(src_1c ? (1<<(8*src->bytePP()))-1 : 255);
          Flt z=2/scale;
          REPD(y, src->h())
@@ -374,7 +374,7 @@ void Image::crop3D(Image &dest, Int x, Int y, Int z, Int w, Int h, Int d)C
             REPD(sy, h)
             REPD(sx, w)temp.pixel3D(sx, sy, sz, src->pixel3D(x+sx, y+sy, z+sz));
          }else
-         if(ImageTI[src->type()].channels<=1)
+         if(src->typeChannels()<=1)
          {
             REPD(sz, d)
             REPD(sy, h)
@@ -640,9 +640,9 @@ struct BlurContext
    {
       if(T.high_prec=src.highPrecision())
       {
-         if(src.hwType()==IMAGE_F32        )func=0;else // HP 1F, here check 'hwType' because we will access memory directly using 'pixF' method
-         if(ImageTI[src.type()].channels==1)func=1;else // HP 1C
-                                            func=2;     // HP MC
+         if(src.hwType      ()==IMAGE_F32)func=0;else // HP 1F, here check 'hwType' because we will access memory directly using 'pixF' method
+         if(src.typeChannels()==1        )func=1;else // HP 1C
+                                          func=2;     // HP MC
       }else
       {
        C ImageTypeInfo &ti=ImageTI[src.hwType()];  // here check 'hwType' because we will access memory directly using 'pixB' method
@@ -2095,7 +2095,31 @@ Bool Image::monochromatic()C
          REPD(y, src->lh())
          REPD(x, src->lw())
          {
-            Color c=src->color3D(x, y, z); if(c.r!=c.g || c.r!=c.b){src->unlock(); return false;}
+            Color c=src->color3D(x, y, z); if(!c.mono()){src->unlock(); return false;}
+         }
+         src->unlock();
+      }
+   }
+   return true;
+}
+Bool Image::monochromaticRG()C
+{
+ C ImageTypeInfo &type_info=ImageTI[type()];
+   if(!type_info.r && !type_info.g
+   ||  type()==IMAGE_L8 || type()==IMAGE_L8_SRGB || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
+
+   Bool  extract=compressed(); IMAGE_TYPE type=ImageTypeUncompressed(T.type());
+   Image temp; C Image *src=(extract ? &temp : this);
+   REPD(face, faces()) // 'faces' and not 'src.faces' because that could be empty
+   {
+      int src_face=face; if(extract)if(extractMipMap(temp, type, 0, DIR_ENUM(face)))src_face=0;else return false; // error
+      if( src->lockRead(0, DIR_ENUM(src_face)))
+      {
+         REPD(z, src->ld())
+         REPD(y, src->lh())
+         REPD(x, src->lw())
+         {
+            Color c=src->color3D(x, y, z); if(c.r!=c.g){src->unlock(); return false;}
          }
          src->unlock();
       }

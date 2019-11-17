@@ -131,7 +131,8 @@ Bool Image::ExportBMP(File &f)C
    Bool ok=false;
    if(src->lockRead())
    {
-      Byte byte_pp=((ImageTI[T.type()].channels==1) ? 1 : ImageTI[T.type()].a ? 4 : 3); // use T.type to have precise information about source type
+    C ImageTypeInfo &type_info=ImageTI[T.type()]; // use 'T.type' to have precise information about source type
+      Byte byte_pp=((type_info.channels==1) ? 1 : type_info.a ? 4 : 3);
       Int  size, zeros; GetSizeZeros(*src, byte_pp, size, zeros);
 
       BitmapFileHeader bmfh;

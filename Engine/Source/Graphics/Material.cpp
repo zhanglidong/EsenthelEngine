@@ -763,7 +763,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
          }
          if(min_alpha>=254)alpha_temp.del(); // alpha channel in color map is fully white
       }else
-      if(alpha_src->is() && ImageTI[alpha_src->type()].channels>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
+      if(alpha_src->is() && alpha_src->typeChannels()>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha_src->lockRead())
       {
          Byte min_alpha=255, min_lum=255;
@@ -837,8 +837,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
 
       // base_1 NRM !! do this first before base_2 SRBA which resizes bump !!
     C Image *bump_to_normal=null;
-      if(  bump_src->is() && !normal_src->is()           )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
-      if(normal_src->is() &&  normal_src->monochromatic())bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
+      if(  bump_src->is() && !normal_src->is()                                          )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
+      if(normal_src->is() && (normal.typeChannels()==1 || normal_src->monochromaticRG()))bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
       if(bump_to_normal) // create normal from bump
       {
          // it's best to resize bump instead of normal

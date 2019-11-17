@@ -3,6 +3,12 @@ class VideoOptions : PropWin
 {
    class Advanced : PropWin
    {
+      static cchar8 *DiffuseMode_t[]=
+      {
+         "Lambert"      , // 0
+         "Oren-Nayar"   , // 1
+         "Burley/Disney", // 2
+      }; ASSERT(DIFFUSE_LAMBERT==0 && DIFFUSE_OREN_NAYAR==1 && DIFFUSE_BURLEY==2 && DIFFUSE_NUM==3);
       static cchar8 *TexFilter_t[]=
       {
          "1",
@@ -84,37 +90,39 @@ class VideoOptions : PropWin
       static Str  TexFilter    (C Advanced &adv             ) {Str f=D.texFilter(); REPA(TexFilter_t)if(f==TexFilter_t[i])return i; return -1;}
       static void TexFilter    (  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, TexFilter_t))D.texFilter(TextInt(TexFilter_t[i]));}
       static Str  TexMipFilter (C Advanced &adv             ) {return D.texMipFilter();}
-      static void TexMipFilter (  Advanced &adv, C Str &text) {D.texMipFilter(TextBool(text));}
+      static void TexMipFilter (  Advanced &adv, C Str &text) {       D.texMipFilter(TextBool(text));}
       static Str  DetailTexUse (C Advanced &adv             ) {return D.texDetail();}
-      static void DetailTexUse (  Advanced &adv, C Str &text) {D.texDetail(TEXTURE_USAGE(TextInt(text)));}
+      static void DetailTexUse (  Advanced &adv, C Str &text) {       D.texDetail(TEXTURE_USAGE(TextInt(text)));}
       static Str  Samples      (C Advanced &adv             ) {return D.samples()>1;}
-      static void Samples      (  Advanced &adv, C Str &text) {D.samples(TextBool(text) ? 4 : 1); VidOpt.setVis();}
+      static void Samples      (  Advanced &adv, C Str &text) {       D.samples(TextBool(text) ? 4 : 1); VidOpt.setVis();}
       static Str  Density      (C Advanced &adv             ) {int nearest=-1; flt dist; REPA(Density_t){flt d=Abs(D.density()-TextFlt(Density_t[i])); if(nearest<0 || d<dist){nearest=i; dist=d;}} return nearest;}
       static void Density      (  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, Density_t))D.density(TextFlt(Density_t[i]));}
       static Str  DensityFilter(C Advanced &adv             ) {REPA(DensityFilter_v)if(D.densityFilter()==DensityFilter_v[i])return i; return S;}
       static void DensityFilter(  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, DensityFilter_v))D.densityFilter(DensityFilter_v[i]);}
       static Str  GrassRange   (C Advanced &adv             ) {return D.grassRange();}
-      static void GrassRange   (  Advanced &adv, C Str &text) {D.grassRange(TextFlt(text)); WorldEdit.setObjVisibility();} // grass objects will be hidden for 0
+      static void GrassRange   (  Advanced &adv, C Str &text) {       D.grassRange(TextFlt(text)); WorldEdit.setObjVisibility();} // grass objects will be hidden for 0
       static Str  GrassDensity (C Advanced &adv             ) {return D.grassDensity();}
-      static void GrassDensity (  Advanced &adv, C Str &text) {D.grassDensity(TextFlt(text));}
+      static void GrassDensity (  Advanced &adv, C Str &text) {       D.grassDensity(TextFlt(text));}
       static Str  SoftParticle (C Advanced &adv             ) {return D.particlesSoft();}
-      static void SoftParticle (  Advanced &adv, C Str &text) {D.particlesSoft(TextBool(text));}
+      static void SoftParticle (  Advanced &adv, C Str &text) {       D.particlesSoft(TextBool(text));}
     //static Str  ColorPalette (C Advanced &adv             ) {return Renderer.color_palette.name();}
     //static void ColorPalette (  Advanced &adv, C Str &text) {Renderer.color_palette.get(ImageName(text));}
     //static Str  ColorPalette1(C Advanced &adv             ) {return Renderer.color_palette1.name();}
     //static void ColorPalette1(  Advanced &adv, C Str &text) {Renderer.color_palette1.get(ImageName(text));}
       static Str  VolLight     (C Advanced &adv             ) {return D.volLight();}
-      static void VolLight     (  Advanced &adv, C Str &text) {D.volLight(TextBool(text));}
+      static void VolLight     (  Advanced &adv, C Str &text) {       D.volLight(TextBool(text));}
       static Str  MaxLights    (C Advanced &adv             ) {return D.maxLights();}
-      static void MaxLights    (  Advanced &adv, C Str &text) {D.maxLights(TextInt(text));}
+      static void MaxLights    (  Advanced &adv, C Str &text) {       D.maxLights(TextInt(text));}
       static Str  EdgeDetect   (C Advanced &adv             ) {return D.edgeDetect();}
-      static void EdgeDetect   (  Advanced &adv, C Str &text) {D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
+      static void EdgeDetect   (  Advanced &adv, C Str &text) {       D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
       static Str  Stage        (C Advanced &adv             ) {return Renderer.stage;}
-      static void Stage        (  Advanced &adv, C Str &text) {Renderer.stage=(RENDER_STAGE)TextInt(text);}
+      static void Stage        (  Advanced &adv, C Str &text) {       Renderer.stage=(RENDER_STAGE)TextInt(text);}
       static Str  EyeAdaptBrigh(C Advanced &adv             ) {return D.eyeAdaptationBrightness();}
       static void EyeAdaptBrigh(  Advanced &adv, C Str &text) {       D.eyeAdaptationBrightness(TextFlt(text));}
       static Str  Exclusive    (C Advanced &adv             ) {return D.exclusive();}
       static void Exclusive    (  Advanced &adv, C Str &text) {       D.exclusive(TextBool(text));}
+      static Str  DiffuseMode  (C Advanced &adv             ) {return D.diffuseMode();}
+      static void DiffuseMode  (  Advanced &adv, C Str &text) {       D.diffuseMode((DIFFUSE_MODE)TextInt(text));}
       static Str  MonitorPrec  (C Advanced &adv             ) {return D.monitorPrecision();}
       static void MonitorPrec  (  Advanced &adv, C Str &text) {       D.monitorPrecision(IMAGE_PRECISION(TextInt(text)));}
       static Str  Dither       (C Advanced &adv             ) {return D.dither();}
@@ -138,21 +146,22 @@ class VideoOptions : PropWin
       static Str  AORange      (C Advanced &adv             ) {return D.ambientRange();}
       static void AORange      (  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
       static Str  ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
-      static void ShadowFlicker(  Advanced &adv, C Str &text) {D.shadowReduceFlicker(TextInt(text));}
+      static void ShadowFlicker(  Advanced &adv, C Str &text) {       D.shadowReduceFlicker(TextInt(text));}
       static Str  ShadowFrac   (C Advanced &adv             ) {return D.shadowFrac();}
-      static void ShadowFrac   (  Advanced &adv, C Str &text) {D.shadowFrac(TextFlt(text));}
+      static void ShadowFrac   (  Advanced &adv, C Str &text) {       D.shadowFrac(TextFlt(text));}
       static Str  ShadowFade   (C Advanced &adv             ) {return D.shadowFade();}
-      static void ShadowFade   (  Advanced &adv, C Str &text) {D.shadowFade(TextFlt(text));}
+      static void ShadowFade   (  Advanced &adv, C Str &text) {       D.shadowFade(TextFlt(text));}
       static Str  AllowGlow    (C Advanced &adv             ) {return D.glowAllow();}
-      static void AllowGlow    (  Advanced &adv, C Str &text) {D.glowAllow(TextBool(text));}
+      static void AllowGlow    (  Advanced &adv, C Str &text) {       D.glowAllow(TextBool(text));}
       static Str  ForwardPrec  (C Advanced &adv             ) {return Renderer.forwardPrecision();}
-      static void ForwardPrec  (  Advanced &adv, C Str &text) {Renderer.forwardPrecision(TextBool(text));}
+      static void ForwardPrec  (  Advanced &adv, C Str &text) {       Renderer.forwardPrecision(TextBool(text));}
       static Str  MaterialBlend(C Advanced &adv             ) {return D.materialBlend();}
-      static void MaterialBlend(  Advanced &adv, C Str &text) {D.materialBlend(TextBool(text));}
+      static void MaterialBlend(  Advanced &adv, C Str &text) {       D.materialBlend(TextBool(text));}
       static Str  TexLod       (C Advanced &adv             ) {return D.texLod();}
-      static void TexLod       (  Advanced &adv, C Str &text) {D.texLod(TextInt(text));}
+      static void TexLod       (  Advanced &adv, C Str &text) {       D.texLod(TextInt(text));}
 
       flt fov;
+      Property *diffuse=null;
 
       void setFov(flt fov)
       {
@@ -172,6 +181,7 @@ class VideoOptions : PropWin
       {
          int  tex_filter=Elms(TexFilter_t); FREPA(TexFilter_t)if(TextInt(TexFilter_t[i])>D.maxTexFilter()){tex_filter=i; break;}
          props.New().create("Field of View"        , MemberDesc(DATA_REAL).setFunc(Fov          , Fov          )).range(0.001, 120).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).desc("Set Field of View");
+diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFunc(DiffuseMode  , DiffuseMode  )).setEnum(DiffuseMode_t, Elms(DiffuseMode_t)).desc("Set Diffuse Mode");
          props.New().create("Exclusive Fullscreen" , MemberDesc(DATA_BOOL).setFunc(Exclusive    , Exclusive    )).desc("If fullscreen mode should be exclusive\nExclusive mode offers better performance\nNon-exclusive mode offers faster Alt+Tab switching");
          props.New().create("Texture Filtering"    , MemberDesc(         ).setFunc(TexFilter    , TexFilter    )).setEnum(TexFilter_t, tex_filter).desc("Configure Texture Anisotropic Filtering Quality");
          props.New().create("Texture Mip Filtering", MemberDesc(DATA_BOOL).setFunc(TexMipFilter , TexMipFilter )).desc("Configure Texture Mip Map Filtering");
@@ -406,10 +416,10 @@ class VideoOptions : PropWin
       skin.set(skinIndex(Gui.skin.id()), QUIET); // call after 'autoData'
       T+=advanced_show.create(Rect_U(clientWidth()/2, r.min.y-0.015, 0.3, 0.055), "Advanced").func(ShowAdvanced, T); advanced_show.mode=BUTTON_TOGGLE;
       super.resize(Vec2(0, 0.07));
-      setVis();
       pos(Vec2(D.w()-rect().w(), D.h()));
 
       advanced.create();
+      setVis();
    }
    void setVis()
    {
@@ -417,6 +427,7 @@ class VideoOptions : PropWin
       if(shd_num)shd_num.visible(                                D.shadowMode()==SHADOW_MAP );
       if(shd_sft)shd_sft.visible(Renderer.type()==RT_DEFERRED && D.shadowMode()!=SHADOW_NONE);
       if(shd_jit)shd_jit.visible(                                D.shadowMode()==SHADOW_MAP );
+      if(advanced.diffuse)advanced.diffuse.visible(Renderer.type()==RT_DEFERRED);
    }
    void hideAll()
    {

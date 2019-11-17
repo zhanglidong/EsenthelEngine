@@ -407,7 +407,7 @@ const Pose PoseIdentity;
       if(!alpha.is() && ImageTI[color.type()].a) // if we have no alpha map but it's possible it's in color
          color.copyTry(alpha, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1);
 
-      if(alpha.is() && ImageTI[alpha.type()].channels>1 && ImageTI[alpha.type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
+      if(alpha.is() && alpha.typeChannels()>1 && ImageTI[alpha.type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha.lockRead())
       {
          byte min_alpha=255, min_lum=255;

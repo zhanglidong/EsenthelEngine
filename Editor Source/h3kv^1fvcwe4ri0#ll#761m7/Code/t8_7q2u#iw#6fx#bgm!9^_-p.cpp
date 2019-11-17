@@ -89,6 +89,7 @@ bool SaveSettings(C Str &name="Settings.txt")
       video.nodes.New().set("ShadowReduceFlicker"     , D.shadowReduceFlicker());
       video.nodes.New().set("ShadowRangeFraction"     , D.shadowFrac());
       video.nodes.New().set("ShadowFadeFraction"      , D.shadowFade());
+      video.nodes.New().set("DiffuseMode"             , D.diffuseMode());
       video.nodes.New().set("BumpMapping"             , D.bumpMode());
       video.nodes.New().set("MotionBlur"              , D.motionMode());
       video.nodes.New().set("BloomScale"              , DefaultEnvironment.bloom.scale);
@@ -156,6 +157,7 @@ void ApplyVideoSettings(C TextData &data=Settings)
       if(C TextParam *p=video.findNode("ShadowReduceFlicker"     ))D.shadowReduceFlicker(p.asBool());
       if(C TextParam *p=video.findNode("ShadowRangeFraction"     ))D.shadowFrac(p.asFlt());
       if(C TextParam *p=video.findNode("ShadowFadeFraction"      ))D.shadowFade(p.asFlt());
+      if(C TextParam *p=video.findNode("DiffuseMode"             ))D.diffuseMode(DIFFUSE_MODE(p.asInt()));
       if(C TextParam *p=video.findNode("BumpMapping"             ))D.bumpMode(BUMP_MODE(p.asInt()));
       if(C TextParam *p=video.findNode("MotionBlur"              ))D.motionMode(MOTION_MODE(p.asInt()));
       if(C TextParam *p=video.findNode("AmbientOcclusion"        ))D.ambientMode    (AMBIENT_MODE(p.asInt()));

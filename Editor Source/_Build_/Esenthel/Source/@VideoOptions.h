@@ -4,6 +4,8 @@ class VideoOptions : PropWin
 {
    class Advanced : PropWin
    {
+      static cchar8 *DiffuseMode_t[]
+; ASSERT(DIFFUSE_LAMBERT==0 && DIFFUSE_OREN_NAYAR==1 && DIFFUSE_BURLEY==2 && DIFFUSE_NUM==3);
       static cchar8 *TexFilter_t[]
 ;
       static cchar8 *Density_t[]
@@ -60,6 +62,8 @@ class VideoOptions : PropWin
       static void EyeAdaptBrigh(  Advanced &adv, C Str &text);
       static Str  Exclusive    (C Advanced &adv             );
       static void Exclusive    (  Advanced &adv, C Str &text);
+      static Str  DiffuseMode  (C Advanced &adv             );
+      static void DiffuseMode  (  Advanced &adv, C Str &text);
       static Str  MonitorPrec  (C Advanced &adv             );
       static void MonitorPrec  (  Advanced &adv, C Str &text);
       static Str  Dither       (C Advanced &adv             );
@@ -98,11 +102,15 @@ class VideoOptions : PropWin
       static void TexLod       (  Advanced &adv, C Str &text);
 
       flt fov;
+      Property *diffuse;
 
       void setFov(flt fov);
       void ctor();
       void create();
       virtual Advanced& hide()override;
+
+public:
+   Advanced();
    };
 
    static cchar8 *Render_t[]

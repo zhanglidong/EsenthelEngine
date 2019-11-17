@@ -5,6 +5,12 @@ VideoOptions VidOpt;
 /******************************************************************************/
 
 /******************************************************************************/
+      cchar8 *VideoOptions::Advanced::DiffuseMode_t[]=
+      {
+         "Lambert"      , // 0
+         "Oren-Nayar"   , // 1
+         "Burley/Disney", // 2
+      };
       cchar8 *VideoOptions::Advanced::TexFilter_t[]=
       {
          "1",
@@ -159,33 +165,35 @@ VideoOptions VidOpt;
       Str  VideoOptions::Advanced::TexFilter(C Advanced &adv             ) {Str f=D.texFilter(); REPA(TexFilter_t)if(f==TexFilter_t[i])return i; return -1;}
       void VideoOptions::Advanced::TexFilter(  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, TexFilter_t))D.texFilter(TextInt(TexFilter_t[i]));}
       Str  VideoOptions::Advanced::TexMipFilter(C Advanced &adv             ) {return D.texMipFilter();}
-      void VideoOptions::Advanced::TexMipFilter(  Advanced &adv, C Str &text) {D.texMipFilter(TextBool(text));}
+      void VideoOptions::Advanced::TexMipFilter(  Advanced &adv, C Str &text) {       D.texMipFilter(TextBool(text));}
       Str  VideoOptions::Advanced::DetailTexUse(C Advanced &adv             ) {return D.texDetail();}
-      void VideoOptions::Advanced::DetailTexUse(  Advanced &adv, C Str &text) {D.texDetail(TEXTURE_USAGE(TextInt(text)));}
+      void VideoOptions::Advanced::DetailTexUse(  Advanced &adv, C Str &text) {       D.texDetail(TEXTURE_USAGE(TextInt(text)));}
       Str  VideoOptions::Advanced::Samples(C Advanced &adv             ) {return D.samples()>1;}
-      void VideoOptions::Advanced::Samples(  Advanced &adv, C Str &text) {D.samples(TextBool(text) ? 4 : 1); VidOpt.setVis();}
+      void VideoOptions::Advanced::Samples(  Advanced &adv, C Str &text) {       D.samples(TextBool(text) ? 4 : 1); VidOpt.setVis();}
       Str  VideoOptions::Advanced::Density(C Advanced &adv             ) {int nearest=-1; flt dist; REPA(Density_t){flt d=Abs(D.density()-TextFlt(Density_t[i])); if(nearest<0 || d<dist){nearest=i; dist=d;}} return nearest;}
       void VideoOptions::Advanced::Density(  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, Density_t))D.density(TextFlt(Density_t[i]));}
       Str  VideoOptions::Advanced::DensityFilter(C Advanced &adv             ) {REPA(DensityFilter_v)if(D.densityFilter()==DensityFilter_v[i])return i; return S;}
       void VideoOptions::Advanced::DensityFilter(  Advanced &adv, C Str &text) {int i=TextInt(text); if(InRange(i, DensityFilter_v))D.densityFilter(DensityFilter_v[i]);}
       Str  VideoOptions::Advanced::GrassRange(C Advanced &adv             ) {return D.grassRange();}
-      void VideoOptions::Advanced::GrassRange(  Advanced &adv, C Str &text) {D.grassRange(TextFlt(text)); WorldEdit.setObjVisibility();}
+      void VideoOptions::Advanced::GrassRange(  Advanced &adv, C Str &text) {       D.grassRange(TextFlt(text)); WorldEdit.setObjVisibility();}
       Str  VideoOptions::Advanced::GrassDensity(C Advanced &adv             ) {return D.grassDensity();}
-      void VideoOptions::Advanced::GrassDensity(  Advanced &adv, C Str &text) {D.grassDensity(TextFlt(text));}
+      void VideoOptions::Advanced::GrassDensity(  Advanced &adv, C Str &text) {       D.grassDensity(TextFlt(text));}
       Str  VideoOptions::Advanced::SoftParticle(C Advanced &adv             ) {return D.particlesSoft();}
-      void VideoOptions::Advanced::SoftParticle(  Advanced &adv, C Str &text) {D.particlesSoft(TextBool(text));}
+      void VideoOptions::Advanced::SoftParticle(  Advanced &adv, C Str &text) {       D.particlesSoft(TextBool(text));}
       Str  VideoOptions::Advanced::VolLight(C Advanced &adv             ) {return D.volLight();}
-      void VideoOptions::Advanced::VolLight(  Advanced &adv, C Str &text) {D.volLight(TextBool(text));}
+      void VideoOptions::Advanced::VolLight(  Advanced &adv, C Str &text) {       D.volLight(TextBool(text));}
       Str  VideoOptions::Advanced::MaxLights(C Advanced &adv             ) {return D.maxLights();}
-      void VideoOptions::Advanced::MaxLights(  Advanced &adv, C Str &text) {D.maxLights(TextInt(text));}
+      void VideoOptions::Advanced::MaxLights(  Advanced &adv, C Str &text) {       D.maxLights(TextInt(text));}
       Str  VideoOptions::Advanced::EdgeDetect(C Advanced &adv             ) {return D.edgeDetect();}
-      void VideoOptions::Advanced::EdgeDetect(  Advanced &adv, C Str &text) {D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
+      void VideoOptions::Advanced::EdgeDetect(  Advanced &adv, C Str &text) {       D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
       Str  VideoOptions::Advanced::Stage(C Advanced &adv             ) {return Renderer.stage;}
-      void VideoOptions::Advanced::Stage(  Advanced &adv, C Str &text) {Renderer.stage=(RENDER_STAGE)TextInt(text);}
+      void VideoOptions::Advanced::Stage(  Advanced &adv, C Str &text) {       Renderer.stage=(RENDER_STAGE)TextInt(text);}
       Str  VideoOptions::Advanced::EyeAdaptBrigh(C Advanced &adv             ) {return D.eyeAdaptationBrightness();}
       void VideoOptions::Advanced::EyeAdaptBrigh(  Advanced &adv, C Str &text) {       D.eyeAdaptationBrightness(TextFlt(text));}
       Str  VideoOptions::Advanced::Exclusive(C Advanced &adv             ) {return D.exclusive();}
       void VideoOptions::Advanced::Exclusive(  Advanced &adv, C Str &text) {       D.exclusive(TextBool(text));}
+      Str  VideoOptions::Advanced::DiffuseMode(C Advanced &adv             ) {return D.diffuseMode();}
+      void VideoOptions::Advanced::DiffuseMode(  Advanced &adv, C Str &text) {       D.diffuseMode((DIFFUSE_MODE)TextInt(text));}
       Str  VideoOptions::Advanced::MonitorPrec(C Advanced &adv             ) {return D.monitorPrecision();}
       void VideoOptions::Advanced::MonitorPrec(  Advanced &adv, C Str &text) {       D.monitorPrecision(IMAGE_PRECISION(TextInt(text)));}
       Str  VideoOptions::Advanced::Dither(C Advanced &adv             ) {return D.dither();}
@@ -209,19 +217,19 @@ VideoOptions VidOpt;
       Str  VideoOptions::Advanced::AORange(C Advanced &adv             ) {return D.ambientRange();}
       void VideoOptions::Advanced::AORange(  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
       Str  VideoOptions::Advanced::ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
-      void VideoOptions::Advanced::ShadowFlicker(  Advanced &adv, C Str &text) {D.shadowReduceFlicker(TextInt(text));}
+      void VideoOptions::Advanced::ShadowFlicker(  Advanced &adv, C Str &text) {       D.shadowReduceFlicker(TextInt(text));}
       Str  VideoOptions::Advanced::ShadowFrac(C Advanced &adv             ) {return D.shadowFrac();}
-      void VideoOptions::Advanced::ShadowFrac(  Advanced &adv, C Str &text) {D.shadowFrac(TextFlt(text));}
+      void VideoOptions::Advanced::ShadowFrac(  Advanced &adv, C Str &text) {       D.shadowFrac(TextFlt(text));}
       Str  VideoOptions::Advanced::ShadowFade(C Advanced &adv             ) {return D.shadowFade();}
-      void VideoOptions::Advanced::ShadowFade(  Advanced &adv, C Str &text) {D.shadowFade(TextFlt(text));}
+      void VideoOptions::Advanced::ShadowFade(  Advanced &adv, C Str &text) {       D.shadowFade(TextFlt(text));}
       Str  VideoOptions::Advanced::AllowGlow(C Advanced &adv             ) {return D.glowAllow();}
-      void VideoOptions::Advanced::AllowGlow(  Advanced &adv, C Str &text) {D.glowAllow(TextBool(text));}
+      void VideoOptions::Advanced::AllowGlow(  Advanced &adv, C Str &text) {       D.glowAllow(TextBool(text));}
       Str  VideoOptions::Advanced::ForwardPrec(C Advanced &adv             ) {return Renderer.forwardPrecision();}
-      void VideoOptions::Advanced::ForwardPrec(  Advanced &adv, C Str &text) {Renderer.forwardPrecision(TextBool(text));}
+      void VideoOptions::Advanced::ForwardPrec(  Advanced &adv, C Str &text) {       Renderer.forwardPrecision(TextBool(text));}
       Str  VideoOptions::Advanced::MaterialBlend(C Advanced &adv             ) {return D.materialBlend();}
-      void VideoOptions::Advanced::MaterialBlend(  Advanced &adv, C Str &text) {D.materialBlend(TextBool(text));}
+      void VideoOptions::Advanced::MaterialBlend(  Advanced &adv, C Str &text) {       D.materialBlend(TextBool(text));}
       Str  VideoOptions::Advanced::TexLod(C Advanced &adv             ) {return D.texLod();}
-      void VideoOptions::Advanced::TexLod(  Advanced &adv, C Str &text) {D.texLod(TextInt(text));}
+      void VideoOptions::Advanced::TexLod(  Advanced &adv, C Str &text) {       D.texLod(TextInt(text));}
       void VideoOptions::Advanced::setFov(flt fov)
       {
          Clamp(fov, DegToRad(0.001f), DegToRad(120));
@@ -240,6 +248,7 @@ VideoOptions VidOpt;
       {
          int  tex_filter=Elms(TexFilter_t); FREPA(TexFilter_t)if(TextInt(TexFilter_t[i])>D.maxTexFilter()){tex_filter=i; break;}
          props.New().create("Field of View"        , MemberDesc(DATA_REAL).setFunc(Fov          , Fov          )).range(0.001f, 120).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).desc("Set Field of View");
+diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFunc(DiffuseMode  , DiffuseMode  )).setEnum(DiffuseMode_t, Elms(DiffuseMode_t)).desc("Set Diffuse Mode");
          props.New().create("Exclusive Fullscreen" , MemberDesc(DATA_BOOL).setFunc(Exclusive    , Exclusive    )).desc("If fullscreen mode should be exclusive\nExclusive mode offers better performance\nNon-exclusive mode offers faster Alt+Tab switching");
          props.New().create("Texture Filtering"    , MemberDesc(         ).setFunc(TexFilter    , TexFilter    )).setEnum(TexFilter_t, tex_filter).desc("Configure Texture Anisotropic Filtering Quality");
          props.New().create("Texture Mip Filtering", MemberDesc(DATA_BOOL).setFunc(TexMipFilter , TexMipFilter )).desc("Configure Texture Mip Map Filtering");
@@ -383,10 +392,10 @@ VideoOptions VidOpt;
       skin->set(skinIndex(Gui.skin.id()), QUIET); // call after 'autoData'
       T+=advanced_show.create(Rect_U(clientWidth()/2, r.min.y-0.015f, 0.3f, 0.055f), "Advanced").func(ShowAdvanced, T); advanced_show.mode=BUTTON_TOGGLE;
       super::resize(Vec2(0, 0.07f));
-      setVis();
       pos(Vec2(D.w()-rect().w(), D.h()));
 
       advanced.create();
+      setVis();
    }
    void VideoOptions::setVis()
    {
@@ -394,6 +403,7 @@ VideoOptions VidOpt;
       if(shd_num)shd_num->visible(                                D.shadowMode()==SHADOW_MAP );
       if(shd_sft)shd_sft->visible(Renderer.type()==RT_DEFERRED && D.shadowMode()!=SHADOW_NONE);
       if(shd_jit)shd_jit->visible(                                D.shadowMode()==SHADOW_MAP );
+      if(advanced.diffuse)advanced.diffuse->visible(Renderer.type()==RT_DEFERRED);
    }
    void VideoOptions::hideAll()
    {
@@ -419,5 +429,7 @@ VideoOptions VidOpt;
       if(visible())setTitle(S+"Video Options - "+TextReal(Time.fps(), 1)+" Fps");
    }
 VideoOptions::VideoOptions() : full(null), mode(null), shd_siz(null), shd_num(null), shd_sft(null), shd_jit(null), skin(null), scale(1), scale_win(true) {}
+
+VideoOptions::Advanced::Advanced() : diffuse(null) {}
 
 /******************************************************************************/

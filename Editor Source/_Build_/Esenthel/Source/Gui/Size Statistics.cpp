@@ -49,7 +49,7 @@ SizeStatistics SizeStats;
             {
                if(image.isSByte())
                {
-                  int channels=ImageTI[image.type()].channels;
+                  int channels=image.typeChannels();
                   VI.shader(ShaderFiles("Main")->get((channels==1) ? "DrawTexXSG" : (channels==2) ? "DrawTexXYSG" : "DrawTexSG"));
                }
                image.draw(rect);
