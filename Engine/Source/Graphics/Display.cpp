@@ -605,17 +605,18 @@ Bool Display::Monitor::set(HMONITOR monitor)
 }
 #endif
 #if DX11
-static Display::Monitor* GetMonitor(IDXGIOutput &output)
+Display::Monitor* Display::getMonitor(IDXGIOutput &output) // prefer this version because it can obtain list of modes
 {
    DXGI_OUTPUT_DESC desc; if(OK(output.GetDesc(&desc)))
-      if(Display::Monitor *monitor=D._monitors.get(desc.Monitor))
+      if(auto monitor=_monitors.get(desc.Monitor))
    {
       if(!monitor->is()) // if not yet initialized
       {
-         monitor->full=monitor->work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
       #if WINDOWS_OLD
-         monitor->set(desc.Monitor);
+         if(!monitor->set(desc.Monitor)) // get precise 'work'
       #endif
+            monitor->full=monitor->work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
+
          MemtN<VecI2, 128> modes;
          DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
          UInt                                           descs_elms=0; output.GetDisplayModeList(mode, 0, &descs_elms, null        ); // get number of mode descs
@@ -627,10 +628,11 @@ static Display::Monitor* GetMonitor(IDXGIOutput &output)
    }
    return null;
 }
-#elif WINDOWS_OLD
-static Display::Monitor* GetMonitor(HMONITOR hmonitor)
+#endif
+#if WINDOWS_OLD
+Display::Monitor* Display::getMonitor(HMONITOR hmonitor)
 {
-   if(Display::Monitor *monitor=D._monitors.get(hmonitor))
+   if(hmonitor)if(auto monitor=_monitors.get(hmonitor))
    {
       if(!monitor->is()) // if not yet initialized
       {
@@ -640,8 +642,41 @@ static Display::Monitor* GetMonitor(HMONITOR hmonitor)
    }
    return null;
 }
-static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {GetMonitor(hmonitor); return true;} // continue
+static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {D.getMonitor(hmonitor); return true;} // continue
 #endif
+Display::Monitor* Display::getMonitor()
+{
+#if DX11
+   if(SwapChain)
+   {
+      IDXGIOutput *output=null;
+      {
+         SyncLocker locker(_lock);
+         if(SwapChain)SwapChain->GetContainingOutput(&output);
+      }
+      if(output)
+      {
+         auto monitor=getMonitor(*output);
+         output->Release();
+         if(monitor)return monitor;
+      }
+   }
+#endif
+#if WINDOWS_OLD // try alternative method if above failed
+   if(App.hwnd())
+   {
+   #if 1
+      if(HMONITOR hmonitor=MonitorFromWindow(App.Hwnd(), MONITOR_DEFAULTTONEAREST))
+   #else
+      RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
+      POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
+      if(HMONITOR hmonitor=MonitorFromPoint(p, MONITOR_DEFAULTTONEAREST))
+   #endif
+         if(auto monitor=getMonitor(hmonitor))return monitor;
+   }
+#endif
+   return null;
+}
 void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C
 {
    if(monitor)
@@ -658,44 +693,11 @@ void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_siz
 }
 void Display::curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
 {
-   Monitor *monitor=null;
-#if WINDOWS_OLD
-   if(App.hwnd()) // adjust to current monitor
-   {
-   #if 1
-      if(HMONITOR hmonitor=MonitorFromWindow(App.Hwnd(), MONITOR_DEFAULTTONEAREST))
-   #else
-      RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
-      POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
-      if(HMONITOR hmonitor=MonitorFromPoint(p, MONITOR_DEFAULTTONEAREST))
-   #endif
-         monitor=_monitors.get(hmonitor);
-   }
-#elif WINDOWS_NEW
-   if(SwapChain)
-   {
-      IDXGIOutput *output=null;
-      {
-         SyncLocker locker(_lock);
-         if(SwapChain)SwapChain->GetContainingOutput(&output);
-      }
-      if(output)
-      {
-         DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))
-         {
-            monitor=_monitors.get(desc.Monitor);
-            if(monitor && !monitor->full.w())monitor->set(desc);
-         }
-         output->Release();
-      }
-   }
-#endif
-   T.monitor(full, work, max_normal_win_client_size, maximized_win_client_size, monitor);
+   T.monitor(full, work, max_normal_win_client_size, maximized_win_client_size, getMonitor());
 }
 void Display::mainMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)C
 {
- C Monitor *main=null;
-   REPA(_monitors){C Monitor &monitor=_monitors[i]; if(monitor.primary){main=&monitor; break;}}
+ C Monitor *main=null; REPA(_monitors){C Monitor &monitor=_monitors[i]; if(monitor.primary){main=&monitor; break;}}
    monitor(full, work, max_normal_win_client_size, maximized_win_client_size, main);
 }
 /******************************************************************************/
@@ -860,7 +862,7 @@ void Display::init() // make this as a method because if we put this to Display 
          {
             IDXGIOutput *output=null; adapter->EnumOutputs(i, &output); if(output) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
             {
-               if(Monitor *monitor=GetMonitor(*output))
+               if(Monitor *monitor=getMonitor(*output))
                   if(i==0)monitor->primary=true; // first output is primary display
                output->Release();
             }else break;
@@ -1024,14 +1026,10 @@ void Display::createDevice()
          if(!deviceName().is())_device_name=desc.Description;
         _device_mem=desc.DedicatedVideoMemory;
       }
-      MemtN<VecI2, 128> modes; // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
-      IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
+      MemtN<VecI2, 128> modes; FREPA(_monitors) // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
       {
-         DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
-         UInt                                           descs_elms=0; output->GetDisplayModeList(mode, 0, &descs_elms, null); // get number of mode descs
-         MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output->GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get mode descs
-         FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height)); // add from the start to avoid unnecessary memory moves
-         RELEASE(output);
+       C Monitor &monitor=_monitors[i];
+         FREPA(monitor.modes)modes.binaryInclude(monitor.modes[i]); // add from the start to avoid unnecessary memory moves
       }
      _modes=modes;
    }
@@ -1472,10 +1470,10 @@ if(LogInit)LogN("Display.create");
       Sh.createSamplers();
    DisplayState::create();
               Sh.create();
-D._linear_gamma^=1; D.linearGamma(!D._linear_gamma); // set after loading shaders
+_linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
-         D.viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
+           viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
         Renderer.create();
                  envMap(ImagePtr().get("Img/Environment.img"));
@@ -1688,7 +1686,7 @@ Bool Display::findMode()
                   MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output->GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get mode descs
                   FREPA(descs)
                   {
-                     C DXGI_MODE_DESC &mode=descs[i];
+                   C DXGI_MODE_DESC &mode=descs[i];
                      if(mode.Width==resW() && mode.Height==resH() && mode.Scaling!=DXGI_MODE_SCALING_UNSPECIFIED) // can't just check for ==DXGI_MODE_SCALING_STRETCHED because it's never listed, however DXGI_MODE_SCALING_CENTERED will be listed for modes that support stretching, so we use !=DXGI_MODE_SCALING_UNSPECIFIED to support both DXGI_MODE_SCALING_STRETCHED and DXGI_MODE_SCALING_CENTERED
                      {
                         SwapChainDesc.BufferDesc.Scaling=DXGI_MODE_SCALING_STRETCHED;
