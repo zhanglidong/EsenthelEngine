@@ -13,8 +13,6 @@ namespace EE{
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
 
-#define FORCE_MAIN_DISPLAY (WINDOWS && GL) // for WindowsOpenGL we need to use the main screen
-
 #if 0
    #define LOG(x) LogN(x)
 #else
@@ -116,29 +114,29 @@ Bool SetDisplayMode(Int mode)
 {
    Bool  full=(D.full() && (mode==2 || mode==1 && App.active()));
    VecI2 size=(full ? D.res() : App.desktop());
-   Bool  same=(D.screen()==size);
 #if WINDOWS_OLD
+   auto monitor=D.getMonitor();
+   auto device =(monitor ? monitor->device_name : null); // use null which means default device if no monitor available
    if(full)
    {
-      if(same)return true;
-      DEVMODE screen; Zero(screen);
-      screen.dmSize              =SIZE(DEVMODE);
-      screen.dmPelsWidth         =D.resW();
-      screen.dmPelsHeight        =D.resH();
-      screen.dmDisplayFixedOutput=DMDFO_STRETCH; // this will stretch to entire screen if aspect ratio is not the same
-      screen.dmFields            =DM_PELSWIDTH|DM_PELSHEIGHT|DM_DISPLAYFIXEDOUTPUT;
+      DEVMODE mode; Zero(mode);
+      mode.dmSize              =SIZE(DEVMODE);
+      mode.dmPelsWidth         =D.resW();
+      mode.dmPelsHeight        =D.resH();
+      mode.dmDisplayFixedOutput=DMDFO_STRETCH; // this will stretch to entire screen if aspect ratio is not the same
+      mode.dmFields            =DM_PELSWIDTH|DM_PELSHEIGHT|DM_DISPLAYFIXEDOUTPUT;
    again:
-      Int result=ChangeDisplaySettings(&screen, CDS_FULLSCREEN); if(result==DISP_CHANGE_SUCCESSFUL)
+      Int result=ChangeDisplaySettingsEx(device, &mode, null, CDS_FULLSCREEN, null); if(result==DISP_CHANGE_SUCCESSFUL)
       {
          CustomMode=true;
          return true;
       }
-      if(result==DISP_CHANGE_BADMODE && (screen.dmFields&DM_DISPLAYFIXEDOUTPUT)) // this can fail if trying to set the biggest resolution with stretching
-         {FlagDisable(screen.dmFields, DM_DISPLAYFIXEDOUTPUT); screen.dmDisplayFixedOutput=0; goto again;} // try again without scaling
+      if(result==DISP_CHANGE_BADMODE && (mode.dmFields&DM_DISPLAYFIXEDOUTPUT)) // this can fail if trying to set the biggest resolution with stretching
+         {FlagDisable(mode.dmFields, DM_DISPLAYFIXEDOUTPUT); mode.dmDisplayFixedOutput=0; goto again;} // try again without scaling
    }else
    {
       if(!CustomMode)return true;
-      if(ChangeDisplaySettings(null, 0)==DISP_CHANGE_SUCCESSFUL)
+      if(ChangeDisplaySettingsEx(device, null, null, 0, null)==DISP_CHANGE_SUCCESSFUL)
       {
          CustomMode=false;
          return true;
@@ -153,7 +151,7 @@ Bool SetDisplayMode(Int mode)
 
       // set screen mode
       Bool ok=false;
-      if(same)ok=true;else
+      if(D.screen()==size)ok=true;else
       if(CGDisplayModeRef mode=GetDisplayMode(size.x, size.y))
          ok=(CGDisplaySetDisplayMode(kCGDirectMainDisplay, mode, null)==noErr);
 
@@ -173,7 +171,7 @@ Bool SetDisplayMode(Int mode)
    {
       // set screen mode
       Bool ok=false;
-      if(same)ok=true;else
+      if(D.screen()==size)ok=true;else
       FREP(vid_modes)
       {
          XF86VidModeModeInfo &mode=*vid_mode[i];
@@ -589,6 +587,9 @@ Display::Monitor::Monitor()
 {
    primary=false;
    full=work.zero();
+#if WINDOWS_OLD
+   device_name[0]='\0';
+#endif
 }
 #if WINDOWS_OLD
 Bool Display::Monitor::set(HMONITOR monitor)
@@ -599,6 +600,7 @@ Bool Display::Monitor::set(HMONITOR monitor)
       full.set(monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right, monitor_info.rcMonitor.bottom);
       work.set(monitor_info.rcWork   .left, monitor_info.rcWork   .top, monitor_info.rcWork   .right, monitor_info.rcWork   .bottom);
       primary=FlagTest(monitor_info.dwFlags, MONITORINFOF_PRIMARY);
+      Copy(device_name, monitor_info.szDevice);
 
       MemtN<VecI2, 128> modes;
       DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);
@@ -696,9 +698,9 @@ C Display::Monitor* Display::getMonitor()
            return mainMonitor();
 }
 /******************************************************************************/
-void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C
+void Display::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
 {
-   if(monitor)
+   if(auto monitor=getMonitor())
    {
       full=monitor->full;
       work=monitor->work;
@@ -709,14 +711,6 @@ void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_siz
    }
    max_normal_win_client_size.set(full.w()-App._bound.w(), full.h()-App._bound.h());
     maximized_win_client_size.set(work.w()+App._bound_maximized.min.x+App._bound_maximized.max.x, work.h()+App._bound_maximized.min.y+App._bound_maximized.max.y);
-}
-void Display::curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
-{
-   T.monitor(full, work, max_normal_win_client_size, maximized_win_client_size, curMonitor());
-}
-void Display::mainMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)C
-{
-   monitor(full, work, max_normal_win_client_size, maximized_win_client_size, mainMonitor());
 }
 /******************************************************************************/
 // MANAGE
@@ -951,6 +945,15 @@ void Display::createDevice()
 {
    if(LogInit)LogN("Display.createDevice");
    SyncLocker locker(_lock);
+#if WINDOWS
+   MemtN<VecI2, 128> modes; FREPA(_monitors) // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
+   {
+    C Monitor &monitor=_monitors[i];
+      FREPA(monitor.modes)modes.binaryInclude(monitor.modes[i]); // add from the start to avoid unnecessary memory moves
+   }
+  _modes=modes;
+#endif
+
 #if DX11
    UInt flags=(D3D_DEBUG ? D3D11_CREATE_DEVICE_DEBUG : 0); // DO NOT include D3D11_CREATE_DEVICE_SINGLETHREADED to allow multi-threaded resource creation - https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-render-multi-thread
 
@@ -1044,12 +1047,6 @@ void Display::createDevice()
          if(!deviceName().is())_device_name=desc.Description;
         _device_mem=desc.DedicatedVideoMemory;
       }
-      MemtN<VecI2, 128> modes; FREPA(_monitors) // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
-      {
-       C Monitor &monitor=_monitors[i];
-         FREPA(monitor.modes)modes.binaryInclude(monitor.modes[i]); // add from the start to avoid unnecessary memory moves
-      }
-     _modes=modes;
    }
 
    // init
@@ -1601,24 +1598,22 @@ Bool Display::findMode()
   _res=Renderer._main.size();
 #else
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-    curMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-#if FORCE_MAIN_DISPLAY
-   if(resW()>=D.screenW() && resH()>=D.screenH())_full=true;
-#else
+    getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
    if(resW()>=full.w() && resH()>=full.h())_full=true; // force fullscreen only if both dimensions are equal-bigger because on Windows it's perfectly fine to have a window as wide as the whole desktop
-#endif
    if(D.full())
    {
-      Int nearest=-1; Int desired_area=res().mul(), area_error;
-      REPA(_modes)
+      Int   nearest=-1; Int desired_area=res().mul(), area_error;
+      auto  monitor=getMonitor();
+      auto &modes  =((monitor && monitor->modes.elms()) ? monitor->modes : _modes); // use monitor modes if available
+      REPA( modes)
       {
-       C VecI2 &mode=_modes[i];
+       C VecI2 &mode=modes[i];
          if(mode==res()){nearest=i; break;} // exact match
          Int ae=Abs(mode.mul()-desired_area);
          if(nearest<0 || ae<area_error){nearest=i; area_error=ae;}
       }
       if(nearest<0)return false;
-     _res=_modes[nearest];
+     _res=modes[nearest];
    }else
    {
       if(resW()>=Min(maximized_win_client_size.x, max_normal_win_client_size.x+1)
@@ -1792,7 +1787,7 @@ Display::RESET_RESULT Display::ResetTry()
 
       Bool ok=true;
    #if WINDOWS
-      #if (DX11) && !WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
+      #if DX11 && !WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
          if(!exclusive())ok=SetDisplayMode();
       #endif
 
@@ -2153,11 +2148,7 @@ void Display::finish()
 void Display::adjustWindow()
 {
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-
-#if FORCE_MAIN_DISPLAY
-   if(D.full())mainMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);else
-#endif
-                curMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
+    getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
 
 #if DEBUG && 0
    LogN(S+"full:"+full.asText()+", work:"+work.asText()+", App._window_pos:"+App._window_pos+", D.res:"+D.res());
@@ -2341,13 +2332,9 @@ Display& Display::toggle(Bool window_size)
       if(full()     )mode(App._window_size.x, App._window_size.y, false);else // if app was in fullscreen then set windowed mode based on last known window size
       if(window_size)mode(App._window_size.x, App._window_size.y, true );else // if set        fullscreen using                           last known window size
       {  // set full screen based on resolution of the monitor
-      #if FORCE_MAIN_DISPLAY
-         mode(screenW(), screenH(), true);
-      #else
          RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-          curMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
+          getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
          mode(full.w(), full.h(), true);
-      #endif
       }
    }
    return T;
@@ -2637,7 +2624,7 @@ void Display::aspectRatioEx(Bool force, Bool quiet)
    Flt aspect_ratio=_aspect_ratio_want;
 #if DESKTOP || WEB
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-    curMonitor(full, work, max_normal_win_client_size, maximized_win_client_size); // calculate based on current monitor, as connected monitors may have different aspects
+    getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size); // calculate based on current monitor, as connected monitors may have different aspects
    VecI2 size=full.size(); Flt desktop_aspect=(size.y ? Flt(size.x)/size.y : 1);
 
    if(aspect_ratio<=EPS)aspect_ratio=desktop_aspect; // if not specified then use default

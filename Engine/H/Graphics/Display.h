@@ -484,6 +484,7 @@ private:
    #if EE_PRIVATE
       Bool is()C {return full.w()>0;} // if initialized
    #if WINDOWS_OLD
+      WCHAR device_name[CCHDEVICENAME];
       Bool set(HMONITOR monitor);
    #endif
       Monitor();
@@ -608,9 +609,7 @@ private:
  C Monitor*  curMonitor(); // current monitor (null if none)
  C Monitor*  getMonitor(); // current monitor (main if none)
 
-   void     monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C;
-   void  curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size) ;
-   void mainMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)C;
+   void getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size);
 #endif
 
    Display();

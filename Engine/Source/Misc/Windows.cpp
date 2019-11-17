@@ -1834,8 +1834,8 @@ void Application::windowCreate()
    D._full=false; // we can never start a WEB app in full mode, it must be entered on user-click only
    Int w=D.resW(), h=D.resH();
 #else
-   RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-   D.curMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
+    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
+   D.getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
    Int  x=0, y=0, w, h;
    Bool maximize=false;
 
