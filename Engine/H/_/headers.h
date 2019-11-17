@@ -208,6 +208,7 @@
          #else // to support Windows 7 and older
             #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/xaudio2.h"
             #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/X3DAudio.h"
+            #define XAUDIO_2_7 1
          #endif
       #endif
 

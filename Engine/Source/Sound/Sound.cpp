@@ -516,7 +516,7 @@ Bool _Sound::testBuffer(Int thread_index) // this manages locking on its own
    {
       SOUND_API_LOCK_COND;
       XAUDIO2_VOICE_STATE state;
-   #if WINDOWS_OLD
+   #if XAUDIO_2_7
      _buffer._sv->GetState(&state);
    #else
      _buffer._sv->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
