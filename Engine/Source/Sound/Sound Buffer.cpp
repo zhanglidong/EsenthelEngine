@@ -25,9 +25,6 @@ static IDirectSound3DListener *DSL;
 
 static VIRTUALIZATION_MODE Virtualization=VIRT_HIGH;
 #elif XAUDIO
-#if XAUDIO_2_7
-static DLL                     XAudioDll; // https://walbourn.github.io/known-issues-xaudio-2-7/
-#endif
        IXAudio2               *XAudio;
 static IXAudio2MasteringVoice *XAudioMasteringVoice;
 static X3DAUDIO_HANDLE         X3DAudio;
@@ -320,11 +317,7 @@ Int SoundBuffer::raw()C
    if(_sv)
    {
       SOUND_API_LOCK_WEAK; XAUDIO2_VOICE_STATE state;
-   #if XAUDIO_2_7
-     _sv->GetState(&state);
-   #else
      _sv->GetState(&state, 0);
-   #endif
       return (state.SamplesPlayed*_par.block)%_par.size;
    }
 #elif OPEN_AL
@@ -766,17 +759,9 @@ Bool ListenerClass::create()
 #elif XAUDIO
    if(XAudioMasteringVoice)
    {
-   #if XAUDIO_2_7
-      XAUDIO2_DEVICE_DETAILS details; if(OK(XAudio->GetDeviceDetails(0, &details)))
-      {
-         X3DAudioInitialize(details.OutputFormat.dwChannelMask, X3DAUDIO_SPEED_OF_SOUND, X3DAudio);
-         return true;
-      }
-   #else
       DWORD channel_mask;
       if(OK(XAudioMasteringVoice->GetChannelMask(&channel_mask)))
          if(OK(X3DAudioInitialize(channel_mask, X3DAUDIO_SPEED_OF_SOUND, X3DAudio)))return true;
-   #endif
    }
 #elif OPEN_AL
    return true;
@@ -813,9 +798,6 @@ void InitSound()
    if(OK(DirectSoundCreate(null, &DS, null)))
    if(OK(DS->SetCooperativeLevel(App.Hwnd(), DSSCL_PRIORITY)))
 #elif XAUDIO
-   #if XAUDIO_2_7
-      XAudioDll.createFile("XAudio2_7.DLL");
-   #endif
    if(OK(XAudio2Create(&XAudio, XAUDIO_DEBUG ? XAUDIO2_DEBUG_ENGINE : 0)))
    if(OK(XAudio->CreateMasteringVoice(&XAudioMasteringVoice))) // even though it is not used for anything, it is still needed because sound buffer creation would fail without it
    {
@@ -905,9 +887,6 @@ void ShutSound()
 #elif XAUDIO
    if(XAudioMasteringVoice){XAudioMasteringVoice->DestroyVoice(); XAudioMasteringVoice=null;}
    RELEASE(XAudio);
-   #if XAUDIO_2_7
-      XAudioDll.del();
-   #endif
 #elif OPEN_AL
 	              alcMakeContextCurrent(null     );
 	if(ALContext){alcDestroyContext    (ALContext); ALContext=null;}

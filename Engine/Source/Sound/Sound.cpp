@@ -516,11 +516,7 @@ Bool _Sound::testBuffer(Int thread_index) // this manages locking on its own
    {
       SOUND_API_LOCK_COND;
       XAUDIO2_VOICE_STATE state;
-   #if XAUDIO_2_7
-     _buffer._sv->GetState(&state);
-   #else
      _buffer._sv->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
-   #endif
       REP(2-state.BuffersQueued)if(!setNextBuffer(thread_index))return false;
       // unlike OpenAL we don't need to check if buffer is no longer playing due to running out of buffers, because XAudio will auto-play when adding new buffers if it's in play mode - "If the voice is started and has no buffers queued, the new buffer will start playing immediately" https://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.ixaudio2sourcevoice.ixaudio2sourcevoice.submitsourcebuffer(v=vs.85).aspx
    }

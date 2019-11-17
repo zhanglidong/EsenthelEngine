@@ -11,6 +11,8 @@
    /******************************************************************************/
    // SELECT WHICH LIBRARIES TO USE
    /******************************************************************************/
+   #define SUPPORT_WINDOWS_XP (!X64 && GL) // 0=minor performance improvements in some parts of the engine, but no WindowsXP support, 1=some extra checks in the codes but with WindowsXP support
+   #define SUPPORT_WINDOWS_7  (        GL) // 0=uses XAudio 2.9 (which requires Windows 10), 1=uses DirectSound
    // Renderer - Define "DX11" for DirectX 10/11, "DX12" for DirectX 12, "METAL" for Metal, "VULKAN" for Vulkan, "GL" or nothing for OpenGL
    // defines are specified through Project Settings
    #ifdef DX11
@@ -85,11 +87,14 @@
    #endif
 
    // Sound
-   #define DIRECT_SOUND        0                       //     DirectSound           is disabled
-   #define DIRECT_SOUND_RECORD WINDOWS_OLD             // use DirectSound Recording on Windows Classic
-   #define XAUDIO              WINDOWS                 // use XAudio                on Windows
-   #define OPEN_AL             (APPLE || LINUX || WEB) // use OpenAL                on Apple, Linux and Web. OpenAL on Windows requires OpenAL DLL file, however it can be enabled just for testing the implementation.
-   #define OPEN_SL             ANDROID                 // use OpenSL                on Android
+   #define DIRECT_SOUND_RECORD WINDOWS_OLD                                                // use DirectSound Recording on Windows Classic
+   #define DIRECT_SOUND        (WINDOWS_OLD && (SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7)) // use DirectSound           on Windows XP and 7
+   #define XAUDIO              (WINDOWS     && !DIRECT_SOUND)                             // use XAudio                on Windows when DirectSound is unused
+   #define OPEN_AL             (APPLE || LINUX || WEB)                                    // use OpenAL                on Apple, Linux and Web. OpenAL on Windows requires OpenAL DLL file, however it can be enabled just for testing the implementation.
+   #define OPEN_SL             ANDROID                                                    // use OpenSL                on Android
+   #if (DIRECT_SOUND+XAUDIO+OPEN_AL+OPEN_SL)>1
+      #error Can't use more than 1 API
+   #endif
    /******************************************************************************/
    // INCLUDE SYSTEM HEADERS
    /******************************************************************************/
@@ -97,12 +102,13 @@
    #include "../../../ThirdPartyLibs/begin.h"
 
    #if WINDOWS // Windows
-      #define SUPPORT_WINDOWS_XP (!X64 && GL) // 0=minor performance improvements in some parts of the engine, but no WindowsXP support, 1=some extra checks in the codes but with WindowsXP support
       #if WINDOWS_OLD
          #if SUPPORT_WINDOWS_XP // https://msdn.microsoft.com/en-us/library/windows/desktop/aa383745.aspx (this can be used for compilation testing if we don't use any functions not available on WindowsXP, however we can use defines and enums)
             #define _WIN32_WINNT 0x0502 // _WIN32_WINNT_WS03 , don't use any API's newer than WindowsXP SP2
-         #else
+         #elif SUPPORT_WINDOWS_7
             #define _WIN32_WINNT 0x0600 // _WIN32_WINNT_VISTA, don't use any API's newer than Windows Vista
+         #else
+            #define _WIN32_WINNT 0x0602 // _WIN32_WINNT_WIN8 , don't use any API's newer than Windows 8
          #endif
       #endif
       #define NOGDICAPMASKS
@@ -202,14 +208,8 @@
       #endif
 
       #if XAUDIO
-         #if WINDOWS_NEW // this only supports Windows 8 and newer
-            #include <xaudio2.h>
-            #include <x3daudio.h>
-         #else // to support Windows 7 and older
-            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/xaudio2.h"
-            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/X3DAudio.h"
-            #define XAUDIO_2_7 1
-         #endif
+         #include <xaudio2.h>
+         #include <x3daudio.h>
       #endif
 
       #if OPEN_AL

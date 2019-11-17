@@ -2567,12 +2567,6 @@
     <Library Include="..\ThirdPartyLibs\QCMS\Windows\Release\QCMS.lib">
       <Filter>H\_\Libs\32</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x86\X3DAudio.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x64\X3DAudio.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\DirectXShaderCompiler\lib\dxcompiler.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>

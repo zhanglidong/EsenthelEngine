@@ -17,7 +17,7 @@ namespace EE{
 
 #include <windowsx.h>
 #include <Dbt.h>
-#define GET_POINTERID_WPARAM LOWORD
+#define GET_POINTERID_WPARAM(wParam) (LOWORD(wParam))
 
 #define WM_POINTERDOWN           0x0246
 #define WM_POINTERUP             0x0247
