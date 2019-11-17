@@ -392,7 +392,7 @@ VecI2 Display::screen()C
       {
          IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)
          {
-            adapter->EnumOutputs(0, &output);
+            adapter->EnumOutputs(0, &output); // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
             adapter->Release();
          }
          factory->Release();
@@ -603,22 +603,45 @@ Bool Display::Monitor::set(HMONITOR monitor)
    }
    return false;
 }
-static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {D._monitors.get(hmonitor); return true;} // continue
-#elif WINDOWS_NEW
-void Display::Monitor::set(C DXGI_OUTPUT_DESC &desc)
-{
-   primary=false;
-   full=work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
-}
 #endif
-static Bool Create(Display::Monitor &monitor, C Ptr &hmonitor, Ptr user)
+#if DX11
+static Display::Monitor* GetMonitor(IDXGIOutput &output)
 {
-#if WINDOWS_OLD
-   return monitor.set(HMONITOR(hmonitor));
-#else
-   return true;
-#endif
+   DXGI_OUTPUT_DESC desc; if(OK(output.GetDesc(&desc)))
+      if(Display::Monitor *monitor=D._monitors.get(desc.Monitor))
+   {
+      if(!monitor->is()) // if not yet initialized
+      {
+         monitor->full=monitor->work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
+      #if WINDOWS_OLD
+         monitor->set(desc.Monitor);
+      #endif
+         MemtN<VecI2, 128> modes;
+         DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
+         UInt                                           descs_elms=0; output.GetDisplayModeList(mode, 0, &descs_elms, null        ); // get number of mode descs
+         MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output.GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get           mode descs
+         FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height)); // add from the start to avoid unnecessary memory moves
+         monitor->modes=modes;
+      }
+      return monitor;
+   }
+   return null;
 }
+#elif WINDOWS_OLD
+static Display::Monitor* GetMonitor(HMONITOR hmonitor)
+{
+   if(Display::Monitor *monitor=D._monitors.get(hmonitor))
+   {
+      if(!monitor->is()) // if not yet initialized
+      {
+         monitor->set(hmonitor);
+      }
+      return monitor;
+   }
+   return null;
+}
+static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {GetMonitor(hmonitor); return true;} // continue
+#endif
 void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C
 {
    if(monitor)
@@ -678,7 +701,7 @@ void Display::mainMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client
 /******************************************************************************/
 // MANAGE
 /******************************************************************************/
-Display::Display() : _monitors(Compare, Create, null, 4)
+Display::Display() : _monitors(Compare, null, null, 4)
 {
   _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
   _sync            =true;
@@ -828,18 +851,17 @@ void Display::init() // make this as a method because if we put this to Display 
    secondaryOpenGLContexts(1); // default 1 secondary context
 
    // re-use cached result obtained at app startup, because if the app is currently fullscreen at a custom resolution, then the monitor will return that resolution, however this function is used for getting default resolutions
-#if WINDOWS_OLD
-   EnumDisplayMonitors(null, null, EnumMonitors, 0); // list all monitors at app startup so we can know their original sizes
-#elif WINDOWS_NEW
+#if DX11
    IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
    {
-      IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)
+      IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
       {
-         for(Int i=0; ; i++)
+         for(Int i=0; ; i++) // all outputs
          {
-            IDXGIOutput *output=null; adapter->EnumOutputs(i, &output); if(output)
+            IDXGIOutput *output=null; adapter->EnumOutputs(i, &output); if(output) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
             {
-               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))_monitors.get(desc.Monitor)->set(desc);
+               if(Monitor *monitor=GetMonitor(*output))
+                  if(i==0)monitor->primary=true; // first output is primary display
                output->Release();
             }else break;
          }
@@ -847,6 +869,8 @@ void Display::init() // make this as a method because if we put this to Display 
       }
       factory->Release();
    }
+#elif WINDOWS_OLD
+   EnumDisplayMonitors(null, null, EnumMonitors, 0); // list all monitors at app startup so we can know their original sizes
 #endif
 }
 /******************************************************************************/
@@ -1001,7 +1025,7 @@ void Display::createDevice()
         _device_mem=desc.DedicatedVideoMemory;
       }
       MemtN<VecI2, 128> modes; // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
-      IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++) // first output is always the main display
+      IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
       {
          DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
          UInt                                           descs_elms=0; output->GetDisplayModeList(mode, 0, &descs_elms, null); // get number of mode descs

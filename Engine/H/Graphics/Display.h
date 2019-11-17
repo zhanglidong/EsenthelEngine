@@ -477,15 +477,15 @@ private:
    };
    struct Monitor
    {
-      RectI full, work;
-      Bool  primary;
+      RectI       full, work;
+      Bool        primary;
+      Mems<VecI2> modes;
 
    #if EE_PRIVATE
-      #if WINDOWS_OLD
-         Bool set(HMONITOR monitor);
-      #elif WINDOWS_NEW
-         void set(C DXGI_OUTPUT_DESC &desc);
-      #endif
+      Bool is()C {return full.w()>0;} // if initialized
+   #if WINDOWS_OLD
+      Bool set(HMONITOR monitor);
+   #endif
       Monitor();
    #endif
    };
