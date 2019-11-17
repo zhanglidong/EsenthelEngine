@@ -598,13 +598,14 @@ private:
    Bool deferredUnavailable      ()C;
    Bool deferredMSUnavailable    ()C;
 
-#if DX11
-   Monitor* getMonitor(IDXGIOutput &output); // prefer this version because it can obtain list of modes
-#endif
 #if WINDOWS_OLD
    Monitor* getMonitor(HMONITOR hmonitor);
 #endif
-   Monitor* getMonitor();
+#if DX11
+   Monitor* getMonitor(IDXGIOutput &output);
+#endif
+ C Monitor* mainMonitor()C;
+ C Monitor*  curMonitor();
 
    void     monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C;
    void  curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size) ;

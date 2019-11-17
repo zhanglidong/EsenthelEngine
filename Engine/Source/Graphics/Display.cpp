@@ -593,19 +593,25 @@ Display::Monitor::Monitor()
 #if WINDOWS_OLD
 Bool Display::Monitor::set(HMONITOR monitor)
 {
-   MONITORINFO monitor_info; Zero(monitor_info); monitor_info.cbSize=SIZE(monitor_info);
+   MONITORINFOEX monitor_info; Zero(monitor_info); monitor_info.cbSize=SIZE(monitor_info);
    if(GetMonitorInfo(monitor, &monitor_info))
    {
       full.set(monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right, monitor_info.rcMonitor.bottom);
       work.set(monitor_info.rcWork   .left, monitor_info.rcWork   .top, monitor_info.rcWork   .right, monitor_info.rcWork   .bottom);
       primary=FlagTest(monitor_info.dwFlags, MONITORINFOF_PRIMARY);
+
+      MemtN<VecI2, 128> modes;
+      DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);
+      for(Int i=0; EnumDisplaySettings(monitor_info.szDevice, i, &mode); i++)modes.binaryInclude(VecI2(mode.dmPelsWidth, mode.dmPelsHeight));
+      T.modes=modes;
+
       return true;
    }
    return false;
 }
 #endif
 #if DX11
-Display::Monitor* Display::getMonitor(IDXGIOutput &output) // prefer this version because it can obtain list of modes
+Display::Monitor* Display::getMonitor(IDXGIOutput &output)
 {
    DXGI_OUTPUT_DESC desc; if(OK(output.GetDesc(&desc)))
       if(auto monitor=_monitors.get(desc.Monitor))
@@ -615,14 +621,16 @@ Display::Monitor* Display::getMonitor(IDXGIOutput &output) // prefer this versio
       #if WINDOWS_OLD
          if(!monitor->set(desc.Monitor)) // get precise 'work'
       #endif
+         {
             monitor->full=monitor->work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
 
-         MemtN<VecI2, 128> modes;
-         DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
-         UInt                                           descs_elms=0; output.GetDisplayModeList(mode, 0, &descs_elms, null        ); // get number of mode descs
-         MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output.GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get           mode descs
-         FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height)); // add from the start to avoid unnecessary memory moves
-         monitor->modes=modes;
+            MemtN<VecI2, 128> modes;
+            DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
+            UInt                                           descs_elms=0; output.GetDisplayModeList(mode, 0, &descs_elms, null        ); // get number of mode descs
+            MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output.GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get           mode descs
+            FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height)); // add from the start to avoid unnecessary memory moves
+            monitor->modes=modes;
+         }
       }
       return monitor;
    }
@@ -644,7 +652,12 @@ Display::Monitor* Display::getMonitor(HMONITOR hmonitor)
 }
 static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {D.getMonitor(hmonitor); return true;} // continue
 #endif
-Display::Monitor* Display::getMonitor()
+C Display::Monitor* Display::mainMonitor()C
+{
+   REPA(_monitors){C Monitor &monitor=_monitors[i]; if(monitor.primary)return &monitor;}
+   return null;
+}
+C Display::Monitor* Display::curMonitor()
 {
 #if DX11
    if(SwapChain)
@@ -677,6 +690,7 @@ Display::Monitor* Display::getMonitor()
 #endif
    return null;
 }
+/******************************************************************************/
 void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C
 {
    if(monitor)
@@ -693,12 +707,11 @@ void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_siz
 }
 void Display::curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
 {
-   T.monitor(full, work, max_normal_win_client_size, maximized_win_client_size, getMonitor());
+   T.monitor(full, work, max_normal_win_client_size, maximized_win_client_size, curMonitor());
 }
 void Display::mainMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)C
 {
- C Monitor *main=null; REPA(_monitors){C Monitor &monitor=_monitors[i]; if(monitor.primary){main=&monitor; break;}}
-   monitor(full, work, max_normal_win_client_size, maximized_win_client_size, main);
+   monitor(full, work, max_normal_win_client_size, maximized_win_client_size, mainMonitor());
 }
 /******************************************************************************/
 // MANAGE
@@ -862,7 +875,7 @@ void Display::init() // make this as a method because if we put this to Display 
          {
             IDXGIOutput *output=null; adapter->EnumOutputs(i, &output); if(output) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
             {
-               if(Monitor *monitor=getMonitor(*output))
+               if(auto monitor=getMonitor(*output))
                   if(i==0)monitor->primary=true; // first output is primary display
                output->Release();
             }else break;
@@ -1149,17 +1162,6 @@ again:
             }
          }
       }
-
-      // enumerate display modes
-      MemtN<VecI2, 128> modes;
-      for(Int i=0; ; i++)
-      {
-         DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);
-         if(!EnumDisplaySettings(null, i, &mode))break;
-         modes.include(VecI2(mode.dmPelsWidth, mode.dmPelsHeight));
-      }
-     _modes=modes;
-     _modes.sort(Compare);
    #elif MAC
       OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 
