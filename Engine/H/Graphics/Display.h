@@ -605,7 +605,8 @@ private:
    Monitor* getMonitor(IDXGIOutput &output);
 #endif
  C Monitor* mainMonitor()C;
- C Monitor*  curMonitor();
+ C Monitor*  curMonitor(); // current monitor (null if none)
+ C Monitor*  getMonitor(); // current monitor (main if none)
 
    void     monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C;
    void  curMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size) ;

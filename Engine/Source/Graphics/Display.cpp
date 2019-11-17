@@ -690,6 +690,11 @@ C Display::Monitor* Display::curMonitor()
 #endif
    return null;
 }
+C Display::Monitor* Display::getMonitor()
+{
+   if(auto monitor=curMonitor())return monitor;
+           return mainMonitor();
+}
 /******************************************************************************/
 void Display::monitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size, C Monitor *monitor)C
 {
