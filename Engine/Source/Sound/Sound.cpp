@@ -921,8 +921,23 @@ again:
       if(  want_paused!=paused)
       {
          SOUND_API_LOCK;
-         if(want_paused){REPAO(SoundMemxPlaying)->_buffer.pause(    ); AtomicOr     (SoundPause, SOUND_PAUSED);                          } // !! requires 'SoundAPILock' !!   pause all playing sounds
-         else           {REPAO(SoundMemxPlaying)->_buffer.play (true); AtomicDisable(SoundPause, SOUND_PAUSED); SoundTime=Time.curTime();} // !! requires 'SoundAPILock' !! unpause all playing sounds
+         if(want_paused)
+         {
+         #if XAUDIO
+            if(XAudio)XAudio->StopEngine(); // !! requires 'SoundAPILock' !!
+         #else
+            REPAO(SoundMemxPlaying)->_buffer.pause(); // !! requires 'SoundAPILock' !! pause all playing sounds
+         #endif
+            AtomicOr(SoundPause, SOUND_PAUSED);
+         }else
+         {
+         #if XAUDIO
+            if(XAudio)XAudio->StartEngine(); // !! requires 'SoundAPILock' !!
+         #else
+            REPAO(SoundMemxPlaying)->_buffer.play(true); // !! requires 'SoundAPILock' !! unpause all playing sounds
+         #endif
+            AtomicDisable(SoundPause, SOUND_PAUSED); SoundTime=Time.curTime();
+         }
       }
       if(state&SOUND_WAIT) // if want to wait temporarily
       {
@@ -1064,19 +1079,11 @@ void UpdateSound()
 /******************************************************************************/
 void PauseSound() // in order to work on 'SoundMemxPlaying' we would need to delete the thread
 {
-#if XAUDIO
-   if(XAudio)XAudio->StopEngine();
-#else
    AtomicOr(SoundPause, SOUND_WANT_PAUSED); SoundEvent.on(); // wake up the thread immediately to perform the changes
-#endif
 }
 void ResumeSound()
 {
-#if XAUDIO
-   if(XAudio)XAudio->StartEngine();
-#else
    AtomicDisable(SoundPause, SOUND_WANT_PAUSED); SoundEvent.on(); // wake up the thread immediately to perform the changes
-#endif
 }
 /******************************************************************************/
 Int  PlayingSounds  () {return SoundMemxPlaying.elms()  ;}

@@ -8,6 +8,11 @@ namespace EE{
       therefore SOUND_API_LOCK_WEAK is marked as an empty macro.
 
 /******************************************************************************/
+#define XAUDIO_DEBUG 0
+#if     XAUDIO_DEBUG
+   #pragma message("!! Warning: Use this only for debugging !!")
+#endif
+
 #define SOUND_API_LOCK_FORCE     SyncLocker locker(SoundAPILock);
 #define SOUND_API_LOCK_WEAK      //SOUND_API_LOCK_FORCE not needed
 #define OPERATION_SET            (!XAUDIO2_COMMIT_NOW) // make sure that this is not XAUDIO2_COMMIT_NOW
@@ -735,7 +740,7 @@ void ListenerClass::commitNoLock() // requires 'SoundAPILock', also because of '
 #elif XAUDIO
    if(XAudio)XAudio->CommitChanges(XAUDIO2_COMMIT_ALL);
 #elif OPEN_AL
-   // alcProcessContext alcSuspendContext are not used because they seem to be a no-op and there's no way to test them
+   // 'alcProcessContext' 'alcSuspendContext' are not used because they seem to be a no-op and there's no way to test them
 #elif OPEN_SL
    if(SLListenerCommit)(*SLListenerCommit)->Commit(SLListenerCommit);else EmulateSound3D(); // if listener is not available then it means 3D Audio is simulated manually
 #endif
@@ -805,9 +810,19 @@ void InitSound()
    if(OK(DirectSoundCreate(null, &DS, null)))
    if(OK(DS->SetCooperativeLevel(App.Hwnd(), DSSCL_PRIORITY)))
 #elif XAUDIO
-   if(OK(XAudio2Create(&XAudio, 0)))
+   if(OK(XAudio2Create(&XAudio, XAUDIO_DEBUG ? XAUDIO2_DEBUG_ENGINE : 0)))
    if(OK(XAudio->CreateMasteringVoice(&XAudioMasteringVoice))) // even though it is not used for anything, it is still needed because sound buffer creation would fail without it
    {
+   #if XAUDIO_DEBUG
+      XAUDIO2_DEBUG_CONFIGURATION debug;
+      debug.TraceMask=~0;
+      debug.BreakMask=~0;
+      debug.LogThreadID    =true;
+      debug.LogFileline    =true;
+      debug.LogFunctionName=true;
+      debug.LogTiming      =true;
+      XAudio->SetDebugConfiguration(&debug);
+   #endif
       XAUDIO2_VOICE_DETAILS details; XAudioMasteringVoice->GetVoiceDetails(&details);
       XAudioChannels=details.InputChannels;
    }
