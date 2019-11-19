@@ -1307,23 +1307,19 @@ class ProjectEx : ProjectHierarchy
       Mems<Edit.FileParams> files=Edit.FileParams.Decode(file); if(files.elms())
       {
        //if(relative) // for relative we need to remove any existing "resize" before calling 'loadImages', actually do this always, because there are now many "resize" commands and we want to remove all of them
+            REPA(files) // go from end
          {
-            int  files_with_names=0; REPA(files)if(files[i].name.is())files_with_names++; // count how many files have names(images) and aren't just transforms
-            REPA(files)
+            Edit.FileParams &file=files[i];
+            if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+            REPA(file.params) // go from end
             {
-               Edit.FileParams &file=files[i];
-               if(!file.name.is() || files_with_names<=1) // remove only if the name is empty (we operate on the entire image), or if there's only up to one image
-               {
-                  file.params.removeData(file.findParam("resize"));
-                  file.params.removeData(file.findParam("resizeWrap"));
-                  file.params.removeData(file.findParam("resizeClamp"));
-                  file.params.removeData(file.findParam("resizeLinear"));
-                  file.params.removeData(file.findParam("resizeCubic"));
-                  file.params.removeData(file.findParam("resizeNoStretch"));
-                  if(!file.is())files.remove(i, true);
-               }
+               TextParam &p=file.params[i];
+               if(ResizeTransform(p.name))file.params.remove(i, true);else // remove resize transforms
+               if(SizeDependentTransform(p))goto skip; // if encountered a size dependent transform then it means we can't remove any other resize transforms
             }
+            if(!file.is())files.remove(i, true); // if nothing left then remove it
          }
+      skip:
          if(files.elms() && !(relative && !size.x && !size.y)) // "relative && !size" means original size, for which we don't need to do anything, because "resize" was already removed
          {
             VecI2 s=size;

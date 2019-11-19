@@ -164,7 +164,6 @@ class Project
    void createWorldPaths(C UID &world_id);
    void createMiniMapPaths(C UID &mini_map_id);
 
-   static int ChannelIndex(char c);
    static void MakeHighPrec(Image &image);
    static void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box);
    static void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box);

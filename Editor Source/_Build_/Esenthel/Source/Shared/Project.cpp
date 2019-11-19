@@ -565,17 +565,6 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       if(mini_map_id.valid() && mini_map_paths.binaryInclude(mini_map_id)) // create paths only at first time
          FCreateDirs(gamePath(mini_map_id));
    }
-   int Project::ChannelIndex(char c)
-   {
-      switch(c)
-      {
-         case 'r': case 'R': case 'x': case 'X': return 0;
-         case 'g': case 'G': case 'y': case 'Y': return 1;
-         case 'b': case 'B': case 'z': case 'Z': return 2;
-         case 'a': case 'A': case 'w': case 'W': return 3;
-      }
-      return -1;
-   }
    void Project::MakeHighPrec(Image &image)
    {
       if(!image.highPrecision())image.copyTry(image, -1, -1, -1, ImageTypeHighPrec(image.type()));
@@ -705,7 +694,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
    void Project::TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp)
    {
       int high_prec=0; REPA(params)high_prec+=HighPrecTransform(params[i].name); // how many transforms are high precision
-      if( high_prec>1)MakeHighPrec(image);
+      if( high_prec>=1)MakeHighPrec(image); // make high precision even if there's just one transform, because the result image can be used in further processing for other images (if this is "<bump>" that's later used for normal)
       FREPA(params)
       {
          TextParam param=params[i];
@@ -1554,8 +1543,8 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          {
             flt scale=param.asFlt(); if(scale!=1)
             {
-               if(image.monochromatic())image.mulAdd(Vec4(Vec(scale), 1), Vec4(Vec(-0.5f*scale+0.5f), 0), &box);else // if image is monochromatic then we need to transform all RGB together
-               if(!scale               )image.mulAdd(Vec4(Vec(    0), 1), Vec4(        0.5f, 0.5f, 1, 0), &box);else // if zero scale then set Vec(0.5, 0.5, 1)
+               if(image.typeChannels()<=1 || image.monochromatic())image.mulAdd(Vec4(Vec(scale), 1), Vec4(Vec(-0.5f*scale+0.5f), 0), &box);else // if image is 1-channel or monochromatic then we need to transform all RGB together
+               if(!scale                                          )image.mulAdd(Vec4(Vec(    0), 1), Vec4(        0.5f, 0.5f, 1, 0), &box);else // if zero scale then set Vec(0.5, 0.5, 1)
                if(image.lock())
                {
                   scale=1/scale;
@@ -1579,9 +1568,9 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          {
             Vec2 r=TextVec2Ex(param.value);
             // v2=(v2-0.5)*r+0.5
-            // v2=v2*r -0.5*r+0.5
-            if(image.monochromatic()){flt a=r.avg(); image.mulAdd(Vec4(Vec(a), 1), Vec4(Vec(-0.5f*a+0.5f)  , 0), &box);} // if image is monochromatic then we need to transform all RGB together
-            else                                     image.mulAdd(Vec4(  r, 1, 1), Vec4(    -0.5f*r+0.5f, 0, 0), &box);
+            // v2=v2*r-0.5*r+0.5
+            if(image.typeChannels()<=1 || image.monochromatic()){flt a=r.avg(); image.mulAdd(Vec4(Vec(a), 1), Vec4(Vec(-0.5f*a+0.5f)  , 0), &box);} // if image is 1-channel or monochromatic then we need to transform all RGB together
+            else                                                                image.mulAdd(Vec4(  r, 1, 1), Vec4(    -0.5f*r+0.5f, 0, 0), &box);
          }else
          if(param.name=="fixTransparent")
          {
@@ -1626,7 +1615,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       image.del();
       bool ok=true, hp=false;
       Image single;
-       REPA(fps)if(C TextParam *p=fps[i].findParam("mode"))if(p->value!="set"){hp=true; break;}
+       REPA(fps)if(C TextParam *p=fps[i].findParam("mode"))if(p->value!="set"){hp=true; break;} // if there's at least one apply mode that's not "set" then use high precision
       FREPA(fps)if(loadImage(single, fps[i], srgb, clamp, color, smooth, bump)) // process in order
       {
          VecI2 pos=0; {C TextParam *p=fps[i].findParam("position"); if(!p)p=fps[i].findParam("pos"); if(p)pos=p->asVecI2();}

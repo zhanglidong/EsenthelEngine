@@ -937,11 +937,60 @@ Str8 ImageDownSizeSuffix(int size)
    return S;
 }
 /******************************************************************************/
-bool     MonoTransform(C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && p.value.length()==1);}
+int Occurrences(C Str &s, char c)
+{
+   int o=0; REPA(s)if(s[i]==c)o++; return o;
+}
+/******************************************************************************/
+int ChannelIndex(char c)
+{
+   switch(c)
+   {
+      case 'r': case 'R': case 'x': case 'X': return 0;
+      case 'g': case 'G': case 'y': case 'Y': return 1;
+      case 'b': case 'B': case 'z': case 'Z': return 2;
+      case 'a': case 'A': case 'w': case 'W': return 3;
+   }
+   return -1;
+}
+bool ChannelMonoTransform(C Str &value)
+{
+   return value.length()<=1 // up to 1 channels is treated as mono
+   || ChannelIndex(value[0])==ChannelIndex(value[1]) && ChannelIndex(value[0])==ChannelIndex(value[2]); // check that RGB channels are the same
+}
+bool  PartialTransform(C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
 bool   ResizeTransform(C Str       &name) {return name=="resize" || name=="resizeWrap" || name=="resizeClamp" || name=="resizeLinear" || name=="resizeCubic" || name=="resizeNoStretch" || name=="maxSize";}
-bool       UVTransform(C Str       &name) {return ResizeTransform(name) || name=="crop" || name=="swapXY" || name=="mirrorX" || name=="mirrorY";}
-bool  NonMonoTransform(C Str       &name) {return UVTransform(name) || name=="blur" || name=="normalize";} // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
-bool HighPrecTransform(C Str       &name)
+bool     MonoTransform(C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
+bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
+{
+   int values=Occurrences(p.value, ',');
+   return p.name=="inverseR"
+       || p.name=="inverseG"
+       || p.name=="inverseRG"
+       || p.name=="lerpRGB" && values>2
+       || p.name=="ilerpRGB" && values>2
+       || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
+       || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
+       || p.name=="mulAddRGB" && values>2
+       || p.name=="addMulRGB" && values>2
+       || p.name=="mulRGBS" && TextVecEx(p.value).anyDifferent()
+       || p.name=="mulRGBH" && values>1
+       || p.name=="mulRGBHS" && values>1
+       || p.name=="gamma" && TextVecEx(p.value).anyDifferent()
+       || p.name=="brightness" && TextVecEx(p.value).anyDifferent()
+       || p.name=="contrast" && TextVecEx(p.value).anyDifferent()
+       || p.name=="contrastAlphaWeight" && TextVecEx(p.value).anyDifferent()
+       || p.name=="addSat"
+       || p.name=="addHueSat"
+       || p.name=="setHueSat"
+       || p.name=="setHueSatPhoto"
+       || p.name=="lerpHueSat"
+       || p.name=="rollHueSat"
+       || p.name=="rollHueSatPhoto"
+       || p.name=="channel" && !ChannelMonoTransform(p.value)
+       || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent();
+}
+bool HighPrecTransform(C Str &name)
 {
    return ResizeTransform(name)
        || name=="mulRGB" || name=="addRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
@@ -962,69 +1011,80 @@ bool HighPrecTransform(C Str       &name)
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto";
 }
-
-TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name)
+bool SizeDependentTransform(C TextParam &p)
 {
-   int files_with_names=0; REPA(files)if(files[i].name.is())files_with_names++; // count how many files have names(images) and aren't just transforms
-   REPA(files)
+   return p.name=="blur" // range depends on size
+       || p.name=="bump" // range depends on size
+       || p.name=="crop" // coordinates/size depend on size
+       || p.name=="resizeNoStretch"
+       || p.name=="tile" // tile range depends on size
+       || PartialTransform(p); // coordinates/size depend on size
+}
+
+TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms
+{
+   REPA(files) // go from end
    {
       Edit::FileParams &file=files[i];
-      if(files_with_names<=1 || !file.name.is())REPA(file.params)
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
       {
-         TextParam &p=file.params[i]; if(p.name==name && !Contains(p.value, '@'))return &p;
+         TextParam &p=file.params[i]; if(p.name==name && !PartialTransform(p))return &p;
       }
    }
    return null;
 }
-void DelTransform(MemPtr<Edit::FileParams> files, C Str &name)
+void FindResizeTransform(MemPtr<Edit::FileParams> files)
 {
-   int files_with_names=0; REPA(files)if(files[i].name.is())files_with_names++; // count how many files have names(images) and aren't just transforms
-   REPA(files)
+   REPA(files) // go from end
    {
       Edit::FileParams &file=files[i];
-      if(files_with_names<=1 || !file.name.is())REPA(file.params)
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
       {
-         TextParam &p=file.params[i]; if(p.name==name && !Contains(p.value, '@'))
+         TextParam &p=file.params[i];
+         //if(ResizeTransform(p.name))return &p;
+         //if(SizeDependentTransform(p))return null; // if encountered a size dependent transform, it means we can't keep looking
+      }
+   }
+   //return null;
+}
+void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
+{
+   REPA(files) // go from end
+   {
+      Edit::FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPAD(pi, file.params) // go from end
+      {
+         TextParam &p=file.params[pi]; if(p.name==name && !PartialTransform(p))
          {
-            file.params.remove(i, true);
+                    file.params.remove(pi, true);
+            if(!file.is())files.remove( i, true); // if nothing left then remove it
             return;
          }
       }
    }
 }
-void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value)
+void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
-   if(files.elms())
+   if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
-      int files_with_names=0; REPA(files)if(files[i].name.is())files_with_names++; // count how many files have names(images) and aren't just transforms
-      if( files_with_names>1) // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified
-         if(files.last().name.is()) // if the last file has a name specified
-            files.New(); // create an empty file with no name
-      Edit::FileParams &file=files.last(); // set param to the last file
+      if(files.elms()>1 && files.last().name.is())files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
       TextParam *p;
-      REPA(file.params)
+      REPA(files) // go from end
       {
-         p=&file.params[i]; if(p->name==name && !Contains(p->value, '@'))goto found;
+         Edit::FileParams &file=files[i];
+         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+         REPA(file.params) // go from end
+         {
+            p=&file.params[i]; if(p->name==name && !PartialTransform(*p))goto found;
+         }
       }
-      p=&file.params.New().setName(name);
+      p=&files.last().params.New().setName(name); // if didn't found then create a new one
    found:
       p->setValue(value);
    }
-}
-bool ForcesMono(C Str &file)
-{
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
-   if(files.elms())
-   {
-    C Edit::FileParams &file=files.last();
-      if(!file.name.is() || files.elms()==1)REPA(file.params) // go from end
-      {
-       C TextParam &param=file.params[i];
-         if(    MonoTransform(param     ))return true;
-         if(!NonMonoTransform(param.name))break;
-      }
-   }
-   return false;
 }
 void SetTransform(Str &file, C Str &name, C Str &value)
 {
@@ -1032,16 +1092,34 @@ void SetTransform(Str &file, C Str &name, C Str &value)
    SetTransform(files, name, value);
    file=Edit::FileParams::Encode(files);
 }
-Str BumpFromColTransform(C Str &color_map, int blur)
+bool ForcesMono(C Str &file)
+{
+   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   REPA(files) // go from end
+   {
+      Edit::FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
+      {
+       C TextParam &param=file.params[i];
+         if(   MonoTransform(param) && !PartialTransform(param))return true; // if current transform generates mono (fully) and no non-mono were encountered up to now, then result is mono
+         if(NonMonoTransform(param))return false; // if there's at least one transform that can generate color then result is not mono
+      }
+   }
+   return false;
+}
+Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (default)
 {
    Mems<Edit::FileParams> files=Edit::FileParams::Decode(color_map);
-   if(files.elms()==1)
+   REPA(files) // go from end
    {
-      Edit::FileParams &file=files[0];
-      REPA(file.params)
+      Edit::FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
       {
-         TextParam &par=file.params[i]; if(par.name!="crop" && par.name!="swapXY" && par.name!="mirrorX" && par.name!="mirrorY")file.params.remove(i, true);
+         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
       }
+      if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
    SetTransform(files, "bump", (blur<0) ? S : S+blur);
    return Edit::FileParams::Encode(files);
