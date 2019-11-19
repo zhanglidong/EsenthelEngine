@@ -164,22 +164,7 @@ class Project
    void createWorldPaths(C UID &world_id);
    void createMiniMapPaths(C UID &mini_map_id);
 
-   static void MakeHighPrec(Image &image);
-   static void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box);
-   static void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box);
-   static void AddHue(Image &image, flt hue, C BoxI &box);
-   static void MulRGBH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
-   static void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
-   static void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, bool sat, bool photo, C BoxI &box);
-   static flt HueDelta(flt a, flt b); // returns -0.5 .. 0.5
-   static Vec2  LerpToMad(flt from, flt to);
-   static Vec2 ILerpToMad(flt from, flt to);
-   static flt   FloatSelf(flt x);         
-   static flt   PowMax   (flt x, flt y);  
-   static void IncludeAlpha(Image &image);
-
-   static void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp);
-   bool loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C Image *smooth=null, C Image *bump=null)C;
+   bool loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C;
    enum APPLY_MODE
    {
       APPLY_SET,
@@ -191,7 +176,7 @@ class Project
       APPLY_SUB,
       APPLY_MAX,
    };
-   bool loadImages(Image &image, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C Image *smooth=null, C Image *bump=null)C;
+   bool loadImages(Image &image, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C;
 
    void savedGame(Elm &elm, C Str &name);
    void savedGame(Elm &elm             );

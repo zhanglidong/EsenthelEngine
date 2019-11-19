@@ -250,7 +250,7 @@ WaterMtrlRegion WaterMtrlEdit;
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
 
-      if(relative || game && game->bumpMap() && game->bumpMap()->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
+    //if(relative || game && game->bumpMap() && game->bumpMap()->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
@@ -274,7 +274,7 @@ WaterMtrlRegion WaterMtrlEdit;
       TimeStamp time; time.getUTC();
       VecI2 size2=size;
 
-      if(relative || game && game->normalMap() && game->normalMap()->size()!=size2)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
+    //if(relative || game && game->normalMap() && game->normalMap()->size()!=size2)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.bump_map, 0, relative, edit.bump_map_time, time))

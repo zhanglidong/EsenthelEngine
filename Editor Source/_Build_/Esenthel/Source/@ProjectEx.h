@@ -345,6 +345,7 @@ public:
    void reload(Memc<UID> &elm_ids);
    void cancelReload(C MemPtr<UID> &elm_ids);
    void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag);
+   bool forceImageSize(Str &file, C VecI2 &size, bool relative);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time);
    void imageMipMap(C MemPtr<UID> &elm_ids, bool on);
    void imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size);

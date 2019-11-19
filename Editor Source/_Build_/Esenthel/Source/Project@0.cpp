@@ -1324,7 +1324,7 @@ void DrawProject()
          }
       }
    }
-   bool ProjectEx::forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time)
+   bool ProjectEx::forceImageSize(Str &file, C VecI2 &size, bool relative)
    {
       Mems<Edit::FileParams> files=Edit::FileParams::Decode(file); if(files.elms())
       {
@@ -1356,6 +1356,14 @@ void DrawProject()
             if(s.any())SetTransform(files, "resize", VecI2AsText(s)); // only if any specified
          }
          file=Edit::FileParams::Encode(files);
+         return true;
+      }
+      return false;
+   }
+   bool ProjectEx::forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time)
+   {
+      if(forceImageSize(file, size, relative))
+      {
          file_time=time;
          return true;
       }
@@ -1962,18 +1970,18 @@ void DrawProject()
    void ProjectEx::mtrlCreateDetailTexture(EditMaterial &material)
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      Image col, smooth, bump, normal;
-      bool col_ok=loadImage(   col, material.detail_color , true                              ), // load before 'smooth', here 'col' 'smooth' 'bump' are not yet available
-        smooth_ok=loadImage(smooth, S/*material.detail_smooth*/, false, false, &col, null   , null ), // load before 'bump'  , here       'smooth' 'bump' are not yet available
-          bump_ok=loadImage(  bump, material.detail_bump  , false, false, &col, &smooth, null ), // load before 'normal', here                'bump' is  not yet available
-           nrm_ok=loadImage(normal, material.detail_normal, false, false, &col, &smooth, &bump);
+      Image color, smooth, bump, normal;
+      bool color_ok=loadImage( color,    material.detail_color   , true                                                  ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
+          smooth_ok=loadImage(smooth, S/*material.detail_smooth*/, false, false, &color, null, null   , null, null , null), // load before 'bump'  , here       'smooth' 'bump' are not yet available
+            bump_ok=loadImage(  bump,    material.detail_bump    , false, false, &color, null, &smooth, null, null , null), // load before 'normal', here                'bump' is  not yet available
+             nrm_ok=loadImage(normal,    material.detail_normal  , false, false, &color, null, &smooth, null, &bump, null);
 
       if(!bump_ok && !material.detail_normal.is())nrm_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
-      if(col_ok || smooth_ok || bump_ok || nrm_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
+      if(color_ok || smooth_ok || bump_ok || nrm_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
-                       ExtractDetailTexture(T, material.detail_tex, col_ok ? null : &col, bump_ok ? null : &bump, nrm_ok ? null : &normal);
-         Image  detail; CreateDetailTexture(detail, col, bump, normal, smooth);
+                       ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, nrm_ok ? null : &normal);
+         Image  detail; CreateDetailTexture(detail, color, bump, normal, smooth);
          IMAGE_TYPE ct;          ImageProps(detail, &material.detail_tex, &ct, (ForceHQMtrlDetail ? FORCE_HQ : 0) | (RemoveMtrlDetailBump ? IGNORE_ALPHA : 0)); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
          if(detail.is())
          {

@@ -408,7 +408,7 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image, C VecI2 &size)
    ImagePtr src=proj.texPath(tex_id);
    if(src)src->copyTry(image, size.x, size.y, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
 }
-void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
 { // #MaterialTextureLayout
    uint tex=0;
    if(base_2.valid())
@@ -430,30 +430,30 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
             if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_ALPHA  ;}
          }
       }
-      if(base_0.valid() && (col || glow)) // base_0 && base_2
+      if(base_0.valid() && (color || glow)) // base_0 && base_2
       {
          Image b0; LoadTexture(proj, base_0, b0, size);
-         if(col )col ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(glow)glow->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(glow )glow ->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
             Color c=b0.color(x, y);
-            if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(glow){glow->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_GLOW ;}
+            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+            if(glow ){glow ->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_GLOW ;}
          }
       }
    }else
-   if(base_0.valid() && (col || alpha)) // base_0 without base_2
+   if(base_0.valid() && (color || alpha)) // base_0 without base_2
    {
       Image b0; LoadTexture(proj, base_0, b0, size);
-      if(col  )col  ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       if(alpha)alpha->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
       REPD(y, b0.h())
       REPD(x, b0.w())
       {
          Color c=b0.color(x, y);
-         if(col  ){col  ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+         if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
          if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
       }
    }
@@ -473,7 +473,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
          normal->colorF(x, y, n);
       }
    }
-   if(col     && !(tex&BT_COLOR  ))col    ->del();
+   if(color   && !(tex&BT_COLOR  ))color  ->del();
    if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
    if(bump    && !(tex&BT_BUMP   ))bump   ->del();
    if(normal  && !(tex&BT_NORMAL ))normal ->del();
@@ -481,18 +481,18 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
 { // #WaterMaterialTextureLayout
    uint tex=0;
-   if(base_0.valid() && col)
+   if(base_0.valid() && color)
    {
       Image b0; LoadTexture(proj, base_0, b0, size);
-      if(col)col->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, b0.h())
       REPD(x, b0.w())
       {
          Color c=b0.color(x, y);
-         if(col){col->color(x, y, c); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+         if(color){color->color(x, y, c); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
       }
    }
    if(base_1.valid() && normal)
@@ -522,7 +522,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
          if(bump){if(Abs(c)>1.5f/127)tex|=BT_BUMP; bump->pixelF(x, y, c*0.5f+0.5f);}
       }
    }
-   if(col     && !(tex&BT_COLOR  ))col    ->del();
+   if(color   && !(tex&BT_COLOR  ))color  ->del();
    if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
    if(bump    && !(tex&BT_BUMP   ))bump   ->del();
    if(normal  && !(tex&BT_NORMAL ))normal ->del();
@@ -530,22 +530,22 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size)
+void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size)
 {
    uint tex=0;
    if(base_0.valid() && base_1.valid()) // both textures specified
    {
-      if(col || bump)
+      if(color || bump)
       {
          Image b0; LoadTexture(proj, base_0, b0, size);
-         if(col )col ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(bump)bump->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(bump )bump ->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
             Color c=b0.color(x, y);
-            if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(bump){bump->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // old BUMP_DEFAULT_TEX was either 128 or 255
+            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+            if(bump ){bump ->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // old BUMP_DEFAULT_TEX was either 128 or 255
          }
       }
       if(alpha || normal || smooth || reflect || glow)
@@ -575,21 +575,21 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
    }else
    if(base_0.valid()) // only one texture specified
    {
-      if(col || alpha)
+      if(color || alpha)
       {
          Image b0; LoadTexture(proj, base_0, b0, size);
-         if(col  )col  ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(alpha)alpha->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
             Color c=b0.color(x, y);
-            if(col  ){col  ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
             if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
          }
       }
    }
-   if(col     && !(tex&BT_COLOR  ))col    ->del();
+   if(color   && !(tex&BT_COLOR  ))color  ->del();
    if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
    if(bump    && !(tex&BT_BUMP   ))bump   ->del();
    if(normal  && !(tex&BT_NORMAL ))normal ->del();
@@ -597,22 +597,22 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image *bump, Image *normal)
+void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal)
 {
    uint tex=0;
    if(detail_tex.valid())
-      if(col || bump || normal)
+      if(color || bump || normal)
    {
       Image det; LoadTexture(proj, detail_tex, det);
-      if(col   )col   ->createSoft(det.w(), det.h(), 1, IMAGE_L8);
+      if(color )color ->createSoft(det.w(), det.h(), 1, IMAGE_L8);
       if(bump  )bump  ->createSoft(det.w(), det.h(), 1, IMAGE_L8);
       if(normal)normal->createSoft(det.w(), det.h(), 1, IMAGE_R8G8B8);
       REPD(y, det.h())
       REPD(x, det.w())
       {
          Color c=det.color(x, y); // #MaterialTextureLayout
-         if(col   ){col ->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
-         if(bump  ){bump->pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
+         if(color ){color->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
+         if(bump  ){bump ->pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
          if(normal)
          {
             Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
@@ -620,7 +620,7 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image 
          }
       }
    }
-   if(col    && !(tex&BT_COLOR ))col   ->del();
+   if(color  && !(tex&BT_COLOR ))color ->del();
    if(bump   && !(tex&BT_BUMP  ))bump  ->del();
    if(normal && !(tex&BT_NORMAL))normal->del();
 }
@@ -785,6 +785,1133 @@ bool ImportImage(Image &image, C Str &name, int type, int mode, int mip_maps, bo
    return false;
 }
 /******************************************************************************/
+int ChannelIndex(char c)
+{
+   switch(c)
+   {
+      case 'r': case 'R': case 'x': case 'X': return 0;
+      case 'g': case 'G': case 'y': case 'Y': return 1;
+      case 'b': case 'B': case 'z': case 'Z': return 2;
+      case 'a': case 'A': case 'w': case 'W': return 3;
+   }
+   return -1;
+}
+bool ChannelMonoTransform(C Str &value)
+{
+   return value.length()<=1 // up to 1 channels is treated as mono
+   || ChannelIndex(value[0])==ChannelIndex(value[1]) && ChannelIndex(value[0])==ChannelIndex(value[2]); // check that RGB channels are the same
+}
+bool  PartialTransform(C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
+bool   ResizeTransform(C Str       &name) {return name=="resize" || name=="resizeWrap" || name=="resizeClamp" || name=="resizeLinear" || name=="resizeCubic" || name=="maxSize";} // skip "resizeNoStretch" because it's more like "crop"
+bool     MonoTransform(C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
+bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
+{
+   int values=Occurrences(p.value, ',');
+   return p.name=="inverseR"
+       || p.name=="inverseG"
+       || p.name=="inverseRG"
+       || p.name=="lerpRGB" && values>2
+       || p.name=="ilerpRGB" && values>2
+       || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
+       || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
+       || p.name=="mulAddRGB" && values>2
+       || p.name=="addMulRGB" && values>2
+       || p.name=="mulRGBS" && TextVecEx(p.value).anyDifferent()
+       || p.name=="mulRGBH" && values>1
+       || p.name=="mulRGBHS" && values>1
+       || p.name=="gamma" && TextVecEx(p.value).anyDifferent()
+       || p.name=="brightness" && TextVecEx(p.value).anyDifferent()
+       || p.name=="contrast" && TextVecEx(p.value).anyDifferent()
+       || p.name=="contrastAlphaWeight" && TextVecEx(p.value).anyDifferent()
+       || p.name=="addSat"
+       || p.name=="addHueSat"
+       || p.name=="setHueSat"
+       || p.name=="setHueSatPhoto"
+       || p.name=="lerpHueSat"
+       || p.name=="rollHueSat"
+       || p.name=="rollHueSatPhoto"
+       || p.name=="channel" && !ChannelMonoTransform(p.value)
+       || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent();
+}
+bool HighPrecTransform(C Str &name)
+{
+   return ResizeTransform(name)
+       || name=="mulRGB" || name=="addRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
+       || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
+       || name=="normalize"
+       || name=="scale" || name=="scaleXY"
+       || name=="lerpRGB" || name=="ilerpRGB"
+       || name=="blur"
+       || name=="bump"
+       || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
+       || name=="brightness" || name=="brightnessLum"
+       || name=="gamma" || name=="gammaLum"
+       || name=="greyPhoto"
+       || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
+       || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
+       || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto";
+}
+bool SizeDependentTransform(C TextParam &p)
+{
+   return p.name=="blur" // range depends on size
+       || p.name=="bump" // range depends on size
+       || p.name=="crop" // coordinates/size depend on size
+       || p.name=="resizeNoStretch"
+       || p.name=="tile" // tile range depends on size
+       || PartialTransform(p); // coordinates/size depend on size
+}
+bool ForcesMono(C Str &file)
+{
+   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   REPA(files) // go from end
+   {
+      Edit::FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
+      {
+       C TextParam &param=file.params[i];
+         if(   MonoTransform(param) && !PartialTransform(param))return true; // if current transform generates mono (fully) and no non-mono were encountered up to now, then result is mono
+         if(NonMonoTransform(param))return false; // if there's at least one transform that can generate color then result is not mono
+      }
+   }
+   return false;
+}
+Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (default)
+{
+   Mems<Edit::FileParams> files=Edit::FileParams::Decode(color_map);
+   REPA(files) // go from end
+   {
+      Edit::FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPA(file.params) // go from end
+      {
+         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
+      }
+      if(!file.is())files.remove(i, true); // if nothing left then remove it
+   }
+   SetTransform(files, "bump", (blur<0) ? S : S+blur);
+   return Edit::FileParams::Encode(files);
+}
+/******************************************************************************/
+void MakeHighPrec(Image &image)
+{
+   if(!image.highPrecision())image.copyTry(image, -1, -1, -1, ImageTypeHighPrec(image.type()));
+}
+void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box)
+{
+   if(contrast!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt  c_lum=c.xyz.max(), want_lum=(c_lum-avg_lum)*contrast+avg_lum;
+         if(c_lum>EPS)c.xyz*=want_lum/c_lum;else c.xyz=want_lum;
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }      
+}
+void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box)
+{
+   if(avg_lum && image.lock()) // lock for writing because we will use this lock for applying contrast too
+   {
+      dbl contrast_total=0, weight_total=0;
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z); dbl c_lum=c.xyz.max();
+         if(dbl d=c_lum-avg_lum)
+         {
+            dbl contrast=Abs(d)/avg_lum, // div by 'avg_lum' so for bright values contrast will be proportionally the same
+                weight=Sqr(d); // squared distance from avg_lum
+            contrast_total+=weight*contrast;
+              weight_total+=weight;
+         }
+      }
+      if(weight_total)if(contrast_total/=weight_total)ContrastLum(image, contrast/contrast_total, avg_lum, box);
+      image.unlock();
+   }
+}
+void AddHue(Image &image, flt hue, C BoxI &box)
+{
+   hue=Frac(hue);
+   if(hue && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         c.x +=hue;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }
+}
+void MulRGBH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box)
+{
+   flt mul[]={red, yellow, green, cyan, blue, purple, red, yellow}; // red and yellow are listed extra for wraparound
+   REP(6)if(mul[i]!=1)goto mul; return; mul:
+   for(int z=box.min.z; z<box.max.z; z++)
+   for(int y=box.min.y; y<box.max.y; y++)
+   for(int x=box.min.x; x<box.max.x; x++)
+   {
+      Vec4 c=image.color3DF(x, y, z);
+      Vec  hsb=RgbToHsb(c.xyz);
+      flt  hue=hsb.x*6; int hue_i=Trunc(hue); flt hue_frac=hue-hue_i;
+      flt  hue_mul=Lerp(mul[hue_i], mul[hue_i+1], hue_frac);
+      c.xyz*=hue_mul;
+      image.color3DF(x, y, z, c);
+   }
+}
+void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box)
+{
+   flt mul[]={red, yellow, green, cyan, blue, purple, red, yellow}; // red and yellow are listed extra for wraparound
+   REP(6)if(mul[i]!=1)goto mul; return; mul:
+   for(int z=box.min.z; z<box.max.z; z++)
+   for(int y=box.min.y; y<box.max.y; y++)
+   for(int x=box.min.x; x<box.max.x; x++)
+   {
+      Vec4 c=image.color3DF(x, y, z);
+      Vec  hsb=RgbToHsb(c.xyz);
+      flt  hue=hsb.x*6; int hue_i=Trunc(hue); flt hue_frac=hue-hue_i;
+      flt  hue_mul=Lerp(mul[hue_i], mul[hue_i+1], hue_frac);
+      c.xyz*=Lerp(1.0f, hue_mul, hsb.y);
+      image.color3DF(x, y, z, c);
+   }
+}
+void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, bool sat, bool photo, C BoxI &box)
+{
+   flt mul[]={red, yellow, green, cyan, blue, purple, red, yellow}; // red and yellow are listed extra for wraparound
+   REP(6)if(mul[i]!=1)goto mul; return; mul:
+   for(int z=box.min.z; z<box.max.z; z++)
+   for(int y=box.min.y; y<box.max.y; y++)
+   for(int x=box.min.x; x<box.max.x; x++)
+   {
+      Vec4 c=image.color3DF(x, y, z);
+      flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+      Vec  hsb=RgbToHsb(c.xyz);
+      flt  hue=hsb.x*6; int hue_i=Trunc(hue); flt hue_frac=hue-hue_i;
+      flt  sat_mul=Lerp(mul[hue_i], mul[hue_i+1], hue_frac);
+      if(sat)sat_mul=Lerp(1.0f, sat_mul, hsb.y);
+      hsb.y*=sat_mul;
+      c.xyz=HsbToRgb(hsb);
+      if(photo)
+      {
+         c.xyz=SRGBToLinear(c.xyz);
+         if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
+         c.xyz=LinearToSRGB(c.xyz);
+      }
+      image.color3DF(x, y, z, c);
+   }
+}
+flt HueDelta(flt a, flt b) // returns -0.5 .. 0.5
+{
+   flt d=Frac(b-a); if(d>0.5f)d-=1; return d;
+}
+Vec2  LerpToMad(flt from, flt to) {return Vec2(to-from, from);}
+Vec2 ILerpToMad(flt from, flt to) {return Vec2(1/(to-from), from/(from-to));}
+flt   FloatSelf(flt x) {return x;}
+flt   PowMax   (flt x, flt y) {return (x<=0) ? 0 : Pow(x, y);}
+void IncludeAlpha(Image &image) {image.copyTry(image, -1, -1, -1, ImageTypeIncludeAlpha(image.type()));}
+
+void TransformImage(Image &image, TextParam param, bool clamp)
+{
+   BoxI box(0, image.size3());
+   int at_pos=TextPosI(param.value, '@'); if(at_pos>=0)
+   {
+      VecI4 v=TextVecI4(param.value()+at_pos+1);
+      RectI r(v.xy, v.xy+v.zw);
+      box&=BoxI(VecI(r.min, 0), VecI(r.max, box.max.z));
+      param.value.clip(at_pos);
+   }
+
+   if(HighPrecTransform(param.name))MakeHighPrec(image); // if transform might generate high precision values then make sure we can store them
+
+   if(param.name=="crop")
+   {
+      VecI4 v=TextVecI4(param.value);
+      image.crop(image, v.x, v.y, v.z, v.w);
+   }else
+   if(param.name=="resize" || param.name=="resizeWrap" || param.name=="resizeClamp" || param.name=="resizeLinear" || param.name=="resizeCubic" || param.name=="resizeNoStretch")
+   {
+      VecI2 s;
+      if(param.value=="quarter")s.set(Max(1, image.w()/4), Max(1, image.h()/4));else
+      if(param.value=="half"   )s.set(Max(1, image.w()/2), Max(1, image.h()/2));else
+      if(param.value=="double" )s=image.size()*2;else
+      {
+         Vec2 sf; if(Contains(param.value, ','))sf=param.asVec2();else sf=param.asFlt();
+         UNIT_TYPE unit=GetUnitType(param.value);
+         s.x=Round(ConvertUnitType(sf.x, image.w(), unit));
+         s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
+      }
+      s=ImageSize(image.size3(), s, false).xy;
+      bool resize_clamp=((param.name=="resizeClamp") ? true : (param.name=="resizeWrap" || param.name=="resizeNoStretch") ? false : clamp);
+      image.resize(s.x, s.y, (param.name=="resizeNoStretch") ? FILTER_NO_STRETCH : (param.name=="resizeLinear") ? FILTER_LINEAR : (param.name=="resizeCubic") ? FILTER_CUBIC_FAST : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP));
+   }else
+   if(param.name=="maxSize")
+   {
+      VecI2 s;
+      if(param.value=="quarter")s.set(Max(1, image.w()/4), Max(1, image.h()/4));else
+      if(param.value=="half"   )s.set(Max(1, image.w()/2), Max(1, image.h()/2));else
+      if(param.value=="double" )s=image.size()*2;else
+      {
+         Vec2 sf; if(Contains(param.value, ','))sf=param.asVec2();else sf=param.asFlt();
+         UNIT_TYPE unit=GetUnitType(param.value);
+         s.x=Round(ConvertUnitType(sf.x, image.w(), unit));
+         s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
+      }
+      s=ImageSize(image.size3(), s, false).xy;
+      image.resize(Min(image.w(), s.x), Min(image.h(), s.y), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP));
+   }else
+   if(param.name=="tile")image.tile(param.asInt());else
+   if(param.name=="inverseRGB")
+   {
+      if(image.highPrecision())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.xyz=1-c.xyz; image.color3DF(x, y, z, c);}
+      }else
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Color c=image.color3D(x, y, z); c.r=255-c.r; c.g=255-c.g; c.b=255-c.b; image.color3D(x, y, z, c);}
+      }
+   }else
+   if(param.name=="inverseR")
+   {
+      if(image.highPrecision())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.x=1-c.x; image.color3DF(x, y, z, c);}
+      }else
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Color c=image.color3D(x, y, z); c.r=255-c.r; image.color3D(x, y, z, c);}
+      }
+   }else
+   if(param.name=="inverseG")
+   {
+      if(image.highPrecision())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.y=1-c.y; image.color3DF(x, y, z, c);}
+      }else
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Color c=image.color3D(x, y, z); c.g=255-c.g; image.color3D(x, y, z, c);}
+      }
+   }else
+   if(param.name=="inverseRG")
+   {
+      if(image.highPrecision())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.x=1-c.x; c.y=1-c.y; image.color3DF(x, y, z, c);}
+      }else
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Color c=image.color3D(x, y, z); c.r=255-c.r; c.g=255-c.g; image.color3D(x, y, z, c);}
+      }
+   }else
+   if(param.name=="swapRG")
+   {
+      if(image.highPrecision())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); Swap(c.x, c.y); image.color3DF(x, y, z, c);}
+      }else
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Color c=image.color3D(x, y, z); Swap(c.r, c.g); image.color3D(x, y, z, c);}
+      }
+   }else
+   if(param.name=="swapXY")
+   {
+      Image temp; temp.createSoftTry(image.h(), image.w(), image.d(), image.type());
+      if(temp.highPrecision())
+      {
+         REPD(y, image.h())
+         REPD(x, image.w())temp.colorF(y, x, image.colorF(x, y));
+      }else
+      {
+         REPD(y, image.h())
+         REPD(x, image.w())temp.color(y, x, image.color(x, y));
+      }
+      Swap(temp, image);
+   }else
+   if(param.name=="mirrorX")image.mirrorX();else
+   if(param.name=="mirrorY")image.mirrorY();else
+   if(param.name=="normalize")image.normalize(true, true, true, true, &box);else
+   if(param.name=="sat")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.sat();
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="blur")
+   {
+      UNIT_TYPE unit=GetUnitType(param.value);
+      Vec       r   =TextVecEx  (param.value);
+      r.x=ConvertUnitType(r.x, image.w(), unit);
+      r.y=ConvertUnitType(r.y, image.h(), unit);
+      r.z=ConvertUnitType(r.z, image.d(), unit);
+      image.blur(r, clamp, &WorkerThreads);
+   }else
+   if(param.name=="lerpRGB")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      switch(c.elms())
+      {
+         case 2: {Vec2 ma=LerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
+         case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+      }
+   }else
+   if(param.name=="ilerpRGB")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      switch(c.elms())
+      {
+         case 2: {Vec2 ma=ILerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
+         case 6: {Vec2 ma[3]={ILerpToMad(TextFlt(c[0]), TextFlt(c[3])), ILerpToMad(TextFlt(c[1]), TextFlt(c[4])), ILerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+      }
+   }else
+   if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){IncludeAlpha(image); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
+   if(param.name=="mulRGB")image.mulAdd(Vec4(TextVecEx(param.value), 1), 0, &box);else
+   if(param.name=="addRGB")image.mulAdd(1, Vec4(TextVecEx(param.value), 0), &box);else
+   if(param.name=="mulAddRGB")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      switch(c.elms())
+      {
+         case 2: image.mulAdd(Vec4(Vec(TextFlt(c[0])), 1), Vec4(Vec(TextFlt(c[1])), 0), &box); break;
+         case 6: image.mulAdd(Vec4(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2]), 1), Vec4(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5]), 0), &box); break;
+      }
+   }else
+   if(param.name=="addMulRGB")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      switch(c.elms())
+      {
+         // x=x*m+a, x=(x+A)*M
+         case 2: {flt add=TextFlt(c[0]), mul=TextFlt(c[1]);                                                               image.mulAdd(Vec4(Vec(mul), 1), Vec4(Vec(add*mul), 0), &box);} break;
+         case 6: {Vec add(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])), mul(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); image.mulAdd(Vec4(    mul , 1), Vec4(    add*mul , 0), &box);} break;
+      }
+   }else
+   if(param.name=="mulRGBS")
+   {
+      Vec mul=TextVecEx(param.value);
+      if(mul!=VecOne)
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt  sat=RgbToHsb(c.xyz).y;
+         c.x=Lerp(c.x, c.x*mul.x, sat);  // red
+         c.y=Lerp(c.y, c.y*mul.y, sat);  // green
+         c.z=Lerp(c.z, c.z*mul.z, sat);  // blue
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="mulRGBH")
+   {
+      Mems<Str> vals; Split(vals, param.value, ',');
+      switch(vals.elms())
+      {
+         case 1: {flt v=TextFlt(vals[0]); MulRGBH(image, v, v, v, v, v, v, box);} break;
+         case 3: MulRGBH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, box); break;
+         case 6: MulRGBH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), box); break;
+      }
+   }else
+   if(param.name=="mulRGBHS")
+   {
+      Mems<Str> vals; Split(vals, param.value, ',');
+      switch(vals.elms())
+      {
+         case 1: {flt v=TextFlt(vals[0]); MulRGBHS(image, v, v, v, v, v, v, box);} break;
+         case 3: MulRGBHS(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, box); break;
+         case 6: MulRGBHS(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), box); break;
+      }
+   }else
+   if(param.name=="gamma")
+   {
+      Vec g=TextVecEx(param.value);
+      if(g!=VecOne)
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.xyz.set(PowMax(c.x, g.x), PowMax(c.y, g.y), PowMax(c.z, g.z)); image.color3DF(x, y, z, c);}
+   }else
+   if(param.name=="gammaLum")
+   {
+      flt g=param.asFlt();
+      if(g!=1)
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); if(flt lum=c.xyz.max()){c.xyz*=PowMax(lum, g)/lum; image.color3DF(x, y, z, c);}}
+   }else
+   if(param.name=="brightness")
+   {
+      Vec b=TextVecEx(param.value), mul; if(b.any())
+      {
+         flt (*R)(flt);
+         flt (*G)(flt);
+         flt (*B)(flt);
+         if(!b.x){b.x=1; mul.x=1; R=FloatSelf;}else if(b.x<0){b.x=SigmoidSqrt(b.x); mul.x=1/SigmoidSqrtInv(b.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(b.x); R=SigmoidSqrt;}
+         if(!b.y){b.y=1; mul.y=1; G=FloatSelf;}else if(b.y<0){b.y=SigmoidSqrt(b.y); mul.y=1/SigmoidSqrtInv(b.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(b.y); G=SigmoidSqrt;}
+         if(!b.z){b.z=1; mul.z=1; B=FloatSelf;}else if(b.z<0){b.z=SigmoidSqrt(b.z); mul.z=1/SigmoidSqrtInv(b.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(b.z); B=SigmoidSqrt;}
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=Sqr(c.xyz);
+            c.x=R(c.x*b.x)*mul.x;
+            c.y=G(c.y*b.y)*mul.y;
+            c.z=B(c.z*b.z)*mul.z;
+            c.xyz=Sqrt(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+      }
+   }else
+   if(param.name=="brightnessLum")
+   {
+      flt b=param.asFlt(), mul; flt (*f)(flt);
+      if(b)
+      {
+         if(b<0){b=SigmoidSqrt(b); mul=1/SigmoidSqrtInv(b); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(b); f=SigmoidSqrt;}
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            if(flt l=c.xyz.max())
+            {
+               flt new_lum=Sqr(l);
+               new_lum=f(new_lum*b)*mul;
+               new_lum=Sqrt(new_lum);
+               c.xyz*=new_lum/l;
+               image.color3DF(x, y, z, c);
+            }
+         }
+      }
+   }else
+   if(param.name=="contrast")
+   {
+      Vec contrast=TextVecEx(param.value); if(contrast!=VecOne)
+      {
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))
+         {
+            // col=(col-avg)*contrast+avg
+            // col=col*contrast+avg*(1-contrast)
+            image.mulAdd(Vec4(contrast, 1), Vec4(avg.xyz*(Vec(1)-contrast), 0), &box);
+         }
+      }
+   }else
+   if(param.name=="contrastAlphaWeight")
+   {
+      Vec contrast=TextVecEx(param.value); if(contrast!=VecOne)
+      {
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))
+         {
+            image.mulAdd(Vec4(contrast, 1), Vec4(avg*(Vec(1)-contrast), 0), &box);
+         }
+      }
+   }else
+   if(param.name=="contrastLum")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))ContrastLum(image, contrast, avg.xyz.max(), box);
+      }
+   }else
+   if(param.name=="contrastLumAlphaWeight")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))ContrastLum(image, contrast, avg.max(), box);
+      }
+   }else
+   if(param.name=="contrastHue")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box) && image.lock())
+         {
+            flt avg_hue=RgbToHsb(avg.xyz).x;
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               flt d_hue=HueDelta(avg_hue, c.x);
+               d_hue*=contrast;
+               Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
+               c.x=d_hue+avg_hue;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="contrastHueAlphaWeight")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box) && image.lock())
+         {
+            flt avg_hue=RgbToHsb(avg).x;
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               flt d_hue=HueDelta(avg_hue, c.x);
+               d_hue*=contrast;
+               Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
+               c.x=d_hue+avg_hue;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="contrastHuePow")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box) && image.lock())
+         {
+            flt avg_hue=RgbToHsb(avg.xyz).x;
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               flt d_hue=HueDelta(avg_hue, c.x);
+               d_hue=Sign(d_hue)*Pow(Abs(d_hue)*2, contrast)/2; // *2 to get -1..1 range
+               Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
+               c.x=d_hue+avg_hue;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="contrastSat")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box) && image.lock())
+         {
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               c.y=(c.y-avg)*contrast+avg;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="contrastSatAlphaWeight")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box) && image.lock())
+         {
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               c.y=(c.y-avg)*contrast+avg;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="avgSat")
+   {
+      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg && image.lock())
+      {
+         flt mul=param.asFlt()/avg;
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=RgbToHsb(c.xyz);
+            c.y*=mul;
+            c.xyz=HsbToRgb(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="avgLum")
+   {
+      Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))if(flt avg_l=avg.xyz.max())image.mulAdd(Vec4(Vec(param.asFlt()/avg_l), 1), 0, &box);
+   }else
+   if(param.name=="medLum")
+   {
+      Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))if(flt med_l=med.xyz.max())image.mulAdd(Vec4(Vec(param.asFlt()/med_l), 1), 0, &box);
+   }else
+   if(param.name=="avgContrastLum")
+   {
+      Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))AvgContrastLum(image, param.asFlt(), avg.xyz.max(), box);
+   }else
+   if(param.name=="medContrastLum")
+   {
+      Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))AvgContrastLum(image, param.asFlt(), med.xyz.max(), box);
+   }else
+   if(param.name=="addHue")AddHue(image, param.asFlt(), box);else
+   if(param.name=="avgHue")
+   {
+      if(image.lock()) // lock for writing because we will use this lock for applying hue too
+      {
+         Vec4 col; if(image.stats(null, null, &col, null, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box);
+         image.unlock();
+      }
+   }else
+   if(param.name=="medHue")
+   {
+      if(image.lock()) // lock for writing because we will use this lock for applying hue too
+      {
+         Vec4 col; if(image.stats(null, null, null, &col, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box);
+         image.unlock();
+      }
+   }else
+   if(param.name=="addSat")
+   {
+      flt sat=param.asFlt(); if(sat && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=RgbToHsb(c.xyz);
+            c.y+=sat;
+            c.xyz=HsbToRgb(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="mulSat")
+   {
+      flt sat=param.asFlt(); if(sat!=1 && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=RgbToHsb(c.xyz);
+            c.y*=sat;
+            c.xyz=HsbToRgb(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="mulSatPhoto")
+   {
+      flt sat=param.asFlt(); if(sat!=1 && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            flt  lin_lum=LinearLumOfSRGBColor(c.xyz);
+
+            c.xyz=RgbToHsb(c.xyz);
+            c.y*=sat;
+            c.xyz=HsbToRgb(c.xyz);
+
+            c.xyz=SRGBToLinear(c.xyz);
+            if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
+            c.xyz=LinearToSRGB(c.xyz);
+
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="mulSatH"
+   || param.name=="mulSatHS")
+   {
+      bool sat=(param.name=="mulSatHS");
+      Mems<Str> vals; Split(vals, param.value, ',');
+      switch(vals.elms())
+      {
+         case 1: {flt v=TextFlt(vals[0]); MulSatH(image, v, v, v, v, v, v, sat, false, box);} break;
+         case 3: MulSatH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, sat, false, box); break;
+         case 6: MulSatH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), sat, false, box); break;
+      }
+   }else
+   if(param.name=="mulSatHPhoto"
+   || param.name=="mulSatHSPhoto")
+   {
+      bool sat=(param.name=="mulSatHSPhoto");
+      Mems<Str> vals; Split(vals, param.value, ',');
+      switch(vals.elms())
+      {
+         case 1: {flt v=TextFlt(vals[0]); MulSatH(image, v, v, v, v, v, v, sat, true, box);} break;
+         case 3: MulSatH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, sat, true, box); break;
+         case 6: MulSatH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), sat, true, box); break;
+      }
+   }else
+   if(param.name=="addHueSat")
+   {
+      Vec2 hue_sat=param.asVec2(); if(hue_sat.any() && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=RgbToHsb(c.xyz);
+            c.xy+=hue_sat;
+            c.xyz=HsbToRgb(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="setHue")
+   {
+      if(image.lock())
+      {
+         flt hue=param.asFlt();
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=RgbToHsb(c.xyz);
+            c.x=hue;
+            c.xyz=HsbToRgb(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="setHueSat")
+   {
+      if(image.lock())
+      {
+         Vec2 hue_sat=param.asVec2();
+         Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=rgb*c.xyz.max();
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="setHueSatPhoto") // photometric
+   {
+      if(image.lock())
+      {
+         Vec2 hue_sat=param.asVec2();
+         Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="lerpHue")
+   {
+      Vec2 hue_alpha=param.asVec2(); if(hue_alpha.y && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            Vec hsb=RgbToHsb(c.xyz);
+            hsb.x=hue_alpha.x;
+            c.xyz=Lerp(c.xyz, HsbToRgb(hsb), hue_alpha.y);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="lerpHueSat")
+   {
+      Vec hue_sat_alpha=param.asVec(); if(hue_sat_alpha.z && image.lock())
+      {
+         Vec rgb=HsbToRgb(Vec(hue_sat_alpha.xy, 1));
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=Lerp(c.xyz, rgb*c.xyz.max(), hue_sat_alpha.z);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="rollHue")
+   {
+      Vec2 hue_alpha=param.asVec2(); if(hue_alpha.y && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            Vec hsb=RgbToHsb(c.xyz);
+            hsb.x+=HueDelta(hsb.x, hue_alpha.x)*hue_alpha.y;
+            c.xyz=HsbToRgb(hsb);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="rollHueSat")
+   {
+      Vec hue_sat_alpha=param.asVec(); if(hue_sat_alpha.z && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            Vec hsb=RgbToHsb(c.xyz);
+            hsb.x+=HueDelta(hsb.x, hue_sat_alpha.x)*hue_sat_alpha.z;
+            hsb.y =Lerp    (hsb.y, hue_sat_alpha.y, hue_sat_alpha.z);
+            c.xyz=HsbToRgb(hsb);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="rollHuePhoto")
+   {
+      Vec2 hue_alpha=param.asVec2(); if(hue_alpha.y && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            if(flt l=SRGBLumOfSRGBColor(c.xyz))
+            {
+               Vec hsb=RgbToHsb(c.xyz);
+               hsb.x+=HueDelta(hsb.x, hue_alpha.x)*hue_alpha.y;
+               c.xyz=HsbToRgb(hsb);
+               c.xyz*=l/SRGBLumOfSRGBColor(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="rollHueSatPhoto")
+   {
+      Vec hue_sat_alpha=param.asVec(); if(hue_sat_alpha.z && image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            if(flt l=SRGBLumOfSRGBColor(c.xyz))
+            {
+               Vec hsb=RgbToHsb(c.xyz);
+               hsb.x+=HueDelta(hsb.x, hue_sat_alpha.x)*hue_sat_alpha.z;
+               hsb.y =Lerp    (hsb.y, hue_sat_alpha.y, hue_sat_alpha.z);
+               c.xyz=HsbToRgb(hsb);
+               c.xyz*=l/SRGBLumOfSRGBColor(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="grey")
+   {
+      if(image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=c.xyz.max();
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="greyPhoto")
+   {
+      if(image.lock())
+      {
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.xyz=SRGBLumOfSRGBColor(c.xyz);
+            image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="channel") // Warning: this loses sRGB for 1..2 channels, because there are no IMAGE_R8_SRGB, IMAGE_R8G8_SRGB, IMAGE_F32_SRGB, IMAGE_F32_2_SRGB
+   {
+      int channels=param.value.length();
+      if( channels>=1 && channels<=4)
+      {
+         int   chn[4]; REPAO(chn)=ChannelIndex(param.value[i]);
+         Image temp;
+         bool  srgb=image.sRGB();
+         if(image.highPrecision())
+         {
+            temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_F32 : channels==2 ? IMAGE_F32_2 : channels==3 ? (srgb ? IMAGE_F32_3_SRGB : IMAGE_F32_3) : (srgb ? IMAGE_F32_4_SRGB : IMAGE_F32_4));
+            Vec4 d(0, 0, 0, 1);
+            REPD(z, image.d())
+            REPD(y, image.h())
+            REPD(x, image.w())
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
+               temp.color3DF(x, y, z, d);
+            }
+         }else
+         {
+            temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_R8 : channels==2 ? IMAGE_R8G8 : channels==3 ? (srgb ? IMAGE_R8G8B8_SRGB : IMAGE_R8G8B8) : (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8));
+            Color d(0, 0, 0, 255);
+            REPD(z, image.d())
+            REPD(y, image.h())
+            REPD(x, image.w())
+            {
+               Color c=image.color3D(x, y, z);
+               REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
+               temp.color3D(x, y, z, d);
+            }
+         }
+         Swap(temp, image);
+      }
+   }else
+   if(param.name=="alphaFromBrightness" || param.name=="alphaFromLum" || param.name=="alphaFromLuminance")
+   {
+      image.alphaFromBrightness();
+   }else
+   if(param.name=="bump")
+   {
+      Vec2 blur=-1; // x=min, y=max, -1=auto
+      if(param.value.is())
+      {
+         UNIT_TYPE unit=GetUnitType(param.value);
+         flt       full=image.size().avgF();
+         if(Contains(param.value, ','))
+         {
+            blur=param.asVec2(); // use 2 values if specified
+            blur.x=ConvertUnitType(blur.x, full, unit);
+            blur.y=ConvertUnitType(blur.y, full, unit);
+         }else
+         {
+            blur.y=param.asFlt(); // if 1 value specified then use as max
+            blur.y=ConvertUnitType(blur.y, full, unit);
+         }
+      }
+      CreateBumpFromColor(image, image, blur.x, blur.y, &WorkerThreads);
+   }else
+   if(param.name=="scale") // the formula is ok (for normal too), it works as if the bump was scaled vertically by 'scale' factor
+   {
+      flt scale=param.asFlt(); if(scale!=1)
+      {
+         if(image.typeChannels()<=1 || image.monochromatic())image.mulAdd(Vec4(Vec(scale), 1), Vec4(Vec(-0.5f*scale+0.5f), 0), &box);else // if image is 1-channel or monochromatic then we need to transform all RGB together
+         if(!scale                                          )image.mulAdd(Vec4(Vec(    0), 1), Vec4(        0.5f, 0.5f, 1, 0), &box);else // if zero scale then set Vec(0.5, 0.5, 1)
+         if(image.lock())
+         {
+            scale=1/scale;
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z); Vec &n=c.xyz;
+               n=n*2-1;
+               n.normalize();
+               n.z*=scale;
+               n.normalize();
+               n=n*0.5f+0.5f;
+               image.color3DF(x, y, z, c);
+            }
+            image.unlock();
+         }
+      }
+   }else
+   if(param.name=="scaleXY")
+   {
+      Vec2 r=TextVec2Ex(param.value);
+      // v2=(v2-0.5)*r+0.5
+      // v2=v2*r-0.5*r+0.5
+      if(image.typeChannels()<=1 || image.monochromatic()){flt a=r.avg(); image.mulAdd(Vec4(Vec(a), 1), Vec4(Vec(-0.5f*a+0.5f)  , 0), &box);} // if image is 1-channel or monochromatic then we need to transform all RGB together
+      else                                                                image.mulAdd(Vec4(  r, 1, 1), Vec4(    -0.5f*r+0.5f, 0, 0), &box);
+   }else
+   if(param.name=="fixTransparent")
+   {
+      image.transparentToNeighbor(true, param.value.is() ? param.asFlt() : 1);
+   }
+}
+void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp)
+{
+   FREPA(params)TransformImage(image, params[i], clamp); // process in order
+}
+/******************************************************************************/
 // TEXT
 /******************************************************************************/
 bool ValidChar(char c) {return c>=32 && c<128;}
@@ -942,85 +2069,6 @@ int Occurrences(C Str &s, char c)
    int o=0; REPA(s)if(s[i]==c)o++; return o;
 }
 /******************************************************************************/
-int ChannelIndex(char c)
-{
-   switch(c)
-   {
-      case 'r': case 'R': case 'x': case 'X': return 0;
-      case 'g': case 'G': case 'y': case 'Y': return 1;
-      case 'b': case 'B': case 'z': case 'Z': return 2;
-      case 'a': case 'A': case 'w': case 'W': return 3;
-   }
-   return -1;
-}
-bool ChannelMonoTransform(C Str &value)
-{
-   return value.length()<=1 // up to 1 channels is treated as mono
-   || ChannelIndex(value[0])==ChannelIndex(value[1]) && ChannelIndex(value[0])==ChannelIndex(value[2]); // check that RGB channels are the same
-}
-bool  PartialTransform(C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
-bool   ResizeTransform(C Str       &name) {return name=="resize" || name=="resizeWrap" || name=="resizeClamp" || name=="resizeLinear" || name=="resizeCubic" || name=="resizeNoStretch" || name=="maxSize";}
-bool     MonoTransform(C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
-bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
-{
-   int values=Occurrences(p.value, ',');
-   return p.name=="inverseR"
-       || p.name=="inverseG"
-       || p.name=="inverseRG"
-       || p.name=="lerpRGB" && values>2
-       || p.name=="ilerpRGB" && values>2
-       || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
-       || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
-       || p.name=="mulAddRGB" && values>2
-       || p.name=="addMulRGB" && values>2
-       || p.name=="mulRGBS" && TextVecEx(p.value).anyDifferent()
-       || p.name=="mulRGBH" && values>1
-       || p.name=="mulRGBHS" && values>1
-       || p.name=="gamma" && TextVecEx(p.value).anyDifferent()
-       || p.name=="brightness" && TextVecEx(p.value).anyDifferent()
-       || p.name=="contrast" && TextVecEx(p.value).anyDifferent()
-       || p.name=="contrastAlphaWeight" && TextVecEx(p.value).anyDifferent()
-       || p.name=="addSat"
-       || p.name=="addHueSat"
-       || p.name=="setHueSat"
-       || p.name=="setHueSatPhoto"
-       || p.name=="lerpHueSat"
-       || p.name=="rollHueSat"
-       || p.name=="rollHueSatPhoto"
-       || p.name=="channel" && !ChannelMonoTransform(p.value)
-       || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent();
-}
-bool HighPrecTransform(C Str &name)
-{
-   return ResizeTransform(name)
-       || name=="mulRGB" || name=="addRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
-       || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
-       || name=="normalize"
-       || name=="scale" || name=="scaleXY"
-       || name=="lerpRGB" || name=="ilerpRGB"
-       || name=="blur"
-       || name=="bump"
-       || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
-       || name=="brightness" || name=="brightnessLum"
-       || name=="gamma" || name=="gammaLum"
-       || name=="greyPhoto"
-       || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
-       || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
-       || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
-       || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto";
-}
-bool SizeDependentTransform(C TextParam &p)
-{
-   return p.name=="blur" // range depends on size
-       || p.name=="bump" // range depends on size
-       || p.name=="crop" // coordinates/size depend on size
-       || p.name=="resizeNoStretch"
-       || p.name=="tile" // tile range depends on size
-       || PartialTransform(p); // coordinates/size depend on size
-}
-
 TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms
 {
    REPA(files) // go from end
@@ -1033,21 +2081,6 @@ TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ig
       }
    }
    return null;
-}
-void FindResizeTransform(MemPtr<Edit::FileParams> files)
-{
-   REPA(files) // go from end
-   {
-      Edit::FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
-      REPA(file.params) // go from end
-      {
-         TextParam &p=file.params[i];
-         //if(ResizeTransform(p.name))return &p;
-         //if(SizeDependentTransform(p))return null; // if encountered a size dependent transform, it means we can't keep looking
-      }
-   }
-   //return null;
 }
 void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
 {
@@ -1091,38 +2124,6 @@ void SetTransform(Str &file, C Str &name, C Str &value)
    Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
    SetTransform(files, name, value);
    file=Edit::FileParams::Encode(files);
-}
-bool ForcesMono(C Str &file)
-{
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
-   REPA(files) // go from end
-   {
-      Edit::FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
-      REPA(file.params) // go from end
-      {
-       C TextParam &param=file.params[i];
-         if(   MonoTransform(param) && !PartialTransform(param))return true; // if current transform generates mono (fully) and no non-mono were encountered up to now, then result is mono
-         if(NonMonoTransform(param))return false; // if there's at least one transform that can generate color then result is not mono
-      }
-   }
-   return false;
-}
-Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (default)
-{
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(color_map);
-   REPA(files) // go from end
-   {
-      Edit::FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
-      REPA(file.params) // go from end
-      {
-         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
-      }
-      if(!file.is())files.remove(i, true); // if nothing left then remove it
-   }
-   SetTransform(files, "bump", (blur<0) ? S : S+blur);
-   return Edit::FileParams::Encode(files);
 }
 /******************************************************************************/
 SOUND_CODEC TextSoundCodec(C Str &t)

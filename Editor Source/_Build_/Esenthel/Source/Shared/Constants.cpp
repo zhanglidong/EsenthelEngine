@@ -334,22 +334,53 @@ const Pose PoseIdentity;
          if(glow   .is())glow   .resize(size.x, size.y);
       }
    }
+   Str MtrlImages::SkipResize(C Str &src, TextParam &resize)
+   {
+      Mems<Edit::FileParams> files=Edit::FileParams::Decode(src);
+      REPA(files) // go from end
+      {
+         Edit::FileParams &file=files[i];
+         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+         REPAD(pi, file.params) // go from end
+         {
+          C TextParam &p=file.params[pi];
+            if(ResizeTransform(p.name))
+            {
+               resize=p; // extract resize
+                       file.params.remove(pi, true); // remove it
+               if(!file.is())files.remove( i, true); // if nothing left then remove it
+               return Edit::FileParams::Encode(files);
+            }else
+            if(SizeDependentTransform(p))goto skip; // if encountered a size dependent transform, it means we can't keep looking
+         }
+      }
+   skip:
+      return src;
+   }
    void MtrlImages::fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size, bool process_alpha)
    {
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      bool col_ok=proj.loadImages(  color, material.  color_map, true , false),
-         alpha_ok=proj.loadImages(  alpha, material.  alpha_map, false, false, WHITE, &color),
-        smooth_ok=proj.loadImages( smooth, material. smooth_map, false, false, WHITE, &color),
-       reflect_ok=proj.loadImages(reflect, material.reflect_map, false, false, WHITE, &color, &smooth),
-          bump_ok=proj.loadImages(   bump, material.   bump_map, false, false, GREY , &color, &smooth),
-           nrm_ok=proj.loadImages( normal, material. normal_map, false, false, Color(128, 128, 255), &color, &smooth, &bump),
-          glow_ok=proj.loadImages(   glow, material.   glow_map, false, false);
+      // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
+      TextParam color_resize, smooth_resize, bump_resize;
 
-      if(! col_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
-      if(!bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
+      bool color_ok=proj.loadImages(  color, SkipResize(material.  color_map,  color_resize), true , false),
+           alpha_ok=proj.loadImages(  alpha,            material.  alpha_map                , false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages( smooth, SkipResize(material. smooth_map, smooth_resize), false, false, WHITE, &color, &color_resize),
+         reflect_ok=proj.loadImages(reflect,            material.reflect_map                , false, false, WHITE, &color, &color_resize, &smooth, &smooth_resize),
+            bump_ok=proj.loadImages(   bump, SkipResize(material.   bump_map,   bump_resize), false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
+             nrm_ok=proj.loadImages( normal,            material. normal_map                , false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
+            glow_ok=proj.loadImages(   glow,            material.   glow_map                , false, false);
+
+      // apply desired resize
+      TransformImage(color ,  color_resize, false);
+      TransformImage(smooth, smooth_resize, false);
+      TransformImage(bump  ,   bump_resize, false);
+
+      if(!color_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
+      if(! bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
 
       T.flip_normal_y=(nrm_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
 
@@ -359,20 +390,28 @@ const Pose PoseIdentity;
    }
    void MtrlImages::fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size, bool process_alpha)
    {
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      bool col_ok=proj.loadImages(  color, material.  color_map, true , false),
-         alpha_ok=proj.loadImages(  alpha, material.  alpha_map, false, false, WHITE, &color),
-        smooth_ok=proj.loadImages( smooth, material. smooth_map, false, false, WHITE, &color),
-       reflect_ok=proj.loadImages(reflect, material.reflect_map, false, false, WHITE, &color, &smooth),
-          bump_ok=proj.loadImages(   bump, material.   bump_map, false, false, GREY , &color, &smooth),
-           nrm_ok=proj.loadImages( normal, material. normal_map, false, false, Color(128, 128, 255), &color, &smooth, &bump),
-          glow_ok=proj.loadImages(   glow, material.   glow_map, false, false);
+      // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
+      TextParam color_resize, smooth_resize, bump_resize;
 
-      if(! col_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
-      if(!bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
+      bool color_ok=proj.loadImages(  color, SkipResize(material.  color_map,  color_resize), true , false),
+           alpha_ok=proj.loadImages(  alpha,            material.  alpha_map                , false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages( smooth, SkipResize(material. smooth_map, smooth_resize), false, false, WHITE, &color, &color_resize),
+         reflect_ok=proj.loadImages(reflect,            material.reflect_map                , false, false, WHITE, &color, &color_resize, &smooth, &smooth_resize),
+            bump_ok=proj.loadImages(   bump, SkipResize(material.   bump_map,   bump_resize), false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
+             nrm_ok=proj.loadImages( normal,            material. normal_map                , false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
+            glow_ok=proj.loadImages(   glow,            material.   glow_map                , false, false);
+
+      // apply desired resize
+      TransformImage(color ,  color_resize, false);
+      TransformImage(smooth, smooth_resize, false);
+      TransformImage(bump  ,   bump_resize, false);
+
+      if(!color_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
+      if(! bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
 
       T.flip_normal_y=(nrm_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
 

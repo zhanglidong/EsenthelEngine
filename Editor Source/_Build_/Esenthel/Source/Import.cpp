@@ -95,8 +95,8 @@ ImporterClass Importer;
                }
             }else
             {
-               Image col, alpha, bump, normal, smooth, reflect, glow;
-               ImportImage(    col,   color_map);
+               Image color, alpha, bump, normal, smooth, reflect, glow;
+               ImportImage(  color,   color_map);
                ImportImage(  alpha,   alpha_map);
                ImportImage(   bump,    bump_map);
                ImportImage( normal,  normal_map);
@@ -106,7 +106,7 @@ ImporterClass Importer;
                ImportImage(  light,   light_map);
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               uint       bt=CreateBaseTextures(base_0, base_1, base_2, col, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+               uint       bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
                IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0      ); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
                               ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1      ); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
                               ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2      ); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
@@ -395,7 +395,7 @@ ImporterClass Importer;
                            if(image.cube)image.crop(image, i*image.w()/6, 0, image.w()/6, image.h()); // crop to i-th face for cubes
                         }
                      }
-                     Project::TransformImage(image, files[i].params, true);
+                     TransformImage(image, files[i].params, true);
                   }
 
                   // check if any of the images were not imported
@@ -460,7 +460,7 @@ ImporterClass Importer;
                   {
                      Image image; if(ImportImage(image, file, -1, IMAGE_SOFT, 1, true))
                      {
-                        if(files.elms())ProjectEx::TransformImage(image, files[0].params, true);
+                        if(files.elms())TransformImage(image, files[0].params, true);
                         image.ExportWEBP(raw.writeMem(), 1, 1); has_color=HasColor(image); has_alpha=HasAlpha(image); return true;
                      }
                   }
