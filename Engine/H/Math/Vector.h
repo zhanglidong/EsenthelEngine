@@ -333,6 +333,7 @@ struct Vec2 // Vector 2D
    Bool      any          (                )C {return Any (x, y);}   // if any component  is  non-zero
    Bool      all          (                )C {return   x &&  y ;}   // if all components are non-zero
    Bool      allZero      (                )C {return  !x && !y ;}   // if all components are     zero
+   Bool      anyDifferent (                )C {return      x!=y ;}   // if any component  is different
    Int       minI         (                )C {return MinI(x, y);}   // components minimum index
    Int       maxI         (                )C {return MaxI(x, y);}   // components maximum index
    Flt       min          (                )C {return Min (x, y);}   // components minimum
@@ -475,6 +476,7 @@ struct VecD2 // Vector 2D (double precision)
    Bool       any          (              )C {return   x ||  y ;}   // if any component  is  non-zero
    Bool       all          (              )C {return   x &&  y ;}   // if all components are non-zero
    Bool       allZero      (              )C {return  !x && !y ;}   // if all components are     zero
+   Bool       anyDifferent (              )C {return      x!=y ;}   // if any component  is different
    Int        minI         (              )C {return MinI(x, y);}   // components minimum index
    Int        maxI         (              )C {return MaxI(x, y);}   // components maximum index
    Dbl        min          (              )C {return Min (x, y);}   // components minimum
@@ -619,6 +621,7 @@ struct Vec // Vector 3D
    Bool     any          (              )C {return  Any (x, y, z);}  // if any component  is  non-zero
    Bool     all          (              )C {return  x &&  y &&  z;}  // if all components are non-zero
    Bool     allZero      (              )C {return !x && !y && !z;}  // if all components are     zero
+   Bool     anyDifferent (              )C {return   x!=y || x!=z;}  // if any component  is different
    Int      minI         (              )C {return  MinI(x, y, z);}  // components minimum index
    Int      maxI         (              )C {return  MaxI(x, y, z);}  // components maximum index
    Flt      min          (              )C {return  Min (x, y, z);}  // components minimum
@@ -834,6 +837,7 @@ struct VecD // Vector 3D (double precision)
    Bool      any          (              )C {return  x ||  y ||  z;}  // if any component  is  non-zero
    Bool      all          (              )C {return  x &&  y &&  z;}  // if all components are non-zero
    Bool      allZero      (              )C {return !x && !y && !z;}  // if all components are     zero
+   Bool      anyDifferent (              )C {return   x!=y || x!=z;}  // if any component  is different
    Int       minI         (              )C {return  MinI(x, y, z);}  // components minimum index
    Int       maxI         (              )C {return  MaxI(x, y, z);}  // components maximum index
    Dbl       min          (              )C {return  Min (x, y, z);}  // components minimum
@@ -958,23 +962,24 @@ struct Vec4 // Vector 4D
    friend Vec4 operator- (C Vec4 &v) {return Vec4(-v.x, -v.y, -v.z, -v.w);}
    friend Vec4 operator! (C Vec4 &v) {       Vec4 ret=v; ret.normalize(); return ret;} // return normalized vector
 
-   Bool  any      ()C {return     Any (x, y, z, w);}  // if any component  is  non-zero
-   Bool  all      ()C {return  x &&  y &&  z &&  w;}  // if all components are non-zero
-   Bool  allZero  ()C {return !x && !y && !z && !w;}  // if all components are     zero
-   Int   minI     ()C {return     MinI(x, y, z, w);}  // components minimum index
-   Int   maxI     ()C {return     MaxI(x, y, z, w);}  // components maximum index
-   Flt   min      ()C {return     Min (x, y, z, w);}  // components minimum
-   Flt   max      ()C {return     Max (x, y, z, w);}  // components maximum
-   Flt   avg      ()C {return     Avg (x, y, z, w);}  // components average
-   Flt   sum      ()C {return          x+ y+ z+ w ;}  // components sum
-   Flt   mul      ()C {return          x* y* z* w ;}  // components multiplication
-   Flt   length   ()C;                                // get         length
-   Flt   length2  ()C {return x*x + y*y + z*z + w*w;} // get squared length
-   Flt   normalize();                                 // normalize and return previous length
-   Vec4& mul      (C Matrix4 &m);                     // transform by matrix
-   Vec4& chs      ();                                 // change sign of all components
-   Vec4& abs      ();                                 // absolute       all components
-   Vec4& sat      ();                                 // saturate       all components
+   Bool  any         ()C {return     Any (x, y, z, w);}  // if any component  is  non-zero
+   Bool  all         ()C {return  x &&  y &&  z &&  w;}  // if all components are non-zero
+   Bool  allZero     ()C {return !x && !y && !z && !w;}  // if all components are     zero
+   Bool  anyDifferent()C {return x!=y || x!=z || x!=w;}  // if any component  is different
+   Int   minI        ()C {return     MinI(x, y, z, w);}  // components minimum index
+   Int   maxI        ()C {return     MaxI(x, y, z, w);}  // components maximum index
+   Flt   min         ()C {return     Min (x, y, z, w);}  // components minimum
+   Flt   max         ()C {return     Max (x, y, z, w);}  // components maximum
+   Flt   avg         ()C {return     Avg (x, y, z, w);}  // components average
+   Flt   sum         ()C {return          x+ y+ z+ w ;}  // components sum
+   Flt   mul         ()C {return          x* y* z* w ;}  // components multiplication
+   Flt   length      ()C;                                // get         length
+   Flt   length2     ()C {return x*x + y*y + z*z + w*w;} // get squared length
+   Flt   normalize   ();                                 // normalize and return previous length
+   Vec4& mul         (C Matrix4 &m);                     // transform by matrix
+   Vec4& chs         ();                                 // change sign of all components
+   Vec4& abs         ();                                 // absolute       all components
+   Vec4& sat         ();                                 // saturate       all components
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
@@ -1072,22 +1077,23 @@ struct VecD4 // Vector 4D (double precision)
    friend VecD4 operator- (C VecD4 &v) {return VecD4(-v.x, -v.y, -v.z, -v.w);}
    friend VecD4 operator! (C VecD4 &v) {       VecD4 ret=v; ret.normalize(); return ret;} // return normalized vector
 
-   Bool   any      ()C {return  x ||  y ||  z ||  w;}   // if any component  is  non-zero
-   Bool   all      ()C {return  x &&  y &&  z &&  w;}   // if all components are non-zero
-   Bool   allZero  ()C {return !x && !y && !z && !w;}   // if all components are     zero
-   Int    minI     ()C {return     MinI(x, y, z, w);}   // components minimum index
-   Int    maxI     ()C {return     MaxI(x, y, z, w);}   // components maximum index
-   Dbl    min      ()C {return     Min (x, y, z, w);}   // components minimum
-   Dbl    max      ()C {return     Max (x, y, z, w);}   // components maximum
-   Dbl    avg      ()C {return     Avg (x, y, z, w);}   // components average
-   Dbl    sum      ()C {return          x+ y+ z+ w ;}   // components sum
-   Dbl    mul      ()C {return          x* y* z* w ;}   // components multiplication
-   Dbl    length   ()C;                                 // get         length
-   Dbl    length2  ()C {return  x*x + y*y + z*z + w*w;} // get squared length
-   Dbl    normalize();                                  // normalize and return previous length
-   VecD4& chs      ();                                  // change sign of all components
-   VecD4& abs      ();                                  // absolute       all components
-   VecD4& sat      ();                                  // saturate       all components
+   Bool   any         ()C {return  x ||  y ||  z ||  w;}  // if any component  is  non-zero
+   Bool   all         ()C {return  x &&  y &&  z &&  w;}  // if all components are non-zero
+   Bool   allZero     ()C {return !x && !y && !z && !w;}  // if all components are     zero
+   Bool   anyDifferent()C {return x!=y || x!=z || x!=w;}  // if any component  is different
+   Int    minI        ()C {return     MinI(x, y, z, w);}  // components minimum index
+   Int    maxI        ()C {return     MaxI(x, y, z, w);}  // components maximum index
+   Dbl    min         ()C {return     Min (x, y, z, w);}  // components minimum
+   Dbl    max         ()C {return     Max (x, y, z, w);}  // components maximum
+   Dbl    avg         ()C {return     Avg (x, y, z, w);}  // components average
+   Dbl    sum         ()C {return          x+ y+ z+ w ;}  // components sum
+   Dbl    mul         ()C {return          x* y* z* w ;}  // components multiplication
+   Dbl    length      ()C;                                // get         length
+   Dbl    length2     ()C {return x*x + y*y + z*z + w*w;} // get squared length
+   Dbl    normalize   ();                                 // normalize and return previous length
+   VecD4& chs         ();                                 // change sign of all components
+   VecD4& abs         ();                                 // absolute       all components
+   VecD4& sat         ();                                 // saturate       all components
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
@@ -1124,6 +1130,7 @@ struct VecB2 // Vector 2D (Byte)
    Bool   all         ()C {return       x &&  y;} // if all components are non-zero
    Bool   allZero     ()C {return      !x && !y;} // if all components are     zero
    Bool   allDifferent()C {return         x!=y ;} // if all components are different
+   Bool   anyDifferent()C {return         x!=y ;} // if any component  is  different
    Int    minI        ()C {return    MinI(x, y);} // components minimum index
    Int    maxI        ()C {return    MaxI(x, y);} // components maximum index
    Int    min         ()C {return    Min (x, y);} // components minimum
@@ -1155,6 +1162,7 @@ struct VecSB2 // Vector 2D (SByte)
    Bool    all         ()C {return       x &&  y;} // if all components are non-zero
    Bool    allZero     ()C {return      !x && !y;} // if all components are     zero
    Bool    allDifferent()C {return         x!=y ;} // if all components are different
+   Bool    anyDifferent()C {return         x!=y ;} // if any component  is  different
    Int     minI        ()C {return    MinI(x, y);} // components minimum index
    Int     maxI        ()C {return    MaxI(x, y);} // components maximum index
    Int     min         ()C {return    Min (x, y);} // components minimum
@@ -1187,6 +1195,7 @@ struct VecB // Vector 3D (Byte)
    Bool  all         (         )C {return        x &&  y &&  z;} // if all components are non-zero
    Bool  allZero     (         )C {return       !x && !y && !z;} // if all components are     zero
    Bool  allDifferent(         )C {return x!=y && x!=z && y!=z;} // if all components are different
+   Bool  anyDifferent(         )C {return x!=y || x!=z        ;} // if any component  is  different
    Int   minI        (         )C {return        MinI(x, y, z);} // components minimum index
    Int   maxI        (         )C {return        MaxI(x, y, z);} // components maximum index
    Int   min         (         )C {return        Min (x, y, z);} // components minimum
@@ -1220,6 +1229,7 @@ struct VecSB // Vector 3D (SByte)
    Bool   all         (         )C {return        x &&  y &&  z;} // if all components are non-zero
    Bool   allZero     (         )C {return       !x && !y && !z;} // if all components are     zero
    Bool   allDifferent(         )C {return x!=y && x!=z && y!=z;} // if all components are different
+   Bool   anyDifferent(         )C {return x!=y || x!=z        ;} // if any component  is  different
    Int    minI        (         )C {return        MinI(x, y, z);} // components minimum index
    Int    maxI        (         )C {return        MaxI(x, y, z);} // components maximum index
    Int    min         (         )C {return        Min (x, y, z);} // components minimum
@@ -1262,6 +1272,7 @@ struct VecB4 // Vector 4D (Byte)
    Bool   all         (         )C {return x && y && z && w;}                             // if all components are non-zero
    Bool   allZero     (         )C {return u==0;}                                         // if all components are     zero
    Bool   allDifferent(         )C {return x!=y && x!=z && x!=w && y!=z && y!=w && z!=w;} // if all components are different
+   Bool   anyDifferent(         )C {return x!=y || x!=z || x!=w                        ;} // if any component  is  different
    Int    minI        (         )C {return MinI(x, y, z, w);}                             // components minimum index
    Int    maxI        (         )C {return MaxI(x, y, z, w);}                             // components maximum index
    Int    min         (         )C {return Min (x, y, z, w);}                             // components minimum
@@ -1299,6 +1310,7 @@ struct VecSB4 // Vector 4D (SByte)
    Bool    all         (         )C {return x && y && z && w;}                             // if all components are non-zero
    Bool    allZero     (         )C {return u==0;}                                         // if all components are     zero
    Bool    allDifferent(         )C {return x!=y && x!=z && x!=w && y!=z && y!=w && z!=w;} // if all components are different
+   Bool    anyDifferent(         )C {return x!=y || x!=z || x!=w                        ;} // if any component  is  different
    Int     minI        (         )C {return MinI(x, y, z, w);}                             // components minimum index
    Int     maxI        (         )C {return MaxI(x, y, z, w);}                             // components maximum index
    Int     min         (         )C {return Min (x, y, z, w);}                             // components minimum
@@ -1638,6 +1650,7 @@ struct VecI2 // Vector 2D (integer)
    Bool   all         (         )C {return    x &&  y;}         // if all  components are non-zero
    Bool   allZero     (         )C {return   !x && !y;}         // if all  components are     zero
    Bool   allDifferent(         )C {return      x!=y ;}         // if all  components are different
+   Bool   anyDifferent(         )C {return      x!=y ;}         // if any  component  is  different
    Int    minI        (         )C {return MinI(x, y);}         // components minimum index
    Int    maxI        (         )C {return MaxI(x, y);}         // components maximum index
    Int    min         (         )C {return Min (x, y);}         // components minimum
@@ -1804,6 +1817,7 @@ struct VecI // Vector 3D (integer)
    Bool  all         (         )C {return  x &&  y &&  z;}       // if all  components are non-zero
    Bool  allZero     (         )C {return !x && !y && !z;}       // if all  components are     zero
    Bool  allDifferent(         )C {return x!=y && x!=z && y!=z;} // if all  components are different
+   Bool  anyDifferent(         )C {return x!=y || x!=z        ;} // if any  component  is  different
    Int   minI        (         )C {return MinI(x, y, z);}        // components minimum index
    Int   maxI        (         )C {return MaxI(x, y, z);}        // components maximum index
    Int   min         (         )C {return Min (x, y, z);}        // components minimum
@@ -1954,6 +1968,7 @@ struct VecI4 // Vector 4D (integer)
    Bool   all         (         )C {return  x &&  y &&  z &&  w;}                         // if all  components are non-zero
    Bool   allZero     (         )C {return !x && !y && !z && !w;}                         // if all  components are     zero
    Bool   allDifferent(         )C {return x!=y && x!=z && x!=w && y!=z && y!=w && z!=w;} // if all  components are different
+   Bool   anyDifferent(         )C {return x!=y || x!=z || x!=w                        ;} // if any  component  is  different
    Int    minI        (         )C {return  MinI(x, y, z, w);}                            // components minimum index
    Int    maxI        (         )C {return  MaxI(x, y, z, w);}                            // components maximum index
    Int    min         (         )C {return  Min (x, y, z, w);}                            // components minimum
