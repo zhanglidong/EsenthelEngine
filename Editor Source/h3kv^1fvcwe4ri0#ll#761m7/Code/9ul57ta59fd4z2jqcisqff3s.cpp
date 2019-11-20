@@ -158,6 +158,7 @@ void InitPre()
       ProjectsPath=MakeFullPath("Projects\\"); CodeEdit.projectsBuildPath(ProjectsPath+ProjectsBuildPath);
       App.name(AppName);
       App.flag|=APP_FULL_TOGGLE;
+      App.backgroundFull(true);
       App.drop=Drop;
       App.quit=Quit;
       App.resumed=Resumed;

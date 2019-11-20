@@ -112,7 +112,7 @@ static CGDisplayModeRef GetDisplayMode(Int width, Int height)
 #endif
 Bool SetDisplayMode(Int mode)
 {
-   Bool  full=(D.full() && (mode==2 || mode==1 && App.active()));
+   Bool  full=(D.full() && (mode==2 || mode==1 && App.activeOrBackFull()));
    VecI2 size=(full ? D.res() : App.desktop());
 #if WINDOWS_OLD
    auto monitor=D.getMonitor();
@@ -2163,8 +2163,8 @@ void Display::adjustWindow()
 #if WINDOWS_OLD
    if(D.full()) // fullscreen
    {
-      SetWindowLongPtr(App.Hwnd(), GWL_STYLE   , App._style_full);
-      SetWindowPos    (App.Hwnd(), HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
+      SetWindowLongPtr(App.Hwnd(), GWL_STYLE                                           , App._style_full);
+      SetWindowPos    (App.Hwnd(), App.backgroundFull() ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
    }else
    if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
    {
@@ -2215,7 +2215,7 @@ void Display::adjustWindow()
       // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
       Bool set_resizable=(D.full() && !(App.flag&APP_RESIZABLE));
       if(  set_resizable)App.setWindowFlags(true);
-    
+
       #define _NET_WM_STATE_REMOVE 0
       #define _NET_WM_STATE_ADD    1
       #define _NET_WM_STATE_TOGGLE 2

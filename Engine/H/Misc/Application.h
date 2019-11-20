@@ -95,6 +95,8 @@ struct Application // Application Settings
    Application& stayAwake     (AWAKE_MODE mode);                           // set preventing the operating system from going to sleep
  C Str&         backgroundText(               )C {return _back_text     ;} // get text displayed on the Status Bar Notification when App is running in Background mode on Android, default="Running in background"
    Application& backgroundText(C Str &text    );                           // set text displayed on the Status Bar Notification when App is running in Background mode on Android, default="Running in background"
+   Bool         backgroundFull(               )C {return _back_full     ;} // get if Application is allowed to remain visible on the screen when in fullscreen mode but inactive (if false then application is minimized), default=false
+   Application& backgroundFull(Bool   on      );                           // set if Application is allowed to remain visible on the screen when in fullscreen mode but inactive (if false then application is minimized), default=false
 
    // system bars
    Bool    getSystemBars(SYSTEM_BAR &status, SYSTEM_BAR &navigation)C;   Application& systemBars(SYSTEM_BAR status, SYSTEM_BAR navigation); // get/set system     bars [Supported Platforms: Android]
@@ -136,6 +138,8 @@ struct Application // Application Settings
    XWindow Hwnd()C {return XWindow(_hwnd);}
    void setWindowFlags(Bool force_resizable=false);
 #endif
+   Bool activeOrBackFull       ()C {return _active || _back_full;}
+   void activeOrBackFullChanged();
    void setActive(Bool active);
 
    Bool testInstance  ();
@@ -151,7 +155,7 @@ struct Application // Application Settings
 #if !EE_PRIVATE
 private:
 #endif
-   Bool                _active, _initialized, _minimized, _maximized, _close, _closed, _del_self_at_exit, _elevated;
+   Bool                _active, _initialized, _minimized, _maximized, _close, _closed, _del_self_at_exit, _elevated, _back_full;
 #if WINDOWS_NEW
    Bool                _loop;
 #endif

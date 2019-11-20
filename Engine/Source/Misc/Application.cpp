@@ -48,7 +48,7 @@ Application::Application()
    exit=null;
    low_memory=null;
    notification=null;
-  _active=_initialized=_minimized=_maximized=_close=_closed=_del_self_at_exit=_elevated=false;
+  _active=_initialized=_minimized=_maximized=_close=_closed=_del_self_at_exit=_elevated=_back_full=false;
 #if WINDOWS_NEW
   _loop=false;
 #endif
@@ -342,20 +342,16 @@ Application& Application::stayAwake(AWAKE_MODE mode)
    return T;
 }
 /******************************************************************************/
-void Application::setActive(Bool active)
+void Application::activeOrBackFullChanged()
 {
-   if(T.active()!=active)
+   if(D.full()) // full screen
    {
-      T._active=active;
-
    #if WINDOWS_OLD
-      if(D.full()) // full screen
-      {
       #if DX11
          if(!SwapChainDesc.Windowed && SwapChain) // DX10+ true full screen
          {
             SyncLocker locker(D._lock);
-            if(active)
+            if(activeOrBackFull())
             {
                SwapChain->SetFullscreenState(true, null);
                SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc);
@@ -372,17 +368,25 @@ void Application::setActive(Bool active)
          if(!D.exclusive())
       #endif
          {
-            if(active){SetDisplayMode(    ); WindowReset   (true );}
-            else      {WindowMinimize(true); SetDisplayMode(     );}
+            if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true );}
+            else                  {WindowMinimize(true); SetDisplayMode(     );}
          }
-      }
    #elif MAC
-      if(D.full() && !active)WindowHide();
+      if(!activeOrBackFull())WindowHide();
       SetDisplayMode();
    #elif LINUX
-      if(D.full() && !active)WindowMinimize();
+      if(!activeOrBackFull())WindowMinimize();
       SetDisplayMode();
    #endif
+   }
+}
+void Application::setActive(Bool active)
+{
+   if(T.active()!=active)
+   {
+      Bool active_or_back_full=activeOrBackFull();
+      T._active=active;
+      if(active_or_back_full!=activeOrBackFull())activeOrBackFullChanged();
 
       Time        .skipUpdate();
       InputDevices.acquire   (active);
@@ -400,6 +404,20 @@ void Application::setActive(Bool active)
       if(EAGLView *view=GetUIView())[view setUpdate];
    #endif
    }
+}
+Application& Application::backgroundFull(Bool on)
+{
+   if(T._back_full!=on)
+   {
+      Bool active_or_back_full=activeOrBackFull();
+      T._back_full=on;
+      if(D.full() && _initialized)
+      {
+         if(active_or_back_full!=activeOrBackFull())activeOrBackFullChanged();
+         D.adjustWindow();
+      }
+   }
+   return T;
 }
 void Application::close()
 {

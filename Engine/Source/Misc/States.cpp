@@ -120,7 +120,7 @@ Bool UpdateState()
 }
 Bool DrawState()
 {
-   if(App.minimized() || (D.full() && !App.active()) || !D.canDraw())return true;
+   if(App.minimized() || (D.full() && !App.activeOrBackFull()) || !D.canDraw())return true;
    if(StateActive && StateActive->draw)
    {
       // draw

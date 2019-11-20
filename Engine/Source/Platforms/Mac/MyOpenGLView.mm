@@ -56,7 +56,7 @@ static ImageRTPtr    LiveResize;
 {
    if(D.created())
    {
-      if(App.minimized() || (D.full() && !App.active()))return;
+      if(App.minimized() || (D.full() && !App.activeOrBackFull()()) || !D.canDraw())return true;
 
       SyncLocker locker(D._lock);
 
