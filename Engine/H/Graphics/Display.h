@@ -174,9 +174,9 @@ struct Display : DisplayState, DisplayDraw // Display Control
 
 #if EE_PRIVATE
    void     setSync          (                             );
+   void     gammaSet         (                             );
    Bool     densityFast      (Byte             density     );
    void     densityUpdate    (                             );
-   void     gammaSet         (                             );
                                                                 Bool             densityUsed       ()C {return _density!=127   ;} // get if Density is != 1.0
                                                                 Bool             densityUpsample   ()C {return _density> 127   ;} // get if Density is >  1.0
                                                                 Byte             densityByte       ()C {return _density        ;} // get    Density Byte
@@ -185,6 +185,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                       constexpr Bool             signedNrmRT       ()C {return false           ;} // if Normal   Render Target is signed #SIGNED_NRM_RT
                                                       constexpr Bool             signedVelRT       ()C {return DX11            ;} // if Velocity Render Target is signed #SIGNED_VEL_RT
                                                                 Flt              eyeDistance_2     ()C {return _eye_dist_2     ;}
+                                                                Bool             exclusiveFull     ()C;                           // if actually in exclusive full-screen mode
 #endif
                                                                 Rect             rect              ()C {return Rect(-w(), -h(), w(), h());} // get full screen rectangle
    Display& exclusive        (Bool             exclusive   );   Bool             exclusive         ()C {return _exclusive      ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching

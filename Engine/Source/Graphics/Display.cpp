@@ -2163,8 +2163,8 @@ void Display::adjustWindow()
 #if WINDOWS_OLD
    if(D.full()) // fullscreen
    {
-      SetWindowLongPtr(App.Hwnd(), GWL_STYLE                                           , App._style_full);
-      SetWindowPos    (App.Hwnd(), App.backgroundFull() ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
+      SetWindowLongPtr(App.Hwnd(), GWL_STYLE, App._style_full);
+      SetWindowPos    (App.Hwnd(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
    }else
    if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
    {
@@ -2357,6 +2357,14 @@ Display& Display::monitorPrecision(IMAGE_PRECISION precision)
    if(!created())_monitor_prec=precision;else
    if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
    return T;
+}
+Bool Display::exclusiveFull()C
+{
+#if WINDOWS_OLD && DX11
+   return !SwapChainDesc.Windowed;
+#else
+   return false;
+#endif
 }
 Display& Display::exclusive(Bool exclusive)
 {
@@ -2766,7 +2774,7 @@ void     Display::gammaSet()
       Bool separate=false; // if we can set gamma separately for the system (all monitors) and monitor in use
    #if DX11
       #if WINDOWS_OLD
-         separate=!SwapChainDesc.Windowed; // 'SetGammaControl' will succeed only in true full screen
+         separate=exclusiveFull(); // 'SetGammaControl' will succeed only in exclusive full screen
       #else
          separate=true;
       #endif

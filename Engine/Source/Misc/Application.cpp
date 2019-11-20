@@ -347,8 +347,10 @@ void Application::activeOrBackFullChanged()
    if(D.full()) // full screen
    {
    #if WINDOWS_OLD
+      if(D.exclusiveFull())
+      {
       #if DX11
-         if(!SwapChainDesc.Windowed && SwapChain) // DX10+ true full screen
+         if(SwapChain)
          {
             SyncLocker locker(D._lock);
             if(activeOrBackFull())
@@ -362,15 +364,11 @@ void Application::activeOrBackFullChanged()
             }
          }
       #endif
-
-         // OpenGL || DX non-exclusive
-      #if DX11
-         if(!D.exclusive())
-      #endif
-         {
-            if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true );}
-            else                  {WindowMinimize(true); SetDisplayMode(     );}
-         }
+      }else // non-exclusive
+      {
+         if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true );}
+         else                  {WindowMinimize(true); SetDisplayMode(     );}
+      }
    #elif MAC
       if(!activeOrBackFull())WindowHide();
       SetDisplayMode();
@@ -544,7 +542,7 @@ void Application::showError(CChar *error)
        //ChangeDisplaySettings(null, 0); this didn't help
          if(SwapChain
       #if WINDOWS_OLD
-         && !SwapChainDesc.Windowed // if true fullscreen
+         && D.exclusiveFull()
       #endif
          )
          {
