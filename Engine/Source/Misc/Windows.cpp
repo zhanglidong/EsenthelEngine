@@ -2556,14 +2556,8 @@ stop:
 
    if(_window_resized.x>0 && _window_resized.y>0) // this can get called if window got resized, but also includes cases when app was fullscreen and it was lost
    {
-      if(!D.full()) // not in fullscreen
-      {
-      change:
-         D.modeSet(_window_resized.x, _window_resized.y, 0);
-      }else // wanted fullscreen
-      if(auto monitor=D.getMonitor())
-         if(D.res()!=monitor->mode()) // but resolution got changed (not what was requested)
-            goto change;
+      Bool full=false; if(D.full() && _window_resized==D.res())if(auto monitor=D.getMonitor())if(monitor->mode()==D.res())full=true; // can set fullscreen only if we requested it, we got the resolution that we wanted, and monitor actually set that resolution
+      D.modeSet(_window_resized.x, _window_resized.y, full);
      _window_resized=-1;
    }
 #if MAC
