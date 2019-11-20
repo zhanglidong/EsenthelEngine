@@ -119,7 +119,13 @@ Bool SetDisplayMode(Int mode)
    auto device =(monitor ? monitor->device_name : null); // use null which means default device if no monitor available
    if(full)
    {
-      DEVMODE mode; Zero(mode);
+      DEVMODE mode;
+      Zero(mode);
+      mode.dmSize=SIZE(DEVMODE);
+      if(EnumDisplaySettings(device, ENUM_CURRENT_SETTINGS, &mode))
+         if(mode.dmPelsWidth==D.resW() && mode.dmPelsHeight==D.resH())return true;
+
+      Zero(mode);
       mode.dmSize              =SIZE(DEVMODE);
       mode.dmPelsWidth         =D.resW();
       mode.dmPelsHeight        =D.resH();
