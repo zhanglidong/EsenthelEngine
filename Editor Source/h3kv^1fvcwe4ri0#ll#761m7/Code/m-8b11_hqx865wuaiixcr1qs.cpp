@@ -120,10 +120,10 @@ class MaterialRegion : Region
 
             if(!file.is()) // if removing texture
             {
-               Str name, name2, name3; switch(type)
+               Str name; switch(type)
                {
                   case TEX_COLOR : name="<color>" ; break;
-                  case TEX_SMOOTH: name="<smooth>"; name2="<spec>" ; name3="<specular>"; break;
+                  case TEX_SMOOTH: name="<smooth>"; break;
                   case TEX_BUMP  : name="<bump>"  ; break;
                }
                if(name.is())REPA(mr.texs)
@@ -131,7 +131,7 @@ class MaterialRegion : Region
                   Texture &tex=mr.texs[i]; if(tex.type>=TEX_BASE_BEGIN && tex.type<=TEX_BASE_END) // iterate all base textures
                   {
                      Mems<Edit.FileParams> fps=Edit.FileParams.Decode(tex.md_file.asText(&mtrl)); // get file name of that texture
-                     if(fps.elms()==1 && (fps[0].name==name || name2.is() && fps[0].name==name2 || name3.is() && fps[0].name==name3)) // if that file is made from removed one
+                     if(fps.elms()==1 && fps[0].name==name) // if that file is made from removed one
                      {
                         tex.md_time.as<TimeStamp>(&mtrl).now();
                         tex.md_file.fromText     (&mtrl, S); // remove too
@@ -970,7 +970,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       if(!EqualPath(file, detail_bump_file))
       {
          detail_bump_file=file;
-         Image temp; Proj.loadImage(temp, detail_bump_file, true); // use sRGB because this is for preview
+         Image temp; Proj.loadImage(temp, null, detail_bump_file, true); // use sRGB because this is for preview
          temp.copyTry(detail_bump, Min(temp.w(), 128), Min(temp.h(), 128), 1, IMAGE_L8_SRGB, IMAGE_2D, 1, FILTER_LINEAR, IC_WRAP|IC_IGNORE_GAMMA); // we only need a preview, so make it small, no mip maps, and fast filtering, need to IC_IGNORE_GAMMA because 'loadImage' may lose it due to "channel" transform and here we need sRGB for preview
       }
       return detail_bump.is() ? &detail_bump : null;

@@ -276,7 +276,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
       {
          // get 'tex_size'
          tex_size=0;
-         Image temp; if(Proj.loadImages(temp, mtrl_color_map))tex_size=temp.size(); // first try loading from source image, because it may not be pow2, and we want exact size, can ignore sRGB
+         Image temp; if(Proj.loadImages(temp, null, mtrl_color_map))tex_size=temp.size(); // first try loading from source image, because it may not be pow2, and we want exact size, can ignore sRGB
          if(!tex_size.all())if(ImagePtr base_0=Proj.texPath(base_0_tex))tex_size=base_0->size();
          t_tex_size.set(TexSize(tex_size));
 

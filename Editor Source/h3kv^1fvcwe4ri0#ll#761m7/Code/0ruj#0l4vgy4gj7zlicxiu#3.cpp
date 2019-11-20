@@ -991,6 +991,7 @@ bool SizeDependentTransform(C TextParam &p)
        || p.name=="crop" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
        || p.name=="tile" // tile range depends on size
+       || (p.name=="pos" || p.name=="position") && p.asVecI2().any() // coordinates depend on size
        || PartialTransform(p); // coordinates/size depend on size
 }
 bool ForcesMono(C Str &file)
@@ -1024,6 +1025,27 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
    }
    SetTransform(files, "bump", (blur<0) ? S : S+blur);
    return Edit.FileParams.Encode(files);
+}
+void ExtractResize(MemPtr<Edit.FileParams> files, TextParam &resize)
+{
+   resize.del();
+   REPA(files) // go from end
+   {
+      Edit.FileParams &file=files[i];
+      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPAD(pi, file.params) // go from end
+      {
+       C TextParam &p=file.params[pi];
+         if(ResizeTransform(p.name))
+         {
+            resize=p; // extract resize
+                    file.params.remove(pi, true); // remove it
+            if(!file.is())files.remove( i, true); // if nothing left then remove it
+            return;
+         }else
+         if(SizeDependentTransform(p))return; // if encountered a size dependent transform, it means we can't keep looking
+      }
+   }
 }
 /******************************************************************************/
 void MakeHighPrec(Image &image)

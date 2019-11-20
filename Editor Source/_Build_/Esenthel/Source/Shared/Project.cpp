@@ -565,17 +565,18 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       if(mini_map_id.valid() && mini_map_paths.binaryInclude(mini_map_id)) // create paths only at first time
          FCreateDirs(gamePath(mini_map_id));
    }
-   bool Project::loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C
+   bool Project::loadImage(Image &image, TextParam *image_resize, C Edit::FileParams &fp, bool srgb, bool clamp, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C
    {
+      if(image_resize)image_resize->del();
       if(!fp.name.is()){image.del(); return true;}
       Str  name=fp.name;
       bool lum_to_alpha=false;
       UID  image_id;
       if(name[0]=='<')
       {
-         if( name=="<color>"                                           && color ){color ->copyTry(image); if( color_resize)TransformImage(image, * color_resize, clamp);}else
-         if((name=="<smooth>" || name=="<spec>" || name=="<specular>") && smooth){smooth->copyTry(image); if(smooth_resize)TransformImage(image, *smooth_resize, clamp);}else
-         if( name=="<bump>"                                            && bump  ){bump  ->copyTry(image); if(  bump_resize)TransformImage(image, *  bump_resize, clamp);}else
+         if(name=="<color>"  && color ){color ->copyTry(image); if( color_resize){if(image_resize)*image_resize=* color_resize;else TransformImage(image, * color_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+         if(name=="<smooth>" && smooth){smooth->copyTry(image); if(smooth_resize){if(image_resize)*image_resize=*smooth_resize;else TransformImage(image, *smooth_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+         if(name=="<bump>"   && bump  ){bump  ->copyTry(image); if(  bump_resize){if(image_resize)*image_resize=*  bump_resize;else TransformImage(image, *  bump_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
             image.del();
          goto imported;
       }
@@ -594,32 +595,27 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       }
       image.del(); return false;
    }
-   bool Project::loadImages(Image &image, C Str &src, bool srgb, bool clamp, C Color &background, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C
+   bool Project::loadImages(Image &image, TextParam *image_resize, C Str &src, bool srgb, bool clamp, C Color &background, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C
    {
-      image.del();
+      image.del(); if(image_resize)image_resize->del(); if(!src.is())return true;
       Mems<Edit::FileParams> files=Edit::FileParams::Decode(src);
-      bool  ok=true, hp=false; // assume 'ok'=true (needed if 'src' is empty)
-      Image single;
-
-      // if we have a custom resize specified, then ignore resizing source images, to avoid double resize
+      bool                  ok=true, hp=false; // assume 'ok'=true
+      Image                 single;
+      TextParam             single_resize, image_resize_final; ExtractResize(files, image_resize_final); // get what this image wants to be resized to at the end
+      TextParam            *single_resize_ptr=null; // if null then apply resize to source images (such as 'color_resize' for 'color' etc.)
       REPA(files) // go from end
       {
          Edit::FileParams &file=files[i];
-         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
-         REPA(file.params) // go from end
-         {
-            TextParam &p=file.params[i]; if(ResizeTransform(p.name))
-            {
-               color_resize=smooth_resize=bump_resize=null;
-               goto has_resize;
-            }
-         }
+         if(i && file.name.is())goto force_src_resize; // force resize if there's more than one file name specified
+         REPA(file.params)if(SizeDependentTransform(file.params[i]))goto force_src_resize; // if there's at least one size dependent transform anywhere then always apply
       }
-   has_resize:
+      single_resize_ptr=&single_resize; // if didn't meet any conditions above then store resize in 'single_resize' to be processed later
+   force_src_resize:
 
        REPA(files)if(C TextParam *p=files[i].findParam("mode"))if(p->value!="set"){hp=true; break;} // if there's at least one apply mode that's not "set" then use high precision
-      FREPA(files)if(loadImage(single, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
+      FREPA(files)if(loadImage(single, single_resize_ptr, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
       {
+         if(single_resize.name.is() && !image_resize_final.name.is())Swap(single_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
          VecI2 pos=0; {C TextParam *p=files[i].findParam("position"); if(!p)p=files[i].findParam("pos"); if(p)pos=p->asVecI2();}
          APPLY_MODE mode=APPLY_SET; if(C TextParam *p=files[i].findParam("mode"))
          {
@@ -631,46 +627,53 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(p->value=="sub"                                                )mode=APPLY_SUB;else
             if(p->value=="max"                                                )mode=APPLY_MAX;
          }
-         if(files.elms()==1 && pos.allZero() && mode==APPLY_SET){Swap(single, image); return ok;} // if loading only one image, then just return it
-         VecI2 size=single.size()+pos;
-         if(size.x>image.w() || size.y>image.h()) // make room for 'single', do this even if 'single' doesn't exist, because we may have 'pos' specified
+         if(i==0 && pos.allZero() && mode==APPLY_SET)Swap(single, image);else // if this is the first image, then just swap it as main
          {
-            VecI2 old_size=image.size();
-            if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-            else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
-            if(background!=TRANSPARENT)
-               REPD(y, image.h())
-               REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
-         }
-         if(single.is())
-         {
-            // put 'single' into image
-            if(single.highPrecision())MakeHighPrec(image);
-            REPD(y, single.h())
-            REPD(x, single.w())
+            VecI2 size=single.size()+pos;
+            if(size.x>image.w() || size.y>image.h()) // make room for 'single', do this even if 'single' doesn't exist, because we may have 'pos' specified
             {
-               Vec4 s=single.colorF(x, y);
-               if(mode==APPLY_SET)
-               {
-                  image.colorF(x+pos.x, y+pos.y, s);
-               }else
-               {
-                  Vec4 d=image.colorF(x+pos.x, y+pos.y);
-                  switch(mode)
-                  {
-                     case APPLY_BLEND       : d =             Blend(d, s); break;
-                     case APPLY_BLEND_PREMUL: d =PremultipliedBlend(d, s); break;
-                     case APPLY_MUL         : d*=s; break;
-                     case APPLY_DIV         : d/=s; break;
-                     case APPLY_ADD         : d+=s; break;
-                     case APPLY_SUB         : d-=s; break;
-                     case APPLY_MAX         : d=Max(s, d); break;
-                  }
-                  image.colorF(x+pos.x, y+pos.y, d);
-               }
+               VecI2 old_size=image.size();
+               if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
+               else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
+               if(background!=TRANSPARENT)
+                  REPD(y, image.h())
+                  REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
             }
-         }else TransformImage(image, files[i].params, clamp); // if this 'single' is empty, then apply params to the entire 'image', so we can process entire atlas
+            if(single.is())
+            {
+               // put 'single' into image
+               if(single.highPrecision())MakeHighPrec(image);
+               REPD(y, single.h())
+               REPD(x, single.w())
+               {
+                  Vec4 s=single.colorF(x, y);
+                  if(mode==APPLY_SET)
+                  {
+                     image.colorF(x+pos.x, y+pos.y, s);
+                  }else
+                  {
+                     Vec4 d=image.colorF(x+pos.x, y+pos.y);
+                     switch(mode)
+                     {
+                        case APPLY_BLEND       : d =             Blend(d, s); break;
+                        case APPLY_BLEND_PREMUL: d =PremultipliedBlend(d, s); break;
+                        case APPLY_MUL         : d*=s; break;
+                        case APPLY_DIV         : d/=s; break;
+                        case APPLY_ADD         : d+=s; break;
+                        case APPLY_SUB         : d-=s; break;
+                        case APPLY_MAX         : d=Max(s, d); break;
+                     }
+                     image.colorF(x+pos.x, y+pos.y, d);
+                  }
+               }
+            }else
+            if(!files[i].name.is())TransformImage(image, files[i].params, clamp); // if this 'single' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
+         }
       }else ok=false;
+
+      // store information about image size, if can't store then just resize it
+      if(image_resize)*image_resize=image_resize_final;else TransformImage(image, image_resize_final, clamp);
+
       return ok;
    }
    void Project::savedGame(Elm &elm, C Str &name) {elm.file_size=FSize(name);}

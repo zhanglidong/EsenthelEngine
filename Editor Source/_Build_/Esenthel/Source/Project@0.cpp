@@ -1347,7 +1347,7 @@ void DrawProject()
             VecI2 s=size;
             if(relative) // for relative size, we need to get information about the source image size
             {
-               Image temp; if(!loadImages(temp, Edit::FileParams::Encode(files)))return false; // if failed to load, then do nothing, can ignore sRGB
+               Image temp; if(!loadImages(temp, null, Edit::FileParams::Encode(files)))return false; // if failed to load, then do nothing, can ignore sRGB
                s.set(Max(1, Shl(temp.w(), size.x)), Max(1, Shl(temp.h(), size.y)));
                s.set(NearestPow2(s.x), NearestPow2(s.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
             }
@@ -1971,16 +1971,16 @@ void DrawProject()
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
       Image color, smooth, bump, normal;
-      bool color_ok=loadImage( color,    material.detail_color   , true                                                  ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
-          smooth_ok=loadImage(smooth, S/*material.detail_smooth*/, false, false, &color, null, null   , null, null , null), // load before 'bump'  , here       'smooth' 'bump' are not yet available
-            bump_ok=loadImage(  bump,    material.detail_bump    , false, false, &color, null, &smooth, null, null , null), // load before 'normal', here                'bump' is  not yet available
-             nrm_ok=loadImage(normal,    material.detail_normal  , false, false, &color, null, &smooth, null, &bump, null);
+      bool color_ok=loadImage( color, null,    material.detail_color   , true                                                  ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
+          smooth_ok=loadImage(smooth, null, S/*material.detail_smooth*/, false, false, &color, null, null   , null, null , null), // load before 'bump'  , here       'smooth' 'bump' are not yet available
+            bump_ok=loadImage(  bump, null,    material.detail_bump    , false, false, &color, null, &smooth, null, null , null), // load before 'normal', here                'bump' is  not yet available
+          normal_ok=loadImage(normal, null,    material.detail_normal  , false, false, &color, null, &smooth, null, &bump, null);
 
-      if(!bump_ok && !material.detail_normal.is())nrm_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
+      if(!bump_ok && !material.detail_normal.is())normal_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
-      if(color_ok || smooth_ok || bump_ok || nrm_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
+      if(color_ok || smooth_ok || bump_ok || normal_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
-                       ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, nrm_ok ? null : &normal);
+                       ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, normal_ok ? null : &normal);
          Image  detail; CreateDetailTexture(detail, color, bump, normal, smooth);
          IMAGE_TYPE ct;          ImageProps(detail, &material.detail_tex, &ct, (ForceHQMtrlDetail ? FORCE_HQ : 0) | (RemoveMtrlDetailBump ? IGNORE_ALPHA : 0)); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
          if(detail.is())
@@ -1997,7 +1997,7 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateMacroTexture(EditMaterial &material)
    {
-      Image macro; if(loadImage(macro, material.macro_map, true)) // proceed only if loaded ok
+      Image macro; if(loadImage(macro, null, material.macro_map, true)) // proceed only if loaded ok
       {
          macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, IC_WRAP);
          IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, SRGB|IGNORE_ALPHA); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
@@ -2015,7 +2015,7 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateLightTexture(EditMaterial &material)
    {
-      Image light; if(loadImage(light, material.light_map, true)) // proceed only if loaded ok
+      Image light; if(loadImage(light, null, material.light_map, true)) // proceed only if loaded ok
       {
          light.resize(NearestPow2(light.w()), NearestPow2(light.h()));
          IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, SRGB|IGNORE_ALPHA); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed

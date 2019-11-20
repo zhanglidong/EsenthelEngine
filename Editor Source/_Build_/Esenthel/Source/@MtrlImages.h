@@ -13,7 +13,6 @@ class MtrlImages
    static void Crop(Image &image, C Rect &frac);
    void crop(C Rect &frac);
    void resize(C VecI2 &size);
-   static Str SkipResize(C Str &src, TextParam &resize);
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false);
    void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false);
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;

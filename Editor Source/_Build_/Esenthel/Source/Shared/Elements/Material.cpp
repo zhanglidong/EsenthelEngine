@@ -67,7 +67,7 @@
    {
       if(!alpha_map.is() && color_map.is() && hasBase2Tex()) // if alpha map not specified, but may come from color map, and will go to Base2 texture, #MaterialTextureLayout
       {
-         Image color; if(proj.loadImages(color, color_map, true))if(HasAlpha(color)) // if color has alpha
+         Image color; if(proj.loadImages(color, null, color_map, true))if(HasAlpha(color)) // if color has alpha
          {
                          alpha_map="<color>"; // set alpha map from color map
             SetTransform(alpha_map, "channel", "a");
