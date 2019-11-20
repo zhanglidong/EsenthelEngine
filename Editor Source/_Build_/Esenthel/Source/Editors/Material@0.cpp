@@ -551,7 +551,7 @@ MaterialTech mtrl_techs[]=
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
 
-    //if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
+      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
