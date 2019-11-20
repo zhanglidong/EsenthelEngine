@@ -1158,7 +1158,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          switch(msg)
          {
             case WM_POWERBROADCAST: s+=S+"POWERBROADCAST:"+wParam; break;
-            case WM_DISPLAYCHANGE: s+=S+"DISPLAYCHANGE:"+LOWORD(lParam)+'x'+HIWORD(lParam); break;
+            case WM_DISPLAYCHANGE: s+=S+"DISPLAYCHANGE:"+LOWORD(lParam)+'x'+HIWORD(lParam); break; // this is resolution of the primary monitor and not the one that's changing
             case WM_ACTIVATE: s+=S+"ACTIVATE:"+(wParam==WA_ACTIVE || wParam==WA_CLICKACTIVE); break;
             case WM_NCACTIVATE: s+=S+"NCACTIVATE"; break;
             case WM_ACTIVATEAPP: s+=S+"ACTIVATEAPP"; break;
@@ -1237,6 +1237,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
       case WM_DISPLAYCHANGE: if(D.initialized()) // needed only if device already initialized (to skip setting mouse cursor and screen size when initializing)
       {
+       //VecI2 res(LOWORD(lParam), HIWORD(lParam)); // this is resolution of the primary monitor and not the one that's changing
          ResetCursorCounter=8; App._callbacks.include(ResetCursor); // it was noticed that after changing resolution, Windows will rescale current cursor, to prevent that, we need to reset it, calling immediately may not have any effect, we have to try a few times
          if(auto screen_changed=D.screen_changed)screen_changed(D.w(), D.h()); // if 'D.scale' is set based on current screen resolution, then we may need to adjust it
       }break;
