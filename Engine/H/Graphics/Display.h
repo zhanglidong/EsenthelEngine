@@ -481,11 +481,12 @@ private:
       RectI       full, work;
       Bool        primary;
       Mems<VecI2> modes;
+      Char        device_name[32];
 
    #if EE_PRIVATE
-      Bool is()C {return full.w()>0;} // if initialized
+      Bool  is  ()C {return full.w()>0;} // if initialized
+      VecI2 mode()C; // get current mode
    #if WINDOWS_OLD
-      WCHAR device_name[CCHDEVICENAME];
       Bool set(HMONITOR monitor);
    #endif
       Monitor();

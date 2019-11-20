@@ -116,17 +116,13 @@ Bool SetDisplayMode(Int mode)
    VecI2 size=(full ? D.res() : App.desktop());
 #if WINDOWS_OLD
    auto monitor=D.getMonitor();
-   auto device =(monitor ? monitor->device_name : null); // use null which means default device if no monitor available
+   auto device =(monitor ? WChar(monitor->device_name) : null); // use null which means default device if no monitor available
    if(full)
    {
-      DEVMODE mode;
-      Zero(mode);
-      mode.dmSize=SIZE(DEVMODE);
-      if(EnumDisplaySettings(device, ENUM_CURRENT_SETTINGS, &mode))
-         if(mode.dmPelsWidth==D.resW() && mode.dmPelsHeight==D.resH())return true;
+      if(monitor && monitor->mode()==D.res())return true;
 
-      Zero(mode);
-      mode.dmSize              =SIZE(DEVMODE);
+      DEVMODE mode; Zero(mode);
+      mode.dmSize              =SIZE(mode);
       mode.dmPelsWidth         =D.resW();
       mode.dmPelsHeight        =D.resH();
       mode.dmDisplayFixedOutput=DMDFO_STRETCH; // this will stretch to entire screen if aspect ratio is not the same
@@ -597,6 +593,17 @@ Display::Monitor::Monitor()
    device_name[0]='\0';
 #endif
 }
+VecI2 Display::Monitor::mode()C
+{
+#if WINDOWS_OLD
+   DEVMODE mode; Zero(mode);
+   mode.dmSize=SIZE(mode);
+   if(EnumDisplaySettings(WChar(device_name), ENUM_CURRENT_SETTINGS, &mode))return VecI2(mode.dmPelsWidth, mode.dmPelsHeight);
+   return 0;
+#else
+   return D.screen();
+#endif
+}
 #if WINDOWS_OLD
 Bool Display::Monitor::set(HMONITOR monitor)
 {
@@ -606,7 +613,7 @@ Bool Display::Monitor::set(HMONITOR monitor)
       full.set(monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right, monitor_info.rcMonitor.bottom);
       work.set(monitor_info.rcWork   .left, monitor_info.rcWork   .top, monitor_info.rcWork   .right, monitor_info.rcWork   .bottom);
       primary=FlagTest(monitor_info.dwFlags, MONITORINFOF_PRIMARY);
-      Copy(device_name, monitor_info.szDevice);
+      Set(device_name, WChar(monitor_info.szDevice)); ASSERT(ELMS(device_name)==ELMS(monitor_info.szDevice));
 
       MemtN<VecI2, 128> modes;
       DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);

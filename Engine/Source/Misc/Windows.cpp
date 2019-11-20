@@ -1224,7 +1224,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       {
          App._minimized=(wParam==SIZE_MINIMIZED);
          App._maximized=(wParam==SIZE_MAXIMIZED);
-         if(!App.minimized() && !D.full() && D.created())
+         if(!App.minimized() && D.created())
          {
             App._window_resized.set(LOWORD(lParam), HIWORD(lParam));
             ConditionalDraw(); // draw too because WM_PAINT won't be called when window is getting smaller
@@ -2554,9 +2554,16 @@ again:
 stop:
 #endif
 
-   if(_window_resized.x>0 && _window_resized.y>0)
+   if(_window_resized.x>0 && _window_resized.y>0) // this can get called if window got resized, but also includes cases when app was fullscreen and it was lost
    {
-      D.modeSet(_window_resized.x, _window_resized.y);
+      if(!D.full()) // not in fullscreen
+      {
+      change:
+         D.modeSet(_window_resized.x, _window_resized.y, 0);
+      }else // wanted fullscreen
+      if(auto monitor=D.getMonitor())
+         if(D.res()!=monitor->mode()) // but resolution got changed (not what was requested)
+            goto change;
      _window_resized=-1;
    }
 #if MAC
