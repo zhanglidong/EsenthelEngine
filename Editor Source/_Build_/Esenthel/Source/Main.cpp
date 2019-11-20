@@ -130,6 +130,7 @@ void InitPre()
    App.x=App.y=0;
    App.receive_data=ReceiveData;
    D.screen_changed=ScreenChanged;
+   D.exclusive(false);
 
    App.flag|=APP_MINIMIZABLE|APP_MAXIMIZABLE|APP_NO_PAUSE_ON_WINDOW_MOVE_SIZE|APP_WORK_IN_BACKGROUND|APP_RESIZABLE;
    EE_INIT(false, false);
