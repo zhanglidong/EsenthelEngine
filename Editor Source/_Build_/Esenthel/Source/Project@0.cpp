@@ -1353,7 +1353,7 @@ void DrawProject()
             }
 
             // set "resize" param into 'files'
-            if(s.any())SetTransform(files, "resize", VecI2AsText(s)); // only if any specified
+            if(s.any())SetResizeTransform(files, "resize", VecI2AsText(s)); // only if any specified
          }
          file=Edit::FileParams::Encode(files);
          return true;

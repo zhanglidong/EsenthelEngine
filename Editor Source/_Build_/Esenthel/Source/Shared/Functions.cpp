@@ -2017,6 +2017,11 @@ Str  Plural(Str name) // convert to plural name
    return case_up ? CaseUp(name) : name;
 }
 /******************************************************************************/
+int Occurrences(C Str &s, char c)
+{
+   int o=0; REPA(s)if(s[i]==c)o++; return o;
+}
+/******************************************************************************/
 Str VecI2AsText(C VecI2 &v) // try to keep as one value if XY are the same
 {
    Str s; s=v.x; if(v.y!=v.x)s+=S+","+v.y; 
@@ -2086,11 +2091,6 @@ Str8 ImageDownSizeSuffix(int size)
    return S;
 }
 /******************************************************************************/
-int Occurrences(C Str &s, char c)
-{
-   int o=0; REPA(s)if(s[i]==c)o++; return o;
-}
-/******************************************************************************/
 TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms
 {
    REPA(files) // go from end
@@ -2136,6 +2136,29 @@ void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // 
             p=&file.params[i]; if(p->name==name && !PartialTransform(*p))goto found;
          }
       }
+      p=&files.last().params.New().setName(name); // if didn't found then create a new one
+   found:
+      p->setValue(value);
+   }
+}
+void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+{
+   if(files.elms()) // set only if we have something (to ignore setting for completely empty)
+   {
+      if(files.elms()>1 && files.last().name.is())files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
+      TextParam *p;
+      REPA(files) // go from end
+      {
+         Edit::FileParams &file=files[i];
+         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+         REPA(file.params) // go from end
+         {
+            p=&file.params[i];
+            if(p->name==name && !PartialTransform(*p))goto found;
+            if(SizeDependentTransform(*p))goto need_new; // if encountered a size-dependent transform then it means we can't change any resize transforms before that, but need to create a new one
+         }
+      }
+   need_new:
       p=&files.last().params.New().setName(name); // if didn't found then create a new one
    found:
       p->setValue(value);
