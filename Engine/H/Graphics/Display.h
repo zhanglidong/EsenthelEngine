@@ -481,7 +481,9 @@ private:
       RectI       full, work;
       Bool        primary;
       Mems<VecI2> modes;
+   #if WINDOWS_OLD
       Char        device_name[32];
+   #endif
 
    #if EE_PRIVATE
       Bool  is  ()C {return full.w()>0;} // if initialized
