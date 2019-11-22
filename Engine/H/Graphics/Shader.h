@@ -1,4 +1,7 @@
 /******************************************************************************/
+#if EE_PRIVATE
+   #define GL_MULTIPLE_UBOS (MAC && GL) // FIXME because Mac has problems with UBO updates - https://feedbackassistant.apple.com/feedback/7117741
+#endif
 struct ShaderImage // Shader Image
 {
  C Image* get(                   )C {return   _image  ;}
@@ -196,6 +199,10 @@ struct ShaderBuffer // Constant Buffer
    Mems<Buffer> parts;
    void      setPart (Int part );
    void   createParts(C Int *elms, Int elms_num);
+#endif
+#if GL_MULTIPLE_UBOS
+   Mems<Buffer> parts;
+   Int          part=0;
 #endif
 
    Bool is       ()C {return buffer.is();}

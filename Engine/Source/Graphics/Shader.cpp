@@ -370,14 +370,32 @@ void ShaderBuffer::Buffer::create(Int size)
 /******************************************************************************/
 ShaderBuffer::~ShaderBuffer()
 {
-#if DX11
+#if DX11 || GL_MULTIPLE_UBOS
    if(parts.elms())buffer.zero(); // if we have any 'parts', then 'buffer' does not own the resources, so just zero it, and they will be released in the 'parts' container
 #endif
    Free(data);
 }
 void ShaderBuffer::create(Int size) // no locks needed because this is called only in shader loading, and there 'ShaderBuffers.lock' is called
 {
+#if GL_MULTIPLE_UBOS
+/* Test Results for viewing "Fantasy Demo" World in Esenthel Editor on Mac
+1 - 8.0 fps
+2 - 12.0 fps
+4 - 14.0 fps
+8 - 17.0 fps
+16 - 20.0 fps
+32 - 20.0 fps
+128 - 20.0 fps
+256 - 22.0 fps
+512 - 25.0 fps
+1024 - 26.7 fps NOT SMOOTH
+2048 - 26.4 fps NOT SMOOTH
+Single UBO with GL_BUFFER_SUB_RESET_FULL - 27.2 fps NOT SMOOTH */
+   parts.setNum(512);
+   FREPAO(parts).create(size); buffer=parts[0];
+#else
    buffer.create(size);
+#endif
    AllocZero(data, size+MIN_SHADER_PARAM_DATA_SIZE); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least MIN_SHADER_PARAM_DATA_SIZE size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]"
    changed=true;
    full_size=buffer.size;
@@ -1296,12 +1314,16 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
          CChar8 *name=_name+1; // skip '_'
          ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
+      #if GL_MULTIPLE_UBOS
+         glUniformBlockBinding(prog, i, i);
+      #else
          if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
          { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
             glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
             buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
             variable_slot_index++;
          }
+      #endif
       #if DEBUG // verify sizes and offsets
          GLint size=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
          DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), S+"UBO \""+name+"\" has different size: "+size+", than expected: "+buffer->full_size+"\n"+source());
@@ -1349,6 +1371,36 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    }
    return prog!=0;
 }
+#if GL_MULTIPLE_UBOS
+void ShaderGL::commit()
+{
+   REPA(all_buffers)
+   {
+      ShaderBuffer &b=*all_buffers[i];
+      if(b.changed){b.buffer=b.parts[b.part]; b.part=(b.part+1)%b.parts.elms(); b.update();}
+      glBindBufferBase(GL_UNIFORM_BUFFER, i, b.buffer.buffer);
+   }
+}
+void ShaderGL::commitTex()
+{
+   REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+}
+void ShaderGL::start() // same as 'begin' but without committing buffers and textures
+{
+   glUseProgram(prog);
+}
+void ShaderGL::startTex() // same as 'begin' but without committing buffers
+{
+   glUseProgram(prog);
+   commitTex();
+}
+void ShaderGL::begin()
+{
+   glUseProgram(prog);
+   commitTex();
+   commit   ();
+}
+#else
 void ShaderGL::commit()
 {
    REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
@@ -1375,6 +1427,7 @@ void ShaderGL::begin()
    REPA(     images){C  ImageLink &t=      images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
    REPA(    buffers){C BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
+#endif
 #endif
 /******************************************************************************/
 // MANAGE
