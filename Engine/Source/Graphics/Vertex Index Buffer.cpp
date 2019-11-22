@@ -37,7 +37,7 @@ namespace EE{
       #define GL_VI_MODE GL_BUFFER_MAP_RING // best results on Win, Mac, Linux, Android
    #endif
 
-   #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for resting)
+   #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for testing)
 
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
 
