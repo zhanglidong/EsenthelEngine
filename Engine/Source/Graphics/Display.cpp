@@ -381,29 +381,24 @@ VecI2 Display::screen()C
 #if WINDOWS_OLD
    return VecI2(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 #elif WINDOWS_NEW
-   IDXGIOutput *output=null;
-   if(SwapChain)
+   VecI2 size=0;
+   IDXGIFactory1 *factory=Factory;
+   IDXGIAdapter  *adapter=Adapter;
+   if(!adapter)
    {
-      SyncLocker locker(_lock); if(SwapChain)SwapChain->GetContainingOutput(&output);
+      if(!factory)CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)factory->EnumAdapters(0, &adapter); // first adapter only
    }
-   if(!output)
+   if(adapter)
    {
-      IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
+      IDXGIOutput *output=null; adapter->EnumOutputs(0, &output); if(output) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
       {
-         IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)
-         {
-            adapter->EnumOutputs(0, &output); // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
-            adapter->Release();
-         }
-         factory->Release();
+         DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))size.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
+         output->Release();
       }
+      if(adapter!=Adapter)adapter->Release();
    }
-   if(output)
-   {
-      VecI2 size=-1; DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))size.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
-      output->Release();
-      if(size.x>=0)return size;
-   }
+   if(factory && factory!=Factory)factory->Release();
+   return size;
 #elif MAC
    if(CGDisplayModeRef mode=CGDisplayCopyDisplayMode(kCGDirectMainDisplay))
    {
@@ -631,7 +626,7 @@ VecI2 Display::Monitor::mode()C
    }
    return mode;
 #else
-   return D.screen();
+   return D.screen(); // TODO:
 #endif
 }
 #if WINDOWS_OLD
