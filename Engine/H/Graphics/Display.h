@@ -575,10 +575,10 @@ private:
    };
    static CChar8*      AsText     (RESET_RESULT result);
    static void         ResetFailed(RESET_RESULT New, RESET_RESULT old);
-          RESET_RESULT ResetTry   ();
+          RESET_RESULT ResetTry   (Bool set=false);
           void         Reset      ();
-          RESET_RESULT modeTry    (Int w=-1, Int h=-1, Int full=-1); // try setting Display Mode, -1=keep original value
-          void         modeSet    (Int w=-1, Int h=-1, Int full=-1); //     set     Display Mode, -1=keep original value
+          RESET_RESULT modeTry    (Int w=-1, Int h=-1, Int full=-1, Bool set=false); // try setting Display Mode, -1=keep original value
+          void         modeSet    (Int w=-1, Int h=-1, Int full=-1                ); //     set     Display Mode, -1=keep original value
 
           Bool findMode      ();
           void getGamma      ();
@@ -587,7 +587,7 @@ private:
           Bool initialized   ()C {return _initialized;}
    static Bool flip          ();
    static void finish        ();
-          void adjustWindow  ();
+          void adjustWindow  (Bool set=false);
           void screenChanged (Flt old_width, Flt old_height);
           void   sizeChanged ();
           void validateCoords(Int eye=-1);

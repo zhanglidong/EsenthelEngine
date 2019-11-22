@@ -1830,7 +1830,7 @@ again:
 }
 #endif
 
-Display::RESET_RESULT Display::ResetTry()
+Display::RESET_RESULT Display::ResetTry(Bool set)
 {
    SyncLocker locker(_lock);
   _resetting=true;
@@ -1905,7 +1905,7 @@ Display::RESET_RESULT Display::ResetTry()
       if(!ok                 )result=RESET_DEVICE_RESET_FAILED ;else
       if(!Renderer.rtCreate())result=RESET_RENDER_TARGET_FAILED;else
       {
-         adjustWindow(); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
+         adjustWindow(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
          after(true);
          resetEyeAdaptation(); // this potentially may use drawing
 
@@ -2200,7 +2200,7 @@ void Display::finish()
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-void Display::adjustWindow()
+void Display::adjustWindow(Bool set)
 {
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
@@ -2285,10 +2285,10 @@ void Display::adjustWindow()
    }
 
    // set window size
-   if(!D.full())WindowSize(resW(), resH(), true);
+   if(!D.full() && !set)WindowSize(resW(), resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
 #endif
 }
-Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full)
+Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full, Bool set)
 {
          if(w   <=0)w= T.resW();
          if(h   <=0)h= T.resH();
@@ -2308,7 +2308,7 @@ Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full)
    #endif
       if(!findMode())return RESET_DEVICE_NOT_CREATED;
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values
-      RESET_RESULT result=ResetTry();         if(result!=RESET_OK)return result  ; // reset the device
+      RESET_RESULT result=ResetTry(set);      if(result!=RESET_OK)return result  ; // reset the device
 
       Ms.clipUpdateConditional();
    }else
@@ -2322,7 +2322,7 @@ Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full)
 }
 void Display::modeSet(Int w, Int h, Int full)
 {
-   RESET_RESULT result=modeTry(w, h, full);
+   RESET_RESULT result=modeTry(w, h, full, true);
    if(result!=RESET_OK)ResetFailed(result, result);
 }
 Display& Display::mode(Int w, Int h, Int full)
