@@ -600,6 +600,36 @@ VecI2 Display::Monitor::mode()C
    mode.dmSize=SIZE(mode);
    if(EnumDisplaySettings(WChar(device_name), ENUM_CURRENT_SETTINGS, &mode))return VecI2(mode.dmPelsWidth, mode.dmPelsHeight);
    return 0;
+#elif WINDOWS_NEW
+   VecI2 mode=0;
+   if(C Ptr *hmonitor_ptr=D._monitors.dataToKey(this))
+   {
+      IDXGIFactory1 *factory=Factory;
+      IDXGIAdapter  *adapter=Adapter;
+      if(!adapter)
+      {
+         if(!factory)CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)factory->EnumAdapters(0, &adapter); // first adapter only
+      }
+      if(adapter)
+      {
+         CPtr hmonitor=*hmonitor_ptr;
+         for(Int i=0; ; i++) // all outputs
+         {
+            IDXGIOutput *output=null; adapter->EnumOutputs(i, &output); if(output) // first output is primary display - https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter-enumoutputs
+            {
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))if(desc.Monitor==hmonitor)
+               {
+                  mode.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
+                  i=INT_MAX; // stop looking
+               }
+               output->Release();
+            }else break;
+         }
+         if(adapter!=Adapter)adapter->Release();
+      }
+      if(factory && factory!=Factory)factory->Release();
+   }
+   return mode;
 #else
    return D.screen();
 #endif
@@ -638,6 +668,9 @@ Display::Monitor* Display::getMonitor(IDXGIOutput &output)
       #endif
          {
             monitor->full=monitor->work.set(desc.DesktopCoordinates.left, desc.DesktopCoordinates.top, desc.DesktopCoordinates.right, desc.DesktopCoordinates.bottom);
+         #if WINDOWS_OLD
+            Set(monitor->device_name, WChar(desc.DeviceName)); ASSERT(ELMS(monitor->device_name)==ELMS(desc.DeviceName));
+         #endif
 
             MemtN<VecI2, 128> modes;
             DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
