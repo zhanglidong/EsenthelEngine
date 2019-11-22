@@ -1,7 +1,4 @@
 /******************************************************************************/
-#if EE_PRIVATE
-   #define GL_MULTIPLE_UBOS (MAC && GL) // FIXME because Mac has problems with UBO updates - https://feedbackassistant.apple.com/feedback/7117741
-#endif
 struct ShaderImage // Shader Image
 {
  C Image* get(                   )C {return   _image  ;}
@@ -171,6 +168,7 @@ struct ShaderParamChange // Shader Parameter Change
 };
 /******************************************************************************/
 #if EE_PRIVATE
+#define GL_MULTIPLE_UBOS (MAC && GL) // FIXME because Mac has problems with UBO updates - https://feedbackassistant.apple.com/feedback/7117741
 struct ShaderBuffer // Constant Buffer
 {
    struct Buffer
