@@ -654,7 +654,7 @@ Bool Display::Monitor::set(HMONITOR monitor)
 Display::Monitor* Display::getMonitor(IDXGIOutput &output)
 {
    DXGI_OUTPUT_DESC desc; if(OK(output.GetDesc(&desc)))
-      if(auto monitor=_monitors.get(desc.Monitor))
+      if(auto monitor=_monitors(desc.Monitor))
    {
       if(!monitor->is()) // if not yet initialized
       {
@@ -683,7 +683,7 @@ Display::Monitor* Display::getMonitor(IDXGIOutput &output)
 #if WINDOWS_OLD
 Display::Monitor* Display::getMonitor(HMONITOR hmonitor)
 {
-   if(hmonitor)if(auto monitor=_monitors.get(hmonitor))
+   if(hmonitor)if(auto monitor=_monitors(hmonitor))
    {
       if(!monitor->is()) // if not yet initialized
       {
@@ -926,6 +926,49 @@ void Display::init() // make this as a method because if we put this to Display 
    }
 #elif WINDOWS_OLD
    EnumDisplayMonitors(null, null, EnumMonitors, 0); // list all monitors at app startup so we can know their original sizes
+#elif MAC
+   CGDirectDisplayID main_display=CGMainDisplayID(), display[256];
+   CGDisplayCount    displays=0;
+
+   if(!CGGetActiveDisplayList(Elms(display), display, &displays))FREP(displays)if(auto monitor=_monitors((Ptr)display[i]))
+   {
+      monitor->primary=(display[i]==main_display);
+      if(monitor->primary)
+      {
+         monitor->full.set(0, App.desktop    ());
+         monitor->work=       App.desktopArea() ;
+      }//else TODO:
+
+      // get available modes
+      MemtN<VecI2, 128> modes;
+      if(CFArrayRef display_modes=CGDisplayCopyAllDisplayModes(display[i], null))
+      {
+         Int  count=CFArrayGetCount(display_modes);
+         FREP(count)
+         {
+            CGDisplayModeRef mode=(CGDisplayModeRef)CFArrayGetValueAtIndex(display_modes, i);
+            UInt flags=CGDisplayModeGetIOFlags(mode);
+            Bool ok   =FlagTest(flags, kDisplayModeSafetyFlags);
+            if(  ok)modes.binaryInclude(VecI2(CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode)));
+         }
+         CFRelease(display_modes);
+      }
+      monitor->modes=modes;
+   }
+#elif LINUX
+   if(XDisplay)if(auto monitor=_monitors(null))
+   {
+      monitor->primary=true;
+      monitor->full.set(0, App.desktop    ());
+      monitor->work=       App.desktopArea() ;
+      // get available modes
+      MemtN<VecI2, 128> modes;
+      if(XF86VidModeGetAllModeLines(XDisplay, DefaultScreen(XDisplay), &vid_modes, &vid_mode))for(int i=0; i<vid_modes; i++)
+      {
+         XF86VidModeModeInfo &vm=*vid_mode[i]; modes.binaryInclude(VecI2(vm.hdisplay, vm.vdisplay));
+      }
+      monitor->modes=modes;
+   }
 #endif
 }
 /******************************************************************************/
@@ -986,7 +1029,7 @@ void Display::createDevice()
 {
    if(LogInit)LogN("Display.createDevice");
    SyncLocker locker(_lock);
-#if WINDOWS
+#if WINDOWS || MAC || LINUX
    MemtN<VecI2, 128> modes; FREPA(_monitors) // store display modes for all outputs, in case user prefers to use another monitor rather than the main display
    {
     C Monitor &monitor=_monitors[i];
@@ -1240,26 +1283,6 @@ again:
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
       [App.Hwnd() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
-
-      // enumerate display modes
-      CGDirectDisplayID display[256];
-      CGDisplayCount    displays=0;
-      MemtN<VecI2, 128> modes;
-
-      if(!CGGetActiveDisplayList(Elms(display), display, &displays))REP(displays)
-         if(CFArrayRef display_modes=CGDisplayCopyAllDisplayModes(display[i], null))
-      {
-         REP(CFArrayGetCount(display_modes))
-         {
-            CGDisplayModeRef mode=(CGDisplayModeRef)CFArrayGetValueAtIndex(display_modes, i);
-            UInt flags=CGDisplayModeGetIOFlags(mode);
-            Bool ok   =FlagTest(flags, kDisplayModeSafetyFlags);
-            if(  ok)modes.include(VecI2(CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode)));
-         }
-         CFRelease(display_modes);
-      }
-     _modes=modes;
-     _modes.sort(Compare);
    #elif LINUX
       if(XDisplay)
       {
@@ -1288,15 +1311,6 @@ again:
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
          glXSwapInterval=(glXSwapIntervalType)glGetProcAddress("glXSwapIntervalEXT"); // access it via 'glGetProcAddress' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
-
-         // get available modes
-         MemtN<VecI2, 128> modes;
-         if(XF86VidModeGetAllModeLines(XDisplay, DefaultScreen(XDisplay), &vid_modes, &vid_mode))for(int i=0; i<vid_modes; i++)
-         {
-            XF86VidModeModeInfo &vm=*vid_mode[i]; modes.include(VecI2(vm.hdisplay, vm.vdisplay));
-         }
-        _modes=modes;
-        _modes.sort(Compare);
       }else
       {
         _can_draw=false;
