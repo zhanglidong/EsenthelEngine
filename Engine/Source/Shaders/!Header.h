@@ -130,6 +130,8 @@
 #define ColorLumWeight2 VecH(0.2990, 0.5870, 0.1140)
 
 #define TRANSLUCENT_VAL 0.5
+
+#define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
@@ -1633,7 +1635,7 @@ struct LightParams
       roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
    #endif
 
-      Half F=F_Schlick(reflectivity, 1, VdotH);
+      Half F=F_Schlick(reflectivity, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
    #if 0
       Half D=D_GGX(roughness, NdotH_HP);
       Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
@@ -1731,9 +1733,9 @@ inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
    mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity);
-   return reflectivity*mad.x + mad.y;
+   return reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
 #else // same results but slower
-   return (reflectivity*mad.x + mad.y)*(1+reflectivity*(1/(mad.x+mad.y)-1));
+   return (reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
 #endif
 }
 inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection

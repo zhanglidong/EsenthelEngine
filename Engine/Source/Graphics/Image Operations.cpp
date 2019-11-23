@@ -162,14 +162,15 @@ Image& Image::mulAdd(C Vec4 &mul, C Vec4 &add, C BoxI *box)
       Int        mip_maps;
       if(Decompress(T, type, mode, mip_maps))
       {
-         if(lock())
+         REPD(f, faces())if(lock(LOCK_READ_WRITE, 0, (DIR_ENUM)f))
          {
             BoxI b(0, size3()); if(box)b&=*box;
             for(Int z=b.min.z; z<b.max.z; z++)
             for(Int y=b.min.y; y<b.max.y; y++)
             for(Int x=b.min.x; x<b.max.x; x++)color3DF(x, y, z, color3DF(x, y, z)*mul+add);
-            unlock().updateMipMaps();
+            unlock();
          }
+         updateMipMaps();
          Compress(T, type, mode, mip_maps);
       }
    }
