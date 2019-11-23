@@ -7,9 +7,9 @@ VideoOptions VidOpt;
 /******************************************************************************/
       cchar8 *VideoOptions::Advanced::DiffuseMode_t[]=
       {
-         "Lambert"      , // 0
-         "Oren-Nayar"   , // 1
-         "Burley/Disney", // 2
+         "Lambert"        , // 0
+         "Oren-Nayar"     , // 1
+         "Burley (Disney)", // 2
       };
       cchar8 *VideoOptions::Advanced::TexFilter_t[]=
       {

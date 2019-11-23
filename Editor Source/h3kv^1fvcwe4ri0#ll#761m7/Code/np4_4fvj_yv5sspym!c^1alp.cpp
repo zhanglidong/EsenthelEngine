@@ -5,9 +5,9 @@ class VideoOptions : PropWin
    {
       static cchar8 *DiffuseMode_t[]=
       {
-         "Lambert"      , // 0
-         "Oren-Nayar"   , // 1
-         "Burley/Disney", // 2
+         "Lambert"        , // 0
+         "Oren-Nayar"     , // 1
+         "Burley (Disney)", // 2
       }; ASSERT(DIFFUSE_LAMBERT==0 && DIFFUSE_OREN_NAYAR==1 && DIFFUSE_BURLEY==2 && DIFFUSE_NUM==3);
       static cchar8 *TexFilter_t[]=
       {
