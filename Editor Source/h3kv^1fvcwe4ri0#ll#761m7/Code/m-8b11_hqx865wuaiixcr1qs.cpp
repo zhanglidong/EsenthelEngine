@@ -1083,22 +1083,30 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
    }
    class ImageSource : Edit.FileParams
    {
-      int order=0;
+      int i, order=0;
    }
-   static int Compare(C ImageSource &a, C ImageSource &b) {return .Compare(a.order, b.order);}
+   static int Compare(C ImageSource &a, C ImageSource &b)
+   {
+      if(int c=.Compare(a.order, b.order))return c;
+      return   .Compare(a.i    , b.i    );
+   }
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos)
    {
       if(contains(focus_obj))REPA(texs)if(texs[i].contains(focus_obj))
       {
          Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().name=CodeEdit.importPaths(names[i]);
-         if(images.elms()>1)REPA(images) // detect if there are any special maps
+         if(images.elms()>1)
          {
-            ImageSource &image=images[i];
-            Str base=GetBaseNoExt(image.name);
-            if(Contains(base, "ao", false, true) || Contains(base, "AO", true) || Contains(base, "occlusion")){image.order=1; image.params.New().set("mode", "mul"  );}else // AO
-            if(Contains(base, "illumination") || Contains(base, "glow") || Contains(base, "emissive")        ){image.order=2; image.params.New().set("mode", "blend");}     // glow
+            REPA(images) // detect if there are any special maps
+            {
+               ImageSource &image=images[i]; image.i=i;
+               Str base=GetBaseNoExt(image.name);
+               base.replace('_', '-'); // replace _ with - so whole words can work OK
+               if(Contains(base, "ao", false, true) || Contains(base, "occlusion")                      ){image.order=1; image.params.New().set("mode", "mul"  );}else // AO
+               if(Contains(base, "illumination") || Contains(base, "glow") || Contains(base, "emissive")){image.order=2; image.params.New().set("mode", "blend");}     // glow
+            }
+            images.sort(Compare); // sort by order
          }
-         images.sort(Compare); // sort by order
          texs[i].setFile(Edit.FileParams.Encode(SCAST(Memc<Edit.FileParams>, images)));
          break;
       }

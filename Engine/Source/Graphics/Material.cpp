@@ -792,8 +792,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
       // base_0
       if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA) // put glow in W channel
       {
-         Int w=Max(col_src->w(), glow_src->w()),
-             h=Max(col_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(1, col_src->w(), glow_src->w()), // Max 1 in case all images are empty, but we still need it (because shaders support base_2 only if base_0 is also present, so if we've detected this layout, it means we want base_2 and thus also need base_0)
+             h=Max(1, col_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( col_src->is() && ( col_src->w()!=w ||  col_src->h()!=h))if( col_src->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT)) col_src=& col_temp;else goto error;
          if(glow_src->is() && (glow_src->w()!=w || glow_src->h()!=h))if(glow_src->copyTry(glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))glow_src=&glow_temp;else goto error;
          if(!col_src->is() || col_src->lockRead())

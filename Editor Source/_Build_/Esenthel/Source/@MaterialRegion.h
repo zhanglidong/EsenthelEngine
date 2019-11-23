@@ -339,12 +339,12 @@ public:
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
    class ImageSource : Edit::FileParams
    {
-      int order;
+      int i, order;
 
 public:
    ImageSource();
    };
-   static int Compare(C ImageSource &a, C ImageSource &b);            
+   static int Compare(C ImageSource &a, C ImageSource &b);
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
