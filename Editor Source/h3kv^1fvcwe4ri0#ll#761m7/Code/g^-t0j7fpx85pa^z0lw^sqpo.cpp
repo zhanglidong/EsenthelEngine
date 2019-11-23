@@ -658,6 +658,7 @@ class Project
       APPLY_ADD,
       APPLY_SUB,
       APPLY_MAX,
+      APPLY_SKIP,
    }
    bool loadImages(Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
    {
@@ -689,9 +690,11 @@ class Project
             if(p.value=="div"                                                )mode=APPLY_DIV;else
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
-            if(p.value=="max"                                                )mode=APPLY_MAX;
+            if(p.value=="max"                                                )mode=APPLY_MAX;else
+            if(p.value=="skip" || p.value=="ignore"                          )mode=APPLY_SKIP;
          }
          if(i==0 && pos.allZero() && mode==APPLY_SET)Swap(single, image);else // if this is the first image, then just swap it as main
+         if(mode!=APPLY_SKIP)
          {
             VecI2 size=single.size()+pos;
             if(size.x>image.w() || size.y>image.h()) // make room for 'single', do this even if 'single' doesn't exist, because we may have 'pos' specified
