@@ -22,7 +22,7 @@ namespace EE{
 
 #define SUPPORT_DEPTH_TO_COLOR 0
 
-#define ALPHA_LIMIT 0.0625f // alpha limit at which colors start to blend to RGB, warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
+#define ALPHA_LIMIT 0.0625f // alpha limit at which colors start to blend to RGB, Warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
 
 /*
    Flt CW[8][8];
@@ -265,7 +265,7 @@ static void Normalize(Vec4 &color, C Vec &rgb, Bool alpha_weight, Bool high_prec
       }
    }
 }
-static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Bool high_precision) // warning: 'weight' must be non-zero
+static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Bool high_precision) // Warning: 'weight' must be non-zero
 {
    if(alpha_weight)
    {
