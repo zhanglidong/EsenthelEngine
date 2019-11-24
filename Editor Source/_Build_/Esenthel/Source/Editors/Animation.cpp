@@ -1562,9 +1562,9 @@ AnimEditor AnimEdit;
          {
             if(anim_skel.skeleton()!=skel || anim_skel.bones.elms()!=skel->bones.elms() || anim_skel.slots.elms()!=skel->slots.elms())anim_skel.create(skel);
             skel_anim.create(*skel, *anim);
-            flt time=animTime(); if(anim->loop() && Equal(time, anim->length()))time=Max(0, anim->length()-EPS); // if animation is looped and the time is at the end, then normally it will be wrapped to the beginning due to Frac, however since we're editing/previewing, then we may want to see the last keyframe without wrapping
-            anim_skel.clear().animate(skel_anim, time-Time.ad()).animateRoot(*anim, time-Time.ad()).updateMatrix().updateVelocities(false, false); // always set previous frame to setup correct motion blur velocities when manually changing anim time
-            anim_skel.clear().animate(skel_anim, time          ).animateRoot(*anim, time          ).updateMatrix().updateVelocities(false, false);
+            flt time=animTime(), time_prev=time-Time.ad(); // always set previous frame to setup correct motion blur velocities when manually changing anim time
+            Matrix matrix_prev; anim->getRootMatrixCumulative(matrix_prev, time_prev); anim_skel.clear().animateEx(skel_anim, time_prev, true, false, true).updateMatrix(matrix_prev).updateVelocities(false, false); // use 'animateEx' to allow editing/previewing exact last keyframes without wrapping to beginning with Frac
+            Matrix matrix     ; anim->getRootMatrixCumulative(matrix     , time     ); anim_skel.clear().animateEx(skel_anim, time     , true, false, true).updateMatrix(matrix     ).updateVelocities(false, false);
          }else
          {
             anim_skel.del().updateMatrix().updateVelocities(false, false);

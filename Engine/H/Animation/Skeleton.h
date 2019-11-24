@@ -375,12 +375,13 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
    Bool save(File &f)C; // save, does not include current animation pose, false on fail
    Bool load(File &f) ; // load, does not include current animation pose, false on fail
 
+   // advanced
+   AnimatedSkeleton& animateEx(C SkelAnim &skel_anim, Flt time, Bool exact_time=true, Bool animate_root=true, Bool animate_bones=true); // animate extended, 'exact_time'=if use 'time' without applying any modifications due to looping, 'animate_root'=if animate root, 'animate_bones'=if animate bones
 #if EE_PRIVATE
    void zero();
    void setFurVel()C; // set fur velocities
    Int  minBones ()C {return Min(bones.elms(), skeleton()->bones.elms());} // !! this does not check for "skeleton!=null" !!
    Int  minSlots ()C {return Min(slots.elms(), skeleton()->slots.elms());} // !! this does not check for "skeleton!=null" !!
-   AnimatedSkeleton& animateExactTime(C SkelAnim &skel_anim, Flt time); // this will not apply fraction for time, this function is needed when adjusting animations to make sure we process exact keyframes based on time, but still with looping support
 #endif
 
    AnimatedSkeleton();

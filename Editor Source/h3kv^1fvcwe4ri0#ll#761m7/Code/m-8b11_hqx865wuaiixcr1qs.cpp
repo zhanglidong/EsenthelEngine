@@ -1102,8 +1102,8 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
                ImageSource &image=images[i]; image.i=i;
                Str base=GetBaseNoExt(image.name);
                base.replace('_', '-'); // replace _ with - so whole words can work OK
-               if(Contains(base, "ao", false, true) || Contains(base, "occlusion")                      ){image.order=1; image.params.New().set("mode", "mul"  );}else // AO
-               if(Contains(base, "illumination") || Contains(base, "glow") || Contains(base, "emissive")){image.order=2; image.params.New().set("mode", "blend");}     // glow
+               if(Contains(base, "ao", false, true) || Contains(base, "occlusion") || Contains(base, "cavity"  )){image.order=1; image.params.New().set("mode", "mul"  );}else // AO
+               if(Contains(base, "illumination")    || Contains(base, "glow"     ) || Contains(base, "emissive")){image.order=2; image.params.New().set("mode", "blend");}     // glow
             }
             images.sort(Compare); // sort by order
          }

@@ -277,14 +277,14 @@ AnimatedSkeleton& AnimatedSkeleton::animateRoot(C Animation &anim, Flt time)
    Animate(root, anim.keys, params); // animate root
    return T;
 }
-AnimatedSkeleton& AnimatedSkeleton::animateExactTime(C SkelAnim &skel_anim, Flt time) // this will not apply fraction for time, this function is needed when adjusting animations to make sure we process exact keyframes based on time, but still with looping support
+AnimatedSkeleton& AnimatedSkeleton::animateEx(C SkelAnim &skel_anim, Flt time, Bool exact_time, Bool animate_root, Bool animate_bones)
 {
    if(C Animation *animation=skel_anim.animation())
    {
-      AnimParamsEx params(*animation, time, 1, false); params.time=time; // re-apply time to remove possible fraction
+      AnimParamsEx params(*animation, time, 1, false); if(exact_time)params.time=time; // re-apply time to remove possible fraction
 
-      Animate(root, animation->keys, params); // animate root
-      REPA(animation->bones)                  // animate bones
+      if(animate_root )Animate(root, animation->keys, params); // animate root
+      if(animate_bones)REPA(animation->bones)                  // animate bones
       {
          Byte sbon=skel_anim.abonToSbon(i);
          if(InRange(sbon, bones))Animate(bones[sbon], animation->bones[i], params);

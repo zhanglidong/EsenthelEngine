@@ -2087,8 +2087,8 @@ Animation& Animation::adjustForSameSkeletonWithDifferentPose(C Skeleton &source,
       }
 
       // animate skeletons before modifying animation
-      AnimatedSkeleton skel_source; SkelAnim sa_source(source, T); skel_source.create(&source).clear().animateExactTime(sa_source, 0).updateMatrix();
-      AnimatedSkeleton skel_target; SkelAnim sa_target(target, T); skel_target.create(&target).clear().animateExactTime(sa_target, 0).updateMatrix();
+      AnimatedSkeleton skel_source; SkelAnim sa_source(source, T); skel_source.create(&source).clear().animateEx(sa_source, 0).updateMatrix();
+      AnimatedSkeleton skel_target; SkelAnim sa_target(target, T); skel_target.create(&target).clear().animateEx(sa_target, 0).updateMatrix();
 
       // adjust per-bone position offsets (needed because some skeletons may have bones repositioned already in the skeleton, not only in keyframes)
       // this will offset existing position keyframes if skeleton bone positions are different (if there are no keyfames then 1 is added)
@@ -2262,7 +2262,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          anim_out.keys.orns.setNumDiscard(orn_times.elms()); REPA(anim_out.keys.orns)
          {
             AnimKeys::Orn &orn=anim_out.keys.orns[i];
-            old_askel.clear().animateExactTime(old_skela, orn.time=orn_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+            old_askel.clear().animateEx(old_skela, orn.time=orn_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
             OrientD o=old_abon.matrix(); o.fix(); // root bone world orientation (identity transformed by bone transform) at the current time
             orn.orn=o;
          }
@@ -2272,7 +2272,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       anim_out.keys.scales.setNumDiscard(scale_times.elms()); REPA(anim_out.keys.scales)
       { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
          AnimKeys::Scale &scale=anim_out.keys.scales[i];
-         old_askel.clear().animateExactTime(old_skela, scale.time=scale_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+         old_askel.clear().animateEx(old_skela, scale.time=scale_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
          Vec old_scale(old_abon.matrix().x.length(),
                        old_abon.matrix().y.length(),
                        old_abon.matrix().z.length());
@@ -2297,7 +2297,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
             anim_out.keys.poss.setNumDiscard(pos_times.elms()); REPA(anim_out.keys.poss)
             {
                AnimKeys::Pos &pos=anim_out.keys.poss[i];
-               old_askel.clear().animateExactTime(old_skela, pos.time=pos_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+               old_askel.clear().animateEx(old_skela, pos.time=pos_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
                pos.pos=(root_zero ?          old_abon.matrix().pos   // desired mesh transform offset
                                   : root_pos*old_abon.matrix()    ); // desired bone position
             }
@@ -2597,8 +2597,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.orns.setNumDiscard(orn_times.elms()); REPA(anim.orns)
                   {
                      AnimKeys::Orn &orn=anim.orns[i]; orn.time=orn_times[i];
-                     old_askel.clear().animateExactTime(old_skela, orn.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateExactTime(new_skela, orn.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i        );
+                     old_askel.clear().animateEx(old_skela, orn.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, orn.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i        );
 
                      MatrixD3 new_bone_transformed=new_bone_m; new_bone_transformed*=BoneWeightOrn(old_bones); // bone world orientation at the current time
                      if(new_parent)
@@ -2621,8 +2621,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.scales.setNumDiscard(scale_times.elms()); REPA(anim.scales)
                   { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
                      AnimKeys::Scale &scale=anim.scales[i]; scale.time=scale_times[i];
-                     old_askel.clear().animateExactTime(old_skela, scale.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateExactTime(new_skela, scale.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
+                     old_askel.clear().animateEx(old_skela, scale.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, scale.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
 
                      Matrix3 old_abon_matrix___orn=BoneWeightOrn(old_bones);
                      Vec new_bone_cross=new_bone.cross(),
@@ -2647,8 +2647,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.poss.setNumDiscard(pos_times.elms()); REPA(anim.poss)
                   {
                      AnimKeys::Pos &pos=anim.poss[i]; pos.time=pos_times[i];
-                     old_askel.clear().animateExactTime(old_skela, pos.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateExactTime(new_skela, pos.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
+                     old_askel.clear().animateEx(old_skela, pos.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, pos.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
 
                      pos.pos=BoneWeightPos(old_bones) // desired mesh transform offset
                             -new_abon.matrix().pos;   // current mesh transform offset
@@ -3276,7 +3276,7 @@ Flt Animation::calcMovement     (C Skeleton &skel)C
       AnimSkel anim_skel; anim_skel.create(&skel);
       FREPAD(frame, times) // animate forward
       {
-         anim_skel.clear().animateExactTime(skel_anim, times[frame]).updateMatrix();
+         anim_skel.clear().animateEx(skel_anim, times[frame]).updateMatrix();
          Flt frame_movement=0; // how much did legs move in this frame, we start with zero and maximize it by each leg, this avoids negative movement, max is used instead of average, for example zombie walk animation could have one leg not moving and just being dragged, and only other one doing the walking, averaging would make the movement smaller than it is
          REPD(b, leg_bones) // iterate all legs
          {
@@ -3304,7 +3304,7 @@ void Animation::freezeBone(C Skeleton &skel, Int skel_bone)
     C     SkelBone & bone_sel=     skel.bones[skel_bone];
     C AnimSkelBone &abone_sel=anim_skel.bones[skel_bone];
       Memt<Flt, 16384> bone_times; includeTimesForBoneAndItsParents(skel, skel_bone, bone_times, bone_times, bone_times);
-      anim_skel.clear().animateExactTime(skel_anim, 0).updateMatrix(); // animate first to get the 'start_pos'
+      anim_skel.clear().animateEx(skel_anim, 0).updateMatrix(); // animate first to get the 'start_pos'
       Vec start_pos=bone_sel.pos*abone_sel.matrix();
 
       // get root bones
@@ -3329,7 +3329,7 @@ void Animation::freezeBone(C Skeleton &skel, Int skel_bone)
          FREPAD(t, root_times) // irerate all frames
          {
             Flt time=root_times[t];
-            anim_skel.clear().animateExactTime(skel_anim, time).updateMatrix();
+            anim_skel.clear().animateEx(skel_anim, time).updateMatrix();
             Vec cur_pos=bone_sel.pos*abone_sel.matrix(), delta=cur_pos-start_pos;
             keys.poss[t].time=time;
             keys.poss[t].pos =aroot.pos-delta;
