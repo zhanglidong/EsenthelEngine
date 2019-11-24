@@ -405,7 +405,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 9:
@@ -424,7 +424,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 8:
@@ -443,7 +443,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 7:
@@ -462,7 +462,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 6:
@@ -481,7 +481,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 5:
@@ -500,7 +500,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 4:
@@ -518,7 +518,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 3:
@@ -536,7 +536,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>mip_map_blur_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 2:
@@ -554,7 +554,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 1:
@@ -571,7 +571,7 @@ class EditMaterial
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time;
             f>>cull_time>>tech_time;
-            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;
+            f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
          }break;
 
          case 0: break; // empty, this requires 'reset' to be called before
