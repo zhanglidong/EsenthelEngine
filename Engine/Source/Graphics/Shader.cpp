@@ -1049,7 +1049,7 @@ static INLINE void SetPS(ID3D11PixelShader  *shader) {D3DC->PSSetShader(shader, 
 
 #if 1 // set multiple in 1 API call
 // !! 'links' are assumed to be sorted by 'index' and all consecutive elements have 'index+1' !!
-static INLINE void SetBuffers(C BufferLinkPtr &links, ID3D11Buffer *buf[MAX_SHADER_BUFFERS], void (ID3D11DeviceContext::*SetConstantBuffers)(UINT StartSlot, UINT NumBuffers, ID3D11Buffer*C *ppConstantBuffers)) // use INLINE to allow directly using virtual func calls
+static INLINE void SetBuffers(C BufferLinkPtr &links, ID3D11Buffer *buf[MAX_SHADER_BUFFERS], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetConstantBuffers)(UINT StartSlot, UINT NumBuffers, ID3D11Buffer*C *ppConstantBuffers)) // use INLINE to allow directly using virtual func calls
 {
    REPA(links) // go from the end
    {
@@ -1073,7 +1073,7 @@ static INLINE void SetBuffers(C BufferLinkPtr &links, ID3D11Buffer *buf[MAX_SHAD
       }
    }
 }
-static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *tex[MAX_SHADER_IMAGES], void (ID3D11DeviceContext::*SetShaderResources)(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView*C *ppShaderResourceViews)) // use INLINE to allow directly using virtual func calls
+static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetShaderResources)(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView*C *ppShaderResourceViews)) // use INLINE to allow directly using virtual func calls
 {
    REPA(links) // go from the end
    {
