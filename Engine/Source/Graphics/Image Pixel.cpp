@@ -22,7 +22,13 @@ namespace EE{
 
 #define SUPPORT_DEPTH_TO_COLOR 0
 
-#define ALPHA_LIMIT 0.0625f // alpha limit at which colors start to blend to RGB, Warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
+ // alpha limit at which colors start to blend to RGB
+#define ALPHA_LIMIT_LINEAR            (1.0f/16)
+#define ALPHA_LIMIT_CUBIC_FAST        (1.0f/ 8)
+#define ALPHA_LIMIT_CUBIC_FAST_SMOOTH (1.0f/16)
+#define ALPHA_LIMIT_CUBIC_FAST_SHARP  (1.0f/ 4) // Warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
+#define ALPHA_LIMIT_CUBIC             (1.0f/ 6)
+#define ALPHA_LIMIT_CUBIC_SHARP       (1.0f/ 4)
 
 /*
    Flt CW[8][8];
@@ -129,7 +135,7 @@ static const Int CW8[8][8]={
    {0, 0, -1321, -6558, -6558, -1321, 0, 0},
 };
 static const Int CWA8Sum=5571097/255;
-static const Int CWA8AlphaLimit=CWA8Sum*255*ALPHA_LIMIT;
+static const Int CWA8AlphaLimit=CWA8Sum*255*ALPHA_LIMIT_CUBIC_FAST_SHARP;
 static const Int CWA8[8][8]={
    {0, 0, -31, -154, -154, -31, 0, 0},
    {0, -154, -500, -537, -537, -500, -154, 0},
@@ -241,7 +247,7 @@ static void Add(Vec4 &color, Vec &rgb, C Vec4 &sample, Flt weight, Bool alpha_we
          color.w  +=           weight; //     Alpha*weight
    }else color    +=sample    *weight;
 }
-static void Normalize(Vec4 &color, C Vec &rgb, Bool alpha_weight, Bool high_precision) // here 'weight'=1
+static void Normalize(Vec4 &color, C Vec &rgb, Bool alpha_weight, Flt alpha_limit) // here 'weight'=1
 {
    if(alpha_weight)
    {
@@ -249,23 +255,23 @@ static void Normalize(Vec4 &color, C Vec &rgb, Bool alpha_weight, Bool high_prec
       if(color.w>0)color.xyz/=color.w;
 
       // for low opacities we need to preserve the original RGB, because, at opacity=0 RGB information is totally lost, and because the image may be used for drawing, in which case the GPU will use bilinear filtering, and we need to make sure that mostly transparent pixel RGB values aren't artificially upscaled too much, also because at low opacities the alpha precision is low (because normally images are in 8-bit format, and we get alpha values like 1,2,3,..) and because we need to divide by alpha, inaccuracies may occur
-      if(color.w<ALPHA_LIMIT)
+      if(color.w<alpha_limit)
       {
          if(color.w<=0)
          {
             color.w=0; // 'color.w' can be negative due to sharpening
             color.xyz=rgb;
          }else
-         if(!high_precision) // no need to do this for high precision
          {
-            Flt blend=color.w/ALPHA_LIMIT; // color.xyz = Lerp(rgb, color.xyz, blend);
+            Flt blend=Sqr(color.w/alpha_limit); // using 'Sqr' reduces artifacts
+            // color.xyz = Lerp(rgb, color.xyz, blend);
             color.xyz*=blend;
             color.xyz+=rgb*(1-blend);
          }
       }
    }
 }
-static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Bool high_precision) // Warning: 'weight' must be non-zero
+static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Flt alpha_limit) // Warning: 'weight' must be non-zero
 {
    if(alpha_weight)
    {
@@ -277,16 +283,16 @@ static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Bo
       }
 
       // for low opacities we need to preserve the original RGB, because, at opacity=0 RGB information is totally lost, and because the image may be used for drawing, in which case the GPU will use bilinear filtering, and we need to make sure that mostly transparent pixel RGB values aren't artificially upscaled too much, also because at low opacities the alpha precision is low (because normally images are in 8-bit format, and we get alpha values like 1,2,3,..) and because we need to divide by alpha, inaccuracies may occur
-      if(color.w<ALPHA_LIMIT)
+      if(color.w<alpha_limit)
       {
          if(color.w<=0)
          {
             color.w=0; // 'color.w' can be negative due to sharpening
             color.xyz=rgb/weight;
          }else
-         if(!high_precision) // no need to do this for high precision
          {
-            Flt blend=color.w/ALPHA_LIMIT; // color.xyz = Lerp(rgb, color.xyz, blend);
+            Flt blend=Sqr(color.w/alpha_limit); // using 'Sqr' reduces artifacts
+            // color.xyz = Lerp(rgb, color.xyz, blend);
             color.xyz*=blend;
             color.xyz+=rgb*((1-blend)/weight);
          }
@@ -1526,7 +1532,7 @@ Vec4 Image::colorFLinear(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
          Add(color, rgb, c[0][1], (  x)*(1-y), alpha_weight);
          Add(color, rgb, c[1][0], (1-x)*(  y), alpha_weight);
          Add(color, rgb, c[1][1], (  x)*(  y), alpha_weight);
-         Normalize(color, rgb, alpha_weight, highPrecision());
+         Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
          return color;
       }else
          return c[0][0]*(1-x)*(1-y)
@@ -1562,7 +1568,7 @@ Vec4 Image::colorFLinearTTNF32_4(Flt x, Flt y, Bool clamp)C // !! this assumes t
       Add(color, rgb, c01, (  x)*(1-y), true);
       Add(color, rgb, c10, (1-x)*(  y), true);
       Add(color, rgb, c11, (  x)*(  y), true);
-      Normalize(color, rgb, true, true);
+      Normalize(color, rgb, true, ALPHA_LIMIT_LINEAR);
    }
    return color;
 }
@@ -1599,7 +1605,7 @@ Vec4 Image::color3DFLinear(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
          Add(color, rgb, c[1][0][1], (  x)*(1-y)*(  z), alpha_weight);
          Add(color, rgb, c[1][1][0], (1-x)*(  y)*(  z), alpha_weight);
          Add(color, rgb, c[1][1][1], (  x)*(  y)*(  z), alpha_weight);
-         Normalize(color, rgb, alpha_weight, highPrecision());
+         Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
          return color;
       }else
          return c[0][0][0]*(1-x)*(1-y)*(1-z)
@@ -1784,7 +1790,7 @@ Vec4 Image::colorFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
       w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
       w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -1830,7 +1836,7 @@ Vec4 Image::colorLCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
       w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
       w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -1876,7 +1882,7 @@ Vec4 Image::colorSCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
       w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
       w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -1923,7 +1929,7 @@ Vec4 Image::colorFCubicFastSmooth(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSmooth2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
       w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSmooth2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
       w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSmooth2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
       return color;
    }
    return 0;
@@ -1969,7 +1975,7 @@ Vec4 Image::colorFCubicFastSharp(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSharp2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
       w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSharp2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
       w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFastSharp2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SHARP);
       return color;
    }
    return 0;
@@ -2275,7 +2281,7 @@ Vec4 Image::colorFCubic(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
             w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
       return color;
    }
    return 0;
@@ -2313,7 +2319,7 @@ Vec4 Image::colorFCubicSharp(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
             w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
       return color;
    }
    return 0;
@@ -2355,7 +2361,7 @@ Vec4 Image::color3DFCubic(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
             w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
       return color;
    }
    return 0;
@@ -2397,7 +2403,7 @@ Vec4 Image::color3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weigh
             w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
       return color;
    }
    return 0;
@@ -2439,7 +2445,7 @@ Vec4 Image::color3DFCubicFast(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight
             w=CubicFast2(w); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -2481,7 +2487,7 @@ Vec4 Image::color3DFCubicFastSmooth(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_
             w=CubicFastSmooth2(w); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
       return color;
    }
    return 0;
@@ -2523,7 +2529,7 @@ Vec4 Image::color3DFCubicFastSharp(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_w
             w=CubicFastSharp2(w); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SHARP);
       return color;
    }
    return 0;
@@ -2729,7 +2735,7 @@ Vec4 Image::colorFCubicOrtho(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       Add(color, rgb, c[3][1], xb.y*yb.w, alpha_weight);
       Add(color, rgb, c[3][2], xb.z*yb.w, alpha_weight);
       Add(color, rgb, c[3][3], xb.w*yb.w, alpha_weight);
-      Normalize(color, rgb, alpha_weight, highPrecision());
+      Normalize(color, rgb, alpha_weight, ALPHA_LIMIT);
       return color;
    }
    return 0;
@@ -2853,7 +2859,7 @@ Vec4 Image::colorFLanczosOrtho(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       Vec4 color=0;
       REPAD(y, yo)
       REPAD(x, xo)Add(color, rgb, c[y][x], xw[x]*yw[y], alpha_weight);
-      Normalize(color, rgb, alpha_weight, highPrecision());
+      Normalize(color, rgb, alpha_weight, ALPHA_LIMIT);
       return color/(xs*ys);
    }
    return 0;
@@ -3016,7 +3022,7 @@ Vec4 Image::areaColorFAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_
          Add(color, rgb, c[1][1], r*b, alpha_weight);
       }
 
-      Normalize(color, rgb, (rect.w()+1)*(rect.h()+1), alpha_weight, highPrecision()); // weight is always non-zero here
+      Normalize(color, rgb, (rect.w()+1)*(rect.h()+1), alpha_weight, ALPHA_LIMIT_LINEAR); // weight is always non-zero here
       return color;
    }
    return 0;
@@ -3048,7 +3054,7 @@ Vec4 Image::areaColorFLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
             Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_LINEAR);
       return color;
    }
    return 0;
@@ -3079,7 +3085,7 @@ Vec4 Image::areaColorLLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
             Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_LINEAR);
       return color;
    }
    return 0;
@@ -3113,7 +3119,7 @@ Vec4 Image::areaColorFCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -3146,7 +3152,7 @@ Vec4 Image::areaColorLCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST);
       return color;
    }
    return 0;
@@ -3180,7 +3186,7 @@ Vec4 Image::areaColorFCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Boo
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
       return color;
    }
    return 0;
@@ -3213,7 +3219,7 @@ Vec4 Image::areaColorLCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Boo
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
       return color;
    }
    return 0;
@@ -3247,7 +3253,7 @@ Vec4 Image::areaColorFCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SHARP);
       return color;
    }
    return 0;
@@ -3280,7 +3286,7 @@ Vec4 Image::areaColorFCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_we
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
       return color;
    }
    return 0;
@@ -3313,7 +3319,7 @@ Vec4 Image::areaColorFCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alp
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
       return color;
    }
    return 0;
@@ -3347,7 +3353,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT);
       return color;
    }
    return 0;
@@ -3378,7 +3384,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT);
       return color;
    }
    return 0;
@@ -3410,7 +3416,7 @@ Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool al
             Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT);
       return color;
    }
    return 0;
@@ -4877,7 +4883,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
                            REPD(x, 8)
                            REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
-                           Normalize(color, rgb, alpha_weight, src_high_prec);
+                           Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
                            if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
                            set_color(dest_data_x, dest.type(), dest.hwType(), color);
                            dest_data_x+=dest.bytePP();
@@ -5006,7 +5012,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
             && T.ld()==1)
             {
-               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2 : CubicMed2); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
+               Flt   alpha_limit =((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
+               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
                Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
                   Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
@@ -5063,7 +5070,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           Normalize(color, rgb, weight, alpha_weight, src_high_prec);
+                           Normalize(color, rgb, weight, alpha_weight, alpha_limit);
                            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
                            dest_data_x+=dest.bytePP();
                         }
@@ -5110,7 +5117,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
             && T.ld()==1)
             {
-               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2 : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2 : CubicFastSharp2);
+               Flt   alpha_limit =((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
+               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
                Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
                   Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
@@ -5167,7 +5175,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           Normalize(color, rgb, weight, alpha_weight, src_high_prec);
+                           Normalize(color, rgb, weight, alpha_weight, alpha_limit);
                            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
                            dest_data_x+=dest.bytePP();
                         }
@@ -5263,7 +5271,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               Int xc=(x+x_offset)&1;
                               REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
                            }
-                           Normalize(color, rgb, alpha_weight, src_high_prec);
+                           Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
                            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
                            dest_data_x+=dest.bytePP();
                         }
