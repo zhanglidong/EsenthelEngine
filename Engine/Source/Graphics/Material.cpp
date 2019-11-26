@@ -969,7 +969,7 @@ error:
    Swap(dest, detail);
 }
 /******************************************************************************/
-Bool CreateBumpFromColor(Image &bump, C Image &col, Flt min_blur_range, Flt max_blur_range, Threads *threads)
+Bool CreateBumpFromColor(Image &bump, C Image &col, Flt min_blur_range, Flt max_blur_range)
 {
    Image col_temp; C Image *col_src=&col; if(col_src->compressed())if(col_src->copyTry(col_temp, -1, -1, -1, ImageTypeUncompressed(col_src->type()), IMAGE_SOFT, 1))col_src=&col_temp;else goto error;
    {
@@ -988,7 +988,7 @@ Bool CreateBumpFromColor(Image &bump, C Image &col, Flt min_blur_range, Flt max_
             Image bump_step;
             for(Flt blur=max_blur_range; ; ) // start with max range, because it's the most important, so we want it to be precise, and then we will go with half steps down
             {
-               bump_temp.blur(first ? bump : bump_step, blur, false, threads); // always set the first blur into 'bump' to set it as base, or in case we finish after one step
+               bump_temp.blur(first ? bump : bump_step, blur, false); // always set the first blur into 'bump' to set it as base, or in case we finish after one step
                if(!first)
                {
                   REPD(y, bump.h())

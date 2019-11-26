@@ -127,7 +127,7 @@ struct PanelImage
    Image image;
 
    // manage
-   void create(C PanelImageParams &params, Image *depth_map=null, Int super_sample=4, FILTER_TYPE filter=FILTER_BEST, Threads *threads=null); // create 'PanelImage' from specified 'params', 'depth_map'=optional parameter allowing to obtain the depth map of the panel for debugging purposes, 'super_sample'=super sampling used for creating the Panel Image (higher value increases the quality of the image, but makes it slower to create it), 'filter'=filter used when down-sampling the super sampled image to normal size (unused when super sampling was not enabled), 'threads'=optionally pass a created 'Threads' object to create the 'PanelImage' in multi-threaded mode
+   void create(C PanelImageParams &params, Image *depth_map=null, Int super_sample=4, FILTER_TYPE filter=FILTER_BEST); // create 'PanelImage' from specified 'params', 'depth_map'=optional parameter allowing to obtain the depth map of the panel for debugging purposes, 'super_sample'=super sampling used for creating the Panel Image (higher value increases the quality of the image, but makes it slower to create it), 'filter'=filter used when down-sampling the super sampled image to normal size (unused when super sampling was not enabled)
 
    // get
    Bool  extendedRect           (C Rect &rect, Rect &extended )C; // returns true if 'extended' is different than 'rect'

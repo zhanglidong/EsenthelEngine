@@ -132,7 +132,7 @@ struct SectionParams
    {
       section_color_y=Lerp(color_top, color_bottom, section_frac)*global_color_y;
    }
-   void setDepthNoise(C PanelImageParams::Section &src, Int w, Int h, Int super_sample, Threads *threads)
+   void setDepthNoise(C PanelImageParams::Section &src, Int w, Int h, Int super_sample)
    {
       if(src.depth_noise.is())
       {
@@ -140,13 +140,13 @@ struct SectionParams
          noise_map.createSoftTry(w/super_sample, h/super_sample, 1, IMAGE_F32);
          REPD(y, noise_map.h())
          REPD(x, noise_map.w())noise_map.pixF(x, y)=random.f();
-         noise_map.blur(src.depth_noise.blur, src.depth_noise.blur_clamp, threads);
+         noise_map.blur(src.depth_noise.blur, src.depth_noise.blur_clamp);
          noise_intensity=src.depth_noise.intensity*((src.depth_noise.mode==PanelImageParams::ImageParams::SCALE) ? 1.5f : 1);
          noise_uv_scale =src.depth_noise.uv_scale/super_sample;
          noise_uv_warp  =src.depth_noise.uv_warp*noise_map.h();
       }else noise_map.del();
    }
-   void setColorNoise(C PanelImageParams::Section &src, Int w, Int h, Int super_sample, Threads *threads)
+   void setColorNoise(C PanelImageParams::Section &src, Int w, Int h, Int super_sample)
    {
       if(src.color_noise.is())
       {
@@ -154,13 +154,13 @@ struct SectionParams
          noise_map.createSoftTry(w/super_sample, h/super_sample, 1, IMAGE_F32);
          REPD(y, noise_map.h())
          REPD(x, noise_map.w())noise_map.pixF(x, y)=random.f();
-         noise_map.blur(src.color_noise.blur, src.color_noise.blur_clamp, threads);
+         noise_map.blur(src.color_noise.blur, src.color_noise.blur_clamp);
          noise_intensity=src.color_noise.intensity*((src.color_noise.mode==PanelImageParams::ImageParams::SCALE) ? 1.5f : 1);
          noise_uv_scale =src.color_noise.uv_scale/super_sample;
          noise_uv_warp  =src.color_noise.uv_warp*noise_map.h();
       }else noise_map.del();
    }
-   void setDepthOverlay(C PanelImageParams::Section &src, Int resolution, Threads *threads)
+   void setDepthOverlay(C PanelImageParams::Section &src, Int resolution)
    {
       if(overlay){overlay->unlock(); overlay=null;}
       if(overlay=src.depth_overlay)
@@ -169,7 +169,7 @@ struct SectionParams
             if(overlay->copyTry(overlay_image, -1, -1, -1, ImageTI[overlay->hwType()].a ? IMAGE_F32_4 : IMAGE_F32, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))overlay=&overlay_image;else overlay=null;
          if(overlay)
          {
-            overlay_image.blur(src.depth_overlay_params.blur, src.depth_overlay_params.blur_clamp, threads); // this will blur only if 'src.depth_overlay_params.blur' in which case the "overlay==&overlay_image"
+            overlay_image.blur(src.depth_overlay_params.blur, src.depth_overlay_params.blur_clamp); // this will blur only if 'src.depth_overlay_params.blur' in which case the "overlay==&overlay_image"
             overlay->lockRead();
             overlay_intensity=src.depth_overlay_params.intensity*((src.depth_overlay_params.mode==PanelImageParams::ImageParams::SCALE) ? 1.5f : 1);
             overlay_uv_scale =src.depth_overlay_params.uv_scale*(Flt(overlay->h())/resolution);
@@ -178,7 +178,7 @@ struct SectionParams
          }
       }
    }
-   void setColorOverlay(C PanelImageParams::Section &src, Int resolution, Threads *threads)
+   void setColorOverlay(C PanelImageParams::Section &src, Int resolution)
    {
       if(overlay){overlay->unlock(); overlay=null;}
       if(overlay=src.color_overlay)
@@ -187,7 +187,7 @@ struct SectionParams
             if(overlay->copyTry(overlay_image, -1, -1, -1, ImageTypeUncompressed(overlay->type()), IMAGE_SOFT, 1))overlay=&overlay_image;else overlay=null;
          if(overlay)
          {
-            overlay_image.blur(src.color_overlay_params.blur, src.color_overlay_params.blur_clamp, threads); // this will blur only if 'src.color_overlay_params.blur' in which case the "overlay==&overlay_image"
+            overlay_image.blur(src.color_overlay_params.blur, src.color_overlay_params.blur_clamp); // this will blur only if 'src.color_overlay_params.blur' in which case the "overlay==&overlay_image"
             overlay->lockRead();
             overlay_intensity=src.color_overlay_params.intensity*((src.color_overlay_params.mode==PanelImageParams::ImageParams::SCALE) ? 1.5f : 1);
             overlay_uv_scale =src.color_overlay_params.uv_scale*(Flt(overlay->h())/resolution);
@@ -224,12 +224,12 @@ struct SectionParams
       norm_add=frac_add;
       REP(2)AdjustFracMulAdd_1_1(norm_mul.c[i], norm_add.c[i]);
    }
-   void setParams(C PanelImageParams::Section &src, Int resolution, Threads *threads)
+   void setParams(C PanelImageParams::Section &src, Int resolution)
    {
       smooth_depth   =src.smooth_depth;
       setSize        (src.size, src.top_offset);
       setColors      (src);
-      setDepthOverlay(src, resolution, threads);
+      setDepthOverlay(src, resolution);
       setReflection  (src);
    }
 };
@@ -498,10 +498,9 @@ struct PanelImageCreate
                     &full_norm_mul,   &full_norm_add;
    Line              corner_line[2][2], // [y][x]
                        side_line[2]; // [x]
-   Threads          *threads;
 
-   PanelImageCreate(PanelImage &panel_image, C PanelImageParams &params, Image *depth_map, Int super_sample, Threads *threads)
-   : panel_image(panel_image), params(params), depth_map(depth_map), image(panel_image.image), last(sps[Elms(sps)-1]), threads(threads),
+   PanelImageCreate(PanelImage &panel_image, C PanelImageParams &params, Image *depth_map, Int super_sample)
+   : panel_image(panel_image), params(params), depth_map(depth_map), image(panel_image.image), last(sps[Elms(sps)-1]),
      full_frac_mul(last.frac_mul), full_norm_mul(last.norm_mul), full_norm_add(last.norm_add) // last section is always full
    {
       if(depth_map)depth_map->del();
@@ -556,7 +555,7 @@ struct PanelImageCreate
          image_size=image.size(); image_size1=image_size-1; image_size_2i=image_size/2; image_size_2=image_size*0.5f;
          smooth_depth=params.smooth_depth;
          corner_size=resolution*0.5f*params.round_corners;
-         REPAO(sps).setParams(params.sections[i], resolution, threads); sps[0].setSize(1-params.sections[1].size, 0);
+         REPAO(sps).setParams(params.sections[i], resolution); sps[0].setSize(1-params.sections[1].size, 0);
          Flt offset=0, offset_top=0;
          REPA(sps) // go from the end
          {
@@ -776,7 +775,7 @@ struct PanelImageCreate
          if(include_size_mid[0])panel_image._side_size.x=mulx;else{panel_image._side_size.x=0; REPAD(y, panel_image._size_x)MAX(panel_image._side_size.x, Max(panel_image._size_x[y][0], 0)+Max(panel_image._size_x[y][1], 0));}
          if(include_size_mid[1])panel_image._side_size.y=muly;else panel_image._side_size.y=Max(panel_image._size_y[0], 0)+Max(panel_image._size_y[1], 0);
 
-         REPAO(sps).setDepthNoise(params.sections[i], image.w(), image.h(), super_sample, threads);
+         REPAO(sps).setDepthNoise(params.sections[i], image.w(), image.h(), super_sample);
 
          return true;
       }
@@ -983,8 +982,8 @@ struct PanelImageCreate
 
       REPA(sps)
       {
-         sps[i].setColorOverlay(params.sections[i], resolution, threads);
-         sps[i].setColorNoise  (params.sections[i], image_size.x, image_size.y, super_sample, threads);
+         sps[i].setColorOverlay(params.sections[i], resolution);
+         sps[i].setColorNoise  (params.sections[i], image_size.x, image_size.y, super_sample);
       }
    }
    void setColorY(Int y)
@@ -1220,11 +1219,12 @@ struct PanelImageCreate
 };
 static void SetDepth(IntPtr y, PanelImageCreate &pic, Int thread_index) {pic.setDepthY(y);}
 static void SetColor(IntPtr y, PanelImageCreate &pic, Int thread_index) {pic.setColorY(y);}
-void PanelImage::create(C PanelImageParams &params, Image *depth_map, Int super_sample, FILTER_TYPE filter, Threads *threads)
+void PanelImage::create(C PanelImageParams &params, Image *depth_map, Int super_sample, FILTER_TYPE filter)
 {
-   PanelImageCreate pic(T, params, depth_map, super_sample, threads);
+   PanelImageCreate pic(T, params, depth_map, super_sample);
    if(pic.create())
    {
+      Threads *threads=&ImageThreads.init();
       if(threads)threads->process1(pic.map.h(), SetDepth, pic);else REPD(y, pic.map  .h())pic.setDepthY(y);
       pic.afterDepth();
       if(threads)threads->process1(pic.map.h(), SetColor, pic);else REPD(y, pic.image.h())pic.setColorY(y);
