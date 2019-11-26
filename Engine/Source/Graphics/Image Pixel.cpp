@@ -4783,7 +4783,290 @@ struct CopyContext
          dest_data_x+=dest.bytePP();
       }
    }
-   
+   static void UpsizeCubic(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsizeCubic(elm_index);}
+          void upsizeCubic(IntPtr elm_index)
+   {
+      Int z=elm_index/dest.lh(),
+          y=elm_index%dest.lh();
+      Byte *dest_data_z=dest.data()+z*dest.pitch2();
+      Byte *dest_data_y=dest_data_z+y*dest.pitch ();
+      Byte *dest_data_x=dest_data_y;
+      Flt   sy=y*y_mul_add.x+y_mul_add.y,
+            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+      Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
+      Flt   yw[CUBIC_MED_SAMPLES*2];
+      REPA( xo)
+      {
+         xo[i]=xi-CUBIC_MED_SAMPLES+1+i;
+         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
+         if(clamp)
+         {
+            Clamp(xo[i], 0, src.lw()-1);
+            Clamp(yo[i], 0, src.lh()-1);
+         }else
+         {
+            xo[i]=Mod(xo[i], src.lw());
+            yo[i]=Mod(yo[i], src.lh());
+         }
+      }
+      if(NeedMultiChannel(src.type(), dest.type()))
+      {
+         Vec4 c[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+         src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+            }
+
+            Flt  weight=0;
+            Vec  rgb   =0;
+            Vec4 color =0;
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+               REPAD(y, yo)
+               {
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                  {
+                     w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                  }
+               }
+            }
+            Normalize(color, rgb, weight, alpha_weight, alpha_limit);
+            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+            dest_data_x+=dest.bytePP();
+         }
+      }else
+      {
+         Flt v[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+         src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+            }
+
+            Flt weight=0, value=0;
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+               REPAD(y, yo)
+               {
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                  {
+                     w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
+                  }
+               }
+            }
+            SetPixelF(dest_data_x, dest.hwType(), value/weight);
+            dest_data_x+=dest.bytePP();
+         }
+      }
+   }
+   static void UpsizeCubicFast(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsizeCubicFast(elm_index);}
+          void upsizeCubicFast(IntPtr elm_index)
+   {
+      Int z=elm_index/dest.lh(),
+          y=elm_index%dest.lh();
+      Byte *dest_data_z=dest.data()+z*dest.pitch2();
+      Byte *dest_data_y=dest_data_z+y*dest.pitch ();
+      Byte *dest_data_x=dest_data_y;
+      Flt   sy=y*y_mul_add.x+y_mul_add.y,
+            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+      Int   xo[CUBIC_FAST_SAMPLES*2], yo[CUBIC_FAST_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
+      Flt   yw[CUBIC_FAST_SAMPLES*2];
+      REPA( xo)
+      {
+         xo[i]=xi-CUBIC_FAST_SAMPLES+1+i;
+         yo[i]=yi-CUBIC_FAST_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
+         if(clamp)
+         {
+            Clamp(xo[i], 0, src.lw()-1);
+            Clamp(yo[i], 0, src.lh()-1);
+         }else
+         {
+            xo[i]=Mod(xo[i], src.lw());
+            yo[i]=Mod(yo[i], src.lh());
+         }
+      }
+      if(NeedMultiChannel(src.type(), dest.type()))
+      {
+         Vec4 c[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
+         src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
+            }
+
+            Flt  weight=0;
+            Vec  rgb   =0;
+            Vec4 color =0;
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
+               REPAD(y, yo)
+               {
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
+                  {
+                     w=Weight(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                  }
+               }
+            }
+            Normalize(color, rgb, weight, alpha_weight, alpha_limit);
+            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+            dest_data_x+=dest.bytePP();
+         }
+      }else
+      {
+         Flt v[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
+         src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
+            }
+
+            Flt weight=0, value=0;
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
+               REPAD(y, yo)
+               {
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
+                  {
+                     w=Weight(w); value+=v[xc][y]*w; weight+=w;
+                  }
+               }
+            }
+            SetPixelF(dest_data_x, dest.hwType(), value/weight);
+            dest_data_x+=dest.bytePP();
+         }
+      }
+   }
+   static void UpsizeLinear(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsizeLinear(elm_index);}
+          void upsizeLinear(IntPtr elm_index)
+   {
+      Int z=elm_index/dest.lh(),
+          y=elm_index%dest.lh();
+      Byte *dest_data_z=dest.data()+z*dest.pitch2();
+      Byte *dest_data_y=dest_data_z+y*dest.pitch ();
+      Byte *dest_data_x=dest_data_y;
+      Flt   sy=y*y_mul_add.x+y_mul_add.y,
+            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+      Int   xo[2], yo[2], xi=Floor(sx), yi=Floor(sy);
+      Flt   yw[2]; yw[1]=sy-yi; yw[0]=1-yw[1];
+      REPA( xo)
+      {
+         xo[i]=xi+i;
+         yo[i]=yi+i;
+         if(clamp)
+         {
+            Clamp(xo[i], 0, src.lw()-1);
+            Clamp(yo[i], 0, src.lh()-1);
+         }else
+         {
+            xo[i]=Mod(xo[i], src.lw());
+            yo[i]=Mod(yo[i], src.lh());
+         }
+      }
+      if(NeedMultiChannel(src.type(), dest.type()))
+      {
+         Vec4 c[2][2];
+         src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset^=1;
+            }
+
+            Vec  rgb  =0;
+            Vec4 color=0;
+            Flt  xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)&1;
+               REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
+            }
+            Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
+            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+            dest_data_x+=dest.bytePP();
+         }
+      }else
+      {
+         Flt v[2][2];
+         src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+         Int x_offset=0;
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Int xi2=Floor(sx); if(xi!=xi2)
+            {
+               xi=xi2;
+               Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+               x_offset^=1;
+            }
+
+            Flt value=0, xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
+            REPAD(x, xo)
+            {
+               Int xc=(x+x_offset)&1;
+               REPAD(y, yo)value+=v[xc][y]*xw[x]*yw[y];
+            }
+            SetPixelF(dest_data_x, dest.hwType(), value);
+            dest_data_x+=dest.bytePP();
+         }
+      }
+   }
+
    CopyContext(C Image &src, Image &dest, UInt flags) : src(src), dest(dest),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
@@ -5042,299 +5325,19 @@ struct CopyContext
                {
                   alpha_limit=((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
                   Weight     =((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
-                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Byte *dest_data_x=dest_data_y;
-                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                        Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
-                        Flt   yw[CUBIC_MED_SAMPLES*2];
-                        REPA( xo)
-                        {
-                           xo[i]=xi-CUBIC_MED_SAMPLES+1+i;
-                           yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
-                           if(clamp)
-                           {
-                              Clamp(xo[i], 0, src.lw()-1);
-                              Clamp(yo[i], 0, src.lh()-1);
-                           }else
-                           {
-                              xo[i]=Mod(xo[i], src.lw());
-                              yo[i]=Mod(yo[i], src.lh());
-                           }
-                        }
-                        if(NeedMultiChannel(src.type(), dest.type()))
-                        {
-                           Vec4 c[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
-                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
-                              }
-
-                              Flt  weight=0;
-                              Vec  rgb   =0;
-                              Vec4 color =0;
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-                                 Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
-                                 REPAD(y, yo)
-                                 {
-                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
-                                    {
-                                       w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
-                                    }
-                                 }
-                              }
-                              Normalize(color, rgb, weight, alpha_weight, alpha_limit);
-                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }else
-                        {
-                           Flt v[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
-                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
-                              }
-
-                              Flt weight=0, value=0;
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-                                 Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
-                                 REPAD(y, yo)
-                                 {
-                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
-                                    {
-                                       w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
-                                    }
-                                 }
-                              }
-                              SetPixelF(dest_data_x, dest.hwType(), value/weight);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                     dest_data_z+=dest.pitch2();
-                  }
+                  ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubic, T);
                }else
                if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
                && src.ld()==1)
                {
                   alpha_limit=((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
                   Weight     =((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
-                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Byte *dest_data_x=dest_data_y;
-                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                        Int   xo[CUBIC_FAST_SAMPLES*2], yo[CUBIC_FAST_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
-                        Flt   yw[CUBIC_FAST_SAMPLES*2];
-                        REPA( xo)
-                        {
-                           xo[i]=xi-CUBIC_FAST_SAMPLES+1+i;
-                           yo[i]=yi-CUBIC_FAST_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
-                           if(clamp)
-                           {
-                              Clamp(xo[i], 0, src.lw()-1);
-                              Clamp(yo[i], 0, src.lh()-1);
-                           }else
-                           {
-                              xo[i]=Mod(xo[i], src.lw());
-                              yo[i]=Mod(yo[i], src.lh());
-                           }
-                        }
-                        if(NeedMultiChannel(src.type(), dest.type()))
-                        {
-                           Vec4 c[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
-                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
-                              }
-
-                              Flt  weight=0;
-                              Vec  rgb   =0;
-                              Vec4 color =0;
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
-                                 Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
-                                 REPAD(y, yo)
-                                 {
-                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
-                                    {
-                                       w=Weight(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
-                                    }
-                                 }
-                              }
-                              Normalize(color, rgb, weight, alpha_weight, alpha_limit);
-                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }else
-                        {
-                           Flt v[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
-                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
-                              }
-
-                              Flt weight=0, value=0;
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
-                                 Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
-                                 REPAD(y, yo)
-                                 {
-                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
-                                    {
-                                       w=Weight(w); value+=v[xc][y]*w; weight+=w;
-                                    }
-                                 }
-                              }
-                              SetPixelF(dest_data_x, dest.hwType(), value/weight);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                     dest_data_z+=dest.pitch2();
-                  }
+                  ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubicFast, T);
                }else
                if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
                && src.ld()==1)
                {
-                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Byte *dest_data_x=dest_data_y;
-                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                        Int   xo[2], yo[2], xi=Floor(sx), yi=Floor(sy);
-                        Flt   yw[2]; yw[1]=sy-yi; yw[0]=1-yw[1];
-                        REPA( xo)
-                        {
-                           xo[i]=xi+i;
-                           yo[i]=yi+i;
-                           if(clamp)
-                           {
-                              Clamp(xo[i], 0, src.lw()-1);
-                              Clamp(yo[i], 0, src.lh()-1);
-                           }else
-                           {
-                              xo[i]=Mod(xo[i], src.lw());
-                              yo[i]=Mod(yo[i], src.lh());
-                           }
-                        }
-                        if(NeedMultiChannel(src.type(), dest.type()))
-                        {
-                           Vec4 c[2][2];
-                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset^=1;
-                              }
-
-                              Vec  rgb  =0;
-                              Vec4 color=0;
-                              Flt  xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)&1;
-                                 REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
-                              }
-                              Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
-                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }else
-                        {
-                           Flt v[2][2];
-                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                           REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                           Int x_offset=0;
-                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Flt sx=x*x_mul_add.x+x_mul_add.y;
-                              Int xi2=Floor(sx); if(xi!=xi2)
-                              {
-                                 xi=xi2;
-                                 Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
-                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                                 x_offset^=1;
-                              }
-
-                              Flt value=0, xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
-                              REPAD(x, xo)
-                              {
-                                 Int xc=(x+x_offset)&1;
-                                 REPAD(y, yo)value+=v[xc][y]*xw[x]*yw[y];
-                              }
-                              SetPixelF(dest_data_x, dest.hwType(), value);
-                              dest_data_x+=dest.bytePP();
-                           }
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                     dest_data_z+=dest.pitch2();
-                  }
+                  ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeLinear, T);
                }else
                if(NeedMultiChannel(src.type(), dest.type()))
                {
