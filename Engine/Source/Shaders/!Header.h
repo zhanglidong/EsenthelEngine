@@ -131,7 +131,7 @@
 
 #define TRANSLUCENT_VAL 0.5
 
-#define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02
+#define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
@@ -1623,6 +1623,7 @@ struct LightParams
 
    Half specular(Half smooth, Half reflectivity, Bool quality)
    {
+      // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
       const Half light_radius=0.0036;
 
       Half roughness=1-smooth;
@@ -1726,6 +1727,7 @@ inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
 }*/
 inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
 {
+   // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
    if(quality)mad=EnvDFGTex         (smooth, NdotV);
    else       mad=EnvDFGLazarovKaris(smooth, NdotV);
