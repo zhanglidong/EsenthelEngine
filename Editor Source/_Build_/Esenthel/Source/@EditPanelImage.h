@@ -122,7 +122,7 @@ public:
       Image* get(C UID &image_id);
    };
 
-   void make(PanelImage &panel_image, Threads &threads, Project &proj, Image *soft=null, Image *depth_map=null, bool fast=false);
+   void make(PanelImage &panel_image, Project &proj, Image *soft=null, Image *depth_map=null, bool fast=false);
 
    // io
    bool save(File &f)C;

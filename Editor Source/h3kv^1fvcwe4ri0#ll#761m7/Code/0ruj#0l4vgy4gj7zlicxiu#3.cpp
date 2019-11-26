@@ -976,6 +976,7 @@ bool HighPrecTransform(C Str &name)
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
        || name=="gamma" || name=="gammaLum"
+       || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
        || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
@@ -1330,7 +1331,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       r.x=ConvertUnitType(r.x, image.w(), unit);
       r.y=ConvertUnitType(r.y, image.h(), unit);
       r.z=ConvertUnitType(r.z, image.d(), unit);
-      image.blur(r, clamp, &WorkerThreads);
+      image.blur(r, clamp);
    }else
    if(param.name=="lerpRGB")
    {
@@ -1423,6 +1424,18 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); if(flt lum=c.xyz.max()){c.xyz*=PowMax(lum, g)/lum; image.color3DF(x, y, z, c);}}
+   }else
+   if(param.name=="SRGBToLinear")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, SRGBToLinear(image.color3DF(x, y, z)));
+   }else
+   if(param.name=="LinearToSRGB")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, LinearToSRGB(image.color3DF(x, y, z)));
    }else
    if(param.name=="brightness")
    {
@@ -2019,7 +2032,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             blur.y=ConvertUnitType(blur.y, full, unit);
          }
       }
-      CreateBumpFromColor(image, image, blur.x, blur.y, &WorkerThreads);
+      CreateBumpFromColor(image, image, blur.x, blur.y);
    }else
    if(param.name=="scale") // the formula is ok (for normal too), it works as if the bump was scaled vertically by 'scale' factor
    {

@@ -94,7 +94,7 @@ class PanelImageEditor : PropWin
       {
          SyncLockerEx locker(lock); Params params=T.params; locker.off();
          ThreadMayUseGPUData();
-         PanelImage temp; Image temp_soft, temp_depth; params.make(temp, WorkerThreads, Proj, &temp_soft, &temp_depth, true); {locker.on(); Swap(panel_image, temp); Swap(soft, temp_soft); Swap(depth, temp_depth); locker.off();}
+         PanelImage temp; Image temp_soft, temp_depth; params.make(temp, Proj, &temp_soft, &temp_depth, true); {locker.on(); Swap(panel_image, temp); Swap(soft, temp_soft); Swap(depth, temp_depth); locker.off();}
       }
       return true;
    }
@@ -523,7 +523,7 @@ class PanelImageEditor : PropWin
       {
          if(ElmPanelImage *data=elm.panelImageData()){data.newVer(); data.from(params);} // modify just before saving/sending in case we've received data from server after edit
          Save(params, Proj.basePath(*elm));
-         PanelImage panel_image; params.make(panel_image, WorkerThreads, Proj); Save(panel_image, Proj.gamePath(*elm)); Proj.savedGame(*elm);
+         PanelImage panel_image; params.make(panel_image, Proj); Save(panel_image, Proj.gamePath(*elm)); Proj.savedGame(*elm);
          Server.setElmLong(elm.id);
          Proj.panelImageChanged(elm.id);
       }

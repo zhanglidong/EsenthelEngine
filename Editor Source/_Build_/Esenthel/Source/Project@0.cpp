@@ -897,8 +897,8 @@ void DrawProject()
 
             case ELM_PANEL_IMAGE:
             {
-               EditPanelImage edit; edit.newData(                   ); Save(edit, editPath(elm));
-                   PanelImage game; edit.make(game, WorkerThreads, T); Save(game, gamePath(elm)); savedGame(elm); // makeGameVer(elm);
+               EditPanelImage edit; edit.newData(    ); Save(edit, editPath(elm));
+                   PanelImage game; edit.make(game, T); Save(game, gamePath(elm)); savedGame(elm); // makeGameVer(elm);
                if(ElmPanelImage *data=elm.panelImageData()){data->newData(); data->from(edit);}
                Server.setElmFull(elm.id);
             }break;

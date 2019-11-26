@@ -606,7 +606,7 @@
          if(!src.image_ptr)src.image_ptr=proj.gamePath(image_id);
          return src.image_ptr();
       }
-   void EditPanelImage::make(PanelImage &panel_image, Threads &threads, Project &proj, Image *soft, Image *depth_map, bool fast)
+   void EditPanelImage::make(PanelImage &panel_image, Project &proj, Image *soft, Image *depth_map, bool fast)
    {
       Images images(proj, fast);
       PanelImageParams params=T;
@@ -625,7 +625,7 @@
          params.sections[i].color_overlay=images.get(base.sections[i].color_overlay_id);
          params.sections[i].reflection   =images.get(base.sections[i].   reflection_id);
       }
-      panel_image.create(params, depth_map, fast ? 2 : 6, FILTER_BEST, &threads);
+      panel_image.create(params, depth_map, fast ? 2 : 6, FILTER_BEST);
       IMAGE_TYPE type=panel_image.image.type(); if(base.compressed)ImageProps(panel_image.image, null, &type);
       Image *src=&panel_image.image;
       if(soft){Swap(*soft, *src); src=soft;}
