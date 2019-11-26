@@ -4528,12 +4528,18 @@ struct CopyContext
    Bool hp, manual_linear_to_srgb;
    void (*set_color)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
 
+   Vec2 x_mul_add, y_mul_add, z_mul_add;
+   Vec  area_size;
+   Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
+
+   Flt   alpha_limit;
+   Flt (*Weight)(Flt x);
 
    static void Downsize2xLinear(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsize2xLinear(elm_index);}
           void downsize2xLinear(Int y)
    {
-      Byte *dest_data_y=dest.data()+y*dest.pitch();
       Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
+      Byte *dest_data_y=dest.data()+y*dest.pitch();
       Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
       {
          Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
@@ -4582,7 +4588,202 @@ struct CopyContext
          dest_data_x+=dest.bytePP();
       }
    }
+   static void Downsize2xLinear3D(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsize2xLinear3D(elm_index);}
+          void downsize2xLinear3D(IntPtr elm_index)
+   {
+      Int z=elm_index/dest.lh(),
+          y=elm_index%dest.lh();
+      Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, src.ld()-1) : (zc[0]+1)%src.ld()); // zc[0] is always OK
+      Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
+      REPD(x, dest.lw())
+      {
+         Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
+         Color col, c[2][2][2]; src.gather(&c[0][0][0], xc, Elms(xc), yc, Elms(yc), zc, Elms(zc)); // [z][y][x]
+         if(!alpha_weight)
+         {
+            col.a=((c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a+4)>>3);
+         linear_rgb_3D:
+            col.r=((c[0][0][0].r+c[0][0][1].r+c[0][1][0].r+c[0][1][1].r+c[1][0][0].r+c[1][0][1].r+c[1][1][0].r+c[1][1][1].r+4)>>3);
+            col.g=((c[0][0][0].g+c[0][0][1].g+c[0][1][0].g+c[0][1][1].g+c[1][0][0].g+c[1][0][1].g+c[1][1][0].g+c[1][1][1].g+4)>>3);
+            col.b=((c[0][0][0].b+c[0][0][1].b+c[0][1][0].b+c[0][1][1].b+c[1][0][0].b+c[1][0][1].b+c[1][1][0].b+c[1][1][1].b+4)>>3);
+         }else
+         {
+            UInt a=c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a;
+            if( !a){col.a=0; goto linear_rgb_3D;}
+            col.a=((a+4)>>3); UInt a_2=a>>1;
+            col.r=(c[0][0][0].r*c[0][0][0].a + c[0][0][1].r*c[0][0][1].a + c[0][1][0].r*c[0][1][0].a + c[0][1][1].r*c[0][1][1].a + c[1][0][0].r*c[1][0][0].a + c[1][0][1].r*c[1][0][1].a + c[1][1][0].r*c[1][1][0].a + c[1][1][1].r*c[1][1][1].a + a_2)/a;
+            col.g=(c[0][0][0].g*c[0][0][0].a + c[0][0][1].g*c[0][0][1].a + c[0][1][0].g*c[0][1][0].a + c[0][1][1].g*c[0][1][1].a + c[1][0][0].g*c[1][0][0].a + c[1][0][1].g*c[1][0][1].a + c[1][1][0].g*c[1][1][0].a + c[1][1][1].g*c[1][1][1].a + a_2)/a;
+            col.b=(c[0][0][0].b*c[0][0][0].a + c[0][0][1].b*c[0][0][1].a + c[0][1][0].b*c[0][1][0].a + c[0][1][1].b*c[0][1][1].a + c[1][0][0].b*c[1][0][0].a + c[1][0][1].b*c[1][0][1].a + c[1][1][0].b*c[1][1][0].a + c[1][1][1].b*c[1][1][1].a + a_2)/a;
+         }
+         dest.color3D(x, y, z, col);
+      }
+   }
+   static void Downsize2xCubicFastSharp(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsize2xCubicFastSharp(elm_index);}
+          void downsize2xCubicFastSharp(Int y)
+   {
+      Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
+      if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
+      else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
+      REPD(x, dest.lw())
+      {
+         Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
+         if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
+         else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
+         Color col, c[8][8]; // [y][x]
+      #if 1 // read 8x8
+         src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
+      #else // read 4x1, 8x6, 4x1, performance is the same
+         src.gather(&c[0][2], xc+2, Elms(xc)-4, yc  , 1         ); // top
+         src.gather(&c[1][0], xc  , Elms(xc)  , yc+1, Elms(yc)-2); // center
+         src.gather(&c[7][2], xc+2, Elms(xc)-4, yc+7, 1         ); // bottom
+      #endif
+         if(!alpha_weight)
+         {
+            col.a=Mid((/*c[0][0].a*CW8[0][0]  + c[0][1].a*CW8[0][1]*/+ c[0][2].a*CW8[0][2] + c[0][3].a*CW8[0][3] + c[0][4].a*CW8[0][4] + c[0][5].a*CW8[0][5] +/*c[0][6].a*CW8[0][6] +  c[0][7].a*CW8[0][7]*/
+                     /*+ c[1][0].a*CW8[1][0]*/+ c[1][1].a*CW8[1][1]  + c[1][2].a*CW8[1][2] + c[1][3].a*CW8[1][3] + c[1][4].a*CW8[1][4] + c[1][5].a*CW8[1][5] +  c[1][6].a*CW8[1][6] +/*c[1][7].a*CW8[1][7]*/
+                       + c[2][0].a*CW8[2][0]  + c[2][1].a*CW8[2][1]  + c[2][2].a*CW8[2][2] + c[2][3].a*CW8[2][3] + c[2][4].a*CW8[2][4] + c[2][5].a*CW8[2][5] +  c[2][6].a*CW8[2][6] +  c[2][7].a*CW8[2][7]
+                       + c[3][0].a*CW8[3][0]  + c[3][1].a*CW8[3][1]  + c[3][2].a*CW8[3][2] + c[3][3].a*CW8[3][3] + c[3][4].a*CW8[3][4] + c[3][5].a*CW8[3][5] +  c[3][6].a*CW8[3][6] +  c[3][7].a*CW8[3][7]
+                       + c[4][0].a*CW8[4][0]  + c[4][1].a*CW8[4][1]  + c[4][2].a*CW8[4][2] + c[4][3].a*CW8[4][3] + c[4][4].a*CW8[4][4] + c[4][5].a*CW8[4][5] +  c[4][6].a*CW8[4][6] +  c[4][7].a*CW8[4][7]
+                       + c[5][0].a*CW8[5][0]  + c[5][1].a*CW8[5][1]  + c[5][2].a*CW8[5][2] + c[5][3].a*CW8[5][3] + c[5][4].a*CW8[5][4] + c[5][5].a*CW8[5][5] +  c[5][6].a*CW8[5][6] +  c[5][7].a*CW8[5][7]
+                     /*+ c[6][0].a*CW8[6][0]*/+ c[6][1].a*CW8[6][1]  + c[6][2].a*CW8[6][2] + c[6][3].a*CW8[6][3] + c[6][4].a*CW8[6][4] + c[6][5].a*CW8[6][5] +  c[6][6].a*CW8[6][6] +/*c[6][7].a*CW8[6][7]*/
+                     /*+ c[7][0].a*CW8[7][0]  + c[7][1].a*CW8[7][1]*/+ c[7][2].a*CW8[7][2] + c[7][3].a*CW8[7][3] + c[7][4].a*CW8[7][4] + c[7][5].a*CW8[7][5] +/*c[7][6].a*CW8[7][6] +  c[7][7].a*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+         cubic_sharp_rgb:
+            col.r=Mid((/*c[0][0].r*CW8[0][0]  + c[0][1].r*CW8[0][1]*/+ c[0][2].r*CW8[0][2] + c[0][3].r*CW8[0][3] + c[0][4].r*CW8[0][4] + c[0][5].r*CW8[0][5] +/*c[0][6].r*CW8[0][6] +  c[0][7].r*CW8[0][7]*/
+                     /*+ c[1][0].r*CW8[1][0]*/+ c[1][1].r*CW8[1][1]  + c[1][2].r*CW8[1][2] + c[1][3].r*CW8[1][3] + c[1][4].r*CW8[1][4] + c[1][5].r*CW8[1][5] +  c[1][6].r*CW8[1][6] +/*c[1][7].r*CW8[1][7]*/
+                       + c[2][0].r*CW8[2][0]  + c[2][1].r*CW8[2][1]  + c[2][2].r*CW8[2][2] + c[2][3].r*CW8[2][3] + c[2][4].r*CW8[2][4] + c[2][5].r*CW8[2][5] +  c[2][6].r*CW8[2][6] +  c[2][7].r*CW8[2][7]
+                       + c[3][0].r*CW8[3][0]  + c[3][1].r*CW8[3][1]  + c[3][2].r*CW8[3][2] + c[3][3].r*CW8[3][3] + c[3][4].r*CW8[3][4] + c[3][5].r*CW8[3][5] +  c[3][6].r*CW8[3][6] +  c[3][7].r*CW8[3][7]
+                       + c[4][0].r*CW8[4][0]  + c[4][1].r*CW8[4][1]  + c[4][2].r*CW8[4][2] + c[4][3].r*CW8[4][3] + c[4][4].r*CW8[4][4] + c[4][5].r*CW8[4][5] +  c[4][6].r*CW8[4][6] +  c[4][7].r*CW8[4][7]
+                       + c[5][0].r*CW8[5][0]  + c[5][1].r*CW8[5][1]  + c[5][2].r*CW8[5][2] + c[5][3].r*CW8[5][3] + c[5][4].r*CW8[5][4] + c[5][5].r*CW8[5][5] +  c[5][6].r*CW8[5][6] +  c[5][7].r*CW8[5][7]
+                     /*+ c[6][0].r*CW8[6][0]*/+ c[6][1].r*CW8[6][1]  + c[6][2].r*CW8[6][2] + c[6][3].r*CW8[6][3] + c[6][4].r*CW8[6][4] + c[6][5].r*CW8[6][5] +  c[6][6].r*CW8[6][6] +/*c[6][7].r*CW8[6][7]*/
+                     /*+ c[7][0].r*CW8[7][0]  + c[7][1].r*CW8[7][1]*/+ c[7][2].r*CW8[7][2] + c[7][3].r*CW8[7][3] + c[7][4].r*CW8[7][4] + c[7][5].r*CW8[7][5] +/*c[7][6].r*CW8[7][6] +  c[7][7].r*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+            col.g=Mid((/*c[0][0].g*CW8[0][0]  + c[0][1].g*CW8[0][1]*/+ c[0][2].g*CW8[0][2] + c[0][3].g*CW8[0][3] + c[0][4].g*CW8[0][4] + c[0][5].g*CW8[0][5] +/*c[0][6].g*CW8[0][6] +  c[0][7].g*CW8[0][7]*/
+                     /*+ c[1][0].g*CW8[1][0]*/+ c[1][1].g*CW8[1][1]  + c[1][2].g*CW8[1][2] + c[1][3].g*CW8[1][3] + c[1][4].g*CW8[1][4] + c[1][5].g*CW8[1][5] +  c[1][6].g*CW8[1][6] +/*c[1][7].g*CW8[1][7]*/
+                       + c[2][0].g*CW8[2][0]  + c[2][1].g*CW8[2][1]  + c[2][2].g*CW8[2][2] + c[2][3].g*CW8[2][3] + c[2][4].g*CW8[2][4] + c[2][5].g*CW8[2][5] +  c[2][6].g*CW8[2][6] +  c[2][7].g*CW8[2][7]
+                       + c[3][0].g*CW8[3][0]  + c[3][1].g*CW8[3][1]  + c[3][2].g*CW8[3][2] + c[3][3].g*CW8[3][3] + c[3][4].g*CW8[3][4] + c[3][5].g*CW8[3][5] +  c[3][6].g*CW8[3][6] +  c[3][7].g*CW8[3][7]
+                       + c[4][0].g*CW8[4][0]  + c[4][1].g*CW8[4][1]  + c[4][2].g*CW8[4][2] + c[4][3].g*CW8[4][3] + c[4][4].g*CW8[4][4] + c[4][5].g*CW8[4][5] +  c[4][6].g*CW8[4][6] +  c[4][7].g*CW8[4][7]
+                       + c[5][0].g*CW8[5][0]  + c[5][1].g*CW8[5][1]  + c[5][2].g*CW8[5][2] + c[5][3].g*CW8[5][3] + c[5][4].g*CW8[5][4] + c[5][5].g*CW8[5][5] +  c[5][6].g*CW8[5][6] +  c[5][7].g*CW8[5][7]
+                     /*+ c[6][0].g*CW8[6][0]*/+ c[6][1].g*CW8[6][1]  + c[6][2].g*CW8[6][2] + c[6][3].g*CW8[6][3] + c[6][4].g*CW8[6][4] + c[6][5].g*CW8[6][5] +  c[6][6].g*CW8[6][6] +/*c[6][7].g*CW8[6][7]*/
+                     /*+ c[7][0].g*CW8[7][0]  + c[7][1].g*CW8[7][1]*/+ c[7][2].g*CW8[7][2] + c[7][3].g*CW8[7][3] + c[7][4].g*CW8[7][4] + c[7][5].g*CW8[7][5] +/*c[7][6].g*CW8[7][6] +  c[7][7].g*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+            col.b=Mid((/*c[0][0].b*CW8[0][0]  + c[0][1].b*CW8[0][1]*/+ c[0][2].b*CW8[0][2] + c[0][3].b*CW8[0][3] + c[0][4].b*CW8[0][4] + c[0][5].b*CW8[0][5] +/*c[0][6].b*CW8[0][6] +  c[0][7].b*CW8[0][7]*/
+                     /*+ c[1][0].b*CW8[1][0]*/+ c[1][1].b*CW8[1][1]  + c[1][2].b*CW8[1][2] + c[1][3].b*CW8[1][3] + c[1][4].b*CW8[1][4] + c[1][5].b*CW8[1][5] +  c[1][6].b*CW8[1][6] +/*c[1][7].b*CW8[1][7]*/
+                       + c[2][0].b*CW8[2][0]  + c[2][1].b*CW8[2][1]  + c[2][2].b*CW8[2][2] + c[2][3].b*CW8[2][3] + c[2][4].b*CW8[2][4] + c[2][5].b*CW8[2][5] +  c[2][6].b*CW8[2][6] +  c[2][7].b*CW8[2][7]
+                       + c[3][0].b*CW8[3][0]  + c[3][1].b*CW8[3][1]  + c[3][2].b*CW8[3][2] + c[3][3].b*CW8[3][3] + c[3][4].b*CW8[3][4] + c[3][5].b*CW8[3][5] +  c[3][6].b*CW8[3][6] +  c[3][7].b*CW8[3][7]
+                       + c[4][0].b*CW8[4][0]  + c[4][1].b*CW8[4][1]  + c[4][2].b*CW8[4][2] + c[4][3].b*CW8[4][3] + c[4][4].b*CW8[4][4] + c[4][5].b*CW8[4][5] +  c[4][6].b*CW8[4][6] +  c[4][7].b*CW8[4][7]
+                       + c[5][0].b*CW8[5][0]  + c[5][1].b*CW8[5][1]  + c[5][2].b*CW8[5][2] + c[5][3].b*CW8[5][3] + c[5][4].b*CW8[5][4] + c[5][5].b*CW8[5][5] +  c[5][6].b*CW8[5][6] +  c[5][7].b*CW8[5][7]
+                     /*+ c[6][0].b*CW8[6][0]*/+ c[6][1].b*CW8[6][1]  + c[6][2].b*CW8[6][2] + c[6][3].b*CW8[6][3] + c[6][4].b*CW8[6][4] + c[6][5].b*CW8[6][5] +  c[6][6].b*CW8[6][6] +/*c[6][7].b*CW8[6][7]*/
+                     /*+ c[7][0].b*CW8[7][0]  + c[7][1].b*CW8[7][1]*/+ c[7][2].b*CW8[7][2] + c[7][3].b*CW8[7][3] + c[7][4].b*CW8[7][4] + c[7][5].b*CW8[7][5] +/*c[7][6].b*CW8[7][6] +  c[7][7].b*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+         }else
+         {
+            Int w[8][8]={{/*CWA8[0][0]*c[0][0].a*/0,/*CWA8[0][1]*c[0][1].a*/0, CWA8[0][2]*c[0][2].a, CWA8[0][3]*c[0][3].a, CWA8[0][4]*c[0][4].a, CWA8[0][5]*c[0][5].a,/*CWA8[0][6]*c[0][6].a*/0,/*CWA8[0][7]*c[0][7].a*/0},
+                         {/*CWA8[1][0]*c[1][0].a*/0,  CWA8[1][1]*c[1][1].a   , CWA8[1][2]*c[1][2].a, CWA8[1][3]*c[1][3].a, CWA8[1][4]*c[1][4].a, CWA8[1][5]*c[1][5].a,  CWA8[1][6]*c[1][6].a   ,/*CWA8[1][7]*c[1][7].a*/0},
+                         {  CWA8[2][0]*c[2][0].a   ,  CWA8[2][1]*c[2][1].a   , CWA8[2][2]*c[2][2].a, CWA8[2][3]*c[2][3].a, CWA8[2][4]*c[2][4].a, CWA8[2][5]*c[2][5].a,  CWA8[2][6]*c[2][6].a   ,  CWA8[2][7]*c[2][7].a   },
+                         {  CWA8[3][0]*c[3][0].a   ,  CWA8[3][1]*c[3][1].a   , CWA8[3][2]*c[3][2].a, CWA8[3][3]*c[3][3].a, CWA8[3][4]*c[3][4].a, CWA8[3][5]*c[3][5].a,  CWA8[3][6]*c[3][6].a   ,  CWA8[3][7]*c[3][7].a   },
+                         {  CWA8[4][0]*c[4][0].a   ,  CWA8[4][1]*c[4][1].a   , CWA8[4][2]*c[4][2].a, CWA8[4][3]*c[4][3].a, CWA8[4][4]*c[4][4].a, CWA8[4][5]*c[4][5].a,  CWA8[4][6]*c[4][6].a   ,  CWA8[4][7]*c[4][7].a   },
+                         {  CWA8[5][0]*c[5][0].a   ,  CWA8[5][1]*c[5][1].a   , CWA8[5][2]*c[5][2].a, CWA8[5][3]*c[5][3].a, CWA8[5][4]*c[5][4].a, CWA8[5][5]*c[5][5].a,  CWA8[5][6]*c[5][6].a   ,  CWA8[5][7]*c[5][7].a   },
+                         {/*CWA8[6][0]*c[6][0].a*/0,  CWA8[6][1]*c[6][1].a   , CWA8[6][2]*c[6][2].a, CWA8[6][3]*c[6][3].a, CWA8[6][4]*c[6][4].a, CWA8[6][5]*c[6][5].a,  CWA8[6][6]*c[6][6].a   ,/*CWA8[6][7]*c[6][7].a*/0},
+                         {/*CWA8[7][0]*c[7][0].a*/0,/*CWA8[7][1]*c[7][1].a*/0, CWA8[7][2]*c[7][2].a, CWA8[7][3]*c[7][3].a, CWA8[7][4]*c[7][4].a, CWA8[7][5]*c[7][5].a,/*CWA8[7][6]*c[7][6].a*/0,/*CWA8[7][7]*c[7][7].a*/0}};
+            Int div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
+                  /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
+                    + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
+                    + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
+                    + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
+                    + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
+                  /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
+                  /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
+            if(div<=0){col.a=0; goto cubic_sharp_rgb;}
+            col.a=Min(DivRound(div, CWA8Sum), 255); // here "div>0" so no need to do "Max(0, "
+            if(div<CWA8AlphaLimit) // below this limit, lerp to RGB
+            {
+               // instead of lerping actual colors, we lerp just the weights, it is an approximation and does not provide the same results as float version, however it is faster
+               // weights are lerped between "CWA8[y][x]" (alpha_weight=false) and "CWA8[y][x]*c[y][x].a" (alpha_weight=true)
+               // since the right side has a scale of "c[y][x].a", we multiply the left side by "Max(col.a, 1)" (average alpha value, and max 1 to avoid having zero weights and division by zero later)
+            #if 0 // float version
+               C Flt blend=Flt(div)/CWA8AlphaLimit;
+               REPD(y, 8)
+               REPD(x, 8)w[y][x]=Lerp(CWA8[y][x]*Max(col.a, 1), w[y][x], blend);
+            #else // integer version
+               C Int d=256, blend=div/d, blend1=(CWA8AlphaLimit/d-blend)*Max(col.a, 1);
+               REPD(y, 8)
+               REPD(x, 8)w[y][x]=(CWA8[y][x]*blend1 + w[y][x]*blend)>>10;
+            #endif
 
+               // recalculate 'div'
+               div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
+                 /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
+                   + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
+                   + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
+                   + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
+                   + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
+                 /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
+                 /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
+            }
+            Int div_2=div>>1;
+            col.r=Mid((/*c[0][0].r*w[0][0]  + c[0][1].r*w[0][1]*/+ c[0][2].r*w[0][2] + c[0][3].r*w[0][3] + c[0][4].r*w[0][4] + c[0][5].r*w[0][5] +/*c[0][6].r*w[0][6] +  c[0][7].r*w[0][7]*/
+                     /*+ c[1][0].r*w[1][0]*/+ c[1][1].r*w[1][1]  + c[1][2].r*w[1][2] + c[1][3].r*w[1][3] + c[1][4].r*w[1][4] + c[1][5].r*w[1][5] +  c[1][6].r*w[1][6] +/*c[1][7].r*w[1][7]*/
+                       + c[2][0].r*w[2][0]  + c[2][1].r*w[2][1]  + c[2][2].r*w[2][2] + c[2][3].r*w[2][3] + c[2][4].r*w[2][4] + c[2][5].r*w[2][5] +  c[2][6].r*w[2][6] +  c[2][7].r*w[2][7]
+                       + c[3][0].r*w[3][0]  + c[3][1].r*w[3][1]  + c[3][2].r*w[3][2] + c[3][3].r*w[3][3] + c[3][4].r*w[3][4] + c[3][5].r*w[3][5] +  c[3][6].r*w[3][6] +  c[3][7].r*w[3][7]
+                       + c[4][0].r*w[4][0]  + c[4][1].r*w[4][1]  + c[4][2].r*w[4][2] + c[4][3].r*w[4][3] + c[4][4].r*w[4][4] + c[4][5].r*w[4][5] +  c[4][6].r*w[4][6] +  c[4][7].r*w[4][7]
+                       + c[5][0].r*w[5][0]  + c[5][1].r*w[5][1]  + c[5][2].r*w[5][2] + c[5][3].r*w[5][3] + c[5][4].r*w[5][4] + c[5][5].r*w[5][5] +  c[5][6].r*w[5][6] +  c[5][7].r*w[5][7]
+                     /*+ c[6][0].r*w[6][0]*/+ c[6][1].r*w[6][1]  + c[6][2].r*w[6][2] + c[6][3].r*w[6][3] + c[6][4].r*w[6][4] + c[6][5].r*w[6][5] +  c[6][6].r*w[6][6] +/*c[6][7].r*w[6][7]*/
+                     /*+ c[7][0].r*w[7][0]  + c[7][1].r*w[7][1]*/+ c[7][2].r*w[7][2] + c[7][3].r*w[7][3] + c[7][4].r*w[7][4] + c[7][5].r*w[7][5] +/*c[7][6].r*w[7][6] +  c[7][7].r*w[7][7]*/ + div_2)/div, 0, 255);
+            col.g=Mid((/*c[0][0].g*w[0][0]  + c[0][1].g*w[0][1]*/+ c[0][2].g*w[0][2] + c[0][3].g*w[0][3] + c[0][4].g*w[0][4] + c[0][5].g*w[0][5] +/*c[0][6].g*w[0][6] +  c[0][7].g*w[0][7]*/
+                     /*+ c[1][0].g*w[1][0]*/+ c[1][1].g*w[1][1]  + c[1][2].g*w[1][2] + c[1][3].g*w[1][3] + c[1][4].g*w[1][4] + c[1][5].g*w[1][5] +  c[1][6].g*w[1][6] +/*c[1][7].g*w[1][7]*/
+                       + c[2][0].g*w[2][0]  + c[2][1].g*w[2][1]  + c[2][2].g*w[2][2] + c[2][3].g*w[2][3] + c[2][4].g*w[2][4] + c[2][5].g*w[2][5] +  c[2][6].g*w[2][6] +  c[2][7].g*w[2][7]
+                       + c[3][0].g*w[3][0]  + c[3][1].g*w[3][1]  + c[3][2].g*w[3][2] + c[3][3].g*w[3][3] + c[3][4].g*w[3][4] + c[3][5].g*w[3][5] +  c[3][6].g*w[3][6] +  c[3][7].g*w[3][7]
+                       + c[4][0].g*w[4][0]  + c[4][1].g*w[4][1]  + c[4][2].g*w[4][2] + c[4][3].g*w[4][3] + c[4][4].g*w[4][4] + c[4][5].g*w[4][5] +  c[4][6].g*w[4][6] +  c[4][7].g*w[4][7]
+                       + c[5][0].g*w[5][0]  + c[5][1].g*w[5][1]  + c[5][2].g*w[5][2] + c[5][3].g*w[5][3] + c[5][4].g*w[5][4] + c[5][5].g*w[5][5] +  c[5][6].g*w[5][6] +  c[5][7].g*w[5][7]
+                     /*+ c[6][0].g*w[6][0]*/+ c[6][1].g*w[6][1]  + c[6][2].g*w[6][2] + c[6][3].g*w[6][3] + c[6][4].g*w[6][4] + c[6][5].g*w[6][5] +  c[6][6].g*w[6][6] +/*c[6][7].g*w[6][7]*/
+                     /*+ c[7][0].g*w[7][0]  + c[7][1].g*w[7][1]*/+ c[7][2].g*w[7][2] + c[7][3].g*w[7][3] + c[7][4].g*w[7][4] + c[7][5].g*w[7][5] +/*c[7][6].g*w[7][6] +  c[7][7].g*w[7][7]*/ + div_2)/div, 0, 255);
+            col.b=Mid((/*c[0][0].b*w[0][0]  + c[0][1].b*w[0][1]*/+ c[0][2].b*w[0][2] + c[0][3].b*w[0][3] + c[0][4].b*w[0][4] + c[0][5].b*w[0][5] +/*c[0][6].b*w[0][6] +  c[0][7].b*w[0][7]*/
+                     /*+ c[1][0].b*w[1][0]*/+ c[1][1].b*w[1][1]  + c[1][2].b*w[1][2] + c[1][3].b*w[1][3] + c[1][4].b*w[1][4] + c[1][5].b*w[1][5] +  c[1][6].b*w[1][6] +/*c[1][7].b*w[1][7]*/
+                       + c[2][0].b*w[2][0]  + c[2][1].b*w[2][1]  + c[2][2].b*w[2][2] + c[2][3].b*w[2][3] + c[2][4].b*w[2][4] + c[2][5].b*w[2][5] +  c[2][6].b*w[2][6] +  c[2][7].b*w[2][7]
+                       + c[3][0].b*w[3][0]  + c[3][1].b*w[3][1]  + c[3][2].b*w[3][2] + c[3][3].b*w[3][3] + c[3][4].b*w[3][4] + c[3][5].b*w[3][5] +  c[3][6].b*w[3][6] +  c[3][7].b*w[3][7]
+                       + c[4][0].b*w[4][0]  + c[4][1].b*w[4][1]  + c[4][2].b*w[4][2] + c[4][3].b*w[4][3] + c[4][4].b*w[4][4] + c[4][5].b*w[4][5] +  c[4][6].b*w[4][6] +  c[4][7].b*w[4][7]
+                       + c[5][0].b*w[5][0]  + c[5][1].b*w[5][1]  + c[5][2].b*w[5][2] + c[5][3].b*w[5][3] + c[5][4].b*w[5][4] + c[5][5].b*w[5][5] +  c[5][6].b*w[5][6] +  c[5][7].b*w[5][7]
+                     /*+ c[6][0].b*w[6][0]*/+ c[6][1].b*w[6][1]  + c[6][2].b*w[6][2] + c[6][3].b*w[6][3] + c[6][4].b*w[6][4] + c[6][5].b*w[6][5] +  c[6][6].b*w[6][6] +/*c[6][7].b*w[6][7]*/
+                     /*+ c[7][0].b*w[7][0]  + c[7][1].b*w[7][1]*/+ c[7][2].b*w[7][2] + c[7][3].b*w[7][3] + c[7][4].b*w[7][4] + c[7][5].b*w[7][5] +/*c[7][6].b*w[7][6] +  c[7][7].b*w[7][7]*/ + div_2)/div, 0, 255);
+         }
+         dest.color(x, y, col);
+      }
+   }
+   static void Downsize2xCubicFastSmooth(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsize2xCubicFastSmooth(elm_index);}
+          void downsize2xCubicFastSmooth(Int y)
+   {
+      Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
+      if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
+      else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
+      Byte *dest_data_y=dest.data()+y*dest.pitch();
+      Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+      {
+         Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
+         if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
+         else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
+         Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
+         src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
+         REPD(x, 8)
+         REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
+         Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
+         if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+         set_color(dest_data_x, dest.type(), dest.hwType(), color);
+         dest_data_x+=dest.bytePP();
+      }
+   }
+   static void DownsizeArea(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsizeArea(elm_index);}
+          void downsizeArea(Int y)
+   {
+      Vec2 pos;
+      pos.y=y*y_mul_add.x+y_mul_add.y;
+      Byte *dest_data_y=dest.data()+y*dest.pitch();
+      Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+      {
+         pos.x=x*x_mul_add.x+x_mul_add.y;
+         Vec4 color=(src.*area_color)(pos, area_size.xy, clamp, alpha_weight);
+         if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+         set_color(dest_data_x, dest.type(), dest.hwType(), color);
+         dest_data_x+=dest.bytePP();
+      }
+   }
+   
    CopyContext(C Image &src, Image &dest, UInt flags) : src(src), dest(dest),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
@@ -4750,135 +4951,9 @@ struct CopyContext
                       //high_prec|=src_srgb; FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma (artifacts happen due to sharpening)
                         if(!high_prec)
                         {
-                           REPD(y, dest.lh())
-                           {
-                              Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                              if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
-                              else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
-                              REPD(x, dest.lw())
-                              {
-                                 Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                                 if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
-                                 else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
-                                 Color col, c[8][8]; // [y][x]
-                              #if 1 // read 8x8
-                                 src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
-                              #else // read 4x1, 8x6, 4x1, performance is the same
-                                 src.gather(&c[0][2], xc+2, Elms(xc)-4, yc  , 1         ); // top
-                                 src.gather(&c[1][0], xc  , Elms(xc)  , yc+1, Elms(yc)-2); // center
-                                 src.gather(&c[7][2], xc+2, Elms(xc)-4, yc+7, 1         ); // bottom
-                              #endif
-                                 if(!alpha_weight)
-                                 {
-                                    col.a=Mid((/*c[0][0].a*CW8[0][0]  + c[0][1].a*CW8[0][1]*/+ c[0][2].a*CW8[0][2] + c[0][3].a*CW8[0][3] + c[0][4].a*CW8[0][4] + c[0][5].a*CW8[0][5] +/*c[0][6].a*CW8[0][6] +  c[0][7].a*CW8[0][7]*/
-                                             /*+ c[1][0].a*CW8[1][0]*/+ c[1][1].a*CW8[1][1]  + c[1][2].a*CW8[1][2] + c[1][3].a*CW8[1][3] + c[1][4].a*CW8[1][4] + c[1][5].a*CW8[1][5] +  c[1][6].a*CW8[1][6] +/*c[1][7].a*CW8[1][7]*/
-                                               + c[2][0].a*CW8[2][0]  + c[2][1].a*CW8[2][1]  + c[2][2].a*CW8[2][2] + c[2][3].a*CW8[2][3] + c[2][4].a*CW8[2][4] + c[2][5].a*CW8[2][5] +  c[2][6].a*CW8[2][6] +  c[2][7].a*CW8[2][7]
-                                               + c[3][0].a*CW8[3][0]  + c[3][1].a*CW8[3][1]  + c[3][2].a*CW8[3][2] + c[3][3].a*CW8[3][3] + c[3][4].a*CW8[3][4] + c[3][5].a*CW8[3][5] +  c[3][6].a*CW8[3][6] +  c[3][7].a*CW8[3][7]
-                                               + c[4][0].a*CW8[4][0]  + c[4][1].a*CW8[4][1]  + c[4][2].a*CW8[4][2] + c[4][3].a*CW8[4][3] + c[4][4].a*CW8[4][4] + c[4][5].a*CW8[4][5] +  c[4][6].a*CW8[4][6] +  c[4][7].a*CW8[4][7]
-                                               + c[5][0].a*CW8[5][0]  + c[5][1].a*CW8[5][1]  + c[5][2].a*CW8[5][2] + c[5][3].a*CW8[5][3] + c[5][4].a*CW8[5][4] + c[5][5].a*CW8[5][5] +  c[5][6].a*CW8[5][6] +  c[5][7].a*CW8[5][7]
-                                             /*+ c[6][0].a*CW8[6][0]*/+ c[6][1].a*CW8[6][1]  + c[6][2].a*CW8[6][2] + c[6][3].a*CW8[6][3] + c[6][4].a*CW8[6][4] + c[6][5].a*CW8[6][5] +  c[6][6].a*CW8[6][6] +/*c[6][7].a*CW8[6][7]*/
-                                             /*+ c[7][0].a*CW8[7][0]  + c[7][1].a*CW8[7][1]*/+ c[7][2].a*CW8[7][2] + c[7][3].a*CW8[7][3] + c[7][4].a*CW8[7][4] + c[7][5].a*CW8[7][5] +/*c[7][6].a*CW8[7][6] +  c[7][7].a*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                 cubic_sharp_rgb:
-                                    col.r=Mid((/*c[0][0].r*CW8[0][0]  + c[0][1].r*CW8[0][1]*/+ c[0][2].r*CW8[0][2] + c[0][3].r*CW8[0][3] + c[0][4].r*CW8[0][4] + c[0][5].r*CW8[0][5] +/*c[0][6].r*CW8[0][6] +  c[0][7].r*CW8[0][7]*/
-                                             /*+ c[1][0].r*CW8[1][0]*/+ c[1][1].r*CW8[1][1]  + c[1][2].r*CW8[1][2] + c[1][3].r*CW8[1][3] + c[1][4].r*CW8[1][4] + c[1][5].r*CW8[1][5] +  c[1][6].r*CW8[1][6] +/*c[1][7].r*CW8[1][7]*/
-                                               + c[2][0].r*CW8[2][0]  + c[2][1].r*CW8[2][1]  + c[2][2].r*CW8[2][2] + c[2][3].r*CW8[2][3] + c[2][4].r*CW8[2][4] + c[2][5].r*CW8[2][5] +  c[2][6].r*CW8[2][6] +  c[2][7].r*CW8[2][7]
-                                               + c[3][0].r*CW8[3][0]  + c[3][1].r*CW8[3][1]  + c[3][2].r*CW8[3][2] + c[3][3].r*CW8[3][3] + c[3][4].r*CW8[3][4] + c[3][5].r*CW8[3][5] +  c[3][6].r*CW8[3][6] +  c[3][7].r*CW8[3][7]
-                                               + c[4][0].r*CW8[4][0]  + c[4][1].r*CW8[4][1]  + c[4][2].r*CW8[4][2] + c[4][3].r*CW8[4][3] + c[4][4].r*CW8[4][4] + c[4][5].r*CW8[4][5] +  c[4][6].r*CW8[4][6] +  c[4][7].r*CW8[4][7]
-                                               + c[5][0].r*CW8[5][0]  + c[5][1].r*CW8[5][1]  + c[5][2].r*CW8[5][2] + c[5][3].r*CW8[5][3] + c[5][4].r*CW8[5][4] + c[5][5].r*CW8[5][5] +  c[5][6].r*CW8[5][6] +  c[5][7].r*CW8[5][7]
-                                             /*+ c[6][0].r*CW8[6][0]*/+ c[6][1].r*CW8[6][1]  + c[6][2].r*CW8[6][2] + c[6][3].r*CW8[6][3] + c[6][4].r*CW8[6][4] + c[6][5].r*CW8[6][5] +  c[6][6].r*CW8[6][6] +/*c[6][7].r*CW8[6][7]*/
-                                             /*+ c[7][0].r*CW8[7][0]  + c[7][1].r*CW8[7][1]*/+ c[7][2].r*CW8[7][2] + c[7][3].r*CW8[7][3] + c[7][4].r*CW8[7][4] + c[7][5].r*CW8[7][5] +/*c[7][6].r*CW8[7][6] +  c[7][7].r*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                    col.g=Mid((/*c[0][0].g*CW8[0][0]  + c[0][1].g*CW8[0][1]*/+ c[0][2].g*CW8[0][2] + c[0][3].g*CW8[0][3] + c[0][4].g*CW8[0][4] + c[0][5].g*CW8[0][5] +/*c[0][6].g*CW8[0][6] +  c[0][7].g*CW8[0][7]*/
-                                             /*+ c[1][0].g*CW8[1][0]*/+ c[1][1].g*CW8[1][1]  + c[1][2].g*CW8[1][2] + c[1][3].g*CW8[1][3] + c[1][4].g*CW8[1][4] + c[1][5].g*CW8[1][5] +  c[1][6].g*CW8[1][6] +/*c[1][7].g*CW8[1][7]*/
-                                               + c[2][0].g*CW8[2][0]  + c[2][1].g*CW8[2][1]  + c[2][2].g*CW8[2][2] + c[2][3].g*CW8[2][3] + c[2][4].g*CW8[2][4] + c[2][5].g*CW8[2][5] +  c[2][6].g*CW8[2][6] +  c[2][7].g*CW8[2][7]
-                                               + c[3][0].g*CW8[3][0]  + c[3][1].g*CW8[3][1]  + c[3][2].g*CW8[3][2] + c[3][3].g*CW8[3][3] + c[3][4].g*CW8[3][4] + c[3][5].g*CW8[3][5] +  c[3][6].g*CW8[3][6] +  c[3][7].g*CW8[3][7]
-                                               + c[4][0].g*CW8[4][0]  + c[4][1].g*CW8[4][1]  + c[4][2].g*CW8[4][2] + c[4][3].g*CW8[4][3] + c[4][4].g*CW8[4][4] + c[4][5].g*CW8[4][5] +  c[4][6].g*CW8[4][6] +  c[4][7].g*CW8[4][7]
-                                               + c[5][0].g*CW8[5][0]  + c[5][1].g*CW8[5][1]  + c[5][2].g*CW8[5][2] + c[5][3].g*CW8[5][3] + c[5][4].g*CW8[5][4] + c[5][5].g*CW8[5][5] +  c[5][6].g*CW8[5][6] +  c[5][7].g*CW8[5][7]
-                                             /*+ c[6][0].g*CW8[6][0]*/+ c[6][1].g*CW8[6][1]  + c[6][2].g*CW8[6][2] + c[6][3].g*CW8[6][3] + c[6][4].g*CW8[6][4] + c[6][5].g*CW8[6][5] +  c[6][6].g*CW8[6][6] +/*c[6][7].g*CW8[6][7]*/
-                                             /*+ c[7][0].g*CW8[7][0]  + c[7][1].g*CW8[7][1]*/+ c[7][2].g*CW8[7][2] + c[7][3].g*CW8[7][3] + c[7][4].g*CW8[7][4] + c[7][5].g*CW8[7][5] +/*c[7][6].g*CW8[7][6] +  c[7][7].g*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                    col.b=Mid((/*c[0][0].b*CW8[0][0]  + c[0][1].b*CW8[0][1]*/+ c[0][2].b*CW8[0][2] + c[0][3].b*CW8[0][3] + c[0][4].b*CW8[0][4] + c[0][5].b*CW8[0][5] +/*c[0][6].b*CW8[0][6] +  c[0][7].b*CW8[0][7]*/
-                                             /*+ c[1][0].b*CW8[1][0]*/+ c[1][1].b*CW8[1][1]  + c[1][2].b*CW8[1][2] + c[1][3].b*CW8[1][3] + c[1][4].b*CW8[1][4] + c[1][5].b*CW8[1][5] +  c[1][6].b*CW8[1][6] +/*c[1][7].b*CW8[1][7]*/
-                                               + c[2][0].b*CW8[2][0]  + c[2][1].b*CW8[2][1]  + c[2][2].b*CW8[2][2] + c[2][3].b*CW8[2][3] + c[2][4].b*CW8[2][4] + c[2][5].b*CW8[2][5] +  c[2][6].b*CW8[2][6] +  c[2][7].b*CW8[2][7]
-                                               + c[3][0].b*CW8[3][0]  + c[3][1].b*CW8[3][1]  + c[3][2].b*CW8[3][2] + c[3][3].b*CW8[3][3] + c[3][4].b*CW8[3][4] + c[3][5].b*CW8[3][5] +  c[3][6].b*CW8[3][6] +  c[3][7].b*CW8[3][7]
-                                               + c[4][0].b*CW8[4][0]  + c[4][1].b*CW8[4][1]  + c[4][2].b*CW8[4][2] + c[4][3].b*CW8[4][3] + c[4][4].b*CW8[4][4] + c[4][5].b*CW8[4][5] +  c[4][6].b*CW8[4][6] +  c[4][7].b*CW8[4][7]
-                                               + c[5][0].b*CW8[5][0]  + c[5][1].b*CW8[5][1]  + c[5][2].b*CW8[5][2] + c[5][3].b*CW8[5][3] + c[5][4].b*CW8[5][4] + c[5][5].b*CW8[5][5] +  c[5][6].b*CW8[5][6] +  c[5][7].b*CW8[5][7]
-                                             /*+ c[6][0].b*CW8[6][0]*/+ c[6][1].b*CW8[6][1]  + c[6][2].b*CW8[6][2] + c[6][3].b*CW8[6][3] + c[6][4].b*CW8[6][4] + c[6][5].b*CW8[6][5] +  c[6][6].b*CW8[6][6] +/*c[6][7].b*CW8[6][7]*/
-                                             /*+ c[7][0].b*CW8[7][0]  + c[7][1].b*CW8[7][1]*/+ c[7][2].b*CW8[7][2] + c[7][3].b*CW8[7][3] + c[7][4].b*CW8[7][4] + c[7][5].b*CW8[7][5] +/*c[7][6].b*CW8[7][6] +  c[7][7].b*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                 }else
-                                 {
-                                    Int w[8][8]={{/*CWA8[0][0]*c[0][0].a*/0,/*CWA8[0][1]*c[0][1].a*/0, CWA8[0][2]*c[0][2].a, CWA8[0][3]*c[0][3].a, CWA8[0][4]*c[0][4].a, CWA8[0][5]*c[0][5].a,/*CWA8[0][6]*c[0][6].a*/0,/*CWA8[0][7]*c[0][7].a*/0},
-                                                 {/*CWA8[1][0]*c[1][0].a*/0,  CWA8[1][1]*c[1][1].a   , CWA8[1][2]*c[1][2].a, CWA8[1][3]*c[1][3].a, CWA8[1][4]*c[1][4].a, CWA8[1][5]*c[1][5].a,  CWA8[1][6]*c[1][6].a   ,/*CWA8[1][7]*c[1][7].a*/0},
-                                                 {  CWA8[2][0]*c[2][0].a   ,  CWA8[2][1]*c[2][1].a   , CWA8[2][2]*c[2][2].a, CWA8[2][3]*c[2][3].a, CWA8[2][4]*c[2][4].a, CWA8[2][5]*c[2][5].a,  CWA8[2][6]*c[2][6].a   ,  CWA8[2][7]*c[2][7].a   },
-                                                 {  CWA8[3][0]*c[3][0].a   ,  CWA8[3][1]*c[3][1].a   , CWA8[3][2]*c[3][2].a, CWA8[3][3]*c[3][3].a, CWA8[3][4]*c[3][4].a, CWA8[3][5]*c[3][5].a,  CWA8[3][6]*c[3][6].a   ,  CWA8[3][7]*c[3][7].a   },
-                                                 {  CWA8[4][0]*c[4][0].a   ,  CWA8[4][1]*c[4][1].a   , CWA8[4][2]*c[4][2].a, CWA8[4][3]*c[4][3].a, CWA8[4][4]*c[4][4].a, CWA8[4][5]*c[4][5].a,  CWA8[4][6]*c[4][6].a   ,  CWA8[4][7]*c[4][7].a   },
-                                                 {  CWA8[5][0]*c[5][0].a   ,  CWA8[5][1]*c[5][1].a   , CWA8[5][2]*c[5][2].a, CWA8[5][3]*c[5][3].a, CWA8[5][4]*c[5][4].a, CWA8[5][5]*c[5][5].a,  CWA8[5][6]*c[5][6].a   ,  CWA8[5][7]*c[5][7].a   },
-                                                 {/*CWA8[6][0]*c[6][0].a*/0,  CWA8[6][1]*c[6][1].a   , CWA8[6][2]*c[6][2].a, CWA8[6][3]*c[6][3].a, CWA8[6][4]*c[6][4].a, CWA8[6][5]*c[6][5].a,  CWA8[6][6]*c[6][6].a   ,/*CWA8[6][7]*c[6][7].a*/0},
-                                                 {/*CWA8[7][0]*c[7][0].a*/0,/*CWA8[7][1]*c[7][1].a*/0, CWA8[7][2]*c[7][2].a, CWA8[7][3]*c[7][3].a, CWA8[7][4]*c[7][4].a, CWA8[7][5]*c[7][5].a,/*CWA8[7][6]*c[7][6].a*/0,/*CWA8[7][7]*c[7][7].a*/0}};
-                                    Int div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
-                                          /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
-                                            + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
-                                            + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
-                                            + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
-                                            + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
-                                          /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
-                                          /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
-                                    if(div<=0){col.a=0; goto cubic_sharp_rgb;}
-                                    col.a=Min(DivRound(div, CWA8Sum), 255); // here "div>0" so no need to do "Max(0, "
-                                    if(div<CWA8AlphaLimit) // below this limit, lerp to RGB
-                                    {
-                                       // instead of lerping actual colors, we lerp just the weights, it is an approximation and does not provide the same results as float version, however it is faster
-                                       // weights are lerped between "CWA8[y][x]" (alpha_weight=false) and "CWA8[y][x]*c[y][x].a" (alpha_weight=true)
-                                       // since the right side has a scale of "c[y][x].a", we multiply the left side by "Max(col.a, 1)" (average alpha value, and max 1 to avoid having zero weights and division by zero later)
-                                    #if 0 // float version
-                                     C Flt blend=Flt(div)/CWA8AlphaLimit;
-                                       REPD(y, 8)
-                                       REPD(x, 8)w[y][x]=Lerp(CWA8[y][x]*Max(col.a, 1), w[y][x], blend);
-                                    #else // integer version
-                                     C Int d=256, blend=div/d, blend1=(CWA8AlphaLimit/d-blend)*Max(col.a, 1);
-                                       REPD(y, 8)
-                                       REPD(x, 8)w[y][x]=(CWA8[y][x]*blend1 + w[y][x]*blend)>>10;
-                                    #endif
-
-                                       // recalculate 'div'
-                                       div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
-                                         /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
-                                           + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
-                                           + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
-                                           + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
-                                           + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
-                                         /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
-                                         /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
-                                    }
-                                    Int div_2=div>>1;
-                                    col.r=Mid((/*c[0][0].r*w[0][0]  + c[0][1].r*w[0][1]*/+ c[0][2].r*w[0][2] + c[0][3].r*w[0][3] + c[0][4].r*w[0][4] + c[0][5].r*w[0][5] +/*c[0][6].r*w[0][6] +  c[0][7].r*w[0][7]*/
-                                             /*+ c[1][0].r*w[1][0]*/+ c[1][1].r*w[1][1]  + c[1][2].r*w[1][2] + c[1][3].r*w[1][3] + c[1][4].r*w[1][4] + c[1][5].r*w[1][5] +  c[1][6].r*w[1][6] +/*c[1][7].r*w[1][7]*/
-                                               + c[2][0].r*w[2][0]  + c[2][1].r*w[2][1]  + c[2][2].r*w[2][2] + c[2][3].r*w[2][3] + c[2][4].r*w[2][4] + c[2][5].r*w[2][5] +  c[2][6].r*w[2][6] +  c[2][7].r*w[2][7]
-                                               + c[3][0].r*w[3][0]  + c[3][1].r*w[3][1]  + c[3][2].r*w[3][2] + c[3][3].r*w[3][3] + c[3][4].r*w[3][4] + c[3][5].r*w[3][5] +  c[3][6].r*w[3][6] +  c[3][7].r*w[3][7]
-                                               + c[4][0].r*w[4][0]  + c[4][1].r*w[4][1]  + c[4][2].r*w[4][2] + c[4][3].r*w[4][3] + c[4][4].r*w[4][4] + c[4][5].r*w[4][5] +  c[4][6].r*w[4][6] +  c[4][7].r*w[4][7]
-                                               + c[5][0].r*w[5][0]  + c[5][1].r*w[5][1]  + c[5][2].r*w[5][2] + c[5][3].r*w[5][3] + c[5][4].r*w[5][4] + c[5][5].r*w[5][5] +  c[5][6].r*w[5][6] +  c[5][7].r*w[5][7]
-                                             /*+ c[6][0].r*w[6][0]*/+ c[6][1].r*w[6][1]  + c[6][2].r*w[6][2] + c[6][3].r*w[6][3] + c[6][4].r*w[6][4] + c[6][5].r*w[6][5] +  c[6][6].r*w[6][6] +/*c[6][7].r*w[6][7]*/
-                                             /*+ c[7][0].r*w[7][0]  + c[7][1].r*w[7][1]*/+ c[7][2].r*w[7][2] + c[7][3].r*w[7][3] + c[7][4].r*w[7][4] + c[7][5].r*w[7][5] +/*c[7][6].r*w[7][6] +  c[7][7].r*w[7][7]*/ + div_2)/div, 0, 255);
-                                    col.g=Mid((/*c[0][0].g*w[0][0]  + c[0][1].g*w[0][1]*/+ c[0][2].g*w[0][2] + c[0][3].g*w[0][3] + c[0][4].g*w[0][4] + c[0][5].g*w[0][5] +/*c[0][6].g*w[0][6] +  c[0][7].g*w[0][7]*/
-                                             /*+ c[1][0].g*w[1][0]*/+ c[1][1].g*w[1][1]  + c[1][2].g*w[1][2] + c[1][3].g*w[1][3] + c[1][4].g*w[1][4] + c[1][5].g*w[1][5] +  c[1][6].g*w[1][6] +/*c[1][7].g*w[1][7]*/
-                                               + c[2][0].g*w[2][0]  + c[2][1].g*w[2][1]  + c[2][2].g*w[2][2] + c[2][3].g*w[2][3] + c[2][4].g*w[2][4] + c[2][5].g*w[2][5] +  c[2][6].g*w[2][6] +  c[2][7].g*w[2][7]
-                                               + c[3][0].g*w[3][0]  + c[3][1].g*w[3][1]  + c[3][2].g*w[3][2] + c[3][3].g*w[3][3] + c[3][4].g*w[3][4] + c[3][5].g*w[3][5] +  c[3][6].g*w[3][6] +  c[3][7].g*w[3][7]
-                                               + c[4][0].g*w[4][0]  + c[4][1].g*w[4][1]  + c[4][2].g*w[4][2] + c[4][3].g*w[4][3] + c[4][4].g*w[4][4] + c[4][5].g*w[4][5] +  c[4][6].g*w[4][6] +  c[4][7].g*w[4][7]
-                                               + c[5][0].g*w[5][0]  + c[5][1].g*w[5][1]  + c[5][2].g*w[5][2] + c[5][3].g*w[5][3] + c[5][4].g*w[5][4] + c[5][5].g*w[5][5] +  c[5][6].g*w[5][6] +  c[5][7].g*w[5][7]
-                                             /*+ c[6][0].g*w[6][0]*/+ c[6][1].g*w[6][1]  + c[6][2].g*w[6][2] + c[6][3].g*w[6][3] + c[6][4].g*w[6][4] + c[6][5].g*w[6][5] +  c[6][6].g*w[6][6] +/*c[6][7].g*w[6][7]*/
-                                             /*+ c[7][0].g*w[7][0]  + c[7][1].g*w[7][1]*/+ c[7][2].g*w[7][2] + c[7][3].g*w[7][3] + c[7][4].g*w[7][4] + c[7][5].g*w[7][5] +/*c[7][6].g*w[7][6] +  c[7][7].g*w[7][7]*/ + div_2)/div, 0, 255);
-                                    col.b=Mid((/*c[0][0].b*w[0][0]  + c[0][1].b*w[0][1]*/+ c[0][2].b*w[0][2] + c[0][3].b*w[0][3] + c[0][4].b*w[0][4] + c[0][5].b*w[0][5] +/*c[0][6].b*w[0][6] +  c[0][7].b*w[0][7]*/
-                                             /*+ c[1][0].b*w[1][0]*/+ c[1][1].b*w[1][1]  + c[1][2].b*w[1][2] + c[1][3].b*w[1][3] + c[1][4].b*w[1][4] + c[1][5].b*w[1][5] +  c[1][6].b*w[1][6] +/*c[1][7].b*w[1][7]*/
-                                               + c[2][0].b*w[2][0]  + c[2][1].b*w[2][1]  + c[2][2].b*w[2][2] + c[2][3].b*w[2][3] + c[2][4].b*w[2][4] + c[2][5].b*w[2][5] +  c[2][6].b*w[2][6] +  c[2][7].b*w[2][7]
-                                               + c[3][0].b*w[3][0]  + c[3][1].b*w[3][1]  + c[3][2].b*w[3][2] + c[3][3].b*w[3][3] + c[3][4].b*w[3][4] + c[3][5].b*w[3][5] +  c[3][6].b*w[3][6] +  c[3][7].b*w[3][7]
-                                               + c[4][0].b*w[4][0]  + c[4][1].b*w[4][1]  + c[4][2].b*w[4][2] + c[4][3].b*w[4][3] + c[4][4].b*w[4][4] + c[4][5].b*w[4][5] +  c[4][6].b*w[4][6] +  c[4][7].b*w[4][7]
-                                               + c[5][0].b*w[5][0]  + c[5][1].b*w[5][1]  + c[5][2].b*w[5][2] + c[5][3].b*w[5][3] + c[5][4].b*w[5][4] + c[5][5].b*w[5][5] +  c[5][6].b*w[5][6] +  c[5][7].b*w[5][7]
-                                             /*+ c[6][0].b*w[6][0]*/+ c[6][1].b*w[6][1]  + c[6][2].b*w[6][2] + c[6][3].b*w[6][3] + c[6][4].b*w[6][4] + c[6][5].b*w[6][5] +  c[6][6].b*w[6][6] +/*c[6][7].b*w[6][7]*/
-                                             /*+ c[7][0].b*w[7][0]  + c[7][1].b*w[7][1]*/+ c[7][2].b*w[7][2] + c[7][3].b*w[7][3] + c[7][4].b*w[7][4] + c[7][5].b*w[7][5] +/*c[7][6].b*w[7][6] +  c[7][7].b*w[7][7]*/ + div_2)/div, 0, 255);
-                                 }
-                                 dest.color(x, y, col);
-                              }
-                           }
+                           ImageThreads.init().process(dest.lh(), Downsize2xCubicFastSharp, T);
                            goto finish;
-                        } // if(!high_prec)
+                        }
                      }break;
 
                      case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor', this operates on linear gamma
@@ -4886,27 +4961,7 @@ struct CopyContext
                       //high_prec|=src_srgb; not needed since we always do high prec here
                         manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
                         set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
-                        Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                        {
-                           Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                           if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
-                           else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
-                           Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                              if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
-                              else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
-                              Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
-                              src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
-                              REPD(x, 8)
-                              REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
-                              Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
-                              if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
-                              set_color(dest_data_x, dest.type(), dest.hwType(), color);
-                              dest_data_x+=dest.bytePP();
-                           }
-                           dest_data_y+=dest.pitch();
-                        }
+                        ImageThreads.init().process(dest.lh(), Downsize2xCubicFastSmooth, T);
                      }goto finish;
                   } // switch(filter)
                }else // 3D
@@ -4929,36 +4984,7 @@ struct CopyContext
                         hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
                         if(!hp)
                         {
-                           REPD(z, dest.ld())
-                           {
-                              Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, src.ld()-1) : (zc[0]+1)%src.ld()); // zc[0] is always OK
-                              REPD(y, dest.lh())
-                              {
-                                 Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
-                                 REPD(x, dest.lw())
-                                 {
-                                    Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
-                                    Color col, c[2][2][2]; src.gather(&c[0][0][0], xc, Elms(xc), yc, Elms(yc), zc, Elms(zc)); // [z][y][x]
-                                    if(!alpha_weight)
-                                    {
-                                       col.a=((c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a+4)>>3);
-                                    linear_rgb_3D:
-                                       col.r=((c[0][0][0].r+c[0][0][1].r+c[0][1][0].r+c[0][1][1].r+c[1][0][0].r+c[1][0][1].r+c[1][1][0].r+c[1][1][1].r+4)>>3);
-                                       col.g=((c[0][0][0].g+c[0][0][1].g+c[0][1][0].g+c[0][1][1].g+c[1][0][0].g+c[1][0][1].g+c[1][1][0].g+c[1][1][1].g+4)>>3);
-                                       col.b=((c[0][0][0].b+c[0][0][1].b+c[0][1][0].b+c[0][1][1].b+c[1][0][0].b+c[1][0][1].b+c[1][1][0].b+c[1][1][1].b+4)>>3);
-                                    }else
-                                    {
-                                       UInt a=c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a;
-                                       if( !a){col.a=0; goto linear_rgb_3D;}
-                                       col.a=((a+4)>>3); UInt a_2=a>>1;
-                                       col.r=(c[0][0][0].r*c[0][0][0].a + c[0][0][1].r*c[0][0][1].a + c[0][1][0].r*c[0][1][0].a + c[0][1][1].r*c[0][1][1].a + c[1][0][0].r*c[1][0][0].a + c[1][0][1].r*c[1][0][1].a + c[1][1][0].r*c[1][1][0].a + c[1][1][1].r*c[1][1][1].a + a_2)/a;
-                                       col.g=(c[0][0][0].g*c[0][0][0].a + c[0][0][1].g*c[0][0][1].a + c[0][1][0].g*c[0][1][0].a + c[0][1][1].g*c[0][1][1].a + c[1][0][0].g*c[1][0][0].a + c[1][0][1].g*c[1][0][1].a + c[1][1][0].g*c[1][1][0].a + c[1][1][1].g*c[1][1][1].a + a_2)/a;
-                                       col.b=(c[0][0][0].b*c[0][0][0].a + c[0][0][1].b*c[0][0][1].a + c[0][1][0].b*c[0][1][0].a + c[0][1][1].b*c[0][1][1].a + c[1][0][0].b*c[1][0][0].a + c[1][0][1].b*c[1][0][1].a + c[1][1][0].b*c[1][1][0].a + c[1][1][1].b*c[1][1][1].a + a_2)/a;
-                                    }
-                                    dest.color3D(x, y, z, col);
-                                 }
-                              }
-                           }
+                           ImageThreads.init().process(dest.lh()*dest.ld(), Downsize2xLinear3D, T);
                            goto finish;
                         }
                      }break;
@@ -4972,7 +4998,6 @@ struct CopyContext
                //           2->1 offset=0.5
                //           3->1 offset=1.0
                //           4->1 offset=1.5
-               Vec2 x_mul_add, y_mul_add, z_mul_add;
                if(keep_edges)
                {
                   x_mul_add.set(Flt(src.lw()-1)/(dest.lw()-1), 0);
@@ -4984,11 +5009,10 @@ struct CopyContext
                   y_mul_add.x=Flt(src.lh())/dest.lh(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
                   z_mul_add.x=Flt(src.ld())/dest.ld(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
                }
-               Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
-               if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && src.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
+               area_size.set(x_mul_add.x, y_mul_add.x, z_mul_add.x); area_size*=sharp_smooth;
+               if(filter!=FILTER_NONE && (area_size.x>1 || area_size.y>1) && src.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
                {
                   Bool linear_gamma; // some down-sampling filters operate on linear gamma here
-                  Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
                   switch(filter)
                   {
                    //case FILTER_AVERAGE          : linear_gamma=false; area_color=&Image::areaColorFAverage        ; break;
@@ -5010,27 +5034,14 @@ struct CopyContext
                            set_color=SetColorF;
                      }else set_color=SetColorL; // write linear color, 'SetColorL' will perform gamma conversion
                   }
-                  Vec2 pos;
-                  Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     pos.y=y*y_mul_add.x+y_mul_add.y;
-                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                     {
-                        pos.x=x*x_mul_add.x+x_mul_add.y;
-                        Vec4 color=(src.*area_color)(pos, size.xy, clamp, alpha_weight);
-                        if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
-                        set_color(dest_data_x, dest.type(), dest.hwType(), color);
-                        dest_data_x+=dest.bytePP();
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
+                  ImageThreads.init().process(dest.lh(), DownsizeArea, T);
                }else
                // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
                if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
                && src.ld()==1)
                {
-                  Flt   alpha_limit =((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
-                  Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
+                  alpha_limit=((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
+                  Weight     =((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
                   Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                   {
                      Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
@@ -5083,7 +5094,7 @@ struct CopyContext
                                  {
                                     Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
                                     {
-                                       w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                                       w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
                                     }
                                  }
                               }
@@ -5118,7 +5129,7 @@ struct CopyContext
                                  {
                                     Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
                                     {
-                                       w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
+                                       w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
                                     }
                                  }
                               }
@@ -5134,8 +5145,8 @@ struct CopyContext
                if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
                && src.ld()==1)
                {
-                  Flt   alpha_limit =((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
-                  Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
+                  alpha_limit=((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
+                  Weight     =((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
                   Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                   {
                      Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
@@ -5188,7 +5199,7 @@ struct CopyContext
                                  {
                                     Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
                                     {
-                                       w=Func(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                                       w=Weight(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
                                     }
                                  }
                               }
@@ -5223,7 +5234,7 @@ struct CopyContext
                                  {
                                     Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
                                     {
-                                       w=Func(w); value+=v[xc][y]*w; weight+=w;
+                                       w=Weight(w); value+=v[xc][y]*w; weight+=w;
                                     }
                                  }
                               }
