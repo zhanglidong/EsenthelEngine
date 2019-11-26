@@ -4520,16 +4520,90 @@ struct CopyContext
 {
  C Image &src ;
    Image &dest;
-   const Bool clamp, keep_edges, alpha_weight, ignore_gamma, src_srgb, dest_srgb, src_high_prec, high_prec;
+   const Bool clamp, keep_edges, alpha_weight, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
    const Int  src_faces1;
    void (*const SetColor)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
+
+   // case-dependent
+   Bool hp, manual_linear_to_srgb;
+   void (*set_color)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
+
+
+   static void Downsize2xLinear(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.downsize2xLinear(elm_index);}
+          void downsize2xLinear(Int y)
+   {
+      Byte *dest_data_y=dest.data()+y*dest.pitch();
+      Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
+      Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+      {
+         Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
+         if(hp)
+         {
+            Vec4 col, c[2][2]; src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+            if(!alpha_weight)
+            {
+               col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
+            linear_rgb_f:
+               col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
+               col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
+               col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
+            }else
+            {
+               Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
+               if(!a){col.w=0; goto linear_rgb_f;}
+               col.w=a/4;
+               col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
+               col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
+               col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
+            }
+            if(manual_linear_to_srgb)col.xyz=LinearToSRGB(col.xyz);
+            set_color(dest_data_x, dest.type(), dest.hwType(), col);
+         }else
+         {
+            Color col, c[2][2]; src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+            if(!alpha_weight)
+            {
+               col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
+            linear_rgb:
+               col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
+               col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
+               col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
+            }else
+            {
+               UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
+               if( !a){col.a=0; goto linear_rgb;}
+               col.a=((a+2)>>2); UInt a_2=a>>1;
+               col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
+               col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
+               col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
+            }
+            dest.color(x, y, col);
+         }
+         dest_data_x+=dest.bytePP();
+      }
+   }
 
    CopyContext(C Image &src, Image &dest, UInt flags) : src(src), dest(dest),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
       alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && ImageTI[src.type()].a), // only if source has alpha
-      ignore_gamma(IgnoreGamma(flags, src.hwType(), dest.hwType())),
       src_srgb(src.sRGB()), dest_srgb(dest.sRGB()),
+      ignore_gamma(IgnoreGamma(flags, src.hwType(), dest.hwType())),
+
+   /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
+         (However some sharpening filters don't do this, because serious artifacts occur)
+
+      Vec4 linear_color;
+      if(ignore_gamma) // we don't want to convert gamma
+      {
+         if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
+            dest.colorF(x, y, linear_color);
+      }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+
+      However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
+      So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
+      ignore_gamma_ds(ignore_gamma && !(src_srgb && dest_srgb)), // if both are sRGB then disable 'ignore_gamma_ds'
+
       src_high_prec(src.highPrecision()), high_prec((src_high_prec && dest.highPrecision()) || !ignore_gamma),
       src_faces1(src.faces()-1),
       SetColor(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL) // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
@@ -4642,20 +4716,6 @@ struct CopyContext
             CopyNoStretch(src, dest, clamp, ignore_gamma);
          }else // resize
          {
-         /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
-               (However some sharpening filters don't do this, because serious artifacts occur)
-
-            Vec4 linear_color;
-            if(ignore_gamma) // we don't want to convert gamma
-            {
-               if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
-                  dest.colorF(x, y, linear_color);
-            }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
-
-            However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
-            So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
-            Bool ignore_gamma_ds=(ignore_gamma && !(src_srgb && dest_srgb)); // if both are sRGB then disable 'ignore_gamma_ds'
-
             // check for optimized downscale
             if(dest.lw()==Max(1, src.lw()>>1)
             && dest.lh()==Max(1, src.lh()>>1)
@@ -4678,61 +4738,10 @@ struct CopyContext
 
                      case FILTER_LINEAR: // this operates on linear gamma
                      {
-                        const Bool hp=high_prec|src_srgb, // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
-                                   manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
-                        const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
-                        Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                        {
-                           Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
-                           Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                           {
-                              Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
-                              if(hp)
-                              {
-                                 Vec4 col, c[2][2]; src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                                 if(!alpha_weight)
-                                 {
-                                    col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
-                                 linear_rgb_f:
-                                    col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
-                                    col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
-                                    col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
-                                 }else
-                                 {
-                                    Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
-                                    if(!a){col.w=0; goto linear_rgb_f;}
-                                    col.w=a/4;
-                                    col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
-                                    col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
-                                    col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
-                                 }
-                                 if(manual_linear_to_srgb)col.xyz=LinearToSRGB(col.xyz);
-                                 set_color(dest_data_x, dest.type(), dest.hwType(), col);
-                              }else
-                              {
-                                 Color col, c[2][2]; src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                                 if(!alpha_weight)
-                                 {
-                                    col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
-                                 linear_rgb:
-                                    col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
-                                    col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
-                                    col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
-                                 }else
-                                 {
-                                    UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
-                                    if( !a){col.a=0; goto linear_rgb;}
-                                    col.a=((a+2)>>2); UInt a_2=a>>1;
-                                    col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
-                                    col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
-                                    col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
-                                 }
-                                 dest.color(x, y, col);
-                              }
-                              dest_data_x+=dest.bytePP();
-                           }
-                           dest_data_y+=dest.pitch();
-                        }
+                        hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                        manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                        set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                        ImageThreads.init().process(dest.lh(), Downsize2xLinear, T);
                      }goto finish;
 
                      case FILTER_BEST:
@@ -4875,8 +4884,8 @@ struct CopyContext
                      case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor', this operates on linear gamma
                      {
                       //high_prec|=src_srgb; not needed since we always do high prec here
-                        const Bool manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
-                        const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                        manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                        set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
                         Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                         {
                            Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
@@ -4917,7 +4926,7 @@ struct CopyContext
 
                      case FILTER_LINEAR: // this operates on linear gamma
                      {
-                        const Bool hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                        hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
                         if(!hp)
                         {
                            REPD(z, dest.ld())
@@ -4991,8 +5000,8 @@ struct CopyContext
                      case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
                      case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
                   }
-                  Bool manual_linear_to_srgb=false;
-                  auto set_color=SetColor; // pointer to function
+                  manual_linear_to_srgb=false;
+                  set_color=SetColor; // pointer to function
                   if(linear_gamma)
                   {
                      if(ignore_gamma_ds) // we don't want to convert gamma
