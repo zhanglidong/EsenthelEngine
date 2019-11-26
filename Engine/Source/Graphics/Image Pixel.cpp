@@ -4516,867 +4516,881 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // 
       REPD(x, dest.lw())dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D(x%src.lw(), y%src.lh(), z%src.ld()));
    }
 }
+struct CopyContext
+{
+ C Image &src ;
+   Image &dest;
+   const Bool clamp, keep_edges, alpha_weight, ignore_gamma, src_srgb, dest_srgb, src_high_prec, high_prec;
+   const Int  src_faces1;
+   void (*const SetColor)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
+
+   CopyContext(C Image &src, Image &dest, UInt flags) : src(src), dest(dest),
+      clamp(IcClamp(flags)),
+      keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
+      alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && ImageTI[src.type()].a), // only if source has alpha
+      ignore_gamma(IgnoreGamma(flags, src.hwType(), dest.hwType())),
+      src_srgb(src.sRGB()), dest_srgb(dest.sRGB()),
+      src_high_prec(src.highPrecision()), high_prec((src_high_prec && dest.highPrecision()) || !ignore_gamma),
+      src_faces1(src.faces()-1),
+      SetColor(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL) // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
+   {}
+   Bool process(FILTER_TYPE filter, Int max_mip_maps, Flt sharp_smooth)
+   {
+      REPD(mip , Min(src.mipMaps(), dest.mipMaps(), max_mip_maps))
+      REPD(face, dest.faces())
+      {
+         if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))               return false;
+         if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;}
+
+         if(src.size3()==dest.size3()) // no resize
+         {
+            if(CanDoRawCopy(src, dest, ignore_gamma)) // no retype
+            {
+               Int valid_blocks_y=ImageBlocksY(src.w(), src.h(), mip, src.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
+               REPD(z, src.ld())
+               {
+                C Byte *s=src .data() + z*src .pitch2();
+                  Byte *d=dest.data() + z*dest.pitch2();
+                  if(src.pitch()==dest.pitch())CopyFast(d, s, Min(src.pitch2(), dest.pitch2()));else
+                  {
+                     Int pitch=Min(src.pitch(), dest.pitch());
+                     REPD(y, valid_blocks_y)CopyFast(d + y*dest.pitch(), s + y*src.pitch(), pitch);
+                     // TODO: we could zero remaining data to avoid garbage
+                  }
+               }
+            }else // retype
+            {
+               IMAGE_TYPE src_hwType= src.hwType(),//src_type= src.type(),
+                         dest_hwType=dest.hwType(), dest_type=dest.type();
+               if(ignore_gamma)
+               {
+                   src_hwType=ImageTypeExcludeSRGB( src_hwType);
+                  dest_hwType=ImageTypeExcludeSRGB(dest_hwType);
+                 //src_type  =ImageTypeExcludeSRGB( src_type  );
+                  dest_type  =ImageTypeExcludeSRGB(dest_type  );
+               }
+
+               // RGB -> RGBA, very common case for importing images
+               if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_R8G8B8A8      && dest_type==IMAGE_R8G8B8A8       // check 'type' too in case we have to perform color adjustment
+               || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_R8G8B8A8_SRGB && dest_type==IMAGE_R8G8B8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+               {
+                  FREPD(z, src.ld())
+                  {
+                   C Byte *sz=src .data() + z*src .pitch2();
+                     Byte *dz=dest.data() + z*dest.pitch2();
+                     FREPD(y, src.lh())
+                     {
+                      C VecB  *s=(VecB *)(sz + y*src .pitch());
+                        VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                        REPD(x, src.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
+                     }
+                  }
+               }else
+               // RGB -> BGRA, very common case for exporting to WEBP from RGB
+               if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+               || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+               {
+                  FREPD(z, src.ld())
+                  {
+                   C Byte *sz=src .data() + z*src .pitch2();
+                     Byte *dz=dest.data() + z*dest.pitch2();
+                     FREPD(y, src.lh())
+                     {
+                      C VecB  *s=(VecB *)(sz + y*src .pitch());
+                        VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                        REPD(x, src.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
+                     }
+                  }
+               }else
+               // RGBA -> BGRA, very common case for exporting to WEBP from RGBA
+               if(src_hwType==IMAGE_R8G8B8A8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+               || src_hwType==IMAGE_R8G8B8A8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+               {
+                  FREPD(z, src.ld())
+                  {
+                   C Byte *sz=src .data() + z*src .pitch2();
+                     Byte *dz=dest.data() + z*dest.pitch2();
+                     FREPD(y, src.lh())
+                     {
+                      C VecB4 *s=(VecB4*)(sz + y*src .pitch());
+                        VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                        REPD(x, src.lw()){(d++)->set(s->z, s->y, s->x, s->w); s++;}
+                     }
+                  }
+               }else
+               if(!ignore_gamma)
+               {
+                  REPD(z, src.ld())
+                  REPD(y, src.lh())
+                  REPD(x, src.lw())dest.color3DL(x, y, z, src.color3DL(x, y, z));
+               }else
+               if(high_prec) // high precision requires FP
+               {
+                  REPD(z, src.ld())
+                  REPD(y, src.lh())
+                  REPD(x, src.lw())dest.color3DF(x, y, z, src.color3DF(x, y, z));
+               }else
+               {
+                  REPD(z, src.ld())
+                  REPD(y, src.lh())
+                  REPD(x, src.lw())dest.color3D(x, y, z, src.color3D(x, y, z));
+               }
+            }
+         }else
+         if(filter==FILTER_NO_STRETCH)
+         {
+            CopyNoStretch(src, dest, clamp, ignore_gamma);
+         }else // resize
+         {
+         /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
+               (However some sharpening filters don't do this, because serious artifacts occur)
+
+            Vec4 linear_color;
+            if(ignore_gamma) // we don't want to convert gamma
+            {
+               if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
+                  dest.colorF(x, y, linear_color);
+            }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+
+            However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
+            So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
+            Bool ignore_gamma_ds=(ignore_gamma && !(src_srgb && dest_srgb)); // if both are sRGB then disable 'ignore_gamma_ds'
+
+            // check for optimized downscale
+            if(dest.lw()==Max(1, src.lw()>>1)
+            && dest.lh()==Max(1, src.lh()>>1)
+            && dest.ld()==Max(1, src.ld()>>1) // 2x downsample
+            && !keep_edges
+            && (Equal(sharp_smooth, 1) || filter==FILTER_NONE)
+            )
+            {
+               if(src.ld()<=1) // 2D
+               {
+                  switch(filter)
+                  {
+                     case FILTER_NONE: REPD(y, dest.lh())
+                     {
+                        Int yc=y*2;
+                        if(!ignore_gamma)REPD(x, dest.lw())dest.colorL(x, y, src.colorL(x*2, yc));else
+                        if( high_prec   )REPD(x, dest.lw())dest.colorF(x, y, src.colorF(x*2, yc));else
+                                         REPD(x, dest.lw())dest.color (x, y, src.color (x*2, yc));
+                     }goto finish;
+
+                     case FILTER_LINEAR: // this operates on linear gamma
+                     {
+                        const Bool hp=high_prec|src_srgb, // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                                   manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                        const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                        Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                        {
+                           Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
+                           Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
+                              if(hp)
+                              {
+                                 Vec4 col, c[2][2]; src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+                                 if(!alpha_weight)
+                                 {
+                                    col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
+                                 linear_rgb_f:
+                                    col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
+                                    col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
+                                    col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
+                                 }else
+                                 {
+                                    Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
+                                    if(!a){col.w=0; goto linear_rgb_f;}
+                                    col.w=a/4;
+                                    col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
+                                    col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
+                                    col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
+                                 }
+                                 if(manual_linear_to_srgb)col.xyz=LinearToSRGB(col.xyz);
+                                 set_color(dest_data_x, dest.type(), dest.hwType(), col);
+                              }else
+                              {
+                                 Color col, c[2][2]; src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+                                 if(!alpha_weight)
+                                 {
+                                    col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
+                                 linear_rgb:
+                                    col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
+                                    col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
+                                    col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
+                                 }else
+                                 {
+                                    UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
+                                    if( !a){col.a=0; goto linear_rgb;}
+                                    col.a=((a+2)>>2); UInt a_2=a>>1;
+                                    col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
+                                    col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
+                                    col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
+                                 }
+                                 dest.color(x, y, col);
+                              }
+                              dest_data_x+=dest.bytePP();
+                           }
+                           dest_data_y+=dest.pitch();
+                        }
+                     }goto finish;
+
+                     case FILTER_BEST:
+                     case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // this operates on source native gamma
+                     {
+                      //high_prec|=src_srgb; FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma (artifacts happen due to sharpening)
+                        if(!high_prec)
+                        {
+                           REPD(y, dest.lh())
+                           {
+                              Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
+                              if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
+                              else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
+                              REPD(x, dest.lw())
+                              {
+                                 Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
+                                 if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
+                                 else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
+                                 Color col, c[8][8]; // [y][x]
+                              #if 1 // read 8x8
+                                 src.gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
+                              #else // read 4x1, 8x6, 4x1, performance is the same
+                                 src.gather(&c[0][2], xc+2, Elms(xc)-4, yc  , 1         ); // top
+                                 src.gather(&c[1][0], xc  , Elms(xc)  , yc+1, Elms(yc)-2); // center
+                                 src.gather(&c[7][2], xc+2, Elms(xc)-4, yc+7, 1         ); // bottom
+                              #endif
+                                 if(!alpha_weight)
+                                 {
+                                    col.a=Mid((/*c[0][0].a*CW8[0][0]  + c[0][1].a*CW8[0][1]*/+ c[0][2].a*CW8[0][2] + c[0][3].a*CW8[0][3] + c[0][4].a*CW8[0][4] + c[0][5].a*CW8[0][5] +/*c[0][6].a*CW8[0][6] +  c[0][7].a*CW8[0][7]*/
+                                             /*+ c[1][0].a*CW8[1][0]*/+ c[1][1].a*CW8[1][1]  + c[1][2].a*CW8[1][2] + c[1][3].a*CW8[1][3] + c[1][4].a*CW8[1][4] + c[1][5].a*CW8[1][5] +  c[1][6].a*CW8[1][6] +/*c[1][7].a*CW8[1][7]*/
+                                               + c[2][0].a*CW8[2][0]  + c[2][1].a*CW8[2][1]  + c[2][2].a*CW8[2][2] + c[2][3].a*CW8[2][3] + c[2][4].a*CW8[2][4] + c[2][5].a*CW8[2][5] +  c[2][6].a*CW8[2][6] +  c[2][7].a*CW8[2][7]
+                                               + c[3][0].a*CW8[3][0]  + c[3][1].a*CW8[3][1]  + c[3][2].a*CW8[3][2] + c[3][3].a*CW8[3][3] + c[3][4].a*CW8[3][4] + c[3][5].a*CW8[3][5] +  c[3][6].a*CW8[3][6] +  c[3][7].a*CW8[3][7]
+                                               + c[4][0].a*CW8[4][0]  + c[4][1].a*CW8[4][1]  + c[4][2].a*CW8[4][2] + c[4][3].a*CW8[4][3] + c[4][4].a*CW8[4][4] + c[4][5].a*CW8[4][5] +  c[4][6].a*CW8[4][6] +  c[4][7].a*CW8[4][7]
+                                               + c[5][0].a*CW8[5][0]  + c[5][1].a*CW8[5][1]  + c[5][2].a*CW8[5][2] + c[5][3].a*CW8[5][3] + c[5][4].a*CW8[5][4] + c[5][5].a*CW8[5][5] +  c[5][6].a*CW8[5][6] +  c[5][7].a*CW8[5][7]
+                                             /*+ c[6][0].a*CW8[6][0]*/+ c[6][1].a*CW8[6][1]  + c[6][2].a*CW8[6][2] + c[6][3].a*CW8[6][3] + c[6][4].a*CW8[6][4] + c[6][5].a*CW8[6][5] +  c[6][6].a*CW8[6][6] +/*c[6][7].a*CW8[6][7]*/
+                                             /*+ c[7][0].a*CW8[7][0]  + c[7][1].a*CW8[7][1]*/+ c[7][2].a*CW8[7][2] + c[7][3].a*CW8[7][3] + c[7][4].a*CW8[7][4] + c[7][5].a*CW8[7][5] +/*c[7][6].a*CW8[7][6] +  c[7][7].a*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+                                 cubic_sharp_rgb:
+                                    col.r=Mid((/*c[0][0].r*CW8[0][0]  + c[0][1].r*CW8[0][1]*/+ c[0][2].r*CW8[0][2] + c[0][3].r*CW8[0][3] + c[0][4].r*CW8[0][4] + c[0][5].r*CW8[0][5] +/*c[0][6].r*CW8[0][6] +  c[0][7].r*CW8[0][7]*/
+                                             /*+ c[1][0].r*CW8[1][0]*/+ c[1][1].r*CW8[1][1]  + c[1][2].r*CW8[1][2] + c[1][3].r*CW8[1][3] + c[1][4].r*CW8[1][4] + c[1][5].r*CW8[1][5] +  c[1][6].r*CW8[1][6] +/*c[1][7].r*CW8[1][7]*/
+                                               + c[2][0].r*CW8[2][0]  + c[2][1].r*CW8[2][1]  + c[2][2].r*CW8[2][2] + c[2][3].r*CW8[2][3] + c[2][4].r*CW8[2][4] + c[2][5].r*CW8[2][5] +  c[2][6].r*CW8[2][6] +  c[2][7].r*CW8[2][7]
+                                               + c[3][0].r*CW8[3][0]  + c[3][1].r*CW8[3][1]  + c[3][2].r*CW8[3][2] + c[3][3].r*CW8[3][3] + c[3][4].r*CW8[3][4] + c[3][5].r*CW8[3][5] +  c[3][6].r*CW8[3][6] +  c[3][7].r*CW8[3][7]
+                                               + c[4][0].r*CW8[4][0]  + c[4][1].r*CW8[4][1]  + c[4][2].r*CW8[4][2] + c[4][3].r*CW8[4][3] + c[4][4].r*CW8[4][4] + c[4][5].r*CW8[4][5] +  c[4][6].r*CW8[4][6] +  c[4][7].r*CW8[4][7]
+                                               + c[5][0].r*CW8[5][0]  + c[5][1].r*CW8[5][1]  + c[5][2].r*CW8[5][2] + c[5][3].r*CW8[5][3] + c[5][4].r*CW8[5][4] + c[5][5].r*CW8[5][5] +  c[5][6].r*CW8[5][6] +  c[5][7].r*CW8[5][7]
+                                             /*+ c[6][0].r*CW8[6][0]*/+ c[6][1].r*CW8[6][1]  + c[6][2].r*CW8[6][2] + c[6][3].r*CW8[6][3] + c[6][4].r*CW8[6][4] + c[6][5].r*CW8[6][5] +  c[6][6].r*CW8[6][6] +/*c[6][7].r*CW8[6][7]*/
+                                             /*+ c[7][0].r*CW8[7][0]  + c[7][1].r*CW8[7][1]*/+ c[7][2].r*CW8[7][2] + c[7][3].r*CW8[7][3] + c[7][4].r*CW8[7][4] + c[7][5].r*CW8[7][5] +/*c[7][6].r*CW8[7][6] +  c[7][7].r*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+                                    col.g=Mid((/*c[0][0].g*CW8[0][0]  + c[0][1].g*CW8[0][1]*/+ c[0][2].g*CW8[0][2] + c[0][3].g*CW8[0][3] + c[0][4].g*CW8[0][4] + c[0][5].g*CW8[0][5] +/*c[0][6].g*CW8[0][6] +  c[0][7].g*CW8[0][7]*/
+                                             /*+ c[1][0].g*CW8[1][0]*/+ c[1][1].g*CW8[1][1]  + c[1][2].g*CW8[1][2] + c[1][3].g*CW8[1][3] + c[1][4].g*CW8[1][4] + c[1][5].g*CW8[1][5] +  c[1][6].g*CW8[1][6] +/*c[1][7].g*CW8[1][7]*/
+                                               + c[2][0].g*CW8[2][0]  + c[2][1].g*CW8[2][1]  + c[2][2].g*CW8[2][2] + c[2][3].g*CW8[2][3] + c[2][4].g*CW8[2][4] + c[2][5].g*CW8[2][5] +  c[2][6].g*CW8[2][6] +  c[2][7].g*CW8[2][7]
+                                               + c[3][0].g*CW8[3][0]  + c[3][1].g*CW8[3][1]  + c[3][2].g*CW8[3][2] + c[3][3].g*CW8[3][3] + c[3][4].g*CW8[3][4] + c[3][5].g*CW8[3][5] +  c[3][6].g*CW8[3][6] +  c[3][7].g*CW8[3][7]
+                                               + c[4][0].g*CW8[4][0]  + c[4][1].g*CW8[4][1]  + c[4][2].g*CW8[4][2] + c[4][3].g*CW8[4][3] + c[4][4].g*CW8[4][4] + c[4][5].g*CW8[4][5] +  c[4][6].g*CW8[4][6] +  c[4][7].g*CW8[4][7]
+                                               + c[5][0].g*CW8[5][0]  + c[5][1].g*CW8[5][1]  + c[5][2].g*CW8[5][2] + c[5][3].g*CW8[5][3] + c[5][4].g*CW8[5][4] + c[5][5].g*CW8[5][5] +  c[5][6].g*CW8[5][6] +  c[5][7].g*CW8[5][7]
+                                             /*+ c[6][0].g*CW8[6][0]*/+ c[6][1].g*CW8[6][1]  + c[6][2].g*CW8[6][2] + c[6][3].g*CW8[6][3] + c[6][4].g*CW8[6][4] + c[6][5].g*CW8[6][5] +  c[6][6].g*CW8[6][6] +/*c[6][7].g*CW8[6][7]*/
+                                             /*+ c[7][0].g*CW8[7][0]  + c[7][1].g*CW8[7][1]*/+ c[7][2].g*CW8[7][2] + c[7][3].g*CW8[7][3] + c[7][4].g*CW8[7][4] + c[7][5].g*CW8[7][5] +/*c[7][6].g*CW8[7][6] +  c[7][7].g*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+                                    col.b=Mid((/*c[0][0].b*CW8[0][0]  + c[0][1].b*CW8[0][1]*/+ c[0][2].b*CW8[0][2] + c[0][3].b*CW8[0][3] + c[0][4].b*CW8[0][4] + c[0][5].b*CW8[0][5] +/*c[0][6].b*CW8[0][6] +  c[0][7].b*CW8[0][7]*/
+                                             /*+ c[1][0].b*CW8[1][0]*/+ c[1][1].b*CW8[1][1]  + c[1][2].b*CW8[1][2] + c[1][3].b*CW8[1][3] + c[1][4].b*CW8[1][4] + c[1][5].b*CW8[1][5] +  c[1][6].b*CW8[1][6] +/*c[1][7].b*CW8[1][7]*/
+                                               + c[2][0].b*CW8[2][0]  + c[2][1].b*CW8[2][1]  + c[2][2].b*CW8[2][2] + c[2][3].b*CW8[2][3] + c[2][4].b*CW8[2][4] + c[2][5].b*CW8[2][5] +  c[2][6].b*CW8[2][6] +  c[2][7].b*CW8[2][7]
+                                               + c[3][0].b*CW8[3][0]  + c[3][1].b*CW8[3][1]  + c[3][2].b*CW8[3][2] + c[3][3].b*CW8[3][3] + c[3][4].b*CW8[3][4] + c[3][5].b*CW8[3][5] +  c[3][6].b*CW8[3][6] +  c[3][7].b*CW8[3][7]
+                                               + c[4][0].b*CW8[4][0]  + c[4][1].b*CW8[4][1]  + c[4][2].b*CW8[4][2] + c[4][3].b*CW8[4][3] + c[4][4].b*CW8[4][4] + c[4][5].b*CW8[4][5] +  c[4][6].b*CW8[4][6] +  c[4][7].b*CW8[4][7]
+                                               + c[5][0].b*CW8[5][0]  + c[5][1].b*CW8[5][1]  + c[5][2].b*CW8[5][2] + c[5][3].b*CW8[5][3] + c[5][4].b*CW8[5][4] + c[5][5].b*CW8[5][5] +  c[5][6].b*CW8[5][6] +  c[5][7].b*CW8[5][7]
+                                             /*+ c[6][0].b*CW8[6][0]*/+ c[6][1].b*CW8[6][1]  + c[6][2].b*CW8[6][2] + c[6][3].b*CW8[6][3] + c[6][4].b*CW8[6][4] + c[6][5].b*CW8[6][5] +  c[6][6].b*CW8[6][6] +/*c[6][7].b*CW8[6][7]*/
+                                             /*+ c[7][0].b*CW8[7][0]  + c[7][1].b*CW8[7][1]*/+ c[7][2].b*CW8[7][2] + c[7][3].b*CW8[7][3] + c[7][4].b*CW8[7][4] + c[7][5].b*CW8[7][5] +/*c[7][6].b*CW8[7][6] +  c[7][7].b*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
+                                 }else
+                                 {
+                                    Int w[8][8]={{/*CWA8[0][0]*c[0][0].a*/0,/*CWA8[0][1]*c[0][1].a*/0, CWA8[0][2]*c[0][2].a, CWA8[0][3]*c[0][3].a, CWA8[0][4]*c[0][4].a, CWA8[0][5]*c[0][5].a,/*CWA8[0][6]*c[0][6].a*/0,/*CWA8[0][7]*c[0][7].a*/0},
+                                                 {/*CWA8[1][0]*c[1][0].a*/0,  CWA8[1][1]*c[1][1].a   , CWA8[1][2]*c[1][2].a, CWA8[1][3]*c[1][3].a, CWA8[1][4]*c[1][4].a, CWA8[1][5]*c[1][5].a,  CWA8[1][6]*c[1][6].a   ,/*CWA8[1][7]*c[1][7].a*/0},
+                                                 {  CWA8[2][0]*c[2][0].a   ,  CWA8[2][1]*c[2][1].a   , CWA8[2][2]*c[2][2].a, CWA8[2][3]*c[2][3].a, CWA8[2][4]*c[2][4].a, CWA8[2][5]*c[2][5].a,  CWA8[2][6]*c[2][6].a   ,  CWA8[2][7]*c[2][7].a   },
+                                                 {  CWA8[3][0]*c[3][0].a   ,  CWA8[3][1]*c[3][1].a   , CWA8[3][2]*c[3][2].a, CWA8[3][3]*c[3][3].a, CWA8[3][4]*c[3][4].a, CWA8[3][5]*c[3][5].a,  CWA8[3][6]*c[3][6].a   ,  CWA8[3][7]*c[3][7].a   },
+                                                 {  CWA8[4][0]*c[4][0].a   ,  CWA8[4][1]*c[4][1].a   , CWA8[4][2]*c[4][2].a, CWA8[4][3]*c[4][3].a, CWA8[4][4]*c[4][4].a, CWA8[4][5]*c[4][5].a,  CWA8[4][6]*c[4][6].a   ,  CWA8[4][7]*c[4][7].a   },
+                                                 {  CWA8[5][0]*c[5][0].a   ,  CWA8[5][1]*c[5][1].a   , CWA8[5][2]*c[5][2].a, CWA8[5][3]*c[5][3].a, CWA8[5][4]*c[5][4].a, CWA8[5][5]*c[5][5].a,  CWA8[5][6]*c[5][6].a   ,  CWA8[5][7]*c[5][7].a   },
+                                                 {/*CWA8[6][0]*c[6][0].a*/0,  CWA8[6][1]*c[6][1].a   , CWA8[6][2]*c[6][2].a, CWA8[6][3]*c[6][3].a, CWA8[6][4]*c[6][4].a, CWA8[6][5]*c[6][5].a,  CWA8[6][6]*c[6][6].a   ,/*CWA8[6][7]*c[6][7].a*/0},
+                                                 {/*CWA8[7][0]*c[7][0].a*/0,/*CWA8[7][1]*c[7][1].a*/0, CWA8[7][2]*c[7][2].a, CWA8[7][3]*c[7][3].a, CWA8[7][4]*c[7][4].a, CWA8[7][5]*c[7][5].a,/*CWA8[7][6]*c[7][6].a*/0,/*CWA8[7][7]*c[7][7].a*/0}};
+                                    Int div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
+                                          /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
+                                            + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
+                                            + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
+                                            + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
+                                            + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
+                                          /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
+                                          /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
+                                    if(div<=0){col.a=0; goto cubic_sharp_rgb;}
+                                    col.a=Min(DivRound(div, CWA8Sum), 255); // here "div>0" so no need to do "Max(0, "
+                                    if(div<CWA8AlphaLimit) // below this limit, lerp to RGB
+                                    {
+                                       // instead of lerping actual colors, we lerp just the weights, it is an approximation and does not provide the same results as float version, however it is faster
+                                       // weights are lerped between "CWA8[y][x]" (alpha_weight=false) and "CWA8[y][x]*c[y][x].a" (alpha_weight=true)
+                                       // since the right side has a scale of "c[y][x].a", we multiply the left side by "Max(col.a, 1)" (average alpha value, and max 1 to avoid having zero weights and division by zero later)
+                                    #if 0 // float version
+                                     C Flt blend=Flt(div)/CWA8AlphaLimit;
+                                       REPD(y, 8)
+                                       REPD(x, 8)w[y][x]=Lerp(CWA8[y][x]*Max(col.a, 1), w[y][x], blend);
+                                    #else // integer version
+                                     C Int d=256, blend=div/d, blend1=(CWA8AlphaLimit/d-blend)*Max(col.a, 1);
+                                       REPD(y, 8)
+                                       REPD(x, 8)w[y][x]=(CWA8[y][x]*blend1 + w[y][x]*blend)>>10;
+                                    #endif
+
+                                       // recalculate 'div'
+                                       div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
+                                         /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
+                                           + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
+                                           + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
+                                           + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
+                                           + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
+                                         /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
+                                         /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
+                                    }
+                                    Int div_2=div>>1;
+                                    col.r=Mid((/*c[0][0].r*w[0][0]  + c[0][1].r*w[0][1]*/+ c[0][2].r*w[0][2] + c[0][3].r*w[0][3] + c[0][4].r*w[0][4] + c[0][5].r*w[0][5] +/*c[0][6].r*w[0][6] +  c[0][7].r*w[0][7]*/
+                                             /*+ c[1][0].r*w[1][0]*/+ c[1][1].r*w[1][1]  + c[1][2].r*w[1][2] + c[1][3].r*w[1][3] + c[1][4].r*w[1][4] + c[1][5].r*w[1][5] +  c[1][6].r*w[1][6] +/*c[1][7].r*w[1][7]*/
+                                               + c[2][0].r*w[2][0]  + c[2][1].r*w[2][1]  + c[2][2].r*w[2][2] + c[2][3].r*w[2][3] + c[2][4].r*w[2][4] + c[2][5].r*w[2][5] +  c[2][6].r*w[2][6] +  c[2][7].r*w[2][7]
+                                               + c[3][0].r*w[3][0]  + c[3][1].r*w[3][1]  + c[3][2].r*w[3][2] + c[3][3].r*w[3][3] + c[3][4].r*w[3][4] + c[3][5].r*w[3][5] +  c[3][6].r*w[3][6] +  c[3][7].r*w[3][7]
+                                               + c[4][0].r*w[4][0]  + c[4][1].r*w[4][1]  + c[4][2].r*w[4][2] + c[4][3].r*w[4][3] + c[4][4].r*w[4][4] + c[4][5].r*w[4][5] +  c[4][6].r*w[4][6] +  c[4][7].r*w[4][7]
+                                               + c[5][0].r*w[5][0]  + c[5][1].r*w[5][1]  + c[5][2].r*w[5][2] + c[5][3].r*w[5][3] + c[5][4].r*w[5][4] + c[5][5].r*w[5][5] +  c[5][6].r*w[5][6] +  c[5][7].r*w[5][7]
+                                             /*+ c[6][0].r*w[6][0]*/+ c[6][1].r*w[6][1]  + c[6][2].r*w[6][2] + c[6][3].r*w[6][3] + c[6][4].r*w[6][4] + c[6][5].r*w[6][5] +  c[6][6].r*w[6][6] +/*c[6][7].r*w[6][7]*/
+                                             /*+ c[7][0].r*w[7][0]  + c[7][1].r*w[7][1]*/+ c[7][2].r*w[7][2] + c[7][3].r*w[7][3] + c[7][4].r*w[7][4] + c[7][5].r*w[7][5] +/*c[7][6].r*w[7][6] +  c[7][7].r*w[7][7]*/ + div_2)/div, 0, 255);
+                                    col.g=Mid((/*c[0][0].g*w[0][0]  + c[0][1].g*w[0][1]*/+ c[0][2].g*w[0][2] + c[0][3].g*w[0][3] + c[0][4].g*w[0][4] + c[0][5].g*w[0][5] +/*c[0][6].g*w[0][6] +  c[0][7].g*w[0][7]*/
+                                             /*+ c[1][0].g*w[1][0]*/+ c[1][1].g*w[1][1]  + c[1][2].g*w[1][2] + c[1][3].g*w[1][3] + c[1][4].g*w[1][4] + c[1][5].g*w[1][5] +  c[1][6].g*w[1][6] +/*c[1][7].g*w[1][7]*/
+                                               + c[2][0].g*w[2][0]  + c[2][1].g*w[2][1]  + c[2][2].g*w[2][2] + c[2][3].g*w[2][3] + c[2][4].g*w[2][4] + c[2][5].g*w[2][5] +  c[2][6].g*w[2][6] +  c[2][7].g*w[2][7]
+                                               + c[3][0].g*w[3][0]  + c[3][1].g*w[3][1]  + c[3][2].g*w[3][2] + c[3][3].g*w[3][3] + c[3][4].g*w[3][4] + c[3][5].g*w[3][5] +  c[3][6].g*w[3][6] +  c[3][7].g*w[3][7]
+                                               + c[4][0].g*w[4][0]  + c[4][1].g*w[4][1]  + c[4][2].g*w[4][2] + c[4][3].g*w[4][3] + c[4][4].g*w[4][4] + c[4][5].g*w[4][5] +  c[4][6].g*w[4][6] +  c[4][7].g*w[4][7]
+                                               + c[5][0].g*w[5][0]  + c[5][1].g*w[5][1]  + c[5][2].g*w[5][2] + c[5][3].g*w[5][3] + c[5][4].g*w[5][4] + c[5][5].g*w[5][5] +  c[5][6].g*w[5][6] +  c[5][7].g*w[5][7]
+                                             /*+ c[6][0].g*w[6][0]*/+ c[6][1].g*w[6][1]  + c[6][2].g*w[6][2] + c[6][3].g*w[6][3] + c[6][4].g*w[6][4] + c[6][5].g*w[6][5] +  c[6][6].g*w[6][6] +/*c[6][7].g*w[6][7]*/
+                                             /*+ c[7][0].g*w[7][0]  + c[7][1].g*w[7][1]*/+ c[7][2].g*w[7][2] + c[7][3].g*w[7][3] + c[7][4].g*w[7][4] + c[7][5].g*w[7][5] +/*c[7][6].g*w[7][6] +  c[7][7].g*w[7][7]*/ + div_2)/div, 0, 255);
+                                    col.b=Mid((/*c[0][0].b*w[0][0]  + c[0][1].b*w[0][1]*/+ c[0][2].b*w[0][2] + c[0][3].b*w[0][3] + c[0][4].b*w[0][4] + c[0][5].b*w[0][5] +/*c[0][6].b*w[0][6] +  c[0][7].b*w[0][7]*/
+                                             /*+ c[1][0].b*w[1][0]*/+ c[1][1].b*w[1][1]  + c[1][2].b*w[1][2] + c[1][3].b*w[1][3] + c[1][4].b*w[1][4] + c[1][5].b*w[1][5] +  c[1][6].b*w[1][6] +/*c[1][7].b*w[1][7]*/
+                                               + c[2][0].b*w[2][0]  + c[2][1].b*w[2][1]  + c[2][2].b*w[2][2] + c[2][3].b*w[2][3] + c[2][4].b*w[2][4] + c[2][5].b*w[2][5] +  c[2][6].b*w[2][6] +  c[2][7].b*w[2][7]
+                                               + c[3][0].b*w[3][0]  + c[3][1].b*w[3][1]  + c[3][2].b*w[3][2] + c[3][3].b*w[3][3] + c[3][4].b*w[3][4] + c[3][5].b*w[3][5] +  c[3][6].b*w[3][6] +  c[3][7].b*w[3][7]
+                                               + c[4][0].b*w[4][0]  + c[4][1].b*w[4][1]  + c[4][2].b*w[4][2] + c[4][3].b*w[4][3] + c[4][4].b*w[4][4] + c[4][5].b*w[4][5] +  c[4][6].b*w[4][6] +  c[4][7].b*w[4][7]
+                                               + c[5][0].b*w[5][0]  + c[5][1].b*w[5][1]  + c[5][2].b*w[5][2] + c[5][3].b*w[5][3] + c[5][4].b*w[5][4] + c[5][5].b*w[5][5] +  c[5][6].b*w[5][6] +  c[5][7].b*w[5][7]
+                                             /*+ c[6][0].b*w[6][0]*/+ c[6][1].b*w[6][1]  + c[6][2].b*w[6][2] + c[6][3].b*w[6][3] + c[6][4].b*w[6][4] + c[6][5].b*w[6][5] +  c[6][6].b*w[6][6] +/*c[6][7].b*w[6][7]*/
+                                             /*+ c[7][0].b*w[7][0]  + c[7][1].b*w[7][1]*/+ c[7][2].b*w[7][2] + c[7][3].b*w[7][3] + c[7][4].b*w[7][4] + c[7][5].b*w[7][5] +/*c[7][6].b*w[7][6] +  c[7][7].b*w[7][7]*/ + div_2)/div, 0, 255);
+                                 }
+                                 dest.color(x, y, col);
+                              }
+                           }
+                           goto finish;
+                        } // if(!high_prec)
+                     }break;
+
+                     case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor', this operates on linear gamma
+                     {
+                      //high_prec|=src_srgb; not needed since we always do high prec here
+                        const Bool manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                        const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                        Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                        {
+                           Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
+                           if(clamp){yc[0]=Max(yc[3]-3, 0       ); yc[1]=Max(yc[3]-2, 0       ); yc[2]=Max(yc[3]-1, 0       ); yc[4]=Min(yc[3]+1, src.lh()-1); yc[5]=Min(yc[3]+2, src.lh()-1); yc[6]=Min(yc[3]+3, src.lh()-1); yc[7]=Min(yc[3]+4, src.lh()-1);}
+                           else     {yc[0]=Mod(yc[3]-3, src.lh()); yc[1]=Mod(yc[3]-2, src.lh()); yc[2]=Mod(yc[3]-1, src.lh()); yc[4]=   (yc[3]+1)%src.lh()   ; yc[5]=   (yc[3]+2)%src.lh()   ; yc[6]=   (yc[3]+3)%src.lh()   ; yc[7]=   (yc[3]+4)%src.lh()   ;}
+                           Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
+                              if(clamp){xc[0]=Max(xc[3]-3, 0       ); xc[1]=Max(xc[3]-2, 0       ); xc[2]=Max(xc[3]-1, 0       ); xc[4]=Min(xc[3]+1, src.lw()-1); xc[5]=Min(xc[3]+2, src.lw()-1); xc[6]=Min(xc[3]+3, src.lw()-1); xc[7]=Min(xc[3]+4, src.lw()-1);}
+                              else     {xc[0]=Mod(xc[3]-3, src.lw()); xc[1]=Mod(xc[3]-2, src.lw()); xc[2]=Mod(xc[3]-1, src.lw()); xc[4]=   (xc[3]+1)%src.lw()   ; xc[5]=   (xc[3]+2)%src.lw()   ; xc[6]=   (xc[3]+3)%src.lw()   ; xc[7]=   (xc[3]+4)%src.lw()   ;}
+                              Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
+                              src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
+                              REPD(x, 8)
+                              REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
+                              Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
+                              if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+                              set_color(dest_data_x, dest.type(), dest.hwType(), color);
+                              dest_data_x+=dest.bytePP();
+                           }
+                           dest_data_y+=dest.pitch();
+                        }
+                     }goto finish;
+                  } // switch(filter)
+               }else // 3D
+               {
+                  switch(filter)
+                  {
+                     case FILTER_NONE: REPD(z, dest.ld())
+                     {
+                        Int zc=z*2; REPD(y, dest.lh())
+                        {
+                           Int yc=y*2;
+                           if(!ignore_gamma)REPD(x, dest.lw())dest.color3DL(x, y, z, src.color3DL(x*2, yc, zc));else
+                           if( high_prec   )REPD(x, dest.lw())dest.color3DF(x, y, z, src.color3DF(x*2, yc, zc));else
+                                            REPD(x, dest.lw())dest.color3D (x, y, z, src.color3D (x*2, yc, zc));
+                        }
+                     }goto finish;
+
+                     case FILTER_LINEAR: // this operates on linear gamma
+                     {
+                        const Bool hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                        if(!hp)
+                        {
+                           REPD(z, dest.ld())
+                           {
+                              Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, src.ld()-1) : (zc[0]+1)%src.ld()); // zc[0] is always OK
+                              REPD(y, dest.lh())
+                              {
+                                 Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, src.lh()-1) : (yc[0]+1)%src.lh()); // yc[0] is always OK
+                                 REPD(x, dest.lw())
+                                 {
+                                    Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, src.lw()-1) : (xc[0]+1)%src.lw()); // xc[0] is always OK
+                                    Color col, c[2][2][2]; src.gather(&c[0][0][0], xc, Elms(xc), yc, Elms(yc), zc, Elms(zc)); // [z][y][x]
+                                    if(!alpha_weight)
+                                    {
+                                       col.a=((c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a+4)>>3);
+                                    linear_rgb_3D:
+                                       col.r=((c[0][0][0].r+c[0][0][1].r+c[0][1][0].r+c[0][1][1].r+c[1][0][0].r+c[1][0][1].r+c[1][1][0].r+c[1][1][1].r+4)>>3);
+                                       col.g=((c[0][0][0].g+c[0][0][1].g+c[0][1][0].g+c[0][1][1].g+c[1][0][0].g+c[1][0][1].g+c[1][1][0].g+c[1][1][1].g+4)>>3);
+                                       col.b=((c[0][0][0].b+c[0][0][1].b+c[0][1][0].b+c[0][1][1].b+c[1][0][0].b+c[1][0][1].b+c[1][1][0].b+c[1][1][1].b+4)>>3);
+                                    }else
+                                    {
+                                       UInt a=c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a;
+                                       if( !a){col.a=0; goto linear_rgb_3D;}
+                                       col.a=((a+4)>>3); UInt a_2=a>>1;
+                                       col.r=(c[0][0][0].r*c[0][0][0].a + c[0][0][1].r*c[0][0][1].a + c[0][1][0].r*c[0][1][0].a + c[0][1][1].r*c[0][1][1].a + c[1][0][0].r*c[1][0][0].a + c[1][0][1].r*c[1][0][1].a + c[1][1][0].r*c[1][1][0].a + c[1][1][1].r*c[1][1][1].a + a_2)/a;
+                                       col.g=(c[0][0][0].g*c[0][0][0].a + c[0][0][1].g*c[0][0][1].a + c[0][1][0].g*c[0][1][0].a + c[0][1][1].g*c[0][1][1].a + c[1][0][0].g*c[1][0][0].a + c[1][0][1].g*c[1][0][1].a + c[1][1][0].g*c[1][1][0].a + c[1][1][1].g*c[1][1][1].a + a_2)/a;
+                                       col.b=(c[0][0][0].b*c[0][0][0].a + c[0][0][1].b*c[0][0][1].a + c[0][1][0].b*c[0][1][0].a + c[0][1][1].b*c[0][1][1].a + c[1][0][0].b*c[1][0][0].a + c[1][0][1].b*c[1][0][1].a + c[1][1][0].b*c[1][1][0].a + c[1][1][1].b*c[1][1][1].a + a_2)/a;
+                                    }
+                                    dest.color3D(x, y, z, col);
+                                 }
+                              }
+                           }
+                           goto finish;
+                        }
+                     }break;
+                  }
+               }
+            }
+         
+            // any scale
+            {
+               // for scale 1->1 offset=0.0
+               //           2->1 offset=0.5
+               //           3->1 offset=1.0
+               //           4->1 offset=1.5
+               Vec2 x_mul_add, y_mul_add, z_mul_add;
+               if(keep_edges)
+               {
+                  x_mul_add.set(Flt(src.lw()-1)/(dest.lw()-1), 0);
+                  y_mul_add.set(Flt(src.lh()-1)/(dest.lh()-1), 0);
+                  z_mul_add.set(Flt(src.ld()-1)/(dest.ld()-1), 0);
+               }else
+               {
+                  x_mul_add.x=Flt(src.lw())/dest.lw(); x_mul_add.y=x_mul_add.x*0.5f-0.5f;
+                  y_mul_add.x=Flt(src.lh())/dest.lh(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
+                  z_mul_add.x=Flt(src.ld())/dest.ld(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
+               }
+               Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
+               if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && src.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
+               {
+                  Bool linear_gamma; // some down-sampling filters operate on linear gamma here
+                  Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
+                  switch(filter)
+                  {
+                   //case FILTER_AVERAGE          : linear_gamma=false; area_color=&Image::areaColorFAverage        ; break;
+                     case FILTER_LINEAR           : linear_gamma=true ; area_color=&Image::areaColorLLinear         ; break;
+                     case FILTER_CUBIC_FAST       : linear_gamma=true ; area_color=&Image::areaColorLCubicFast      ; break;
+                     case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; area_color=&Image::areaColorLCubicFastSmooth; break;
+                     default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST
+                     case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
+                     case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
+                     case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
+                  }
+                  Bool manual_linear_to_srgb=false;
+                  auto set_color=SetColor; // pointer to function
+                  if(linear_gamma)
+                  {
+                     if(ignore_gamma_ds) // we don't want to convert gamma
+                     {
+                        if(src_srgb)manual_linear_to_srgb=true; // source is sRGB however we have linear color, so convert it back to sRGB
+                           set_color=SetColorF;
+                     }else set_color=SetColorL; // write linear color, 'SetColorL' will perform gamma conversion
+                  }
+                  Vec2 pos;
+                  Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                  {
+                     pos.y=y*y_mul_add.x+y_mul_add.y;
+                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                     {
+                        pos.x=x*x_mul_add.x+x_mul_add.y;
+                        Vec4 color=(src.*area_color)(pos, size.xy, clamp, alpha_weight);
+                        if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+                        set_color(dest_data_x, dest.type(), dest.hwType(), color);
+                        dest_data_x+=dest.bytePP();
+                     }
+                     dest_data_y+=dest.pitch();
+                  }
+               }else
+               // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
+               if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
+               && src.ld()==1)
+               {
+                  Flt   alpha_limit =((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
+                  Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
+                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
+                  {
+                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                     {
+                        Byte *dest_data_x=dest_data_y;
+                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
+                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+                        Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
+                        Flt   yw[CUBIC_MED_SAMPLES*2];
+                        REPA( xo)
+                        {
+                           xo[i]=xi-CUBIC_MED_SAMPLES+1+i;
+                           yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
+                           if(clamp)
+                           {
+                              Clamp(xo[i], 0, src.lw()-1);
+                              Clamp(yo[i], 0, src.lh()-1);
+                           }else
+                           {
+                              xo[i]=Mod(xo[i], src.lw());
+                              yo[i]=Mod(yo[i], src.lh());
+                           }
+                        }
+                        if(NeedMultiChannel(src.type(), dest.type()))
+                        {
+                           Vec4 c[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+                              }
+
+                              Flt  weight=0;
+                              Vec  rgb   =0;
+                              Vec4 color =0;
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
+                                 Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+                                 REPAD(y, yo)
+                                 {
+                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                                    {
+                                       w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                                    }
+                                 }
+                              }
+                              Normalize(color, rgb, weight, alpha_weight, alpha_limit);
+                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }else
+                        {
+                           Flt v[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+                              }
+
+                              Flt weight=0, value=0;
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
+                                 Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+                                 REPAD(y, yo)
+                                 {
+                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                                    {
+                                       w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
+                                    }
+                                 }
+                              }
+                              SetPixelF(dest_data_x, dest.hwType(), value/weight);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }
+                        dest_data_y+=dest.pitch();
+                     }
+                     dest_data_z+=dest.pitch2();
+                  }
+               }else
+               if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
+               && src.ld()==1)
+               {
+                  Flt   alpha_limit =((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
+                  Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
+                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
+                  {
+                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                     {
+                        Byte *dest_data_x=dest_data_y;
+                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
+                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+                        Int   xo[CUBIC_FAST_SAMPLES*2], yo[CUBIC_FAST_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
+                        Flt   yw[CUBIC_FAST_SAMPLES*2];
+                        REPA( xo)
+                        {
+                           xo[i]=xi-CUBIC_FAST_SAMPLES+1+i;
+                           yo[i]=yi-CUBIC_FAST_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
+                           if(clamp)
+                           {
+                              Clamp(xo[i], 0, src.lw()-1);
+                              Clamp(yo[i], 0, src.lh()-1);
+                           }else
+                           {
+                              xo[i]=Mod(xo[i], src.lw());
+                              yo[i]=Mod(yo[i], src.lh());
+                           }
+                        }
+                        if(NeedMultiChannel(src.type(), dest.type()))
+                        {
+                           Vec4 c[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
+                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
+                              }
+
+                              Flt  weight=0;
+                              Vec  rgb   =0;
+                              Vec4 color =0;
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
+                                 Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
+                                 REPAD(y, yo)
+                                 {
+                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
+                                    {
+                                       w=Func(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                                    }
+                                 }
+                              }
+                              Normalize(color, rgb, weight, alpha_weight, alpha_limit);
+                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }else
+                        {
+                           Flt v[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
+                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
+                              }
+
+                              Flt weight=0, value=0;
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
+                                 Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
+                                 REPAD(y, yo)
+                                 {
+                                    Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
+                                    {
+                                       w=Func(w); value+=v[xc][y]*w; weight+=w;
+                                    }
+                                 }
+                              }
+                              SetPixelF(dest_data_x, dest.hwType(), value/weight);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }
+                        dest_data_y+=dest.pitch();
+                     }
+                     dest_data_z+=dest.pitch2();
+                  }
+               }else
+               if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
+               && src.ld()==1)
+               {
+                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
+                  {
+                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                     {
+                        Byte *dest_data_x=dest_data_y;
+                        Flt   sy=y*y_mul_add.x+y_mul_add.y,
+                              sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
+                        Int   xo[2], yo[2], xi=Floor(sx), yi=Floor(sy);
+                        Flt   yw[2]; yw[1]=sy-yi; yw[0]=1-yw[1];
+                        REPA( xo)
+                        {
+                           xo[i]=xi+i;
+                           yo[i]=yi+i;
+                           if(clamp)
+                           {
+                              Clamp(xo[i], 0, src.lw()-1);
+                              Clamp(yo[i], 0, src.lh()-1);
+                           }else
+                           {
+                              xo[i]=Mod(xo[i], src.lw());
+                              yo[i]=Mod(yo[i], src.lh());
+                           }
+                        }
+                        if(NeedMultiChannel(src.type(), dest.type()))
+                        {
+                           Vec4 c[2][2];
+                           src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset^=1;
+                              }
+
+                              Vec  rgb  =0;
+                              Vec4 color=0;
+                              Flt  xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)&1;
+                                 REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
+                              }
+                              Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
+                              SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }else
+                        {
+                           Flt v[2][2];
+                           src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+                           REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+
+                           Int x_offset=0;
+                           FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                           {
+                              Flt sx=x*x_mul_add.x+x_mul_add.y;
+                              Int xi2=Floor(sx); if(xi!=xi2)
+                              {
+                                 xi=xi2;
+                                 Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+                                 src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
+                                 x_offset^=1;
+                              }
+
+                              Flt value=0, xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
+                              REPAD(x, xo)
+                              {
+                                 Int xc=(x+x_offset)&1;
+                                 REPAD(y, yo)value+=v[xc][y]*xw[x]*yw[y];
+                              }
+                              SetPixelF(dest_data_x, dest.hwType(), value);
+                              dest_data_x+=dest.bytePP();
+                           }
+                        }
+                        dest_data_y+=dest.pitch();
+                     }
+                     dest_data_z+=dest.pitch2();
+                  }
+               }else
+               if(NeedMultiChannel(src.type(), dest.type()))
+               {
+                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
+                  {
+                     Flt sz=z*z_mul_add.x+z_mul_add.y;
+                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                     {
+                        Flt sy=y*y_mul_add.x+y_mul_add.y;
+                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                        {
+                           Flt  sx=x*x_mul_add.x+x_mul_add.y;
+                           Vec4 color;
+                           switch(filter)
+                           {
+                              case FILTER_NONE             : color=((src.ld()<=1) ? src.colorF               (RoundPos(sx), RoundPos(sy)                     ) : src.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+                              case FILTER_LINEAR           : color=((src.ld()<=1) ? src.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : src.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST       : color=((src.ld()<=1) ? src.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST_SMOOTH: color=((src.ld()<=1) ? src.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST_SHARP : color=((src.ld()<=1) ? src.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+                              default                      : // FILTER_BEST
+                              case FILTER_CUBIC            : color=((src.ld()<=1) ? src.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_SHARP      : color=((src.ld()<=1) ? src.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+                           }
+                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                           dest_data_x+=dest.bytePP();
+                        }
+                        dest_data_y+=dest.pitch();
+                     }
+                     dest_data_z+=dest.pitch2();
+                  }
+               }else
+               {
+                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
+                  {
+                     Flt sz=z*z_mul_add.x+z_mul_add.y;
+                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
+                     {
+                        Flt sy=y*y_mul_add.x+y_mul_add.y;
+                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+                        {
+                           Flt sx=x*x_mul_add.x+x_mul_add.y,
+                               pix;
+                           switch(filter)
+                           {
+                              case FILTER_NONE             : pix=((src.ld()<=1) ? src.pixelF               (RoundPos(sx), RoundPos(sy)       ) : src.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+                              case FILTER_LINEAR           : pix=((src.ld()<=1) ? src.pixelFLinear         (         sx ,          sy , clamp) : src.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST       : pix=((src.ld()<=1) ? src.pixelFCubicFast      (         sx ,          sy , clamp) : src.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST_SMOOTH: pix=((src.ld()<=1) ? src.pixelFCubicFastSmooth(         sx ,          sy , clamp) : src.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_FAST_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicFastSharp (         sx ,          sy , clamp) : src.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+                              default                      : // FILTER_BEST
+                              case FILTER_CUBIC            : pix=((src.ld()<=1) ? src.pixelFCubic          (         sx ,          sy , clamp) : src.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+                              case FILTER_CUBIC_SHARP      : pix=((src.ld()<=1) ? src.pixelFCubicSharp     (         sx ,          sy , clamp) : src.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+                           }
+                           SetPixelF(dest_data_x, dest.hwType(), pix);
+                           dest_data_x+=dest.bytePP();
+                        }
+                        dest_data_y+=dest.pitch();
+                     }
+                     dest_data_z+=dest.pitch2();
+                  }
+               }
+            }
+         }
+
+      finish:
+         dest.unlock();
+          src.unlock();
+      }
+      return true;
+   }
+};
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_maps, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
-
-   const Bool clamp=IcClamp(flags), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
-              alpha_weight=(FlagTest(flags, IC_ALPHA_WEIGHT) && ImageTI[type()].a), // only if source has alpha
-              ignore_gamma=IgnoreGamma(flags, T.hwType(), dest.hwType()),
-              src_srgb=sRGB(), dest_srgb=dest.sRGB(),
-              src_high_prec=highPrecision(), high_prec=((src_high_prec && dest.highPrecision()) || !ignore_gamma);
-   const Int  src_faces1=faces()-1;
-   const auto SetColor=(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL); // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
-
-   REPD(mip , Min(mipMaps(), dest.mipMaps(), max_mip_maps))
-   REPD(face, dest.faces())
-   {
-      if(!   T.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))             return false;
-      if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){T.unlock(); return false;}
-
-      if(T.size3()==dest.size3()) // no resize
-      {
-         if(CanDoRawCopy(T, dest, ignore_gamma)) // no retype
-         {
-            Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), mip, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
-            REPD(z, T.ld())
-            {
-             C Byte *s=T   .data() + z*T   .pitch2();
-               Byte *d=dest.data() + z*dest.pitch2();
-               if(T.pitch()==dest.pitch())CopyFast(d, s, Min(T.pitch2(), dest.pitch2()));else
-               {
-                  Int pitch=Min(T.pitch(), dest.pitch());
-                  REPD(y, valid_blocks_y)CopyFast(d + y*dest.pitch(), s + y*T.pitch(), pitch);
-                  // TODO: we could zero remaining data to avoid garbage
-               }
-            }
-         }else // retype
-         {
-            IMAGE_TYPE src_hwType=   T.hwType(),//src_type=   T.type(),
-                      dest_hwType=dest.hwType(), dest_type=dest.type();
-            if(ignore_gamma)
-            {
-                src_hwType=ImageTypeExcludeSRGB( src_hwType);
-               dest_hwType=ImageTypeExcludeSRGB(dest_hwType);
-              //src_type  =ImageTypeExcludeSRGB( src_type  );
-               dest_type  =ImageTypeExcludeSRGB(dest_type  );
-            }
-
-            // RGB -> RGBA, very common case for importing images
-            if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_R8G8B8A8      && dest_type==IMAGE_R8G8B8A8       // check 'type' too in case we have to perform color adjustment
-            || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_R8G8B8A8_SRGB && dest_type==IMAGE_R8G8B8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-            {
-               FREPD(z, T.ld())
-               {
-                C Byte *sz=T   .data() + z*T   .pitch2();
-                  Byte *dz=dest.data() + z*dest.pitch2();
-                  FREPD(y, T.lh())
-                  {
-                   C VecB  *s=(VecB *)(sz + y*T   .pitch());
-                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
-                     REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
-                  }
-               }
-            }else
-            // RGB -> BGRA, very common case for exporting to WEBP from RGB
-            if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
-            || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-            {
-               FREPD(z, T.ld())
-               {
-                C Byte *sz=T   .data() + z*T   .pitch2();
-                  Byte *dz=dest.data() + z*dest.pitch2();
-                  FREPD(y, T.lh())
-                  {
-                   C VecB  *s=(VecB *)(sz + y*T   .pitch());
-                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
-                     REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
-                  }
-               }
-            }else
-            // RGBA -> BGRA, very common case for exporting to WEBP from RGBA
-            if(src_hwType==IMAGE_R8G8B8A8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
-            || src_hwType==IMAGE_R8G8B8A8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-            {
-               FREPD(z, T.ld())
-               {
-                C Byte *sz=T   .data() + z*T   .pitch2();
-                  Byte *dz=dest.data() + z*dest.pitch2();
-                  FREPD(y, T.lh())
-                  {
-                   C VecB4 *s=(VecB4*)(sz + y*T   .pitch());
-                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
-                     REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, s->w); s++;}
-                  }
-               }
-            }else
-            if(!ignore_gamma)
-            {
-               REPD(z, T.ld())
-               REPD(y, T.lh())
-               REPD(x, T.lw())dest.color3DL(x, y, z, T.color3DL(x, y, z));
-            }else
-            if(high_prec) // high precision requires FP
-            {
-               REPD(z, T.ld())
-               REPD(y, T.lh())
-               REPD(x, T.lw())dest.color3DF(x, y, z, T.color3DF(x, y, z));
-            }else
-            {
-               REPD(z, T.ld())
-               REPD(y, T.lh())
-               REPD(x, T.lw())dest.color3D(x, y, z, T.color3D(x, y, z));
-            }
-         }
-      }else
-      if(filter==FILTER_NO_STRETCH)
-      {
-         CopyNoStretch(T, dest, clamp, ignore_gamma);
-      }else // resize
-      {
-      /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
-            (However some sharpening filters don't do this, because serious artifacts occur)
-
-         Vec4 linear_color;
-         if(ignore_gamma) // we don't want to convert gamma
-         {
-            if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
-               dest.colorF(x, y, linear_color);
-         }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
-
-         However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
-         So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
-         Bool ignore_gamma_ds=(ignore_gamma && !(src_srgb && dest_srgb)); // if both are sRGB then disable 'ignore_gamma_ds'
-
-         // check for optimized downscale
-         if(dest.lw()==Max(1, T.lw()>>1)
-         && dest.lh()==Max(1, T.lh()>>1)
-         && dest.ld()==Max(1, T.ld()>>1) // 2x downsample
-         && !keep_edges
-         && (Equal(sharp_smooth, 1) || filter==FILTER_NONE)
-         )
-         {
-            if(T.ld()<=1) // 2D
-            {
-               switch(filter)
-               {
-                  case FILTER_NONE: REPD(y, dest.lh())
-                  {
-                     Int yc=y*2;
-                     if(!ignore_gamma)REPD(x, dest.lw())dest.colorL(x, y, colorL(x*2, yc));else
-                     if( high_prec   )REPD(x, dest.lw())dest.colorF(x, y, colorF(x*2, yc));else
-                                      REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
-                  }goto finish;
-
-                  case FILTER_LINEAR: // this operates on linear gamma
-                  {
-                     const Bool hp=high_prec|src_srgb, // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
-                                manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
-                     const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
-                     Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
-                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
-                           if(hp)
-                           {
-                              Vec4 col, c[2][2]; gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                              if(!alpha_weight)
-                              {
-                                 col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
-                              linear_rgb_f:
-                                 col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
-                                 col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
-                                 col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
-                              }else
-                              {
-                                 Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
-                                 if(!a){col.w=0; goto linear_rgb_f;}
-                                 col.w=a/4;
-                                 col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
-                                 col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
-                                 col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
-                              }
-                              if(manual_linear_to_srgb)col.xyz=LinearToSRGB(col.xyz);
-                              set_color(dest_data_x, dest.type(), dest.hwType(), col);
-                           }else
-                           {
-                              Color col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                              if(!alpha_weight)
-                              {
-                                 col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
-                              linear_rgb:
-                                 col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
-                                 col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
-                                 col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
-                              }else
-                              {
-                                 UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
-                                 if( !a){col.a=0; goto linear_rgb;}
-                                 col.a=((a+2)>>2); UInt a_2=a>>1;
-                                 col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
-                                 col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
-                                 col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
-                              }
-                              dest.color(x, y, col);
-                           }
-                           dest_data_x+=dest.bytePP();
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                  }goto finish;
-
-                  case FILTER_BEST:
-                  case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // this operates on source native gamma
-                  {
-                   //high_prec|=src_srgb; FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma (artifacts happen due to sharpening)
-                     if(!high_prec)
-                     {
-                        REPD(y, dest.lh())
-                        {
-                           Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                           if(clamp){yc[0]=Max(yc[3]-3, 0   ); yc[1]=Max(yc[3]-2, 0   ); yc[2]=Max(yc[3]-1, 0   ); yc[4]=Min(yc[3]+1, lh()-1); yc[5]=Min(yc[3]+2, lh()-1); yc[6]=Min(yc[3]+3, lh()-1); yc[7]=Min(yc[3]+4, lh()-1);}
-                           else     {yc[0]=Mod(yc[3]-3, lh()); yc[1]=Mod(yc[3]-2, lh()); yc[2]=Mod(yc[3]-1, lh()); yc[4]=   (yc[3]+1)%lh()   ; yc[5]=   (yc[3]+2)%lh()   ; yc[6]=   (yc[3]+3)%lh()   ; yc[7]=   (yc[3]+4)%lh()   ;}
-                           REPD(x, dest.lw())
-                           {
-                              Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                              if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
-                              else     {xc[0]=Mod(xc[3]-3, lw()); xc[1]=Mod(xc[3]-2, lw()); xc[2]=Mod(xc[3]-1, lw()); xc[4]=   (xc[3]+1)%lw()   ; xc[5]=   (xc[3]+2)%lw()   ; xc[6]=   (xc[3]+3)%lw()   ; xc[7]=   (xc[3]+4)%lw()   ;}
-                              Color col, c[8][8]; // [y][x]
-                           #if 1 // read 8x8
-                              gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
-                           #else // read 4x1, 8x6, 4x1, performance is the same
-                              gather(&c[0][2], xc+2, Elms(xc)-4, yc  , 1         ); // top
-                              gather(&c[1][0], xc  , Elms(xc)  , yc+1, Elms(yc)-2); // center
-                              gather(&c[7][2], xc+2, Elms(xc)-4, yc+7, 1         ); // bottom
-                           #endif
-                              if(!alpha_weight)
-                              {
-                                 col.a=Mid((/*c[0][0].a*CW8[0][0]  + c[0][1].a*CW8[0][1]*/+ c[0][2].a*CW8[0][2] + c[0][3].a*CW8[0][3] + c[0][4].a*CW8[0][4] + c[0][5].a*CW8[0][5] +/*c[0][6].a*CW8[0][6] +  c[0][7].a*CW8[0][7]*/
-                                          /*+ c[1][0].a*CW8[1][0]*/+ c[1][1].a*CW8[1][1]  + c[1][2].a*CW8[1][2] + c[1][3].a*CW8[1][3] + c[1][4].a*CW8[1][4] + c[1][5].a*CW8[1][5] +  c[1][6].a*CW8[1][6] +/*c[1][7].a*CW8[1][7]*/
-                                            + c[2][0].a*CW8[2][0]  + c[2][1].a*CW8[2][1]  + c[2][2].a*CW8[2][2] + c[2][3].a*CW8[2][3] + c[2][4].a*CW8[2][4] + c[2][5].a*CW8[2][5] +  c[2][6].a*CW8[2][6] +  c[2][7].a*CW8[2][7]
-                                            + c[3][0].a*CW8[3][0]  + c[3][1].a*CW8[3][1]  + c[3][2].a*CW8[3][2] + c[3][3].a*CW8[3][3] + c[3][4].a*CW8[3][4] + c[3][5].a*CW8[3][5] +  c[3][6].a*CW8[3][6] +  c[3][7].a*CW8[3][7]
-                                            + c[4][0].a*CW8[4][0]  + c[4][1].a*CW8[4][1]  + c[4][2].a*CW8[4][2] + c[4][3].a*CW8[4][3] + c[4][4].a*CW8[4][4] + c[4][5].a*CW8[4][5] +  c[4][6].a*CW8[4][6] +  c[4][7].a*CW8[4][7]
-                                            + c[5][0].a*CW8[5][0]  + c[5][1].a*CW8[5][1]  + c[5][2].a*CW8[5][2] + c[5][3].a*CW8[5][3] + c[5][4].a*CW8[5][4] + c[5][5].a*CW8[5][5] +  c[5][6].a*CW8[5][6] +  c[5][7].a*CW8[5][7]
-                                          /*+ c[6][0].a*CW8[6][0]*/+ c[6][1].a*CW8[6][1]  + c[6][2].a*CW8[6][2] + c[6][3].a*CW8[6][3] + c[6][4].a*CW8[6][4] + c[6][5].a*CW8[6][5] +  c[6][6].a*CW8[6][6] +/*c[6][7].a*CW8[6][7]*/
-                                          /*+ c[7][0].a*CW8[7][0]  + c[7][1].a*CW8[7][1]*/+ c[7][2].a*CW8[7][2] + c[7][3].a*CW8[7][3] + c[7][4].a*CW8[7][4] + c[7][5].a*CW8[7][5] +/*c[7][6].a*CW8[7][6] +  c[7][7].a*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                              cubic_sharp_rgb:
-                                 col.r=Mid((/*c[0][0].r*CW8[0][0]  + c[0][1].r*CW8[0][1]*/+ c[0][2].r*CW8[0][2] + c[0][3].r*CW8[0][3] + c[0][4].r*CW8[0][4] + c[0][5].r*CW8[0][5] +/*c[0][6].r*CW8[0][6] +  c[0][7].r*CW8[0][7]*/
-                                          /*+ c[1][0].r*CW8[1][0]*/+ c[1][1].r*CW8[1][1]  + c[1][2].r*CW8[1][2] + c[1][3].r*CW8[1][3] + c[1][4].r*CW8[1][4] + c[1][5].r*CW8[1][5] +  c[1][6].r*CW8[1][6] +/*c[1][7].r*CW8[1][7]*/
-                                            + c[2][0].r*CW8[2][0]  + c[2][1].r*CW8[2][1]  + c[2][2].r*CW8[2][2] + c[2][3].r*CW8[2][3] + c[2][4].r*CW8[2][4] + c[2][5].r*CW8[2][5] +  c[2][6].r*CW8[2][6] +  c[2][7].r*CW8[2][7]
-                                            + c[3][0].r*CW8[3][0]  + c[3][1].r*CW8[3][1]  + c[3][2].r*CW8[3][2] + c[3][3].r*CW8[3][3] + c[3][4].r*CW8[3][4] + c[3][5].r*CW8[3][5] +  c[3][6].r*CW8[3][6] +  c[3][7].r*CW8[3][7]
-                                            + c[4][0].r*CW8[4][0]  + c[4][1].r*CW8[4][1]  + c[4][2].r*CW8[4][2] + c[4][3].r*CW8[4][3] + c[4][4].r*CW8[4][4] + c[4][5].r*CW8[4][5] +  c[4][6].r*CW8[4][6] +  c[4][7].r*CW8[4][7]
-                                            + c[5][0].r*CW8[5][0]  + c[5][1].r*CW8[5][1]  + c[5][2].r*CW8[5][2] + c[5][3].r*CW8[5][3] + c[5][4].r*CW8[5][4] + c[5][5].r*CW8[5][5] +  c[5][6].r*CW8[5][6] +  c[5][7].r*CW8[5][7]
-                                          /*+ c[6][0].r*CW8[6][0]*/+ c[6][1].r*CW8[6][1]  + c[6][2].r*CW8[6][2] + c[6][3].r*CW8[6][3] + c[6][4].r*CW8[6][4] + c[6][5].r*CW8[6][5] +  c[6][6].r*CW8[6][6] +/*c[6][7].r*CW8[6][7]*/
-                                          /*+ c[7][0].r*CW8[7][0]  + c[7][1].r*CW8[7][1]*/+ c[7][2].r*CW8[7][2] + c[7][3].r*CW8[7][3] + c[7][4].r*CW8[7][4] + c[7][5].r*CW8[7][5] +/*c[7][6].r*CW8[7][6] +  c[7][7].r*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                 col.g=Mid((/*c[0][0].g*CW8[0][0]  + c[0][1].g*CW8[0][1]*/+ c[0][2].g*CW8[0][2] + c[0][3].g*CW8[0][3] + c[0][4].g*CW8[0][4] + c[0][5].g*CW8[0][5] +/*c[0][6].g*CW8[0][6] +  c[0][7].g*CW8[0][7]*/
-                                          /*+ c[1][0].g*CW8[1][0]*/+ c[1][1].g*CW8[1][1]  + c[1][2].g*CW8[1][2] + c[1][3].g*CW8[1][3] + c[1][4].g*CW8[1][4] + c[1][5].g*CW8[1][5] +  c[1][6].g*CW8[1][6] +/*c[1][7].g*CW8[1][7]*/
-                                            + c[2][0].g*CW8[2][0]  + c[2][1].g*CW8[2][1]  + c[2][2].g*CW8[2][2] + c[2][3].g*CW8[2][3] + c[2][4].g*CW8[2][4] + c[2][5].g*CW8[2][5] +  c[2][6].g*CW8[2][6] +  c[2][7].g*CW8[2][7]
-                                            + c[3][0].g*CW8[3][0]  + c[3][1].g*CW8[3][1]  + c[3][2].g*CW8[3][2] + c[3][3].g*CW8[3][3] + c[3][4].g*CW8[3][4] + c[3][5].g*CW8[3][5] +  c[3][6].g*CW8[3][6] +  c[3][7].g*CW8[3][7]
-                                            + c[4][0].g*CW8[4][0]  + c[4][1].g*CW8[4][1]  + c[4][2].g*CW8[4][2] + c[4][3].g*CW8[4][3] + c[4][4].g*CW8[4][4] + c[4][5].g*CW8[4][5] +  c[4][6].g*CW8[4][6] +  c[4][7].g*CW8[4][7]
-                                            + c[5][0].g*CW8[5][0]  + c[5][1].g*CW8[5][1]  + c[5][2].g*CW8[5][2] + c[5][3].g*CW8[5][3] + c[5][4].g*CW8[5][4] + c[5][5].g*CW8[5][5] +  c[5][6].g*CW8[5][6] +  c[5][7].g*CW8[5][7]
-                                          /*+ c[6][0].g*CW8[6][0]*/+ c[6][1].g*CW8[6][1]  + c[6][2].g*CW8[6][2] + c[6][3].g*CW8[6][3] + c[6][4].g*CW8[6][4] + c[6][5].g*CW8[6][5] +  c[6][6].g*CW8[6][6] +/*c[6][7].g*CW8[6][7]*/
-                                          /*+ c[7][0].g*CW8[7][0]  + c[7][1].g*CW8[7][1]*/+ c[7][2].g*CW8[7][2] + c[7][3].g*CW8[7][3] + c[7][4].g*CW8[7][4] + c[7][5].g*CW8[7][5] +/*c[7][6].g*CW8[7][6] +  c[7][7].g*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                                 col.b=Mid((/*c[0][0].b*CW8[0][0]  + c[0][1].b*CW8[0][1]*/+ c[0][2].b*CW8[0][2] + c[0][3].b*CW8[0][3] + c[0][4].b*CW8[0][4] + c[0][5].b*CW8[0][5] +/*c[0][6].b*CW8[0][6] +  c[0][7].b*CW8[0][7]*/
-                                          /*+ c[1][0].b*CW8[1][0]*/+ c[1][1].b*CW8[1][1]  + c[1][2].b*CW8[1][2] + c[1][3].b*CW8[1][3] + c[1][4].b*CW8[1][4] + c[1][5].b*CW8[1][5] +  c[1][6].b*CW8[1][6] +/*c[1][7].b*CW8[1][7]*/
-                                            + c[2][0].b*CW8[2][0]  + c[2][1].b*CW8[2][1]  + c[2][2].b*CW8[2][2] + c[2][3].b*CW8[2][3] + c[2][4].b*CW8[2][4] + c[2][5].b*CW8[2][5] +  c[2][6].b*CW8[2][6] +  c[2][7].b*CW8[2][7]
-                                            + c[3][0].b*CW8[3][0]  + c[3][1].b*CW8[3][1]  + c[3][2].b*CW8[3][2] + c[3][3].b*CW8[3][3] + c[3][4].b*CW8[3][4] + c[3][5].b*CW8[3][5] +  c[3][6].b*CW8[3][6] +  c[3][7].b*CW8[3][7]
-                                            + c[4][0].b*CW8[4][0]  + c[4][1].b*CW8[4][1]  + c[4][2].b*CW8[4][2] + c[4][3].b*CW8[4][3] + c[4][4].b*CW8[4][4] + c[4][5].b*CW8[4][5] +  c[4][6].b*CW8[4][6] +  c[4][7].b*CW8[4][7]
-                                            + c[5][0].b*CW8[5][0]  + c[5][1].b*CW8[5][1]  + c[5][2].b*CW8[5][2] + c[5][3].b*CW8[5][3] + c[5][4].b*CW8[5][4] + c[5][5].b*CW8[5][5] +  c[5][6].b*CW8[5][6] +  c[5][7].b*CW8[5][7]
-                                          /*+ c[6][0].b*CW8[6][0]*/+ c[6][1].b*CW8[6][1]  + c[6][2].b*CW8[6][2] + c[6][3].b*CW8[6][3] + c[6][4].b*CW8[6][4] + c[6][5].b*CW8[6][5] +  c[6][6].b*CW8[6][6] +/*c[6][7].b*CW8[6][7]*/
-                                          /*+ c[7][0].b*CW8[7][0]  + c[7][1].b*CW8[7][1]*/+ c[7][2].b*CW8[7][2] + c[7][3].b*CW8[7][3] + c[7][4].b*CW8[7][4] + c[7][5].b*CW8[7][5] +/*c[7][6].b*CW8[7][6] +  c[7][7].b*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-                              }else
-                              {
-                                 Int w[8][8]={{/*CWA8[0][0]*c[0][0].a*/0,/*CWA8[0][1]*c[0][1].a*/0, CWA8[0][2]*c[0][2].a, CWA8[0][3]*c[0][3].a, CWA8[0][4]*c[0][4].a, CWA8[0][5]*c[0][5].a,/*CWA8[0][6]*c[0][6].a*/0,/*CWA8[0][7]*c[0][7].a*/0},
-                                              {/*CWA8[1][0]*c[1][0].a*/0,  CWA8[1][1]*c[1][1].a   , CWA8[1][2]*c[1][2].a, CWA8[1][3]*c[1][3].a, CWA8[1][4]*c[1][4].a, CWA8[1][5]*c[1][5].a,  CWA8[1][6]*c[1][6].a   ,/*CWA8[1][7]*c[1][7].a*/0},
-                                              {  CWA8[2][0]*c[2][0].a   ,  CWA8[2][1]*c[2][1].a   , CWA8[2][2]*c[2][2].a, CWA8[2][3]*c[2][3].a, CWA8[2][4]*c[2][4].a, CWA8[2][5]*c[2][5].a,  CWA8[2][6]*c[2][6].a   ,  CWA8[2][7]*c[2][7].a   },
-                                              {  CWA8[3][0]*c[3][0].a   ,  CWA8[3][1]*c[3][1].a   , CWA8[3][2]*c[3][2].a, CWA8[3][3]*c[3][3].a, CWA8[3][4]*c[3][4].a, CWA8[3][5]*c[3][5].a,  CWA8[3][6]*c[3][6].a   ,  CWA8[3][7]*c[3][7].a   },
-                                              {  CWA8[4][0]*c[4][0].a   ,  CWA8[4][1]*c[4][1].a   , CWA8[4][2]*c[4][2].a, CWA8[4][3]*c[4][3].a, CWA8[4][4]*c[4][4].a, CWA8[4][5]*c[4][5].a,  CWA8[4][6]*c[4][6].a   ,  CWA8[4][7]*c[4][7].a   },
-                                              {  CWA8[5][0]*c[5][0].a   ,  CWA8[5][1]*c[5][1].a   , CWA8[5][2]*c[5][2].a, CWA8[5][3]*c[5][3].a, CWA8[5][4]*c[5][4].a, CWA8[5][5]*c[5][5].a,  CWA8[5][6]*c[5][6].a   ,  CWA8[5][7]*c[5][7].a   },
-                                              {/*CWA8[6][0]*c[6][0].a*/0,  CWA8[6][1]*c[6][1].a   , CWA8[6][2]*c[6][2].a, CWA8[6][3]*c[6][3].a, CWA8[6][4]*c[6][4].a, CWA8[6][5]*c[6][5].a,  CWA8[6][6]*c[6][6].a   ,/*CWA8[6][7]*c[6][7].a*/0},
-                                              {/*CWA8[7][0]*c[7][0].a*/0,/*CWA8[7][1]*c[7][1].a*/0, CWA8[7][2]*c[7][2].a, CWA8[7][3]*c[7][3].a, CWA8[7][4]*c[7][4].a, CWA8[7][5]*c[7][5].a,/*CWA8[7][6]*c[7][6].a*/0,/*CWA8[7][7]*c[7][7].a*/0}};
-                                 Int div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
-                                       /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
-                                         + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
-                                         + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
-                                         + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
-                                         + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
-                                       /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
-                                       /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
-                                 if(div<=0){col.a=0; goto cubic_sharp_rgb;}
-                                 col.a=Min(DivRound(div, CWA8Sum), 255); // here "div>0" so no need to do "Max(0, "
-                                 if(div<CWA8AlphaLimit) // below this limit, lerp to RGB
-                                 {
-                                    // instead of lerping actual colors, we lerp just the weights, it is an approximation and does not provide the same results as float version, however it is faster
-                                    // weights are lerped between "CWA8[y][x]" (alpha_weight=false) and "CWA8[y][x]*c[y][x].a" (alpha_weight=true)
-                                    // since the right side has a scale of "c[y][x].a", we multiply the left side by "Max(col.a, 1)" (average alpha value, and max 1 to avoid having zero weights and division by zero later)
-                                 #if 0 // float version
-                                  C Flt blend=Flt(div)/CWA8AlphaLimit;
-                                    REPD(y, 8)
-                                    REPD(x, 8)w[y][x]=Lerp(CWA8[y][x]*Max(col.a, 1), w[y][x], blend);
-                                 #else // integer version
-                                  C Int d=256, blend=div/d, blend1=(CWA8AlphaLimit/d-blend)*Max(col.a, 1);
-                                    REPD(y, 8)
-                                    REPD(x, 8)w[y][x]=(CWA8[y][x]*blend1 + w[y][x]*blend)>>10;
-                                 #endif
-
-                                    // recalculate 'div'
-                                    div=/*w[0][0]  + w[0][1]*/+ w[0][2] + w[0][3] + w[0][4] + w[0][5]/*+ w[0][6]  + w[0][7]*/
-                                      /*+ w[1][0]*/+ w[1][1]  + w[1][2] + w[1][3] + w[1][4] + w[1][5]  + w[1][6]/*+ w[1][7]*/
-                                        + w[2][0]  + w[2][1]  + w[2][2] + w[2][3] + w[2][4] + w[2][5]  + w[2][6]  + w[2][7]
-                                        + w[3][0]  + w[3][1]  + w[3][2] + w[3][3] + w[3][4] + w[3][5]  + w[3][6]  + w[3][7]
-                                        + w[4][0]  + w[4][1]  + w[4][2] + w[4][3] + w[4][4] + w[4][5]  + w[4][6]  + w[4][7]
-                                        + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
-                                      /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
-                                      /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
-                                 }
-                                 Int div_2=div>>1;
-                                 col.r=Mid((/*c[0][0].r*w[0][0]  + c[0][1].r*w[0][1]*/+ c[0][2].r*w[0][2] + c[0][3].r*w[0][3] + c[0][4].r*w[0][4] + c[0][5].r*w[0][5] +/*c[0][6].r*w[0][6] +  c[0][7].r*w[0][7]*/
-                                          /*+ c[1][0].r*w[1][0]*/+ c[1][1].r*w[1][1]  + c[1][2].r*w[1][2] + c[1][3].r*w[1][3] + c[1][4].r*w[1][4] + c[1][5].r*w[1][5] +  c[1][6].r*w[1][6] +/*c[1][7].r*w[1][7]*/
-                                            + c[2][0].r*w[2][0]  + c[2][1].r*w[2][1]  + c[2][2].r*w[2][2] + c[2][3].r*w[2][3] + c[2][4].r*w[2][4] + c[2][5].r*w[2][5] +  c[2][6].r*w[2][6] +  c[2][7].r*w[2][7]
-                                            + c[3][0].r*w[3][0]  + c[3][1].r*w[3][1]  + c[3][2].r*w[3][2] + c[3][3].r*w[3][3] + c[3][4].r*w[3][4] + c[3][5].r*w[3][5] +  c[3][6].r*w[3][6] +  c[3][7].r*w[3][7]
-                                            + c[4][0].r*w[4][0]  + c[4][1].r*w[4][1]  + c[4][2].r*w[4][2] + c[4][3].r*w[4][3] + c[4][4].r*w[4][4] + c[4][5].r*w[4][5] +  c[4][6].r*w[4][6] +  c[4][7].r*w[4][7]
-                                            + c[5][0].r*w[5][0]  + c[5][1].r*w[5][1]  + c[5][2].r*w[5][2] + c[5][3].r*w[5][3] + c[5][4].r*w[5][4] + c[5][5].r*w[5][5] +  c[5][6].r*w[5][6] +  c[5][7].r*w[5][7]
-                                          /*+ c[6][0].r*w[6][0]*/+ c[6][1].r*w[6][1]  + c[6][2].r*w[6][2] + c[6][3].r*w[6][3] + c[6][4].r*w[6][4] + c[6][5].r*w[6][5] +  c[6][6].r*w[6][6] +/*c[6][7].r*w[6][7]*/
-                                          /*+ c[7][0].r*w[7][0]  + c[7][1].r*w[7][1]*/+ c[7][2].r*w[7][2] + c[7][3].r*w[7][3] + c[7][4].r*w[7][4] + c[7][5].r*w[7][5] +/*c[7][6].r*w[7][6] +  c[7][7].r*w[7][7]*/ + div_2)/div, 0, 255);
-                                 col.g=Mid((/*c[0][0].g*w[0][0]  + c[0][1].g*w[0][1]*/+ c[0][2].g*w[0][2] + c[0][3].g*w[0][3] + c[0][4].g*w[0][4] + c[0][5].g*w[0][5] +/*c[0][6].g*w[0][6] +  c[0][7].g*w[0][7]*/
-                                          /*+ c[1][0].g*w[1][0]*/+ c[1][1].g*w[1][1]  + c[1][2].g*w[1][2] + c[1][3].g*w[1][3] + c[1][4].g*w[1][4] + c[1][5].g*w[1][5] +  c[1][6].g*w[1][6] +/*c[1][7].g*w[1][7]*/
-                                            + c[2][0].g*w[2][0]  + c[2][1].g*w[2][1]  + c[2][2].g*w[2][2] + c[2][3].g*w[2][3] + c[2][4].g*w[2][4] + c[2][5].g*w[2][5] +  c[2][6].g*w[2][6] +  c[2][7].g*w[2][7]
-                                            + c[3][0].g*w[3][0]  + c[3][1].g*w[3][1]  + c[3][2].g*w[3][2] + c[3][3].g*w[3][3] + c[3][4].g*w[3][4] + c[3][5].g*w[3][5] +  c[3][6].g*w[3][6] +  c[3][7].g*w[3][7]
-                                            + c[4][0].g*w[4][0]  + c[4][1].g*w[4][1]  + c[4][2].g*w[4][2] + c[4][3].g*w[4][3] + c[4][4].g*w[4][4] + c[4][5].g*w[4][5] +  c[4][6].g*w[4][6] +  c[4][7].g*w[4][7]
-                                            + c[5][0].g*w[5][0]  + c[5][1].g*w[5][1]  + c[5][2].g*w[5][2] + c[5][3].g*w[5][3] + c[5][4].g*w[5][4] + c[5][5].g*w[5][5] +  c[5][6].g*w[5][6] +  c[5][7].g*w[5][7]
-                                          /*+ c[6][0].g*w[6][0]*/+ c[6][1].g*w[6][1]  + c[6][2].g*w[6][2] + c[6][3].g*w[6][3] + c[6][4].g*w[6][4] + c[6][5].g*w[6][5] +  c[6][6].g*w[6][6] +/*c[6][7].g*w[6][7]*/
-                                          /*+ c[7][0].g*w[7][0]  + c[7][1].g*w[7][1]*/+ c[7][2].g*w[7][2] + c[7][3].g*w[7][3] + c[7][4].g*w[7][4] + c[7][5].g*w[7][5] +/*c[7][6].g*w[7][6] +  c[7][7].g*w[7][7]*/ + div_2)/div, 0, 255);
-                                 col.b=Mid((/*c[0][0].b*w[0][0]  + c[0][1].b*w[0][1]*/+ c[0][2].b*w[0][2] + c[0][3].b*w[0][3] + c[0][4].b*w[0][4] + c[0][5].b*w[0][5] +/*c[0][6].b*w[0][6] +  c[0][7].b*w[0][7]*/
-                                          /*+ c[1][0].b*w[1][0]*/+ c[1][1].b*w[1][1]  + c[1][2].b*w[1][2] + c[1][3].b*w[1][3] + c[1][4].b*w[1][4] + c[1][5].b*w[1][5] +  c[1][6].b*w[1][6] +/*c[1][7].b*w[1][7]*/
-                                            + c[2][0].b*w[2][0]  + c[2][1].b*w[2][1]  + c[2][2].b*w[2][2] + c[2][3].b*w[2][3] + c[2][4].b*w[2][4] + c[2][5].b*w[2][5] +  c[2][6].b*w[2][6] +  c[2][7].b*w[2][7]
-                                            + c[3][0].b*w[3][0]  + c[3][1].b*w[3][1]  + c[3][2].b*w[3][2] + c[3][3].b*w[3][3] + c[3][4].b*w[3][4] + c[3][5].b*w[3][5] +  c[3][6].b*w[3][6] +  c[3][7].b*w[3][7]
-                                            + c[4][0].b*w[4][0]  + c[4][1].b*w[4][1]  + c[4][2].b*w[4][2] + c[4][3].b*w[4][3] + c[4][4].b*w[4][4] + c[4][5].b*w[4][5] +  c[4][6].b*w[4][6] +  c[4][7].b*w[4][7]
-                                            + c[5][0].b*w[5][0]  + c[5][1].b*w[5][1]  + c[5][2].b*w[5][2] + c[5][3].b*w[5][3] + c[5][4].b*w[5][4] + c[5][5].b*w[5][5] +  c[5][6].b*w[5][6] +  c[5][7].b*w[5][7]
-                                          /*+ c[6][0].b*w[6][0]*/+ c[6][1].b*w[6][1]  + c[6][2].b*w[6][2] + c[6][3].b*w[6][3] + c[6][4].b*w[6][4] + c[6][5].b*w[6][5] +  c[6][6].b*w[6][6] +/*c[6][7].b*w[6][7]*/
-                                          /*+ c[7][0].b*w[7][0]  + c[7][1].b*w[7][1]*/+ c[7][2].b*w[7][2] + c[7][3].b*w[7][3] + c[7][4].b*w[7][4] + c[7][5].b*w[7][5] +/*c[7][6].b*w[7][6] +  c[7][7].b*w[7][7]*/ + div_2)/div, 0, 255);
-                              }
-                              dest.color(x, y, col);
-                           }
-                        }
-                        goto finish;
-                     } // if(!high_prec)
-                  }break;
-
-                  case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor', this operates on linear gamma
-                  {
-                   //high_prec|=src_srgb; not needed since we always do high prec here
-                     const Bool manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
-                     const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
-                     Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                        if(clamp){yc[0]=Max(yc[3]-3, 0   ); yc[1]=Max(yc[3]-2, 0   ); yc[2]=Max(yc[3]-1, 0   ); yc[4]=Min(yc[3]+1, lh()-1); yc[5]=Min(yc[3]+2, lh()-1); yc[6]=Min(yc[3]+3, lh()-1); yc[7]=Min(yc[3]+4, lh()-1);}
-                        else     {yc[0]=Mod(yc[3]-3, lh()); yc[1]=Mod(yc[3]-2, lh()); yc[2]=Mod(yc[3]-1, lh()); yc[4]=   (yc[3]+1)%lh()   ; yc[5]=   (yc[3]+2)%lh()   ; yc[6]=   (yc[3]+3)%lh()   ; yc[7]=   (yc[3]+4)%lh()   ;}
-                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                           if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
-                           else     {xc[0]=Mod(xc[3]-3, lw()); xc[1]=Mod(xc[3]-2, lw()); xc[2]=Mod(xc[3]-1, lw()); xc[4]=   (xc[3]+1)%lw()   ; xc[5]=   (xc[3]+2)%lw()   ; xc[6]=   (xc[3]+3)%lw()   ; xc[7]=   (xc[3]+4)%lw()   ;}
-                           Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
-                           gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
-                           REPD(x, 8)
-                           REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
-                           Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
-                           if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
-                           set_color(dest_data_x, dest.type(), dest.hwType(), color);
-                           dest_data_x+=dest.bytePP();
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                  }goto finish;
-               } // switch(filter)
-            }else // 3D
-            {
-               switch(filter)
-               {
-                  case FILTER_NONE: REPD(z, dest.ld())
-                  {
-                     Int zc=z*2; REPD(y, dest.lh())
-                     {
-                        Int yc=y*2;
-                        if(!ignore_gamma)REPD(x, dest.lw())dest.color3DL(x, y, z, color3DL(x*2, yc, zc));else
-                        if( high_prec   )REPD(x, dest.lw())dest.color3DF(x, y, z, color3DF(x*2, yc, zc));else
-                                         REPD(x, dest.lw())dest.color3D (x, y, z, color3D (x*2, yc, zc));
-                     }
-                  }goto finish;
-
-                  case FILTER_LINEAR: // this operates on linear gamma
-                  {
-                     const Bool hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
-                     if(!hp)
-                     {
-                        REPD(z, dest.ld())
-                        {
-                           Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, ld()-1) : (zc[0]+1)%ld()); // zc[0] is always OK
-                           REPD(y, dest.lh())
-                           {
-                              Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
-                              REPD(x, dest.lw())
-                              {
-                                 Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
-                                 Color col, c[2][2][2]; gather(&c[0][0][0], xc, Elms(xc), yc, Elms(yc), zc, Elms(zc)); // [z][y][x]
-                                 if(!alpha_weight)
-                                 {
-                                    col.a=((c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a+4)>>3);
-                                 linear_rgb_3D:
-                                    col.r=((c[0][0][0].r+c[0][0][1].r+c[0][1][0].r+c[0][1][1].r+c[1][0][0].r+c[1][0][1].r+c[1][1][0].r+c[1][1][1].r+4)>>3);
-                                    col.g=((c[0][0][0].g+c[0][0][1].g+c[0][1][0].g+c[0][1][1].g+c[1][0][0].g+c[1][0][1].g+c[1][1][0].g+c[1][1][1].g+4)>>3);
-                                    col.b=((c[0][0][0].b+c[0][0][1].b+c[0][1][0].b+c[0][1][1].b+c[1][0][0].b+c[1][0][1].b+c[1][1][0].b+c[1][1][1].b+4)>>3);
-                                 }else
-                                 {
-                                    UInt a=c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a;
-                                    if( !a){col.a=0; goto linear_rgb_3D;}
-                                    col.a=((a+4)>>3); UInt a_2=a>>1;
-                                    col.r=(c[0][0][0].r*c[0][0][0].a + c[0][0][1].r*c[0][0][1].a + c[0][1][0].r*c[0][1][0].a + c[0][1][1].r*c[0][1][1].a + c[1][0][0].r*c[1][0][0].a + c[1][0][1].r*c[1][0][1].a + c[1][1][0].r*c[1][1][0].a + c[1][1][1].r*c[1][1][1].a + a_2)/a;
-                                    col.g=(c[0][0][0].g*c[0][0][0].a + c[0][0][1].g*c[0][0][1].a + c[0][1][0].g*c[0][1][0].a + c[0][1][1].g*c[0][1][1].a + c[1][0][0].g*c[1][0][0].a + c[1][0][1].g*c[1][0][1].a + c[1][1][0].g*c[1][1][0].a + c[1][1][1].g*c[1][1][1].a + a_2)/a;
-                                    col.b=(c[0][0][0].b*c[0][0][0].a + c[0][0][1].b*c[0][0][1].a + c[0][1][0].b*c[0][1][0].a + c[0][1][1].b*c[0][1][1].a + c[1][0][0].b*c[1][0][0].a + c[1][0][1].b*c[1][0][1].a + c[1][1][0].b*c[1][1][0].a + c[1][1][1].b*c[1][1][1].a + a_2)/a;
-                                 }
-                                 dest.color3D(x, y, z, col);
-                              }
-                           }
-                        }
-                        goto finish;
-                     }
-                  }break;
-               }
-            }
-         }
-         
-         // any scale
-         {
-            // for scale 1->1 offset=0.0
-            //           2->1 offset=0.5
-            //           3->1 offset=1.0
-            //           4->1 offset=1.5
-            Vec2 x_mul_add, y_mul_add, z_mul_add;
-            if(keep_edges)
-            {
-               x_mul_add.set(Flt(T.lw()-1)/(dest.lw()-1), 0);
-               y_mul_add.set(Flt(T.lh()-1)/(dest.lh()-1), 0);
-               z_mul_add.set(Flt(T.ld()-1)/(dest.ld()-1), 0);
-            }else
-            {
-               x_mul_add.x=Flt(T.lw())/dest.lw(); x_mul_add.y=x_mul_add.x*0.5f-0.5f;
-               y_mul_add.x=Flt(T.lh())/dest.lh(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
-               z_mul_add.x=Flt(T.ld())/dest.ld(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
-            }
-            Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
-            if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && T.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
-            {
-               Bool linear_gamma; // some down-sampling filters operate on linear gamma here
-               Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
-               switch(filter)
-               {
-                //case FILTER_AVERAGE          : linear_gamma=false; area_color=&Image::areaColorFAverage        ; break;
-                  case FILTER_LINEAR           : linear_gamma=true ; area_color=&Image::areaColorLLinear         ; break;
-                  case FILTER_CUBIC_FAST       : linear_gamma=true ; area_color=&Image::areaColorLCubicFast      ; break;
-                  case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; area_color=&Image::areaColorLCubicFastSmooth; break;
-                  default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST
-                  case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
-                  case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
-                  case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
-               }
-               Bool manual_linear_to_srgb=false;
-               auto set_color=SetColor; // pointer to function
-               if(linear_gamma)
-               {
-                  if(ignore_gamma_ds) // we don't want to convert gamma
-                  {
-                     if(src_srgb)manual_linear_to_srgb=true; // source is sRGB however we have linear color, so convert it back to sRGB
-                        set_color=SetColorF;
-                  }else set_color=SetColorL; // write linear color, 'SetColorL' will perform gamma conversion
-               }
-               Vec2 pos;
-               Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-               {
-                  pos.y=y*y_mul_add.x+y_mul_add.y;
-                  Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                  {
-                     pos.x=x*x_mul_add.x+x_mul_add.y;
-                     Vec4 color=(T.*area_color)(pos, size.xy, clamp, alpha_weight);
-                     if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
-                     set_color(dest_data_x, dest.type(), dest.hwType(), color);
-                     dest_data_x+=dest.bytePP();
-                  }
-                  dest_data_y+=dest.pitch();
-               }
-            }else
-            // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
-            if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
-            && T.ld()==1)
-            {
-               Flt   alpha_limit =((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
-               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
-               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-               {
-                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_x=dest_data_y;
-                     Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                           sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                     Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
-                     Flt   yw[CUBIC_MED_SAMPLES*2];
-                     REPA( xo)
-                     {
-                        xo[i]=xi-CUBIC_MED_SAMPLES+1+i;
-                        yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
-                        if(clamp)
-                        {
-                           Clamp(xo[i], 0, lw()-1);
-                           Clamp(yo[i], 0, lh()-1);
-                        }else
-                        {
-                           xo[i]=Mod(xo[i], lw());
-                           yo[i]=Mod(yo[i], lh());
-                        }
-                     }
-                     if(NeedMultiChannel(T.type(), dest.type()))
-                     {
-                        Vec4 c[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
-                        gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
-                           }
-
-                           Flt  weight=0;
-                           Vec  rgb   =0;
-                           Vec4 color =0;
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-                              Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
-                              REPAD(y, yo)
-                              {
-                                 Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
-                                 {
-                                    w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
-                                 }
-                              }
-                           }
-                           Normalize(color, rgb, weight, alpha_weight, alpha_limit);
-                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }else
-                     {
-                        Flt v[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
-                        gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
-                           }
-
-                           Flt weight=0, value=0;
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-                              Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
-                              REPAD(y, yo)
-                              {
-                                 Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
-                                 {
-                                    w=Func(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
-                                 }
-                              }
-                           }
-                           SetPixelF(dest_data_x, dest.hwType(), value/weight);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
-                  dest_data_z+=dest.pitch2();
-               }
-            }else
-            if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
-            && T.ld()==1)
-            {
-               Flt   alpha_limit =((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
-               Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
-               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-               {
-                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_x=dest_data_y;
-                     Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                           sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                     Int   xo[CUBIC_FAST_SAMPLES*2], yo[CUBIC_FAST_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
-                     Flt   yw[CUBIC_FAST_SAMPLES*2];
-                     REPA( xo)
-                     {
-                        xo[i]=xi-CUBIC_FAST_SAMPLES+1+i;
-                        yo[i]=yi-CUBIC_FAST_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
-                        if(clamp)
-                        {
-                           Clamp(xo[i], 0, lw()-1);
-                           Clamp(yo[i], 0, lh()-1);
-                        }else
-                        {
-                           xo[i]=Mod(xo[i], lw());
-                           yo[i]=Mod(yo[i], lh());
-                        }
-                     }
-                     if(NeedMultiChannel(T.type(), dest.type()))
-                     {
-                        Vec4 c[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
-                        gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
-                           }
-
-                           Flt  weight=0;
-                           Vec  rgb   =0;
-                           Vec4 color =0;
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
-                              Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
-                              REPAD(y, yo)
-                              {
-                                 Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
-                                 {
-                                    w=Func(w); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
-                                 }
-                              }
-                           }
-                           Normalize(color, rgb, weight, alpha_weight, alpha_limit);
-                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }else
-                     {
-                        Flt v[CUBIC_FAST_SAMPLES*2][CUBIC_FAST_SAMPLES*2];
-                        gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+CUBIC_FAST_SAMPLES; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset=(x_offset+1)%(CUBIC_FAST_SAMPLES*2);
-                           }
-
-                           Flt weight=0, value=0;
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)%(CUBIC_FAST_SAMPLES*2);
-                              Flt xw=Sqr(sx-(xi-CUBIC_FAST_SAMPLES+1+x));
-                              REPAD(y, yo)
-                              {
-                                 Flt w=xw+yw[y]; if(w<Sqr(CUBIC_FAST_RANGE))
-                                 {
-                                    w=Func(w); value+=v[xc][y]*w; weight+=w;
-                                 }
-                              }
-                           }
-                           SetPixelF(dest_data_x, dest.hwType(), value/weight);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
-                  dest_data_z+=dest.pitch2();
-               }
-            }else
-            if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
-            && T.ld()==1)
-            {
-               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-               {
-                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     Byte *dest_data_x=dest_data_y;
-                     Flt   sy=y*y_mul_add.x+y_mul_add.y,
-                           sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-                     Int   xo[2], yo[2], xi=Floor(sx), yi=Floor(sy);
-                     Flt   yw[2]; yw[1]=sy-yi; yw[0]=1-yw[1];
-                     REPA( xo)
-                     {
-                        xo[i]=xi+i;
-                        yo[i]=yi+i;
-                        if(clamp)
-                        {
-                           Clamp(xo[i], 0, lw()-1);
-                           Clamp(yo[i], 0, lh()-1);
-                        }else
-                        {
-                           xo[i]=Mod(xo[i], lw());
-                           yo[i]=Mod(yo[i], lh());
-                        }
-                     }
-                     if(NeedMultiChannel(T.type(), dest.type()))
-                     {
-                        Vec4 c[2][2];
-                        gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset^=1;
-                           }
-
-                           Vec  rgb  =0;
-                           Vec4 color=0;
-                           Flt  xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)&1;
-                              REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
-                           }
-                           Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
-                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }else
-                     {
-                        Flt v[2][2];
-                        gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-                        REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
-
-                        Int x_offset=0;
-                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y;
-                           Int xi2=Floor(sx); if(xi!=xi2)
-                           {
-                              xi=xi2;
-                              Int xo_last=xi+1; if(clamp)Clamp(xo_last, 0, lw()-1);else xo_last=Mod(xo_last, lw());
-                              gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-                              x_offset^=1;
-                           }
-
-                           Flt value=0, xw[2]; xw[1]=sx-xi; xw[0]=1-xw[1];
-                           REPAD(x, xo)
-                           {
-                              Int xc=(x+x_offset)&1;
-                              REPAD(y, yo)value+=v[xc][y]*xw[x]*yw[y];
-                           }
-                           SetPixelF(dest_data_x, dest.hwType(), value);
-                           dest_data_x+=dest.bytePP();
-                        }
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
-                  dest_data_z+=dest.pitch2();
-               }
-            }else
-            if(NeedMultiChannel(T.type(), dest.type()))
-            {
-               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-               {
-                  Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                     {
-                        Flt  sx=x*x_mul_add.x+x_mul_add.y;
-                        Vec4 color;
-                        switch(filter)
-                        {
-                           case FILTER_NONE             : color=((T.ld()<=1) ? T.colorF               (RoundPos(sx), RoundPos(sy)                     ) : T.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                           case FILTER_LINEAR           : color=((T.ld()<=1) ? T.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : T.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST       : color=((T.ld()<=1) ? T.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SMOOTH: color=((T.ld()<=1) ? T.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SHARP : color=((T.ld()<=1) ? T.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-                           default                      : // FILTER_BEST
-                           case FILTER_CUBIC            : color=((T.ld()<=1) ? T.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_SHARP      : color=((T.ld()<=1) ? T.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
-                        }
-                        SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                        dest_data_x+=dest.bytePP();
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
-                  dest_data_z+=dest.pitch2();
-               }
-            }else
-            {
-               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-               {
-                  Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                  {
-                     Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                     {
-                        Flt sx=x*x_mul_add.x+x_mul_add.y,
-                            pix;
-                        switch(filter)
-                        {
-                           case FILTER_NONE             : pix=((T.ld()<=1) ? T.pixelF               (RoundPos(sx), RoundPos(sy)       ) : T.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                           case FILTER_LINEAR           : pix=((T.ld()<=1) ? T.pixelFLinear         (         sx ,          sy , clamp) : T.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST       : pix=((T.ld()<=1) ? T.pixelFCubicFast      (         sx ,          sy , clamp) : T.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SMOOTH: pix=((T.ld()<=1) ? T.pixelFCubicFastSmooth(         sx ,          sy , clamp) : T.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SHARP : pix=((T.ld()<=1) ? T.pixelFCubicFastSharp (         sx ,          sy , clamp) : T.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-                           default                      : // FILTER_BEST
-                           case FILTER_CUBIC            : pix=((T.ld()<=1) ? T.pixelFCubic          (         sx ,          sy , clamp) : T.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_SHARP      : pix=((T.ld()<=1) ? T.pixelFCubicSharp     (         sx ,          sy , clamp) : T.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
-                        }
-                        SetPixelF(dest_data_x, dest.hwType(), pix);
-                        dest_data_x+=dest.bytePP();
-                     }
-                     dest_data_y+=dest.pitch();
-                  }
-                  dest_data_z+=dest.pitch2();
-               }
-            }
-         }
-      }
-
-   finish:
-      dest.unlock();
-         T.unlock();
-   }
-   return true;
+   return CopyContext(T, dest, flags).process(filter, max_mip_maps, sharp_smooth);
 }
 /******************************************************************************/
 }
