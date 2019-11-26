@@ -270,34 +270,35 @@ void Surface_PS
 
    if(SOFT)
    {
-      Flt water_z=inPos.z;
+      Flt water_z    =inPos.z;
+      Flt water_z_raw=pixel.z;
    #if REFRACT
       Vec2 back_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
-      Flt back_z_raw=DEPTH_MAX(TexGather(ImgXF, back_tex)); // use Max to check if any depth sample is Z_BACK (not set), we will use linear filtering so have to check all 4 pixels for depth
+      Vec4 back_z_raw4=TexGather(ImgXF, back_tex);
    #else // simulate gather
       Vec2 pixel  =back_tex*RTSize.zw+0.5,
            pixeli =Floor(pixel),
            tex_min=(pixeli-0.5)*RTSize.xy,
            tex_max=(pixeli+0.5)*RTSize.xy;
-      Flt  back_z_raw=DEPTH_MAX(TexPoint(ImgXF, Vec2(tex_min.x, tex_min.y)),
-                                TexPoint(ImgXF, Vec2(tex_max.x, tex_min.y)),
-                                TexPoint(ImgXF, Vec2(tex_min.x, tex_max.y)),
-                                TexPoint(ImgXF, Vec2(tex_max.x, tex_max.y)));
+      Vec4 back_z_raw4=Vec4(TexPoint(ImgXF, Vec2(tex_min.x, tex_min.y)),
+                            TexPoint(ImgXF, Vec2(tex_max.x, tex_min.y)),
+                            TexPoint(ImgXF, Vec2(tex_min.x, tex_max.y)),
+                            TexPoint(ImgXF, Vec2(tex_max.x, tex_max.y)));
    #endif // GATHER
-      Flt back_z=LinearizeDepth(back_z_raw); if(back_z<=water_z) // if refracted sample is in front of water (leaking)
+      Flt back_z_raw=DEPTH_MAX(back_z_raw4); // use DEPTH_MAX to check if any depth sample is Z_BACK (not set), we will use linear filtering so have to check all 4 pixels for depth
+      if(DEPTH_SMALLER(DEPTH_MIN(back_z_raw4), water_z_raw)) // if refracted sample is in front of water (leaking), use DEPTH_MIN to check if all samples are in front
       { // skip refracted sample
          back_tex  =inTex;
          back_z_raw=TexPoint(ImgXF, inTex).x;
-         back_z    =LinearizeDepth(back_z_raw);
       }
    #else // NO REFRACT
       Vec2 back_tex  =inTex;
       Flt  back_z_raw=TexPoint(ImgXF, inTex).x;
-      Flt  back_z    =LinearizeDepth(back_z_raw);
    #endif // REFRACT
       if(DEPTH_BACKGROUND(back_z_raw))O_col=water_col;else // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
       {
+         Flt   back_z=LinearizeDepth(back_z_raw);
          Flt   dz=back_z-water_z;
          Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
          VecH4 back_col=TexLodClamp(Img2, back_tex);
@@ -354,21 +355,21 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if REFRACT
       Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
-      Flt test_z_raw=DEPTH_MAX(TexDepthGather(test_tex)); // use Max to check if any depth sample is Z_BACK (not set)
+      Vec4 test_z_raw4=TexDepthGather(test_tex);
    #else // simulate gather
       Vec2 pixel  =test_tex*RTSize.zw+0.5,
            pixeli =Floor(pixel),
            tex_min=(pixeli-0.5)*RTSize.xy,
            tex_max=(pixeli+0.5)*RTSize.xy;
-      Flt  test_z_raw=DEPTH_MAX(TexPoint(Depth, Vec2(tex_min.x, tex_min.y)),
-                                TexPoint(Depth, Vec2(tex_max.x, tex_min.y)),
-                                TexPoint(Depth, Vec2(tex_min.x, tex_max.y)),
-                                TexPoint(Depth, Vec2(tex_max.x, tex_max.y)));
+      Vec4 test_z_raw4=Vec4(TexPoint(Depth, Vec2(tex_min.x, tex_min.y)),
+                            TexPoint(Depth, Vec2(tex_max.x, tex_min.y)),
+                            TexPoint(Depth, Vec2(tex_min.x, tex_max.y)),
+                            TexPoint(Depth, Vec2(tex_max.x, tex_max.y)));
    #endif // GATHER
-      if(DEPTH_SMALLER(water_z_raw, test_z_raw)) // if refracted sample is behind water (not leaking)
+      if(DEPTH_SMALLER(water_z_raw, DEPTH_MIN(test_z_raw4))) // if refracted sample is behind water (not leaking), use DEPTH_MIN to check if all samples are behind
       { // use refracted sample
          back_tex  =test_tex;
-         back_z_raw=test_z_raw;
+         back_z_raw=DEPTH_MAX(test_z_raw4); // use DEPTH_MAX to check if any depth sample is Z_BACK (not set) to force full opacity
       }
    #endif // REFRACT
       if(DEPTH_FOREGROUND(back_z_raw)) // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
