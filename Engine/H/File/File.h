@@ -84,14 +84,15 @@ struct File
    void cipherOffset     (Int     offset);                        // adjust file cipher offset
    void cipherOffsetClear(              ) {cipherOffset(-pos());} // adjust file cipher offset so that "posCipher()==0 -> pos+cipher_offset==0 -> cipher_offset=-pos", this will result in encryption being always the same, regardless of current location
 #endif
-   Bool is  (        )C {return _type!=0    ;} // if  file is opened
-   Bool pos (Long pos);                        // set position, false on fail
-   Long pos (        )C {return _pos        ;} // get position
-   Long size(        )C {return _size       ;} // get size
-   Long left(        )C {return _size-_pos  ;} // get size left (number of bytes from current position to the end of the file)
-   Bool end (        )C {return _pos>=_size ;} // if  current position is at the end of the file
-   Bool skip(Long n  )  {return  pos(_pos+n);} // skip 'n' bytes going forward
-   Bool ok  (        )C {return _ok         ;} // check if no errors occurred during reading/writing. When a new file is opened this will be set to true by default, if any 'put' or 'get' call will fail then this will be set to false
+   Bool  is     (        )C {return _type!=0    ;} // if  file is opened
+   Bool  pos    (Long pos);                        // set position, false on fail
+   Long  pos    (        )C {return _pos        ;} // get position
+   Long  size   (        )C {return _size       ;} // get size
+   Long  left   (        )C {return _size-_pos  ;} // get size left (number of bytes from current position to the end of the file)
+   Bool  end    (        )C {return _pos>=_size ;} // if  current position is at the end of the file
+   Bool  skip   (Long n  )  {return  pos(_pos+n);} // skip 'n' bytes going forward
+   Bool       ok(        )C {return _ok         ;} // check if no errors occurred during reading/writing. When a new file is opened this will be set to true by default, if any 'put' or 'get' call will fail then this will be set to false
+   File& resetOK(        )  {_ok=true;  return T;} // reset 'ok' status to default
 
    // put / get
 #if EE_PRIVATE

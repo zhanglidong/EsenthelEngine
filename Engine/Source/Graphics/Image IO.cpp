@@ -583,16 +583,16 @@ Bool Image::Export(C Str &name, Flt rgb_quality, Flt alpha_quality, Flt compress
 Bool Image::ImportTry(File &f, Int type, Int mode, Int mip_maps)
 {
    Long pos=f.pos();
-               if(load      (f))goto ok;
-   f.pos(pos); if(ImportBMP (f))goto ok;
-   f.pos(pos); if(ImportPNG (f))goto ok;
-   f.pos(pos); if(ImportJPG (f))goto ok;
-   f.pos(pos); if(ImportWEBP(f))goto ok;
-   f.pos(pos); if(ImportTIF (f))goto ok; // import after PNG/JPG in case LibTIFF tries to decode them too
-   f.pos(pos); if(ImportDDS (f, type, mode, mip_maps))goto ok;
-   f.pos(pos); if(ImportPSD (f))goto ok;
-   f.pos(pos); if(ImportICO (f))goto ok;
- //f.pos(pos); if(ImportTGA (f, type, mode, mip_maps))goto ok; TGA format doesn't contain any special signatures, so we can't check it
+                         if(load      (f))goto ok;
+   f.resetOK().pos(pos); if(ImportBMP (f))goto ok;
+   f.resetOK().pos(pos); if(ImportPNG (f))goto ok;
+   f.resetOK().pos(pos); if(ImportJPG (f))goto ok;
+   f.resetOK().pos(pos); if(ImportWEBP(f))goto ok;
+   f.resetOK().pos(pos); if(ImportTIF (f))goto ok; // import after PNG/JPG in case LibTIFF tries to decode them too
+   f.resetOK().pos(pos); if(ImportDDS (f, type, mode, mip_maps))goto ok;
+   f.resetOK().pos(pos); if(ImportPSD (f))goto ok;
+   f.resetOK().pos(pos); if(ImportICO (f))goto ok;
+ //f.resetOK().pos(pos); if(ImportTGA (f, type, mode, mip_maps))goto ok; TGA format doesn't contain any special signatures, so we can't check it
    del(); return false;
 ok:;
    return copyTry(T, -1, -1, -1, type, mode, mip_maps);
@@ -604,7 +604,7 @@ Bool Image::ImportTry(C Str &name, Int type, Int mode, Int mip_maps)
    {
       if(ImportTry(f, type, mode, mip_maps))return true;
       CChar *ext=_GetExt(name);
-      if(Equal(ext, "tga") && f.pos(0) && ImportTGA(f, type, mode, mip_maps))return true; // TGA format doesn't contain any special signatures, so check extension instead
+      if(Equal(ext, "tga") && f.resetOK().pos(0) && ImportTGA(f, type, mode, mip_maps))return true; // TGA format doesn't contain any special signatures, so check extension instead
    }
    del(); return false;
 }

@@ -1723,7 +1723,7 @@ Bool SoundStream::create(C Str &name) // !! warning: set T._codec as last thing 
          #if SUPPORT_AAC // MP4
             if(!(cc4&0xFFFFFF)) // first UInt is the chunk size in BigEndian format, and for 'ftyp' it usually should be very small, so check 3 highest bytes that they are zero (have to check lowest because it's BigEndian)
             {
-              _f.pos(4); if(_f.getUInt()==CC4('f','t','y','p'))
+              _f.resetOK().pos(4); if(_f.getUInt()==CC4('f','t','y','p'))
                {
                  _f.pos(0); if(_extra=LoadAACHeader(_f, _par)){_codec=SOUND_AAC; return true;} // reset file position after previous attempt and set '_codec' as the last thing
                }
@@ -1735,7 +1735,7 @@ Bool SoundStream::create(C Str &name) // !! warning: set T._codec as last thing 
             )                       // 0b11100000 == 0xE0      (111               , ignored           , ignored            , ignored     ) https://en.wikipedia.org/wiki/MP3#File_structure
             {
             #if SUPPORT_MP3
-              _f.pos(0); // reset file position after previous attempt
+              _f.resetOK().pos(0); // reset file position after previous attempt
             #endif
             load_mp3:;
             #if SUPPORT_MP3
