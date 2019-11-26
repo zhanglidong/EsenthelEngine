@@ -42,10 +42,11 @@ inline VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH nig
          lit_col+=night_shade_intensity*night_shade_col;
    }
    VecH spec_col=(lum.w/Max(max_lum, HALF_MIN))*lum.rgb;
+   Half smooth=ext.x, reflectivity=ext.y; // #RTOutput
 #if REFLECT
-   lit_col=PBR(color.rgb, lit_col, nrm, ext.x, ext.y, eye_dir, spec_col); // #RTOutput
+   lit_col=PBR(color.rgb, lit_col, nrm, smooth, reflectivity, eye_dir, spec_col);
 #else
-   lit_col+=spec_col*ReflectCol(color.rgb, ext.y); // #RTOutput
+   lit_col=lit_col*(1-reflectivity) + spec_col*ReflectCol(color.rgb, reflectivity);
 #endif
    return lit_col;
 }

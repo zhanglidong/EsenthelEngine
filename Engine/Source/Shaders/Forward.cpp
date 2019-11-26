@@ -649,25 +649,20 @@ VecH4 PS
    #endif
 
    // reflection
-   #if REFLECT
+   VecH reflect_col=ReflectCol(col, reflectivity); // calc 'reflect_col' from unlit color
+   col=col*total_lum*(1-reflectivity) + reflect_col*total_specular;
+#if REFLECT
+   if(FirstPass) // add reflection only for the fist pass
    {
-      VecH reflect_col=ReflectCol(col, reflectivity); // calc 'reflect_col' from unlit color
-      col=col*total_lum*(1-reflectivity) + reflect_col*total_specular;
-
-      if(FirstPass) // add reflection only for the fist pass
-      {
-      #if VTX_REFLECT
-         Vec reflect_dir=I.reflect_dir;
-      #else
-         Vec reflect_dir=ReflectDir(eye_dir, nrm);
-      #endif
-         col+=reflect_col*
-            ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir), false));
-      }
-   }
+   #if VTX_REFLECT
+      Vec reflect_dir=I.reflect_dir;
    #else
-      col=col*total_lum + total_specular*ReflectCol(col, reflectivity);
+      Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
+      col+=reflect_col*
+         ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir), false));
+   }
+#endif
 
    return VecH4(col, glow);
 }
