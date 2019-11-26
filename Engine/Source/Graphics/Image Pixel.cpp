@@ -4522,6 +4522,7 @@ struct CopyContext
    Image &dest;
    const Bool clamp, keep_edges, alpha_weight, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
    const Int  src_faces1;
+   const FILTER_TYPE filter;
    void (*const SetColor)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
 
    // case-dependent
@@ -5066,8 +5067,60 @@ struct CopyContext
          }
       }
    }
+   static void Upsize(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsize(elm_index);}
+          void upsize(IntPtr elm_index)
+   {
+      Int z=elm_index/dest.lh(),
+          y=elm_index%dest.lh();
+      Flt sz=z*z_mul_add.x+z_mul_add.y;
+      Flt sy=y*y_mul_add.x+y_mul_add.y;
+      Byte *dest_data_z=dest.data()+z*dest.pitch2();
+      Byte *dest_data_y=dest_data_z+y*dest.pitch ();
+      Byte *dest_data_x=dest_data_y;
+      if(NeedMultiChannel(src.type(), dest.type()))
+      {
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt  sx=x*x_mul_add.x+x_mul_add.y;
+            Vec4 color;
+            switch(filter)
+            {
+               case FILTER_NONE             : color=((src.ld()<=1) ? src.colorF               (RoundPos(sx), RoundPos(sy)                     ) : src.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+               case FILTER_LINEAR           : color=((src.ld()<=1) ? src.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : src.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST       : color=((src.ld()<=1) ? src.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST_SMOOTH: color=((src.ld()<=1) ? src.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST_SHARP : color=((src.ld()<=1) ? src.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+               default                      : // FILTER_BEST
+               case FILTER_CUBIC            : color=((src.ld()<=1) ? src.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_SHARP      : color=((src.ld()<=1) ? src.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+            }
+            SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+            dest_data_x+=dest.bytePP();
+         }
+      }else // single channel
+      {
+         FREPD(x, dest.lw()) // iterate forward so we can increase pointers
+         {
+            Flt sx=x*x_mul_add.x+x_mul_add.y;
+            Flt pix;
+            switch(filter)
+            {
+               case FILTER_NONE             : pix=((src.ld()<=1) ? src.pixelF               (RoundPos(sx), RoundPos(sy)       ) : src.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+               case FILTER_LINEAR           : pix=((src.ld()<=1) ? src.pixelFLinear         (         sx ,          sy , clamp) : src.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST       : pix=((src.ld()<=1) ? src.pixelFCubicFast      (         sx ,          sy , clamp) : src.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST_SMOOTH: pix=((src.ld()<=1) ? src.pixelFCubicFastSmooth(         sx ,          sy , clamp) : src.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_FAST_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicFastSharp (         sx ,          sy , clamp) : src.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+               default                      : // FILTER_BEST
+               case FILTER_CUBIC            : pix=((src.ld()<=1) ? src.pixelFCubic          (         sx ,          sy , clamp) : src.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_SHARP      : pix=((src.ld()<=1) ? src.pixelFCubicSharp     (         sx ,          sy , clamp) : src.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+            }
+            SetPixelF(dest_data_x, dest.hwType(), pix);
+            dest_data_x+=dest.bytePP();
+         }
+      }
+   }
 
-   CopyContext(C Image &src, Image &dest, UInt flags) : src(src), dest(dest),
+   CopyContext(C Image &src, Image &dest, FILTER_TYPE filter, UInt flags) : src(src), dest(dest), filter(filter),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
       alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && ImageTI[src.type()].a), // only if source has alpha
@@ -5092,7 +5145,7 @@ struct CopyContext
       src_faces1(src.faces()-1),
       SetColor(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL) // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
    {}
-   Bool process(FILTER_TYPE filter, Int max_mip_maps, Flt sharp_smooth)
+   Bool process(Int max_mip_maps, Flt sharp_smooth)
    {
       REPD(mip , Min(src.mipMaps(), dest.mipMaps(), max_mip_maps))
       REPD(face, dest.faces())
@@ -5339,66 +5392,8 @@ struct CopyContext
                {
                   ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeLinear, T);
                }else
-               if(NeedMultiChannel(src.type(), dest.type()))
                {
-                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-                  {
-                     Flt sz=z*z_mul_add.x+z_mul_add.y;
-                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Flt sy=y*y_mul_add.x+y_mul_add.y;
-                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt  sx=x*x_mul_add.x+x_mul_add.y;
-                           Vec4 color;
-                           switch(filter)
-                           {
-                              case FILTER_NONE             : color=((src.ld()<=1) ? src.colorF               (RoundPos(sx), RoundPos(sy)                     ) : src.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                              case FILTER_LINEAR           : color=((src.ld()<=1) ? src.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : src.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST       : color=((src.ld()<=1) ? src.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST_SMOOTH: color=((src.ld()<=1) ? src.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST_SHARP : color=((src.ld()<=1) ? src.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-                              default                      : // FILTER_BEST
-                              case FILTER_CUBIC            : color=((src.ld()<=1) ? src.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_SHARP      : color=((src.ld()<=1) ? src.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
-                           }
-                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
-                           dest_data_x+=dest.bytePP();
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                     dest_data_z+=dest.pitch2();
-                  }
-               }else
-               {
-                  Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
-                  {
-                     Flt sz=z*z_mul_add.x+z_mul_add.y;
-                     Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
-                     {
-                        Flt sy=y*y_mul_add.x+y_mul_add.y;
-                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
-                        {
-                           Flt sx=x*x_mul_add.x+x_mul_add.y,
-                               pix;
-                           switch(filter)
-                           {
-                              case FILTER_NONE             : pix=((src.ld()<=1) ? src.pixelF               (RoundPos(sx), RoundPos(sy)       ) : src.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                              case FILTER_LINEAR           : pix=((src.ld()<=1) ? src.pixelFLinear         (         sx ,          sy , clamp) : src.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST       : pix=((src.ld()<=1) ? src.pixelFCubicFast      (         sx ,          sy , clamp) : src.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST_SMOOTH: pix=((src.ld()<=1) ? src.pixelFCubicFastSmooth(         sx ,          sy , clamp) : src.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_FAST_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicFastSharp (         sx ,          sy , clamp) : src.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-                              default                      : // FILTER_BEST
-                              case FILTER_CUBIC            : pix=((src.ld()<=1) ? src.pixelFCubic          (         sx ,          sy , clamp) : src.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                              case FILTER_CUBIC_SHARP      : pix=((src.ld()<=1) ? src.pixelFCubicSharp     (         sx ,          sy , clamp) : src.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
-                           }
-                           SetPixelF(dest_data_x, dest.hwType(), pix);
-                           dest_data_x+=dest.bytePP();
-                        }
-                        dest_data_y+=dest.pitch();
-                     }
-                     dest_data_z+=dest.pitch2();
-                  }
+                  ImageThreads.init().process(dest.lh()*dest.ld(), Upsize, T);
                }
             }
          }
@@ -5413,7 +5408,7 @@ struct CopyContext
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_maps, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
-   return CopyContext(T, dest, flags).process(filter, max_mip_maps, sharp_smooth);
+   return CopyContext(T, dest, filter, flags).process(max_mip_maps, sharp_smooth);
 }
 /******************************************************************************/
 }
