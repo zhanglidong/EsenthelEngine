@@ -297,7 +297,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& nightShadeColorS(C Vec &srgb_color);     Vec  nightShadeColorS()C;                      // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
 
    // Environment
-   Display& envColor(  Flt       color);   Flt       envColor()C {return _env_color;} // set/get Environment color (0..1, default=1), the change is         instant, you can call it real-time
+   Display& envColor(C Vec      &color); C Vec     & envColor()C {return _env_color;} // set/get Environment color (0..1, default=1), the change is         instant, you can call it real-time
    Display& envMap  (C ImagePtr &cube ); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                    , the change may not be instant, avoid   calling real-time, default=ImagePtr().get("Img/Environment.img"), images passed to this method must be created with IC_ENV_CUBE flag enabled in the 'Image.copy*' functions or have "Environment" mode selected in the "Esenthel Editor \ Image Editor"
 
    // Shadowing
@@ -525,7 +525,6 @@ private:
    VecI2             _res, _render_res;
    Flt               _aspect_ratio, _aspect_ratio_want, _pixel_aspect, _gamma, _font_sharpness, _scale,
                      _amb_range, _amb_contrast, _amb_min,
-                     _env_color,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
                      _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,
@@ -543,7 +542,7 @@ private:
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _shd_map_split;
-   Vec               _amb_color_l, _ns_color_l, _eye_adapt_weight;
+   Vec               _amb_color_l, _ns_color_l, _env_color, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
    Rect              _view_rect, _view_eye_rect[2];
    Viewport          _view_main, _view_active;

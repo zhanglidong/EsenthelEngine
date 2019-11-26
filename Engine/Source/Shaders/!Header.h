@@ -354,7 +354,7 @@ BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
    Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
    VecH  AmbientNSColor            ; // ambient combined with night shade
-   Half  EnvColor                  ; // environment map color
+   VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
    VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
 BUFFER_END
