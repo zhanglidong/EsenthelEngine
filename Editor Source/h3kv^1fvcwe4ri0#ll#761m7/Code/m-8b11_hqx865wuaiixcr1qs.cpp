@@ -568,6 +568,7 @@ class MaterialRegion : Region
 
    static void MulTexCol   (MaterialRegion &editor) {Proj.mtrlMulTexCol   (editor.elm_id);}
    static void MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
+   static void MulTexSmooth(MaterialRegion &editor) {Proj.mtrlMulTexSmooth(editor.elm_id);}
 
    bool bigVisible()C {return visible() && big();}
 
@@ -771,7 +772,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Normal"         , MemberDesc(DATA_REAL).setFunc(NrmScale, NrmScale)).range(0, 2);
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
-      props.New().create("Smoothness"   , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 1);
+      props.New().create("Smoothness"   , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 4);
       props.New().create("Reflectivity" , MemberDesc(DATA_REAL).setFunc(Reflect, Reflect)).range(0, 1);
       props.New().create("Glow"         , MemberDesc(DATA_REAL).setFunc(Glow   , Glow   )).range(0, 1);
       props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR   , AmbR   )).range(0, 1);
@@ -951,6 +952,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          Node<MenuElm> &extra=(n+="Extra");
          extra.New().create("Multiply Color Texture by Color Value"  , MulTexCol   , T);
          extra.New().create("Multiply Normal Texture by Normal Value", MulTexNormal, T);
+         extra.New().create("Multiply Smooth Texture by Smooth Value", MulTexSmooth, T);
       }
       sub+=texture_options.create().setData(n); texture_options.flag|=COMBOBOX_CONST_TEXT;
 

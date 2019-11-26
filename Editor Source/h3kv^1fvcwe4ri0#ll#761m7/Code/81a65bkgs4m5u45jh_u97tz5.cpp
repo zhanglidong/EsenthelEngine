@@ -370,6 +370,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlReloadBaseTex       (ProjectEx &proj) {proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
    static void MtrlMulTexCol           (ProjectEx &proj) {proj.mtrlMulTexCol      (proj.menu_list_sel);}
    static void MtrlMulTexNormal        (ProjectEx &proj) {proj.mtrlMulTexNormal   (proj.menu_list_sel);}
+   static void MtrlMulTexSmooth        (ProjectEx &proj) {proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
    static void MtrlMoveToObj           (ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
    static void MtrlMerge               (ProjectEx &proj) {MSM             .display(proj.menu_list_sel);}
    static void MtrlConvertToAtlas      (ProjectEx &proj) {ConvertToAtlas  .setElms(proj.menu_list_sel);}
@@ -1541,7 +1542,28 @@ class ProjectEx : ProjectHierarchy
                else             SetTransform(fps, "scaleXY", TextVecEx(mul));
                edit.normal_map=Edit.FileParams.Encode(fps); edit.normal_map_time.now();
                edit.normal=1; edit.normal_time.now();
-               mtrlSync(elm_ids[i], edit, true, false, "mulTexScale");
+               mtrlSync(elm_ids[i], edit, true, false, "mulTexNrm");
+            }
+         }
+      }
+      return ok;
+   }
+   bool mtrlMulTexSmooth(C MemPtr<UID> &elm_ids)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         {
+            if(!Equal(edit.smooth, 1) && edit.smooth_map.is())
+            {
+               Mems<Edit.FileParams> fps=Edit.FileParams.Decode(edit.smooth_map);
+               flt mul=edit.smooth; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p.asFlt();
+               if(Equal(mul, 1))DelTransform(fps, "mulRGB");
+               else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
+               edit.smooth_map=Edit.FileParams.Encode(fps); edit.smooth_map_time.now();
+               edit.smooth=1; edit.smooth_time.now();
+               mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
             }
          }
       }
@@ -3841,6 +3863,7 @@ class ProjectEx : ProjectHierarchy
                   m++;
                   m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
                   m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);
+                  m.New().create("Multiply Smooth Texture by Smooth Value", MtrlMulTexSmooth, T);
                   m++;
                   m.New().create("Move to its Object", MtrlMoveToObj, T).desc("This option will move the Material Element to the Object it belongs to");
                   m++;

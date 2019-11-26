@@ -291,6 +291,7 @@ public:
 
    static void MulTexCol   (MaterialRegion &editor);
    static void MulTexNormal(MaterialRegion &editor);
+   static void MulTexSmooth(MaterialRegion &editor);
 
    bool bigVisible()C;
 
