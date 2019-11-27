@@ -471,7 +471,7 @@ class ImporterClass
                               if(src.lockRead())
                            {
                               // copy non-compressed 2D face to non-compressed 6*2D
-                              int byte_pp=ImageTI[dest.hwType()].byte_pp;
+                              int byte_pp=dest.bytePP();
                               REPD(y, size)
                               {
                                  Copy(dest.data() + y*dest.pitch() + i*byte_pp*size,

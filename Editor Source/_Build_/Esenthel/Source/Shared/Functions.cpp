@@ -284,7 +284,7 @@ Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified '
 /******************************************************************************/
 bool HasAlpha(C Image &image) // if image has alpha channel
 {
-   if(!ImageTI[image.type()].a)return false;
+   if(!image.typeInfo().a)return false;
    Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 1.5f/255) && Equal(max.w, 1, 1.5f/255));
    return true;
 }
@@ -292,16 +292,13 @@ bool HasColor(C Image &image) // if image is not monochromatic
 {
    return !image.monochromatic();
 }
-bool NeedFullAlpha(Image &image, IMAGE_TYPE type, bool always)
+bool NeedFullAlpha(Image &image, int dest_type)
 {
-   return (
-          //((image.type()!=IMAGE_BC1 && image.type()!=IMAGE_BC1_SRGB) && (type==IMAGE_BC1 || type==IMAGE_BC1_SRGB)) || // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha, right now BC1 has alpha disabled in 'CompressBC1'
-            always
-          ) && ImageTI[image.type()].a; // no point in changing alpha if the source doesn't have it
+   return image.typeInfo().a && (!InRange(dest_type, IMAGE_TYPES) || ImageTI[dest_type].a); // have to change only if source and dest have alpha channel
 }
-bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always) // returns if any change was made
+bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type) // returns if any change was made
 {
-   if(NeedFullAlpha(image, type, always))
+   if(NeedFullAlpha(image, dest_type))
    {
       if(image.compressed())return image.copyTry(image, -1, -1, -1, ImageTypeExcludeAlpha(ImageTypeUncompressed(image.type())), IMAGE_SOFT, 1);
       if(image.lock())
@@ -329,6 +326,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
       if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
       if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
    }
+   if(flags&MTRL_DETAIL){if(ForceHQMtrlDetail)flags|=FORCE_HQ;}
    if(md5 || compress_type)
    {
       // set initial values
@@ -344,9 +342,9 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
               bc4=true, // BC4 4-bit is (R,0,0,1)
               bc5=true, // BC5 8-bit is (R,G,0,1)
               srgb=FlagTest(flags, SRGB),
-              force_alpha=((flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
+              force_alpha=((flags&IGNORE_ALPHA) && image.typeInfo().a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
               extract=((md5 && (sign ? image.hwType()!=IMAGE_R8G8B8A8_SIGN : (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB))) // hash is based on RGBA format
-                    || (compress_type && ImageTI[image.hwType()].compressed) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
+                    || (compress_type && image.compressed()) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
                     || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
          if(md5)m.update(&ImageHashHeader(image, sign), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb/sign images will always have different hash
          Image temp; C Image *src=(extract ? &temp : &image);
@@ -597,22 +595,23 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal)
+void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
 {
    uint tex=0;
    if(detail_tex.valid())
-      if(color || bump || normal)
+      if(color || /*bump ||*/ normal || smooth)
    {
       Image det; LoadTexture(proj, detail_tex, det);
       if(color )color ->createSoft(det.w(), det.h(), 1, IMAGE_L8);
-      if(bump  )bump  ->createSoft(det.w(), det.h(), 1, IMAGE_L8);
+    //if(bump  )bump  .createSoft(det.w(), det.h(), 1, IMAGE_L8);
       if(normal)normal->createSoft(det.w(), det.h(), 1, IMAGE_R8G8B8);
+      if(smooth)smooth->createSoft(det.w(), det.h(), 1, IMAGE_L8);
       REPD(y, det.h())
       REPD(x, det.w())
       {
          Color c=det.color(x, y); // #MaterialTextureLayout
-         if(color ){color->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
-         if(bump  ){bump ->pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
+         if(color ){color ->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR ;}
+         if(smooth){smooth->pixel(x, y, c.a); if(c.a<254)tex|=BT_SMOOTH;}
          if(normal)
          {
             Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
@@ -623,6 +622,7 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Imag
    if(color  && !(tex&BT_COLOR ))color ->del();
    if(bump   && !(tex&BT_BUMP  ))bump  ->del();
    if(normal && !(tex&BT_NORMAL))normal->del();
+   if(smooth && !(tex&BT_SMOOTH))smooth->del();
 }
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2) // this function generates ID of a merged texture created from two base textures, formula for this function can be freely modified as in worst case merged textures will just get regenerated
 {
@@ -664,7 +664,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_
       if(&edit!=&game){src->copyTry(temp); src=&temp;}
       src->alphaFromBrightness().divRgbByAlpha();
    }
-   if(ignore_alpha && ImageTI[src->type()].a) // if want to ignore alpha then set it to full as some compressed texture formats will benefit from better quality (like PVRTC)
+   if(ignore_alpha && src->typeInfo().a) // if want to ignore alpha then set it to full as some compressed texture formats will benefit from better quality (like PVRTC)
    {
       if(mip_maps<0)mip_maps=((src->mipMaps()==1) ? 1 : 0); // source will have now only one mip-map so we can't use "-1", auto-detect instead
       if(mode    <0)mode    =src->mode();                   // source will now be as IMAGE_SOFT      so we can't use "-1", auto-detect instead

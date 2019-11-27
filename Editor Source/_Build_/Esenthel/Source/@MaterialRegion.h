@@ -4,23 +4,24 @@ class MaterialRegion : Region
 {
    enum TEX_TYPE
    {
-      TEX_COLOR   ,
-      TEX_ALPHA   ,
-      TEX_BUMP    ,
-      TEX_NORMAL  ,
-      TEX_SMOOTH  ,
-      TEX_REFLECT ,
-      TEX_GLOW    ,
-      TEX_DET_COL ,
-      TEX_DET_BUMP,
-      TEX_DET_NRM ,
-      TEX_MACRO   ,
-      TEX_LIGHT   ,
+      TEX_COLOR     ,
+      TEX_ALPHA     ,
+      TEX_BUMP      ,
+      TEX_NORMAL    ,
+      TEX_SMOOTH    ,
+      TEX_REFLECT   ,
+      TEX_GLOW      ,
+      TEX_DET_COLOR ,
+      TEX_DET_BUMP  ,
+      TEX_DET_NORMAL,
+      TEX_DET_SMOOTH,
+      TEX_MACRO     ,
+      TEX_LIGHT     ,
       
       TEX_BASE_BEGIN=TEX_COLOR,
       TEX_BASE_END  =TEX_GLOW ,
-      TEX_DET_BEGIN =TEX_DET_COL,
-      TEX_DET_END   =TEX_DET_NRM,
+      TEX_DET_BEGIN =TEX_DET_COLOR,
+      TEX_DET_END   =TEX_DET_SMOOTH,
    };
 
    class Change : Edit::_Undo::Change

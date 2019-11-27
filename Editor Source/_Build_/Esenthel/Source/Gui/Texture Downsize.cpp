@@ -442,8 +442,8 @@ TextureDownsize TexDownsize;
       if(image && image->is())
       {
          int mem_size=image->typeMemUsage(); size+=mem_size; // use 'typeMemUsage' because we need this only for stats
-         return side ? S+FileSize(mem_size)+"  "+image->w()+'x'+image->h()+"  "+ImageTI[image->type()].name
-                     : S+ImageTI[image->type()].name+"  "+image->w()+'x'+image->h()+"  "+FileSize(mem_size);
+         return side ? S+FileSize(mem_size)+"  "+image->w()+'x'+image->h()+"  "+image->typeInfo().name
+                     : S+image->typeInfo().name+"  "+image->w()+'x'+image->h()+"  "+FileSize(mem_size);
       }
       return S;
    }

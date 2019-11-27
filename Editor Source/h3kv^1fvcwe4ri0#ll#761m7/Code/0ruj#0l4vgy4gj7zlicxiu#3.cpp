@@ -389,7 +389,7 @@ Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified '
 /******************************************************************************/
 bool HasAlpha(C Image &image) // if image has alpha channel
 {
-   if(!ImageTI[image.type()].a)return false;
+   if(!image.typeInfo().a)return false;
    Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 1.5/255) && Equal(max.w, 1, 1.5/255));
    return true;
 }
@@ -399,7 +399,7 @@ bool HasColor(C Image &image) // if image is not monochromatic
 }
 bool NeedFullAlpha(Image &image, int dest_type)
 {
-   return ImageTI[image.type()].a && (!InRange(dest_type, IMAGE_TYPES) || ImageTI[dest_type].a); // have to change only if source and dest have alpha channel
+   return image.typeInfo().a && (!InRange(dest_type, IMAGE_TYPES) || ImageTI[dest_type].a); // have to change only if source and dest have alpha channel
 }
 bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type) // returns if any change was made
 {
@@ -473,9 +473,9 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
               bc4=true, // BC4 4-bit is (R,0,0,1)
               bc5=true, // BC5 8-bit is (R,G,0,1)
               srgb=FlagTest(flags, SRGB),
-              force_alpha=((flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
+              force_alpha=((flags&IGNORE_ALPHA) && image.typeInfo().a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
               extract=((md5 && (sign ? image.hwType()!=IMAGE_R8G8B8A8_SIGN : (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB))) // hash is based on RGBA format
-                    || (compress_type && ImageTI[image.hwType()].compressed) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
+                    || (compress_type && image.compressed()) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
                     || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
          if(md5)m.update(&ImageHashHeader(image, sign), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb/sign images will always have different hash
          Image temp; C Image *src=(extract ? &temp : &image);
@@ -795,7 +795,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_
       if(&edit!=&game){src.copyTry(temp); src=&temp;}
       src.alphaFromBrightness().divRgbByAlpha();
    }
-   if(ignore_alpha && ImageTI[src.type()].a) // if want to ignore alpha then set it to full as some compressed texture formats will benefit from better quality (like PVRTC)
+   if(ignore_alpha && src.typeInfo().a) // if want to ignore alpha then set it to full as some compressed texture formats will benefit from better quality (like PVRTC)
    {
       if(mip_maps<0)mip_maps=((src.mipMaps()==1) ? 1 : 0); // source will have now only one mip-map so we can't use "-1", auto-detect instead
       if(mode    <0)mode    =src.mode();                   // source will now be as IMAGE_SOFT      so we can't use "-1", auto-detect instead

@@ -345,12 +345,12 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                EditMaterial edit; edit.create(game); // create from material
 
                // set textures
-               if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0                                    );else edit.base_0_tex.zero();
-               if(game.    base_1)ImageProps(*game.    base_1, &edit.base_1_tex, null, MTRL_BASE_1                                    );else edit.base_1_tex.zero();
-               if(game.    base_2)ImageProps(*game.    base_2, &edit.base_2_tex, null, MTRL_BASE_2                                    );else edit.base_2_tex.zero();
-               if(game.detail_map)ImageProps(*game.detail_map, &edit.detail_tex, null, (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.detail_tex.zero();
-               if(game. macro_map)ImageProps(*game. macro_map, &edit. macro_tex, null, SRGB|                              IGNORE_ALPHA);else edit. macro_tex.zero();
-               if(game. light_map)ImageProps(*game. light_map, &edit. light_tex, null, SRGB|                              IGNORE_ALPHA);else edit. light_tex.zero();
+               if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0      );else edit.base_0_tex.zero();
+               if(game.    base_1)ImageProps(*game.    base_1, &edit.base_1_tex, null, MTRL_BASE_1      );else edit.base_1_tex.zero();
+               if(game.    base_2)ImageProps(*game.    base_2, &edit.base_2_tex, null, MTRL_BASE_2      );else edit.base_2_tex.zero();
+               if(game.detail_map)ImageProps(*game.detail_map, &edit.detail_tex, null, MTRL_DETAIL      );else edit.detail_tex.zero();
+               if(game. macro_map)ImageProps(*game. macro_map, &edit. macro_tex, null, SRGB|IGNORE_ALPHA);else edit. macro_tex.zero();
+               if(game. light_map)ImageProps(*game. light_map, &edit. light_tex, null, SRGB|IGNORE_ALPHA);else edit. light_tex.zero();
                if(edit.base_0_tex.valid())if(Proj.includeTex(edit.base_0_tex))game.    base_0->save(Proj.texPath(edit.base_0_tex));
                if(edit.base_1_tex.valid())if(Proj.includeTex(edit.base_1_tex))game.    base_1->save(Proj.texPath(edit.base_1_tex));
                if(edit.base_2_tex.valid())if(Proj.includeTex(edit.base_2_tex))game.    base_2->save(Proj.texPath(edit.base_2_tex));
@@ -380,8 +380,9 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                edit. smooth_map_time.getUTC(); edit. smooth_map.clear();
                edit.reflect_map_time.getUTC(); edit.reflect_map.clear();
                edit. detail_map_time.getUTC(); edit.detail_color =d; SetTransform(edit.detail_color , "channel", "z" );
-                                               edit.detail_bump  =d; SetTransform(edit.detail_bump  , "channel", "w" );
+                                               edit.detail_smooth=d; SetTransform(edit.detail_smooth, "channel", "w" );
                                                edit.detail_normal=d; SetTransform(edit.detail_normal, "channel", "xy");
+                                               edit.detail_bump.clear();
                edit.  macro_map_time.getUTC(); edit. macro_map   =m;
                edit.  light_map_time.getUTC(); edit. light_map   =l;
                if(b2.is())
@@ -441,9 +442,9 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ElmImage *image_data=elm.imageData();
                image_data->newData();
                image_data->src_file=MakeFullPath(file, FILE_DATA);
-               if(ImageTI[game.type()].compressed)elm.imageData()->type=ElmImage::COMPRESSED;else 
-               if(        game.type()==IMAGE_A8  )elm.imageData()->type=ElmImage::ALPHA;else 
-                                                  elm.imageData()->type=ElmImage::FULL;
+               if(game.typeInfo().compressed)elm.imageData()->type=ElmImage::COMPRESSED;else 
+               if(game.type()==IMAGE_A8     )elm.imageData()->type=ElmImage::ALPHA;else 
+                                             elm.imageData()->type=ElmImage::FULL;
                elm.imageData()->mode=game.mode();
                elm.imageData()->mipMaps(game.mipMaps()>1);
                elm.imageData()->pow2(IsPow2(game.w()) && IsPow2(game.h()));

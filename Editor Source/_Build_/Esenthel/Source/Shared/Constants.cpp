@@ -35,13 +35,12 @@ const bool          MiscOnTop=false,
                     ModeTabsAlwaysVisible=false,
                     RequireAllCodeMatchForSync=true,
                     TolerantSecondaryServer=false, // will ignore DeviceID when getting confirmation from secondary authentication server
-                    SupportBC7           =true , // if support BC7 compression
-                    WebBC7               =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-                    ForceHQMtrlBase0     =false, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
-                    ForceHQMtrlBase1     =true , // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
-                    ForceHQMtrlBase2     =false, // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
-                    ForceHQMtrlDetail    =true , // if always use high quality compression for Material Detail Texture (NxNyColBump        ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
-                     RemoveMtrlDetailBump=true , // if always delete Bump channel from Material Detail Texture (bump channel is not actually used in shaders, so removing it from the texture will give following benefits: ForceHQMtrlDetail ? will give better quality for Nrm and Col : will allow BC1 texture and 2x smaller size)
+                    SupportBC7       =true , // if support BC7 compression
+                    WebBC7           =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
+                    ForceHQMtrlBase0 =false, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
+                    ForceHQMtrlBase1 =true , // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
+                    ForceHQMtrlBase2 =false, // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
+                    ForceHQMtrlDetail=true , // if always use high quality compression for Material Detail Texture (NxNyColBump        ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
                     ImportRemovedElms=false, 
                     RenameAnimBonesOnSkelChange=true; // See also: FIND_ANIM_BY_NAME_ONLY in the Engine
                                             // min size of mesh box (in meters) to split it
@@ -428,10 +427,10 @@ const Pose PoseIdentity;
    }
    void MtrlImages::processAlpha()
    {
-      if(!alpha.is() && ImageTI[color.type()].a) // if we have no alpha map but it's possible it's in color
+      if(!alpha.is() && color.typeInfo().a) // if we have no alpha map but it's possible it's in color
          color.copyTry(alpha, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1);
 
-      if(alpha.is() && alpha.typeChannels()>1 && ImageTI[alpha.type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
+      if(alpha.is() && alpha.typeChannels()>1 && alpha.typeInfo().a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha.lockRead())
       {
          byte min_alpha=255, min_lum=255;

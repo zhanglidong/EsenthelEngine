@@ -471,7 +471,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0->sRGB(true); t0->downSize(downsize); if(ForceHQMtrlBase0 )t0->quality=1; t0->flags|=flags;}
             Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){               t1->downSize(downsize); if(ForceHQMtrlBase1 )t1->quality=1; t1->normal();}
             Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){               t2->downSize(downsize); if(ForceHQMtrlBase2 )t2->quality=1;}
-                         if(Texture *t=GetTexture(publish_texs, data->detail_tex)){               t ->downSize(downsize); if(ForceHQMtrlDetail)t ->quality=1; if(!RemoveMtrlDetailBump)t->usesAlpha();} // Detail uses Alpha for bump unless it's removed
+                         if(Texture *t=GetTexture(publish_texs, data->detail_tex)){               t ->downSize(downsize); if(ForceHQMtrlDetail)t ->quality=1; t->usesAlpha();} // Detail uses Alpha for Smooth
                          if(Texture *t=GetTexture(publish_texs, data-> macro_tex)){t ->sRGB(true); t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data-> light_tex)){t ->sRGB(true); t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
 
@@ -1118,12 +1118,11 @@ void DrawPublish()
                   MIN(size.z, max_size);
                }
                int mip_maps=T.mip_maps, mode=T.mode;
-               if(ignore_alpha && NeedFullAlpha(*s, IMAGE_TYPE(type))) // if we won't need alpha
+               if(ignore_alpha && NeedFullAlpha(*s, type)) // if we won't need alpha
                {
-                  if(mip_maps<0)mip_maps=((s->mipMaps()==1) ? 1 : 0); // source will have now only one mip-map   so we can't use "-1", auto-detect instead
-                  if(mode    <0)mode    =s->mode();                   // source will now be as IMAGE_SOFT        so we can't use "-1", auto-detect instead
-                  if(type    <0)type    =s->type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
-                  if(s->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
+                  if(mip_maps<0)mip_maps=((s->mipMaps()==1) ? 1 : 0); // source will have now only one mip-map so we can't use "-1", auto-detect instead
+                  if(mode    <0)mode    =s->mode();                   // source will now be as IMAGE_SOFT      so we can't use "-1", auto-detect instead
+                  if(s->copyTry(temp, -1, -1, -1, ImageTypeExcludeAlpha(ImageTypeUncompressed(s->type())), IMAGE_SOFT, 1))s=&temp;
                }
                if(s->copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)))
                {

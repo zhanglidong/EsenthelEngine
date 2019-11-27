@@ -78,7 +78,7 @@ class SizeStatistics : ClosableWindow
                image.draw(rect);
             }
             D.alpha(alpha);
-            TextStyleParams ts; ts.align.set(1, 1); D.text(ts, D.viewRect().ld(), S+image.w()+'x'+image.h()+' '+ImageTI[image.type()].name+", "+image.mipMaps()+" MipMap"+CountS(image.mipMaps()));
+            TextStyleParams ts; ts.align.set(1, 1); D.text(ts, D.viewRect().ld(), S+image.w()+'x'+image.h()+' '+image.typeInfo().name+", "+image.mipMaps()+" MipMap"+CountS(image.mipMaps()));
          }else // other elements preview as normal for simplification
          if(list_elm.proj_elm)if(Elm *elm=Proj.findElm(list_elm.id))Preview.draw(*elm, D.viewRect());
       }

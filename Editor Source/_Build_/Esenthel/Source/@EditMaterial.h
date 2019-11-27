@@ -12,7 +12,7 @@ class EditMaterial
                       tex_scale, det_scale, det_power;
    UID                base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
    Str                color_map, alpha_map, bump_map, normal_map, smooth_map, reflect_map, glow_map,
-                      detail_color, detail_bump, detail_normal,
+                      detail_color, detail_bump, detail_normal, detail_smooth,
                       macro_map,
                       light_map;
    TimeStamp          flip_normal_y_time, tex_quality_time,

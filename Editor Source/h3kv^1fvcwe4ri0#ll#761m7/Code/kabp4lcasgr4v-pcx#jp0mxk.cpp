@@ -575,9 +575,9 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ElmImage *image_data=elm.imageData();
                image_data.newData();
                image_data.src_file=MakeFullPath(file, FILE_DATA);
-               if(ImageTI[game.type()].compressed)elm.imageData().type=ElmImage.COMPRESSED;else 
-               if(        game.type()==IMAGE_A8  )elm.imageData().type=ElmImage.ALPHA;else 
-                                                  elm.imageData().type=ElmImage.FULL;
+               if(game.typeInfo().compressed)elm.imageData().type=ElmImage.COMPRESSED;else 
+               if(game.type()==IMAGE_A8     )elm.imageData().type=ElmImage.ALPHA;else 
+                                             elm.imageData().type=ElmImage.FULL;
                elm.imageData().mode=game.mode();
                elm.imageData().mipMaps(game.mipMaps()>1);
                elm.imageData().pow2(IsPow2(game.w()) && IsPow2(game.h()));
