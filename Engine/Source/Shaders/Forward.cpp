@@ -341,8 +341,7 @@ VecH4 PS
       #if   BUMP_MODE==SBUMP_ZERO
          nrmh=0;
       #elif BUMP_MODE==SBUMP_FLAT
-                    nrmh=I.Nrm();
-         if(DETAIL){nrmh=Normalize(nrmh); nrmh.xy+=det.xy;}
+         nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
                    nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
          if(DETAIL)nrmh.xy+=det.xy;
@@ -422,15 +421,7 @@ VecH4 PS
       #if   BUMP_MODE==SBUMP_ZERO
          nrmh=0;
       #elif BUMP_MODE==SBUMP_FLAT
-         nrmh=I.Nrm();
-         if(DETAIL)
-         {
-            nrmh=Normalize(nrmh);
-                            nrmh.xy+=det0.xy*I.material.x;
-                            nrmh.xy+=det1.xy*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=det2.xy*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=det3.xy*I.material.w;
-         }
+         nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
          if(DETAIL)
          {

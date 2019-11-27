@@ -392,8 +392,7 @@ void PS
 #if   BUMP_MODE==SBUMP_ZERO
    nrm=0;
 #elif BUMP_MODE==SBUMP_FLAT
-              nrm    =Normalize(I.Nrm());
-   if(DETAIL){nrm.xy+=det.xy; nrm=Normalize(nrm);}
+   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
              nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
    if(DETAIL)nrm.xy+=det.xy;
@@ -657,15 +656,7 @@ void PS
 #if   BUMP_MODE==SBUMP_ZERO
    nrm=0;
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm());
-   if(DETAIL)
-   {
-                      nrm.xy+=det0.xy*I.material.x;
-                      nrm.xy+=det1.xy*I.material.y;
-      if(MATERIALS>=3)nrm.xy+=det2.xy*I.material.z;
-      if(MATERIALS>=4)nrm.xy+=det3.xy*I.material.w;
-      nrm=Normalize(nrm);
-   }
+   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    if(DETAIL)
    {
