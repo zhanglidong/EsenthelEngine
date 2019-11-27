@@ -392,18 +392,19 @@ void MainShaderClass::getTechniques()
    REPD(dither, 2)
    REPD(gamma , 2)DrawXC[dither][gamma]=get(S8+"DrawXC"+dither+gamma);
 
- //DrawTexX   =get("DrawTexX"); used by Editor
- //DrawTexY   =get("DrawTexY"); used by Editor
- //DrawTexZ   =get("DrawTexZ"); used by Editor
- //DrawTexW   =get("DrawTexW"); used by Editor
- //DrawTexXG  =get("DrawTexXG"); used by Editor
- //DrawTexYG  =get("DrawTexYG"); used by Editor
- //DrawTexZG  =get("DrawTexZG"); used by Editor
- //DrawTexWG  =get("DrawTexWG"); used by Editor
- //DrawTexXSG =get("DrawTexXSG"); used by Editor
- //DrawTexXYSG=get("DrawTexXYSG"); used by Editor
- //DrawTexSG  =get("DrawTexSG"); used by Editor
- //DrawTexNrm =get("DrawTexNrm"); used by Editor
+ //DrawTexX     =get("DrawTexX"); used by Editor
+ //DrawTexY     =get("DrawTexY"); used by Editor
+ //DrawTexZ     =get("DrawTexZ"); used by Editor
+ //DrawTexW     =get("DrawTexW"); used by Editor
+ //DrawTexXG    =get("DrawTexXG"); used by Editor
+ //DrawTexYG    =get("DrawTexYG"); used by Editor
+ //DrawTexZG    =get("DrawTexZG"); used by Editor
+ //DrawTexWG    =get("DrawTexWG"); used by Editor
+ //DrawTexXSG   =get("DrawTexXSG"); used by Editor
+ //DrawTexXYSG  =get("DrawTexXYSG"); used by Editor
+ //DrawTexSG    =get("DrawTexSG"); used by Editor
+ //DrawTexNrm   =get("DrawTexNrm"); used by Editor
+ //DrawTexDetNrm=get("DrawTexDetNrm"); used by Editor
 
    DrawMask=get("DrawMask");
 

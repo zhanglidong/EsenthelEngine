@@ -119,12 +119,13 @@ static void Compile(API api)
       src.New("DrawTexXYSG", "Draw2DTex_VS", "DrawTexXYSG_PS");
       src.New("DrawTexSG"  , "Draw2DTex_VS", "DrawTexSG_PS");
 
-      src.New("DrawTexNrm", "Draw2DTex_VS", "DrawTexNrm_PS");
-      src.New("Draw"      ,      "Draw_VS",  "Draw2DTex_PS");
-      src.New("DrawC"     ,      "Draw_VS", "Draw2DTexC_PS");
-      src.New("DrawCG"    ,      "Draw_VS", "DrawTexCG_PS");
-      src.New("DrawG"     ,      "Draw_VS", "DrawTexG_PS");
-      src.New("DrawA"     ,      "Draw_VS", "Draw2DTexA_PS");
+      src.New("DrawTexNrm"   , "Draw2DTex_VS", "DrawTexNrm_PS");
+      src.New("DrawTexDetNrm", "Draw2DTex_VS", "DrawTexDetNrm_PS");
+      src.New("Draw"         ,      "Draw_VS",  "Draw2DTex_PS");
+      src.New("DrawC"        ,      "Draw_VS", "Draw2DTexC_PS");
+      src.New("DrawCG"       ,      "Draw_VS", "DrawTexCG_PS");
+      src.New("DrawG"        ,      "Draw_VS", "DrawTexG_PS");
+      src.New("DrawA"        ,      "Draw_VS", "Draw2DTexA_PS");
 
       src.New("DrawX" , "Draw_VS", "DrawX_PS" );
       src.New("DrawXG", "Draw_VS", "DrawXG_PS");

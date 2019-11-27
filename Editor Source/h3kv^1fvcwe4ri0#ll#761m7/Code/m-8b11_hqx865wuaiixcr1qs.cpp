@@ -236,7 +236,7 @@ class MaterialRegion : Region
                case TEX_MACRO     : if(em.    macro_map.is()                       )if(           macro){                                                                                                               macro ->drawFit(rect); tex=true;} break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      detail->drawFit(rect); tex=true;} break;
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(          detail){                                                               if(Image *bump=mr.getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; //{VI.shader(ShaderFiles("Main")->get(                      "DrawTexWG"  ));                                      detail->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
-               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexDetNrm"));                                   detail->drawFit(rect); tex=true;} break;
                case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      detail->drawFit(rect); tex=true;} break;
              /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
                case TEX_RFL_F     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
@@ -730,7 +730,7 @@ class MaterialRegion : Region
 
    void setBottom(C Rect &prop_rect)
    {
-      reload_base_textures.rect(Rect_LU(0.10, prop_rect.min.y-0.02, 0.42, 0.053));
+      reload_base_textures.rect(Rect_LU(0.10, prop_rect.min.y-0.05, 0.42, 0.053));
            texture_options.rect(Rect_LU(reload_base_textures.rect().ru(), reload_base_textures.rect().h()));
    }
    void create()

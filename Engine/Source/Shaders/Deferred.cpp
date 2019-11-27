@@ -602,9 +602,9 @@ void PS
    if(DETAIL)
    {
                       det0=GetDetail0(tex0);
-                      det1=GetDetail1(tex0);
-      if(MATERIALS>=3)det2=GetDetail2(tex0);
-      if(MATERIALS>=4)det3=GetDetail3(tex0);
+                      det1=GetDetail1(tex1);
+      if(MATERIALS>=3)det2=GetDetail2(tex2);
+      if(MATERIALS>=4)det3=GetDetail3(tex3);
    }
 
    // macro texture

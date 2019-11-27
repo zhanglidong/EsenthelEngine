@@ -89,6 +89,16 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
           #endif
    return VecH4(nrm, 1);
 }
+VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+{
+   VecH nrm; nrm.xy=Tex(Img, inTex).xy*2-1; // #MaterialTextureLayout
+             nrm.z =CalcZ(nrm.xy);
+             nrm   =Normalize(nrm)*0.5+0.5;
+          #if LINEAR_GAMMA
+             nrm   =SRGBToLinear(nrm);
+          #endif
+   return VecH4(nrm, 1);
+}
 
 VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
 VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
