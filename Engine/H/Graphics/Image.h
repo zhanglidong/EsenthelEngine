@@ -270,19 +270,21 @@ struct Image // Image (Texture)
    LOCK_MODE lockMode ()C {return _lock_mode ;} // get current lock mode
    Int       lockCount()C {return _lock_count;} // get current lock count
 
-   Flt                    aspect()C {return Flt(w())/h()                    ;} // get          aspect ratio of image "width/height"
-   Flt                 invAspect()C {return Flt(h())/w()                    ;} // get inversed aspect ratio of image "height/width"
-   UInt                 memUsage()C;                                           // get actual  memory usage of the image, this method operates on 'hwType' (what the image is using right now)
-   UInt             typeMemUsage()C;                                           // get desired memory usage of the image, this method operates on   'type' (what the image would use if it was stored in its desired type)
-   Byte                   bytePP()C {return         _byte_pp                ;} // get number of bytes per pixel
-   Bool               compressed()C {return ImageTI[_hw_type].    compressed;} // if  hardware type is compressed
-   IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].     precision;} // get image precision
-   Bool            highPrecision()C {return ImageTI[_hw_type].high_precision;} // if  image requires high precision storage (for example Flt/Vec4 instead of Byte/Color)
-   Bool                     sRGB()C {return IsSRGB (_hw_type)               ;} // if  this is a sRGB image
-   Bool                  isSByte()C {return IsSByte(_hw_type)               ;} // if  this is a signed byte/8-bit precision
-   Byte             typeChannels()C {return ImageTI[   _type].channels      ;} // get number of chanels for Image type
+   Flt                    aspect()C {return Flt(w())/h()               ;} // get          aspect ratio of image "width/height"
+   Flt                 invAspect()C {return Flt(h())/w()               ;} // get inversed aspect ratio of image "height/width"
+   UInt                 memUsage()C;                                      // get actual  memory usage of the image, this method operates on 'hwType' (what the image is using right now)
+   UInt             typeMemUsage()C;                                      // get desired memory usage of the image, this method operates on   'type' (what the image would use if it was stored in its desired type)
+ C ImageTypeInfo&       typeInfo()C {return ImageTI[   _type]          ;} // get image          type info
+ C ImageTypeInfo&     hwTypeInfo()C {return ImageTI[_hw_type]          ;} // get image hardware type info
+   Byte                   bytePP()C {return         _byte_pp           ;} // get number of bytes per pixel
+   Bool               compressed()C {return hwTypeInfo().    compressed;} // if  hardware type is compressed
+   IMAGE_PRECISION     precision()C {return hwTypeInfo().     precision;} // get image precision
+   Bool            highPrecision()C {return hwTypeInfo().high_precision;} // if  image requires high precision storage (for example Flt/Vec4 instead of Byte/Color)
+   Byte             typeChannels()C {return   typeInfo().      channels;} // get number of chanels for image type
+   Bool                     sRGB()C {return IsSRGB (_hw_type)          ;} // if  this is a sRGB image
+   Bool                  isSByte()C {return IsSByte(_hw_type)          ;} // if  this is a signed byte/8-bit precision
 #if EE_PRIVATE
-   constexpr Bool     filterable()C {return ImageTI[_hw_type].  filterable();}
+   constexpr Bool     filterable()C {return hwTypeInfo().  filterable();}
 #endif
 
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size

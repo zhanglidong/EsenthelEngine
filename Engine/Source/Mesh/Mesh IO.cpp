@@ -88,23 +88,23 @@ static void FixPath(Str &name, Str &path)
 void XMaterial::fixPath(Str path)
 {
    path.tailSlash(true);
-   FixPath(          color_map, path);
-   FixPath(          alpha_map, path);
-   FixPath(          light_map, path);
-   FixPath(           bump_map, path);
-   FixPath(         normal_map, path);
-   FixPath(         smooth_map, path);
-   FixPath(        reflect_map, path);
-   FixPath(   detail_color_map, path);
-   FixPath(    detail_bump_map, path);
-   FixPath(  detail_normal_map, path);
-   FixPath(detail_specular_map, path);
+   FixPath(        color_map, path);
+   FixPath(        alpha_map, path);
+   FixPath(        light_map, path);
+   FixPath(         bump_map, path);
+   FixPath(       normal_map, path);
+   FixPath(       smooth_map, path);
+   FixPath(      reflect_map, path);
+   FixPath( detail_color_map, path);
+   FixPath(  detail_bump_map, path);
+   FixPath(detail_normal_map, path);
+   FixPath(detail_smooth_map, path);
 }
 Bool XMaterial::save(File &f)C
 {
    f.cmpUIntV(0); // version
    f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<tex_scale
-    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<reflect_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_specular_map
+    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<reflect_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
 }
@@ -115,7 +115,7 @@ Bool XMaterial::load(File &f)
       case 0:
       {
          f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>tex_scale
-          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>reflect_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_specular_map
+          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>reflect_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;
       }break;

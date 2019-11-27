@@ -19,18 +19,18 @@ struct XMaterial // Material stored in external formats
                       det_power, // detail     power       0 .. 1        , default=0.3
                       det_scale, // detail  UV scale       0 .. Inf      , default=4
                       tex_scale; // texture UV scale       0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
-   Str                color_map, // color           texture file name
-                      alpha_map, // alpha           texture file name
-                       bump_map, // bump            texture file name
-                       glow_map, // glow            texture file name
-                      light_map, // light           texture file name
-                     normal_map, // normal          texture file name
-                     smooth_map, // smoothness      texture file name
-                    reflect_map, // reflectivity    texture file name
-               detail_color_map, // detail color    texture file name
-                detail_bump_map, // detail bump     texture file name
-              detail_normal_map, // detail normal   texture file name
-            detail_specular_map, // detail specular texture file name
+   Str                color_map, // color         texture file name
+                      alpha_map, // alpha         texture file name
+                       bump_map, // bump          texture file name
+                       glow_map, // glow          texture file name
+                      light_map, // light         texture file name
+                     normal_map, // normal        texture file name
+                     smooth_map, // smoothness    texture file name
+                    reflect_map, // reflectivity  texture file name
+               detail_color_map, // detail color  texture file name
+                detail_bump_map, // detail bump   texture file name
+              detail_normal_map, // detail normal texture file name
+              detail_smooth_map, // detail smooth texture file name
                            name; // material name
 
    void createFrom  (C Material &src ) ; // create        from 'src'  material

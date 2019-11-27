@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 36 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 37 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    ( 6*60*1000) //  6*60 seconds, some operations may take a long time to complete
@@ -208,6 +208,7 @@ Material& Material::reset()
    detail_color .clear();
    detail_bump  .clear();
    detail_normal.clear();
+   detail_smooth.clear();
    macro_map.clear();
    light_map.clear();
    return T;
@@ -223,6 +224,7 @@ void Material::save(File &f)C
     <<Encode(detail_color )
     <<Encode(detail_bump  )
     <<Encode(detail_normal)
+    <<Encode(detail_smooth)
     <<Encode(macro_map)
     <<Encode(light_map);
 }
@@ -240,6 +242,7 @@ Bool Material::load(File &f)
          Decode(f, detail_color );
          Decode(f, detail_bump  );
          Decode(f, detail_normal);
+         Decode(f, detail_smooth);
          Decode(f, macro_map);
          Decode(f, light_map);
          if(f.ok())return true;

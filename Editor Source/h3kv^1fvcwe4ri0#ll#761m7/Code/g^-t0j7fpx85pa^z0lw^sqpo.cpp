@@ -1266,6 +1266,7 @@ class Project
                      edit.detail_color .replace('|', '\n');
                      edit.detail_bump  .replace('|', '\n');
                      edit.detail_normal.replace('|', '\n');
+                     edit.detail_smooth.replace('|', '\n');
                      edit.  macro_map  .replace('|', '\n');
                      edit.  light_map  .replace('|', '\n');
                      Save(edit, editPath(elm.id));

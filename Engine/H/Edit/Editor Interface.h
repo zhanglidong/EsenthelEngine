@@ -233,14 +233,14 @@ struct Material
                       bump_map, normal_map,
                       smooth_map, reflect_map,
                       glow_map,
-                      detail_color, detail_bump, detail_normal,
+                      detail_color, detail_bump, detail_normal, detail_smooth,
                       macro_map,
                       light_map;
 
    Bool hasColorMap ()C {return  color_map  .elms()>0;}
    Bool hasBumpMap  ()C {return   bump_map  .elms()>0;}
    Bool hasNormalMap()C {return normal_map  .elms()>0 || hasBumpMap();}
-   Bool hasDetailMap()C {return detail_color.elms()>0 || detail_bump.elms()>0 || detail_normal.elms()>0;}
+   Bool hasDetailMap()C {return detail_color.elms()>0 || detail_bump.elms()>0 || detail_normal.elms()>0 || detail_smooth.elms()>0;}
 
    void save(File &f)C;
    Bool load(File &f);

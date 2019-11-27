@@ -3,23 +3,24 @@ class MaterialRegion : Region
 {
    enum TEX_TYPE
    {
-      TEX_COLOR   ,
-      TEX_ALPHA   ,
-      TEX_BUMP    ,
-      TEX_NORMAL  ,
-      TEX_SMOOTH  ,
-      TEX_REFLECT ,
-      TEX_GLOW    ,
-      TEX_DET_COL ,
-      TEX_DET_BUMP,
-      TEX_DET_NRM ,
-      TEX_MACRO   ,
-      TEX_LIGHT   ,
+      TEX_COLOR     ,
+      TEX_ALPHA     ,
+      TEX_BUMP      ,
+      TEX_NORMAL    ,
+      TEX_SMOOTH    ,
+      TEX_REFLECT   ,
+      TEX_GLOW      ,
+      TEX_DET_COLOR ,
+      TEX_DET_BUMP  ,
+      TEX_DET_NORMAL,
+      TEX_DET_SMOOTH,
+      TEX_MACRO     ,
+      TEX_LIGHT     ,
       
       TEX_BASE_BEGIN=TEX_COLOR,
       TEX_BASE_END  =TEX_GLOW ,
-      TEX_DET_BEGIN =TEX_DET_COL,
-      TEX_DET_END   =TEX_DET_NRM,
+      TEX_DET_BEGIN =TEX_DET_COLOR,
+      TEX_DET_END   =TEX_DET_SMOOTH,
    }
 
    class Change : Edit._Undo.Change
@@ -67,23 +68,24 @@ class MaterialRegion : Region
                          &light =mr.getLight   ();
             if(!mr.water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR   : if(em.    color_map.is()                       )return base_0; break;
-               case TEX_ALPHA   : if(em.    color_map.is() || em.alpha_map.is()  )return base_2 ? base_2 : base_0; break;
-               case TEX_BUMP    : if(em.      hasBumpMap()                       )return base_2; break;
-               case TEX_NORMAL  : if(em.    hasNormalMap()                       )return base_1; break;
-               case TEX_SMOOTH  : if(em.   smooth_map.is()                       )return base_2; break;
-               case TEX_REFLECT : if(em.  reflect_map.is()                       )return base_2; break;
-               case TEX_GLOW    : if(em.     glow_map.is()                       )if(base_2)return base_0; break;
-               case TEX_LIGHT   : if(em.    light_map.is()                       )return light ; break;
-               case TEX_MACRO   : if(em.    macro_map.is()                       )return macro ; break;
-               case TEX_DET_COL : if(em.detail_color .is()                       )return detail; break;
-               case TEX_DET_BUMP: if(em.detail_bump  .is()                       )return detail; break;
-               case TEX_DET_NRM : if(em.detail_normal.is() || em.detail_bump.is())return detail; break;
+               case TEX_COLOR     : if(em.    color_map.is()                       )return base_0; break;
+               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )return base_2 ? base_2 : base_0; break;
+               case TEX_BUMP      : if(em.      hasBumpMap()                       )return base_2; break;
+               case TEX_NORMAL    : if(em.    hasNormalMap()                       )return base_1; break;
+               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )return base_2; break;
+               case TEX_REFLECT   : if(em.  reflect_map.is()                       )return base_2; break;
+               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2)return base_0; break;
+               case TEX_LIGHT     : if(em.    light_map.is()                       )return light ; break;
+               case TEX_MACRO     : if(em.    macro_map.is()                       )return macro ; break;
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break;
+               case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )return detail; break;
+               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())return detail; break;
+               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )return detail; break;
             }else switch(type) // #WaterMaterialTextureLayout
             {
-               case TEX_COLOR   : if(em.    color_map.is()                       )return base_0; break;
-               case TEX_BUMP    : if(em.      hasBumpMap()                       )return base_2; break;
-               case TEX_NORMAL  : if(em.    hasNormalMap()                       )return base_1; break;
+               case TEX_COLOR     : if(em.    color_map.is()                       )return base_0; break;
+               case TEX_BUMP      : if(em.      hasBumpMap()                       )return base_2; break;
+               case TEX_NORMAL    : if(em.    hasNormalMap()                       )return base_1; break;
             }
          }
          return null;
@@ -223,25 +225,26 @@ class MaterialRegion : Region
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
             if(!mr.water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR   : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
-               case TEX_ALPHA   : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0 || base_2){VI.shader(ShaderFiles("Main")->get(base_2 ? "DrawTexWG" : "DrawTexWG" )); if(base_2)base_2->drawFit(rect);else base_0->drawFit(rect); tex=true;} break;
-               case TEX_BUMP    : if(em.      hasBumpMap()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL  : if(em.    hasNormalMap()                       )if(base_1          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      base_1->drawFit(rect); tex=true;} break;
-               case TEX_SMOOTH  : if(em.   smooth_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexXG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_REFLECT : if(em.  reflect_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexYG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_GLOW    : if(em.     glow_map.is()                       )if(base_2 && base_0){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      base_0->drawFit(rect); tex=true;} break;
-               case TEX_LIGHT   : if(em.    light_map.is()                       )if(           light){                                                                                                               light ->drawFit(rect); tex=true;} break;
-               case TEX_MACRO   : if(em.    macro_map.is()                       )if(           macro){                                                                                                               macro ->drawFit(rect); tex=true;} break;
-               case TEX_DET_COL : if(em.detail_color .is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      detail->drawFit(rect); tex=true;} break;
-               case TEX_DET_BUMP: if(em.detail_bump  .is()                       )if(          detail){                                                               if(Image *bump=mr.getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; //{VI.shader(ShaderFiles("Main")->get(                      "DrawTexWG"  ));                                      detail->drawFit(rect); tex=true;} break; // Detail Bump may not be available due to BC1 compression or RemoveMtrlDetailBump
-               case TEX_DET_NRM : if(em.detail_normal.is() || em.detail_bump.is())if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      detail->drawFit(rect); tex=true;} break;
-             /*case TEX_RFL_L   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
-               case TEX_RFL_F   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
-               case TEX_RFL_R   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
-               case TEX_RFL_B   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_BACK   ); tex=true;} break;
-               case TEX_RFL_D   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_DOWN   ); tex=true;} break;
-               case TEX_RFL_U   : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_UP     ); tex=true;} break;
-               case TEX_RFL_ALL : if(em.reflection_map.is()                      )if(      reflection)
+               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
+               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0 || base_2){VI.shader(ShaderFiles("Main")->get(base_2 ? "DrawTexWG" : "DrawTexWG" )); if(base_2)base_2->drawFit(rect);else base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      base_2->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      base_1->drawFit(rect); tex=true;} break;
+               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexXG" ));                                      base_2->drawFit(rect); tex=true;} break;
+               case TEX_REFLECT   : if(em.  reflect_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexYG" ));                                      base_2->drawFit(rect); tex=true;} break;
+               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2 && base_0){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      base_0->drawFit(rect); tex=true;} break;
+               case TEX_LIGHT     : if(em.    light_map.is()                       )if(           light){                                                                                                               light ->drawFit(rect); tex=true;} break;
+               case TEX_MACRO     : if(em.    macro_map.is()                       )if(           macro){                                                                                                               macro ->drawFit(rect); tex=true;} break;
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(          detail){                                                               if(Image *bump=mr.getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; //{VI.shader(ShaderFiles("Main")->get(                      "DrawTexWG"  ));                                      detail->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
+               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      detail->drawFit(rect); tex=true;} break;
+             /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
+               case TEX_RFL_F     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
+               case TEX_RFL_R     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
+               case TEX_RFL_B     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_BACK   ); tex=true;} break;
+               case TEX_RFL_D     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_DOWN   ); tex=true;} break;
+               case TEX_RFL_U     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_UP     ); tex=true;} break;
+               case TEX_RFL_ALL   : if(em.reflection_map.is()                      )if(      reflection)
                {
                   Image &i=*reflection; flt x[5]={rect.min.x, rect.lerpX(1.0/4), rect.lerpX(2.0/4), rect.lerpX(3.0/4), rect.max.x},
                                             y[4]={rect.min.y, rect.lerpY(1.0/3), rect.lerpY(2.0/3), rect.max.y};
@@ -794,29 +797,30 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red.textline.rect().left(), red.button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       tech.combobox.resize(Vec2(0.27, 0)); // increase size
-      mts .combobox.resize(Vec2(0.15, 0)); // increase size
+      mts .combobox.resize(Vec2(0.12, 0)); // increase size
     //tqi .combobox.resize(Vec2(0.15, 0)); // increase size
 
       flt tex_size=prop_height*3; int i=-1;
-      sub+=texs.New().create(TEX_COLOR   , MEMBER(EditMaterial,      color_map), MEMBER(EditMaterial,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T);
-      sub+=texs.New().create(TEX_ALPHA   , MEMBER(EditMaterial,      alpha_map), MEMBER(EditMaterial,      alpha_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Alpha"         , T); i-=3;
-      sub+=texs.New().create(TEX_BUMP    , MEMBER(EditMaterial,       bump_map), MEMBER(EditMaterial,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T);
-      sub+=texs.New().create(TEX_NORMAL  , MEMBER(EditMaterial,     normal_map), MEMBER(EditMaterial,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3;
-      sub+=texs.New().create(TEX_SMOOTH  , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
-      sub+=texs.New().create(TEX_REFLECT , MEMBER(EditMaterial,    reflect_map), MEMBER(EditMaterial,    reflect_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect"       , T); i-=3;
-      sub+=texs.New().create(TEX_GLOW    , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
-      sub+=texs.New().create(TEX_LIGHT   , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Light"         , T); i-=3;
-      sub+=texs.New().create(TEX_MACRO   , MEMBER(EditMaterial,      macro_map), MEMBER(EditMaterial,      macro_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Macro"         , T);
-      sub+=texs.New().create(TEX_DET_COL , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T); i-=3;
-      sub+=texs.New().create(TEX_DET_BUMP, MEMBER(EditMaterial,    detail_bump), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Detail\nBump"  , T);
-      sub+=texs.New().create(TEX_DET_NRM , MEMBER(EditMaterial,  detail_normal), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Detail\nNormal", T); i-=3;
-    /*sub+=texs.New().create(TEX_RFL_ALL , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*3, i*prop_height), tex_size, tex_size), "Reflect\nAll"  , T);
-      sub+=texs.New().create(TEX_RFL_L   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*2, i*prop_height), tex_size, tex_size), "Reflect\nLeft" , T);
-      sub+=texs.New().create(TEX_RFL_F   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nFront", T);
-      sub+=texs.New().create(TEX_RFL_R   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nRight", T);
-      sub+=texs.New().create(TEX_RFL_B   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nBack" , T); i-=3;
-      sub+=texs.New().create(TEX_RFL_D   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nDown" , T);
-      sub+=texs.New().create(TEX_RFL_U   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3; */
+      sub+=texs.New().create(TEX_COLOR     , MEMBER(EditMaterial,      color_map), MEMBER(EditMaterial,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T);
+      sub+=texs.New().create(TEX_ALPHA     , MEMBER(EditMaterial,      alpha_map), MEMBER(EditMaterial,      alpha_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Alpha"         , T); i-=3;
+      sub+=texs.New().create(TEX_BUMP      , MEMBER(EditMaterial,       bump_map), MEMBER(EditMaterial,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T);
+      sub+=texs.New().create(TEX_NORMAL    , MEMBER(EditMaterial,     normal_map), MEMBER(EditMaterial,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3;
+      sub+=texs.New().create(TEX_SMOOTH    , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
+      sub+=texs.New().create(TEX_REFLECT   , MEMBER(EditMaterial,    reflect_map), MEMBER(EditMaterial,    reflect_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect"       , T); i-=3;
+      sub+=texs.New().create(TEX_GLOW      , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
+      sub+=texs.New().create(TEX_LIGHT     , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Light"         , T); i-=3;
+      sub+=texs.New().create(TEX_DET_COLOR , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T);
+      sub+=texs.New().create(TEX_DET_SMOOTH, MEMBER(EditMaterial,  detail_smooth), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Detail\nSmooth", T); i-=3;
+      sub+=texs.New().create(TEX_DET_BUMP  , MEMBER(EditMaterial,    detail_bump), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nBump"  , T);
+      sub+=texs.New().create(TEX_DET_NORMAL, MEMBER(EditMaterial,  detail_normal), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Detail\nNormal", T); i-=3;
+      sub+=texs.New().create(TEX_MACRO     , MEMBER(EditMaterial,      macro_map), MEMBER(EditMaterial,      macro_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Macro"         , T);
+    /*sub+=texs.New().create(TEX_RFL_ALL   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*3, i*prop_height), tex_size, tex_size), "Reflect\nAll"  , T);
+      sub+=texs.New().create(TEX_RFL_L     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*2, i*prop_height), tex_size, tex_size), "Reflect\nLeft" , T);
+      sub+=texs.New().create(TEX_RFL_F     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nFront", T);
+      sub+=texs.New().create(TEX_RFL_R     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nRight", T);
+      sub+=texs.New().create(TEX_RFL_B     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nBack" , T); i-=3;
+      sub+=texs.New().create(TEX_RFL_D     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nDown" , T);
+      sub+=texs.New().create(TEX_RFL_U     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3; */
       REPA(texs)sub+=texs[i].remove;
 
       sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files."); // #MaterialTextureLayout

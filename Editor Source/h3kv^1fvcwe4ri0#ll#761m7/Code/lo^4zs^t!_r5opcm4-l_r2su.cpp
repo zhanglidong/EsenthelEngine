@@ -33,6 +33,7 @@ class ImporterClass
             dest.detail_color = detail_color_map; dest. detail_map_time=time;
             dest.detail_bump  =  detail_bump_map;
             dest.detail_normal=detail_normal_map;
+            dest.detail_smooth=detail_smooth_map;
 
             dest.base_0_tex=base_0_id;
             dest.base_1_tex=base_1_id;
@@ -73,7 +74,7 @@ class ImporterClass
                base_0.load(b0); ImageProps(base_0, &base_0_id, null, MTRL_BASE_0);
                base_1.load(b1); ImageProps(base_1, &base_1_id, null, MTRL_BASE_1);
                base_2.load(b2); ImageProps(base_2, &base_2_id, null, MTRL_BASE_2);
-               detail.load(d ); ImageProps(detail, &detail_id, null,      IGNORE_ALPHA);
+               detail.load(d ); ImageProps(detail, &detail_id, null, MTRL_DETAIL);
                macro .load(m ); ImageProps(macro , & macro_id, null, SRGB|IGNORE_ALPHA);
                light .load(l ); ImageProps(light , & light_id, null, SRGB|IGNORE_ALPHA);
 
@@ -83,8 +84,9 @@ class ImporterClass
                fp=d ; if(fp.name.is())
                {
                   fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
-                  fp.getParam("channel").setValue("w" ); detail_bump_map  =fp.encode();
+                  fp.getParam("channel").setValue("w" ); detail_smooth_map=fp.encode();
                   fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
+                                                         detail_bump_map.clear();
                }
 
                  alpha_map.clear();

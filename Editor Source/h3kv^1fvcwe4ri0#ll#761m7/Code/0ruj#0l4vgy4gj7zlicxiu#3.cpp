@@ -397,16 +397,13 @@ bool HasColor(C Image &image) // if image is not monochromatic
 {
    return !image.monochromatic();
 }
-bool NeedFullAlpha(Image &image, IMAGE_TYPE type, bool always=false)
+bool NeedFullAlpha(Image &image, int dest_type)
 {
-   return (
-          //((image.type()!=IMAGE_BC1 && image.type()!=IMAGE_BC1_SRGB) && (type==IMAGE_BC1 || type==IMAGE_BC1_SRGB)) || // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha, right now BC1 has alpha disabled in 'CompressBC1'
-            always
-          ) && ImageTI[image.type()].a; // no point in changing alpha if the source doesn't have it
+   return ImageTI[image.type()].a && (!InRange(dest_type, IMAGE_TYPES) || ImageTI[dest_type].a); // have to change only if source and dest have alpha channel
 }
-bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always=false) // returns if any change was made
+bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type) // returns if any change was made
 {
-   if(NeedFullAlpha(image, type, always))
+   if(NeedFullAlpha(image, dest_type))
    {
       if(image.compressed())return image.copyTry(image, -1, -1, -1, ImageTypeExcludeAlpha(ImageTypeUncompressed(image.type())), IMAGE_SOFT, 1);
       if(image.lock())
@@ -429,6 +426,7 @@ enum
    MTRL_BASE_1 =1<<4,
    MTRL_BASE_2 =1<<5,
    WATER_MTRL  =1<<6,
+   MTRL_DETAIL =1<<7,
 }
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
@@ -459,6 +457,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
       if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
       if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
    }
+   if(flags&MTRL_DETAIL){if(ForceHQMtrlDetail)flags|=FORCE_HQ;}
    if(md5 || compress_type)
    {
       // set initial values
@@ -727,22 +726,23 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
    if(reflect && !(tex&BT_REFLECT))reflect.del();
    if(glow    && !(tex&BT_GLOW   ))glow   .del();
 }
-void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal)
+void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
 {
    uint tex=0;
    if(detail_tex.valid())
-      if(color || bump || normal)
+      if(color || /*bump ||*/ normal || smooth)
    {
       Image det; LoadTexture(proj, detail_tex, det);
       if(color )color .createSoft(det.w(), det.h(), 1, IMAGE_L8);
-      if(bump  )bump  .createSoft(det.w(), det.h(), 1, IMAGE_L8);
+    //if(bump  )bump  .createSoft(det.w(), det.h(), 1, IMAGE_L8);
       if(normal)normal.createSoft(det.w(), det.h(), 1, IMAGE_R8G8B8);
+      if(smooth)smooth.createSoft(det.w(), det.h(), 1, IMAGE_L8);
       REPD(y, det.h())
       REPD(x, det.w())
       {
          Color c=det.color(x, y); // #MaterialTextureLayout
-         if(color ){color.pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
-         if(bump  ){bump .pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
+         if(color ){color .pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR ;}
+         if(smooth){smooth.pixel(x, y, c.a); if(c.a<254)tex|=BT_SMOOTH;}
          if(normal)
          {
             Vec n; n.xy.set((c.r-128)/127.0, (c.g-128)/127.0); n.z=CalcZ(n.xy);
@@ -753,6 +753,7 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Imag
    if(color  && !(tex&BT_COLOR ))color .del();
    if(bump   && !(tex&BT_BUMP  ))bump  .del();
    if(normal && !(tex&BT_NORMAL))normal.del();
+   if(smooth && !(tex&BT_SMOOTH))smooth.del();
 }
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2) // this function generates ID of a merged texture created from two base textures, formula for this function can be freely modified as in worst case merged textures will just get regenerated
 {
