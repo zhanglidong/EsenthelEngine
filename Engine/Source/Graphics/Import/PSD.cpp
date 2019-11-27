@@ -1005,7 +1005,7 @@ Bool Image::ImportPSD(File &f)
    if(psd.ReadLayerAndMaskInfoSection(f))
    if(psd.ReadImageData              (f, T))
    {
-      if(psd.merged_alpha && ImageTI[hwType()].a) // PSD's are blended on white background
+      if(psd.merged_alpha && typeInfo().a) // PSD's are blended on white background
       {
          REPD(y, h())
          REPD(x, w())color(x, y, UnblendWhite(color(x, y)));

@@ -169,7 +169,7 @@ void ImageRT::discard()
       { // for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
          if(Renderer._cur_ds==this) // no need to check '_cur_ds_id' because main FBO always has texture 0
          {
-            GLenum attachments[]={GL_DEPTH, GL_STENCIL}; glInvalidateFramebuffer(GL_FRAMEBUFFER, ImageTI[hwType()].s ? 2 : 1, attachments);
+            GLenum attachments[]={GL_DEPTH, GL_STENCIL}; glInvalidateFramebuffer(GL_FRAMEBUFFER, hwTypeInfo().s ? 2 : 1, attachments);
            _discard=false;
          }else
          if(Renderer._cur[0]==this) // check '_cur' because '_txtr' can be 0 for RenderBuffers
@@ -181,7 +181,7 @@ void ImageRT::discard()
       }else
       {
          GLenum attachment;
-         if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)attachment=(ImageTI[hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);else // check both '_cur_ds' and '_cur_ds_id' because '_cur_ds_id' will be 0 when Image is a RenderBuffer or temporarily unbound Texture (only Textures can be temporarily unbound), this will work OK for RenderBuffers because both '_cur_ds_id' and '_txtr' will be zero
+         if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)attachment=(hwTypeInfo().s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);else // check both '_cur_ds' and '_cur_ds_id' because '_cur_ds_id' will be 0 when Image is a RenderBuffer or temporarily unbound Texture (only Textures can be temporarily unbound), this will work OK for RenderBuffers because both '_cur_ds_id' and '_txtr' will be zero
          if(Renderer._cur[0]==this                              )attachment=GL_COLOR_ATTACHMENT0;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
          if(Renderer._cur[1]==this                              )attachment=GL_COLOR_ATTACHMENT1;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
          if(Renderer._cur[2]==this                              )attachment=GL_COLOR_ATTACHMENT2;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
@@ -199,7 +199,7 @@ void ImageRT::clearHw(C Vec4 &color)
 }
 void ImageRT::clearDS(Byte s)
 {
-   if(_dsv)D3DC->ClearDepthStencilView(_dsv, D3D11_CLEAR_DEPTH|(ImageTI[hwType()].s ? D3D11_CLEAR_STENCIL : 0), 1, s);
+   if(_dsv)D3DC->ClearDepthStencilView(_dsv, D3D11_CLEAR_DEPTH|(hwTypeInfo().s ? D3D11_CLEAR_STENCIL : 0), 1, s);
 }
 #endif
 /******************************************************************************/
@@ -277,7 +277,7 @@ Bool ImageRT::createViews()
       case IMAGE_RT: //case IMAGE_RT_CUBE:
       {
       #if DX11
-         D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
+         D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=hwTypeInfo().format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
          D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
       #endif
@@ -299,9 +299,9 @@ Bool ImageRT::createViews()
       case IMAGE_SHADOW_MAP:
       {
       #if DX11
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                                                                               D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
-         dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
+         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=hwTypeInfo().format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                                                                          D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
+         dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(hwTypeInfo().s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
       #endif
       }break;
    }

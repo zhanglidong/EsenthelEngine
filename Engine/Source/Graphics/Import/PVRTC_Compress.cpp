@@ -53,7 +53,7 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
                Int size=0;
                if(_CompressPVRTC(temp.lw(), temp.lh(), temp.data(), (dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB) ? ePVRTPF_PVRTCI_2bpp_RGBA : ePVRTPF_PVRTCI_4bpp_RGBA, quality, data, size))
                {
-                  if(size==temp.lw()*temp.lh()*ImageTI[dest.hwType()].bit_pp/8)
+                  if(size==temp.lw()*temp.lh()*dest.hwTypeInfo().bit_pp/8)
                   {
                      Byte  *dest_data=dest.data() + z*dest.pitch2();
                      Int        pitch=ImagePitch  (temp.lw(), temp.lh(), 0, dest.hwType()), // compressed pitch of 'data'

@@ -536,7 +536,7 @@ Image& Image::alphaFromBrightness()
 /******************************************************************************/
 Image& Image::divRgbByAlpha()
 {
-   if(ImageTI[type()].a)
+   if(typeInfo().a)
    {
       IMAGE_TYPE type;
       IMAGE_MODE mode;
@@ -2081,7 +2081,7 @@ error:
 /******************************************************************************/
 Bool Image::monochromatic()C
 {
- C ImageTypeInfo &type_info=ImageTI[type()];
+ C ImageTypeInfo &type_info=typeInfo();
    if(!type_info.r && !type_info.g && !type_info.b
    ||  type()==IMAGE_L8 || type()==IMAGE_L8_SRGB || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
 
@@ -2105,7 +2105,7 @@ Bool Image::monochromatic()C
 }
 Bool Image::monochromaticRG()C
 {
- C ImageTypeInfo &type_info=ImageTI[type()];
+ C ImageTypeInfo &type_info=typeInfo();
    if(!type_info.r && !type_info.g
    ||  type()==IMAGE_L8 || type()==IMAGE_L8_SRGB || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
 
@@ -2211,7 +2211,7 @@ Image& Image::maximum(Flt distance)
 Image& Image::transparentToNeighbor(Bool clamp, Flt step)
 {
 #if 1 // new method
-   if(!ImageTI[type()].a)return T;//true;
+   if(!typeInfo().a)return T;//true;
    Int    mips=TotalMipMaps(w(), h(), d(), IMAGE_F32_4); if(mips<=1)return T;//true;
    Image *src =this, temp; if(!src->highPrecision() || src->compressed())if(src->copyTry(temp, -1, -1, -1, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))src=&temp;else return T;//false; // first we have to copy to IMAGE_F32_4 to make sure we have floating point, so that downsizing will not use ALPHA_LIMIT, this is absolutely critical
    Bool   ok  =false;
