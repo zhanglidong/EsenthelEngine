@@ -1615,7 +1615,7 @@ static Bool Decompress(C Image &src, Image &dest, Int max_mip_maps=INT_MAX) // a
       if(dest.size3()==src.size3())
    {
       Int src_faces1=src.faces()-1,
-          x_mul     =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+          x_mul     =src.hwTypeInfo().bit_pp*2; // *2 because (4*4 colors / 8 bits)
       REPD(mip , Min(src.mipMaps(), dest.mipMaps(), max_mip_maps))
       REPD(face, dest.faces())
       {
@@ -2758,7 +2758,7 @@ Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, UInt fl
    Image temp; // keep outside the loop in case we can reuse the image
    REPD(face, faces())
    {
-      ok&=src.extractMipMap(temp, ImageTI[type()].compressed ? ImageTypeUncompressed(type()) : type(), src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
+      ok&=src.extractMipMap(temp, typeInfo().compressed ? ImageTypeUncompressed(type()) : type(), src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
       for(Int mip=mip_start; ++mip<mipMaps(); )
       {
          temp.downSample(filter, flags);
@@ -2990,7 +2990,7 @@ Bool Image::capture(C ImageRT &src)
       {
          if(createTry(src.w(), src.h(), 1, src.hwType(), IMAGE_2D, 1, false))
          {
-            D3DC->ResolveSubresource(_txtr, 0, src._txtr, 0, ImageTI[src.hwType()].format);
+            D3DC->ResolveSubresource(_txtr, 0, src._txtr, 0, src.hwTypeInfo().format);
             return true;
          }
       }else
@@ -3009,7 +3009,7 @@ Bool Image::capture(C ImageRT &src)
       return ok;
    }else
    {
-      Bool depth=(ImageTI[src.hwType()].d>0);
+      Bool depth=(src.hwTypeInfo().d>0);
       if( !depth || src.depthTexture())
          if(createTry(src.w(), src.h(), 1, depth ? IMAGE_F32 : src.hwType(), IMAGE_RT, 1, false))
       {

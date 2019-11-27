@@ -646,7 +646,7 @@ struct BlurContext
                                           func=2;     // HP MC
       }else
       {
-       C ImageTypeInfo &ti=ImageTI[src.hwType()];  // here check 'hwType' because we will access memory directly using 'pixB' method
+       C ImageTypeInfo &ti=src.hwTypeInfo();  // here check 'hwType' because we will access memory directly using 'pixB' method
          if(ti.bit_pp==8 && ti.channels==1)func=3; // LP 1byte
          else                              func=4; // LP MC
       }
@@ -3143,8 +3143,8 @@ Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_w
 
                const Bool per_channel=false, // false=faster
                           high_prec  =(sa->highPrecision() || sb->highPrecision());
-               const Int      a_x_mul=ImageTI[sa->hwType()].bit_pp*2, // *2 because (4*4 colors / 8 bits)
-                              b_x_mul=ImageTI[sb->hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+               const Int      a_x_mul= sa->hwTypeInfo().bit_pp*2, // *2 because (4*4 colors / 8 bits)
+                              b_x_mul= sb->hwTypeInfo().bit_pp*2; // *2 because (4*4 colors / 8 bits)
                const UInt    channels=4,
                             max_value=(high_prec ? 1 : 255),
                                 scale=channels*max_value;

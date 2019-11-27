@@ -1375,7 +1375,7 @@ again:
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
       Renderer._main   .forceInfo(width, height, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples);
       Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
-      if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
+      if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+Renderer._main.hwTypeInfo().name+", ds_type: "+Renderer._main_ds.hwTypeInfo().name);
    #elif IOS
       OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengles"));
 
@@ -3211,15 +3211,15 @@ void Display::clearCol(Int i, C Vec4 &color) // !! this ignores the viewport !!
 }
 #if DX11
 // DX10+ 'clearDepth' always clears full depth buffer (viewport is ignored)
-void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                                  , CLEAR_DEPTH_VALUE, 0);}
-void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(ImageTI[Renderer._cur_ds->hwType()].s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
-void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                            D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
+void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                             , CLEAR_DEPTH_VALUE, 0);}
+void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(Renderer._cur_ds->hwTypeInfo().s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
+void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                       D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
 #elif GL
 // GL 'clearDepth' always clears full depth buffer (viewport is ignored)
 // Don't check for '_cur_ds_id' because this can be 0 for RenderBuffers
-void Display::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                                ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
-void Display::clearDS     (Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(GL_DEPTH_BUFFER_BIT|(ImageTI[Renderer._cur_ds->hwType()].s?GL_STENCIL_BUFFER_BIT:0)); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
-void Display::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(                                                           GL_STENCIL_BUFFER_BIT   ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void Display::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                           ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void Display::clearDS     (Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(GL_DEPTH_BUFFER_BIT|(Renderer._cur_ds->hwTypeInfo().s?GL_STENCIL_BUFFER_BIT:0)); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void Display::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(                                                      GL_STENCIL_BUFFER_BIT   ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
 #endif
 /******************************************************************************/
 // CONVERT COORDINATES

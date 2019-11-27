@@ -754,7 +754,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       Bool alpha_from_col=false;
       if(  alpha_src->is()) // there's alpha map specified
       {
-         if(alpha_src->typeChannels()>1 && ImageTI[alpha_src->type()].a // if alpha has both RGB and Alpha channels, then check which one to use
+         if(alpha_src->typeChannels()>1 && alpha_src->typeInfo().a // if alpha has both RGB and Alpha channels, then check which one to use
          && alpha_src->lockRead())
          {
             Byte min_alpha=255, min_lum=255;
@@ -769,7 +769,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
             if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
          }
       }else // if there's no alpha map
-      if(ImageTI[color.image.type()].a) // but there is alpha channel in color map
+      if(color.image.typeInfo().a) // but there is alpha channel in color map
       {
          Byte min_alpha=255;
          alpha_src=&alpha_temp.create(color_src->w(), color_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
@@ -836,7 +836,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
             if(!alpha_src->is() || alpha_src->lockRead())
             {
                dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-               Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
+               Int alpha_component=(alpha_src->typeInfo().a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                REPD(y, dest_0.h())
                REPD(x, dest_0.w()){Color c=(color_src->is() ? color_src->color(x, y) : WHITE); c.a=(alpha_src->is() ? alpha_src->color(x, y).c[alpha_component] : 255); dest_0.color(x, y, c);} // full alpha
                alpha_src->unlock();
@@ -898,7 +898,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                   if(!alpha_src->is() || alpha_src->lockRead())
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
-                     Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
+                     Int alpha_component=(alpha_src->typeInfo().a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {

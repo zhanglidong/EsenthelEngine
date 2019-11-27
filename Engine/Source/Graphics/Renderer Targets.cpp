@@ -443,7 +443,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
             GLenum attachment[3]; GLsizei attachments=0; // RT0+Depth+Stencil
             if(_main   ._discard){_main   ._discard=false; attachment[attachments++]=GL_COLOR;}
-            if(_main_ds._discard){_main_ds._discard=false; attachment[attachments++]=GL_DEPTH; if(ImageTI[_main_ds.hwType()].s)attachment[attachments++]=GL_STENCIL;}
+            if(_main_ds._discard){_main_ds._discard=false; attachment[attachments++]=GL_DEPTH; if(_main_ds.hwTypeInfo().s)attachment[attachments++]=GL_STENCIL;}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
          #endif
          }
@@ -467,13 +467,13 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             }else
             if(_cur_ds_id=set_ds->_txtr)
             {
-               glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT  , GL_TEXTURE_2D,                               _cur_ds_id    , 0);
-               glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, ImageTI[set_ds->hwType()].s ? _cur_ds_id : 0, 0);
+               glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT  , GL_TEXTURE_2D,                          _cur_ds_id    , 0);
+               glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, set_ds->hwTypeInfo().s ? _cur_ds_id : 0, 0);
             }else
             {
             //_cur_ds_id=0; already set above
-               glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT  , GL_RENDERBUFFER,                               set_ds->_rb    );
-               glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, ImageTI[set_ds->hwType()].s ? set_ds->_rb : 0);
+               glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT  , GL_RENDERBUFFER,                          set_ds->_rb    );
+               glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, set_ds->hwTypeInfo().s ? set_ds->_rb : 0);
             }
          }
 
@@ -515,7 +515,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             if(t1     &&     t1->_discard){    t1->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT1;}
             if(t2     &&     t2->_discard){    t2->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT2;}
             if(t3     &&     t3->_discard){    t3->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT3;}
-            if(set_ds && set_ds->_discard){set_ds->_discard=false; attachment[attachments++]=(ImageTI[set_ds->hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);}
+            if(set_ds && set_ds->_discard){set_ds->_discard=false; attachment[attachments++]=(set_ds->hwTypeInfo().s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
          #endif
          }
@@ -621,7 +621,7 @@ Rect* RendererClass::setEyeParams()
 void RendererClass::     hasGlow() {_has_glow=true;}
 void RendererClass::finalizeGlow()
 {
-   if(!ImageTI[_col->type()].a || !D.glowAllow() || !D.bloomAllow() || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it'd done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
+   if(!_col->typeInfo().a || !D.glowAllow() || !D.bloomAllow() || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it'd done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
 }
 /******************************************************************************/
 Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int mip_maps, Bool alpha)

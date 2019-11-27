@@ -98,7 +98,7 @@ static void ApplyViewSpaceBias(Flt &mp_z_z)
    {
       mp_z_z=ProjMatrix.z.z;
       // #ShadowBias
-      ProjMatrix.z.z+=(REVERSE_DEPTH ? -1.0 : 1.0)/(1ull<<ImageTI[Renderer._ds->hwType()].d); // this adjusts the value that is responsible for 'LinearizeDepth' by moving everything back by 1 value (in depth buffer bit precision)
+      ProjMatrix.z.z+=(REVERSE_DEPTH ? -1.0 : 1.0)/(1ull<<Renderer._ds->hwTypeInfo().d); // this adjusts the value that is responsible for 'LinearizeDepth' by moving everything back by 1 value (in depth buffer bit precision)
       if(ProjMatrix.z.z==mp_z_z) // if adding hasn't changed anything, then change by 1 bit (this can happen for small values)
          if(REVERSE_DEPTH)DecRealByBit(ProjMatrix.z.z);
          else             IncRealByBit(ProjMatrix.z.z);
@@ -739,7 +739,7 @@ static Bool ShadowMap(LightDir &light)
 
          // draw shadow map
          Flt step_bias=fov.max()*bias
-                      +DepthError(0, range, range, false, ImageTI[Renderer._shd_map.hwType()].d);
+                      +DepthError(0, range, range, false, Renderer._shd_map.hwTypeInfo().d);
          DrawShadowMap(ShdDirStepDir[i], light_matrix, flag, 0, range, fov, FOV_ORTHO, 0, step_bias, D.shadowReduceFlicker() ? &frustum : null); // set 'frustum' only if we need it, because if 'shadowReduceFlicker' is disabled, then we've already aligned the matrix and we don't need to do anything more
       }
    skip:
