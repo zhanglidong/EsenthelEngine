@@ -788,22 +788,24 @@ void WaterDrops::draw(AnimatedSkeleton &anim_skel)
    draw();
 }
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+static inline Int ImgW(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.resize.x>0) ? src.resize.x : img->w();}
+static inline Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.resize.y>0) ? src.resize.y : img->h();}
+UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
    // #WaterMaterialTextureLayout
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image     col_temp; C Image *    col_src=&    col; if(    col_src->compressed())if(    col_src->copyTry(    col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))    col_src=&    col_temp;else goto error;
-    //Image   alpha_temp; C Image *  alpha_src=&  alpha; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
-      Image    bump_temp; C Image *   bump_src=&   bump; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
-      Image  normal_temp; C Image * normal_src=& normal; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
-    //Image  smooth_temp; C Image * smooth_src=& smooth; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
-    //Image reflect_temp; C Image *reflect_src=&reflect; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
-    //Image    glow_temp; C Image *   glow_src=&   glow; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+      Image   color_temp; C Image *  color_src=&  color.image; if(  color_src->compressed())if(  color_src->copyTry(  color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))  color_src=&  color_temp;else goto error;
+    //Image   alpha_temp; C Image *  alpha_src=&  alpha.image; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
+      Image    bump_temp; C Image *   bump_src=&   bump.image; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
+      Image  normal_temp; C Image * normal_src=& normal.image; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
+    //Image  smooth_temp; C Image * smooth_src=& smooth.image; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
+    //Image reflect_temp; C Image *reflect_src=&reflect.image; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
+    //Image    glow_temp; C Image *   glow_src=&   glow.image; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(    col_src->is())ret|=BT_COLOR  ;
+      if(  color_src->is())ret|=BT_COLOR  ;
     //if(  alpha_src->is())ret|=BT_ALPHA  ;
       if(   bump_src->is())ret|=BT_BUMP   ;
       if( normal_src->is())ret|=BT_NORMAL ;
@@ -813,49 +815,49 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
 
       // base_0
       {
-         Int w=col_src->w(),
-             h=col_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( col_src->is() && (col_src->w()!=w || col_src->h()!=h))if(col_src->copyTry(col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))col_src=&col_temp;else goto error;
-         if(!col_src->is() || col_src->lockRead())
+         Int w=ImgW(color, color_src),
+             h=ImgH(color, color_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if(!color_src->is() ||  color_src->lockRead())
          {
             dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8_SRGB);
             REPD(y, dest_0.h())
             REPD(x, dest_0.w())
             {
-               Color c=(col_src->is() ? col_src->color(x, y) : WHITE);
+               Color c=(color_src->is() ? color_src->color(x, y) : WHITE);
                c.a=255; // force full alpha
                dest_0.color(x, y, c);
             }
-            col_src->unlock();
+            color_src->unlock();
          }
       }
 
       // base_1 NRM !! do this first before base_2 Bump which resizes bump !!
     C Image *bump_to_normal=null;
-      if(  bump_src->is() && !normal_src->is()                                          )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
-      if(normal_src->is() && (normal.typeChannels()==1 || normal_src->monochromaticRG()))bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
+      if(  bump_src->is() && !normal_src->is()                                                )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
+      if(normal_src->is() && (normal.image.typeChannels()==1 || normal_src->monochromaticRG()))bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
       if(bump_to_normal) // create normal from bump
       {
          // it's best to resize bump instead of normal
-         Int w=bump_to_normal->w(),
-             h=bump_to_normal->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=(normal.resize.x>0 ? normal.resize.x : (bump_to_normal==bump_src && bump.resize.x>0) ? bump.resize.x : bump_to_normal->w()),
+             h=(normal.resize.y>0 ? normal.resize.y : (bump_to_normal==bump_src && bump.resize.y>0) ? bump.resize.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
       if(normal_src->is())
       {
-         Int w=normal_src->w(),
-             h=normal_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=ImgW(normal, normal_src),
+             h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
-         if(!normal_src->is() || normal_src->lockRead())
+         if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
             Vec4 c; c.zw=0;
             REPD(y, dest_1.h())
             REPD(x, dest_1.w())
             {
-               c.xy=normal_src->colorF(x, y).xy*2-1;
+               c.xy=(normal_src->is() ? normal_src->colorF(x, y).xy*2-1 : Vec2Zero);
                if(flip_normal_y)CHS(c.y);
                dest_1.colorF(x, y, c);
             }
@@ -866,10 +868,10 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       // base_2 BUMP
       if(bump_src->is())
       {
-         Int w=bump_src->w(),
-             h=bump_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=ImgW(bump, bump_src),
+             h=ImgH(bump, bump_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_src=&bump_temp;else goto error;
-         if(!bump_src->is() || bump_src->lockRead())
+         if(!bump_src->is() ||  bump_src->lockRead())
          {
             dest_2.createSoftTry(w, h, 1, IMAGE_R8_SIGN);
             Vec4 c=0;

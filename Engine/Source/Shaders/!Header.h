@@ -407,7 +407,7 @@ struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
    VecH2 base2_mul, base2_add;
-   Half  glow, normal, bump, det_mul, det_add, macro;
+   Half  glow, normal, bump, det_mul, det_add, det_inv, macro;
    Flt   tex_scale, det_scale;
 };
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
@@ -1430,10 +1430,17 @@ inline Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-inline VecH GetDetail(Vec2 tex)
+inline VecH4 GetDetail(Vec2 tex)
 {
-   return (Tex(Det, tex*Material.det_scale).xyz-0.5)*Material.det_power; // tex.xy=nrm.xy, tex.z=color, #MaterialTextureLayout
+   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=color, W=smooth #MaterialTextureLayout
+   det.xy=(det.xy-0.5)*Material.det_power;
+   det.zw= det.zw     *Material.det_power+(1-Material.det_power); // Lerp(1, det.zw, Material.det_power) = 1*(1-Material.det_power) + det.zw*Material.det_power
+   return det;
 }
+inline VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xy=det.xy*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.zw=det.zw*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+inline VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xy=det.xy*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.zw=det.zw*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+inline VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xy=det.xy*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.zw=det.zw*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+inline VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xy=det.xy*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.zw=det.zw*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
