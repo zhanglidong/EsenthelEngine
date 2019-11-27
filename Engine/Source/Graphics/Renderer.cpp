@@ -779,7 +779,7 @@ Bool RendererClass::wantEdgeSoften()C
 Bool RendererClass::wantDepth         ()C {return wantMotion() || wantDof() || D.aoWant() || D.edgeDetect() || D.particlesSoft() || D.volLight() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Sun.wantDepth() || !Water.max1Light();} // TODO: even though we check all known things here, there are still some things about we don't know up-front (like local fog, decals, Image.drawVolume, ..)
 Bool RendererClass::canReadDepth      ()C {return        _ds->depthTexture();} // have to check '_ds' because this is the original source depth, it can be multi-sampled (in that case it's possible depth reading won't be available), but '_ds_1s' is 1-sampled (and could have depth-reads even if '_ds' doesn't)
 Bool RendererClass::safeCanReadDepth  ()C {return _ds && _ds->depthTexture();}
-Bool RendererClass::hasStencilAttached()C {return hasDepthAttached() && ImageTI[_cur_ds->hwType()].s;}
+Bool RendererClass::hasStencilAttached()C {return hasDepthAttached() && _cur_ds->hwTypeInfo().s;}
 Bool RendererClass::hasDepthAttached  ()C
 {
 #if GL
@@ -820,7 +820,7 @@ Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
 {
    if(image)
    {
-      if(ImageTI[image->hwType()].d) // depth
+      if(image->hwTypeInfo().d) // depth
       {
          if(!image->depthTexture())return false; // can't read
          set(_final, null, true); D.alpha(ALPHA_NONE); Sh.Depth->set(image); Sh.get("DrawDepth")->draw(); Sh.Depth->set(_ds_1s);
@@ -899,7 +899,7 @@ start:
    if(_cur_type==RT_DEFERRED /*|| mirror() _get_target already enabled for mirror*/ || _get_target // <- these always require
    || _final->size()!=rt_size || _final->samples()!=samples || _final->precision()<prec // if current RT does not match the requested rendering settings
    || wantBloom() || wantEdgeSoften() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
-   || (D.glowAllow() && ImageTI[_final->hwType()].a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
+   || (D.glowAllow() && _final->hwTypeInfo().a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
    || (_final==&_main && !_main_ds.depthTexture() && wantDepth()) // if we're setting '_main' which is always paired with '_main_ds', and that is not a depth texture but we need to access depth, then try getting custom RT with depth texture (don't check for '_cur_main' and '_cur_main_ds' because depth buffers other than '_main_ds' are always tried to be created as depth texture first, so if that failed, then there's no point in trying to create one again)
    )    _col.get(ImageRTDesc(rt_size.x, rt_size.y, GetImageRTType(D.glowAllow(), prec), samples)); // here Alpha is used for glow
    else _col=_final;
@@ -1346,7 +1346,7 @@ void RendererClass::light()
       D.set2D(); D.depthFunc(FUNC_LESS);
 
       // light buffer is ready so we can combine it with color
-      Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL), glow=(_has_glow && ImageTI[_col->hwType()].a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
+      Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL), glow=(_has_glow && _col->hwTypeInfo().a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
            use_last_frag_color=(has_last_frag_color && (D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8)==D.litColRTPrecision());
@@ -1868,7 +1868,7 @@ void RendererClass::postProcess()
          GetCombineAlpha()->draw();
         _col=_final;
       }else
-      if(ImageTI[_col->hwType()].a>=8) // if '_col' already has alpha-channel, then just reuse it and replace that channel
+      if(_col->hwTypeInfo().a>=8) // if '_col' already has alpha-channel, then just reuse it and replace that channel
       {
          set(_col, null, true); D.alpha(ALPHA_KEEP_SET);
          GetReplaceAlpha()->draw();

@@ -192,7 +192,7 @@ void SkyClass::draw()
          Sh.SkyFracMulAdd->set(mul_add);
 
          sky_ball_mesh_size=from;
-       //sky_ball_mesh_size-=DepthError(D.viewFrom(), D.viewRange(), sky_ball_mesh_size, FovPerspective(D.viewFovMode()), ImageTI[Renderer._ds->hwType()].d); // draw smaller by DepthError to avoid depth precision issues
+       //sky_ball_mesh_size-=DepthError(D.viewFrom(), D.viewRange(), sky_ball_mesh_size, FovPerspective(D.viewFovMode()), Renderer._ds->hwTypeInfo().d); // draw smaller by DepthError to avoid depth precision issues
          if(sky_ball_mesh_size*SKY_MESH_MIN_DIST<=Frustum.view_quad_max_dist){sky_ball_mesh_size=to; ds=false;} // if the closest point on the mesh surface is in touch with the view quad, it means that the ball would not render fully, we have to render it with full size and with depth test disabled
       }else sky_ball_mesh_size=to;
    #if !REVERSE_DEPTH // for low precision depth we need to make sure that sky ball mesh is slightly smaller than view range, to avoid mesh clipping, this was observed on OpenGL with viewFrom=0.05, viewRange=1024, Cam.yaw=0, Cam.pitch=PI_2

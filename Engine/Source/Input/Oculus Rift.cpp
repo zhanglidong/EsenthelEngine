@@ -97,7 +97,7 @@ static struct ovrTexture
       image._mode=IMAGE_RT;
       image._mms=1;
       image._samples=1;
-      image._byte_pp=ImageTI[image.type()].byte_pp;
+      image._byte_pp=image.hwTypeInfo().byte_pp;
       image. setPartial();
 
    #if DX11
@@ -105,7 +105,7 @@ static struct ovrTexture
       desc.Width             =image.w();
       desc.Height            =image.h();
       desc.MipLevels         =1;
-      desc.Format            =ImageTI[image.hwType()].format;
+      desc.Format            =image.hwTypeInfo().format;
       desc.Usage             =D3D11_USAGE_DEFAULT;
       desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
       desc.MiscFlags         =0;

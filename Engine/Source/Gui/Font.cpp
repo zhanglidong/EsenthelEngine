@@ -805,7 +805,7 @@ struct SystemFontDrawContext
                                                              isPlanar:NO
                                                        colorSpaceName:NSCalibratedRGBColorSpace
                                                           bytesPerRow:bitmap_image.pitch()
-                                                         bitsPerPixel:ImageTI[bitmap_image.hwType()].bit_pp];
+                                                         bitsPerPixel:bitmap_image.hwTypeInfo().bit_pp];
          }
          if(!context)
          {

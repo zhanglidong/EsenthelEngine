@@ -635,7 +635,7 @@ Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int 
       if(type<=0)type=image.type();else MIN(type, IMAGE_TYPES);
       if(!_ds_1s)alpha=false;
 
-      if(ImageTI[type].a && ImageTI[image.type()].a && !alpha && image.lock()) // dest has alpha and src has alpha, and don't want to manually set alpha
+      if(ImageTI[type].a && image.typeInfo().a && !alpha && image.lock()) // dest has alpha and src has alpha, and don't want to manually set alpha
       {
          REPD(y, image.h())
          REPD(x, image.w())
@@ -648,7 +648,7 @@ Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int 
 
       if(image.copyTry(image, w, h, 1, type, mode, mip_maps))
       {
-         if(alpha && ImageTI[image.type()].a && image.lock()) // set alpha from depth
+         if(alpha && image.typeInfo().a && image.lock()) // set alpha from depth
          {
             Image depth; if(depth.capture(*_ds_1s) && depth.lockRead())
             {
@@ -702,7 +702,7 @@ Bool RendererClass::screenShot(C Str &name, Bool alpha)
    if(temp.capture(_main)) // no alpha
 #endif
    {
-      if(ImageTI[temp.type()].a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
+      if(temp.typeInfo().a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
       return temp.Export(name);
    }
    return false;
