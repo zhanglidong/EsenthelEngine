@@ -124,14 +124,14 @@ Bool Image::ExportBMP(File &f)C
 {
    Image  temp;
  C Image *src=this;
-   IMAGE_TYPE type=(ImageTI[T.type()].a ? IMAGE_B8G8R8A8_SRGB : IMAGE_B8G8R8_SRGB); // BMP uses BGRA
+ C ImageTypeInfo &type_info=typeInfo(); // use 'T.type' to have precise information about source type
+   IMAGE_TYPE     type=(type_info.a ? IMAGE_B8G8R8A8_SRGB : IMAGE_B8G8R8_SRGB); // BMP uses BGRA
    if(src->cube      ())if(temp.fromCube(*src ,             type               ))src=&temp;else return false;
    if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, type, IMAGE_SOFT, 1))src=&temp;else return false;
 
    Bool ok=false;
    if(src->lockRead())
    {
-    C ImageTypeInfo &type_info=ImageTI[T.type()]; // use 'T.type' to have precise information about source type
       Byte byte_pp=((type_info.channels==1) ? 1 : type_info.a ? 4 : 3);
       Int  size, zeros; GetSizeZeros(*src, byte_pp, size, zeros);
 

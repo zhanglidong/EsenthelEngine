@@ -153,7 +153,7 @@ Bool Image::ExportTIF(File &f, Flt compression_level)C
       if(TIFF *tif=TIFFClientOpen("", "w", &tf, TIFRead, TIFWrite, TIFSeek, TIFClose, TIFSize, null, null)) // can't use null because crash will occur
       {
          ok=true;
-       C ImageTypeInfo &type_info=ImageTI[src->type()];
+       C ImageTypeInfo &type_info=src->typeInfo();
          Bool alpha   =(type_info.a>0), bit16=(src->type()==IMAGE_I16);
          Byte channels= type_info.channels; if(channels==2)channels=3;
          TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , src->w());

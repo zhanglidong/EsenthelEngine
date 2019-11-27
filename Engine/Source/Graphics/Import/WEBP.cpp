@@ -119,7 +119,7 @@ Bool Image::ExportWEBP(File &f, Flt rgb_quality, Flt alpha_quality)C
          Y.createSoftTry(src->w(), src->h(), 1, IMAGE_L8);
          U.createSoftTry(src->w(), src->h(), 1, IMAGE_L8);
          V.createSoftTry(src->w(), src->h(), 1, IMAGE_L8);
-         if(ImageTI[src->type()].a)
+         if(src->typeInfo().a)
             if(src->copyTry(A, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1))
          {
             picture.a       =(uint8_t*)A.data();

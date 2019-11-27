@@ -1047,7 +1047,7 @@ static Bool CreateAppPak(C Str &name, Bool &exists, Bool *changed=null)
 static void Optimize(Image &image)
 {
    Vec4 min; if(image.stats(&min))if(min.w>=1-1.5f/255)image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8_SRGB); // if image has no alpha, then remove it, because it will reduce PNG size
-   if(ImageTI[image.type()].a) // if image has alpha, then zero pixels without alpha to further improve compression
+   if(image.typeInfo().a) // if image has alpha, then zero pixels without alpha to further improve compression
       REPD(y, image.h())
       REPD(x, image.w())
    {
@@ -1095,12 +1095,12 @@ static Bool ImageResize(C Image &src, Image &dest, Int x, Int y, FIT_MODE fit)
       if((fit==FIT_FILL) ? size_x.y>=y  // if after scaling with size_x, height is more than enough
                          : size_x.y<=y) // if after scaling with size_x, height fits
       {
-         Int image_type=((y>size_x.y && !ImageTI[src.type()].a) ? ImageTypeIncludeAlpha(src.type()) : -1);
+         Int image_type=((y>size_x.y && !src.typeInfo().a) ? ImageTypeIncludeAlpha(src.type()) : -1);
          ok=src.copyTry(dest, size_x.x, size_x.y, -1, image_type, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
          Int d=size_x.y-y; dest.crop(dest, 0, d/2, dest.w(), y);
       }else
       {
-         Int image_type=((x>size_y.x && !ImageTI[src.type()].a) ? ImageTypeIncludeAlpha(src.type()) : -1);
+         Int image_type=((x>size_y.x && !src.typeInfo().a) ? ImageTypeIncludeAlpha(src.type()) : -1);
          ok=src.copyTry(dest, size_y.x, size_y.y, -1, image_type, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
          Int d=size_y.x-x; dest.crop(dest, d/2, 0, x, dest.h());
       }
@@ -1147,12 +1147,12 @@ struct ImageConvert
       }
       if(_crop.x>0 && _crop.y>0)
       {
-         if(!ImageTI[src->type()].a && (_crop.x>src->w() || _crop.y>src->h()))if(src->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return; // if we're cropping to a bigger size, then make sure that alpha channel is present, so pixels can be set to transparent color
+         if(!src->typeInfo().a && (_crop.x>src->w() || _crop.y>src->h()))if(src->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return; // if we're cropping to a bigger size, then make sure that alpha channel is present, so pixels can be set to transparent color
          src->crop(temp, (src->w()-_crop.x)/2, (src->h()-_crop.y)/2, _crop.x, _crop.y); src=&temp;
       }
       if(_square && src->size().allDifferent())
       {
-         if(!ImageTI[src->type()].a)if(src->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return; // if we're cropping to a bigger size, then make sure that alpha channel is present, so pixels can be set to transparent color
+         if(!src->typeInfo().a)if(src->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return; // if we're cropping to a bigger size, then make sure that alpha channel is present, so pixels can be set to transparent color
          Int size=src->size().max(); src->crop(temp, (src->w()-size)/2, (src->h()-size)/2, size, size); src=&temp;
       }
       switch(format)

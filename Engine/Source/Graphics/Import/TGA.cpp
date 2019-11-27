@@ -230,7 +230,7 @@ Bool Image::ExportTGA(File &f)C
    Bool ok=false;
    if(src->lockRead())
    {
-    C ImageTypeInfo &type_info=ImageTI[T.type()]; // use 'T.type' to have precise information about source type
+    C ImageTypeInfo &type_info=typeInfo(); // use 'T.type' to have precise information about source type
       Byte byte_pp=((type_info.channels==1) ? 1 : type_info.a ? 4 : 3);
 
       TgaHeader header; Zero(header);
