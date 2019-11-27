@@ -435,13 +435,13 @@ VecH4 PS
          if(DETAIL)
          {
                             nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                                   + (Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
+                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
             if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
             if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
          }else
          {
                             nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                                   + Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
+                            nrmh.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
             if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
             if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
          }

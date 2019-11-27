@@ -437,8 +437,8 @@ void PS
 
       UNROLL for(Int i=0; i<steps; i++) // I.tex+=h*tpos.xy;
       {
-                    Half h =Tex(       BUMP_IMAGE    , tex0).BUMP_CHANNEL*bump_mul.x+bump_add.x
-                           +Tex(CONCAT(BUMP_IMAGE, 1), tex1).BUMP_CHANNEL*bump_mul.y+bump_add.y;
+                    Half h =Tex(       BUMP_IMAGE    , tex0).BUMP_CHANNEL*bump_mul.x+bump_add.x;
+                         h+=Tex(CONCAT(BUMP_IMAGE, 1), tex1).BUMP_CHANNEL*bump_mul.y+bump_add.y;
          if(MATERIALS>=3)h+=Tex(CONCAT(BUMP_IMAGE, 2), tex2).BUMP_CHANNEL*bump_mul.z+bump_add.z;
          if(MATERIALS>=4)h+=Tex(CONCAT(BUMP_IMAGE, 3), tex3).BUMP_CHANNEL*bump_mul.w+bump_add.w;
 
@@ -510,8 +510,8 @@ void PS
             if(MATERIALS>=4)tex3+=tex_step;
 
             //height_next=TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL;
-                            height_next =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x
-                                        +TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
+                            height_next =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x;
+                            height_next+=TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
             if(MATERIALS>=3)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
             if(MATERIALS>=4)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
 
@@ -539,8 +539,8 @@ void PS
             {
                Half ray_cur=ray+stp*frac,
                              //height_cur =TexLodI(       BUMP_IMAGE    ,I.tex, lod).BUMP_CHANNEL;
-                               height_cur =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x
-                                          +TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
+                               height_cur =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x;
+                               height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
                if(MATERIALS>=3)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
                if(MATERIALS>=4)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
 
@@ -670,13 +670,13 @@ void PS
    if(DETAIL)
    {
                       nrm.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                            + (Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
+                      nrm.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
       if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
       if(MATERIALS>=4)nrm.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
    }else
    {
                       nrm.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                            + Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
+                      nrm.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
       if(MATERIALS>=3)nrm.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
       if(MATERIALS>=4)nrm.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
    }
