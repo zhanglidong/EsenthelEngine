@@ -1857,19 +1857,19 @@ class ProjectEx : ProjectHierarchy
       }
       return false;
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
       return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
       return mtrl_images.createWaterBaseTextures(base_0, base_1, base_2);
    }
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y)
+   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
@@ -1918,7 +1918,7 @@ class ProjectEx : ProjectHierarchy
 
       return bt;
    }
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y)
+   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
@@ -2122,7 +2122,7 @@ class ProjectEx : ProjectHierarchy
                bool         want_tan_bin=game->wantTanBin();
 
                // reload
-               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(base  )mtrlCreateBaseTextures (edit);
                if(detail)mtrlCreateDetailTexture(edit);
                if(macro )mtrlCreateMacroTexture (edit);
                if(light )mtrlCreateLightTexture (edit);
@@ -2145,7 +2145,7 @@ class ProjectEx : ProjectHierarchy
                WaterMtrlPtr  game=gamePath(elm_id); if(!game)return false;
 
                // reload
-               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(base  )mtrlCreateBaseTextures (edit);
                if(detail)mtrlCreateDetailTexture(edit);
                if(macro )mtrlCreateMacroTexture (edit);
                if(light )mtrlCreateLightTexture (edit);

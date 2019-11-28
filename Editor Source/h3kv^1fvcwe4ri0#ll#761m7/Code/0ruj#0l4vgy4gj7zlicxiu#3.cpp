@@ -962,7 +962,8 @@ bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-m
        || p.name=="rollHueSat"
        || p.name=="rollHueSatPhoto"
        || p.name=="channel" && !ChannelMonoTransform(p.value)
-       || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent();
+       || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent()
+       || p.name=="bumpToNormal";
 }
 bool HighPrecTransform(C Str &name)
 {
@@ -2034,6 +2035,10 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          }
       }
       CreateBumpFromColor(image, image, blur.x, blur.y);
+   }else
+   if(param.name=="bumpToNormal")
+   {
+      image.bumpToNormal(image, param.value.is() ? param.asFlt() : image.size().avgF()*BUMP_TO_NORMAL_SCALE);
    }else
    if(param.name=="scale") // the formula is ok (for normal too), it works as if the bump was scaled vertically by 'scale' factor
    {

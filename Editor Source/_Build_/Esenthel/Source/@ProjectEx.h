@@ -365,10 +365,10 @@ public:
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C EditWaterMtrl &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y);
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y);
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false);
+   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false);
+   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false);
    /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;

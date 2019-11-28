@@ -13,7 +13,8 @@ class MtrlImages
       bool createTry(C VecI2 &size, IMAGE_TYPE type);
       ImageResize& resize(C VecI2 &size);
       ImageResize& setFrom(C TextParam &param);
-      operator ImageSource()C;               
+      void apply();
+      operator ImageSource()C;
 
 public:
    ImageResize();
@@ -23,11 +24,55 @@ public:
    ImageResize color, alpha, bump, normal, smooth, reflect, glow;
    
    MtrlImages& del();
-   bool create(C VecI2 &size);
-   void clear();
-   void compact();
-   void Export(C Str &name, C Str &ext)C;
-   /*static void Crop(ImageResize &image, C Rect &frac)
+   /*bool create(C VecI2 &size)
+   {
+      del();
+      return color  .createTry(size, IMAGE_R8G8B8_SRGB)
+          && alpha  .createTry(size, IMAGE_I8)
+          && bump   .createTry(size, IMAGE_I8)
+          && normal .createTry(size, IMAGE_R8G8B8)
+          && smooth .createTry(size, IMAGE_I8)
+          && reflect.createTry(size, IMAGE_I8)
+          && glow   .createTry(size, IMAGE_I8);
+   }
+   void clear()
+   {
+      flip_normal_y=false;
+      tex=0;
+      color  .clear();
+      alpha  .clear();
+      smooth .clear();
+      reflect.clear();
+      glow   .clear();
+
+      REPD(y, bump.h())
+      REPD(x, bump.w())bump.pixB(x, y)=128;
+
+      Color nrm(128, 128, 255);
+      REPD(y, normal.h())
+      REPD(x, normal.w())normal.color(x, y, nrm);
+   }
+   void compact()
+   {
+      if(!(tex&BT_COLOR  ))color  .del();
+      if(!(tex&BT_ALPHA  ))alpha  .del();
+      if(!(tex&BT_BUMP   ))bump   .del();
+      if(!(tex&BT_NORMAL ))normal .del();
+      if(!(tex&BT_SMOOTH ))smooth .del();
+      if(!(tex&BT_REFLECT))reflect.del();
+      if(!(tex&BT_GLOW   ))glow   .del();
+   }
+   void Export(C Str &name, C Str &ext)C
+   {
+      color  .Export(name+"color."  +ext);
+      alpha  .Export(name+"alpha."  +ext);
+      bump   .Export(name+"bump."   +ext);
+      normal .Export(name+"normal." +ext);
+      smooth .Export(name+"smooth." +ext);
+      reflect.Export(name+"reflect."+ext);
+      glow   .Export(name+"glow."   +ext);
+   }
+   static void Crop(ImageResize &image, C Rect &frac)
    {
       if(image.is())
       {
@@ -53,15 +98,61 @@ public:
       Crop(smooth , frac);
       Crop(reflect, frac);
       Crop(glow   , frac);
+   }
+   void resize(C VecI2 &size)
+   {
+      if(size.x>=0 || size.y>=0)
+      {
+         color  .resize(size);
+         alpha  .resize(size);
+         bump   .resize(size);
+         normal .resize(size);
+         smooth .resize(size);
+         reflect.resize(size);
+         glow   .resize(size);
+      }
+   }
+   void apply()
+   {
+      color  .apply();
+      alpha  .apply();
+      bump   .apply();
+      normal .apply();
+      smooth .apply();
+      reflect.apply();
+      glow   .apply();
    }*/
-   void resize(C VecI2 &size);
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false);
    void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false);
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    void waterBaseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
-   void processAlpha();
+   /*void processAlpha()
+   {
+      if(!alpha.is() && color.typeInfo().a) // if we have no alpha map but it's possible it's in color
+      { // set alpha from color
+         color.copyTry(alpha, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1);
+         if(alpha.size.x<=0)alpha.size.x=color.size.x; // if alpha size not specified then use from color
+         if(alpha.size.y<=0)alpha.size.y=color.size.y;
+      }
+
+      if(alpha.is() && alpha.typeChannels()>1 && alpha.typeInfo().a) // if alpha has both RGB and Alpha channels, then check which one to use
+         if(alpha.lockRead())
+      {
+         byte min_alpha=255, min_lum=255;
+         REPD(y, alpha.h())
+         REPD(x, alpha.w())
+         {
+            Color c=alpha.color(x, y);
+            MIN(min_alpha, c.a    );
+            MIN(min_lum  , c.lum());
+         }
+         alpha.unlock();
+         if(min_alpha>=254 && min_lum>=254)alpha.del();else
+         alpha.copyTry(alpha, -1, -1, -1, (min_alpha>=254 && min_lum<254) ? IMAGE_L8 : IMAGE_A8, IMAGE_SOFT, 1); // alpha channel is almost fully white -> use luminance as alpha
+      }
+   }*/
 
 public:
    MtrlImages();

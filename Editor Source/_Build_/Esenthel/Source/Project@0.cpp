@@ -2085,7 +2085,7 @@ void DrawProject()
                bool         want_tan_bin=game->wantTanBin();
 
                // reload
-               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(base  )mtrlCreateBaseTextures (edit);
                if(detail)mtrlCreateDetailTexture(edit);
                if(macro )mtrlCreateMacroTexture (edit);
                if(light )mtrlCreateLightTexture (edit);
@@ -2108,7 +2108,7 @@ void DrawProject()
                WaterMtrlPtr  game=gamePath(elm_id); if(!game)return false;
 
                // reload
-               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(base  )mtrlCreateBaseTextures (edit);
                if(detail)mtrlCreateDetailTexture(edit);
                if(macro )mtrlCreateMacroTexture (edit);
                if(light )mtrlCreateLightTexture (edit);

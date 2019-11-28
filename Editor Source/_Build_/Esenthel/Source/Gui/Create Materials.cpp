@@ -95,7 +95,7 @@ void DrawCreateMaterials()
 
       SyncLockerEx locker(lock);
       Image base_0, base_1, base_2;
-      uint  bt=Proj.createBaseTextures(base_0, base_1, base_2, edit, false);
+      uint  bt=Proj.createBaseTextures(base_0, base_1, base_2, edit);
       locker.off();
       if(base_0.is() && !base_1.is() && !base_2.is()) // we should get only base0
       {

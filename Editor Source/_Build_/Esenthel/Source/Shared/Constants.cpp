@@ -277,6 +277,10 @@ const Pose PoseIdentity;
          }
          return T;
       }
+      void MtrlImages::ImageResize::apply()
+      {
+         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, filter, clamp ? IC_CLAMP : IC_WRAP);
+      }
       MtrlImages::ImageResize::operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    MtrlImages& MtrlImages::del()
    {
@@ -284,67 +288,6 @@ const Pose PoseIdentity;
       tex=0;
       color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); reflect.del(); glow.del();
       return T;
-   }
-   bool MtrlImages::create(C VecI2 &size)
-   {
-      del();
-      return color  .createTry(size, IMAGE_R8G8B8_SRGB)
-          && alpha  .createTry(size, IMAGE_I8)
-          && bump   .createTry(size, IMAGE_I8)
-          && normal .createTry(size, IMAGE_R8G8B8)
-          && smooth .createTry(size, IMAGE_I8)
-          && reflect.createTry(size, IMAGE_I8)
-          && glow   .createTry(size, IMAGE_I8);
-   }
-   void MtrlImages::clear()
-   {
-      flip_normal_y=false;
-      tex=0;
-      color  .clear();
-      alpha  .clear();
-      smooth .clear();
-      reflect.clear();
-      glow   .clear();
-
-      REPD(y, bump.h())
-      REPD(x, bump.w())bump.pixB(x, y)=128;
-
-      Color nrm(128, 128, 255);
-      REPD(y, normal.h())
-      REPD(x, normal.w())normal.color(x, y, nrm);
-   }
-   void MtrlImages::compact()
-   {
-      if(!(tex&BT_COLOR  ))color  .del();
-      if(!(tex&BT_ALPHA  ))alpha  .del();
-      if(!(tex&BT_BUMP   ))bump   .del();
-      if(!(tex&BT_NORMAL ))normal .del();
-      if(!(tex&BT_SMOOTH ))smooth .del();
-      if(!(tex&BT_REFLECT))reflect.del();
-      if(!(tex&BT_GLOW   ))glow   .del();
-   }
-   void MtrlImages::Export(C Str &name, C Str &ext)C
-   {
-      color  .Export(name+"color."  +ext);
-      alpha  .Export(name+"alpha."  +ext);
-      bump   .Export(name+"bump."   +ext);
-      normal .Export(name+"normal." +ext);
-      smooth .Export(name+"smooth." +ext);
-      reflect.Export(name+"reflect."+ext);
-      glow   .Export(name+"glow."   +ext);
-   }
-   void MtrlImages::resize(C VecI2 &size)
-   {
-      if(size.x>=0 || size.y>=0)
-      {
-         color  .resize(size);
-         alpha  .resize(size);
-         bump   .resize(size);
-         normal .resize(size);
-         smooth .resize(size);
-         reflect.resize(size);
-         glow   .resize(size);
-      }
    }
    void MtrlImages::fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y)
    {
@@ -433,31 +376,6 @@ const Pose PoseIdentity;
       if(size0)*size0=base[0].size();
       if(size1)*size1=base[1].size();
       if(size2)*size2=base[2].size();
-   }
-   void MtrlImages::processAlpha()
-   {
-      if(!alpha.is() && color.typeInfo().a) // if we have no alpha map but it's possible it's in color
-      { // set alpha from color
-         color.copyTry(alpha, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1);
-         if(alpha.size.x<=0)alpha.size.x=color.size.x; // if alpha size not specified then use from color
-         if(alpha.size.y<=0)alpha.size.y=color.size.y;
-      }
-
-      if(alpha.is() && alpha.typeChannels()>1 && alpha.typeInfo().a) // if alpha has both RGB and Alpha channels, then check which one to use
-         if(alpha.lockRead())
-      {
-         byte min_alpha=255, min_lum=255;
-         REPD(y, alpha.h())
-         REPD(x, alpha.w())
-         {
-            Color c=alpha.color(x, y);
-            MIN(min_alpha, c.a    );
-            MIN(min_lum  , c.lum());
-         }
-         alpha.unlock();
-         if(min_alpha>=254 && min_lum>=254)alpha.del();else
-         alpha.copyTry(alpha, -1, -1, -1, (min_alpha>=254 && min_lum<254) ? IMAGE_L8 : IMAGE_A8, IMAGE_SOFT, 1); // alpha channel is almost fully white -> use luminance as alpha
-      }
    }
 ProjectCipher::ProjectCipher() : cipher_ptr(null) {}
 

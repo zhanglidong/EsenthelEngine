@@ -426,6 +426,10 @@ class MtrlImages
          }
          return T;
       }
+      void apply()
+      {
+         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, filter, clamp ? IC_CLAMP : IC_WRAP);
+      }
       operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    }
    bool        flip_normal_y=false;
@@ -439,7 +443,7 @@ class MtrlImages
       color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); reflect.del(); glow.del();
       return T;
    }
-   bool create(C VecI2 &size)
+   /*bool create(C VecI2 &size)
    {
       del();
       return color  .createTry(size, IMAGE_R8G8B8_SRGB)
@@ -487,7 +491,7 @@ class MtrlImages
       reflect.Export(name+"reflect."+ext);
       glow   .Export(name+"glow."   +ext);
    }
-   /*static void Crop(ImageResize &image, C Rect &frac)
+   static void Crop(ImageResize &image, C Rect &frac)
    {
       if(image.is())
       {
@@ -513,7 +517,7 @@ class MtrlImages
       Crop(smooth , frac);
       Crop(reflect, frac);
       Crop(glow   , frac);
-   }*/
+   }
    void resize(C VecI2 &size)
    {
       if(size.x>=0 || size.y>=0)
@@ -527,6 +531,16 @@ class MtrlImages
          glow   .resize(size);
       }
    }
+   void apply()
+   {
+      color  .apply();
+      alpha  .apply();
+      bump   .apply();
+      normal .apply();
+      smooth .apply();
+      reflect.apply();
+      glow   .apply();
+   }*/
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false)
    {
       del();
@@ -615,7 +629,7 @@ class MtrlImages
       if(size1)*size1=base[1].size();
       if(size2)*size2=base[2].size();
    }
-   void processAlpha()
+   /*void processAlpha()
    {
       if(!alpha.is() && color.typeInfo().a) // if we have no alpha map but it's possible it's in color
       { // set alpha from color
@@ -639,6 +653,6 @@ class MtrlImages
          if(min_alpha>=254 && min_lum>=254)alpha.del();else
          alpha.copyTry(alpha, -1, -1, -1, (min_alpha>=254 && min_lum<254) ? IMAGE_L8 : IMAGE_A8, IMAGE_SOFT, 1); // alpha channel is almost fully white -> use luminance as alpha
       }
-   }
+   }*/
 }
 /******************************************************************************/

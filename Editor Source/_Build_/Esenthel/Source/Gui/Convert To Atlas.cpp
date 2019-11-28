@@ -26,52 +26,6 @@ ConvertToAtlasClass ConvertToAtlas;
          t_original_size.pos(Vec2(t_original_size.pos().x, y));
          t_scaled_size  .pos(Vec2(t_scaled_size  .pos().x, y));
       }
-      void ConvertToAtlasClass::Mtrl::pack(MtrlImages &atlas)
-      { // #MaterialTextureLayout
-         ThreadMayUseGPUData();
-         edit.load(Proj.editPath(id));
-         VecI2 size=packed_rect.size(); if(rotated)size.swap();
-         MtrlImages src; src.fromMaterial(edit, Proj); src.processAlpha(); src.resize(size);
-         // FIXME
-         Color normal(128, 128, 255);
-         REPD(y, size.y)
-         REPD(x, size.x)
-         {
-            int dest_x=x, dest_y=y; if(rotated)Swap(dest_x, dest_y);
-            dest_x+=packed_rect.min.x;
-            dest_y+=packed_rect.min.y;
-
-            flt   glow; if(src.glow  .is()){Color c=src.glow.color(x, y); glow=c.lum()*c.a/255.0f;}else glow=255;
-            Color n   ; if(src.normal.is())
-            {
-               n=src.normal.color(x, y);
-               if(src.flip_normal_y)n.g=255-n.g;
-               if(rotated)Swap(n.r, n.g); // in rotated mode, normal XY channels need to be swapped
-               if(!Equal(edit.normal, 1))
-               {
-                  n.r=Mid(Round((n.r-128)*edit.normal+128), 0, 255);
-                  n.g=Mid(Round((n.g-128)*edit.normal+128), 0, 255);
-               }
-            }else n=normal;
-
-            Color c; if(src.color.is())
-            {
-               Vec4 cf=src.color.colorF(x, y);
-               cf.xyz*=edit.color_s.xyz;
-               c=cf;
-            }else c=WHITE;
-
-            atlas.color  .color(dest_x, dest_y, c);
-            atlas.alpha  .pixB (dest_x, dest_y)=          (src.alpha  .is() ? Mid(Round(src.alpha  .pixelF(x, y)*255                      ), 0, 255) : 255);
-            atlas.bump   .pixB (dest_x, dest_y)=          (src.bump   .is() ? Mid(Round(src.bump   .pixelF(x, y)*255                      ), 0, 255) : 255);
-            atlas.smooth .pixB (dest_x, dest_y)=Mid(Round((src.smooth .is() ?           src.smooth .color (x, y).lum() : 255)*edit.smooth ), 0, 255); // bake
-            atlas.reflect.pixB (dest_x, dest_y)=Mid(Round((src.reflect.is() ?           src.reflect.color (x, y).lum() : 255)*edit.reflect), 0, 255); // bake
-            atlas.glow   .pixB (dest_x, dest_y)=Mid(Round(                                  glow                             *edit.glow   ), 0, 255); // bake
-            atlas.normal .color(dest_x, dest_y, n);
-         }
-         tex=src.color.is()*BT_COLOR | src.alpha.is()*BT_ALPHA | src.bump.is()*BT_BUMP | src.normal.is()*BT_NORMAL | src.smooth.is()*BT_SMOOTH | src.reflect.is()*BT_REFLECT | src.glow.is()*BT_GLOW;
-         AtomicOr(atlas.tex, tex);
-      }
       void ConvertToAtlasClass::Preview::draw(C GuiPC &gpc)
 {
          if(visible() && gpc.visible)
@@ -134,7 +88,6 @@ ConvertToAtlasClass ConvertToAtlas;
    void ConvertToAtlasClass::ChangedScale(C Property &prop) {REPAO(ConvertToAtlas.mtrls).setScale(); ConvertToAtlas.refresh();}
    int  ConvertToAtlasClass::CompareData(C Mtrl &a, C Mtrl &b) {return ComparePathNumber(a.name(), b.name());}
    void ConvertToAtlasClass::Convert(ConvertToAtlasClass &cta) {cta.convertDo();}
-   void ConvertToAtlasClass::PackMaterial(Mtrl &mtrl, MtrlImages &atlas, int thread_index) {mtrl.pack(atlas);}
    void ConvertToAtlasClass::setErrors(Mesh &mesh, C Memc<UID> &mtrl_ids, C UID &mesh_id)
    {
       const Rect tex_rect(0, 1);
@@ -296,22 +249,46 @@ ConvertToAtlasClass ConvertToAtlas;
          }
       }
    }
-   void ConvertToAtlasClass::AddMap(Str &dest, C Str &src, C Mtrl &mtrl, bool normal, C Vec &mul)
+   bool ConvertToAtlasClass::AddMap(Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal, C Vec &mul, bool flip_normal_y)
    {
-      if(src.is())
+      bool mul_1=Equal(mul, Vec(1));
+      if(1) // this is optional
+         force&=!mul_1; // force only if "mul!=1"
+      if(src.is() || force)
       {
-         Mems<Edit::FileParams> fps=Edit::FileParams::Decode(dest);
-         Edit::FileParams &fp=fps.New(); fp=src;
-         VecI2 size=mtrl.packed_rect.size();
-         if(mtrl.edit.flip_normal_y && normal) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
-         if(mtrl.rotated                     ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resize' !!
-         if(!Equal(mul, Vec(1))              ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
-                                               fp.params.New().set("resizeClamp", VecI2AsText(size));
-         if(mtrl.packed_rect.min.any()       ) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
-         dest=Edit::FileParams::Encode(fps);
+         bool added=false;
+         Mems<Edit::FileParams> fps_dest=Edit::FileParams::Decode(dest);
+         Mems<Edit::FileParams> fps_src =Edit::FileParams::Decode(src );
+         TextParam src_resize; ExtractResize(fps_src, src_resize); // remove any resize if present, we replace it with a custome one below
+         if(fps_src.elms()==1 && fps_src[0].name.is()) // Warning: TODO: only 1 elements are supported because other params/transforms may affect all images (not just this one)
+         {
+            Edit::FileParams &fp=fps_src[0]; // edit first one in source
+            VecI2 size=mtrl.packed_rect.size();
+            if(flip_normal_y             ) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
+            if(mtrl.rotated              ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
+            if(!mul_1                    ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
+                                           fp.params.New().set("resizeClamp", VecI2AsText(size));
+            if(mtrl.packed_rect.min.any()) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
+            Swap(fps_dest.New(), fp); // move it to dest
+            added=true;
+         }else
+         if(force)
+         {
+            Edit::FileParams &fp=fps_dest.New();
+            // FIXME force size somehow, must be in sync with loadImage/loadImages, this affects 2 things: specifying size/pos in loadImages and that we wrote to atlas for tex_filled
+                                          fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
+            if(mtrl.packed_rect.min.any())fp.params.New().set("position", S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
+            added=true;
+         }
+         if(added)
+         {
+            dest=Edit::FileParams::Encode(fps_dest);
+            return true;
+         }
       }
+      return false;
    }
-   void ConvertToAtlasClass::checkSide(Str &dest, int filled)
+   void ConvertToAtlasClass::checkSide(Str &dest, bool filled)
    {
       if(dest.is() && !filled) // if there's at least one texture, but it doesn't fill the target fully, then we need to force the size
       {
@@ -326,114 +303,118 @@ ConvertToAtlasClass ConvertToAtlas;
       // convert before hiding because that may release resources
       if(mtrls.elms())
       {
-         MtrlImages atlas_images; if(atlas_images.create(tex_size))
+         // calculate which parent is most frequently used for stored materials
+         Map<UID, int> parent_occurence(Compare, Create);
+         REPA(mtrls)
          {
-            Map<UID, int> parent_occurence(Compare, Create); // this is to calculate which parent is most frequently used for stored materials
-            REPA(mtrls)
-            {
-               Mtrl &mtrl=mtrls[i];
-               MtrlEdit.flush(mtrl.id);
-               if(Elm *elm=Proj.findElm(mtrl.id))(*parent_occurence(elm->parent_id))++;
-            }
-            int occurences=0; UID parent_id=UIDZero; REPA(parent_occurence)if(parent_occurence[i]>occurences){occurences=parent_occurence[i]; parent_id=parent_occurence.key(i);}
-            atlas_images.clear();
-            WorkerThreads.process1(mtrls, PackMaterial, atlas_images);
-            atlas_images.compact();
-          //atlas_images.Export("d:/", "bmp");
-
-            ImporterClass::Import::MaterialEx atlas;
-            uint  tex=atlas_images.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2);
-            VecI2 tex_filled=0; // x=which textures are filled in X, y=which textures are filled in Y
-            atlas.name="Atlas";
-            atlas.mtrl.cull=true;
-            atlas.mtrl.color_l=0; Vec4 color_s=0;
-            atlas.mtrl.ambient=0;
-            atlas.mtrl.glow=0;
-            atlas.mtrl.normal=0;
-            atlas.mtrl.bump=0;
-            atlas.mtrl.smooth=0;
-            atlas.mtrl.reflect=0;
-            bool has_alpha_map=false; flt alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
-             REPA(mtrls)if(mtrls[i].edit.alpha_map.is()){has_alpha_map=true; break;} // if at least one 'alpha_map' is specified
-            FREPA(mtrls)
-            {
-               Mtrl &mtrl=mtrls[i];
-               atlas.mtrl.cull   &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
-                          color_s+=mtrl.edit.color_s;
-               atlas.mtrl.ambient+=mtrl.edit.ambient;
-               atlas.mtrl.glow   +=mtrl.edit.glow;
-               atlas.mtrl.normal +=mtrl.edit.normal;
-               atlas.mtrl.bump   +=mtrl.edit.bump;
-               atlas.mtrl.smooth +=mtrl.edit.smooth;
-               atlas.mtrl.reflect+=mtrl.edit.reflect;
-
-               if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
-
-               Str alpha_map=mtrl.edit.alpha_map;
-               if(has_alpha_map) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
-                  if(!alpha_map.is()) // if not yet specified
-               {
-                  alpha_map=mtrl.edit.color_map; // set from 'color_map'
-                  SetTransform(alpha_map, "channel", "a"); // use alpha channel of 'color_map'
-               }
-
-               AddMap(atlas.  color_map, mtrl.edit.  color_map, mtrl, false, mtrl.edit.color_s.xyz);
-               AddMap(atlas.  alpha_map,             alpha_map, mtrl);
-               AddMap(atlas.   bump_map, mtrl.edit.   bump_map, mtrl);
-               AddMap(atlas. normal_map, mtrl.edit. normal_map, mtrl, true , mtrl.edit.normal );
-               AddMap(atlas. smooth_map, mtrl.edit. smooth_map, mtrl, false, mtrl.edit.smooth );
-               AddMap(atlas.reflect_map, mtrl.edit.reflect_map, mtrl, false, mtrl.edit.reflect);
-               AddMap(atlas.   glow_map, mtrl.edit.   glow_map, mtrl, false, mtrl.edit.glow   );
-
-               if(mtrl.packed_rect.includesX(tex_size.x)) // if this packed rect includes the right side
-               {
-                  if(mtrl.edit.  color_map.is())tex_filled.x|=BT_COLOR;
-                  if(            alpha_map.is())tex_filled.x|=BT_ALPHA;
-                  if(mtrl.edit.   bump_map.is())tex_filled.x|=BT_BUMP;
-                  if(mtrl.edit. normal_map.is())tex_filled.x|=BT_NORMAL;
-                  if(mtrl.edit. smooth_map.is())tex_filled.x|=BT_SMOOTH;
-                  if(mtrl.edit.reflect_map.is())tex_filled.x|=BT_REFLECT;
-                  if(mtrl.edit.   glow_map.is())tex_filled.x|=BT_GLOW;
-               }
-               if(mtrl.packed_rect.includesY(tex_size.y)) // if this packed rect includes the bottom side
-               {
-                  if(mtrl.edit.  color_map.is())tex_filled.y|=BT_COLOR;
-                  if(            alpha_map.is())tex_filled.y|=BT_ALPHA;
-                  if(mtrl.edit.   bump_map.is())tex_filled.y|=BT_BUMP;
-                  if(mtrl.edit. normal_map.is())tex_filled.y|=BT_NORMAL;
-                  if(mtrl.edit. smooth_map.is())tex_filled.y|=BT_SMOOTH;
-                  if(mtrl.edit.reflect_map.is())tex_filled.y|=BT_REFLECT;
-                  if(mtrl.edit.   glow_map.is())tex_filled.y|=BT_GLOW;
-               }
-            }
-
-            tex_filled.x&=tex_filled.y; // we need both sides to be filled
-            checkSide(atlas.  color_map, tex_filled.x&BT_COLOR  );
-            checkSide(atlas.  alpha_map, tex_filled.x&BT_ALPHA  );
-            checkSide(atlas.   bump_map, tex_filled.x&BT_BUMP   );
-            checkSide(atlas. normal_map, tex_filled.x&BT_NORMAL );
-            checkSide(atlas. smooth_map, tex_filled.x&BT_SMOOTH );
-            checkSide(atlas.reflect_map, tex_filled.x&BT_REFLECT);
-            checkSide(atlas.   glow_map, tex_filled.x&BT_GLOW   );
-
-            if(tex&BT_COLOR  ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms());
-            if(tex&BT_ALPHA  ){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ; // if we ended up having alpha    map, then set parameters from alpha materials only
-            if(tex&BT_BUMP   ){                                                                                    }     atlas.mtrl.bump   /=mtrls.elms();
-            if(tex&BT_NORMAL ){atlas.mtrl.normal =1;                                                               }else atlas.mtrl.normal /=mtrls.elms(); // if we ended up having normal  map, then it means we've used the baked textures, for which we need to set the full normal  multiplier
-            if(tex&BT_SMOOTH ){atlas.mtrl.smooth =1;                                                               }else atlas.mtrl.smooth /=mtrls.elms(); // if we ended up having smooth  map, then it means we've used the baked textures, for which we need to set the full smooth  multiplier
-            if(tex&BT_REFLECT){atlas.mtrl.reflect=1;                                                               }else atlas.mtrl.reflect/=mtrls.elms(); // if we ended up having reflect map, then it means we've used the baked textures, for which we need to set the full reflect multiplier
-            if(tex&BT_GLOW   ){atlas.mtrl.glow   =1;                                                               }else atlas.mtrl.glow   /=mtrls.elms(); // if we ended up having glow    map, then it means we've used the baked textures, for which we need to set the full glow    multiplier
-                                                                                                                         atlas.mtrl.ambient/=mtrls.elms();
-
-            IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                           ImageProps(atlas.base_1, &atlas.base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                           ImageProps(atlas.base_2, &atlas.base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(atlas.base_2_id))atlas.base_2.copyTry(atlas.base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-
-            UID atlas_id=Proj.newMtrl(atlas, parent_id).id;
-            Server.setElmFull(atlas_id);
-            convertMeshes(atlas_id);
-            Proj.setList();
+            Mtrl &mtrl=mtrls[i];
+            MtrlEdit.flush(mtrl.id);
+            if(Elm *elm=Proj.findElm(mtrl.id))(*parent_occurence(elm->parent_id))++;
+            mtrl.edit.load(Proj.editPath(mtrl.id));
          }
+         int occurences=0; UID parent_id=UIDZero; REPA(parent_occurence)if(parent_occurence[i]>occurences){occurences=parent_occurence[i]; parent_id=parent_occurence.key(i);}
+
+      /* MtrlImages atlas_images; if(atlas_images.create(tex_size))
+         atlas_images.clear();
+         WorkerThreads.process1(mtrls, PackMaterial, atlas_images);
+         atlas_images.compact();
+         atlas_images.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2);
+         atlas_images.Export("d:/", "bmp"); */
+
+         ImporterClass::Import::MaterialEx atlas;
+         atlas.name="Atlas";
+         atlas.mtrl.cull=true;
+         atlas.mtrl.color_l=0; Vec4 color_s=0;
+         atlas.mtrl.normal=0;
+         atlas.mtrl.bump=0;
+         atlas.mtrl.smooth=0;
+         atlas.mtrl.reflect=0;
+         atlas.mtrl.glow=0;
+         atlas.mtrl.ambient=0;
+         flt alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
+         uint  tex=0; REPA(mtrls)tex|=mtrls[i].edit.baseTex(); // detect what textures are present in all materials
+         uint  tex_wrote=0; // what textures we wrote to atlas
+         VecI2 tex_filled=0; // x=bit mask of which textures fill atlas image in X, y=bit mask of which textures fill atlas image in Y
+         FREPA(mtrls)
+         {
+          C Mtrl &mtrl=mtrls[i];
+            atlas.mtrl.cull   &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
+                       color_s+=mtrl.edit.color_s;
+            atlas.mtrl.normal +=mtrl.edit.normal;
+            atlas.mtrl.bump   +=mtrl.edit.bump;
+            atlas.mtrl.smooth +=mtrl.edit.smooth;
+            atlas.mtrl.reflect+=mtrl.edit.reflect;
+            atlas.mtrl.glow   +=mtrl.edit.glow;
+            atlas.mtrl.ambient+=mtrl.edit.ambient;
+
+            if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
+
+            Str alpha_map=mtrl.edit.alpha_map;
+            if(tex&BT_ALPHA) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
+               if(!alpha_map.is()) // if not yet specified
+            {
+               alpha_map=mtrl.edit.color_map; // set from 'color_map'
+               SetTransform(alpha_map, "channel", "a"); // use alpha channel of 'color_map'
+            }
+
+            Str  normal_map   =mtrl.edit.normal_map;
+            bool flip_normal_y=mtrl.edit.flip_normal_y;
+            if(tex&BT_BUMP) // if at least one material has 'bump_map', then we need to specify all normal maps
+               if(!normal_map.is()) // if not yet specified
+            {
+               normal_map=mtrl.edit.bump_map; // set from 'bump_map'
+               SetTransform(normal_map, "bumpToNormal"); // convert to normal
+               flip_normal_y=false; // 'bumpToNormal' always generates correct normal, so have to disable flip
+            }
+
+            uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
+            tex_mtrl|=BT_COLOR  *AddMap(atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz);
+            tex_mtrl|=BT_ALPHA  *AddMap(atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl);
+            tex_mtrl|=BT_BUMP   *AddMap(atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl);
+            tex_mtrl|=BT_NORMAL *AddMap(atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal , flip_normal_y);
+            tex_mtrl|=BT_SMOOTH *AddMap(atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth );
+            tex_mtrl|=BT_REFLECT*AddMap(atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect);
+            tex_mtrl|=BT_GLOW   *AddMap(atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow   );
+            
+            tex_wrote|=tex_mtrl;
+
+            if(mtrl.packed_rect.includesX(tex_size.x)) // if this packed rect includes the right side
+               tex_filled.x|=tex_mtrl; // add filled textures from this material
+
+            if(mtrl.packed_rect.includesY(tex_size.y)) // if this packed rect includes the bottom side
+               tex_filled.y|=tex_mtrl; // add filled textures from this material
+         }
+
+         // if textures didn't fill entire needed space, then we need to place a dummy to force image size
+         uint filled=tex_filled.x&tex_filled.y; // we need both sides to be filled
+         checkSide(atlas.  color_map, FlagTest(filled, BT_COLOR  ));
+         checkSide(atlas.  alpha_map, FlagTest(filled, BT_ALPHA  ));
+         checkSide(atlas.   bump_map, FlagTest(filled, BT_BUMP   ));
+         checkSide(atlas. normal_map, FlagTest(filled, BT_NORMAL ));
+         checkSide(atlas. smooth_map, FlagTest(filled, BT_SMOOTH ));
+         checkSide(atlas.reflect_map, FlagTest(filled, BT_REFLECT));
+         checkSide(atlas.   glow_map, FlagTest(filled, BT_GLOW   ));
+
+         if(tex_wrote&BT_COLOR  ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms()); // if we ended up having color   map, then it means we've used the baked textures, for which we need to set the full color   multiplier
+         if(tex_wrote&BT_ALPHA  ){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ; // if we ended up having alpha   map, then set parameters from alpha materials only
+         if(tex_wrote&BT_BUMP   ){                                                                                    }     atlas.mtrl.bump   /=mtrls.elms();
+         if(tex_wrote&BT_NORMAL ){atlas.mtrl.normal =1;                                                               }else atlas.mtrl.normal /=mtrls.elms();                              // if we ended up having normal  map, then it means we've used the baked textures, for which we need to set the full normal  multiplier
+         if(tex_wrote&BT_SMOOTH ){atlas.mtrl.smooth =1;                                                               }else atlas.mtrl.smooth /=mtrls.elms();                              // if we ended up having smooth  map, then it means we've used the baked textures, for which we need to set the full smooth  multiplier
+         if(tex_wrote&BT_REFLECT){atlas.mtrl.reflect=1;                                                               }else atlas.mtrl.reflect/=mtrls.elms();                              // if we ended up having reflect map, then it means we've used the baked textures, for which we need to set the full reflect multiplier
+         if(tex_wrote&BT_GLOW   ){atlas.mtrl.glow   =1;                                                               }else atlas.mtrl.glow   /=mtrls.elms();                              // if we ended up having glow    map, then it means we've used the baked textures, for which we need to set the full glow    multiplier
+                                                                                                                            atlas.mtrl.ambient/=mtrls.elms();
+
+         EditMaterial edit; atlas.copyTo(edit);
+         Proj.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, edit);
+         // copy images only if 'Importer.includeTex' which means this texture was encountered for the first time, don't check for 'Proj.includeTex' because with it we would have to also save the textures, which are done automatically in 'Proj.newMtrl'
+         IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                        ImageProps(atlas.base_1, &atlas.base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                        ImageProps(atlas.base_2, &atlas.base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(atlas.base_2_id))atlas.base_2.copyTry(atlas.base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+
+         UID atlas_id=Proj.newMtrl(atlas, parent_id).id;
+         Server.setElmFull(atlas_id);
+         convertMeshes(atlas_id);
+         Proj.setList();
       }
       warning.hide();
       hide();
