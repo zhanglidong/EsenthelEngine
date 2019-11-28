@@ -176,11 +176,11 @@ struct UniqueMultiMaterialData
 #endif
 /******************************************************************************/
 DECLARE_CACHE(Material, Materials, MaterialPtr); // 'Materials' cache storing 'Material' objects which can be accessed by 'MaterialPtr' pointer
+
+#define BUMP_TO_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 #if EE_PRIVATE
 extern MaterialPtr                                                    MaterialNull;
 extern ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap;
-
-#define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 
 void MaterialClear();
 void ShutMaterial();
