@@ -446,9 +446,11 @@ class ConvertToAtlasClass : PropWin
             // check if normal map is greyscale and needs to have "bumpToNormal" forced, this can be done before "expandMaps" and before manually setting from bump map (because both already support "bumpToNormal", and actually it's better to load here, because normal map can be empty here and no need to load anything, faster)
             if(mtrl.edit.normal_map.is())
             {
-               Image temp; TextParam resize;
-               if(Proj.loadImages(temp, &resize, mtrl.edit.normal_map))if(temp.typeChannels()<=1 || temp.monochromaticRG())
+               Image temp; TextParam resize; if(Proj.loadImages(temp, &resize, mtrl.edit.normal_map))if(temp.typeChannels()<=1 || temp.monochromaticRG())
+               {
                   SetTransform(mtrl.edit.normal_map, "bumpToNormal"); // force "bumpToNormal"
+                  mtrl.edit.flip_normal_y=false; // "bumpToNormal" always generates correct normal, so have to disable flip
+               }
             }
 
             mtrl.edit.expandMaps(); // have to expand maps, because if normal map was referring to bump, then the new bump will be different (atlas of bumps)
@@ -465,7 +467,7 @@ class ConvertToAtlasClass : PropWin
             {
                mtrl.edit.normal_map=mtrl.edit.bump_map; // set from 'bump_map'
                SetTransform(mtrl.edit.normal_map, "bumpToNormal"); // convert to normal
-               mtrl.edit.flip_normal_y=false; // 'bumpToNormal' always generates correct normal, so have to disable flip
+               mtrl.edit.flip_normal_y=false; // "bumpToNormal" always generates correct normal, so have to disable flip
             }
 
             uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
