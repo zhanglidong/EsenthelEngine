@@ -309,8 +309,8 @@ ConvertToAtlasClass ConvertToAtlas;
          {
             Mtrl &mtrl=mtrls[i];
             MtrlEdit.flush(mtrl.id);
+            mtrl.edit.load(Proj.editPath(mtrl.id)); // load after flushing
             if(Elm *elm=Proj.findElm(mtrl.id))(*parent_occurence(elm->parent_id))++;
-            mtrl.edit.load(Proj.editPath(mtrl.id));
          }
          int occurences=0; UID parent_id=UIDZero; REPA(parent_occurence)if(parent_occurence[i]>occurences){occurences=parent_occurence[i]; parent_id=parent_occurence.key(i);}
 
