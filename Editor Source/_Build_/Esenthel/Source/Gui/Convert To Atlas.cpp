@@ -249,7 +249,7 @@ ConvertToAtlasClass ConvertToAtlas;
          }
       }
    }
-   bool ConvertToAtlasClass::AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal, C Vec &mul, bool flip_normal_y)
+   bool ConvertToAtlasClass::AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal, C Vec &mul)
    {
       forced=false;
       bool mul_1=Equal(mul, Vec(1));
@@ -265,11 +265,11 @@ ConvertToAtlasClass ConvertToAtlas;
          {
             Edit::FileParams &fp=fps_src[0]; // edit first one in source
             VecI2 size=mtrl.packed_rect.size();
-            if(flip_normal_y             ) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
-            if(mtrl.rotated              ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
-            if(!mul_1                    ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
-                                           fp.params.New().set("resizeClamp", VecI2AsText(size));
-            if(mtrl.packed_rect.min.any()) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
+            if(mtrl.edit.flip_normal_y && normal) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
+            if(mtrl.rotated                     ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
+            if(!mul_1                           ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
+                                                  fp.params.New().set("resizeClamp", VecI2AsText(size));
+            if(mtrl.packed_rect.min.any()       ) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
             Swap(fps_dest.New(), fp); // move it to dest
             added=true;
          }else
@@ -349,36 +349,41 @@ ConvertToAtlasClass ConvertToAtlas;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
-            mtrl.edit.expandMaps(); // have to expand maps, because if normal map was referring to bump, then the new bump will be different (atlas of bumps)
-
-            Str alpha_map=mtrl.edit.alpha_map;
-            if(tex&BT_ALPHA) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
-               if(!alpha_map.is()) // if not yet specified
+            // check if normal map is greyscale and needs to have "bumpToNormal" forced, this can be done before "expandMaps" and before manually setting from bump map (because both already support "bumpToNormal", and actually it's better to load here, because normal map can be empty here and no need to load anything, faster)
+            if(mtrl.edit.normal_map.is())
             {
-               alpha_map=mtrl.edit.color_map; // set from 'color_map'
-               SetTransform(alpha_map, "channel", "a"); // use alpha channel of 'color_map'
+               Image temp; TextParam resize;
+               if(Proj.loadImages(temp, &resize, mtrl.edit.normal_map))if(temp.typeChannels()<=1 || temp.monochromaticRG())
+                  SetTransform(mtrl.edit.normal_map, "bumpToNormal"); // force "bumpToNormal"
             }
 
-            Str  normal_map   =mtrl.edit.normal_map;
-            bool flip_normal_y=mtrl.edit.flip_normal_y;
-            if(tex&BT_BUMP) // if at least one material has 'bump_map', then we need to specify all normal maps
-               if(!normal_map.is()) // if not yet specified
+            mtrl.edit.expandMaps(); // have to expand maps, because if normal map was referring to bump, then the new bump will be different (atlas of bumps)
+
+            if(tex&BT_ALPHA) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
+               if(!mtrl.edit.alpha_map.is()) // if not yet specified
             {
-               normal_map=mtrl.edit.bump_map; // set from 'bump_map'
-               SetTransform(normal_map, "bumpToNormal"); // convert to normal
-               flip_normal_y=false; // 'bumpToNormal' always generates correct normal, so have to disable flip
+               mtrl.edit.alpha_map=mtrl.edit.color_map; // set from 'color_map'
+               SetTransform(mtrl.edit.alpha_map, "channel", "a"); // use alpha channel of 'color_map'
+            }
+
+            if(tex&BT_BUMP) // if at least one material has 'bump_map', then we need to specify all normal maps
+               if(!mtrl.edit.normal_map.is()) // if not yet specified
+            {
+               mtrl.edit.normal_map=mtrl.edit.bump_map; // set from 'bump_map'
+               SetTransform(mtrl.edit.normal_map, "bumpToNormal"); // convert to normal
+               mtrl.edit.flip_normal_y=false; // 'bumpToNormal' always generates correct normal, so have to disable flip
             }
 
             uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
             bool forced;
-            if(AddMap(forced, atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz          )){tex_mtrl|=BT_COLOR  ; if(forced)tex_force_size|=BT_COLOR  ;}
-            if(AddMap(forced, atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl                                        )){tex_mtrl|=BT_ALPHA  ; if(forced)tex_force_size|=BT_ALPHA  ;}
-            if(AddMap(forced, atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl                                        )){tex_mtrl|=BT_BUMP   ; if(forced)tex_force_size|=BT_BUMP   ;}
-            if(AddMap(forced, atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal, flip_normal_y)){tex_mtrl|=BT_NORMAL ; if(forced)tex_force_size|=BT_NORMAL ;}
-            if(AddMap(forced, atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth               )){tex_mtrl|=BT_SMOOTH ; if(forced)tex_force_size|=BT_SMOOTH ;}
-            if(AddMap(forced, atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect              )){tex_mtrl|=BT_REFLECT; if(forced)tex_force_size|=BT_REFLECT;}
-            if(AddMap(forced, atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow                 )){tex_mtrl|=BT_GLOW   ; if(forced)tex_force_size|=BT_GLOW   ;}
-            
+            if(AddMap(forced, atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz)){tex_mtrl|=BT_COLOR  ; if(forced)tex_force_size|=BT_COLOR  ;}
+            if(AddMap(forced, atlas.  alpha_map, mtrl.edit.  alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl                              )){tex_mtrl|=BT_ALPHA  ; if(forced)tex_force_size|=BT_ALPHA  ;}
+            if(AddMap(forced, atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl                              )){tex_mtrl|=BT_BUMP   ; if(forced)tex_force_size|=BT_BUMP   ;}
+            if(AddMap(forced, atlas. normal_map, mtrl.edit. normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal     )){tex_mtrl|=BT_NORMAL ; if(forced)tex_force_size|=BT_NORMAL ;}
+            if(AddMap(forced, atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth     )){tex_mtrl|=BT_SMOOTH ; if(forced)tex_force_size|=BT_SMOOTH ;}
+            if(AddMap(forced, atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect    )){tex_mtrl|=BT_REFLECT; if(forced)tex_force_size|=BT_REFLECT;}
+            if(AddMap(forced, atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow       )){tex_mtrl|=BT_GLOW   ; if(forced)tex_force_size|=BT_GLOW   ;}
+
             tex_wrote|=tex_mtrl;
 
             if(mtrl.packed_rect.includesX(tex_size.x)) // if this packed rect includes the right side
