@@ -185,9 +185,9 @@ void Image::bumpToNormal(Image &dest, Flt scale, Bool high_precision)C
    if(src->lockRead())
    {
       Image normal;
-      if(   normal.createTry(src->w(), src->h(), 1, high_precision ? IMAGE_F32_4 : IMAGE_R8G8B8A8, IMAGE_SOFT, 1) && normal.lock(LOCK_WRITE))
+      if(   normal.createTry(src->w(), src->h(), 1, high_precision ? IMAGE_F32_3 : IMAGE_R8G8B8, IMAGE_SOFT, 1) && normal.lock(LOCK_WRITE))
       {
-         high_precision=(normal.hwType()==IMAGE_F32_4); // verify in case it was created as different type
+         high_precision=(normal.hwType()==IMAGE_F32_3); // verify in case it was created as different type
          Bool src_hp= src->highPrecision(),
               src_1c=(src->typeChannels ()==1);
          if( !src_hp)scale/=(src_1c ? (1<<(8*src->bytePP()))-1 : 255);
@@ -195,51 +195,52 @@ void Image::bumpToNormal(Image &dest, Flt scale, Bool high_precision)C
          REPD(y, src->h())
          REPD(x, src->w())
          {
-            Vec4 nrm_bump;
+            Vec nrm;
+          //Flt bump;
             if(src_hp)
             {
-               nrm_bump.w=src->pixelF( x                     ,  y                     );
-               Flt      l=src->pixelF((x+src->w()-1)%src->w(),  y                     ),
-                        r=src->pixelF((x+         1)%src->w(),  y                     ),
-                        u=src->pixelF( x                     , (y+src->h()-1)%src->h()),
-                        d=src->pixelF( x                     , (y+         1)%src->h());
-               nrm_bump.x=l-r;
-               nrm_bump.y=u-d;
+              //bump=src->pixelF( x                     ,  y                     );
+               Flt l=src->pixelF((x+src->w()-1)%src->w(),  y                     ),
+                   r=src->pixelF((x+         1)%src->w(),  y                     ),
+                   u=src->pixelF( x                     , (y+src->h()-1)%src->h()),
+                   d=src->pixelF( x                     , (y+         1)%src->h());
+               nrm.x=l-r;
+               nrm.y=u-d;
             }else
             if(src_1c)
             {
-               nrm_bump.w=src->pixel( x                     ,  y                     )*scale;
-               Int      l=src->pixel((x+src->w()-1)%src->w(),  y                     ),
-                        r=src->pixel((x+         1)%src->w(),  y                     ),
-                        u=src->pixel( x                     , (y+src->h()-1)%src->h()),
-                        d=src->pixel( x                     , (y+         1)%src->h());
-               nrm_bump.x=l-r;
-               nrm_bump.y=u-d;
+              //bump=src->pixel( x                     ,  y                     )*scale;
+               Int l=src->pixel((x+src->w()-1)%src->w(),  y                     ),
+                   r=src->pixel((x+         1)%src->w(),  y                     ),
+                   u=src->pixel( x                     , (y+src->h()-1)%src->h()),
+                   d=src->pixel( x                     , (y+         1)%src->h());
+               nrm.x=l-r;
+               nrm.y=u-d;
             }else
             {
-               nrm_bump.w=src->color( x                     ,  y                     ).r*scale;
-               Byte     l=src->color((x+src->w()-1)%src->w(),  y                     ).r,
-                        r=src->color((x+         1)%src->w(),  y                     ).r,
-                        u=src->color( x                     , (y+src->h()-1)%src->h()).r,
-                        d=src->color( x                     , (y+         1)%src->h()).r;
-               nrm_bump.x=l-r;
-               nrm_bump.y=u-d;
+               //bump=src->color( x                     ,  y                     ).r*scale;
+               Byte l=src->color((x+src->w()-1)%src->w(),  y                     ).r,
+                    r=src->color((x+         1)%src->w(),  y                     ).r,
+                    u=src->color( x                     , (y+src->h()-1)%src->h()).r,
+                    d=src->color( x                     , (y+         1)%src->h()).r;
+                nrm.x=l-r;
+                nrm.y=u-d;
             }
          #if 0
-            nrm_bump.x*=scale;
-            nrm_bump.y*=scale;
-            nrm_bump.z =2;
+            nrm.x*=scale;
+            nrm.y*=scale;
+            nrm.z =2;
          #else
-            nrm_bump.z=z;
+            nrm.z=z;
          #endif
-            nrm_bump.xyz.normalize();
-            if(high_precision)normal.pixF4(x, y)=nrm_bump;else
+            nrm.normalize();
+            if(high_precision)normal.pixF3(x, y)=nrm;else
             {
                Color color;
-               color.r=    Round(nrm_bump.x*127)+128;
-               color.g=    Round(nrm_bump.y*127)+128;
-               color.b=    Round(nrm_bump.z*127)+128;
-               color.a=FltToByte(nrm_bump.w);
+               color.r=    Round(nrm.x*127)+128;
+               color.g=    Round(nrm.y*127)+128;
+               color.b=    Round(nrm.z*127)+128;
+             //color.a=FltToByte(bump);
                normal.color(x, y, color);
             }
          }

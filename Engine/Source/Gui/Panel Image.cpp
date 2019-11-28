@@ -482,7 +482,7 @@ struct PanelImageCreate
    Int               resolution, super_sample;
    PanelImage       &panel_image;
  C PanelImageParams &params;
-   Image            &image, map, dist_map, *depth_map;
+   Image            &image, depth_map, dist_map, normal_map, *depth_map_ptr;
    Vec               light_dir[LIGHTS], light_dir_neg[LIGHTS];
    VecI2             image_size, image_size1, image_size_2i;
    Vec2              image_size_2, corner_size;
@@ -499,11 +499,11 @@ struct PanelImageCreate
    Line              corner_line[2][2], // [y][x]
                        side_line[2]; // [x]
 
-   PanelImageCreate(PanelImage &panel_image, C PanelImageParams &params, Image *depth_map, Int super_sample)
-   : panel_image(panel_image), params(params), depth_map(depth_map), image(panel_image.image), last(sps[Elms(sps)-1]),
+   PanelImageCreate(PanelImage &panel_image, C PanelImageParams &params, Image *depth_map_ptr, Int super_sample)
+   : panel_image(panel_image), params(params), depth_map_ptr(depth_map_ptr), image(panel_image.image), last(sps[Elms(sps)-1]),
      full_frac_mul(last.frac_mul), full_norm_mul(last.norm_mul), full_norm_add(last.norm_add) // last section is always full
    {
-      if(depth_map)depth_map->del();
+      if(depth_map_ptr)depth_map_ptr->del();
       T.super_sample=Mid(super_sample, 1, 16);
       T.resolution  =params.resolution*T.super_sample;
       top_image=bottom_image=center_image=left_image=right_image=top_left_image=top_right_image=bottom_left_image=bottom_right_image=null;
@@ -543,9 +543,9 @@ struct PanelImageCreate
    }
    Bool create()
    {
-      if(image   .createSoftTry(resolution*params.width, resolution*params.height, 1, IMAGE_R8G8B8A8_SRGB)
-      && map     .createSoftTry(image.w(), image.h(), 1, IMAGE_F32  )
-      && dist_map.createSoftTry(image.w(), image.h(), 1, IMAGE_F32_4))
+      if(image    .createSoftTry(resolution*params.width, resolution*params.height, 1, IMAGE_R8G8B8A8_SRGB)
+      && depth_map.createSoftTry(image.w(), image.h(), 1, IMAGE_F32  )
+      &&  dist_map.createSoftTry(image.w(), image.h(), 1, IMAGE_F32_4))
       {
          REPA(params.lights)
          {
@@ -783,7 +783,7 @@ struct PanelImageCreate
    }
    void setDepthY(Int y)
    {
-      REPD(x, map.w())
+      REPD(x, depth_map.w())
       {
          Vec2 pos(x, y);
          Flt  dist_x=FLT_MAX, dist_y=FLT_MAX, dist_global=FLT_MAX, dist_sect=FLT_MAX, dist_depth=0.5f, dist_depth_sect=0.5f, d;
@@ -971,14 +971,14 @@ struct PanelImageCreate
       #if DEBUG
          if(Kb.b(KB_V))depth=dist_depth_sect;
       #endif
-              map.pixF (x, y)=depth;
-         dist_map.pixF4(x, y).set(dist_x, dist_y, dist_global, dist_sect);
+         depth_map.pixF (x, y)=depth;
+          dist_map.pixF4(x, y).set(dist_x, dist_y, dist_global, dist_sect);
       }
    }
    void afterDepth()
    {
-      if(depth_map)Swap(*depth_map, map);
-      (depth_map ? *depth_map : map).bumpToNormal(map, resolution, true);
+      if(depth_map_ptr)depth_map.copyTry(*depth_map_ptr); // store a copy for the user
+         depth_map.bumpToNormal(normal_map, resolution, true); // !! need high precision because later we're using 'normal_map.pixF3' !!
 
       REPA(sps)
       {
@@ -1008,9 +1008,8 @@ struct PanelImageCreate
          if(   dist_global>=0)
          {
             Flt   dist_x   =dist4.x, dist_y=dist4.y, dist_sect=dist4.w;
-            Vec4  nrm_d    =map.pixF4(x, y);
-            Flt   depth    =nrm_d.w;
-          C Vec  &nrm      =nrm_d.xyz;
+            Flt   depth    = depth_map.pixF (x, y);
+          C Vec  &nrm      =normal_map.pixF3(x, y);
             Int   section_i=(dist_sect<sps[1].size);
           C SectionParams             &sp     =       sps     [section_i];
           C PanelImageParams::Section &section=params.sections[section_i];
@@ -1169,7 +1168,7 @@ struct PanelImageCreate
    {
       image.transparentToNeighbor();
    #if DEBUG
-      if(Kb.b(KB_N)){map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); map.copy(image, -1, -1, -1, IMAGE_R8G8B8_SRGB);}
+      if(Kb.b(KB_N)){normal_map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); normal_map.copy(image, -1, -1, -1, IMAGE_R8G8B8_SRGB);}
    #endif
 
       image.resize(image_size.x/super_sample, image_size.y/super_sample, filter, IC_CLAMP|IC_ALPHA_WEIGHT); // IC_ALPHA_WEIGHT needed when having 2 sections with different opacities
@@ -1225,9 +1224,9 @@ void PanelImage::create(C PanelImageParams &params, Image *depth_map, Int super_
    if(pic.create())
    {
       Threads *threads=&ImageThreads.init();
-      if(threads)threads->process1(pic.map.h(), SetDepth, pic);else REPD(y, pic.map  .h())pic.setDepthY(y);
+      if(threads)threads->process1(pic.image_size.y, SetDepth, pic);else REPD(y, pic.image_size.y)pic.setDepthY(y);
       pic.afterDepth();
-      if(threads)threads->process1(pic.map.h(), SetColor, pic);else REPD(y, pic.image.h())pic.setColorY(y);
+      if(threads)threads->process1(pic.image_size.y, SetColor, pic);else REPD(y, pic.image_size.y)pic.setColorY(y);
       pic.afterColor(filter);
    }
 }
