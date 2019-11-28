@@ -401,19 +401,19 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
    }
 }
 /******************************************************************************/
-void LoadTexture(C Project &proj, C UID &tex_id, Image &image, C VecI2 &size)
+void LoadTexture(C Project &proj, C UID &tex_id, Image &image)
 {
    ImagePtr src=proj.texPath(tex_id);
-   if(src)src->copyTry(image, size.x, size.y, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
+   if(src)src->copyTry(image, -1, -1, -1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
 }
-void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
 { // #MaterialTextureLayout
    uint tex=0;
    if(base_2.valid())
    {
       if(smooth || reflect || bump || alpha)
       {
-         Image b2; LoadTexture(proj, base_2, b2, size);
+         Image b2; LoadTexture(proj, base_2, b2);
          if(smooth )smooth ->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
          if(reflect)reflect->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
          if(bump   )bump   ->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
@@ -430,7 +430,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
       }
       if(base_0.valid() && (color || glow)) // base_0 && base_2
       {
-         Image b0; LoadTexture(proj, base_0, b0, size);
+         Image b0; LoadTexture(proj, base_0, b0);
          if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(glow )glow ->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
@@ -444,7 +444,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    }else
    if(base_0.valid() && (color || alpha)) // base_0 without base_2
    {
-      Image b0; LoadTexture(proj, base_0, b0, size);
+      Image b0; LoadTexture(proj, base_0, b0);
       if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       if(alpha)alpha->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
       REPD(y, b0.h())
@@ -457,7 +457,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    }
    if(base_1.valid() && normal)
    {
-      Image b1; LoadTexture(proj, base_1, b1, size);
+      Image b1; LoadTexture(proj, base_1, b1);
       normal->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
       REPD(y, b1.h())
       REPD(x, b1.w())
@@ -479,12 +479,12 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
 { // #WaterMaterialTextureLayout
    uint tex=0;
    if(base_0.valid() && color)
    {
-      Image b0; LoadTexture(proj, base_0, b0, size);
+      Image b0; LoadTexture(proj, base_0, b0);
       if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, b0.h())
       REPD(x, b0.w())
@@ -495,7 +495,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    }
    if(base_1.valid() && normal)
    {
-      Image b1; LoadTexture(proj, base_1, b1, size);
+      Image b1; LoadTexture(proj, base_1, b1);
       normal->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
       REPD(y, b1.h())
       REPD(x, b1.w())
@@ -511,7 +511,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    }
    if(base_2.valid() && bump)
    {
-      Image b2; LoadTexture(proj, base_2, b2, size);
+      Image b2; LoadTexture(proj, base_2, b2);
       if(bump)bump->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
       REPD(y, b2.h())
       REPD(x, b2.w())
@@ -528,14 +528,14 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size)
+void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech)
 {
    uint tex=0;
    if(base_0.valid() && base_1.valid()) // both textures specified
    {
       if(color || bump)
       {
-         Image b0; LoadTexture(proj, base_0, b0, size);
+         Image b0; LoadTexture(proj, base_0, b0);
          if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(bump )bump ->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
@@ -549,7 +549,7 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
       if(alpha || normal || smooth || reflect || glow)
       {
          bool tex_alpha=(tech!=MTECH_DEFAULT); // old mtrl textures had Base1 W channel as either Alpha or Glow
-         Image b1; LoadTexture(proj, base_1, b1, size);
+         Image b1; LoadTexture(proj, base_1, b1);
                        if(normal )normal ->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
                        if(smooth )smooth ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
                        if(reflect)reflect->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
@@ -575,7 +575,7 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
    {
       if(color || alpha)
       {
-         Image b0; LoadTexture(proj, base_0, b0, size);
+         Image b0; LoadTexture(proj, base_0, b0);
          if(color)color->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(alpha)alpha->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
@@ -2039,6 +2039,10 @@ Str VecI2AsText(C VecI2 &v) // try to keep as one value if XY are the same
 {
    Str s; s=v.x; if(v.y!=v.x)s+=S+","+v.y; 
    return s;
+}
+VecI2 TextVecI2Ex(cchar *t)
+{
+   return Contains(t, ',') ? TextVecI2(t) : VecI2(TextInt(t));
 }
 Vec2 TextVec2Ex(cchar *t)
 {

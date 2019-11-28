@@ -387,21 +387,68 @@ class Chunks
 /******************************************************************************/
 class MtrlImages
 {
-   bool  flip_normal_y=false;
-   int   tex=0;
-   Image color, alpha, bump, normal, smooth, reflect, glow;
+   class ImageResize : Image
+   {
+      VecI2       size=0; // if >0 then image should be resized
+      FILTER_TYPE filter=FILTER_BEST;
+      bool        clamp =false;
+
+      ImageResize& clearParams()
+      {
+         size.zero(); filter=FILTER_BEST; clamp=false; return T;
+      }
+      ImageResize& del()
+      {
+         super.del(); return clearParams();
+      }
+      bool createTry(C VecI2 &size, IMAGE_TYPE type)
+      {
+         clearParams(); return super.createSoftTry(size.x, size.y, 1, type);
+      }
+      ImageResize& resize(C VecI2 &size)
+      {
+         if(size.x>0)T.size.x=size.x;
+         if(size.y>0)T.size.y=size.y;
+         return T;
+      }
+      ImageResize& setFrom(C TextParam &param)
+      {
+         clearParams();
+         if(param.name.is())
+         {
+            if(param.name=="resize"         ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=false;}else
+            if(param.name=="resizeWrap"     ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=false;}else
+            if(param.name=="resizeClamp"    ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=true ;}else
+            if(param.name=="resizeLinear"   ){size=TextVecI2Ex(param.value); filter=FILTER_LINEAR    ; clamp=false;}else
+            if(param.name=="resizeCubic"    ){size=TextVecI2Ex(param.value); filter=FILTER_CUBIC_FAST; clamp=false;}else
+            if(param.name=="resizeNoStretch"){size=TextVecI2Ex(param.value); filter=FILTER_NO_STRETCH; clamp=false;}
+            // Warning: "maxSize" is not supported
+         }
+         return T;
+      }
+      operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
+   }
+   bool        flip_normal_y=false;
+   int         tex=0;
+   ImageResize color, alpha, bump, normal, smooth, reflect, glow;
    
-   bool create(C VecI2 &size)
+   MtrlImages& del()
    {
       flip_normal_y=false;
       tex=0;
-      return color  .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8_SRGB)
-          && alpha  .createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && bump   .createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && normal .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8)
-          && smooth .createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && reflect.createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && glow   .createSoftTry(size.x, size.y, 1, IMAGE_I8);
+      color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); reflect.del(); glow.del();
+      return T;
+   }
+   bool create(C VecI2 &size)
+   {
+      del();
+      return color  .createTry(size, IMAGE_R8G8B8_SRGB)
+          && alpha  .createTry(size, IMAGE_I8)
+          && bump   .createTry(size, IMAGE_I8)
+          && normal .createTry(size, IMAGE_R8G8B8)
+          && smooth .createTry(size, IMAGE_I8)
+          && reflect.createTry(size, IMAGE_I8)
+          && glow   .createTry(size, IMAGE_I8);
    }
    void clear()
    {
@@ -440,11 +487,11 @@ class MtrlImages
       reflect.Export(name+"reflect."+ext);
       glow   .Export(name+"glow."   +ext);
    }
-   static void Crop(Image &image, C Rect &frac)
+   /*static void Crop(ImageResize &image, C Rect &frac)
    {
       if(image.is())
       {
-         RectI rect=Round(frac*Vec2(image.size()));
+         RectI rect=Round(frac*(Vec2)image.size());
          Image temp; if(temp.createSoftTry(rect.w(), rect.h(), 1, ImageTypeUncompressed(image.type()))) // crop manually because we need to use Mod
          {
             if(image.lockRead())
@@ -452,7 +499,7 @@ class MtrlImages
                REPD(y, temp.h())
                REPD(x, temp.w())temp.color(x, y, image.color(Mod(x+rect.min.x, image.w()), Mod(y+rect.min.y, image.h())));
                image.unlock();
-               Swap(temp, image);
+               Swap(temp, SCAST(Image, image));
             }
          }
       }
@@ -466,22 +513,24 @@ class MtrlImages
       Crop(smooth , frac);
       Crop(reflect, frac);
       Crop(glow   , frac);
-   }
+   }*/
    void resize(C VecI2 &size)
    {
       if(size.x>=0 || size.y>=0)
       {
-         if(color  .is())color  .resize(size.x, size.y);
-         if(alpha  .is())alpha  .resize(size.x, size.y);
-         if(bump   .is())bump   .resize(size.x, size.y);
-         if(normal .is())normal .resize(size.x, size.y);
-         if(smooth .is())smooth .resize(size.x, size.y);
-         if(reflect.is())reflect.resize(size.x, size.y);
-         if(glow   .is())glow   .resize(size.x, size.y);
+         color  .resize(size);
+         alpha  .resize(size);
+         bump   .resize(size);
+         normal .resize(size);
+         smooth .resize(size);
+         reflect.resize(size);
+         glow   .resize(size);
       }
    }
-   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false)
+   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false)
    {
+      del();
+
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
       TextParam color_resize, alpha_resize, smooth_resize, reflect_resize, bump_resize, normal_resize, glow_resize;
 
@@ -494,29 +543,27 @@ class MtrlImages
           normal_ok=proj.loadImages( normal, & normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
             glow_ok=proj.loadImages(   glow, &   glow_resize, material.   glow_map, false, false);
 
-      // apply desired resize
-      TransformImage(color  ,   color_resize, false);
-      TransformImage(alpha  ,   alpha_resize, false);
-      TransformImage(smooth ,  smooth_resize, false);
-      TransformImage(reflect, reflect_resize, false);
-      TransformImage(bump   ,    bump_resize, false);
-      TransformImage(normal ,  normal_resize, false);
-      TransformImage(glow   ,    glow_resize, false);
+      // process resize
+      if(  color_ok)  color.setFrom(  color_resize);
+      if(  alpha_ok)  alpha.setFrom(  alpha_resize);
+      if( smooth_ok) smooth.setFrom( smooth_resize);
+      if(reflect_ok)reflect.setFrom(reflect_resize);
+      if(   bump_ok)   bump.setFrom(   bump_resize);
+      if( normal_ok) normal.setFrom( normal_resize);
+      if(   glow_ok)   glow.setFrom(   glow_resize);
 
       if(!color_ok && !material. alpha_map.is()) alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(! bump_ok && !material.normal_map.is())normal_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow);
 
       T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
-
-      if(process_alpha)processAlpha();
-
-      resize(size);
    }
-   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false)
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false)
    {
+      del();
+
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
       TextParam color_resize, alpha_resize, smooth_resize, reflect_resize, bump_resize, normal_resize, glow_resize;
 
@@ -529,26 +576,22 @@ class MtrlImages
           normal_ok=proj.loadImages( normal, & normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
             glow_ok=proj.loadImages(   glow, &   glow_resize, material.   glow_map, false, false);
 
-      // apply desired resize
-      TransformImage(color  ,   color_resize, false);
-      TransformImage(alpha  ,   alpha_resize, false);
-      TransformImage(smooth ,  smooth_resize, false);
-      TransformImage(reflect, reflect_resize, false);
-      TransformImage(bump   ,    bump_resize, false);
-      TransformImage(normal ,  normal_resize, false);
-      TransformImage(glow   ,    glow_resize, false);
+      // process resize
+      if(  color_ok)  color.setFrom(  color_resize);
+      if(  alpha_ok)  alpha.setFrom(  alpha_resize);
+      if( smooth_ok) smooth.setFrom( smooth_resize);
+      if(reflect_ok)reflect.setFrom(reflect_resize);
+      if(   bump_ok)   bump.setFrom(   bump_resize);
+      if( normal_ok) normal.setFrom( normal_resize);
+      if(   glow_ok)   glow.setFrom(   glow_resize);
 
       if(!color_ok && !material. alpha_map.is()) alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(! bump_ok && !material.normal_map.is())normal_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow);
 
       T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
-
-      if(process_alpha)processAlpha();
-
-      resize(size);
    }
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
@@ -575,7 +618,11 @@ class MtrlImages
    void processAlpha()
    {
       if(!alpha.is() && color.typeInfo().a) // if we have no alpha map but it's possible it's in color
+      { // set alpha from color
          color.copyTry(alpha, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1);
+         if(alpha.size.x<=0)alpha.size.x=color.size.x; // if alpha size not specified then use from color
+         if(alpha.size.y<=0)alpha.size.y=color.size.y;
+      }
 
       if(alpha.is() && alpha.typeChannels()>1 && alpha.typeInfo().a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha.lockRead())

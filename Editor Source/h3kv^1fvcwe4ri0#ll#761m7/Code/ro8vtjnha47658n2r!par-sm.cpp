@@ -162,20 +162,24 @@ class ConvertToDeAtlasClass : PropWin
          Proj.disablePublish(unpublish, false);
       }
    }
-   static Str Process(C Str &name, C VecI2 &size, C Rect *crop, C VecI2 *resize)
+   static Str Process(C Str &name, C Rect *crop, C VecI2 *resize)
    {
       if(name.is() && (crop || resize)) // don't add params to an empty file name
       {
-         Mems<Edit.FileParams> files=Edit.FileParams.Decode(name);
-         if(files.elms())
+         Mems<Edit.FileParams> files=Edit.FileParams.Decode(name); if(files.elms())
          {
+            TextParam src_resize; ExtractResize(files, src_resize); // first remove source resize
             if(files.elms()>1)files.New(); // if there's more than 1 file, then add crop/resize parameters globally
             if(crop) // crop first
             {
-               RectI r=Round(*crop*Vec2(size));
-               files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
+               Image image; if(Proj.loadImages(image, null, Edit.FileParams.Encode(files))) // load image at current state to extract its size
+               {
+                  RectI r=Round((*crop)*(Vec2)image.size());
+                  files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
+               }
             }
-            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize)); // then resize
+            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize));else // then resize
+            if(src_resize.name.is())Swap(files.last().params.New(), src_resize); // if 'resize' was not specified then restore original resize
             return Edit.FileParams.Encode(files);
          }
       }
@@ -184,43 +188,52 @@ class ConvertToDeAtlasClass : PropWin
    void convertDo()
    {
       // convert before hiding because that may release resources
-      if(mtrls.elms()) // first create textures
+      if(mtrls.elms())
       {
          Proj.clearListSel();
          REPA(mtrls)MtrlEdit.flush(mtrls[i]); // flush first
-         EditMaterial src_edit; src_edit.load(Proj.editPath(mtrls[0]));
-         MtrlImages src; src.fromMaterial(src_edit, Proj, false);
-         VecI2 color_size=src.color.size(), alpha_size=src.alpha.size(), bump_size=src.bump.size(), normal_size=src.normal.size(), smooth_size=src.smooth.size(), reflect_size=src.reflect.size(), glow_size=src.glow.size();
-         Rect frac=Rect(source_rect)/Vec2(tex_size);
-         src.crop(frac);
-         VecI2 final_size=finalSize();
-         src.resize(final_size);
-         Image base_0, base_1, base_2; src.createBaseTextures(base_0, base_1, base_2);
 
-         IMAGE_TYPE ct; ImageProps(base_0, &base_0_tex, &ct, MTRL_BASE_0); if(Proj.includeTex(base_0_tex)){base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_0, base_0_tex);} Server.setTex(base_0_tex);
-                        ImageProps(base_1, &base_1_tex, &ct, MTRL_BASE_1); if(Proj.includeTex(base_1_tex)){base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_1, base_1_tex);} Server.setTex(base_1_tex);
-                        ImageProps(base_2, &base_2_tex, &ct, MTRL_BASE_2); if(Proj.includeTex(base_2_tex)){base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_2, base_2_tex);} Server.setTex(base_2_tex);
+         // load first material and adjust its textures
+         EditMaterial first; first.load(Proj.editPath(mtrls[0]));
 
+         Rect   frac=Rect(source_rect)/Vec2(tex_size);
+         VecI2  final_size=finalSize();
        C Rect  *crop  =((source_rect.min.any() || source_rect.max!=tex_size) ? &frac       : null);
        C VecI2 *resize=((dest_size.x>0         || dest_size.y>0            ) ? &final_size : null);
 
+         first.  color_map=Process(first.  color_map, crop, resize);
+         first.  alpha_map=Process(first.  alpha_map, crop, resize);
+         first.   bump_map=Process(first.   bump_map, crop, resize);
+         first. normal_map=Process(first. normal_map, crop, resize);
+         first. smooth_map=Process(first. smooth_map, crop, resize);
+         first.reflect_map=Process(first.reflect_map, crop, resize);
+         first.   glow_map=Process(first.   glow_map, crop, resize);
+
+         // create textures
+         Image base_0, base_1, base_2; Proj.createBaseTextures(base_0, base_1, base_2, first, false);
+         IMAGE_TYPE ct; ImageProps(base_0, &first.base_0_tex, &ct, MTRL_BASE_0); if(Proj.includeTex(first.base_0_tex)){base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_0, first.base_0_tex);} Server.setTex(first.base_0_tex);
+                        ImageProps(base_1, &first.base_1_tex, &ct, MTRL_BASE_1); if(Proj.includeTex(first.base_1_tex)){base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_1, first.base_1_tex);} Server.setTex(first.base_1_tex);
+                        ImageProps(base_2, &first.base_2_tex, &ct, MTRL_BASE_2); if(Proj.includeTex(first.base_2_tex)){base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_2, first.base_2_tex);} Server.setTex(first.base_2_tex);
+
+         // adjust all materials
          Memc<IDReplace> mtrl_replace;
+         TimeStamp time; time.getUTC();
          REPA(mtrls)if(Elm *elm_mtrl=Proj.findElm(mtrls[i]))
          {
             Elm &de_atlas=Proj.Project.newElm(); de_atlas.type=ELM_MTRL;
             de_atlas.copyParams(*elm_mtrl).setName(elm_mtrl.name+" (De-Atlas)").setRemoved(false); // call 'setName' after 'copyParams'
 
             EditMaterial edit; edit.load(Proj.editPath(elm_mtrl.id));
-            edit.  color_map=Process(src_edit.  color_map,   color_size, crop, resize);
-            edit.  alpha_map=Process(src_edit.  alpha_map,   alpha_size, crop, resize);
-            edit.   bump_map=Process(src_edit.   bump_map,    bump_size, crop, resize);
-            edit. normal_map=Process(src_edit. normal_map,  normal_size, crop, resize);
-            edit. smooth_map=Process(src_edit. smooth_map,  smooth_size, crop, resize);
-            edit.reflect_map=Process(src_edit.reflect_map, reflect_size, crop, resize);
-            edit.   glow_map=Process(src_edit.   glow_map,    glow_size, crop, resize);
-            edit.base_0_tex=base_0_tex;
-            edit.base_1_tex=base_1_tex;
-            edit.base_2_tex=base_2_tex;
+            edit.  color_map=first.  color_map; edit.  color_map_time=time;
+            edit.  alpha_map=first.  alpha_map; edit.  alpha_map_time=time;
+            edit.   bump_map=first.   bump_map; edit.   bump_map_time=time;
+            edit. normal_map=first. normal_map; edit. normal_map_time=time;
+            edit. smooth_map=first. smooth_map; edit. smooth_map_time=time;
+            edit.reflect_map=first.reflect_map; edit.reflect_map_time=time;
+            edit.   glow_map=first.   glow_map; edit.   glow_map_time=time;
+            edit.base_0_tex=first.base_0_tex;
+            edit.base_1_tex=first.base_1_tex;
+            edit.base_2_tex=first.base_2_tex;
             if(ElmMaterial *mtrl_data=de_atlas.mtrlData())mtrl_data.from(edit);
             Save(edit, Proj.editPath(de_atlas.id));
             Proj.makeGameVer(de_atlas);
@@ -294,8 +307,8 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
       {
          // get 'tex_size'
          tex_size=0;
-         Image temp; if(Proj.loadImages(temp, null, mtrl_color_map))tex_size=temp.size(); // first try loading from source image, because it may not be pow2, and we want exact size, can ignore sRGB
-         if(!tex_size.all())if(ImagePtr base_0=Proj.texPath(base_0_tex))tex_size=base_0->size();
+         Image temp; TextParam temp_resize; if(Proj.loadImages(temp, &temp_resize, mtrl_color_map))tex_size=temp.size(); // first try loading from source image (because it may not be pow2) without any resize, we want exact size, can ignore sRGB
+         if(!tex_size.all())if(ImagePtr base_0=Proj.texPath(base_0_tex))tex_size=base_0->size(); // if failed to load then use base tex size
          t_tex_size.set(TexSize(tex_size));
 
          bool used_tex=false;

@@ -598,7 +598,7 @@ class MaterialRegion : Region
          |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
          |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
       {
-         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
+         MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
          REPA(sizes)
          {
             sizes[i].set(Max(1, Shl(sizes[i].x, size.x)), Max(1, Shl(sizes[i].y, size.y)));
@@ -638,7 +638,7 @@ class MaterialRegion : Region
          | (!edit.hasBase2Tex() && Proj.forceImageSize(edit.alpha_map, 0, relative, edit.alpha_map_time, time)) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureLayout
          )
       {
-         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(&size0, null, null); // calculate actual sizes
+         MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(&size0, null, null); // calculate actual sizes
          size0.set(Max(1, Shl(size0.x, size.x)), Max(1, Shl(size0.y, size.y)));
          size0.set(NearestPow2(size0.x), NearestPow2(size0.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          relative=false; // we now have the sizes known, so disable relative mode
@@ -665,7 +665,7 @@ class MaterialRegion : Region
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
       {
-         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(null, &size1, null); // calculate actual sizes
+         MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(null, &size1, null); // calculate actual sizes
          size1.set(Max(1, Shl(size1.x, size.x)), Max(1, Shl(size1.y, size.y)));
          size1.set(NearestPow2(size1.x), NearestPow2(size1.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          relative=false; // we now have the sizes known, so disable relative mode
@@ -694,7 +694,7 @@ class MaterialRegion : Region
          | (edit.hasBase2Tex() && Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)) // resize alpha only if it's going to be placed in Base2 tex, #MaterialTextureLayout
          )
       {
-         MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(null, null, &size2); // calculate actual sizes
+         MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(null, null, &size2); // calculate actual sizes
          size2.set(Max(1, Shl(size2.x, size.x)), Max(1, Shl(size2.y, size.y)));
          size2.set(NearestPow2(size2.x), NearestPow2(size2.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          relative=false; // we now have the sizes known, so disable relative mode

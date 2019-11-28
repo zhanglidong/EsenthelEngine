@@ -31,7 +31,8 @@ ConvertToAtlasClass ConvertToAtlas;
          ThreadMayUseGPUData();
          edit.load(Proj.editPath(id));
          VecI2 size=packed_rect.size(); if(rotated)size.swap();
-         MtrlImages src; src.fromMaterial(edit, Proj, false, size, true);
+         MtrlImages src; src.fromMaterial(edit, Proj); src.processAlpha(); src.resize(size);
+         // FIXME
          Color normal(128, 128, 255);
          REPD(y, size.y)
          REPD(x, size.x)
@@ -341,7 +342,7 @@ ConvertToAtlasClass ConvertToAtlas;
           //atlas_images.Export("d:/", "bmp");
 
             ImporterClass::Import::MaterialEx atlas;
-            uint  tex=CreateBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, atlas_images.color, atlas_images.alpha, atlas_images.bump, atlas_images.normal, atlas_images.smooth, atlas_images.reflect, atlas_images.glow);
+            uint  tex=atlas_images.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2);
             VecI2 tex_filled=0; // x=which textures are filled in X, y=which textures are filled in Y
             atlas.name="Atlas";
             atlas.mtrl.cull=true;

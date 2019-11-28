@@ -31,7 +31,7 @@ class ConvertToDeAtlasClass : PropWin
    static void Convert(ConvertToDeAtlasClass&cta);
 
    void convertMeshes(Memc<IDReplace> &mtrl_replace, C Rect *frac);
-   static Str Process(C Str &name, C VecI2 &size, C Rect *crop, C VecI2 *resize);
+   static Str Process(C Str &name, C Rect *crop, C VecI2 *resize);
    void convertDo();
    void clearProj();
    void create();
