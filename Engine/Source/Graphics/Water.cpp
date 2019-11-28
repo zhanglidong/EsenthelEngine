@@ -788,9 +788,9 @@ void WaterDrops::draw(AnimatedSkeleton &anim_skel)
    draw();
 }
 /******************************************************************************/
-static inline Int ImgW(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.resize.x>0) ? src.resize.x : img->w();}
-static inline Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.resize.y>0) ? src.resize.y : img->h();}
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+static inline Int ImgW(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.size.x>0) ? src.size.x : img->w();}
+static inline Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (src.size.y>0) ? src.size.y : img->h();}
+UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
 {
    // #WaterMaterialTextureLayout
    UInt  ret=0;
@@ -817,7 +817,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(color, color_src),
              h=ImgH(color, color_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, color.filter, (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
          {
             dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8_SRGB);
@@ -839,9 +839,10 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       if(bump_to_normal) // create normal from bump
       {
          // it's best to resize bump instead of normal
-         Int w=(normal.resize.x>0 ? normal.resize.x : (bump_to_normal==bump_src && bump.resize.x>0) ? bump.resize.x : bump_to_normal->w()),
-             h=(normal.resize.y>0 ? normal.resize.y : (bump_to_normal==bump_src && bump.resize.y>0) ? bump.resize.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         Int w=((normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w()),
+             h=((normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+       C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, src.filter, (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
@@ -849,7 +850,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(normal, normal_src),
              h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, normal.filter, (normal.clamp?IC_CLAMP:IC_WRAP)))normal_src=&normal_temp;else goto error;
          if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
@@ -870,7 +871,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(bump, bump_src),
              h=ImgH(bump, bump_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_src=&bump_temp;else goto error;
+         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, bump.filter, (bump.clamp?IC_CLAMP:IC_WRAP)))bump_src=&bump_temp;else goto error;
          if(!bump_src->is() ||  bump_src->lockRead())
          {
             dest_2.createSoftTry(w, h, 1, IMAGE_R8_SIGN);
