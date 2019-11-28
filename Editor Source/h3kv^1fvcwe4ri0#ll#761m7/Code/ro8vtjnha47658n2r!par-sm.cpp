@@ -178,8 +178,7 @@ class ConvertToDeAtlasClass : PropWin
                   files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
                }
             }
-            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize));else // then resize
-            if(src_resize.name.is())Swap(files.last().params.New(), src_resize); // if 'resize' was not specified then restore original resize
+            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize)); // then resize
             return Edit.FileParams.Encode(files);
          }
       }
