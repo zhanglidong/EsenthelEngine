@@ -101,8 +101,9 @@ class EditMaterial
       if( alpha_map=="<color>") alpha_map.clear();
       if(normal_map=="<bump>" )normal_map.clear();
    }
-   static void ExpandMap(Str &map, C MemPtr<Edit.FileParams> &color, C MemPtr<Edit.FileParams> &smooth, C MemPtr<Edit.FileParams> &bump)
+   void expandMap(Str &map, C MemPtr<Edit.FileParams> &color, C MemPtr<Edit.FileParams> &smooth, C MemPtr<Edit.FileParams> &bump)
    {
+      bool normal=(&map==&normal_map);
       Mems<Edit.FileParams> files=Edit.FileParams.Decode(map);
       REPA(files)
       {
@@ -118,11 +119,13 @@ class EditMaterial
           C Edit.FileParams &first=(*src)[0];
             file.name=first.name; // replace name with original
             FREPA(first.params)file.params.NewAt(i)=first.params[i]; // insert original parameters at the start
+                    if(normal){file.params.NewAt(first.params.elms()).set("bumpToNormal"); flip_normal_y=false;} // need to force conversion to normal map
          }else
          if(i==0) // if source has multiple files, then we can add only if we're processing the first file (so all transforms from source will not affect anything already loaded)
          {
             file.name.clear(); // clear file name, but leave params/transforms to operate globally
             FREPA(*src)files.NewAt(i)=(*src)[i]; // add all files from source at the start
+            if(normal){files.NewAt(src.elms()).params.New().set("bumpToNormal"); flip_normal_y=false;} // need to force conversion to normal map
             // !! here can't access 'file' anymore because its memory address could be invalid !!
          }
       }
@@ -133,13 +136,13 @@ class EditMaterial
       Mems<Edit.FileParams> color =Edit.FileParams.Decode( color_map);
       Mems<Edit.FileParams> smooth=Edit.FileParams.Decode(smooth_map);
       Mems<Edit.FileParams> bump  =Edit.FileParams.Decode(  bump_map);
-      ExpandMap(  color_map, color, smooth, bump);
-      ExpandMap(  alpha_map, color, smooth, bump);
-      ExpandMap(   bump_map, color, smooth, bump);
-      ExpandMap( normal_map, color, smooth, bump);
-      ExpandMap( smooth_map, color, smooth, bump);
-      ExpandMap(reflect_map, color, smooth, bump);
-      ExpandMap(   glow_map, color, smooth, bump);
+      expandMap(  color_map, color, smooth, bump);
+      expandMap(  alpha_map, color, smooth, bump);
+      expandMap(   bump_map, color, smooth, bump);
+      expandMap( normal_map, color, smooth, bump);
+      expandMap( smooth_map, color, smooth, bump);
+      expandMap(reflect_map, color, smooth, bump);
+      expandMap(   glow_map, color, smooth, bump);
    }
 
    void newData()

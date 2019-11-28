@@ -276,7 +276,7 @@ ConvertToAtlasClass ConvertToAtlas;
          if(force)
          {
             Edit::FileParams &fp=fps_dest.New();
-            fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
+            fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
             added=true; forced=true;
          }
          if(added)
@@ -371,13 +371,13 @@ ConvertToAtlasClass ConvertToAtlas;
 
             uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
             bool forced;
-            if(AddMap(forced, atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz           )){tex_mtrl|=BT_COLOR  ; if(forced)tex_force_size|=BT_COLOR  ;}
-            if(AddMap(forced, atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl                                         )){tex_mtrl|=BT_ALPHA  ; if(forced)tex_force_size|=BT_ALPHA  ;}
-            if(AddMap(forced, atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl                                         )){tex_mtrl|=BT_BUMP   ; if(forced)tex_force_size|=BT_BUMP   ;}
-            if(AddMap(forced, atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal , flip_normal_y)){tex_mtrl|=BT_NORMAL ; if(forced)tex_force_size|=BT_NORMAL ;}
-            if(AddMap(forced, atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth                )){tex_mtrl|=BT_SMOOTH ; if(forced)tex_force_size|=BT_SMOOTH ;}
-            if(AddMap(forced, atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect               )){tex_mtrl|=BT_REFLECT; if(forced)tex_force_size|=BT_REFLECT;}
-            if(AddMap(forced, atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow                  )){tex_mtrl|=BT_GLOW   ; if(forced)tex_force_size|=BT_GLOW   ;}
+            if(AddMap(forced, atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz          )){tex_mtrl|=BT_COLOR  ; if(forced)tex_force_size|=BT_COLOR  ;}
+            if(AddMap(forced, atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl                                        )){tex_mtrl|=BT_ALPHA  ; if(forced)tex_force_size|=BT_ALPHA  ;}
+            if(AddMap(forced, atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl                                        )){tex_mtrl|=BT_BUMP   ; if(forced)tex_force_size|=BT_BUMP   ;}
+            if(AddMap(forced, atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal, flip_normal_y)){tex_mtrl|=BT_NORMAL ; if(forced)tex_force_size|=BT_NORMAL ;}
+            if(AddMap(forced, atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth               )){tex_mtrl|=BT_SMOOTH ; if(forced)tex_force_size|=BT_SMOOTH ;}
+            if(AddMap(forced, atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect              )){tex_mtrl|=BT_REFLECT; if(forced)tex_force_size|=BT_REFLECT;}
+            if(AddMap(forced, atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow                 )){tex_mtrl|=BT_GLOW   ; if(forced)tex_force_size|=BT_GLOW   ;}
             
             tex_wrote|=tex_mtrl;
 
