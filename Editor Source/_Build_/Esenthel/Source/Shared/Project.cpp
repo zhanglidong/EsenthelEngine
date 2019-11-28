@@ -637,7 +637,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                VecI2 old_size=image.size();
                if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
                else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
-               if(background!=TRANSPARENT)
+               if(background!=TRANSPARENT) // skip TRANSPARENT because in both cases above (crop and create+clear) TRANSPARENT is already set
                   REPD(y, image.h())
                   REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
             }

@@ -130,7 +130,7 @@ public:
    void setErrors(Mesh &mesh, C Memc<UID> &mtrl_ids, C UID &mesh_id);
    static bool Create(int &occurence, C UID &id, ptr user);        
    void convertMeshes(C UID &atlas_id);
-   static bool AddMap(Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1, bool flip_normal_y=false);
+   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1, bool flip_normal_y=false);
    void checkSide(Str &dest, bool filled);
    void convertPerform();
    void convertDo();

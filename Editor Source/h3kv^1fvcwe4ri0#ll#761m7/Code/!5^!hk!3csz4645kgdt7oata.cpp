@@ -343,8 +343,9 @@ class ConvertToAtlasClass : PropWin
          }
       }
    }
-   static bool AddMap(Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1, bool flip_normal_y=false)
+   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1, bool flip_normal_y=false)
    {
+      forced=false;
       bool mul_1=Equal(mul, Vec(1));
       if(1) // this is optional
          force&=!mul_1; // force only if "mul!=1"
@@ -369,10 +370,8 @@ class ConvertToAtlasClass : PropWin
          if(force)
          {
             Edit.FileParams &fp=fps_dest.New();
-            // FIXME force size somehow, must be in sync with loadImage/loadImages, this affects 2 things: specifying size/pos in loadImages and that we wrote to atlas for tex_filled
-                                          fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
-            if(mtrl.packed_rect.min.any())fp.params.New().set("position", S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
-            added=true;
+            fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
+            added=true; forced=true;
          }
          if(added)
          {
@@ -387,7 +386,7 @@ class ConvertToAtlasClass : PropWin
       if(dest.is() && !filled) // if there's at least one texture, but it doesn't fill the target fully, then we need to force the size
       {
          Mems<Edit.FileParams> fps=Edit.FileParams.Decode(dest);
-         Edit.FileParams &fp=fps.New(); // insert a dummy empty source
+         Edit.FileParams &fp=fps.NewAt(0); // insert a dummy empty source !! this needs to be at the start, to pre-allocate entire size so any transforms can work (for example 'force'd transforms where source texture doesn't exist) !!
          fp.params.New().set("position", S+tex_size.x+','+tex_size.y); // with only position specified to force the entire texture size
          dest=Edit.FileParams.Encode(fps);
       }
@@ -428,6 +427,7 @@ class ConvertToAtlasClass : PropWin
          flt alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
          uint  tex=0; REPA(mtrls)tex|=mtrls[i].edit.baseTex(); // detect what textures are present in all materials
          uint  tex_wrote=0; // what textures we wrote to atlas
+         uint  tex_force_size=0; // what textures need size forced
          VecI2 tex_filled=0; // x=bit mask of which textures fill atlas image in X, y=bit mask of which textures fill atlas image in Y
          FREPA(mtrls)
          {
@@ -464,13 +464,14 @@ class ConvertToAtlasClass : PropWin
             }
 
             uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
-            tex_mtrl|=BT_COLOR  *AddMap(atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz);
-            tex_mtrl|=BT_ALPHA  *AddMap(atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl);
-            tex_mtrl|=BT_BUMP   *AddMap(atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl);
-            tex_mtrl|=BT_NORMAL *AddMap(atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal , flip_normal_y);
-            tex_mtrl|=BT_SMOOTH *AddMap(atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth );
-            tex_mtrl|=BT_REFLECT*AddMap(atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect);
-            tex_mtrl|=BT_GLOW   *AddMap(atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow   );
+            bool forced;
+            if(AddMap(forced, atlas.  color_map, mtrl.edit.  color_map, FlagTest(tex, BT_COLOR  ), mtrl, false, mtrl.edit.color_s.xyz           )){tex_mtrl|=BT_COLOR  ; if(forced)tex_force_size|=BT_COLOR  ;}
+            if(AddMap(forced, atlas.  alpha_map,             alpha_map, FlagTest(tex, BT_ALPHA  ), mtrl                                         )){tex_mtrl|=BT_ALPHA  ; if(forced)tex_force_size|=BT_ALPHA  ;}
+            if(AddMap(forced, atlas.   bump_map, mtrl.edit.   bump_map, FlagTest(tex, BT_BUMP   ), mtrl                                         )){tex_mtrl|=BT_BUMP   ; if(forced)tex_force_size|=BT_BUMP   ;}
+            if(AddMap(forced, atlas. normal_map,            normal_map, FlagTest(tex, BT_NORMAL ), mtrl, true , mtrl.edit.normal , flip_normal_y)){tex_mtrl|=BT_NORMAL ; if(forced)tex_force_size|=BT_NORMAL ;}
+            if(AddMap(forced, atlas. smooth_map, mtrl.edit. smooth_map, FlagTest(tex, BT_SMOOTH ), mtrl, false, mtrl.edit.smooth                )){tex_mtrl|=BT_SMOOTH ; if(forced)tex_force_size|=BT_SMOOTH ;}
+            if(AddMap(forced, atlas.reflect_map, mtrl.edit.reflect_map, FlagTest(tex, BT_REFLECT), mtrl, false, mtrl.edit.reflect               )){tex_mtrl|=BT_REFLECT; if(forced)tex_force_size|=BT_REFLECT;}
+            if(AddMap(forced, atlas.   glow_map, mtrl.edit.   glow_map, FlagTest(tex, BT_GLOW   ), mtrl, false, mtrl.edit.glow                  )){tex_mtrl|=BT_GLOW   ; if(forced)tex_force_size|=BT_GLOW   ;}
             
             tex_wrote|=tex_mtrl;
 
@@ -483,6 +484,7 @@ class ConvertToAtlasClass : PropWin
 
          // if textures didn't fill entire needed space, then we need to place a dummy to force image size
          uint filled=tex_filled.x&tex_filled.y; // we need both sides to be filled
+         filled&=~tex_force_size; // if a texture needs to have forced size, then we must disable filled so the size is specified
          checkSide(atlas.  color_map, FlagTest(filled, BT_COLOR  ));
          checkSide(atlas.  alpha_map, FlagTest(filled, BT_ALPHA  ));
          checkSide(atlas.   bump_map, FlagTest(filled, BT_BUMP   ));

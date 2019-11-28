@@ -1053,7 +1053,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    BoxI box(0, image.size3());
    int at_pos=TextPosI(param.value, '@'); if(at_pos>=0)
    {
-      VecI4 v=TextVecI4(param.value()+at_pos+1);
+      VecI4 v=TextVecI4(param.value()+at_pos+1); // X,Y,W,H
       RectI r(v.xy, v.xy+v.zw);
       box&=BoxI(VecI(r.min, 0), VecI(r.max, box.max.z));
       param.value.clip(at_pos);
