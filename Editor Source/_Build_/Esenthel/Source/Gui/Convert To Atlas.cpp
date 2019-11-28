@@ -259,7 +259,7 @@ ConvertToAtlasClass ConvertToAtlas;
          bool added=false;
          Mems<Edit::FileParams> fps_dest=Edit::FileParams::Decode(dest);
          Mems<Edit::FileParams> fps_src =Edit::FileParams::Decode(src );
-         TextParam src_resize; ExtractResize(fps_src, src_resize); // remove any resize if present, we replace it with a custome one below
+         TextParam src_resize; for(; ExtractResize(fps_src, src_resize); ){} // remove any resizes if present, we replace it with a custome one below
          if(fps_src.elms()==1 && fps_src[0].name.is()) // Warning: TODO: only 1 elements are supported because other params/transforms may affect all images (not just this one)
          {
             Edit::FileParams &fp=fps_src[0]; // edit first one in source
@@ -337,7 +337,7 @@ ConvertToAtlasClass ConvertToAtlas;
          VecI2 tex_filled=0; // x=bit mask of which textures fill atlas image in X, y=bit mask of which textures fill atlas image in Y
          FREPA(mtrls)
          {
-          C Mtrl &mtrl=mtrls[i];
+            Mtrl &mtrl=mtrls[i];
             atlas.mtrl.cull   &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
                        color_s+=mtrl.edit.color_s;
             atlas.mtrl.normal +=mtrl.edit.normal;
@@ -348,6 +348,8 @@ ConvertToAtlasClass ConvertToAtlas;
             atlas.mtrl.ambient+=mtrl.edit.ambient;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
+
+            mtrl.edit.expandMaps(); // have to expand maps, because if normal map was referring to bump, then the new bump will be different (atlas of bumps)
 
             Str alpha_map=mtrl.edit.alpha_map;
             if(tex&BT_ALPHA) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future

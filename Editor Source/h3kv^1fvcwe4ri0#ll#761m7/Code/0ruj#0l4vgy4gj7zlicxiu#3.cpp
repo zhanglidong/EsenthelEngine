@@ -1029,7 +1029,7 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
    SetTransform(files, "bump", (blur<0) ? S : S+blur);
    return Edit.FileParams.Encode(files);
 }
-void ExtractResize(MemPtr<Edit.FileParams> files, TextParam &resize)
+bool ExtractResize(MemPtr<Edit.FileParams> files, TextParam &resize)
 {
    resize.del();
    REPA(files) // go from end
@@ -1044,11 +1044,12 @@ void ExtractResize(MemPtr<Edit.FileParams> files, TextParam &resize)
             resize=p; // extract resize
                     file.params.remove(pi, true); // remove it
             if(!file.is())files.remove( i, true); // if nothing left then remove it
-            return;
+            return true; // extracted
          }else
-         if(SizeDependentTransform(p))return; // if encountered a size dependent transform, it means we can't keep looking
+         if(SizeDependentTransform(p))return false; // if encountered a size dependent transform, it means we can't keep looking
       }
    }
+   return false;
 }
 /******************************************************************************/
 void MakeHighPrec(Image &image)

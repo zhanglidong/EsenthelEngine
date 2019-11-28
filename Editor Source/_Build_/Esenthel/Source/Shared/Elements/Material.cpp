@@ -80,6 +80,46 @@
       if( alpha_map=="<color>") alpha_map.clear();
       if(normal_map=="<bump>" )normal_map.clear();
    }
+   void EditMaterial::ExpandMap(Str &map, C MemPtr<Edit::FileParams> &color, C MemPtr<Edit::FileParams> &smooth, C MemPtr<Edit::FileParams> &bump)
+   {
+      Mems<Edit::FileParams> files=Edit::FileParams::Decode(map);
+      REPA(files)
+      {
+         Edit::FileParams &file=files[i];
+       C MemPtr<Edit::FileParams> *src;
+         if(file.name=="<color>" )src=&color ;else
+         if(file.name=="<smooth>")src=&smooth;else
+         if(file.name=="<bump>"  )src=&bump  ;else
+            continue;
+         if(src->elms()<=0)file.name.clear();else // if source is empty
+         if(src->elms()==1) // if source has only one file
+         {
+          C Edit::FileParams &first=(*src)[0];
+            file.name=first.name; // replace name with original
+            FREPA(first.params)file.params.NewAt(i)=first.params[i]; // insert original parameters at the start
+         }else
+         if(i==0) // if source has multiple files, then we can add only if we're processing the first file (so all transforms from source will not affect anything already loaded)
+         {
+            file.name.clear(); // clear file name, but leave params/transforms to operate globally
+            FREPA(*src)files.NewAt(i)=(*src)[i]; // add all files from source at the start
+            // !! here can't access 'file' anymore because its memory address could be invalid !!
+         }
+      }
+      map=Edit::FileParams::Encode(files);
+   }
+   void EditMaterial::expandMaps()
+   {
+      Mems<Edit::FileParams> color =Edit::FileParams::Decode( color_map);
+      Mems<Edit::FileParams> smooth=Edit::FileParams::Decode(smooth_map);
+      Mems<Edit::FileParams> bump  =Edit::FileParams::Decode(  bump_map);
+      ExpandMap(  color_map, color, smooth, bump);
+      ExpandMap(  alpha_map, color, smooth, bump);
+      ExpandMap(   bump_map, color, smooth, bump);
+      ExpandMap( normal_map, color, smooth, bump);
+      ExpandMap( smooth_map, color, smooth, bump);
+      ExpandMap(reflect_map, color, smooth, bump);
+      ExpandMap(   glow_map, color, smooth, bump);
+   }
    void EditMaterial::newData()
    {
       flip_normal_y_time++; tex_quality_time++;
