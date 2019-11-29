@@ -1751,12 +1751,18 @@ Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
    return (reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
 #endif
 }
-VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
+{
+   return LerpRS(1.0, 0.17, reflectivity); // treat 0 .. 0.17 (up to Diamond) reflectivity as di-electrics (metal=0), after that go linearly to metal=1
+}
+Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
+VecH ReflectCol(VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
 #if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
-   return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity)
+ //return unlit_col*       metal  + (1-metal); // Lerp(VecH(1,1,1), unlit_col, metal)
+   return unlit_col*(1-inv_metal) + inv_metal; // Lerp(unlit_col, VecH(1,1,1), inv_metal)
 #else // square version, better
-   Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
+   Half inv_metal2=Sqr(inv_metal); return unlit_col*(1-inv_metal2) + inv_metal2; // perform 'Sqr' only here and not in 'Diffuse' to match visuals with other popular game engines
 #endif
 }
 Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
@@ -1767,14 +1773,11 @@ VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
    return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
 }
-Half Diffuse(Half reflectivity)
-{
-   return 1-reflectivity;
-}
 VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
 {
-   return lit_col*Diffuse(reflectivity)
-         +ReflectCol(unlit_col, reflectivity)*
+   Half inv_metal=ReflectToInvMetal(reflectivity);
+   return lit_col*Diffuse(inv_metal)
+         +ReflectCol(unlit_col, inv_metal)*
             (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV, quality))
             +spec);
 }

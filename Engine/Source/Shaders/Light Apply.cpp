@@ -46,7 +46,8 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shad
 #if REFLECT
    lit_col=PBR(color.rgb, lit_col, nrm, smooth, reflectivity, eye_dir, spec_col);
 #else
-   lit_col=lit_col*Diffuse(reflectivity) + spec_col*ReflectCol(color.rgb, reflectivity);
+   Half inv_metal=ReflectToInvMetal(reflectivity);
+   lit_col=lit_col*Diffuse(inv_metal) + spec_col*ReflectCol(color.rgb, inv_metal);
 #endif
    return lit_col;
 }
