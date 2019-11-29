@@ -1753,7 +1753,7 @@ Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
 }
 Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
 {
-   return LerpRS(1.0, 0.17, reflectivity); // treat 0 .. 0.17 (up to Diamond) reflectivity as di-electrics (metal=0), after that go linearly to metal=1
+   return LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as di-electrics (metal=0), after that go linearly to metal=1
 }
 Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
 VecH ReflectCol(VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
