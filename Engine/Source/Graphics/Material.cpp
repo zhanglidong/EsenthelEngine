@@ -26,15 +26,21 @@ namespace EE{
    Water Reflectivity, Index of Refraction (IOR) of Water is 1.33:
       F(0)=Sqr(1.33-1)/Sqr(1.33+1)=0.020059312=~0.02 (2%)
    Reflectivity:
-      Ice       0.018
-      Water     0.02
-      Skin      0.028
-      Glass     0.04
-      Plastic   0.04 .. 0.05
-      Fabric	 0.04 .. 0.056
-      Ruby      0.077271957
-      Crystal   0.111111111
-      Diamond   0.171968833
+      Ice              0.018
+      Water            0.02
+      Eye              0.025
+      Skin             0.028, 0.033
+      Plant,Leaf,Grass 0.035
+      Rock, Bark       0.039
+      Glass            0.04
+      Plastic          0.04 .. 0.05
+      Fabric	        0.04 .. 0.056
+      Sand             0.046
+      Hair             0.047
+      Asphalt          0.06
+      Ruby             0.077271957
+      Crystal          0.111111111
+      Diamond          0.171968833
 
    Metals Linear Specular/Color:
                   R           G           B

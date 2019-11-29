@@ -3,7 +3,7 @@
 #include "Fur.h"
 #define FACTOR (-0.7) // prevents complete darkness at the bottom layers, gives ambient=0.3, it will match the 'size' version
 /******************************************************************************/
-inline VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
+VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
 /******************************************************************************/
 // SKIN, SIZE, DIFFUSE
 /******************************************************************************/

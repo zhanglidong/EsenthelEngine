@@ -361,7 +361,7 @@ void PS
       I.col.rgb=PBR1(I.col.rgb, I.col.rgb*total_lum, smooth, reflectivity, total_specular, -Dot(nrm, eye_dir), reflect_dir, false);
    }
    #else
-      I.col.rgb=I.col.rgb*total_lum*(1-reflectivity) + total_specular*ReflectCol(I.col.rgb, reflectivity);
+      I.col.rgb=I.col.rgb*total_lum*Diffuse(reflectivity) + total_specular*ReflectCol(I.col.rgb, reflectivity);
    #endif
 
 #if SET_FOG

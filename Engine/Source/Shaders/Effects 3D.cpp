@@ -190,8 +190,8 @@ BUFFER(Decal)
 BUFFER_END
 #include "!Set Prec Default.h"
 
-inline Half DecalOpaqueFracMul() {return DecalParams.x;}
-inline Half DecalOpaqueFracAdd() {return DecalParams.y;}
+Half DecalOpaqueFracMul() {return DecalParams.x;}
+Half DecalOpaqueFracAdd() {return DecalParams.y;}
 
 void Decal_VS(VtxInput vtx,
           out Vec4    outVtx    :POSITION,

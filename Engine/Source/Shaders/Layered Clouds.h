@@ -14,5 +14,5 @@ BUFFER(CloudLayer)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-inline Flt CloudAlpha(Flt y) {return y*8-0.15;}
+Flt CloudAlpha(Flt y) {return y*8-0.15;}
 /******************************************************************************/

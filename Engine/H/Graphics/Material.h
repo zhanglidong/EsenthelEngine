@@ -22,7 +22,7 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_NUM                   , // number of Material Techniques
 };
 /******************************************************************************/
-#define MATERIAL_REFLECT 0.028f // default Material reflectivity value
+#define MATERIAL_REFLECT 0.04f // default Material reflectivity value
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {

@@ -38,11 +38,11 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 #define DEPTH_TOLERANCE 0.1 // 10 cm
-inline Half DepthBlend(Flt z_test, Flt z_base)
+Half DepthBlend(Flt z_test, Flt z_base)
 {
    return Sat((z_base-z_test)/DEPTH_TOLERANCE+1); // we can apply overlap only if tested depth is smaller
 }
-inline Bool InFront(Flt z_test, Flt z_base)
+Bool InFront(Flt z_test, Flt z_base)
 {
    return z_test<=z_base+DEPTH_TOLERANCE; // if 'z_test' is in front of 'z_base' with DEPTH_TOLERANCE
 }

@@ -11,6 +11,6 @@ BUFFER(Overlay)
 BUFFER_END
 #include "!Set Prec Default.h"
 
-inline Half OverlayOpaqueFrac() {return OverlayParams.param.x;}
-inline Half OverlayAlpha     () {return OverlayParams.param.y;}
+Half OverlayOpaqueFrac() {return OverlayParams.param.x;}
+Half OverlayAlpha     () {return OverlayParams.param.y;}
 /******************************************************************************/

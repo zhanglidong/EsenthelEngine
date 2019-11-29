@@ -8,7 +8,7 @@
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img3, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
-inline VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
+VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
 #if GLOW
       // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
@@ -46,7 +46,7 @@ inline VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH nig
 #if REFLECT
    lit_col=PBR(color.rgb, lit_col, nrm, smooth, reflectivity, eye_dir, spec_col);
 #else
-   lit_col=lit_col*(1-reflectivity) + spec_col*ReflectCol(color.rgb, reflectivity);
+   lit_col=lit_col*Diffuse(reflectivity) + spec_col*ReflectCol(color.rgb, reflectivity);
 #endif
    return lit_col;
 }

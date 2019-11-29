@@ -33,7 +33,7 @@ void BloomDS_VS(VtxInput vtx,
    outTex=vtx.tex (); if(GLOW)outTex-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
    outVtx=vtx.pos4();
 }
-inline VecH BloomColor(VecH color, Bool gamma)
+VecH BloomColor(VecH color, Bool gamma)
 {
    if(gamma)color=LinearToSRGBFast(color);
    if(SATURATE)

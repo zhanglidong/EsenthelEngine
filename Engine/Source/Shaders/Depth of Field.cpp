@@ -38,12 +38,12 @@ BUFFER(Dof)
 BUFFER_END
 #include "!Set Prec Default.h"
 
-inline Flt DofIntensity() {return DofParams.x;}
-inline Flt DofFocus    () {return DofParams.y;}
-inline Flt DofMul      () {return DofParams.z;}
-inline Flt DofAdd      () {return DofParams.w;}
+Flt DofIntensity() {return DofParams.x;}
+Flt DofFocus    () {return DofParams.y;}
+Flt DofMul      () {return DofParams.z;}
+Flt DofAdd      () {return DofParams.w;}
 /******************************************************************************/
-inline Flt Blur(Flt z)
+Flt Blur(Flt z)
 {
 #if REALISTIC
    #if 0 // F makes almost no difference
@@ -112,7 +112,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    return ret;
 }
 /******************************************************************************/
-inline Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-1..1 (0=focus), test_blur=-1..1 (0=focus)
+Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-1..1 (0=focus), test_blur=-1..1 (0=focus)
 {
    Flt f=dist/Flt(range+1),
       cb=Abs(center_blur), // 0..1
@@ -128,13 +128,13 @@ inline Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center
    return (1-LerpCube(x))/b; // weight, divide by 'b' to make narrower ranges more intense to preserve total intensity
    // !! if changing from 'LerpCube' to another function then we need to change 'WeightSum' as well !!
 }
-inline Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0..1
+Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0..1
 {
    if(SHOW_BLURRED)return 1;
  //blur_smooth=(FINAL_MODE ? Sat(blur_smooth*-2+1) : Abs(blur_smooth*2-1)); already done in 'DofBlurY_PS'
    return Sat(Max(Abs(blur), blur_smooth)*FINAL_SCALE);
 }
-inline Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
+Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Use HighPrec because we operate on lot of samples

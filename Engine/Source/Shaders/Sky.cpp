@@ -3,7 +3,7 @@
 #include "Sky.h"
 #include "Layered Clouds.h"
 /******************************************************************************/
-inline VecH4 SkyColor(Vec inTex)
+VecH4 SkyColor(Vec inTex)
 {
    Half hor=Pow(1-Sat(inTex.y), SkyHorExp);
    return Lerp(SkySkyCol, SkyHorCol, hor);

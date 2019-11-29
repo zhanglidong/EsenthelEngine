@@ -643,7 +643,7 @@ VecH4 PS
 
    // reflection
    VecH reflect_col=ReflectCol(col, reflectivity); // calc 'reflect_col' from unlit color
-   col=col*total_lum*(1-reflectivity) + reflect_col*total_specular;
+   col=col*total_lum*Diffuse(reflectivity) + reflect_col*total_specular;
 #if REFLECT
    if(FirstPass) // add reflection only for the fist pass
    {
