@@ -462,298 +462,298 @@ SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
 #endif
 /******************************************************************************/
 // force convert to Half (can be used for testing Precisions)
-inline Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
-inline VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
-inline VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
-inline VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
+Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
+VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
+VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
+VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
 
-inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
-inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
-inline Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
-inline Flt   Min(Int   x, Flt   y                  ) {return min(x, y);}
-inline Flt   Min(Flt   x, Int   y                  ) {return min(x, y);}
-inline VecH2 Min(VecH2 x, VecH2 y                  ) {return min(x, y);}
-inline Vec2  Min(Vec2  x, Vec2  y                  ) {return min(x, y);}
-inline VecH  Min(VecH  x, VecH  y                  ) {return min(x, y);}
-inline Vec   Min(Vec   x, Vec   y                  ) {return min(x, y);}
-inline VecH4 Min(VecH4 x, VecH4 y                  ) {return min(x, y);}
-inline Vec4  Min(Vec4  x, Vec4  y                  ) {return min(x, y);}
-inline Int   Min(Int   x, Int   y, Int   z         ) {return min(x, min(y, z));}
-inline Half  Min(Half  x, Half  y, Half  z         ) {return min(x, min(y, z));}
-inline Flt   Min(Flt   x, Flt   y, Flt   z         ) {return min(x, min(y, z));}
-inline VecH2 Min(VecH2 x, VecH2 y, VecH2 z         ) {return min(x, min(y, z));}
-inline Vec2  Min(Vec2  x, Vec2  y, Vec2  z         ) {return min(x, min(y, z));}
-inline VecH  Min(VecH  x, VecH  y, VecH  z         ) {return min(x, min(y, z));}
-inline Vec   Min(Vec   x, Vec   y, Vec   z         ) {return min(x, min(y, z));}
-inline VecH4 Min(VecH4 x, VecH4 y, VecH4 z         ) {return min(x, min(y, z));}
-inline Vec4  Min(Vec4  x, Vec4  y, Vec4  z         ) {return min(x, min(y, z));}
-inline Int   Min(Int   x, Int   y, Int   z, Int   w) {return min(x, min(y, min(z, w)));}
-inline Half  Min(Half  x, Half  y, Half  z, Half  w) {return min(x, min(y, min(z, w)));}
-inline Flt   Min(Flt   x, Flt   y, Flt   z, Flt   w) {return min(x, min(y, min(z, w)));}
-inline VecH2 Min(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return min(x, min(y, min(z, w)));}
-inline Vec2  Min(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return min(x, min(y, min(z, w)));}
-inline VecH  Min(VecH  x, VecH  y, VecH  z, VecH  w) {return min(x, min(y, min(z, w)));}
-inline Vec   Min(Vec   x, Vec   y, Vec   z, Vec   w) {return min(x, min(y, min(z, w)));}
-inline VecH4 Min(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return min(x, min(y, min(z, w)));}
-inline Vec4  Min(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return min(x, min(y, min(z, w)));}
+Int   Min(Int   x, Int   y                  ) {return min(x, y);}
+Half  Min(Half  x, Half  y                  ) {return min(x, y);}
+Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
+Flt   Min(Int   x, Flt   y                  ) {return min(x, y);}
+Flt   Min(Flt   x, Int   y                  ) {return min(x, y);}
+VecH2 Min(VecH2 x, VecH2 y                  ) {return min(x, y);}
+Vec2  Min(Vec2  x, Vec2  y                  ) {return min(x, y);}
+VecH  Min(VecH  x, VecH  y                  ) {return min(x, y);}
+Vec   Min(Vec   x, Vec   y                  ) {return min(x, y);}
+VecH4 Min(VecH4 x, VecH4 y                  ) {return min(x, y);}
+Vec4  Min(Vec4  x, Vec4  y                  ) {return min(x, y);}
+Int   Min(Int   x, Int   y, Int   z         ) {return min(x, min(y, z));}
+Half  Min(Half  x, Half  y, Half  z         ) {return min(x, min(y, z));}
+Flt   Min(Flt   x, Flt   y, Flt   z         ) {return min(x, min(y, z));}
+VecH2 Min(VecH2 x, VecH2 y, VecH2 z         ) {return min(x, min(y, z));}
+Vec2  Min(Vec2  x, Vec2  y, Vec2  z         ) {return min(x, min(y, z));}
+VecH  Min(VecH  x, VecH  y, VecH  z         ) {return min(x, min(y, z));}
+Vec   Min(Vec   x, Vec   y, Vec   z         ) {return min(x, min(y, z));}
+VecH4 Min(VecH4 x, VecH4 y, VecH4 z         ) {return min(x, min(y, z));}
+Vec4  Min(Vec4  x, Vec4  y, Vec4  z         ) {return min(x, min(y, z));}
+Int   Min(Int   x, Int   y, Int   z, Int   w) {return min(x, min(y, min(z, w)));}
+Half  Min(Half  x, Half  y, Half  z, Half  w) {return min(x, min(y, min(z, w)));}
+Flt   Min(Flt   x, Flt   y, Flt   z, Flt   w) {return min(x, min(y, min(z, w)));}
+VecH2 Min(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return min(x, min(y, min(z, w)));}
+Vec2  Min(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return min(x, min(y, min(z, w)));}
+VecH  Min(VecH  x, VecH  y, VecH  z, VecH  w) {return min(x, min(y, min(z, w)));}
+Vec   Min(Vec   x, Vec   y, Vec   z, Vec   w) {return min(x, min(y, min(z, w)));}
+VecH4 Min(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return min(x, min(y, min(z, w)));}
+Vec4  Min(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return min(x, min(y, min(z, w)));}
 
-inline Int   Max(Int   x, Int   y                  ) {return max(x, y);}
-inline Half  Max(Half  x, Half  y                  ) {return max(x, y);}
-inline Flt   Max(Flt   x, Flt   y                  ) {return max(x, y);}
-inline Flt   Max(Int   x, Flt   y                  ) {return max(x, y);}
-inline Flt   Max(Flt   x, Int   y                  ) {return max(x, y);}
-inline VecH2 Max(VecH2 x, VecH2 y                  ) {return max(x, y);}
-inline Vec2  Max(Vec2  x, Vec2  y                  ) {return max(x, y);}
-inline VecH  Max(VecH  x, VecH  y                  ) {return max(x, y);}
-inline Vec   Max(Vec   x, Vec   y                  ) {return max(x, y);}
-inline VecH4 Max(VecH4 x, VecH4 y                  ) {return max(x, y);}
-inline Vec4  Max(Vec4  x, Vec4  y                  ) {return max(x, y);}
-inline Int   Max(Int   x, Int   y, Int   z         ) {return max(x, max(y, z));}
-inline Half  Max(Half  x, Half  y, Half  z         ) {return max(x, max(y, z));}
-inline Flt   Max(Flt   x, Flt   y, Flt   z         ) {return max(x, max(y, z));}
-inline VecH2 Max(VecH2 x, VecH2 y, VecH2 z         ) {return max(x, max(y, z));}
-inline Vec2  Max(Vec2  x, Vec2  y, Vec2  z         ) {return max(x, max(y, z));}
-inline VecH  Max(VecH  x, VecH  y, VecH  z         ) {return max(x, max(y, z));}
-inline Vec   Max(Vec   x, Vec   y, Vec   z         ) {return max(x, max(y, z));}
-inline VecH4 Max(VecH4 x, VecH4 y, VecH4 z         ) {return max(x, max(y, z));}
-inline Vec4  Max(Vec4  x, Vec4  y, Vec4  z         ) {return max(x, max(y, z));}
-inline Int   Max(Int   x, Int   y, Int   z, Int   w) {return max(x, max(y, max(z, w)));}
-inline Half  Max(Half  x, Half  y, Half  z, Half  w) {return max(x, max(y, max(z, w)));}
-inline Flt   Max(Flt   x, Flt   y, Flt   z, Flt   w) {return max(x, max(y, max(z, w)));}
-inline VecH2 Max(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return max(x, max(y, max(z, w)));}
-inline Vec2  Max(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return max(x, max(y, max(z, w)));}
-inline VecH  Max(VecH  x, VecH  y, VecH  z, VecH  w) {return max(x, max(y, max(z, w)));}
-inline Vec   Max(Vec   x, Vec   y, Vec   z, Vec   w) {return max(x, max(y, max(z, w)));}
-inline VecH4 Max(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return max(x, max(y, max(z, w)));}
-inline Vec4  Max(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return max(x, max(y, max(z, w)));}
+Int   Max(Int   x, Int   y                  ) {return max(x, y);}
+Half  Max(Half  x, Half  y                  ) {return max(x, y);}
+Flt   Max(Flt   x, Flt   y                  ) {return max(x, y);}
+Flt   Max(Int   x, Flt   y                  ) {return max(x, y);}
+Flt   Max(Flt   x, Int   y                  ) {return max(x, y);}
+VecH2 Max(VecH2 x, VecH2 y                  ) {return max(x, y);}
+Vec2  Max(Vec2  x, Vec2  y                  ) {return max(x, y);}
+VecH  Max(VecH  x, VecH  y                  ) {return max(x, y);}
+Vec   Max(Vec   x, Vec   y                  ) {return max(x, y);}
+VecH4 Max(VecH4 x, VecH4 y                  ) {return max(x, y);}
+Vec4  Max(Vec4  x, Vec4  y                  ) {return max(x, y);}
+Int   Max(Int   x, Int   y, Int   z         ) {return max(x, max(y, z));}
+Half  Max(Half  x, Half  y, Half  z         ) {return max(x, max(y, z));}
+Flt   Max(Flt   x, Flt   y, Flt   z         ) {return max(x, max(y, z));}
+VecH2 Max(VecH2 x, VecH2 y, VecH2 z         ) {return max(x, max(y, z));}
+Vec2  Max(Vec2  x, Vec2  y, Vec2  z         ) {return max(x, max(y, z));}
+VecH  Max(VecH  x, VecH  y, VecH  z         ) {return max(x, max(y, z));}
+Vec   Max(Vec   x, Vec   y, Vec   z         ) {return max(x, max(y, z));}
+VecH4 Max(VecH4 x, VecH4 y, VecH4 z         ) {return max(x, max(y, z));}
+Vec4  Max(Vec4  x, Vec4  y, Vec4  z         ) {return max(x, max(y, z));}
+Int   Max(Int   x, Int   y, Int   z, Int   w) {return max(x, max(y, max(z, w)));}
+Half  Max(Half  x, Half  y, Half  z, Half  w) {return max(x, max(y, max(z, w)));}
+Flt   Max(Flt   x, Flt   y, Flt   z, Flt   w) {return max(x, max(y, max(z, w)));}
+VecH2 Max(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return max(x, max(y, max(z, w)));}
+Vec2  Max(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return max(x, max(y, max(z, w)));}
+VecH  Max(VecH  x, VecH  y, VecH  z, VecH  w) {return max(x, max(y, max(z, w)));}
+Vec   Max(Vec   x, Vec   y, Vec   z, Vec   w) {return max(x, max(y, max(z, w)));}
+VecH4 Max(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return max(x, max(y, max(z, w)));}
+Vec4  Max(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return max(x, max(y, max(z, w)));}
 
-inline Half  Avg(Half  x, Half  y                  ) {return (x+y    )/2   ;}
-inline Flt   Avg(Flt   x, Flt   y                  ) {return (x+y    )*0.50;}
-inline VecH2 Avg(VecH2 x, VecH2 y                  ) {return (x+y    )/2   ;}
-inline Vec2  Avg(Vec2  x, Vec2  y                  ) {return (x+y    )*0.50;}
-inline VecH  Avg(VecH  x, VecH  y                  ) {return (x+y    )/2   ;}
-inline Vec   Avg(Vec   x, Vec   y                  ) {return (x+y    )*0.50;}
-inline VecH4 Avg(VecH4 x, VecH4 y                  ) {return (x+y    )/2   ;}
-inline Vec4  Avg(Vec4  x, Vec4  y                  ) {return (x+y    )*0.50;}
-inline Half  Avg(Half  x, Half  y, Half  z         ) {return (x+y+z  )/3   ;}
-inline Flt   Avg(Flt   x, Flt   y, Flt   z         ) {return (x+y+z  )/3.00;}
-inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z         ) {return (x+y+z  )/3   ;}
-inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z         ) {return (x+y+z  )/3.00;}
-inline VecH  Avg(VecH  x, VecH  y, VecH  z         ) {return (x+y+z  )/3   ;}
-inline Vec   Avg(Vec   x, Vec   y, Vec   z         ) {return (x+y+z  )/3.00;}
-inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z         ) {return (x+y+z  )/3   ;}
-inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z         ) {return (x+y+z  )/3.00;}
-inline Half  Avg(Half  x, Half  y, Half  z, Half  w) {return (x+y+z+w)/4   ;}
-inline Flt   Avg(Flt   x, Flt   y, Flt   z, Flt   w) {return (x+y+z+w)*0.25;}
-inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return (x+y+z+w)/4   ;}
-inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return (x+y+z+w)*0.25;}
-inline VecH  Avg(VecH  x, VecH  y, VecH  z, VecH  w) {return (x+y+z+w)/4   ;}
-inline Vec   Avg(Vec   x, Vec   y, Vec   z, Vec   w) {return (x+y+z+w)*0.25;}
-inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return (x+y+z+w)/4   ;}
-inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return (x+y+z+w)*0.25;}
+Half  Avg(Half  x, Half  y                  ) {return (x+y    )/2   ;}
+Flt   Avg(Flt   x, Flt   y                  ) {return (x+y    )*0.50;}
+VecH2 Avg(VecH2 x, VecH2 y                  ) {return (x+y    )/2   ;}
+Vec2  Avg(Vec2  x, Vec2  y                  ) {return (x+y    )*0.50;}
+VecH  Avg(VecH  x, VecH  y                  ) {return (x+y    )/2   ;}
+Vec   Avg(Vec   x, Vec   y                  ) {return (x+y    )*0.50;}
+VecH4 Avg(VecH4 x, VecH4 y                  ) {return (x+y    )/2   ;}
+Vec4  Avg(Vec4  x, Vec4  y                  ) {return (x+y    )*0.50;}
+Half  Avg(Half  x, Half  y, Half  z         ) {return (x+y+z  )/3   ;}
+Flt   Avg(Flt   x, Flt   y, Flt   z         ) {return (x+y+z  )/3.00;}
+VecH2 Avg(VecH2 x, VecH2 y, VecH2 z         ) {return (x+y+z  )/3   ;}
+Vec2  Avg(Vec2  x, Vec2  y, Vec2  z         ) {return (x+y+z  )/3.00;}
+VecH  Avg(VecH  x, VecH  y, VecH  z         ) {return (x+y+z  )/3   ;}
+Vec   Avg(Vec   x, Vec   y, Vec   z         ) {return (x+y+z  )/3.00;}
+VecH4 Avg(VecH4 x, VecH4 y, VecH4 z         ) {return (x+y+z  )/3   ;}
+Vec4  Avg(Vec4  x, Vec4  y, Vec4  z         ) {return (x+y+z  )/3.00;}
+Half  Avg(Half  x, Half  y, Half  z, Half  w) {return (x+y+z+w)/4   ;}
+Flt   Avg(Flt   x, Flt   y, Flt   z, Flt   w) {return (x+y+z+w)*0.25;}
+VecH2 Avg(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return (x+y+z+w)/4   ;}
+Vec2  Avg(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return (x+y+z+w)*0.25;}
+VecH  Avg(VecH  x, VecH  y, VecH  z, VecH  w) {return (x+y+z+w)/4   ;}
+Vec   Avg(Vec   x, Vec   y, Vec   z, Vec   w) {return (x+y+z+w)*0.25;}
+VecH4 Avg(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return (x+y+z+w)/4   ;}
+Vec4  Avg(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return (x+y+z+w)*0.25;}
 
-inline Half Min(VecH2 v) {return Min(v.x, v.y);}
-inline Half Max(VecH2 v) {return Max(v.x, v.y);}
-inline Half Avg(VecH2 v) {return Avg(v.x, v.y);}
-inline Flt  Min(Vec2  v) {return Min(v.x, v.y);}
-inline Flt  Max(Vec2  v) {return Max(v.x, v.y);}
-inline Flt  Avg(Vec2  v) {return Avg(v.x, v.y);}
-inline Half Min(VecH  v) {return Min(v.x, v.y, v.z);}
-inline Half Max(VecH  v) {return Max(v.x, v.y, v.z);}
-inline Half Avg(VecH  v) {return Avg(v.x, v.y, v.z);}
-inline Flt  Min(Vec   v) {return Min(v.x, v.y, v.z);}
-inline Flt  Max(Vec   v) {return Max(v.x, v.y, v.z);}
-inline Flt  Avg(Vec   v) {return Avg(v.x, v.y, v.z);}
-inline Half Min(VecH4 v) {return Min(v.x, v.y, v.z, v.w);}
-inline Half Max(VecH4 v) {return Max(v.x, v.y, v.z, v.w);}
-inline Half Avg(VecH4 v) {return Avg(v.x, v.y, v.z, v.w);}
-inline Flt  Min(Vec4  v) {return Min(v.x, v.y, v.z, v.w);}
-inline Flt  Max(Vec4  v) {return Max(v.x, v.y, v.z, v.w);}
-inline Flt  Avg(Vec4  v) {return Avg(v.x, v.y, v.z, v.w);}
+Half Min(VecH2 v) {return Min(v.x, v.y);}
+Half Max(VecH2 v) {return Max(v.x, v.y);}
+Half Avg(VecH2 v) {return Avg(v.x, v.y);}
+Flt  Min(Vec2  v) {return Min(v.x, v.y);}
+Flt  Max(Vec2  v) {return Max(v.x, v.y);}
+Flt  Avg(Vec2  v) {return Avg(v.x, v.y);}
+Half Min(VecH  v) {return Min(v.x, v.y, v.z);}
+Half Max(VecH  v) {return Max(v.x, v.y, v.z);}
+Half Avg(VecH  v) {return Avg(v.x, v.y, v.z);}
+Flt  Min(Vec   v) {return Min(v.x, v.y, v.z);}
+Flt  Max(Vec   v) {return Max(v.x, v.y, v.z);}
+Flt  Avg(Vec   v) {return Avg(v.x, v.y, v.z);}
+Half Min(VecH4 v) {return Min(v.x, v.y, v.z, v.w);}
+Half Max(VecH4 v) {return Max(v.x, v.y, v.z, v.w);}
+Half Avg(VecH4 v) {return Avg(v.x, v.y, v.z, v.w);}
+Flt  Min(Vec4  v) {return Min(v.x, v.y, v.z, v.w);}
+Flt  Max(Vec4  v) {return Max(v.x, v.y, v.z, v.w);}
+Flt  Avg(Vec4  v) {return Avg(v.x, v.y, v.z, v.w);}
 
-inline Half Sum(VecH2 v) {return v.x+v.y        ;}
-inline Flt  Sum(Vec2  v) {return v.x+v.y        ;}
-inline Half Sum(VecH  v) {return v.x+v.y+v.z    ;}
-inline Flt  Sum(Vec   v) {return v.x+v.y+v.z    ;}
-inline Half Sum(VecH4 v) {return v.x+v.y+v.z+v.w;}
-inline Flt  Sum(Vec4  v) {return v.x+v.y+v.z+v.w;}
+Half Sum(VecH2 v) {return v.x+v.y        ;}
+Flt  Sum(Vec2  v) {return v.x+v.y        ;}
+Half Sum(VecH  v) {return v.x+v.y+v.z    ;}
+Flt  Sum(Vec   v) {return v.x+v.y+v.z    ;}
+Half Sum(VecH4 v) {return v.x+v.y+v.z+v.w;}
+Flt  Sum(Vec4  v) {return v.x+v.y+v.z+v.w;}
 
-inline Int   Sqr(Int   x) {return x*x;}
-inline Half  Sqr(Half  x) {return x*x;}
-inline Flt   Sqr(Flt   x) {return x*x;}
-inline VecH2 Sqr(VecH2 x) {return x*x;}
-inline Vec2  Sqr(Vec2  x) {return x*x;}
-inline VecH  Sqr(VecH  x) {return x*x;}
-inline Vec   Sqr(Vec   x) {return x*x;}
-inline VecH4 Sqr(VecH4 x) {return x*x;}
-inline Vec4  Sqr(Vec4  x) {return x*x;}
+Int   Sqr(Int   x) {return x*x;}
+Half  Sqr(Half  x) {return x*x;}
+Flt   Sqr(Flt   x) {return x*x;}
+VecH2 Sqr(VecH2 x) {return x*x;}
+Vec2  Sqr(Vec2  x) {return x*x;}
+VecH  Sqr(VecH  x) {return x*x;}
+Vec   Sqr(Vec   x) {return x*x;}
+VecH4 Sqr(VecH4 x) {return x*x;}
+Vec4  Sqr(Vec4  x) {return x*x;}
 
-inline Int   Cube(Int   x) {return x*x*x;}
-inline Half  Cube(Half  x) {return x*x*x;}
-inline Flt   Cube(Flt   x) {return x*x*x;}
-inline VecH2 Cube(VecH2 x) {return x*x*x;}
-inline Vec2  Cube(Vec2  x) {return x*x*x;}
-inline VecH  Cube(VecH  x) {return x*x*x;}
-inline Vec   Cube(Vec   x) {return x*x*x;}
-inline VecH4 Cube(VecH4 x) {return x*x*x;}
-inline Vec4  Cube(Vec4  x) {return x*x*x;}
+Int   Cube(Int   x) {return x*x*x;}
+Half  Cube(Half  x) {return x*x*x;}
+Flt   Cube(Flt   x) {return x*x*x;}
+VecH2 Cube(VecH2 x) {return x*x*x;}
+Vec2  Cube(Vec2  x) {return x*x*x;}
+VecH  Cube(VecH  x) {return x*x*x;}
+Vec   Cube(Vec   x) {return x*x*x;}
+VecH4 Cube(VecH4 x) {return x*x*x;}
+Vec4  Cube(Vec4  x) {return x*x*x;}
 
-inline Int   Quart(Int   x) {return Sqr(x*x);}
-inline Half  Quart(Half  x) {return Sqr(x*x);}
-inline Flt   Quart(Flt   x) {return Sqr(x*x);}
-inline VecH2 Quart(VecH2 x) {return Sqr(x*x);}
-inline Vec2  Quart(Vec2  x) {return Sqr(x*x);}
-inline VecH  Quart(VecH  x) {return Sqr(x*x);}
-inline Vec   Quart(Vec   x) {return Sqr(x*x);}
-inline VecH4 Quart(VecH4 x) {return Sqr(x*x);}
-inline Vec4  Quart(Vec4  x) {return Sqr(x*x);}
+Int   Quart(Int   x) {return Sqr(x*x);}
+Half  Quart(Half  x) {return Sqr(x*x);}
+Flt   Quart(Flt   x) {return Sqr(x*x);}
+VecH2 Quart(VecH2 x) {return Sqr(x*x);}
+Vec2  Quart(Vec2  x) {return Sqr(x*x);}
+VecH  Quart(VecH  x) {return Sqr(x*x);}
+Vec   Quart(Vec   x) {return Sqr(x*x);}
+VecH4 Quart(VecH4 x) {return Sqr(x*x);}
+Vec4  Quart(Vec4  x) {return Sqr(x*x);}
 
-inline Int   Quint(Int   x) {return Quart(x)*x;}
-inline Half  Quint(Half  x) {return Quart(x)*x;}
-inline Flt   Quint(Flt   x) {return Quart(x)*x;}
-inline VecH2 Quint(VecH2 x) {return Quart(x)*x;}
-inline Vec2  Quint(Vec2  x) {return Quart(x)*x;}
-inline VecH  Quint(VecH  x) {return Quart(x)*x;}
-inline Vec   Quint(Vec   x) {return Quart(x)*x;}
-inline VecH4 Quint(VecH4 x) {return Quart(x)*x;}
-inline Vec4  Quint(Vec4  x) {return Quart(x)*x;}
+Int   Quint(Int   x) {return Quart(x)*x;}
+Half  Quint(Half  x) {return Quart(x)*x;}
+Flt   Quint(Flt   x) {return Quart(x)*x;}
+VecH2 Quint(VecH2 x) {return Quart(x)*x;}
+Vec2  Quint(Vec2  x) {return Quart(x)*x;}
+VecH  Quint(VecH  x) {return Quart(x)*x;}
+Vec   Quint(Vec   x) {return Quart(x)*x;}
+VecH4 Quint(VecH4 x) {return Quart(x)*x;}
+Vec4  Quint(Vec4  x) {return Quart(x)*x;}
 
-inline Half Length(VecH2 v) {return length(v);}
-inline Flt  Length(Vec2  v) {return length(v);}
-inline Half Length(VecH  v) {return length(v);}
-inline Flt  Length(Vec   v) {return length(v);}
-inline Half Length(VecH4 v) {return length(v);}
-inline Flt  Length(Vec4  v) {return length(v);}
+Half Length(VecH2 v) {return length(v);}
+Flt  Length(Vec2  v) {return length(v);}
+Half Length(VecH  v) {return length(v);}
+Flt  Length(Vec   v) {return length(v);}
+Half Length(VecH4 v) {return length(v);}
+Flt  Length(Vec4  v) {return length(v);}
 
-inline Half Length2(VecH2 v) {return Dot(v, v);}
-inline Flt  Length2(Vec2  v) {return Dot(v, v);}
-inline Half Length2(VecH  v) {return Dot(v, v);}
-inline Flt  Length2(Vec   v) {return Dot(v, v);}
-inline Half Length2(VecH4 v) {return Dot(v, v);}
-inline Flt  Length2(Vec4  v) {return Dot(v, v);}
+Half Length2(VecH2 v) {return Dot(v, v);}
+Flt  Length2(Vec2  v) {return Dot(v, v);}
+Half Length2(VecH  v) {return Dot(v, v);}
+Flt  Length2(Vec   v) {return Dot(v, v);}
+Half Length2(VecH4 v) {return Dot(v, v);}
+Flt  Length2(Vec4  v) {return Dot(v, v);}
 
-inline Flt  Dist(Int   a, Int   b) {return Sqrt(Flt(a*a + b*b));}
-inline Half Dist(Half  a, Half  b) {return Sqrt(    a*a + b*b );}
-inline Flt  Dist(Flt   a, Flt   b) {return Sqrt(    a*a + b*b );}
-inline Half Dist(VecH2 a, VecH2 b) {return distance(a, b );}
-inline Flt  Dist(Vec2  a, Vec2  b) {return distance(a, b );}
-inline Half Dist(VecH  a, VecH  b) {return distance(a, b );}
-inline Flt  Dist(Vec   a, Vec   b) {return distance(a, b );}
+Flt  Dist(Int   a, Int   b) {return Sqrt(Flt(a*a + b*b));}
+Half Dist(Half  a, Half  b) {return Sqrt(    a*a + b*b );}
+Flt  Dist(Flt   a, Flt   b) {return Sqrt(    a*a + b*b );}
+Half Dist(VecH2 a, VecH2 b) {return distance(a, b );}
+Flt  Dist(Vec2  a, Vec2  b) {return distance(a, b );}
+Half Dist(VecH  a, VecH  b) {return distance(a, b );}
+Flt  Dist(Vec   a, Vec   b) {return distance(a, b );}
 
-inline Half DistH(Int a, Int b) {return Sqrt(Half(a*a + b*b));}
+Half DistH(Int a, Int b) {return Sqrt(Half(a*a + b*b));}
 
-inline Int  Dist2(Int   a, Int   b) {return a*a + b*b;}
-inline Half Dist2(Half  a, Half  b) {return a*a + b*b;}
-inline Flt  Dist2(Flt   a, Flt   b) {return a*a + b*b;}
-inline Half Dist2(VecH2 a, VecH2 b) {return Length2(a-b);}
-inline Flt  Dist2(Vec2  a, Vec2  b) {return Length2(a-b);}
-inline Half Dist2(VecH  a, VecH  b) {return Length2(a-b);}
-inline Flt  Dist2(Vec   a, Vec   b) {return Length2(a-b);}
-inline Half Dist2(VecH4 a, VecH4 b) {return Length2(a-b);}
-inline Flt  Dist2(Vec4  a, Vec4  b) {return Length2(a-b);}
+Int  Dist2(Int   a, Int   b) {return a*a + b*b;}
+Half Dist2(Half  a, Half  b) {return a*a + b*b;}
+Flt  Dist2(Flt   a, Flt   b) {return a*a + b*b;}
+Half Dist2(VecH2 a, VecH2 b) {return Length2(a-b);}
+Flt  Dist2(Vec2  a, Vec2  b) {return Length2(a-b);}
+Half Dist2(VecH  a, VecH  b) {return Length2(a-b);}
+Flt  Dist2(Vec   a, Vec   b) {return Length2(a-b);}
+Half Dist2(VecH4 a, VecH4 b) {return Length2(a-b);}
+Flt  Dist2(Vec4  a, Vec4  b) {return Length2(a-b);}
 
-inline Half DistPointPlane(VecH2 pos,                  VecH2 plane_normal) {return Dot(pos          , plane_normal);}
-inline Flt  DistPointPlane(Vec2  pos,                  Vec2  plane_normal) {return Dot(pos          , plane_normal);}
-inline Half DistPointPlane(VecH  pos,                  VecH  plane_normal) {return Dot(pos          , plane_normal);}
-inline Flt  DistPointPlane(Vec   pos,                  Vec   plane_normal) {return Dot(pos          , plane_normal);}
-inline Half DistPointPlane(VecH2 pos, VecH2 plane_pos, VecH2 plane_normal) {return Dot(pos-plane_pos, plane_normal);}
-inline Flt  DistPointPlane(Vec2  pos, Vec2  plane_pos, Vec2  plane_normal) {return Dot(pos-plane_pos, plane_normal);}
-inline Half DistPointPlane(VecH  pos, VecH  plane_pos, VecH  plane_normal) {return Dot(pos-plane_pos, plane_normal);}
-inline Flt  DistPointPlane(Vec   pos, Vec   plane_pos, Vec   plane_normal) {return Dot(pos-plane_pos, plane_normal);}
+Half DistPointPlane(VecH2 pos,                  VecH2 plane_normal) {return Dot(pos          , plane_normal);}
+Flt  DistPointPlane(Vec2  pos,                  Vec2  plane_normal) {return Dot(pos          , plane_normal);}
+Half DistPointPlane(VecH  pos,                  VecH  plane_normal) {return Dot(pos          , plane_normal);}
+Flt  DistPointPlane(Vec   pos,                  Vec   plane_normal) {return Dot(pos          , plane_normal);}
+Half DistPointPlane(VecH2 pos, VecH2 plane_pos, VecH2 plane_normal) {return Dot(pos-plane_pos, plane_normal);}
+Flt  DistPointPlane(Vec2  pos, Vec2  plane_pos, Vec2  plane_normal) {return Dot(pos-plane_pos, plane_normal);}
+Half DistPointPlane(VecH  pos, VecH  plane_pos, VecH  plane_normal) {return Dot(pos-plane_pos, plane_normal);}
+Flt  DistPointPlane(Vec   pos, Vec   plane_pos, Vec   plane_normal) {return Dot(pos-plane_pos, plane_normal);}
 
-inline VecH2 PointOnPlane(VecH2 pos,                  VecH2 plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
-inline Vec2  PointOnPlane(Vec2  pos,                  Vec2  plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
-inline VecH  PointOnPlane(VecH  pos,                  VecH  plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
-inline Vec   PointOnPlane(Vec   pos,                  Vec   plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
-inline VecH2 PointOnPlane(VecH2 pos, VecH2 plane_pos, VecH2 plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
-inline Vec2  PointOnPlane(Vec2  pos, Vec2  plane_pos, Vec2  plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
-inline VecH  PointOnPlane(VecH  pos, VecH  plane_pos, VecH  plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
-inline Vec   PointOnPlane(Vec   pos, Vec   plane_pos, Vec   plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
+VecH2 PointOnPlane(VecH2 pos,                  VecH2 plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
+Vec2  PointOnPlane(Vec2  pos,                  Vec2  plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
+VecH  PointOnPlane(VecH  pos,                  VecH  plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
+Vec   PointOnPlane(Vec   pos,                  Vec   plane_normal) {return pos-plane_normal*DistPointPlane(pos,            plane_normal);}
+VecH2 PointOnPlane(VecH2 pos, VecH2 plane_pos, VecH2 plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
+Vec2  PointOnPlane(Vec2  pos, Vec2  plane_pos, Vec2  plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
+VecH  PointOnPlane(VecH  pos, VecH  plane_pos, VecH  plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
+Vec   PointOnPlane(Vec   pos, Vec   plane_pos, Vec   plane_normal) {return pos-plane_normal*DistPointPlane(pos, plane_pos, plane_normal);}
 
-inline Half Angle (Half  x, Half y) {return atan2(  y,   x);}
-inline Flt  Angle (Flt   x, Flt  y) {return atan2(  y,   x);}
-inline Half Angle (VecH2 v        ) {return atan2(v.y, v.x);}
-inline Flt  Angle (Vec2  v        ) {return atan2(v.y, v.x);}
-inline Half CosSin(Half  cs       ) {return Sqrt (1-cs*cs );} // NaN
-inline Flt  CosSin(Flt   cs       ) {return Sqrt (1-cs*cs );} // NaN
-inline void CosSin(out Half cos, out Half sin, Half angle) {sincos(angle, sin, cos);}
-inline void CosSin(out Flt  cos, out Flt  sin, Flt  angle) {sincos(angle, sin, cos);}
+Half Angle (Half  x, Half y) {return atan2(  y,   x);}
+Flt  Angle (Flt   x, Flt  y) {return atan2(  y,   x);}
+Half Angle (VecH2 v        ) {return atan2(v.y, v.x);}
+Flt  Angle (Vec2  v        ) {return atan2(v.y, v.x);}
+Half CosSin(Half  cs       ) {return Sqrt (1-cs*cs );} // NaN
+Flt  CosSin(Flt   cs       ) {return Sqrt (1-cs*cs );} // NaN
+void CosSin(out Half cos, out Half sin, Half angle) {sincos(angle, sin, cos);}
+void CosSin(out Flt  cos, out Flt  sin, Flt  angle) {sincos(angle, sin, cos);}
 
-inline Half Cross2D(VecH2 a, VecH2 b) {return a.x*b.y - a.y*b.x;}
-inline Flt  Cross2D(Vec2  a, Vec2  b) {return a.x*b.y - a.y*b.x;}
+Half Cross2D(VecH2 a, VecH2 b) {return a.x*b.y - a.y*b.x;}
+Flt  Cross2D(Vec2  a, Vec2  b) {return a.x*b.y - a.y*b.x;}
 
-inline Half CalcZ(VecH2 v) {return Sqrt(Sat(1-Dot(v, v)));} // 1 - v.x*v.x - v.y*v.y, NaN
-inline Flt  CalcZ(Vec2  v) {return Sqrt(Sat(1-Dot(v, v)));} // 1 - v.x*v.x - v.y*v.y, NaN
+Half CalcZ(VecH2 v) {return Sqrt(Sat(1-Dot(v, v)));} // 1 - v.x*v.x - v.y*v.y, NaN
+Flt  CalcZ(Vec2  v) {return Sqrt(Sat(1-Dot(v, v)));} // 1 - v.x*v.x - v.y*v.y, NaN
 
-inline Half SignFast(Half x) {return (x>=0) ? 1 : -1;} // ignores 0
-inline Flt  SignFast(Flt  x) {return (x>=0) ? 1 : -1;} // ignores 0
+Half SignFast(Half x) {return (x>=0) ? 1 : -1;} // ignores 0
+Flt  SignFast(Flt  x) {return (x>=0) ? 1 : -1;} // ignores 0
 
-inline Half AngleFull     (Half  angle         ) {return Frac(angle/PI2         )*PI2   ;} // normalize angle to   0..PI2
-inline Flt  AngleFull     (Flt   angle         ) {return Frac(angle/PI2         )*PI2   ;} // normalize angle to   0..PI2
-inline Half AngleNormalize(Half  angle         ) {return Frac(angle/PI2 + PI/PI2)*PI2-PI;} // normalize angle to -PI..PI
-inline Flt  AngleNormalize(Flt   angle         ) {return Frac(angle/PI2 + PI/PI2)*PI2-PI;} // normalize angle to -PI..PI
-inline Half AngleDelta    (Half  from, Half  to) {return AngleNormalize(to-from)        ;} // get angle delta    -PI..PI
-inline Flt  AngleDelta    (Flt   from, Flt   to) {return AngleNormalize(to-from)        ;} // get angle delta    -PI..PI
-inline Half AngleBetween  (VecH2 a   , VecH2 b ) {return AngleDelta(Angle(a), Angle(b)) ;}
-inline Flt  AngleBetween  (Vec2  a   , Vec2  b ) {return AngleDelta(Angle(a), Angle(b)) ;}
+Half AngleFull     (Half  angle         ) {return Frac(angle/PI2         )*PI2   ;} // normalize angle to   0..PI2
+Flt  AngleFull     (Flt   angle         ) {return Frac(angle/PI2         )*PI2   ;} // normalize angle to   0..PI2
+Half AngleNormalize(Half  angle         ) {return Frac(angle/PI2 + PI/PI2)*PI2-PI;} // normalize angle to -PI..PI
+Flt  AngleNormalize(Flt   angle         ) {return Frac(angle/PI2 + PI/PI2)*PI2-PI;} // normalize angle to -PI..PI
+Half AngleDelta    (Half  from, Half  to) {return AngleNormalize(to-from)        ;} // get angle delta    -PI..PI
+Flt  AngleDelta    (Flt   from, Flt   to) {return AngleNormalize(to-from)        ;} // get angle delta    -PI..PI
+Half AngleBetween  (VecH2 a   , VecH2 b ) {return AngleDelta(Angle(a), Angle(b)) ;}
+Flt  AngleBetween  (Vec2  a   , Vec2  b ) {return AngleDelta(Angle(a), Angle(b)) ;}
 
-inline VecH2 Perp(VecH2 vec) {return VecH2(vec.y, -vec.x);} // get perpendicular vector
-inline Vec2  Perp(Vec2  vec) {return Vec2 (vec.y, -vec.x);} // get perpendicular vector
+VecH2 Perp(VecH2 vec) {return VecH2(vec.y, -vec.x);} // get perpendicular vector
+Vec2  Perp(Vec2  vec) {return Vec2 (vec.y, -vec.x);} // get perpendicular vector
 
-inline VecH2 Rotate(VecH2 vec, VecH2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
+VecH2 Rotate(VecH2 vec, VecH2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
 {
    return VecH2(vec.x*cos_sin.x - vec.y*cos_sin.y,
                 vec.x*cos_sin.y + vec.y*cos_sin.x);
 }
-inline Vec2 Rotate(Vec2 vec, Vec2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
+Vec2 Rotate(Vec2 vec, Vec2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
 {
    return Vec2(vec.x*cos_sin.x - vec.y*cos_sin.y,
                vec.x*cos_sin.y + vec.y*cos_sin.x);
 }
 
-inline Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
-inline Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
-inline Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
-inline Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
+Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
+Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
+Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
+Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
 /******************************************************************************/
 #if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
-inline Vec  Transform(Vec  v, Matrix3  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform(VecH v, MatrixH3 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+Vec  Transform(Vec  v, Matrix3  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform(VecH v, MatrixH3 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
 #else // slower (1.0 fps)
-inline Vec  Transform(Vec  v, Matrix3  m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform(VecH v, MatrixH3 m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
+Vec  Transform(Vec  v, Matrix3  m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform(VecH v, MatrixH3 m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
 #endif
 
 #if 1 // was faster on GeForce 650m, but on GeForce 1050 Ti performance is the same, however keep this version as in other cases 'mul' is slower
-inline Vec  Transform(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
-inline VecH Transform(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
-inline VecH Transform(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(VecH4(v, 1), m)"
-inline Vec4 Transform(Vec  v, Matrix4 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4 (v, 1), m)"
+Vec  Transform(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
+VecH Transform(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
+VecH Transform(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(VecH4(v, 1), m)"
+Vec4 Transform(Vec  v, Matrix4 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4 (v, 1), m)"
 #else
-inline Vec  Transform(Vec  v, Matrix  m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
-inline VecH Transform(VecH v, Matrix  m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
-inline VecH Transform(VecH v, MatrixH m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
-inline Vec4 Transform(Vec  v, Matrix4 m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
+Vec  Transform(Vec  v, Matrix  m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+VecH Transform(VecH v, Matrix  m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+VecH Transform(VecH v, MatrixH m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+Vec4 Transform(Vec  v, Matrix4 m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
 #endif
 
 #if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
-inline Vec  Transform3(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf would it be faster to cast 'v' to 'Vec' first? Mixing precisions is not perfect however alternative would require to store matrixes in additional half precision but that would slow down (calculating on CPU side and uploading to GPU)
+Vec  Transform3(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform3(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform3(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf would it be faster to cast 'v' to 'Vec' first? Mixing precisions is not perfect however alternative would require to store matrixes in additional half precision but that would slow down (calculating on CPU side and uploading to GPU)
 #else // slower (1.0 fps)
-inline Vec  Transform3(Vec  v, Matrix  m) {return mul(v, (Matrix3 )m);} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, MatrixH m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
+Vec  Transform3(Vec  v, Matrix  m) {return mul(v, (Matrix3 )m);} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform3(VecH v, MatrixH m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
+VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
 #endif
 
 #if 1 // faster 4.3 fps
-inline Vec  TransformTP(Vec  v, Matrix3  m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
-inline VecH TransformTP(VecH v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
-inline Vec  TransformTP(Vec  v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+Vec  TransformTP(Vec  v, Matrix3  m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+VecH TransformTP(VecH v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+Vec  TransformTP(Vec  v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #else // slower 3.2 fps
-inline Vec  TransformTP(Vec  v, Matrix3  m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
-inline VecH TransformTP(VecH v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
-inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
+Vec  TransformTP(Vec  v, Matrix3  m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
+VecH TransformTP(VecH v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
+Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #endif
 /******************************************************************************/
 #if !GL // FIXME broken for Mac - https://feedbackassistant.apple.com/feedback/7116525
@@ -763,18 +763,18 @@ BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resize
 BUFFER_END
 #include "!Set Prec Default.h"
 
-inline Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx]);}
-inline VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx]);}
+Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx]);}
+VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx]);}
 
-inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
-inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
+Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
+VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
 
-inline Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
-inline Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
-inline Vec ViewMatrixZ  (UInt mtrx=0) {return ViewMatrix[mtrx][2];}
-inline Vec ViewMatrixPos(UInt mtrx=0) {return ViewMatrix[mtrx][3];}
+Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
+Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
+Vec ViewMatrixZ  (UInt mtrx=0) {return ViewMatrix[mtrx][2];}
+Vec ViewMatrixPos(UInt mtrx=0) {return ViewMatrix[mtrx][3];}
 
-inline Matrix GetViewMatrix() {return ViewMatrix[0];}
+Matrix GetViewMatrix() {return ViewMatrix[0];}
 #else // Mac currently has no known workaround and must use this. Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3 however a workaround was found to declare layout additionally for struct instead of just member.
 #include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
@@ -782,27 +782,27 @@ BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resize
 BUFFER_END
 #include "!Set Prec Default.h"
 
-inline Vec TransformPos(Vec pos)
+Vec TransformPos(Vec pos)
 {
    return Vec(Dot(pos, ViewMatrix[0].xyz) + ViewMatrix[0].w,
               Dot(pos, ViewMatrix[1].xyz) + ViewMatrix[1].w,
               Dot(pos, ViewMatrix[2].xyz) + ViewMatrix[2].w);
 }
-inline VecH TransformDir(VecH dir)
+VecH TransformDir(VecH dir)
 {
    return VecH(Dot(dir, ViewMatrix[0].xyz),
                Dot(dir, ViewMatrix[1].xyz),
                Dot(dir, ViewMatrix[2].xyz));
 }
 
-inline Vec TransformPos(Vec pos, UInt mtrx)
+Vec TransformPos(Vec pos, UInt mtrx)
 {
    mtrx*=3;
    return Vec(Dot(pos, ViewMatrix[mtrx  ].xyz) + ViewMatrix[mtrx  ].w,
               Dot(pos, ViewMatrix[mtrx+1].xyz) + ViewMatrix[mtrx+1].w,
               Dot(pos, ViewMatrix[mtrx+2].xyz) + ViewMatrix[mtrx+2].w);
 }
-inline VecH TransformDir(VecH dir, UInt mtrx)
+VecH TransformDir(VecH dir, UInt mtrx)
 {
    mtrx*=3;
    return VecH(Dot(dir, ViewMatrix[mtrx  ].xyz),
@@ -810,37 +810,37 @@ inline VecH TransformDir(VecH dir, UInt mtrx)
                Dot(dir, ViewMatrix[mtrx+2].xyz));
 }
 
-inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
-inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);}
+Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
+VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);}
 
-inline Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
-inline Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}
-inline Vec ViewMatrixZ  () {return Vec(ViewMatrix[0].z, ViewMatrix[1].z, ViewMatrix[2].z);}
-inline Vec ViewMatrixPos() {return Vec(ViewMatrix[0].w, ViewMatrix[1].w, ViewMatrix[2].w);}
+Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
+Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}
+Vec ViewMatrixZ  () {return Vec(ViewMatrix[0].z, ViewMatrix[1].z, ViewMatrix[2].z);}
+Vec ViewMatrixPos() {return Vec(ViewMatrix[0].w, ViewMatrix[1].w, ViewMatrix[2].w);}
 
-inline Vec ViewMatrixY  (UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].y, ViewMatrix[mtrx+1].y, ViewMatrix[mtrx+2].y);}
-inline Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, ViewMatrix[mtrx+1].w, ViewMatrix[mtrx+2].w);}
+Vec ViewMatrixY  (UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].y, ViewMatrix[mtrx+1].y, ViewMatrix[mtrx+2].y);}
+Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, ViewMatrix[mtrx+1].w, ViewMatrix[mtrx+2].w);}
 
-inline Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
+Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
 #endif
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/
-inline VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
+VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
 {
    return             ObjVel[mtrx].lin
   +TransformDir(Cross(ObjVel[mtrx].ang, local_pos), mtrx);
 }
-inline Vec GetCamAngVel(Vec view_space_pos)
+Vec GetCamAngVel(Vec view_space_pos)
 {
    return -Cross(CamAngVel, view_space_pos);
 }
-inline Vec GetObjVel(VecH local_pos, Vec view_space_pos, UInt mtrx=0)
+Vec GetObjVel(VecH local_pos, Vec view_space_pos, UInt mtrx=0)
 {
    return GetVel      (local_pos, mtrx)
          +GetCamAngVel(view_space_pos);
 }
-inline Vec GetBoneVel(VecH local_pos, Vec view_space_pos, VecU bone, VecH weight)
+Vec GetBoneVel(VecH local_pos, Vec view_space_pos, VecU bone, VecH weight)
 {
    return (GetVel      (local_pos, bone.x)*weight.x
           +GetVel      (local_pos, bone.y)*weight.y
@@ -848,7 +848,7 @@ inline Vec GetBoneVel(VecH local_pos, Vec view_space_pos, VecU bone, VecH weight
           +GetCamAngVel(view_space_pos);
 }
 /******************************************************************************/
-inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
+VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
 {
    // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
  //if(ORTHO_SUPPORT && !Viewport.ortho)
@@ -860,7 +860,7 @@ inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
 
    return vel_ps;
 }
-inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
+Vec GetVelocitiesCameraOnly(Vec view_space_pos)
 {
    Vec vel=ObjVel[0].lin // set to object linear velocity in view space
           +GetCamAngVel(view_space_pos); // add camera angular velocity
@@ -874,7 +874,7 @@ inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
    return vel; // this function always returns signed -1..1 version
 }
 /******************************************************************************/
-inline Vec4 Project(Vec pos)
+Vec4 Project(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
    return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, pos.y*ProjMatrix[1].y, pos.z*ProjMatrix[2].z + ProjMatrix[3].z, pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
@@ -883,54 +883,54 @@ inline Vec4 Project(Vec pos)
 #endif
 }
 /******************************************************************************/
-inline Vec  MatrixX(Matrix3  m) {return m[0];}
-inline VecH MatrixX(MatrixH3 m) {return m[0];}
-inline Vec  MatrixY(Matrix3  m) {return m[1];}
-inline VecH MatrixY(MatrixH3 m) {return m[1];}
-inline Vec  MatrixZ(Matrix3  m) {return m[2];}
-inline VecH MatrixZ(MatrixH3 m) {return m[2];}
+Vec  MatrixX(Matrix3  m) {return m[0];}
+VecH MatrixX(MatrixH3 m) {return m[0];}
+Vec  MatrixY(Matrix3  m) {return m[1];}
+VecH MatrixY(MatrixH3 m) {return m[1];}
+Vec  MatrixZ(Matrix3  m) {return m[2];}
+VecH MatrixZ(MatrixH3 m) {return m[2];}
 
-inline Vec  MatrixX  (Matrix  m) {return m[0];}
-inline VecH MatrixX  (MatrixH m) {return m[0];}
-inline Vec  MatrixY  (Matrix  m) {return m[1];}
-inline VecH MatrixY  (MatrixH m) {return m[1];}
-inline Vec  MatrixZ  (Matrix  m) {return m[2];}
-inline VecH MatrixZ  (MatrixH m) {return m[2];}
-inline Vec  MatrixPos(Matrix  m) {return m[3];}
-inline VecH MatrixPos(MatrixH m) {return m[3];}
+Vec  MatrixX  (Matrix  m) {return m[0];}
+VecH MatrixX  (MatrixH m) {return m[0];}
+Vec  MatrixY  (Matrix  m) {return m[1];}
+VecH MatrixY  (MatrixH m) {return m[1];}
+Vec  MatrixZ  (Matrix  m) {return m[2];}
+VecH MatrixZ  (MatrixH m) {return m[2];}
+Vec  MatrixPos(Matrix  m) {return m[3];}
+VecH MatrixPos(MatrixH m) {return m[3];}
 
-inline Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
+Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
-inline Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
+Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
 {
    return do_clamp ? Mid(screen, ImgClamp.xy, ImgClamp.zw) : screen;
 }
 /******************************************************************************/
-inline Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
+Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
 {
    return frac * Viewport.FracToPosXY.xy + Viewport.FracToPosXY.zw;
 }
-inline Vec2 ScreenToPosXY(Vec2 screen) // return view space xy position at z=1
+Vec2 ScreenToPosXY(Vec2 screen) // return view space xy position at z=1
 {
    return screen * Viewport.ScreenToPosXY.xy + Viewport.ScreenToPosXY.zw;
 }
-inline Vec2 ScreenToPosXY(Vec2 screen, Flt z) // return view space xy position at z='z'
+Vec2 ScreenToPosXY(Vec2 screen, Flt z) // return view space xy position at z='z'
 {
    return ScreenToPosXY(screen)*z;
 }
 /******************************************************************************/
-inline Vec2 PosToScreen(Vec4 pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
+Vec2 PosToScreen(Vec4 pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
 {
    return (pos.xy/pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
-inline Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen', returns (0,0)..(1,1) range
+Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen', returns (0,0)..(1,1) range
 {
    return pixel.xy*RTSize.xy;
 }
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
-inline Flt DelinearizeDepth(Flt z, Bool perspective=true)
+Flt DelinearizeDepth(Flt z, Bool perspective=true)
 {
    Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z
        b=ProjMatrix[3][2], // ProjMatrix.pos.z
@@ -942,7 +942,7 @@ inline Flt DelinearizeDepth(Flt z, Bool perspective=true)
 
    return w;
 }
-inline Flt LinearizeDepth(Flt w, Bool perspective=true)
+Flt LinearizeDepth(Flt w, Bool perspective=true)
 {
    Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z
        b=ProjMatrix[3][2]; // ProjMatrix.pos.z
@@ -963,19 +963,19 @@ inline Flt LinearizeDepth(Flt w, Bool perspective=true)
 /******************************************************************************/
 // Perspective: pos.xy=pos_xy*z
 // Orthogonal : pos.xy=pos_xy
-inline Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=known xy position at depth=1
+Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=known xy position at depth=1
 {
    Vec pos;         pos.z =z;
  //if(ORTHO_SUPPORT)pos.xy=pos_xy*(Viewport.ortho ? 1 : pos.z);else
                     pos.xy=pos_xy*pos.z;
    return pos;
 }
-inline Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-inline Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-inline Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-inline Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
+Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
+Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
 
-inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
+Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
 /******************************************************************************/
 // sRGB
 /******************************************************************************/
@@ -1102,25 +1102,25 @@ void Draw2DTex_VS(VtxInput vtx,
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 /******************************************************************************/
-inline Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
-inline Flt  DistPointPlaneRay(Vec2  p,                  Vec2  plane_normal, Vec2  ray) {Flt  rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
-inline Half DistPointPlaneRay(VecH  p,                  VecH  plane_normal, VecH  ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
-inline Flt  DistPointPlaneRay(Vec   p,                  Vec   plane_normal, Vec   ray) {Flt  rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
-inline Half DistPointPlaneRay(VecH2 p, VecH2 plane_pos, VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
-inline Flt  DistPointPlaneRay(Vec2  p, Vec2  plane_pos, Vec2  plane_normal, Vec2  ray) {Flt  rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
-inline Half DistPointPlaneRay(VecH  p, VecH  plane_pos, VecH  plane_normal, VecH  ray) {Half rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
-inline Flt  DistPointPlaneRay(Vec   p, Vec   plane_pos, Vec   plane_normal, Vec   ray) {Flt  rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
+Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
+Flt  DistPointPlaneRay(Vec2  p,                  Vec2  plane_normal, Vec2  ray) {Flt  rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
+Half DistPointPlaneRay(VecH  p,                  VecH  plane_normal, VecH  ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
+Flt  DistPointPlaneRay(Vec   p,                  Vec   plane_normal, Vec   ray) {Flt  rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
+Half DistPointPlaneRay(VecH2 p, VecH2 plane_pos, VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
+Flt  DistPointPlaneRay(Vec2  p, Vec2  plane_pos, Vec2  plane_normal, Vec2  ray) {Flt  rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
+Half DistPointPlaneRay(VecH  p, VecH  plane_pos, VecH  plane_normal, VecH  ray) {Half rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
+Flt  DistPointPlaneRay(Vec   p, Vec   plane_pos, Vec   plane_normal, Vec   ray) {Flt  rd=Dot(ray, plane_normal); return rd ? DistPointPlane(p, plane_pos, plane_normal)/rd : 0;}
 
-inline VecH2 PointOnPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
-inline Vec2  PointOnPlaneRay(Vec2  p,                  Vec2  plane_normal, Vec2  ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
-inline VecH  PointOnPlaneRay(VecH  p,                  VecH  plane_normal, VecH  ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
-inline Vec   PointOnPlaneRay(Vec   p,                  Vec   plane_normal, Vec   ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
-inline VecH2 PointOnPlaneRay(VecH2 p, VecH2 plane_pos, VecH2 plane_normal, VecH2 ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
-inline Vec2  PointOnPlaneRay(Vec2  p, Vec2  plane_pos, Vec2  plane_normal, Vec2  ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
-inline VecH  PointOnPlaneRay(VecH  p, VecH  plane_pos, VecH  plane_normal, VecH  ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
-inline Vec   PointOnPlaneRay(Vec   p, Vec   plane_pos, Vec   plane_normal, Vec   ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
+VecH2 PointOnPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
+Vec2  PointOnPlaneRay(Vec2  p,                  Vec2  plane_normal, Vec2  ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
+VecH  PointOnPlaneRay(VecH  p,                  VecH  plane_normal, VecH  ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
+Vec   PointOnPlaneRay(Vec   p,                  Vec   plane_normal, Vec   ray) {return p-ray*DistPointPlaneRay(p,            plane_normal, ray);}
+VecH2 PointOnPlaneRay(VecH2 p, VecH2 plane_pos, VecH2 plane_normal, VecH2 ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
+Vec2  PointOnPlaneRay(Vec2  p, Vec2  plane_pos, Vec2  plane_normal, Vec2  ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
+VecH  PointOnPlaneRay(VecH  p, VecH  plane_pos, VecH  plane_normal, VecH  ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
+Vec   PointOnPlaneRay(Vec   p, Vec   plane_pos, Vec   plane_normal, Vec   ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
 /******************************************************************************/
-inline Matrix3 Inverse(Matrix3 m, Bool normalized)
+Matrix3 Inverse(Matrix3 m, Bool normalized)
 {
    m=transpose(m);
    if(!normalized)
@@ -1132,14 +1132,14 @@ inline Matrix3 Inverse(Matrix3 m, Bool normalized)
    return m;
 }
 /******************************************************************************
-inline Flt Lerp4(Flt v0, Flt v1, Flt v2, Flt v3, Flt s)
+Flt Lerp4(Flt v0, Flt v1, Flt v2, Flt v3, Flt s)
 {
    return s*s*s * ((2-TAN)*(v1-v2) + TAN*(v3-v0)                            )
         + s*s   * ((TAN-3)*(v1   ) - TAN*(v3   ) - (2*TAN-3)*v2 + (2*TAN)*v0)
         + s     * ( TAN   *(v2-v0)                                          )
         + v1;
 }
-inline Half Lerp4(Half v0, Half v1, Half v2, Half v3, Half s)
+Half Lerp4(Half v0, Half v1, Half v2, Half v3, Half s)
 {
    return s*s*s * ((2-TAN)*(v1-v2) + TAN*(v3-v0)                            )
         + s*s   * ((TAN-3)*(v1   ) - TAN*(v3   ) - (2*TAN-3)*v2 + (2*TAN)*v0)
@@ -1147,7 +1147,7 @@ inline Half Lerp4(Half v0, Half v1, Half v2, Half v3, Half s)
         + v1;
 }
 
-inline Vec Lerp4(Vec v0, Vec v1, Vec v2, Vec v3, Flt s)
+Vec Lerp4(Vec v0, Vec v1, Vec v2, Vec v3, Flt s)
 {
    Flt s2=s*s,
        s3=s*s*s;
@@ -1157,7 +1157,7 @@ inline Vec Lerp4(Vec v0, Vec v1, Vec v2, Vec v3, Flt s)
         - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
         + v3 * (   TAN*(s3-s2)                           );
 }
-inline VecH Lerp4(VecH v0, VecH v1, VecH v2, VecH v3, Half s)
+VecH Lerp4(VecH v0, VecH v1, VecH v2, VecH v3, Half s)
 {
    Half s2=s*s,
         s3=s*s*s;
@@ -1168,7 +1168,7 @@ inline VecH Lerp4(VecH v0, VecH v1, VecH v2, VecH v3, Half s)
         + v3 * (   TAN*(s3-s2)                           );
 }
 
-inline Vec4 Lerp4(Vec4 v0, Vec4 v1, Vec4 v2, Vec4 v3, Flt s)
+Vec4 Lerp4(Vec4 v0, Vec4 v1, Vec4 v2, Vec4 v3, Flt s)
 {
    Flt s2=s*s,
        s3=s*s*s;
@@ -1178,7 +1178,7 @@ inline Vec4 Lerp4(Vec4 v0, Vec4 v1, Vec4 v2, Vec4 v3, Flt s)
         - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
         + v3 * (   TAN*(s3-s2)                           );
 }
-inline VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
+VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
 {
    Half s2=s*s,
         s3=s*s*s;
@@ -1189,35 +1189,35 @@ inline VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
         + v3 * (   TAN*(s3-s2)                           );
 }
 /******************************************************************************/
-inline Half LerpCube(Half s) {return (3-2*s)*s*s;}
-inline Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
+Half LerpCube(Half s) {return (3-2*s)*s*s;}
+Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
 
-inline Half LerpCube(Half from, Half to, Half s) {return Lerp(from, to, LerpCube(s));}
-inline Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube(s));}
+Half LerpCube(Half from, Half to, Half s) {return Lerp(from, to, LerpCube(s));}
+Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube(s));}
 
-/*inline Flt LerpSmoothPow(Flt s, Flt p)
+/*Flt LerpSmoothPow(Flt s, Flt p)
 {
    s=Sat(s);
    if(s<=0.5)return   0.5*Pow(  2*s, p);
              return 1-0.5*Pow(2-2*s, p);
 }*/
 
-inline Half BlendSqr(Half x) {return Sat(1-x*x);}
-inline Flt  BlendSqr(Flt  x) {return Sat(1-x*x);}
+Half BlendSqr(Half x) {return Sat(1-x*x);}
+Flt  BlendSqr(Flt  x) {return Sat(1-x*x);}
 
-inline Half BlendSmoothCube(Half x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
-inline Flt  BlendSmoothCube(Flt  x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
+Half BlendSmoothCube(Half x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
+Flt  BlendSmoothCube(Flt  x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
 
-inline Half BlendSmoothSin(Half x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
-inline Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
+Half BlendSmoothSin(Half x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
+Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
 
-inline Half Gaussian(Half x) {return exp(-x*x);}
-inline Flt  Gaussian(Flt  x) {return exp(-x*x);}
+Half Gaussian(Half x) {return exp(-x*x);}
+Flt  Gaussian(Flt  x) {return exp(-x*x);}
 /******************************************************************************/
-inline Half     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
-inline Half AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
+Half     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
+Half AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 /******************************************************************************/
-inline Half DitherValue(Vec2 pixel)
+Half DitherValue(Vec2 pixel)
 {
 #if 0 // low
    return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
@@ -1229,7 +1229,7 @@ inline Half DitherValue(Vec2 pixel)
    VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
 #endif
 }
-inline void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
+void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
    col+=DitherValue(pixel)*(1.5/255);
@@ -1238,7 +1238,7 @@ inline void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAM
 /******************************************************************************/
 // RGB <-> HSB
 /******************************************************************************/
-inline Vec RgbToHsb(Vec rgb)
+Vec RgbToHsb(Vec rgb)
 {
    Flt max=Max(rgb),
        min=Min(rgb),
@@ -1260,7 +1260,7 @@ inline Vec RgbToHsb(Vec rgb)
 
    return hsb;
 }
-inline Vec HsbToRgb(Vec hsb)
+Vec HsbToRgb(Vec hsb)
 {
    Flt h=Frac(hsb.x)*6,
        s=Sat (hsb.y),
@@ -1279,14 +1279,14 @@ inline Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 // ALPHA TEST
 /******************************************************************************/
-inline void AlphaTest(Half alpha)
+void AlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
 }
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline Vec4 UnpackNormal(VecH4 nrm)
+Vec4 UnpackNormal(VecH4 nrm)
 {
 #if !SIGNED_NRM_RT
    nrm.xyz=nrm.xyz*2-1;
@@ -1295,23 +1295,23 @@ inline Vec4 UnpackNormal(VecH4 nrm)
    nrm_hp.xyz=Normalize(nrm_hp.xyz); // normalize needed even if source was F16 format because it improves quality for specular
    return nrm_hp;
 }
-inline Vec4 GetNormal  (Vec2  tex               ) {return UnpackNormal(TexPoint (Img  , tex          ));}
-inline Vec4 GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS, pixel, sample));}
+Vec4 GetNormal  (Vec2  tex               ) {return UnpackNormal(TexPoint (Img  , tex          ));}
+Vec4 GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS, pixel, sample));}
 /******************************************************************************/
 // EXT
 /******************************************************************************/
-inline VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
-inline VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
+VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
+VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
-inline Flt GetLod(Vec2 tex_coord, Flt tex_size)
+Flt GetLod(Vec2 tex_coord, Flt tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
    return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
  //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
 }
-inline Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
+Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
    return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
@@ -1327,30 +1327,30 @@ inline Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 #define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
-inline Vec2 GetGrassBend(Vec world_pos)
+Vec2 GetGrassBend(Vec world_pos)
 {
    Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
                (0.18*GrassBendScale)*Sin(offset+BendFactor.z) + (0.24*GrassBendScale)*Sin(offset+BendFactor.w));
 }
-inline VecH2 GetLeafBend(VecH center)
+VecH2 GetLeafBend(VecH center)
 {
    Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
    return VecH2((0.28*LeafBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafBendScale)*(Half)Sin(offset+BendFactor.y),
                 (0.18*LeafBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafBendScale)*(Half)Sin(offset+BendFactor.w));
 }
-inline VecH2 GetLeafsBend(VecH center)
+VecH2 GetLeafsBend(VecH center)
 {
    Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
    return VecH2((0.28*LeafsBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafsBendScale)*(Half)Sin(offset+BendFactor.y),
                 (0.18*LeafsBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+BendFactor.w));
 }
 /******************************************************************************/
-inline Half GrassFadeOut(UInt mtrx=0)
+Half GrassFadeOut(UInt mtrx=0)
 {
    return Sat(Length2(ViewMatrixPos(mtrx))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-inline void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
+void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
 {
    Flt  b   =Cube(Sat(local_pos.y));
    Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(ViewMatrixY(mtrx)));
@@ -1359,7 +1359,7 @@ inline void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
    view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
 }
 /******************************************************************************/
-inline void BendLeaf(VecH center, in out Vec pos)
+void BendLeaf(VecH center, in out Vec pos)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center);
@@ -1367,7 +1367,7 @@ inline void BendLeaf(VecH center, in out Vec pos)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm)
+void BendLeaf(VecH center, in out Vec pos, in out VecH nrm)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center);
@@ -1375,7 +1375,7 @@ inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan)
+void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center);
@@ -1384,7 +1384,7 @@ inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH t
    pos=center+delta;
 }
 /******************************************************************************/
-inline void BendLeafs(VecH center, Half offset, in out Vec pos)
+void BendLeafs(VecH center, Half offset, in out Vec pos)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);
@@ -1392,7 +1392,7 @@ inline void BendLeafs(VecH center, Half offset, in out Vec pos)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm)
+void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);
@@ -1400,7 +1400,7 @@ inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan)
+void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);
@@ -1419,34 +1419,34 @@ BUFFER_END
 
 #if 0
 Flt P1=0.004, P2=2;
-inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
+Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
 #else
-inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
+Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
 #endif
-inline Half DepthWeight(Flt delta, Vec2 dw_mad)
+Half DepthWeight(Flt delta, Vec2 dw_mad)
 {
    return Sat(Abs(delta)*dw_mad.x + dw_mad.y);
 }
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-inline VecH4 GetDetail(Vec2 tex)
+VecH4 GetDetail(Vec2 tex)
 {
    VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=color, W=smooth #MaterialTextureLayout
    det.xy=(det.xy-0.5)*Material.det_power;
    det.zw= det.zw     *Material.det_power+(1-Material.det_power); // Lerp(1, det.zw, Material.det_power) = 1*(1-Material.det_power) + det.zw*Material.det_power
    return det;
 }
-inline VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xy=det.xy*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.zw=det.zw*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-inline VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xy=det.xy*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.zw=det.zw*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-inline VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xy=det.xy*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.zw=det.zw*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-inline VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xy=det.xy*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.zw=det.zw*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xy=det.xy*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.zw=det.zw*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xy=det.xy*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.zw=det.zw*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xy=det.xy*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.zw=det.zw*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xy=det.xy*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.zw=det.zw*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
+void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
 /******************************************************************************/
-inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
+Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
 {
    // sharpen alpha
 #if 0 // not needed when ALPHA_POWER is big
@@ -1511,14 +1511,18 @@ BUFFER(LightLinear) GpuLightLinear LightLinear; BUFFER_END
 BUFFER(LightCone  ) GpuLightCone   LightCone  ; BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-inline Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*LightPoint .power    ), LightPoint.lum_max);} // LightPoint.power/Length2(pos), NaN
-inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLinear.neg_inv_range + 1             );} // 1-Length(pos)/LightLinear.range
-inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
-inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
+Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*LightPoint .power    ), LightPoint.lum_max);} // LightPoint.power/Length2(pos), NaN
+Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLinear.neg_inv_range + 1             );} // 1-Length(pos)/LightLinear.range
+Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
+Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
 
-Half F_Schlick(Half f0, Half f90, Half c) // High Precision not needed
+Half F_Schlick(Half f0, Half f90, Half cos) // High Precision not needed
 {
-   return (f90-f0)*Quint(1-c) + f0; // Quint(1-c) = ~exp2(-9.28*c)
+   return (f90-f0)*Quint(1-cos) + f0; // Quint(1-c) = ~exp2(-9.28*c)
+}
+Half F_Schlick(VecH f0, Half f90, Half cos) // High Precision not needed
+{
+   return (f90-f0)*Quint(1-cos) + f0; // Quint(1-c) = ~exp2(-9.28*c)
 }
 Half Vis_SmithR2Inv(Half roughness2, Half NdotL, Half NdotV) // High Precision not needed, "roughness2=Sqr(roughness)", result is inversed 1/x
 {
@@ -1657,13 +1661,13 @@ struct LightParams
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-inline VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
+VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
 {
    return TexLodClamp(EnvDFG, VecH2(smooth, NdotV)).xy;
 }
 /* https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
 originally developed by Lazarov, modified by Karis */
-inline VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV) 
+VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV) 
 {
    const VecH4 m={-1, -0.0275, -0.572,  0.022},
                a={ 1,  0.0425,  1.04 , -0.04 };
@@ -1679,7 +1683,7 @@ inline VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV)
 /*
 http://miciwan.com/SIGGRAPH2015/course_notes_wip.pdf
 NO because has overshots in low reflectivity
-inline VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
+VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
 {
    Half bias=exp2(-(7*NdotV+4*roughness));
    Half scale=1-bias-roughness*Max(bias, Min(Sqrt(roughness), 0.739 + 0.323*NdotV)-0.434);
@@ -1688,7 +1692,7 @@ inline VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect and high smooth, 'EnvDFGLazarovKaris' looks better
-inline VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
    VecH4 p0 = VecH4( 0.5745, 1.548, -0.02397, 1.301 );
@@ -1705,7 +1709,7 @@ inline VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect, and high smooth it looks the same for long smooth range
-inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
 
@@ -1732,7 +1736,7 @@ inline VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
+Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
 {
    // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
@@ -1747,7 +1751,7 @@ inline Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
    return (reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
 #endif
 }
-inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
 #if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
    return unlit_col*reflectivity + (1-reflectivity); // Lerp(VecH(1,1,1), unlit_col, reflectivity)
@@ -1755,22 +1759,26 @@ inline VecH ReflectCol(VecH unlit_col, Half reflectivity) // non-metals (with lo
    Half inv_reflect2=Sqr(1-reflectivity); return unlit_col*(1-inv_reflect2) + inv_reflect2;
 #endif
 }
-inline Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
+Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
 {
    return Transform3(reflect(eye_dir, nrm), CamMatrix);
 }
-inline VecH ReflectTex(Vec reflect_dir, Half smooth)
+VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
    return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
 }
-inline VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
+Half Diffuse(Half reflectivity)
 {
-   return lit_col*(1-reflectivity)
+   return 1-reflectivity;
+}
+VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
+{
+   return lit_col*Diffuse(reflectivity)
          +ReflectCol(unlit_col, reflectivity)*
             (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV, quality))
             +spec);
 }
-inline VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
    return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm), true);
 }
@@ -1795,9 +1803,9 @@ ImageH      ShdMap1;
 
 #include "!Set Prec Default.h"
 
-inline Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
+Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 
-inline Vec ShadowDirTransform(Vec pos, Int num)
+Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 
    // using "Matrix4  m"            and "m=ShdMatrix4[..]" and "p=Transform(pos, m)"      had the same performance as version below
    // imitate binary search
@@ -1829,7 +1837,7 @@ inline Vec ShadowDirTransform(Vec pos, Int num)
    }
    return p.xyz/p.w;
 }
-inline Vec ShadowPointTransform(Vec pos)
+Vec ShadowPointTransform(Vec pos)
 {
    Vec  local=Transform(pos, ShdMatrix);
    Flt  a=Max(Abs(local));
@@ -1844,7 +1852,7 @@ inline Vec ShadowPointTransform(Vec pos)
    return p.xyz/p.w;
 }
 /******************************************************************************/
-inline Vec2 ShadowJitter(Vec2 pixel)
+Vec2 ShadowJitter(Vec2 pixel)
 {
      Vec2 offset=Frac(pixel*0.5)*2 - 0.5;
           offset.y+=   offset.x;
@@ -1852,29 +1860,29 @@ inline Vec2 ShadowJitter(Vec2 pixel)
    return offset*ShdJitter.xy+ShdJitter.zw;
 }
 /******************************************************************************/
-inline Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
+Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    if(jitter)pos.xy+=jitter_value;
    return TexShadow(ShdMap, pos);
 }
-inline Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer but a Shadow Intensity Color RT
+Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer but a Shadow Intensity Color RT
 {
    return Tex(ShdMap1, pos.xy).x;
 }
 /******************************************************************************/
-inline Half ShadowDirValue(Vec pos, Vec2 jitter_value, Bool jitter, Int num, Bool cloud)
+Half ShadowDirValue(Vec pos, Vec2 jitter_value, Bool jitter, Int num, Bool cloud)
 {
    Half fade=Sat(Length2(pos)*ShdRangeMulAdd.x+ShdRangeMulAdd.y);
    Vec  p=ShadowDirTransform(pos, num);
    if(cloud)return fade+CompareDepth(p, jitter_value, jitter)*CompareDepth2(p);
    else     return fade+CompareDepth(p, jitter_value, jitter);
 }
-inline Half ShadowPointValue(Vec pos, Vec2 jitter_value, Bool jitter)
+Half ShadowPointValue(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    Vec p=ShadowPointTransform(pos);
    return CompareDepth(p, jitter_value, jitter);
 }
-inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
+Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    Vec4 p=Transform(pos, ShdMatrix4[0]); p.xyz/=p.w;
    return CompareDepth(p.xyz, jitter_value, jitter);
@@ -1889,9 +1897,9 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    VecH  out3:TARGET3; // Vel XYZ
 
    // set components
-   inline void color (VecH color ) {out0.rgb=color;}
-   inline void glow  (Half glow  ) {out0.w  =glow ;}
-   inline void normal(VecH normal)
+   void color (VecH color ) {out0.rgb=color;}
+   void glow  (Half glow  ) {out0.w  =glow ;}
+   void normal(VecH normal)
    {
    #if SIGNED_NRM_RT
       out1.xyz=normal;
@@ -1899,14 +1907,14 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
       out1.xyz=normal*0.5+0.5; // -1..1 -> 0..1
    #endif
    }
-   inline void translucent(Half translucent) {out1.w=translucent;}
+   void translucent(Half translucent) {out1.w=translucent;}
 
-   inline void smooth (Half smooth ) {out2.x=smooth ;}
-   inline void reflect(Half reflect) {out2.y=reflect;}
+   void smooth (Half smooth ) {out2.x=smooth ;}
+   void reflect(Half reflect) {out2.y=reflect;}
 
-   inline void velocity    (Vec  vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
-   inline void velocityRaw (VecH vel                    ) {out3.xyz=vel;}
-   inline void velocityZero(                            ) {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
+   void velocity    (Vec  vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
+   void velocityRaw (VecH vel                    ) {out3.xyz=vel;}
+   void velocityZero(                            ) {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION
@@ -1928,11 +1936,11 @@ struct HSData
        N011:NORMAL1,
        N101:NORMAL2;
 };
-inline Vec2 ToScreen(Vec pos)
+Vec2 ToScreen(Vec pos)
 {
    return pos.xy/Max(0.1, pos.z);
 }
-inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Bool shadow_map=false)
+HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Bool shadow_map=false)
 {
    HSData O;
 
@@ -1982,7 +1990,7 @@ inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nr
    return O;
 }
 /******************************************************************************/
-inline void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
+void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
 {
    // TODO: we could encode 'clamp_tess_factor' in vtx.nrm.w
 
