@@ -30,7 +30,7 @@ struct MainShaderClass
 
    ShaderImage
       DummyImage,
-      *Img  [4], *ImgMS[3],
+      *Img  [6], *ImgMS[4],
       *ImgX [4], *ImgXMS,
       *ImgXF[2],
       *ImgXY, *ImgXYMS,
