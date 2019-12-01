@@ -279,6 +279,9 @@ void PS
 
    Bool translucent=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
 
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
+
    // lighting
    VecH ambient;
    if(HAS_AMBIENT && !AMBIENT_IN_VTX)
@@ -336,21 +339,17 @@ void PS
          {
             // light #1
             lp.set(nrm, light_dir, eye_dir);
-            
-            // specular
-            Half specular=lp.specular(smooth, reflectivity, false)*lum;
 
-            // diffuse !! after specular because it adjusts 'lum' !!
-            lum*=lp.diffuse(smooth);
-
-            total_lum     +=LightDir.color.rgb*lum     ;
-            total_specular+=LightDir.color.rgb*specular;
+            VecH            lum_rgb=LightDir.color.rgb*lum;
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
          }
       }
    }
    #endif
 
    // reflection
+   I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular;
    #if REFLECT
    {
    #if VTX_REFLECT
@@ -358,11 +357,8 @@ void PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      I.col.rgb=PBR1(I.col.rgb, I.col.rgb*total_lum, smooth, reflectivity, total_specular, -Dot(nrm, eye_dir), reflect_dir, false);
+      I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, -Dot(nrm, eye_dir), false);
    }
-   #else
-      Half inv_metal=ReflectToInvMetal(reflectivity);
-      I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular*ReflectCol(I.col.rgb, inv_metal);
    #endif
 
 #if SET_FOG

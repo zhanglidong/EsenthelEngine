@@ -95,13 +95,10 @@ VecH LightDir_PS
    // light #1
    Vec eye_dir=Normalize(Vec(inPosXY, 1));
    lp.set(nrm.xyz, light_dir, eye_dir);
-   VecH lum_rgb=LightDir.color.rgb*lum;
 
-   // specular
-   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
-
-   // diffuse !! after specular because it adjusts 'lum_rgb' !!
-   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
+   VecH    lum_rgb=LightDir.color.rgb*lum;
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightPoint_PS
@@ -172,13 +169,10 @@ VecH LightPoint_PS
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
-   VecH lum_rgb=LightPoint.color.rgb*lum;
 
-   // specular
-   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
-
-   // diffuse !! after specular because it adjusts 'lum_rgb' !!
-   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
+   VecH    lum_rgb=LightPoint.color.rgb*lum;
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightLinear_PS
@@ -249,13 +243,10 @@ VecH LightLinear_PS
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
-   VecH lum_rgb=LightLinear.color.rgb*lum;
 
-   // specular
-   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
-
-   // diffuse !! after specular because it adjusts 'lum_rgb' !!
-   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
+   VecH    lum_rgb=LightLinear.color.rgb*lum;
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightCone_PS
@@ -336,15 +327,13 @@ VecH LightCone_PS
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
+
    VecH lum_rgb=LightCone.color.rgb*lum;
 #if IMAGE
    lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
 #endif
 
-   // specular
-   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
-
-   // diffuse !! after specular because it adjusts 'lum_rgb' !!
-   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
 }
 /******************************************************************************/

@@ -1564,14 +1564,15 @@ Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form 
    return LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease diffuse and affect reflect col
 }
 Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
-VecH ReflectCol(VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
- //return unlit_col*       metal  + (1-metal); // Lerp(VecH(1,1,1), unlit_col, metal)
-   return unlit_col*(1-inv_metal) + inv_metal; // Lerp(unlit_col, VecH(1,1,1), inv_metal)
-#else // square version, better
-   Half inv_metal2=Sqr(inv_metal); return unlit_col*(1-inv_metal2) + inv_metal2; // perform 'Sqr' only here and not in 'Diffuse' to match visuals with other popular game engines
-#endif
+   if(1)inv_metal=Sqr(inv_metal); // FIXME // apply square because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+ //return Lerp(reflectivity, unlit_col,     metal);
+   return Lerp(unlit_col, reflectivity, inv_metal);
+}
+VecH ReflectCol(Half reflectivity, VecH unlit_col)
+{
+   return ReflectCol(reflectivity, unlit_col, ReflectToInvMetal(reflectivity));
 }
 /******************************************************************************/
 struct LightParams
@@ -1650,7 +1651,7 @@ struct LightParams
    #endif
    }
 
-   VecH specular(VecH unlit_col, Half smooth, Half reflectivity, Bool quality)
+   VecH specular(Half smooth, Half reflectivity, VecH reflect_col, Bool quality)
    {
       // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
       const Half light_radius=0.0036;
@@ -1665,7 +1666,7 @@ struct LightParams
       roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
    #endif
 
-      VecH F=F_Schlick(reflectivity, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
+      VecH F=F_Schlick(reflect_col, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
    #if 0
       Half D=D_GGX(roughness, NdotH_HP);
       Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
@@ -1754,7 +1755,7 @@ VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
+VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bool quality)
 {
    // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
@@ -1763,10 +1764,10 @@ Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
 
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
-   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity);
-   return reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
+   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity); // FIXME this should be based on 'metal' or 'reflectivity' or Max(reflect_col) or reflect_col and use mad_x as VecH?
+   return reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
 #else // same results but slower
-   return (reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
+   return (reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
 #endif
 }
 Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
@@ -1779,11 +1780,11 @@ VecH ReflectTex(Vec reflect_dir, Half smooth)
 }
 VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
 {
-   Half inv_metal=ReflectToInvMetal(reflectivity);
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
    return lit_col*Diffuse(inv_metal)
-         +ReflectCol(unlit_col, inv_metal)*
-            (ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, NdotV, quality))
-            +spec);
+         +spec
+         +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, quality);
 }
 VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {

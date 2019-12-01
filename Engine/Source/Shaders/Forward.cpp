@@ -460,6 +460,9 @@ VecH4 PS
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, col, inv_metal); // calc 'reflect_col' from unlit color
+
    // lighting
    VecH ambient;
    if(HAS_AMBIENT && !AMBIENT_IN_VTX)
@@ -520,15 +523,10 @@ VecH4 PS
          {
             // light #1
             lp.set(nrm, light_dir, eye_dir);
-            
-            // specular
-            Half specular=lp.specular(smooth, reflectivity, false)*lum;
 
-            // diffuse !! after specular because it adjusts 'lum' !!
-            lum*=lp.diffuse(smooth);
-
-            total_lum     +=LightDir.color.rgb*lum     ;
-            total_specular+=LightDir.color.rgb*specular;
+            VecH            lum_rgb=LightDir.color.rgb*lum;
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
          }
       }
       #endif
@@ -555,14 +553,9 @@ VecH4 PS
             // light #1
             lp.set(nrm, light_dir, eye_dir);
             
-            // specular
-            Half specular=lp.specular(smooth, reflectivity, false)*lum;
-
-            // diffuse !! after specular because it adjusts 'lum' !!
-            lum*=lp.diffuse(smooth);
-
-            total_lum     +=LightPoint.color.rgb*lum     ;
-            total_specular+=LightPoint.color.rgb*specular;
+            VecH            lum_rgb=LightPoint.color.rgb*lum;
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
          }
       }
       #endif
@@ -589,14 +582,9 @@ VecH4 PS
             // light #1
             lp.set(nrm, light_dir, eye_dir);
             
-            // specular
-            Half specular=lp.specular(smooth, reflectivity, false)*lum;
-
-            // diffuse !! after specular because it adjusts 'lum' !!
-            lum*=lp.diffuse(smooth);
-
-            total_lum     +=LightLinear.color.rgb*lum     ;
-            total_specular+=LightLinear.color.rgb*specular;
+            VecH            lum_rgb=LightLinear.color.rgb*lum;
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
          }
       }
       #endif
@@ -626,14 +614,9 @@ VecH4 PS
                // light #1
                lp.set(nrm, light_dir, eye_dir);
             
-               // specular
-               Half specular=lp.specular(smooth, reflectivity, false)*lum;
-
-               // diffuse !! after specular because it adjusts 'lum' !!
-               lum*=lp.diffuse(smooth);
-
-               total_lum     +=LightCone.color.rgb*lum     ;
-               total_specular+=LightCone.color.rgb*specular;
+               VecH            lum_rgb=LightCone.color.rgb*lum;
+               total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
+               total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
             }
          }
       }
@@ -642,9 +625,7 @@ VecH4 PS
    #endif
 
    // reflection
-   Half inv_metal=ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol(col, inv_metal); // calc 'reflect_col' from unlit color
-   col=col*total_lum*Diffuse(inv_metal) + reflect_col*total_specular;
+   col=col*total_lum*Diffuse(inv_metal) + total_specular;
 #if REFLECT
    if(FirstPass) // add reflection only for the fist pass
    {
@@ -653,8 +634,7 @@ VecH4 PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      col+=reflect_col*
-         ReflectTex(reflect_dir, smooth)*(EnvColor*ReflectEnv(smooth, reflectivity, -Dot(nrm, eye_dir), false));
+      col+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, -Dot(nrm, eye_dir), false);
    }
 #endif
 

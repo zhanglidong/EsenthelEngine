@@ -159,12 +159,11 @@ void Surface_VS
    outVtx=Project(view_pos);
 }
 /******************************************************************************/
-void WaterReflectColor(inout VecH water_col, inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex, Vec2 refract, Half plane_dist)
+void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex, Vec2 refract, Half plane_dist)
 {
    #if REFLECT_ENV || REFLECT_MIRROR
    {
-      water_col.rgb*=1-WaterMaterial.reflect;
-      Half reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
+      VecH reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
 
    #if REFLECT_ENV
       Vec  reflect_dir=ReflectDir(eye_dir, nrm); if(1)reflect_dir.y=Max(0, reflect_dir.y); // don't go below water level (to skip showing ground)
@@ -254,19 +253,14 @@ void Surface_PS
       // light #1
       lp.set(nrm, light_dir, eye_dir);
             
-      // specular
-      Half specular=lp.specular(WaterMaterial.smooth, WaterMaterial.reflect, false)*lum;
-
-      // diffuse !! after specular because it adjusts 'lum' !!
-      lum*=lp.diffuseWater();
-
-      total_lum     +=LightDir.color.rgb*lum     ;
-      total_specular+=LightDir.color.rgb*specular;
+      VecH            lum_rgb=LightDir.color.rgb*lum;
+      total_lum     +=lum_rgb*lp.diffuseWater(                                                                         ); // diffuse
+      total_specular+=lum_rgb*lp.specular    (WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, false); // specular
    }
    water_col.rgb*=total_lum;
 
    // reflection
-   WaterReflectColor(water_col.rgb, total_specular, nrm, eye_dir, inTex, refract, inPlaneDist);
+   WaterReflectColor(total_specular, nrm, eye_dir, inTex, refract, inPlaneDist);
 
    if(SOFT)
    {
@@ -348,7 +342,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
       water_col.rgb*=lum;
-      WaterReflectColor(water_col.rgb, spec, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
+      WaterReflectColor(spec, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
 
    #if REFRACT
       Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
@@ -378,7 +372,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          VecH4 back_col=TexLodClamp(Img2, back_tex);
          water_col=Lerp(back_col, water_col, alpha);
       }
-      water_col.rgb+=total_specular; // independent of alpha
+      water_col.rgb+=spec; // independent of alpha
       return water_col;
    }
    return TexLodClamp(Img2, inTex);
