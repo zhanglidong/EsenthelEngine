@@ -98,6 +98,7 @@ static void Compile(API api)
       src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS");
 
       src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
+      src.New("ClearLight"   , "Draw_VS"         , "ClearLight_PS");
 
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");

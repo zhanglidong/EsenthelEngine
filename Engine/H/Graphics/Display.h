@@ -433,6 +433,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
    static void clearDS     (Byte s=0            ); // clear depth buffer and stencil (if available)
    static void clearStencil(Byte s=0            ); // clear                  stencil
    static void clearCol    (Int i, C Vec4 &color); // clear i-th full (not viewport) RT to 'color'
+
+   Bool mergedClear()C {return _view_main.full || TILE_BASED_GPU;} // use only when having full viewport ("clearCol(Int i" ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
 #endif
 
    // operations

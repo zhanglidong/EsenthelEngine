@@ -1076,14 +1076,14 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 void DrawPixel_VS(VtxInput vtx,
       NOPERSP out Vec4 outVtx:POSITION)
 {
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex:TEXCOORD0,
  NOPERSP out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex  :TEXCOORD0,
@@ -1092,7 +1092,7 @@ void DrawPosXY_VS(VtxInput vtx,
 {
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
-   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex:TEXCOORD,
@@ -1566,7 +1566,7 @@ Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form 
 Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
 VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   if(1)inv_metal=Sqr(inv_metal); // FIXME // apply square because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+   if(1)inv_metal=Sqr(inv_metal); // FIXMENOW // apply square because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
  //return Lerp(reflectivity, unlit_col,     metal);
    return Lerp(unlit_col, reflectivity, inv_metal);
 }
@@ -1764,7 +1764,7 @@ VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bo
 
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
-   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity); // FIXME this should be based on 'metal' or 'reflectivity' or Max(reflect_col) or reflect_col and use mad_x as VecH?
+   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity); // FIXMENOW this should be based on 'metal' or 'reflectivity' or Max(reflect_col) or reflect_col and use mad_x as VecH?
    return reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
 #else // same results but slower
    return (reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));

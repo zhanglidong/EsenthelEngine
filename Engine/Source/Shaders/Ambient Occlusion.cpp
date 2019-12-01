@@ -71,7 +71,7 @@ void AO_VS
 #if (NORMALS && !GEOM) || (!NORMALS && GEOM)
    outPosXY1=ScreenToPosXY(outTex+RTSize.xy);
 #endif
-   outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 
 /*#define NUM_DIRECTIONS 16

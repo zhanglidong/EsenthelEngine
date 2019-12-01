@@ -188,6 +188,7 @@ struct MainShaderClass
       *DrawMsN,
       *DrawMsM,
       *ClearDeferred,
+      *ClearLight   ,
 
       // BLUR
       #define SHADER_BLUR_RANGE 5 // 5 pixel range in both directions

@@ -454,7 +454,7 @@ void ClearDeferred_VS(VtxInput vtx,
    outVel=outVel*0.5+0.5;
 #endif
 
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
            out DeferredSolidOutput output) // #RTOutput
@@ -466,6 +466,13 @@ void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision 
    output.smooth     (0);
    output.reflect    (0);
    output.velocityRaw(inVel);
+}
+/******************************************************************************/
+void ClearLight_PS(out VecH lum :TARGET0,
+                   out VecH spec:TARGET1)
+{
+   lum =Color[0].rgb;
+   spec=0;
 }
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams

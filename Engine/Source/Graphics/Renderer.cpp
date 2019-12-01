@@ -971,7 +971,7 @@ start:
                _vel.get(ImageRTDesc(_col->w(), _col->h(), alpha ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
          }
 
-         const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
+         const Bool merged_clear=D.mergedClear(),
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
                      clear_ext  =(EXT_CLEAR_START && NeedBackgroundExt()),
                      clear_vel  =(VEL_CLEAR_START && _vel);
@@ -981,7 +981,7 @@ start:
         _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_A1_H : (D.signedNrmRT() ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1), _col->samples())); // here Alpha is unused
 
          if(!merged_clear)
-         {
+         { // clear from last to first to minimize RT changes
             if(clear_vel)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
             if(clear_ext)_ext->clearViewport();
             if(clear_nrm)_nrm->clearViewport(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);

@@ -572,6 +572,7 @@ void MainShaderClass::getTechniques()
    {
       // CLEAR
       ClearDeferred=get("ClearDeferred");
+      ClearLight   =get("ClearLight"   );
 
    #if !SLOW_SHADER_LOAD
       // SHADOW
