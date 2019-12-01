@@ -1477,23 +1477,23 @@ Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this mat
 #include "!Set Prec Struct.h"
 struct GpuLightDir
 {
-   Vec   dir; // high precision needed for HQ specular
-   VecH4 color; // a=spec
-   VecH  vol_exponent_steam;
+   Vec  dir; // high precision needed for HQ specular
+   VecH color;
+   VecH vol_exponent_steam;
 };
 struct GpuLightPoint
 {
-   Flt   power;
-   Half  lum_max, vol, vol_max;
-   Vec   pos;
-   VecH4 color; // a=spec
+   Flt  power;
+   Half lum_max, vol, vol_max;
+   Vec  pos;
+   VecH color;
 };
 struct GpuLightLinear
 {
-   Flt   neg_inv_range;
-   Half  vol, vol_max;
-   Vec   pos;
-   VecH4 color; // a=spec
+   Flt  neg_inv_range;
+   Half vol, vol_max;
+   Vec  pos;
+   VecH color;
 };
 struct GpuLightCone
 {
@@ -1501,7 +1501,7 @@ struct GpuLightCone
    Half     scale, vol, vol_max;
    Vec2     falloff;
    Vec      pos;
-   VecH4    color; // a=spec
+   VecH     color;
    MatrixH3 mtrx;
 };
 
@@ -1518,11 +1518,13 @@ Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .fall
 
 Half F_Schlick(Half f0, Half f90, Half cos) // High Precision not needed
 {
-   return (f90-f0)*Quint(1-cos) + f0; // Quint(1-c) = ~exp2(-9.28*c)
+   Half q=Quint(1-cos); // Quint(1-x) = ~exp2(-9.28*x)
+   return (f90-f0)*q + f0;
 }
-Half F_Schlick(VecH f0, Half f90, Half cos) // High Precision not needed
+VecH F_Schlick(VecH f0, Half f90, Half cos) // High Precision not needed
 {
-   return (f90-f0)*Quint(1-cos) + f0; // Quint(1-c) = ~exp2(-9.28*c)
+   Half q=Quint(1-cos); // Quint(1-x) = ~exp2(-9.28*x)
+   return f90*q + f0*(1-q); // re-ordered because of Vec
 }
 Half Vis_SmithR2Inv(Half roughness2, Half NdotL, Half NdotV) // High Precision not needed, "roughness2=Sqr(roughness)", result is inversed 1/x
 {
@@ -1632,7 +1634,7 @@ struct LightParams
    #endif
    }
 
-   Half specular(Half smooth, Half reflectivity, Bool quality)
+   VecH specular(VecH unlit_col, Half smooth, Half reflectivity, Bool quality)
    {
       // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
       const Half light_radius=0.0036;
@@ -1647,14 +1649,14 @@ struct LightParams
       roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
    #endif
 
-      Half F=F_Schlick(reflectivity, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
+      VecH F=F_Schlick(reflectivity, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
    #if 0
       Half D=D_GGX(roughness, NdotH_HP);
       Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
-      return F*D*Vis/PI;
+      return F*(D*Vis/PI);
    #else
       Half D_Vis=D_GGX_Vis_Smith(roughness, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
-      return F*D_Vis/PI;
+      return F*(D_Vis/PI);
    #endif
    }
 };

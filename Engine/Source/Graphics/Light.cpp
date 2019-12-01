@@ -118,11 +118,16 @@ void RendererClass::getShdRT()
 
 static void GetLum()
 {
-                                   Renderer._lum   .get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, Renderer._col->samples())); // here Alpha is used for specular
-   if(Renderer._lum->multiSample())Renderer._lum_1s.get(ImageRTDesc(Renderer._lum->w(), Renderer._lum->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA));else Renderer._lum_1s=Renderer._lum;
+   ImageRTDesc rt_desc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGB_H : IMAGERT_SRGB, Renderer._col->samples());
+                                    Renderer._lum    .get(rt_desc);
+                                    Renderer._spec   .get(rt_desc);
+   rt_desc.samples=1;
+   if(Renderer._lum ->multiSample())Renderer._lum_1s .get(rt_desc);else Renderer._lum_1s =Renderer._lum ;
+   if(Renderer._spec->multiSample())Renderer._spec_1s.get(rt_desc);else Renderer._spec_1s=Renderer._spec;
 }
 static Bool SetLum()
 {
+   // FIXME
    Bool set=!Renderer._lum; if(set)GetLum();
    Renderer.set(Renderer._lum_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
    if(set)
@@ -132,11 +137,13 @@ static Bool SetLum()
    }
    D.alpha(ALPHA_ADD);
    Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
+   Sh.Img[1]->set(Renderer._col); Sh.ImgMS[1]->set(Renderer._col);
    Sh.ImgXY ->set(Renderer._ext); Sh.ImgXYMS ->set(Renderer._ext);
    return set;
 }
 void RendererClass::getLumRT() // this is called after drawing all lights, in order to make sure we have some RT's (in case there are no lights), after this ambient meshes will be drawn
 {
+   // FIXME
    if(!_lum)
    {
       GetLum();
@@ -145,10 +152,16 @@ void RendererClass::getLumRT() // this is called after drawing all lights, in or
    }
 }
 
-static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGBA)); Water.set();} // here Alpha is used for specular, set main water material to set default "smoothness, reflectivity" in case we don't use '_water_ext' #WaterExt
-       void RendererClass::getWaterLumRT() {if(!_water_lum){GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorD(), 0));}}
-static void                SetWaterLum  ()
+static void GetWaterLum()
 {
+   ImageRTDesc rt_desc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGB);
+   Renderer._water_lum .get(rt_desc);
+   Renderer._water_spec.get(rt_desc);
+   Water.set(); // set main water material to set default "smoothness, reflectivity" in case we don't use '_water_ext' #WaterExt
+}
+static void SetWaterLum()
+{
+   // FIXME
    Bool set=!Renderer._water_lum; if(set)GetWaterLum();
    Renderer.set(Renderer._water_lum, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
    if(set)
@@ -158,9 +171,17 @@ static void                SetWaterLum  ()
    }
    D.alpha(ALPHA_ADD);
    Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
+ //Sh.Img[1]->set(Renderer._water_col); Sh.ImgMS[1]->set(Renderer._water_col); ignored for water and copied from water reflectivity #WaterExt
  //Sh.ImgXY ->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext); Water doesn't have EXT #WaterExt
 }
-
+void RendererClass::getWaterLumRT()
+{
+   // FIXME
+   if(!_water_lum)
+   {
+      GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorD(), 0));
+   }
+}
 static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=null)
 {
    if(D.shadowSoft()) // !! 'D.shadowSoft' values need to be in sync with 'D.ambientSoft' !!
@@ -250,26 +271,23 @@ void LightCone  ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt ima
 struct GpuLightDir
 {
    Vec dir, color;
-   Flt spec, vol, vol_exponent, vol_steam;
+   Flt vol, vol_exponent, vol_steam;
 };
 struct GpuLightPoint
 {
    Flt power, lum_max, vol, vol_max;
    Vec pos, color;
-   Flt spec;
 };
 struct GpuLightLinear
 {
    Flt neg_inv_range, vol, vol_max;
    Vec pos, color;
-   Flt spec;
 };
 struct GpuLightCone
 {
    Flt     neg_inv_range, scale, vol, vol_max;
    Vec2    falloff;
    Vec     pos, color;
-   Flt     spec;
    Matrix3 mtrx;
 };
 #pragma pack(pop)
@@ -278,7 +296,6 @@ void LightDir::set()
    GpuLightDir l;
    l.dir         .fromDivNormalized(dir, CamMatrix.orn()).chs();
    l.color       =LinearToDisplay(color_l);
-   l.spec        =color_l.max();
    l.vol         =vol;
    l.vol_exponent=vol_exponent;
    l.vol_steam   =vol_steam;
@@ -293,7 +310,6 @@ void LightPoint::set(Flt shadow_opacity)
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
    l.color  =LinearToDisplay(color_l);
-   l.spec   =color_l.max();
    Sh.LightPoint->set(l);
 }
 void LightLinear::set(Flt shadow_opacity)
@@ -304,7 +320,6 @@ void LightLinear::set(Flt shadow_opacity)
    l.vol_max      =vol_max;
    l.pos          .fromDivNormalized(pos, CamMatrix);
    l.color        =LinearToDisplay(color_l);
-   l.spec         =color_l.max();
    Sh.LightLinear->set(l);
 }
 void LightCone::set(Flt shadow_opacity)
@@ -318,7 +333,6 @@ void LightCone::set(Flt shadow_opacity)
    l.vol          = vol*shadow_opacity;
    l.vol_max      = vol_max;
    l.color        = LinearToDisplay(color_l);
-   l.spec         = color_l.max();
    l.neg_inv_range=-1/pyramid.h;
    l.scale        = pyramid.scale;
    l.mtrx.x       =-pyramid.cross()/pyramid.scale;
@@ -1192,10 +1206,10 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightDir(false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1275,10 +1289,10 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightPoint(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1358,10 +1372,10 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightLinear(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1430,7 +1444,7 @@ void Light::draw()
          if(CurrentLight.image)
          {
             Sh.LightMapScale->set(CurrentLight.image_scale);
-            Sh.Img[1]       ->set(CurrentLight.image      );
+            Sh.Img[2]       ->set(CurrentLight.image      );
          }
          Bool clear=SetLum();
          D.depth2DOn(depth_func);
@@ -1444,10 +1458,10 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightCone(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);

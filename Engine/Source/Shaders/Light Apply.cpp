@@ -5,9 +5,11 @@
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
 
 // MULTI_SAMPLE, AO, CEL_SHADE, NIGHT_SHADE, GLOW, REFLECT
+// Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, Img3=Spec, ImgMS3=Spec, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img4=CelShade
 /******************************************************************************/
-Half CelShade(Half lum) {return TexLod(Img3, VecH2(lum, 0.5)).x;} // have to use linear filtering
+Half CelShade(Half lum) {return TexLod(Img4, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
+// FIXME
 VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
 #if GLOW
@@ -52,7 +54,6 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH4 lum, Half ao, VecH night_shad
    return lit_col;
 }
 /******************************************************************************/
-// Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img3=CelShade
 VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
                     NOPERSP PIXEL):TARGET

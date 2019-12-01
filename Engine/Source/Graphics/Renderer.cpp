@@ -469,12 +469,15 @@ void RendererClass::cleanup ()
   _alpha       .clear();
   _lum         .clear();
   _lum_1s      .clear();
+  _spec        .clear();
+  _spec_1s     .clear();
   _shd_1s      .clear();
   _shd_ms      .clear();
   _water_col   .clear();
   _water_nrm   .clear();
   _water_ds    .clear();
   _water_lum   .clear();
+  _water_spec  .clear();
   _vol         .clear();
   _ao          .clear();
   _mirror_rt   .clear();
@@ -1311,7 +1314,7 @@ void RendererClass::light()
    {
       /*
       -set '_ao' as Ambient Occlusion (one channel, without D.ambientColor)
-      -clear '_lum' and '_lum_1s'
+      -clear '_lum', '_lum_1s', '_spec', '_spec_1s'
       -add ambient light from meshes
       -calculate screen space light (on MSAA and non-MSAA)
       -final light = sum of all buffers together
@@ -1355,7 +1358,8 @@ void RendererClass::light()
       Sh.Img  [0]->set(_nrm                );
       Sh.Img  [1]->set( src                );
       Sh.Img  [2]->set(_lum_1s             );
-      Sh.Img  [3]->set( cel_shade_palette());
+      Sh.Img  [3]->set(_spec_1s            );
+      Sh.Img  [4]->set( cel_shade_palette());
       Sh.ImgX [0]->set(_ao                 );
       Sh.ImgXY   ->set(_ext                );
 
@@ -1364,10 +1368,11 @@ void RendererClass::light()
       if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
       if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow, env)->draw();else
       {
-         Sh.ImgMS[0]->set(_nrm);
-         Sh.ImgMS[1]->set( src);
-         Sh.ImgMS[2]->set(_lum);
-         Sh.ImgXYMS ->set(_ext);
+         Sh.ImgMS[0]->set(_nrm );
+         Sh.ImgMS[1]->set( src );
+         Sh.ImgMS[2]->set(_lum );
+         Sh.ImgMS[3]->set(_spec);
+         Sh.ImgXYMS ->set(_ext );
          if(hasStencilAttached())
          {
             D.stencil   (STENCIL_MSAA_TEST, 0); GetApplyLight(1, ao, cel_shade, night_shade, glow, env)->draw(); // 1 sample
@@ -1381,12 +1386,15 @@ void RendererClass::light()
          }
       }
       D.depth2DOff();
-      if(_lum!=_lum_1s && (_has_fur || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
-            src.clear();
-           _nrm.clear();
-   //_water_nrm.clear(); we may still need it for refraction
-           _ext.clear();
-           _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
+      if(_lum !=_lum_1s  && (  _has_fur ||   stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s , null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum );} // need to apply multi-sampled lum  to 1-sample for fur and light stage
+      if(_spec!=_spec_1s && (/*_has_fur ||*/ stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_spec_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_spec);} // need to apply multi-sampled spec to 1-sample for         light stage
+            src    .clear();
+           _nrm    .clear();
+   //_water_nrm    .clear(); we may still need it for refraction
+           _ext    .clear();
+           _lum    .clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
+           _spec   .clear();
+           _spec_1s.clear();
    }
 }
 Bool RendererClass::waterPostLight()
@@ -1424,9 +1432,10 @@ Bool RendererClass::waterPostLight()
 
       Water.set();
       Water.setImages(src, _water_ds);
-      Sh.Img[0]->set(_water_nrm); // 'Img0' required by shader 'GetNormal', 'GetNormalMS' functions
-      Sh.Img[3]->set(_water_col);
-      Sh.Col[0]->set(_water_lum); MaterialClear(); // have to re-use Material texture shader image, because there are no other left, so have to call 'MaterialClear', no need for 'WaterMtrlLast' because we will don't draw any water after this, and later 'WaterMtrlLast' is automatically cleared at start of new water rendering
+      Sh.Img[0]->set(_water_nrm ); // 'Img0' required by shader 'GetNormal', 'GetNormalMS' functions
+      Sh.Img[3]->set(_water_col );
+      Sh.Img[4]->set(_water_lum );
+      Sh.Img[5]->set(_water_spec);
       Shader *shader=WS.Apply[depth_test][Water._shader_reflect_env][Water._shader_reflect_mirror][refract]; // we need to output depth only if we need it for depth testing
       REPS(_eye, _eye_num)
       {
@@ -1461,11 +1470,12 @@ Bool RendererClass::waterPostLight()
          case RS_WATER_LIGHT : if(show(_water_lum, true                  ))return true; break;
       }
    }
-  _water_col.clear();
-  _water_nrm.clear();
-  _water_ds .clear();
-  _water_lum.clear();
-  _mirror_rt.clear();
+  _water_col .clear();
+  _water_nrm .clear();
+  _water_ds  .clear();
+  _water_lum .clear();
+  _water_spec.clear();
+  _mirror_rt .clear();
    return false;
 }
 void RendererClass::edgeDetect()

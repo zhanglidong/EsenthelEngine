@@ -312,7 +312,7 @@ void Surface_PS
 #endif
 }
 /******************************************************************************/
-// Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
+// Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Img4=Water RT Lum, Img5=Water RT Lum Spec
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
 // REFRACT, SET_DEPTH, REFLECT_ENV, REFLECT_MIRROR, GATHER
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -341,16 +341,14 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       VecH4 water_col;
       water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
       water_col.a=0;
-      VecH4 lum=TexLod(Col, inTex); // water surface light
-      Vec   nrm=GetNormal(inTex).xyz; // water surface normals
-      Vec   nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
-      Vec2  refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
+      VecH lum =TexLod(Img4, inTex); // water surface light
+      VecH spec=TexLod(Img5, inTex); // water surface light specular
+      Vec  nrm =GetNormal(inTex).xyz; // water surface normals
+      Vec  nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
+      Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
-      VecH total_lum     =lum.rgb,
-           total_specular=(lum.w/Max(Max(lum.rgb), HALF_MIN))*lum.rgb;
-
-      water_col.rgb*=total_lum;
-      WaterReflectColor(water_col.rgb, total_specular, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
+      water_col.rgb*=lum;
+      WaterReflectColor(water_col.rgb, spec, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
 
    #if REFRACT
       Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);

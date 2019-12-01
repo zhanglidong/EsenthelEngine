@@ -43,9 +43,9 @@ void Geom_VS // for 3D Geom
 #endif
 }
 /******************************************************************************/
-// Img=Nrm (this also used for Water Apply shader), ImgMS=NrmMS, ImgXY=Ext, ImgXYMS=ExtMS, Img1=ConeLight.Lightmap, ImgX=shadow
+// Img=Nrm (this also used for Water Apply shader), ImgMS=NrmMS, Img1=Col, ImgMS1=ColMS, ImgXY=Ext, ImgXYMS=ExtMS, Img2=ConeLight.Lightmap, ImgX=shadow
 /******************************************************************************/
-VecH4 LightDir_PS
+VecH LightDir_PS
 (
    NOPERSP Vec2 inTex  :TEXCOORD0,
    NOPERSP Vec2 inPosXY:TEXCOORD1
@@ -53,6 +53,7 @@ VecH4 LightDir_PS
  , NOPERSP PIXEL // 2D
  ,         UInt index  :SV_SampleIndex
 #endif
+ , out VecH outSpec:TARGET1
 ):TARGET
 {
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
@@ -75,33 +76,35 @@ VecH4 LightDir_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    Half lum=lp.NdotL; if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightDir.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return LightDir.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
-   // ext
+   // ext+col
 #if WATER
-   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext=GetExtMS(pixel.xy, index);
+   VecH2 ext      =GetExtMS (pixel.xy, index);
+   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext=GetExt(inTex);
+   VecH2 ext      =GetExt  (inTex);
+   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
    Vec eye_dir=Normalize(Vec(inPosXY, 1));
    lp.set(nrm.xyz, light_dir, eye_dir);
+   VecH lum_rgb=LightDir.color.rgb*lum;
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
+   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
 
-   // diffuse !! after specular because it adjusts 'lum' !!
-   lum*=lp.diffuse(ext.x); // #RTOutput
-
-   return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
+   // diffuse !! after specular because it adjusts 'lum_rgb' !!
+   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
 }
 /******************************************************************************/
-VecH4 LightPoint_PS
+VecH LightPoint_PS
 (
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
@@ -113,6 +116,7 @@ VecH4 LightPoint_PS
  ,         UInt index  :SV_SampleIndex
 #endif
 #endif
+ , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
@@ -149,33 +153,35 @@ VecH4 LightPoint_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
-   // ext
+   // ext+col
 #if WATER
-   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext=GetExtMS(pixel.xy, index);
+   VecH2 ext      =GetExtMS (pixel.xy, index);
+   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext=GetExt(inTex);
+   VecH2 ext      =GetExt  (inTex);
+   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
+   VecH lum_rgb=LightPoint.color.rgb*lum;
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
+   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
 
-   // diffuse !! after specular because it adjusts 'lum' !!
-   lum*=lp.diffuse(ext.x); // #RTOutput
-
-   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);
+   // diffuse !! after specular because it adjusts 'lum_rgb' !!
+   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
 }
 /******************************************************************************/
-VecH4 LightLinear_PS
+VecH LightLinear_PS
 (
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
@@ -187,6 +193,7 @@ VecH4 LightLinear_PS
  ,         UInt index  :SV_SampleIndex
 #endif
 #endif
+ , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
@@ -223,33 +230,35 @@ VecH4 LightLinear_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return VecH4(LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL), 0); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM)return LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
-   // ext
+   // ext+col
 #if WATER
-   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext=GetExtMS(pixel.xy, index);
+   VecH2 ext      =GetExtMS (pixel.xy, index);
+   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext=GetExt(inTex);
+   VecH2 ext      =GetExt  (inTex);
+   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
+   VecH lum_rgb=LightLinear.color.rgb*lum;
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
+   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
 
-   // diffuse !! after specular because it adjusts 'lum' !!
-   lum*=lp.diffuse(ext.x); // #RTOutput
-
-   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);
+   // diffuse !! after specular because it adjusts 'lum_rgb' !!
+   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
 }
 /******************************************************************************/
-VecH4 LightCone_PS
+VecH LightCone_PS
 (
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
@@ -261,6 +270,7 @@ VecH4 LightCone_PS
  ,         UInt index  :SV_SampleIndex
 #endif
 #endif
+ , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
@@ -302,40 +312,39 @@ VecH4 LightCone_PS
       if(!WATER && nrm.w && -lum>EPS_LUM) // #RTOutput translucent
       {
          lum*=-TRANSLUCENT_VAL;
+         VecH lum_rgb=LightCone.color.rgb*lum;
       #if IMAGE
-         VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
-         return VecH4(LightCone.color.rgb*lum*map_col, 0);
-      #else
-         return VecH4(LightCone.color.rgb*lum, 0);
+         lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
       #endif
+         return lum_rgb;
       }
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
-   // ext
+   // ext+col
 #if WATER
-   VecH2 ext={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have EXT #WaterExt
+   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext=GetExtMS(pixel.xy, index);
+   VecH2 ext      =GetExtMS (pixel.xy, index);
+   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext=GetExt(inTex);
+   VecH2 ext      =GetExt  (inTex);
+   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
    Vec eye_dir=Normalize(pos);
    lp.set(nrm.xyz, light_dir, eye_dir);
+   VecH lum_rgb=LightCone.color.rgb*lum;
+#if IMAGE
+   lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
+#endif
 
    // specular
-   Half specular=lp.specular(ext.x, ext.y, true)*lum; // #RTOutput
+   outSpec=lp.specular(unlit_col, ext.x, ext.y, true)*lum_rgb; // #RTOutput
 
-   // diffuse !! after specular because it adjusts 'lum' !!
-   lum*=lp.diffuse(ext.x); // #RTOutput
-
-#if IMAGE
-   VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
-   return VecH4(LightCone.color.rgb*lum*map_col, LightCone.color.a*specular);
-#else
-   return VecH4(LightCone.color.rgb*lum, LightCone.color.a*specular);
-#endif
+   // diffuse !! after specular because it adjusts 'lum_rgb' !!
+   return lum_rgb*lp.diffuse(ext.x); // #RTOutput
 }
 /******************************************************************************/
