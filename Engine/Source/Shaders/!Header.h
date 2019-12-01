@@ -434,7 +434,7 @@ Image     Ext, Ext1, Ext2, Ext3,
 #define    BUMP_CHANNEL z
 #define   ALPHA_CHANNEL w
 
-Image     Img, Img1, Img2, Img3;
+Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY, EnvDFG;
@@ -442,7 +442,7 @@ ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
 
-Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2;
+Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2, ImgMS3;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
