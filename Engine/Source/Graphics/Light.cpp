@@ -23,6 +23,8 @@
 #endif
 
 namespace EE{
+/******************************************************************************/
+static inline Bool NeedBackgroundLum() {return !Sky.isActual() || Renderer.stage==RS_LIGHT || Renderer.stage==RS_LIGHT_AO;}
 /******************************************************************************
 
    Hardware Shadow Map RT is created with resolution:
@@ -109,13 +111,35 @@ static void RestoreViewSpaceBias(Flt mp_z_z)
 {
    if(FovPerspective(D.viewFovMode())){ProjMatrix.z.z=mp_z_z; SetProjMatrix();}
 }
+/******************************************************************************/
 void RendererClass::getShdRT()
 { // always do 'get' to call 'discard', do "ImgX[0]->set" it will be used by drawing lights 'Light.draw, drawForward' (GetDrawLight*->draw) and 'MapSoft'
                                   {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.ImgX[0]->set(Renderer._shd_1s);}
    if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.ImgXMS ->set(Renderer._shd_ms);}
    D.alpha(ALPHA_NONE);
 }
-
+/******************************************************************************/
+static void ClearLumSeparate(C Vec4 &lum_color, C ImageRTPtr &lum, C ImageRTPtr &spec)
+{ // clear from last to first to minimize RT changes, 'clearViewport' ignores depth usage for 'D.depth2D'
+   spec->clearViewport(Vec4Zero );
+   lum ->clearViewport(lum_color);
+}
+static void ClearLumMerged(C Vec4 &lum_color)
+{
+   if(D._view_main.full)
+   { // 'D.clearCol(Int I' ignores depth usage for 'D.depth2D'
+      D.clearCol(0, lum_color);
+      D.clearCol(1, Vec4Zero );
+   }else
+   {
+      if(!NeedBackgroundLum())D.depth2DOn();else D.depth2DOff(); // if don't need background lum, then enable depth usage so we can clear light only for valid pixels
+      D.alpha(ALPHA_NONE);
+      Sh.Color[0]  ->set(lum_color);
+      Sh.ClearLight->draw();
+    //D.depth2DOff(); ignore this because 'D.depth' is set always when needed
+   }
+}
+/******************************************************************************/
 static void GetLum()
 {
    ImageRTDesc rt_desc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGB_H : IMAGERT_SRGB, Renderer._col->samples());
@@ -127,31 +151,56 @@ static void GetLum()
 }
 static Bool SetLum()
 {
-   // FIXME
-   Bool set=!Renderer._lum; if(set)GetLum();
-   Renderer.set(Renderer._lum_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
-   if(set)
+   Vec4    lum_color;
+   Bool merged_clear;
+   Bool clear=!Renderer._lum; if(clear)
    {
-      D.depthUnlock(    ); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
-      D.depthLock  (true);
+      GetLum();
+             lum_color=(Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
+          merged_clear=D.mergedClear();
+      if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum_1s, Renderer._spec_1s);
    }
+   Renderer.set(Renderer._lum_1s, Renderer._spec_1s, null, null, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
+   if(clear && merged_clear)ClearLumMerged(lum_color);
    D.alpha(ALPHA_ADD);
    Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
    Sh.Img[1]->set(Renderer._col); Sh.ImgMS[1]->set(Renderer._col);
    Sh.ImgXY ->set(Renderer._ext); Sh.ImgXYMS ->set(Renderer._ext);
-   return set;
+   return clear;
+}
+static void SetLumMS(Bool clear)
+{
+   Vec4    lum_color;
+   Bool merged_clear;
+   if(clear)
+   {
+      D.stencil(STENCIL_NONE);
+      lum_color=(Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
+          merged_clear=D.mergedClear();
+      if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum, Renderer._spec);
+   }
+   Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+   if(clear && merged_clear)ClearLumMerged(lum_color);
 }
 void RendererClass::getLumRT() // this is called after drawing all lights, in order to make sure we have some RT's (in case there are no lights), after this ambient meshes will be drawn
 {
-   // FIXME
    if(!_lum)
    {
       GetLum();
-      if(_lum_1s!=_lum)_lum_1s->clearViewport();
-                       _lum   ->clearViewport((_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
+      Vec4    lum_color=(_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
+      Bool merged_clear=D.mergedClear();
+      if( !merged_clear)
+      {
+         if(_lum_1s!=_lum)ClearLumSeparate(Vec4Zero , _lum_1s, _spec_1s);
+                          ClearLumSeparate(lum_color, _lum   , _spec   );
+      }else
+      {
+         if(_lum_1s!=_lum){set(_lum_1s, _spec_1s, null, null, _ds_1s, true, NEED_DEPTH_READ); ClearLumMerged(Vec4Zero );}
+                           set(_lum   , _spec   , null, null, _ds   , true, NEED_DEPTH_READ); ClearLumMerged(lum_color);
+      }
    }
 }
-
+/******************************************************************************/
 static void GetWaterLum()
 {
    ImageRTDesc rt_desc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGB);
@@ -161,14 +210,17 @@ static void GetWaterLum()
 }
 static void SetWaterLum()
 {
-   // FIXME
-   Bool set=!Renderer._water_lum; if(set)GetWaterLum();
-   Renderer.set(Renderer._water_lum, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
-   if(set)
+   Vec4    lum_color;
+   Bool merged_clear;
+   Bool clear=!Renderer._water_lum; if(clear)
    {
-      D.depthUnlock(    ); D.clearCol(Vec4(D.ambientColorD(), 0));
-      D.depthLock  (true);
+      GetWaterLum();
+             lum_color=Vec4(D.ambientColorD(), 0);
+          merged_clear=D.mergedClear();
+      if(!merged_clear)ClearLumSeparate(lum_color, Renderer._water_lum, Renderer._water_spec);
    }
+   Renderer.set(Renderer._water_lum, Renderer._water_spec, null, null, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+   if(clear && merged_clear)ClearLumMerged(lum_color);
    D.alpha(ALPHA_ADD);
    Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
  //Sh.Img[1]->set(Renderer._water_col); Sh.ImgMS[1]->set(Renderer._water_col); ignored for water and copied from water reflectivity #WaterExt
@@ -176,12 +228,16 @@ static void SetWaterLum()
 }
 void RendererClass::getWaterLumRT()
 {
-   // FIXME
    if(!_water_lum)
    {
-      GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorD(), 0));
+      GetWaterLum();
+      Vec4    lum_color=Vec4(D.ambientColorD(), 0);
+      Bool merged_clear=D.mergedClear();
+      if( !merged_clear){                                                                      ClearLumSeparate(lum_color, _water_lum, _water_spec);}
+      else              {set(_water_lum, _water_spec, null, null, _ds, true, NEED_DEPTH_READ); ClearLumMerged  (lum_color);}
    }
 }
+/******************************************************************************/
 static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=null)
 {
    if(D.shadowSoft()) // !! 'D.shadowSoft' values need to be in sync with 'D.ambientSoft' !!
@@ -1153,8 +1209,7 @@ void Light::draw()
             shd_map_num=D.shadowMapNumActual();
             cloud=ShadowMap(CurrentLight.dir);
          }
-
-         D.depth2DOn();
+         UInt depth_func=FUNC_FOREGROUND;
 
          // water lum first, as noted above in the comments
          if(Renderer._water_nrm)
@@ -1167,10 +1222,12 @@ void Light::draw()
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+               D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(Mid(shd_map_num, 1, 6), cloud, false)->draw(&CurrentLight.rect);
             }
 
             SetWaterLum();
+            D.depth2DOn(depth_func);
             DrawLightDir(false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
@@ -1181,6 +1238,7 @@ void Light::draw()
          if(CurrentLight.shadow)
          {
             Renderer.getShdRT();
+            D.depth2DOn();
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
@@ -1192,10 +1250,11 @@ void Light::draw()
                Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
-            MapSoft();
+            MapSoft(depth_func);
             ApplyVolumetric(CurrentLight.dir, shd_map_num, false); // TODO: cloud shd/vol is disabled
          }
          Bool clear=SetLum();
+         D.depth2DOn(depth_func);
          if(!Renderer._ds->multiSample()) // 1-sample
          {
             DrawLightDir(false, false);
@@ -1206,12 +1265,8 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightDir(false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
-            if(clear)
-            {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
-               D.depthLock  (true);
-            }
+            SetLumMS(clear);
+            D.depth2DOn(depth_func);
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             DrawLightDir(true, false);
             D.stencil(STENCIL_NONE);
@@ -1289,12 +1344,8 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightPoint(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
-            if(clear)
-            {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
-               D.depthLock  (true);
-            }
+            SetLumMS(clear);
+            D.depth2DOn(depth_func);
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             DrawLightPoint(light_matrix, true, false);
             D.stencil(STENCIL_NONE);
@@ -1372,12 +1423,8 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightLinear(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
-            if(clear)
-            {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
-               D.depthLock  (true);
-            }
+            SetLumMS(clear);
+            D.depth2DOn(depth_func);
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             DrawLightLinear(light_matrix, true, false);
             D.stencil(STENCIL_NONE);
@@ -1458,12 +1505,8 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightCone(light_matrix, false, false);
             }
-            Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
-            if(clear)
-            {
-               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // FIXME spec
-               D.depthLock  (true);
-            }
+            SetLumMS(clear);
+            D.depth2DOn(depth_func);
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             DrawLightCone(light_matrix, true, false);
             D.stencil(STENCIL_NONE);
@@ -1525,18 +1568,21 @@ void Light::drawForward(ALPHA_MODE alpha)
          // water lum
          if(Renderer._water_nrm)
          {
-            D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
+            D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
             Sh.Depth->set(Renderer._water_ds); // set water depth
+            UInt depth_func=FUNC_FOREGROUND;
 
             if(CurrentLight.shadow)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
+               D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(Mid(shd_map_num, 1, 6), false, false)->draw(&CurrentLight.rect);
             }
 
             SetWaterLum();
+            D.depth2DOn(depth_func);
             DrawLightDir(false, true);
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
