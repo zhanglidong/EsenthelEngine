@@ -131,7 +131,8 @@
 
 #define TRANSLUCENT_VAL 0.5
 
-#define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
+#define REFLECT_OCCL  0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
+#define SQR_INV_METAL 1 // 0=don't square, 1=square only for 'ReflectCol', 2=square for both 'ReflectCol' and 'Diffuse' (probably 2 is more correct, however 1 looks better), do this because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright. This is because all reflectivities with high values should be treated as metals, so doing 'Sqr' for "inv_metal" makes the "metal" value being closer to 1 ("inv_metal" closer to 0)
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
@@ -1561,12 +1562,14 @@ Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool qua
 /******************************************************************************/
 Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
 {
-   return LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease diffuse and affect reflect col
+   Half inv_metal=LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
+   if(SQR_INV_METAL==2)inv_metal=Sqr(inv_metal);
+   return inv_metal;
 }
-Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
+Half Diffuse(Half inv_metal) {return inv_metal;}
 VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   if(1)inv_metal=Sqr(inv_metal); // FIXMENOW // apply square because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+   if(SQR_INV_METAL==1)inv_metal=Sqr(inv_metal);
  //return Lerp(reflectivity, unlit_col,     metal);
    return Lerp(unlit_col, reflectivity, inv_metal);
 }
@@ -1764,10 +1767,10 @@ VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bo
 
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
-   mad.x+=(1-mad.y-mad.x)*reflectivity; // mad.x=Lerp(mad.x, 1-mad.y, reflectivity); // FIXMENOW this should be based on 'metal' or 'reflectivity' or Max(reflect_col) or reflect_col and use mad_x as VecH?
-   return reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
+   VecH mul=mad.x+(1-mad.y-mad.x)*reflect_col; // mad.x=Lerp(mad.x, 1-mad.y, reflect_col);
+   return reflect_col*mul + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
 #else // same results but slower
-   return (reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
+   return (reflect_col*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflect_col*(1/(mad.x+mad.y)-1));
 #endif
 }
 Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
