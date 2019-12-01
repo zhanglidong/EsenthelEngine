@@ -624,9 +624,8 @@ VecH4 PS
    }
    #endif
 
-   // reflection
    col=col*total_lum*Diffuse(inv_metal) + total_specular;
-#if REFLECT
+#if REFLECT // reflection
    if(FirstPass) // add reflection only for the fist pass
    {
    #if VTX_REFLECT

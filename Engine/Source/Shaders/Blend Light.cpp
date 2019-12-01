@@ -348,9 +348,8 @@ void PS
    }
    #endif
 
-   // reflection
    I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular;
-   #if REFLECT
+   #if REFLECT // reflection
    {
    #if VTX_REFLECT
       Vec reflect_dir=I.reflect_dir;

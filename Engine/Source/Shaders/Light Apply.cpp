@@ -9,7 +9,6 @@
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img4, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
-// FIXME
 VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
 #if GLOW

@@ -1778,17 +1778,15 @@ VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
    return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
 }
-VecH PBR1(VecH unlit_col, VecH lit_col, Half smooth, Half reflectivity, VecH spec, Half NdotV, Vec reflect_dir, Bool quality)
+VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
+   Half NdotV      =-Dot(nrm, eye_dir);
+   Vec  reflect_dir=ReflectDir(eye_dir, nrm);
    Half inv_metal  =ReflectToInvMetal(reflectivity);
    VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
    return lit_col*Diffuse(inv_metal)
          +spec
-         +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, quality);
-}
-VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
-{
-   return PBR1(unlit_col, lit_col, smooth, reflectivity, spec, -Dot(nrm, eye_dir), ReflectDir(eye_dir, nrm), true);
+         +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, true);
 }
 /******************************************************************************/
 // SHADOWS
