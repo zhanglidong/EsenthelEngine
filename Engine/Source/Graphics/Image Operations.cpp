@@ -237,9 +237,9 @@ void Image::bumpToNormal(Image &dest, Flt scale, Bool high_precision)C
             if(high_precision)normal.pixF3(x, y)=nrm;else
             {
                Color color;
-               color.r=    Round(nrm.x*127)+128;
-               color.g=    Round(nrm.y*127)+128;
-               color.b=    Round(nrm.z*127)+128;
+               color.r=SFltToUByte(nrm.x);
+               color.g=SFltToUByte(nrm.y);
+               color.b=SFltToUByte(nrm.z);
              //color.a=FltToByte(bump);
                normal.color(x, y, color);
             }

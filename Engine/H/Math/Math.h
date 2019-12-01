@@ -579,8 +579,8 @@ inline Flt RotpmToRadps(Flt x) {return x*(PI2/60         );} // convert "Rotatio
 inline Byte FltToByte(Flt  f) {return Mid(RoundPos(f*255), 0, 255);} // 0..1   -> 0..255, it's okay to clamp after converting to int for small values
 inline Flt  ByteToFlt(Byte b) {return              b/255.0f       ;} // 0..255 -> 0..1  , faster than using 'ByteToFltArray'
 
-inline SByte SFltToSByte(Flt f) {return Mid(Round(f*127           ), -127, 127);} // -1..1 -> -127..127, it's okay to clamp after converting to int for small values
-inline  Byte SFltToUByte(Flt f) {return Mid(Round((f+1)*(255.0f/2)),    0, 255);} // -1..1 ->    0..255, it's okay to clamp after converting to int for small values
+inline SByte SFltToSByte(Flt f) {return Mid(Round(f*127          ), -127, 127);} // -1..1 -> -127..127, it's okay to clamp after converting to int for small values
+inline  Byte SFltToUByte(Flt f) {return Mid(Round(f*127.5f+127.5f),    0, 255);} // -1..1 ->    0..255, it's okay to clamp after converting to int for small values
 
 inline Flt SByteToSFlt(SByte b) {return (b<=-127) ? -1 : b/127.0f      ;} // -127..127 -> -1..1
 inline Flt UByteToSFlt( Byte b) {return                  b*(2.0f/255)-1;} //    0..255 -> -1..1

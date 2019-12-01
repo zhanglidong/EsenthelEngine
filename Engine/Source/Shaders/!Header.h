@@ -1515,7 +1515,7 @@ Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*LightPoint .powe
 Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLinear.neg_inv_range + 1             );} // 1-Length(pos)/LightLinear.range
 Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
 Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
-
+/******************************************************************************/
 Half F_Schlick(Half f0, Half f90, Half cos) // High Precision not needed
 {
    Half q=Quint(1-cos); // Quint(1-x) = ~exp2(-9.28*x)
@@ -1558,6 +1558,22 @@ Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool qua
    Flt  div=f*f*(quality ? Vis_SmithR2Inv(roughness2, NdotL, NdotV) : Vis_SmithFastInv(roughness, NdotL, NdotV));
    return div ? roughness2/div : HALF_MAX;
 }
+/******************************************************************************/
+Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
+{
+   return LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease diffuse and affect reflect col
+}
+Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
+VecH ReflectCol(VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+{
+#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
+ //return unlit_col*       metal  + (1-metal); // Lerp(VecH(1,1,1), unlit_col, metal)
+   return unlit_col*(1-inv_metal) + inv_metal; // Lerp(unlit_col, VecH(1,1,1), inv_metal)
+#else // square version, better
+   Half inv_metal2=Sqr(inv_metal); return unlit_col*(1-inv_metal2) + inv_metal2; // perform 'Sqr' only here and not in 'Diffuse' to match visuals with other popular game engines
+#endif
+}
+/******************************************************************************/
 struct LightParams
 {
    Flt                                       NdotH_HP, // High Precision needed for 'D_GGX'
@@ -1751,20 +1767,6 @@ Half ReflectEnv(Half smooth, Half reflectivity, Half NdotV, Bool quality)
    return reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1);
 #else // same results but slower
    return (reflectivity*mad.x + mad.y*(REFLECT_OCCL ? Sat(reflectivity*50) : 1))*(1+reflectivity*(1/(mad.x+mad.y)-1));
-#endif
-}
-Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
-{
-   return LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as di-electrics (metal=0), after that go linearly to metal=1
-}
-Half Diffuse(Half inv_metal) {return inv_metal;} // here don't do 'Sqr' to match visuals with other popular game engines
-VecH ReflectCol(VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
-{
-#if 0 // linear version, looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright
- //return unlit_col*       metal  + (1-metal); // Lerp(VecH(1,1,1), unlit_col, metal)
-   return unlit_col*(1-inv_metal) + inv_metal; // Lerp(unlit_col, VecH(1,1,1), inv_metal)
-#else // square version, better
-   Half inv_metal2=Sqr(inv_metal); return unlit_col*(1-inv_metal2) + inv_metal2; // perform 'Sqr' only here and not in 'Diffuse' to match visuals with other popular game engines
 #endif
 }
 Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolution texture coordinates
