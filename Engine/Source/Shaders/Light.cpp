@@ -76,7 +76,7 @@ VecH LightDir_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    Half lum=lp.NdotL; if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return LightDir.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightDir.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -150,7 +150,7 @@ VecH LightPoint_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -224,7 +224,7 @@ VecH LightLinear_PS
    LightParams lp; lp.set(nrm.xyz, light_dir);
    lum*=lp.NdotL; if(lum<=EPS_LUM)
    {
-      if(!WATER && nrm.w && -lum>EPS_LUM)return LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL); // #RTOutput translucent
+      if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
 
@@ -302,6 +302,7 @@ VecH LightCone_PS
    {
       if(!WATER && nrm.w && -lum>EPS_LUM) // #RTOutput translucent
       {
+         outSpec=0;
          lum*=-TRANSLUCENT_VAL;
          VecH lum_rgb=LightCone.color.rgb*lum;
       #if IMAGE
