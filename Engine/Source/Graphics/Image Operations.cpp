@@ -240,7 +240,7 @@ void Image::bumpToNormal(Image &dest, Flt scale, Bool high_precision)C
                color.r=SFltToUByte(nrm.x);
                color.g=SFltToUByte(nrm.y);
                color.b=SFltToUByte(nrm.z);
-             //color.a=FltToByte(bump);
+             //color.a= FltToByte (bump);
                normal.color(x, y, color);
             }
          }
