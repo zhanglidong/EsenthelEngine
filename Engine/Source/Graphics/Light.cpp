@@ -127,7 +127,7 @@ static void ClearLumSeparate(C Vec4 &lum_color, C ImageRTPtr &lum, C ImageRTPtr 
 static void ClearLumMerged(C Vec4 &lum_color)
 {
    if(D._view_main.full)
-   { // 'D.clearCol(Int I' ignores depth usage for 'D.depth2D'
+   { // 'D.clearCol(Int i' ignores depth usage for 'D.depth2D'
       D.clearCol(0, lum_color);
       D.clearCol(1, Vec4Zero );
    }else
