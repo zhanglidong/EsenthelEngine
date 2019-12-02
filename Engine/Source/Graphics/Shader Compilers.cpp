@@ -4,6 +4,7 @@
 namespace EE{
 /******************************************************************************/
 #if WINDOWS
+   #define COMPILE_DX_AMD 0 // #ShaderAMD
    #define COMPILE_DX 0
    #define COMPILE_GL 0
 #endif
@@ -57,13 +58,13 @@ Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tess
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
-#if COMPILE_DX || COMPILE_GL
+#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL
 /******************************************************************************/
 static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
 /******************************************************************************/
 // LISTING ALL SHADER TECHNIQUES
 /******************************************************************************/
-static void Compile(API api)
+static void Compile(API api, Bool amd=false) // #ShaderAMD
 {
    if(!DataPath().is())Exit("Can't compile default shaders - 'DataPath' not specified");
 
@@ -74,7 +75,7 @@ static void Compile(API api)
       default: return;
 
       case API_GL: dest_path+="Shader\\GL\\"; break;
-      case API_DX: dest_path+="Shader\\4\\" ; break;
+      case API_DX: dest_path+=(amd ? "Shader\\4 AMD\\" : "Shader\\4\\" ); break;
    }
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
@@ -669,7 +670,7 @@ static void Compile(API api)
 
 #ifdef DX10_INPUT_LAYOUT
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(S, model, api).New(src_path+"DX10+ Input Layout.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path, model, api).New(src_path+"DX10+ Input Layout.cpp"); // #ShaderAMD replace 'dest_path' with 'S'
    src.New("Shader", "VS", "PS");
 }
 #endif
@@ -772,11 +773,14 @@ static void Compile(API api)
 /******************************************************************************/
 void MainShaderClass::compile()
 {
-#if COMPILE_DX || COMPILE_GL
+#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_DX
    Compile(API_DX);
+#endif
+#if COMPILE_DX_AMD
+   Compile(API_DX, true);
 #endif
 #if COMPILE_GL
    Compile(API_GL);

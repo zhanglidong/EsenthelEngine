@@ -697,8 +697,7 @@ static Bool UniversalEnginePakFilter(C Str &full)
 {
    Str name=SkipStartPath(full, EngineDataPath), base=GetBase(name), path=GetPath(name);
    if(!SUPPORT_MLAA && base=="MLAA Area.img")return false;
-   if(EqualPath(name, "Shader/3")
-   || EqualPath(name, "Shader/GL")
+   if(EqualPath(name, "Shader/GL")
    || base=="World Editor"
    )return false;
    return true;
@@ -707,8 +706,8 @@ static Bool MobileEnginePakFilter(C Str &full)
 {
    Str name=SkipStartPath(full, EngineDataPath), base=GetBase(name), path=GetPath(name);
    if(!SUPPORT_MLAA && base=="MLAA Area.img")return false;
-   if(EqualPath(name, "Shader/3")
-   || EqualPath(name, "Shader/4")
+   if(EqualPath(name, "Shader/4")
+   || EqualPath(name, "Shader/4 AMD") // #ShaderAMD
    || base=="World Editor"
    )return false;
    return true;

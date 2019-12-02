@@ -155,12 +155,14 @@ void MainShaderClass::createSamplers()
    REPAO(SamplerFont.address)=GL_CLAMP_TO_EDGE;
 #endif
 }
+Bool AMD; // #ShaderAMD !! WHEN REMOVING THEN ALSO REMOVE FROM "Esenthel Builder" !!
 void MainShaderClass::create()
 {
+   AMD=ContainsAll(D.deviceName(), "AMD Radeon", true, true);
    if(LogInit)LogN("MainShaderClass.create");
    compile();
 
-   if(D.shaderModel()>=SM_4)path="Shader\\4\\" ;else
+   if(D.shaderModel()>=SM_4)path=(AMD ? "Shader\\4 AMD\\" : "Shader\\4\\" );else
                             path="Shader\\GL\\";
 
    shader=ShaderFiles("Main"); if(!shader)Exit("Can't load the Main Shader");

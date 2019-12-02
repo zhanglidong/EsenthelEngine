@@ -808,6 +808,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          macro.Name      =APIName[i];
          macro.Definition=((compiler->api==i) ? "1" : "0");
       }
+      if(Contains(compiler->dest, "4 AMD", true, true)) // #ShaderAMD
+      {
+         auto &macro=macros.NewAt(macros.elms()-1);
+         macro.Name      ="AMD";
+         macro.Definition="1";
+      }
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
