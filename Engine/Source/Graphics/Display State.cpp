@@ -112,6 +112,7 @@ static RasterizerState RasterStates[   BIAS_NUM][2][2][2][2][2][2]; // [Bias][Cu
 static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
 static UInt StencilFunc=GL_ALWAYS, StencilMask=~0;
+static void (*glBlendFunci) (GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
 #endif
 
 #if !DX11
@@ -511,7 +512,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-         if(D.independentBlendAvailable())glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
       break;
 
       case ALPHA_ADD:
@@ -545,7 +546,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         if(D.independentBlendAvailable())glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
       break;
     /*case ALPHA_ADD_FACTOR:
          glEnable           (GL_BLEND);
@@ -1253,6 +1254,8 @@ void DisplayState::create()
       }
       RasterStates[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
    }
+#elif GL
+   glBlendFunci=(decltype(glBlendFunci))D.glGetProcAddress("glBlendFunci");
 #endif
    setDeviceSettings();
 }
