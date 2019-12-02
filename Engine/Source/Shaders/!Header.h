@@ -131,8 +131,7 @@
 
 #define TRANSLUCENT_VAL 0.5
 
-#define REFLECT_OCCL  0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
-#define SQR_INV_METAL 1 // 0=don't square, 1=square only for 'ReflectCol', 2=square for both 'ReflectCol' and 'Diffuse' (probably 2 is more correct, however 1 looks better), do this because linear version looks like has sharp transitions near reflectivity=1, and in the middle (reflectivity=0.5) the object is too bright. This is because all reflectivities with high values should be treated as metals, so doing 'Sqr' for "inv_metal" makes the "metal" value being closer to 1 ("inv_metal" closer to 0)
+#define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
@@ -1559,23 +1558,30 @@ Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool qua
    Flt  div=f*f*(quality ? Vis_SmithR2Inv(roughness2, NdotL, NdotV) : Vis_SmithFastInv(roughness, NdotL, NdotV));
    return div ? roughness2/div : HALF_MAX;
 }
-/******************************************************************************/
-Half ReflectToInvMetal(Half reflectivity) // return "1-metal" because this form is better suited for 'ReflectCol' and 'Diffuse'
+/******************************************************************************
+Popular game engines use only metalness texture, and calculate "Diffuse{return (1-metal)*base_color}" and "ReflectCol{return Lerp(0.04, base_color, metal)}"
+Unreal:
+   Unreal Specular map (reflectivity for dielectrics) in Unreal is mostly unused, and the recommendation is to use default Specular=0.5
+   float DielectricSpecularToF0(float Specular) {return 0.08f * Specular;} with default Specular=0.5 this returns 0.04
+   float3 ComputeF0(float Specular, float3 BaseColor, float Metallic) {return lerp(DielectricSpecularToF0(Specular).xxx, BaseColor, Metallic.xxx);} which is "lerp(0.04, BaseColor, Metallic)"
+Unity:
+   half OneMinusReflectivityMetallic(half metallic) {lerp(dielectricSpec, 1, metallic);} with 'dielectricSpec' defined as 0.04
+To achieve compatibility with a lot of assets for those engines, Esenthel uses a similar formula, however tweaked to preserve original diffuse color and minimize reflectivity at low reflectivity values:
+   for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
+   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
+*/
+Half ReflectToMetal(Half reflectivity) // this actually returns "1-metal" to make 'Diffuse' calculation faster
 {
-   Half inv_metal=LerpRS(1.0, 0.16, reflectivity); // treat 0 .. 0.16 (up to Diamond) reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
-   if(SQR_INV_METAL==2)inv_metal=Sqr(inv_metal);
-   return inv_metal;
+   return LerpR(1.00, 0.04, reflectivity); // treat 0 .. 0.04 reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
 }
-Half Diffuse(Half inv_metal) {return inv_metal;}
+Half Diffuse(Half inv_metal) {return Min(1, inv_metal);}
 VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   if(SQR_INV_METAL==1)inv_metal=Sqr(inv_metal);
- //return Lerp(reflectivity, unlit_col,     metal);
-   return Lerp(unlit_col, reflectivity, inv_metal);
+   return (reflectivity<=0.04) ? reflectivity : Lerp(unlit_col, 0.04, inv_metal);
 }
 VecH ReflectCol(Half reflectivity, VecH unlit_col)
 {
-   return ReflectCol(reflectivity, unlit_col, ReflectToInvMetal(reflectivity));
+   return ReflectCol(reflectivity, unlit_col, ReflectToMetal(reflectivity));
 }
 /******************************************************************************/
 struct LightParams
@@ -1762,6 +1768,8 @@ VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bo
 {
    // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
+ //smooth=  Sqr(  smooth); // don't do because it decreases highlights too much
+ //smooth=1-Sqr(1-smooth); // don't do because it increases highlights too much
    if(quality)mad=EnvDFGTex         (smooth, NdotV);
    else       mad=EnvDFGLazarovKaris(smooth, NdotV);
 
@@ -1785,9 +1793,9 @@ VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, 
 {
    Half NdotV      =-Dot(nrm, eye_dir);
    Vec  reflect_dir=ReflectDir(eye_dir, nrm);
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
-   return lit_col*Diffuse(inv_metal)
+   Half metal      =ReflectToMetal(reflectivity);
+   VecH reflect_col=ReflectCol    (reflectivity, unlit_col, metal);
+   return lit_col*Diffuse(metal)
          +spec
          +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, true);
 }
