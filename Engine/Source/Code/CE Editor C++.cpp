@@ -975,22 +975,20 @@ static Bool CreateEngineEmbedPak(C Str &name, Bool *changed=null)
    {
       // add folders to preserve modification times
       Add    (files, Paks.find("Shader"));
-      Add    (files, Paks.find("Shader/2"));
-      Add    (files, Paks.find("Shader/3"));
       Add    (files, Paks.find("Shader/4"));
       Add    (files, Paks.find("Shader/GL"));
-      AddFile(files, Paks.find("Shader/2/Early Z"));
-      AddFile(files, Paks.find("Shader/2/Main"));
-      AddFile(files, Paks.find("Shader/2/Position"));
-      AddFile(files, Paks.find("Shader/3/Early Z"));
-      AddFile(files, Paks.find("Shader/3/Main"));
-      AddFile(files, Paks.find("Shader/3/Position"));
       AddFile(files, Paks.find("Shader/4/Early Z"));
       AddFile(files, Paks.find("Shader/4/Main"));
       AddFile(files, Paks.find("Shader/4/Position"));
       AddFile(files, Paks.find("Shader/GL/Early Z"));
       AddFile(files, Paks.find("Shader/GL/Main"));
       AddFile(files, Paks.find("Shader/GL/Position"));
+      
+      // #ShaderAMD
+      Add    (files, Paks.find("Shader/4 AMD"));
+      AddFile(files, Paks.find("Shader/4 AMD/Early Z"));
+      AddFile(files, Paks.find("Shader/4 AMD/Main"));
+      AddFile(files, Paks.find("Shader/4 AMD/Position"));
    }
 
    Bool found=false;
