@@ -1568,9 +1568,9 @@ Unity:
    half OneMinusReflectivityMetallic(half metallic) {lerp(dielectricSpec, 1, metallic);} with 'dielectricSpec' defined as 0.04
 To achieve compatibility with a lot of assets for those engines, Esenthel uses a similar formula, however tweaked to preserve original diffuse color and minimize reflectivity at low reflectivity values:
    for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
-   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
+   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
 */
-Half ReflectToMetal(Half reflectivity) // this actually returns "1-metal" to make 'Diffuse' calculation faster
+Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster
 {
    return LerpR(1.00, 0.04, reflectivity); // treat 0 .. 0.04 reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
 }
@@ -1581,7 +1581,7 @@ VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals
 }
 VecH ReflectCol(Half reflectivity, VecH unlit_col)
 {
-   return ReflectCol(reflectivity, unlit_col, ReflectToMetal(reflectivity));
+   return ReflectCol(reflectivity, unlit_col, ReflectToInvMetal(reflectivity));
 }
 /******************************************************************************/
 struct LightParams
@@ -1792,10 +1792,10 @@ VecH ReflectTex(Vec reflect_dir, Half smooth)
 VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {
    Half NdotV      =-Dot(nrm, eye_dir);
-   Vec  reflect_dir=ReflectDir(eye_dir, nrm);
-   Half metal      =ReflectToMetal(reflectivity);
-   VecH reflect_col=ReflectCol    (reflectivity, unlit_col, metal);
-   return lit_col*Diffuse(metal)
+   Vec  reflect_dir=ReflectDir       (eye_dir, nrm);
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
+   return lit_col*Diffuse(inv_metal)
          +spec
          +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, true);
 }

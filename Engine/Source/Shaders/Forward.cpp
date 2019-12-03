@@ -460,8 +460,8 @@ VecH4 PS
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 
-   Half metal      =ReflectToMetal(reflectivity);
-   VecH reflect_col=ReflectCol    (reflectivity, col, metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, col, inv_metal); // calc 'reflect_col' from unlit color
 
    // lighting
    VecH ambient;
@@ -624,7 +624,7 @@ VecH4 PS
    }
    #endif
 
-   col=col*total_lum*Diffuse(metal) + total_specular;
+   col=col*total_lum*Diffuse(inv_metal) + total_specular;
 #if REFLECT // reflection
    if(FirstPass) // add reflection only for the fist pass
    {

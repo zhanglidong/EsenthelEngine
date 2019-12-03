@@ -159,10 +159,10 @@ VecH4 PS
 
    I.color.rgb+=Highlight.rgb;
 
-   Half metal      =ReflectToMetal(reflectivity);
-   VecH reflect_col=ReflectCol    (reflectivity, I.color.rgb, metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, I.color.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
-   I.color.rgb=I.color.rgb*Diffuse(metal);
+   I.color.rgb=I.color.rgb*Diffuse(inv_metal);
 #if REFLECT // reflection
    Vec eye_dir=Normalize(I.pos);
    #if VTX_REFLECT

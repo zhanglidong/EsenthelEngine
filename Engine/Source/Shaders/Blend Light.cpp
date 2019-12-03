@@ -279,8 +279,8 @@ void PS
 
    Bool translucent=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
 
-   Half metal      =ReflectToMetal(reflectivity);
-   VecH reflect_col=ReflectCol    (reflectivity, I.col.rgb, metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflectivity);
+   VecH reflect_col=ReflectCol       (reflectivity, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
    // lighting
    VecH ambient;
@@ -348,7 +348,7 @@ void PS
    }
    #endif
 
-   I.col.rgb=I.col.rgb*total_lum*Diffuse(metal) + total_specular;
+   I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular;
    #if REFLECT // reflection
    {
    #if VTX_REFLECT
