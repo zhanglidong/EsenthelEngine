@@ -32,7 +32,7 @@ Bool (*CompressBC67)(C Image &src, Image &dest);
 /******************************************************************************/
 static inline void Col565(Color &color, UShort u) {color.set(U5ToByte((u>>11)&0x1F), U6ToByte((u>>5)&0x3F), U5ToByte(u&0x1F), 255);}
 
-static inline U64 GetU48(CPtr data) {return Unaligned(*(U32*)data) | (U64(Unaligned(((U16*)data)[2]))<<32);}
+static inline U64 GetU48(CPtr data) {return Unaligned(*(U32*)data) | (U64(Unaligned(((U16*)data)[2]))<<32);} // need to read exactly 48 instead of 64 bits to avoid memory access exception
 static inline U64 GetU64(CPtr data) {return Unaligned(*(U64*)data);}
 /******************************************************************************/
 // BLOCK

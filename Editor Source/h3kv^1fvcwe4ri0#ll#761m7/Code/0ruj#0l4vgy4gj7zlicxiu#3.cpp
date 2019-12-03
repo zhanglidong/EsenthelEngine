@@ -545,10 +545,10 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
       if(smooth || reflect || bump || alpha)
       {
          Image b2; LoadTexture(proj, base_2, b2);
-         if(smooth )smooth .createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(reflect)reflect.createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(bump   )bump   .createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(alpha  )alpha  .createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(smooth )smooth .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(reflect)reflect.createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(bump   )bump   .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(alpha  )alpha  .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
          REPD(y, b2.h())
          REPD(x, b2.w())
          {
@@ -562,8 +562,8 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
       if(base_0.valid() && (color || glow)) // base_0 && base_2
       {
          Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color.createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(glow )glow .createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(glow )glow .createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
@@ -576,8 +576,8 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(base_0.valid() && (color || alpha)) // base_0 without base_2
    {
       Image b0; LoadTexture(proj, base_0, b0);
-      if(color)color.createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-      if(alpha)alpha.createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+      if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(alpha)alpha.createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
       REPD(y, b0.h())
       REPD(x, b0.w())
       {
@@ -589,7 +589,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(base_1.valid() && normal)
    {
       Image b1; LoadTexture(proj, base_1, b1);
-      normal.createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+      normal.createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
       REPD(y, b1.h())
       REPD(x, b1.w())
       {
@@ -616,7 +616,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(base_0.valid() && color)
    {
       Image b0; LoadTexture(proj, base_0, b0);
-      if(color)color.createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, b0.h())
       REPD(x, b0.w())
       {
@@ -627,7 +627,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(base_1.valid() && normal)
    {
       Image b1; LoadTexture(proj, base_1, b1);
-      normal.createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+      normal.createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
       REPD(y, b1.h())
       REPD(x, b1.w())
       {
@@ -643,7 +643,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(base_2.valid() && bump)
    {
       Image b2; LoadTexture(proj, base_2, b2);
-      if(bump)bump.createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(bump)bump.createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
       REPD(y, b2.h())
       REPD(x, b2.w())
       {
@@ -667,8 +667,8 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
       if(color || bump)
       {
          Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color.createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(bump )bump .createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(bump )bump .createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
@@ -681,11 +681,11 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
       {
          bool tex_alpha=(tech!=MTECH_DEFAULT); // old mtrl textures had Base1 W channel as either Alpha or Glow
          Image b1; LoadTexture(proj, base_1, b1);
-                       if(normal )normal .createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-                       if(smooth )smooth .createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-                       if(reflect)reflect.createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(tex_alpha){if(alpha  )alpha  .createSoft(b1.w(), b1.h(), 1, IMAGE_L8);}
-         else         {if(glow   )glow   .createSoft(b1.w(), b1.h(), 1, IMAGE_L8);}
+                       if(normal )normal .createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+                       if(smooth )smooth .createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);
+                       if(reflect)reflect.createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(tex_alpha){if(alpha  )alpha  .createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);}
+         else         {if(glow   )glow   .createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);}
          REPD(y, b1.h())
          REPD(x, b1.w())
          {
@@ -707,8 +707,8 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
       if(color || alpha)
       {
          Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color.createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(alpha)alpha.createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(alpha)alpha.createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
          {
@@ -733,10 +733,10 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Imag
       if(color || /*bump ||*/ normal || smooth)
    {
       Image det; LoadTexture(proj, detail_tex, det);
-      if(color )color .createSoft(det.w(), det.h(), 1, IMAGE_L8);
-    //if(bump  )bump  .createSoft(det.w(), det.h(), 1, IMAGE_L8);
-      if(normal)normal.createSoft(det.w(), det.h(), 1, IMAGE_R8G8B8);
-      if(smooth)smooth.createSoft(det.w(), det.h(), 1, IMAGE_L8);
+      if(color )color .createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
+    //if(bump  )bump  .createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
+      if(normal)normal.createSoftTry(det.w(), det.h(), 1, IMAGE_R8G8B8);
+      if(smooth)smooth.createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
       REPD(y, det.h())
       REPD(x, det.w())
       {
