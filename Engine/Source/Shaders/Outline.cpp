@@ -16,15 +16,15 @@ VecH4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
          t1=inTex-ImgSize.xy*(DOWN_SAMPLE ? 2.5 : 0.5);
    // use linear filtering because texcoords aren't rounded
 #if 0
-   if(Dist2(col.rgb, TexLod(Img, Vec2(t0.x, t0.y)).rgb)
-     +Dist2(col.rgb, TexLod(Img, Vec2(t0.x, t1.y)).rgb)
-     +Dist2(col.rgb, TexLod(Img, Vec2(t1.x, t0.y)).rgb)
-     +Dist2(col.rgb, TexLod(Img, Vec2(t1.x, t1.y)).rgb)<=EPS_COL)col.a=0; // if all neighbors are the same then make this pixel transparent
+   if(Dist2(col, TexLod(Img, Vec2(t0.x, t0.y)))
+     +Dist2(col, TexLod(Img, Vec2(t0.x, t1.y)))
+     +Dist2(col, TexLod(Img, Vec2(t1.x, t0.y)))
+     +Dist2(col, TexLod(Img, Vec2(t1.x, t1.y)))<=EPS_COL)col.a=0; // if all neighbors are the same then make this pixel transparent
 #else // faster approximate
-   if(Length2(col.rgb*4-TexLod(Img, Vec2(t0.x, t0.y)).rgb
-                       -TexLod(Img, Vec2(t0.x, t1.y)).rgb
-                       -TexLod(Img, Vec2(t1.x, t0.y)).rgb
-                       -TexLod(Img, Vec2(t1.x, t1.y)).rgb)<=EPS_COL)col.a=0; // if all neighbors are the same then make this pixel transparent
+   if(Length2(col*4-TexLod(Img, Vec2(t0.x, t0.y))
+                   -TexLod(Img, Vec2(t0.x, t1.y))
+                   -TexLod(Img, Vec2(t1.x, t0.y))
+                   -TexLod(Img, Vec2(t1.x, t1.y)))<=EPS_COL)col.a=0; // if all neighbors are the same then make this pixel transparent
 #endif
    /* old code used for super sampling
 	{

@@ -5,7 +5,7 @@ class Obj
 
    void create     (         ) {pos=Random(box.ext);}
    void draw       (         ) {ball.draw(Matrix(pos));}
-   void drawOutline(flt alpha) {Color color=ColorAlpha(alpha); ball.drawOutline(GREY, pos);}
+   void drawOutline(flt alpha) {Color color=ColorAlpha(alpha); ball.drawOutline(color, pos);}
 }
 
 MaterialPtr brick;
