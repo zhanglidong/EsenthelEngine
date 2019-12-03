@@ -469,6 +469,8 @@ VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
 
 Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 Half  Min(Half  x, Half  y                  ) {return min(x, y);}
+Half  Min(Int   x, Half  y                  ) {return min(x, y);}
+Half  Min(Half  x, Int   y                  ) {return min(x, y);}
 Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
 Flt   Min(Int   x, Flt   y                  ) {return min(x, y);}
 Flt   Min(Flt   x, Int   y                  ) {return min(x, y);}
@@ -499,6 +501,8 @@ Vec4  Min(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return min(x, min(y, min(z, w)));
 
 Int   Max(Int   x, Int   y                  ) {return max(x, y);}
 Half  Max(Half  x, Half  y                  ) {return max(x, y);}
+Half  Max(Int   x, Half  y                  ) {return max(x, y);}
+Half  Max(Half  x, Int   y                  ) {return max(x, y);}
 Flt   Max(Flt   x, Flt   y                  ) {return max(x, y);}
 Flt   Max(Int   x, Flt   y                  ) {return max(x, y);}
 Flt   Max(Flt   x, Int   y                  ) {return max(x, y);}
