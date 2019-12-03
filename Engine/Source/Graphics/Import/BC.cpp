@@ -32,6 +32,7 @@ Bool (*CompressBC67)(C Image &src, Image &dest);
 /******************************************************************************/
 static inline void Col565(Color &color, UShort u) {color.set(U5ToByte((u>>11)&0x1F), U6ToByte((u>>5)&0x3F), U5ToByte(u&0x1F), 255);}
 
+static inline U64 GetU48(CPtr data) {return Unaligned(*(U32*)data) | (U64(Unaligned(((U16*)data)[2]))<<32);}
 static inline U64 GetU64(CPtr data) {return Unaligned(*(U64*)data);}
 /******************************************************************************/
 // BLOCK
@@ -158,7 +159,7 @@ static inline void _DecompressBlockBC4(C Byte *b, Byte value[8], U64 &is)
       value[6]=                              0;
       value[7]=                            255;
    }
-   is=GetU64(b+2);
+   is=GetU48(b+2);
 }
 static inline void _DecompressBlockBC4(C Byte *b, SByte value[8], U64 &is)
 {
@@ -181,7 +182,7 @@ static inline void _DecompressBlockBC4(C Byte *b, SByte value[8], U64 &is)
       value[6]=                           -127;
       value[7]=                            127;
    }
-   is=GetU64(b+2);
+   is=GetU48(b+2);
 }
 /******************************************************************************/
 static inline void _DecompressBlockBC3(C Byte *b, Color color[4], UInt &cis, Byte alpha[8], U64 &ais)
@@ -444,7 +445,7 @@ Color DecompressPixelBC2(C Byte *b, Int x, Int y)
 /******************************************************************************/
 Color DecompressPixelBC3(C Byte *b, Int x, Int y)
 {
-   U64 ais=GetU64(b+2);
+   U64 ais=GetU48(b+2);
    Int i  =x+(y<<2),                   // pixel index
       ai  =((ais>>(3*i))&7),           // alpha index
       ci  =((*(U32*)(b+12)>>(2*i))&3); // color index
@@ -487,7 +488,7 @@ Color DecompressPixelBC3(C Byte *b, Int x, Int y)
 /******************************************************************************/
 Color DecompressPixelBC4(C Byte *b, Int x, Int y)
 {
-   U64 ris=GetU64(b+2);
+   U64 ris=GetU48(b+2);
    Int i  =x+(y<<2),         // pixel index
       ri  =((ris>>(3*i))&7); // red   index
 
@@ -509,7 +510,7 @@ Color DecompressPixelBC4(C Byte *b, Int x, Int y)
 }
 SByte DecompressPixelBC4S(C Byte *b, Int x, Int y)
 {
-   U64 ris=GetU64(b+2);
+   U64 ris=GetU48(b+2);
    Int i  =x+(y<<2),         // pixel index
       ri  =((ris>>(3*i))&7); // red   index
 
@@ -531,7 +532,7 @@ SByte DecompressPixelBC4S(C Byte *b, Int x, Int y)
 }
 Color DecompressPixelBC5(C Byte *b, Int x, Int y)
 {
-   U64 ris=GetU64(b+2), gis=GetU64(b+(8+2));
+   U64 ris=GetU48(b+2), gis=GetU48(b+(8+2));
    Int i  =x+(y<<2),         // pixel index
       ri  =((ris>>(3*i))&7), // red   index
       gi  =((gis>>(3*i))&7); // green index
@@ -568,7 +569,7 @@ Color DecompressPixelBC5(C Byte *b, Int x, Int y)
 }
 VecSB2 DecompressPixelBC5S(C Byte *b, Int x, Int y)
 {
-   U64 ris=GetU64(b+2), gis=GetU64(b+(8+2));
+   U64 ris=GetU48(b+2), gis=GetU48(b+(8+2));
    Int i  =x+(y<<2),         // pixel index
       ri  =((ris>>(3*i))&7), // red   index
       gi  =((gis>>(3*i))&7); // green index

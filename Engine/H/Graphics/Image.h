@@ -750,7 +750,7 @@ struct ImageThreadsClass : Threads
 {
    ImageThreadsClass& init()
    {
-      if(!created())createIfEmpty(false, Cpu.threads()-1, 0, "EE.Image"); // -1 because we will do processing on the caller thread too
+      if(!created())createIfEmpty(false, Cpu.threads()-1, 0, "EE.Image #"); // -1 because we will do processing on the caller thread too
       return T;
    }
    T1(USER_DATA) void process(Int elms, void func(IntPtr elm_index, USER_DATA &user, Int thread_index), USER_DATA &user)
