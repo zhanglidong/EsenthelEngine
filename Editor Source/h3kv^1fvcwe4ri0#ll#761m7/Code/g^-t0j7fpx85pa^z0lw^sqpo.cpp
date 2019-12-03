@@ -657,7 +657,9 @@ class Project
       APPLY_DIV,
       APPLY_ADD,
       APPLY_SUB,
+      APPLY_MIN,
       APPLY_MAX,
+      APPLY_METAL,
       APPLY_SKIP,
    }
    bool loadImages(Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
@@ -665,24 +667,26 @@ class Project
       image.del(); if(image_resize)image_resize.del(); if(!src.is())return true;
       Mems<Edit.FileParams> files=Edit.FileParams.Decode(src);
       bool                  ok=true, hp=false; // assume 'ok'=true
-      Image                 single;
-      TextParam             single_resize, image_resize_final; ExtractResize(files, image_resize_final); // get what this image wants to be resized to at the end
-      TextParam            *single_resize_ptr=null; // if null then apply resize to source images (such as 'color_resize' for 'color' etc.)
+      Image                 layer;
+      TextParam             layer_resize, image_resize_final; ExtractResize(files, image_resize_final); // get what this image wants to be resized to at the end
+      TextParam            *layer_resize_ptr=null; // if null then apply resize to source images (such as 'color_resize' for 'color' etc.)
       REPA(files) // go from end
       {
          Edit.FileParams &file=files[i];
          if(i && file.name.is())goto force_src_resize; // force resize if there's more than one file name specified
          REPA(file.params)if(SizeDependentTransform(file.params[i]))goto force_src_resize; // if there's at least one size dependent transform anywhere then always apply
       }
-      single_resize_ptr=&single_resize; // if didn't meet any conditions above then store resize in 'single_resize' to be processed later
+      layer_resize_ptr=&layer_resize; // if didn't meet any conditions above then store resize in 'layer_resize' to be processed later
    force_src_resize:
 
        REPA(files)if(C TextParam *p=files[i].findParam("mode"))if(p.value!="set"){hp=true; break;} // if there's at least one apply mode that's not "set" then use high precision
-      FREPA(files)if(loadImage(single, single_resize_ptr, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
+      FREPA(files)if(loadImage(layer, layer_resize_ptr, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
       {
-         if(single_resize.name.is() && !image_resize_final.name.is())Swap(single_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
-         VecI2 pos=0; {C TextParam *p=files[i].findParam("position"); if(!p)p=files[i].findParam("pos"); if(p)pos=p.asVecI2();}
-         APPLY_MODE mode=APPLY_SET; if(C TextParam *p=files[i].findParam("mode"))
+         Edit.FileParams &file=files[i];
+         if(layer_resize.name.is() && !image_resize_final.name.is())Swap(layer_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
+         VecI2 pos  =0; {C TextParam *p=file.findParam("position"); if(!p)p=file.findParam("pos"  ); if(p)pos=p.asVecI2();}
+         flt   alpha=1; {C TextParam *p=file.findParam("opacity" ); if(!p)p=file.findParam("alpha"); if(p)alpha=p.asFlt();}
+         APPLY_MODE mode=APPLY_SET; if(C TextParam *p=file.findParam("mode"))
          {
             if(p.value=="blend"                                              )mode=APPLY_BLEND;else
             if(p.value=="blendPremultiplied" || p.value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
@@ -690,51 +694,58 @@ class Project
             if(p.value=="div"                                                )mode=APPLY_DIV;else
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
+            if(p.value=="min"                                                )mode=APPLY_MIN;else
             if(p.value=="max"                                                )mode=APPLY_MAX;else
+            if(p.value=="metal"                                              )mode=APPLY_METAL;else
             if(p.value=="skip" || p.value=="ignore"                          )mode=APPLY_SKIP;
          }
-         if(i==0 && pos.allZero() && mode==APPLY_SET)Swap(single, image);else // if this is the first image, then just swap it as main
+         bool alpha_1=Equal(alpha, 1),
+           simple_set=(mode==APPLY_SET && alpha_1);
+         if(i==0 && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
          if(mode!=APPLY_SKIP)
          {
-            VecI2 size=single.size()+pos;
-            if(size.x>image.w() || size.y>image.h()) // make room for 'single', do this even if 'single' doesn't exist, because we may have 'pos' specified
+            VecI2 size=layer.size()+pos;
+            if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
             {
                VecI2 old_size=image.size();
                if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-               else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
+               else         {image.createSoftTry(size.x, size.y, 1, (hp || layer.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
                if(background!=TRANSPARENT) // skip TRANSPARENT because in both cases above (crop and create+clear) TRANSPARENT is already set
                   REPD(y, image.h())
                   REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
             }
-            if(single.is())
+            if(layer.is())
             {
-               // put 'single' into image
-               if(single.highPrecision())MakeHighPrec(image);
-               REPD(y, single.h())
-               REPD(x, single.w())
+               // put 'layer' onto image
+               if(layer.highPrecision())MakeHighPrec(image);
+               REPD(y, layer.h())
+               REPD(x, layer.w())
                {
-                  Vec4 s=single.colorF(x, y);
-                  if(mode==APPLY_SET)
+                  Vec4 l=layer.colorF(x, y);
+                  if(simple_set)
                   {
-                     image.colorF(x+pos.x, y+pos.y, s);
+                     image.colorF(x+pos.x, y+pos.y, l);
                   }else
                   {
-                     Vec4 d=image.colorF(x+pos.x, y+pos.y);
+                     Vec4 base=image.colorF(x+pos.x, y+pos.y), c;
                      switch(mode)
                      {
-                        case APPLY_BLEND       : d =             Blend(d, s); break;
-                        case APPLY_BLEND_PREMUL: d =PremultipliedBlend(d, s); break;
-                        case APPLY_MUL         : d*=s; break;
-                        case APPLY_DIV         : d/=s; break;
-                        case APPLY_ADD         : d+=s; break;
-                        case APPLY_SUB         : d-=s; break;
-                        case APPLY_MAX         : d=Max(s, d); break;
+                        default                : c =l; break; // APPLY_SET
+                        case APPLY_BLEND       : c =             Blend(base, l); break;
+                        case APPLY_BLEND_PREMUL: c =PremultipliedBlend(base, l); break;
+                        case APPLY_MUL         : c=base*l; break;
+                        case APPLY_DIV         : c=base/l; break;
+                        case APPLY_ADD         : c=base+l; break;
+                        case APPLY_SUB         : c=base-l; break;
+                        case APPLY_MIN         : c=Min(base, l); break;
+                        case APPLY_MAX         : c=Max(base, l); break;
+                        case APPLY_METAL       : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
                      }
-                     image.colorF(x+pos.x, y+pos.y, d);
+                     image.colorF(x+pos.x, y+pos.y, alpha_1 ? c : Lerp(base, c, alpha));
                   }
                }
             }else
-            if(!files[i].name.is())TransformImage(image, files[i].params, clamp); // if this 'single' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
+            if(!file.name.is())TransformImage(image, file.params, clamp); // if this 'layer' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
          }
       }else ok=false;
 

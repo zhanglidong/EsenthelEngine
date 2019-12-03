@@ -174,7 +174,9 @@ class Project
       APPLY_DIV,
       APPLY_ADD,
       APPLY_SUB,
+      APPLY_MIN,
       APPLY_MAX,
+      APPLY_METAL,
       APPLY_SKIP,
    };
    bool loadImages(Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C;
