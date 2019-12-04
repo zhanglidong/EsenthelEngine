@@ -12,7 +12,8 @@ enum COMMAND
    CMD_CREATE_DIR,
    CMD_DELETE,
    CMD_GET,
-   CMD_REPLY,
+   CMD_GET_OK,
+   CMD_RESET_OK,
    CMD_NUM,
 }
 cchar8* CommandName(COMMAND cmd) // !! these names are saved !!
@@ -27,7 +28,8 @@ cchar8* CommandName(COMMAND cmd) // !! these names are saved !!
       case CMD_CREATE_DIR         : return "CreateDir";
       case CMD_DELETE             : return "Delete";
       case CMD_GET                : return "Get";
-      case CMD_REPLY              : return "Reply";
+      case CMD_GET_OK             : return "GetOK";
+      case CMD_RESET_OK           : return "ResetOK";
       default                     : return null;
    }
 }
@@ -159,11 +161,13 @@ class ServerClass : ConnectionServer
                   all_ok&=ok;
                }break;
 
-               case CMD_REPLY:
+               case CMD_GET_OK:
                {
-                  f.reset().putByte(CMD_REPLY).putBool(all_ok).pos(0); all_ok=true; // reset status after sending so future operations will not report errors
+                  f.reset().putByte(CMD_GET_OK).putBool(all_ok).pos(0);
                   connection.send(f);
                }break;
+
+               case CMD_RESET_OK: all_ok=true; break;
             }
          }
          return true;

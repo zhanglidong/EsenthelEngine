@@ -564,13 +564,17 @@ class Pane
                      {
                         if(task.src_local) // send to remote
                         {
+                           f.reset().putByte(CMD_RESET_OK).pos(0); conn.send(f, -1, false); // reset OK status, no need to send now, send later
                            bool ok=SendFiles(transfer_files.names, conn, thread_progress[0], thread, true);
-                           // wait until remote finishes (do this always, so the other side can reset 'all_ok')
-                           f.reset().putByte(CMD_REPLY).pos(0); conn.send(f);
-                           for(; !thread.wantStop() && conn.updateState(0); )if(conn.receive(1))
+                           if(ok)
                            {
-                              ok&=(conn.data.getByte()==CMD_REPLY && conn.data.getBool());
-                              break;
+                              // get status
+                              f.reset().putByte(CMD_GET_OK).pos(0); conn.send(f);
+                              for(; !thread.wantStop() && conn.updateState(0); )if(conn.receive(1))
+                              {
+                                 ok&=(conn.data.getByte()==CMD_GET_OK && conn.data.getBool());
+                                 break;
+                              }
                            }
                            if(!ok)Gui.msgBox(S, "Error transferring files");
                         }else // receive from remote
