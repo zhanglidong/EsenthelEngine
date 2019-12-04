@@ -59,12 +59,14 @@ class IOFileData : IOFile
 MemcThreadSafe<IOFile    > IOToRead;
 MemcThreadSafe<IOFileData>   IORead;
 /******************************************************************************/
-Thread IOThread;
+Thread    IOThread;
+SyncEvent IOEvent;
 /******************************************************************************/
 bool IOFunc(Thread &thread)
 {
 again:
-   if(IOToRead.elms() && LowMemUsage())
+   if(!IOToRead.elms())IOEvent.wait( );else
+   if(!LowMemUsage  ())IOEvent.wait(4);else
    {
       IOFileData fd;
       {
@@ -77,7 +79,7 @@ again:
       if(fd.offset>file.size())fd.error=true;else
       if(!file.pos(fd.offset))fd.error=true;else
       {
-         fd.uncompressed_size=Min(32<<20, file.left()); // up to 32MB
+         fd.uncompressed_size=Min(32<<20, file.left()); // up to 32 MB
          fd.data.setNum(fd.uncompressed_size);
          if(!file.get(fd.data.data(), fd.data.elms()))fd.error=true;else
          if(fd.finished=file.end())fd.modify_time_utc=FileInfoSystem(fd.name).modify_time_utc;
@@ -94,8 +96,8 @@ again:
          }
       }
       IORead.  lock(); Swap(IORead.lockedNew(), fd);
-      IORead.unlock();
-   }else Time.wait(1);
+      IORead.unlock(); CompressEvent.on();
+   }
    return true;
 }
 /******************************************************************************/

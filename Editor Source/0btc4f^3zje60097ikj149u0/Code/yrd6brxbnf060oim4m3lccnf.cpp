@@ -24,7 +24,7 @@ Pane* InactivePane()
 {
    return LeftFocus ? ActiveRightPane() : &LeftPane;
 }
-Pane *FindPane(C UID &id)
+Pane* FindPane(C UID &id)
 {
    if(LeftPane.pane_id==id)return &LeftPane;
    REPA(RightPanes)if(RightPanes[i].pane_id==id)return &RightPanes[i];
@@ -144,6 +144,7 @@ void InitPre()
    EE_INIT(false, false);
    App.flag=APP_RESIZABLE|APP_MINIMIZABLE|APP_MAXIMIZABLE|APP_FULL_TOGGLE|APP_NO_PAUSE_ON_WINDOW_MOVE_SIZE|APP_WORK_IN_BACKGROUND;
    App.resumed=Resumed;
+   App.background_wait=16; // wait to update any progress on UI
    D.mode(App.desktopW()*0.8, App.desktopH()*0.8).shadowMapSize(0);
 #if DEBUG
    Paks.add(EE_ENGINE_PATH);
@@ -215,8 +216,8 @@ bool Init()
 void Shut()
 {
    SaveSettings();
-   IOThread      .del();
-   CompressThread.del();
+   IOThread      .stop(); IOEvent      .on(); IOThread      .del();
+   CompressThread.stop(); CompressEvent.on(); CompressThread.del();
    Server        .del();
    RightPanes    .del();
    RightTabs     .del();
@@ -240,7 +241,6 @@ void GetFocus()
 }
 bool Update()
 {
-   if(!App.active())Time.wait(1);
 #if DEBUG
    if(Kb.bp(KB_ESC) && !Gui.window())return false;
 #endif

@@ -3,6 +3,7 @@ class SendFileObj
 {
    UID                        id;
    MemcThreadSafe<IOFileData> files;
+   SyncEvent                  files_event;
 
    long memUsage()C
    {
@@ -82,14 +83,14 @@ bool SendFiles(C Memc<Str2> &names, Connection &conn, long &progress, Thread &th
    if(thread.wantStop())return false;
    SendFileObj obj;
    IOToRead.  lock(); FREPA(names)IOToRead.lockedNew().set(names[i].src, obj.id);
-   IOToRead.unlock();
+   IOToRead.unlock(); IOEvent.on();
    File f; f.writeMem();
    FREPA(names)
    {
     C Str2 &name=names[i];
     again:
       if(thread.wantStop())return false;
-      if(!obj.files.elms()){Time.wait(1); goto again;} // wait until file is ready
+      if(!obj.files.elms()){obj.files_event.wait(4); goto again;} // wait until file is ready (wait a little because we need to keep checking for thread stop)
 
       IOFileData file;
       obj.files.  lock(); Swap(file, obj.files.lockedElm(0)); obj.files.remove(0, true);
@@ -174,7 +175,7 @@ class FileList
 /******************************************************************************/
 bool LowMemUsage()
 {
-   const long max_mem=(512<<20); // 512 MB
+   const long max_mem=(1024<<20); // 1024 MB
    long usage=0;
    IORead.  lock(); REPA(IORead)usage+=IORead.lockedElm(i).memUsage();
    IORead.unlock();

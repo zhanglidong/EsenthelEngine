@@ -128,6 +128,7 @@ class Pane
    Conn       conn[2]; // 0=main, 1=background
    MemberDesc md_size;
    Thread     thread;
+   SyncEvent  thread_event;
    long       thread_progress[2]; // 0=current, 1=total
    MemcThreadSafe<Task> thread_tasks;
    Memc<Str>            thread_refresh_paths;
@@ -141,7 +142,7 @@ class Pane
    static void SelChanged (Pane &pane) {pane.custom_cur_sel=false;}
    static bool ThreadFunc (Thread &thread) {return ((Pane*)thread.user).threadUpdate();}
 
-  ~Pane() {thread.del();} // delete thread before anything else
+  ~Pane() {stopTasks();} // delete thread before anything else
    Pane() {REPAO(thread_progress)=0;}
 
    Str getPath()C {return Str(path()).tailSlash(true);}
@@ -161,12 +162,12 @@ class Pane
    }
    void threadTask(C Task &task)
    {
-      thread_tasks.add(task);
+      thread_tasks.add(task); thread_event.on();
       if(!thread.active())thread.create(ThreadFunc, this);
    }
    void stopTasks()
    {
-      thread.del(); thread_tasks.clear(); REPAO(thread_progress)=0;
+      thread.stop(); thread_event.on(); thread.del(); thread_tasks.clear(); REPAO(thread_progress)=0;
    }
 
    void create(GuiObj &parent, bool local=false)
@@ -328,9 +329,9 @@ class Pane
       setCurSel(GetBase(path()).tailSlash(false));
       path.set(GetPath(path()));      
    }
-   bool execute(Task &task, bool main=true)
+   bool execute(Task &task, bool main_thread=true)
    {
-      Conn &conn=T.conn[main ? 0 : 1];
+      Conn &conn=T.conn[main_thread ? 0 : 1];
       File &f=conn.data;
       switch(task.type)
       {
@@ -377,7 +378,7 @@ class Pane
          
          case CMD_REPLACE:
          {
-            if(main)
+            if(main_thread)
             {
                if(!connected()){Gui.msgBox("Can't replace", "Pane is currently disconnected."); return false;}
                if(task.src_local || task.dest_local)threadTask(task); // this is a slow operation so needs to be processed on secondary thread
@@ -714,7 +715,7 @@ class Pane
          if(!execute(task, false))return false;
          if(!thread_tasks.elms()) // if processed all tasks
          {
-            if(thread_refresh_paths.elms())
+            if(thread_refresh_paths.elms()) // add stored paths to the list of paths that need to be refreshed
             {
                RefreshLocalPaths.  lock(); FREPA(thread_refresh_paths)RefreshLocalPaths.binaryInclude(thread_refresh_paths[i], ComparePathCI);
                RefreshLocalPaths.unlock(); thread_refresh_paths.clear();
@@ -722,7 +723,7 @@ class Pane
             force_refresh=true; // refresh
             thread_progress[0]=thread_progress[1]=0; // set as finished
          }
-      }else Time.wait(1);
+      }else thread_event.wait();
       return true;
    }
    void save(TextNode &node)

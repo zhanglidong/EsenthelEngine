@@ -1,5 +1,6 @@
 /******************************************************************************/
       Thread        CompressThread;
+      SyncEvent     CompressEvent;
 const COMPRESS_TYPE CompressionType=COMPRESS_ZSTD;
 const int           CompressionLevel=3;
 /******************************************************************************/
@@ -32,12 +33,12 @@ again:
          SendFileObj &sf=*SendFileObjs.lockedElm(i); if(sf.id==file.id)
          {
             sf.files.  lock(); Swap(sf.files.lockedNew(), file);
-            sf.files.unlock();
+            sf.files.unlock(); sf.files_event.on();
             break;
          }
       }
       SendFileObjs.unlock();
-   }else Time.wait(1);
+   }else CompressEvent.wait();
    return true;
 }
 /******************************************************************************/
