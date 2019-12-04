@@ -1776,6 +1776,11 @@ Bool CodeEditor::generateXcodeProj()
          value.setName("string").nodes.del();
          value.data.setNum(1)[0]=cei().appLocationUsageReason();
       }else
+      if(key=="NSCalendarsUsageDescription")
+      {
+         value.setName("string").nodes.del();
+         value.data.setNum(1)[0]="Unknown";
+      }else
       if(key=="FacebookAppID")
       {
          value.setName("string").nodes.del();
