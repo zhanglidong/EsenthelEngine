@@ -2224,7 +2224,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
       FREPA(mip)
       {
          size>>=1;
-         if(!s->copyTry(mip[i], size.x, size.y, size.z, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_CUBIC_FAST_SMOOTH, (clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT|IC_IGNORE_GAMMA))goto error; // we need a non-sharpening filter and one that spreads in all directions (more than 2x2 samples)
+         if(!s->copyTry(mip[i], size.x, size.y, size.z, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_CUBIC_FAST_SMOOTH, (clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT|IC_NO_ALPHA_LIMIT|IC_IGNORE_GAMMA))goto error; // we need a non-sharpening filter and one that spreads in all directions (more than 2x2 samples), need to use IC_NO_ALPHA_LIMIT or else it won't work well
          s=&mip[i];
       }
 
@@ -2238,7 +2238,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
             Vec2 y_mul_add; y_mul_add.x=Flt(m.h())/h(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
           //Vec2 z_mul_add; z_mul_add.x=Flt(m.d())/d(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
 
-            Vec4 c=m.colorFLinearTTNF32_4 (x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp);
+            Vec4 c=m.colorFLinearTTNF32_4 (x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp); // !! need to use 'colorFLinearTTNF32_4' which uses ALPHA_LIMIT_NONE !!
           //Vec4 c=m.colorFCubicFastSmooth(x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp);
             if(c.w) // if we've found some valid color value
             {

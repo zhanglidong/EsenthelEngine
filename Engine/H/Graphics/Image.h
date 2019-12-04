@@ -223,6 +223,9 @@ enum IMAGE_COPY_FLAG
    IC_CONVERT_GAMMA=1<<4, // make sure gamma conversion is performed (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
    IC_IGNORE_GAMMA =1<<5, // make sure gamma conversion is ignored   (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
    IC_ENV_CUBE     =1<<6, // cube image is meant to be used as Environment Map and will have its mip maps blurred in a special way
+#if EE_PRIVATE
+   IC_NO_ALPHA_LIMIT=1<<7, // don't apply alpha limit when processing pixel colors
+#endif
 };
 #if EE_PRIVATE
    inline Bool IcWrap (UInt flag) {return  FlagTest(flag, IC_WRAP);}

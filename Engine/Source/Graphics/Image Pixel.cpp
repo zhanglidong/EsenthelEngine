@@ -29,6 +29,7 @@ namespace EE{
 #define ALPHA_LIMIT_CUBIC_FAST_SHARP  (1.0f/ 4) // Warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
 #define ALPHA_LIMIT_CUBIC             (1.0f/ 6)
 #define ALPHA_LIMIT_CUBIC_SHARP       (1.0f/ 4)
+#define ALPHA_LIMIT_NONE              FLT_MIN // use FLT_MIN so we still process 0<alpha_limit
 
 /*
    Flt CW[8][8];
@@ -1568,7 +1569,7 @@ Vec4 Image::colorFLinearTTNF32_4(Flt x, Flt y, Bool clamp)C // !! this assumes t
       Add(color, rgb, c01, (  x)*(1-y), true);
       Add(color, rgb, c10, (1-x)*(  y), true);
       Add(color, rgb, c11, (  x)*(  y), true);
-      Normalize(color, rgb, true, ALPHA_LIMIT_LINEAR);
+      Normalize(color, rgb, true, ALPHA_LIMIT_NONE); // this is used only for 'transparentToNeighbor' and there we need no limit
    }
    return color;
 }
@@ -4520,7 +4521,7 @@ struct CopyContext
 {
  C Image &src ;
    Image &dest;
-   const Bool clamp, keep_edges, alpha_weight, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
+   const Bool clamp, keep_edges, alpha_weight, no_alpha_limit, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
    const Int  src_faces1;
    const FILTER_TYPE filter;
    void (*const SetColor)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
@@ -4763,7 +4764,7 @@ struct CopyContext
          src.gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
          REPD(x, 8)
          REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
-         Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
+         Normalize(color, rgb, alpha_weight, alpha_limit);
          if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
          set_color(dest_data_x, dest.type(), dest.hwType(), color);
          dest_data_x+=dest.bytePP();
@@ -5124,6 +5125,7 @@ struct CopyContext
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
       alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && src.typeInfo().a), // only if source has alpha
+      no_alpha_limit(FlagTest(flags, IC_NO_ALPHA_LIMIT)),
       src_srgb(src.sRGB()), dest_srgb(dest.sRGB()),
       ignore_gamma(IgnoreGamma(flags, src.hwType(), dest.hwType())),
 
@@ -5297,6 +5299,7 @@ struct CopyContext
                       //high_prec|=src_srgb; not needed since we always do high prec here
                         manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
                         set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                        alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : ALPHA_LIMIT_CUBIC_FAST_SMOOTH);
                         ImageThreads.init().process(dest.lh(), Downsize2xCubicFastSmooth, T);
                      }goto finish;
                   } // switch(filter)
@@ -5376,15 +5379,15 @@ struct CopyContext
                if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
                && src.ld()==1)
                {
-                  alpha_limit=((filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
-                  Weight     =((filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
+                  alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : (filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
+                  Weight     =(                                    (filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
                   ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubic, T);
                }else
                if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
                && src.ld()==1)
                {
-                  alpha_limit=((filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
-                  Weight     =((filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
+                  alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : (filter==FILTER_CUBIC_FAST) ? ALPHA_LIMIT_CUBIC_FAST : (filter==FILTER_CUBIC_FAST_SMOOTH) ? ALPHA_LIMIT_CUBIC_FAST_SMOOTH : ALPHA_LIMIT_CUBIC_FAST_SHARP);
+                  Weight     =(                                    (filter==FILTER_CUBIC_FAST) ? CubicFast2             : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2              : CubicFastSharp2             );
                   ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubicFast, T);
                }else
                if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
