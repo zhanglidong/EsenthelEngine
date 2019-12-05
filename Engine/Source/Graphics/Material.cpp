@@ -510,13 +510,16 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    }
 
    if(changed&BT_SMOOTH)
-      if((new_base_tex&BT_SMOOTH) && smooth<=EPS_COL8)smooth=1;
+      if(!(new_base_tex&BT_SMOOTH))smooth=0;else
+      if(smooth<=EPS_COL8         )smooth=1;
 
    if(changed&BT_REFLECT)
-      if((new_base_tex&BT_REFLECT) && reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;
+      if(!(new_base_tex&BT_REFLECT)        )reflect=MATERIAL_REFLECT;else
+      if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;
 
    if(changed&BT_GLOW)
-      if((new_base_tex&BT_GLOW) && glow<=EPS_COL8)glow=1;
+      if(!(new_base_tex&BT_GLOW))glow=0;else
+      if(glow<=EPS_COL8         )glow=1;
 
    if(changed&BT_ALPHA)
    {
