@@ -453,6 +453,8 @@ Vec4 GetTangent   (C Vec4 &prev, C Vec4 &cur, C Vec4 &next); // get tangent from
 
 // linear interpolation, 'step'=0..1
 inline Flt   Lerp(  Int    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Int    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Flt    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
 inline Flt   Lerp(  Flt    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
 inline Dbl   Lerp(  Dbl    from,   Dbl    to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
 inline Vec2  Lerp(C VecI2 &from, C VecI2 &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"

@@ -830,6 +830,7 @@ bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-m
        || p.name=="lerpHueSat"
        || p.name=="rollHueSat"
        || p.name=="rollHueSatPhoto"
+       || p.name=="max" && TextVecEx(p.value).anyDifferent()
        || p.name=="channel" && !ChannelMonoTransform(p.value)
        || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent()
        || p.name=="bumpToNormal";
@@ -854,7 +855,8 @@ bool HighPrecTransform(C Str &name)
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
-       || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto";
+       || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
+       || name=="metalToReflect";
 }
 bool SizeDependentTransform(C TextParam &p)
 {
@@ -1844,6 +1846,31 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             image.color3DF(x, y, z, c);
          }
          image.unlock();
+      }
+   }else
+   if(param.name=="max")
+   {
+      Vec max=TextVecEx(param.value);
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=Max(c.xyz, max);
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="metalToReflect")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.x=Lerp(0.04f, 1, c.x);
+         c.y=Lerp(0.04f, 1, c.y);
+         c.z=Lerp(0.04f, 1, c.z);
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="channel") // Warning: this loses sRGB for 1..2 channels, because there are no IMAGE_R8_SRGB, IMAGE_R8G8_SRGB, IMAGE_F32_SRGB, IMAGE_F32_2_SRGB
