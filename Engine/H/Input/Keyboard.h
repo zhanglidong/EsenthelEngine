@@ -126,6 +126,7 @@ struct Keyboard // Keyboard Input
    void queue  (Char   chr, Int scan_code);
    void release(KB_KEY key);
    void update ();
+   void setModifiers();
 
    void swappedCtrlCmd(Bool swapped);   Bool swappedCtrlCmd()C {return _swapped_ctrl_cmd;} // set/get if Ctrl is swapped with Cmd key under Mac OS, enable this method if you have swapped Ctrl with Cmd key under System Preferences but you wish to get their original mapping under the engine, this method is used only under Mac, default=false
 #endif

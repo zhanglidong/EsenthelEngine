@@ -1541,6 +1541,17 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       // DROP
       case WM_DROPFILES: if(App.drop)
       {
+         Byte pushed=0; if(!App.active()) // check for key-states if app is inactive, in case the 'drop' callback wants to know about them
+         {
+            if(!Kb.b(KB_LCTRL ) && GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){Kb.push(KB_LCTRL , 29); pushed|= 1;}// we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(!Kb.b(KB_RCTRL ) && GetKeyState(VK_RCONTROL)<0                            ){Kb.push(KB_RCTRL , 29); pushed|= 2;}
+            if(!Kb.b(KB_LSHIFT) && GetKeyState(VK_LSHIFT  )<0                            ){Kb.push(KB_LSHIFT, 42); pushed|= 4;}
+            if(!Kb.b(KB_RSHIFT) && GetKeyState(VK_RSHIFT  )<0                            ){Kb.push(KB_RSHIFT, 54); pushed|= 8;}
+            if(!Kb.b(KB_LALT  ) && GetKeyState(VK_LMENU   )<0                            ){Kb.push(KB_LALT  , 56); pushed|=16;}
+            if(!Kb.b(KB_RALT  ) && GetKeyState(VK_RMENU   )<0                            ){Kb.push(KB_RALT  , 56); pushed|=32;}
+            if(pushed)Kb.setModifiers();
+         }
+
          HDROP     handle=HDROP(wParam);
          wchar_t   name[MAX_LONG_PATH];
          Memc<Str> names; for(Int i=0; DragQueryFile(handle, i++, name, Elms(name))>0; )names.add(name);
@@ -1548,6 +1559,18 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          DragFinish(handle); // release before the callback
          App.drop(names, Gui.objAtPos(pos), pos);
          if(!D.full() && !(App.flag&APP_WORK_IN_BACKGROUND))DrawState();
+
+         if(pushed) // release what was pushed
+         {
+            if(pushed& 1)Kb.release(KB_LCTRL );
+            if(pushed& 2)Kb.release(KB_RCTRL );
+            if(pushed& 4)Kb.release(KB_LSHIFT);
+            if(pushed& 8)Kb.release(KB_RSHIFT);
+            if(pushed&16)Kb.release(KB_LALT  );
+            if(pushed&32)Kb.release(KB_RALT  );
+            Kb.setModifiers();
+         }
+
          return 0;
       }break;
 

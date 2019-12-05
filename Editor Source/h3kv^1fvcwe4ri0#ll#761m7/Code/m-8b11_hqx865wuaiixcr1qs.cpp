@@ -1100,20 +1100,29 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
    {
       if(contains(focus_obj))REPA(texs)if(texs[i].contains(focus_obj))
       {
+         Texture &tex=texs[i];
          Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().name=CodeEdit.importPaths(names[i]);
-         if(images.elms()>1)
+         bool append=(Kb.ctrl() && tex.file.is());
+         if(images.elms()>1 || append)
          {
             REPA(images) // detect if there are any special maps
             {
                ImageSource &image=images[i]; image.i=i;
                Str base=GetBaseNoExt(image.name);
-               base.replace('_', '-'); // replace _ with - so whole words can work OK
-               if(Contains(base, "ao", false, true) || Contains(base, "occlusion") || Contains(base, "cavity"  )){image.order=1; image.params.New().set("mode", "mul"  );}else // AO
-               if(Contains(base, "illumination")    || Contains(base, "glow"     ) || Contains(base, "emissive")){image.order=2; image.params.New().set("mode", "blend");}     // glow
+               base.replace('_', '-'); // replace _ with - so whole words can work OK, because _ is treated as char and "_ao" fails
+               if(tex.type==TEX_COLOR && (Contains(base, "ms", false, true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal");}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
+               if(                        Contains(base, "ao", false, true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mul"  );}else // AO
+               if(                        Contains(base, "illumination")    || Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend");}     // glow
             }
             images.sort(Compare); // sort by order
          }
-         texs[i].setFile(Edit.FileParams.Encode(SCAST(Memc<Edit.FileParams>, images)));
+         if(!append && Kb.shift() && images.elms()) // process in special way
+         {
+            if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"); // get smooth from alpha channel (Unity style)
+            if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"); // convert from metal map
+         }
+         Str drop=Edit.FileParams.Encode(SCAST(Memc<Edit.FileParams>, images));
+         tex.setFile(append ? Edit.FileParams.Merge(tex.file, drop) : drop);
          break;
       }
    }

@@ -1171,6 +1171,13 @@ void Keyboard::release(KB_KEY key)
    }
 }
 /******************************************************************************/
+void Keyboard::setModifiers()
+{
+  _ctrl =FlagTest(_button[KB_LCTRL ]|_button[KB_RCTRL ], BS_ON|BS_PUSHED);
+  _shift=FlagTest(_button[KB_LSHIFT]|_button[KB_RSHIFT], BS_ON|BS_PUSHED);
+  _alt  =FlagTest(_button[KB_LALT  ]|_button[KB_RALT  ], BS_ON|BS_PUSHED);
+  _win  =FlagTest(_button[KB_LWIN  ]|_button[KB_RWIN  ], BS_ON|BS_PUSHED);
+}
 void Keyboard::update()
 {
 #if WINDOWS_OLD
@@ -1302,10 +1309,7 @@ void Keyboard::update()
    }
 
    // misc
-  _ctrl =FlagTest(_button[KB_LCTRL ]|_button[KB_RCTRL ], BS_ON|BS_PUSHED);
-  _shift=FlagTest(_button[KB_LSHIFT]|_button[KB_RSHIFT], BS_ON|BS_PUSHED);
-  _alt  =FlagTest(_button[KB_LALT  ]|_button[KB_RALT  ], BS_ON|BS_PUSHED);
-  _win  =FlagTest(_button[KB_LWIN  ]|_button[KB_RWIN  ], BS_ON|BS_PUSHED);
+   setModifiers();
   _text_input=false;
 #if ANDROID
    KeySource=KEY_ANY; // re-allow input from all modes
