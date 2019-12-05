@@ -29,7 +29,8 @@ public:
    static void DragGroup(ptr index, GuiObj *go, C Vec2 &screen_pos);
    static void SetGroup(Button &button);
 
-   int getSetGroup();
+   void clearSetGroup();    
+   int    getSetGroup();    
    void highlight(int part);
    GroupRegion& create();
    virtual void update(C GuiPC &gpc)override;

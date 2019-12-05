@@ -274,8 +274,12 @@ void SetObjOp(OP_OBJ_MODE op)
    {
       OpObj=op;
       MtrlEdit.set_mtrl.set(op==OP_OBJ_SET_MTRL, QUIET);
-      if(op!=OP_OBJ_SET_GROUP)REPAO(ObjEdit.group.set_groups).set(false, QUIET);
-      if(op!=OP_OBJ_NONE &&
+
+      if(op!=OP_OBJ_SET_GROUP) // don't want OP_OBJ_SET_GROUP
+         if(op!=OP_OBJ_NONE || ObjEdit.mode()==ObjView::GROUP) // only if another mode (not empty) or we're in GROUP mode, to skip clearing when we're setting OP_OBJ_NONE for some other MODE
+            ObjEdit.group.clearSetGroup();
+
+      if(op!=OP_OBJ_NONE && // if want some obj mode, then disable MODE's that have specific action when clicking
          (ObjEdit.mode()==ObjView::SLOTS
        || ObjEdit.mode()==ObjView::RAGDOLL
        || ObjEdit.mode()==ObjView::PHYS

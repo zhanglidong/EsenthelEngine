@@ -45,11 +45,8 @@
       SetObjOp(button() ? OP_OBJ_SET_GROUP : OP_OBJ_NONE);
       REPA(ObjEdit.group.set_groups)if(&ObjEdit.group.set_groups[i]!=&button)ObjEdit.group.set_groups[i].set(false, QUIET);
    }
-   int GroupRegion::getSetGroup()
-   {
-      FREPA(set_groups)if(set_groups[i]())return i;
-      return -1;
-   }
+   void GroupRegion::clearSetGroup() {REPAO(set_groups).set(false, QUIET);}
+   int    GroupRegion::getSetGroup() {FREPA(set_groups)if(set_groups[i]())return i; return -1;}
    void GroupRegion::highlight(int part)
    {
       parts_l.lit=AbsPartI(ObjEdit.getLod(), part);

@@ -828,7 +828,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       || editor.mode()==VARIATIONS
       || editor.mode()==SKIN  )editor.mode.tab(editor.mode())+=editor.lod_tabs;
 
-      if(editor.mode()==GROUP     ){editor.lod_tabs.move(editor.goto_group.rect().down()-Vec2(0, 0.01)-editor.lod_tabs.rect().up());}
+      if(editor.mode()==GROUP     ){editor.lod_tabs.move(editor.goto_group.rect().down()-Vec2(0, 0.01)-editor.lod_tabs.rect().up()); if(OpObj==OP_OBJ_NONE && editor.group.getSetGroup()>=0)SetObjOp(OP_OBJ_SET_GROUP);}
       if(editor.mode()==VARIATIONS){editor.lod_tabs.move(editor.mode      .rect().down()-Vec2(0, 0.01)-editor.lod_tabs.rect().up());}
       if(editor.mode()==REMOVE
       || editor.mode()==MESH  
@@ -2629,7 +2629,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   mesh.setBox();
                   setChangedMesh(true);
                }else
-               if(OpObj==OP_OBJ_SET_GROUP && group.getSetGroup()>=0)
+               if(mode()==GROUP && OpObj==OP_OBJ_SET_GROUP && group.getSetGroup()>=0)
                {
                   mesh_undos.set("drawGroup");
                   SetDrawGroup(mesh, lod, part_i, group.getSetGroup(), mesh.drawGroupEnum());

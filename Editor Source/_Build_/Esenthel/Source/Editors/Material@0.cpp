@@ -995,9 +995,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
                ImageSource &image=images[i]; image.i=i;
                Str base=GetBaseNoExt(image.name);
                base.replace('_', '-'); // replace _ with - so whole words can work OK, because _ is treated as char and "_ao" fails
-               if(tex.type==TEX_COLOR && (Contains(base, "ms", false, true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal");}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
-               if(                        Contains(base, "ao", false, true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mul"  );}else // AO
-               if(                        Contains(base, "illumination")    || Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend");}     // glow
+               if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal");}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
+               if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mul"  );}else // AO
+               if(                                                           Contains(base, "illumination")    || Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend");}     // glow
             }
             images.sort(Compare); // sort by order
          }

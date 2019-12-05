@@ -58,11 +58,8 @@ class GroupRegion : Region
       REPA(ObjEdit.group.set_groups)if(&ObjEdit.group.set_groups[i]!=&button)ObjEdit.group.set_groups[i].set(false, QUIET);
    }
 
-   int getSetGroup()
-   {
-      FREPA(set_groups)if(set_groups[i]())return i;
-      return -1;
-   }
+   void clearSetGroup() {REPAO(set_groups).set(false, QUIET);}
+   int    getSetGroup() {FREPA(set_groups)if(set_groups[i]())return i; return -1;}
    void highlight(int part)
    {
       parts_l.lit=AbsPartI(ObjEdit.getLod(), part);
