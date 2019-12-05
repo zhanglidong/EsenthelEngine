@@ -469,9 +469,13 @@ VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
 
 Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 Half  Min(Half  x, Half  y                  ) {return min(x, y);}
+Half  Min(Bool  x, Half  y                  ) {return min(x, y);}
+Half  Min(Half  x, Bool  y                  ) {return min(x, y);}
 Half  Min(Int   x, Half  y                  ) {return min(x, y);}
 Half  Min(Half  x, Int   y                  ) {return min(x, y);}
 Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
+Flt   Min(Bool  x, Flt   y                  ) {return min(x, y);}
+Flt   Min(Flt   x, Bool  y                  ) {return min(x, y);}
 Flt   Min(Int   x, Flt   y                  ) {return min(x, y);}
 Flt   Min(Flt   x, Int   y                  ) {return min(x, y);}
 VecH2 Min(VecH2 x, VecH2 y                  ) {return min(x, y);}
@@ -501,9 +505,13 @@ Vec4  Min(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return min(x, min(y, min(z, w)));
 
 Int   Max(Int   x, Int   y                  ) {return max(x, y);}
 Half  Max(Half  x, Half  y                  ) {return max(x, y);}
+Half  Max(Bool  x, Half  y                  ) {return max(x, y);}
+Half  Max(Half  x, Bool  y                  ) {return max(x, y);}
 Half  Max(Int   x, Half  y                  ) {return max(x, y);}
 Half  Max(Half  x, Int   y                  ) {return max(x, y);}
 Flt   Max(Flt   x, Flt   y                  ) {return max(x, y);}
+Flt   Max(Bool  x, Flt   y                  ) {return max(x, y);}
+Flt   Max(Flt   x, Bool  y                  ) {return max(x, y);}
 Flt   Max(Int   x, Flt   y                  ) {return max(x, y);}
 Flt   Max(Flt   x, Int   y                  ) {return max(x, y);}
 VecH2 Max(VecH2 x, VecH2 y                  ) {return max(x, y);}
@@ -1664,19 +1672,16 @@ struct LightParams
    #endif
    }
 
-   VecH specular(Half smooth, Half reflectivity, VecH reflect_col, Bool quality)
-   {
-      // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
-      const Half light_radius=0.0036;
-
+   VecH specular(Half smooth, Half reflectivity, VecH reflect_col, Bool quality, Half light_radius_frac=0.0036)
+   { // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
       Half roughness=1-smooth;
    #if 0
-      if( Q)roughness=Lerp(Pow(light_radius, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
+      if( Q)roughness=Lerp(Pow(light_radius_frac, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
       roughness=(E ? Quart(roughness) : Sqr(roughness));
-      if(!Q)roughness=Lerp(light_radius, 1, roughness);
+      if(!Q)roughness=Lerp(light_radius_frac, 1, roughness);
    #else
       roughness =Sqr(roughness);
-      roughness+=light_radius*(1-roughness); // roughness=Lerp(light_radius, 1, roughness);
+      roughness+=light_radius_frac*(1-roughness); // roughness=Lerp(light_radius_frac, 1, roughness);
    #endif
 
       VecH F=F_Schlick(reflect_col, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
