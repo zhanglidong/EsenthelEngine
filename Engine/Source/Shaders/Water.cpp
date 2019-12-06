@@ -254,8 +254,8 @@ void Surface_PS
       lp.set(nrm, light_dir, eye_dir);
             
       VecH            lum_rgb=LightDir.color.rgb*lum;
-      total_lum     +=lum_rgb*lp.diffuseWater(                                                                         ); // diffuse
-      total_specular+=lum_rgb*lp.specular    (WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, false); // specular
+      total_lum     +=lum_rgb*lp.diffuseWater(                                                                                               ); // diffuse
+      total_specular+=lum_rgb*lp.specular    (WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, false, LightDir.radius_frac); // specular
    }
    water_col.rgb*=total_lum;
 

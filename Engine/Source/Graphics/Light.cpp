@@ -326,25 +326,38 @@ void LightCone  ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt ima
 #pragma pack(push, 4)
 struct GpuLightDir
 {
-   Vec dir, color;
+   Vec dir;
+   Vec color;
    Flt vol, vol_exponent, vol_steam;
+   Flt radius_frac;
 };
 struct GpuLightPoint
 {
-   Flt power, lum_max, vol, vol_max;
-   Vec pos, color;
+   Flt power,
+       radius;
+   Vec pos;
+   Flt lum_max,
+       vol, vol_max;
+   Vec color;
 };
 struct GpuLightLinear
 {
-   Flt neg_inv_range, vol, vol_max;
-   Vec pos, color;
+   Flt neg_inv_range,
+       radius;
+   Vec pos;
+   Vec color;
+   Flt vol, vol_max;
 };
 struct GpuLightCone
 {
-   Flt     neg_inv_range, scale, vol, vol_max;
+   Flt     neg_inv_range,
+           radius;
    Vec2    falloff;
-   Vec     pos, color;
+   Vec     pos;
+   Vec     color;
    Matrix3 mtrx;
+   Flt     scale,
+           vol, vol_max;
 };
 #pragma pack(pop)
 void LightDir::set()
@@ -352,6 +365,7 @@ void LightDir::set()
    GpuLightDir l;
    l.dir         .fromDivNormalized(dir, CamMatrix.orn()).chs();
    l.color       =LinearToDisplay(color_l);
+   l.radius_frac =radius_frac;
    l.vol         =vol;
    l.vol_exponent=vol_exponent;
    l.vol_steam   =vol_steam;

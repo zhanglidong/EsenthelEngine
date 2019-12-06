@@ -54,6 +54,9 @@ Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha)
    VI.image     (&image );
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB, VI_QUAD_IND);
+#if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
+   Sh.ImgSize->setConditional(_part.xy);
+#endif
    return true;
 }
 void DrawParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel)
@@ -93,6 +96,9 @@ Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_al
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB_ANIM, VI_QUAD_IND);
    Sh.ParticleFrames->set(VecI2(x_frames, y_frames));
+#if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
+   Sh.ImgSize->setConditional(_part.xy);
+#endif
    return true;
 }
 void DrawAnimatedParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel, Flt frame)
@@ -764,6 +770,9 @@ void RawParticles::draw()C
       D .depth      (true );
       D .cull       (false);
       Sh.Img[0]->set(image());
+   #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
+      Sh.ImgSize->setConditional(image->_part.xy);
+   #endif
 
       // set
     C IndBuf &ib=(T._ib.is() ? T._ib : IndBuf16384Quads);

@@ -28,7 +28,8 @@ void Astro::light()
 {
    if(is())
    {
-      LightDir(-pos, light_color_l, light_vol, light_vol_exp, light_vol_steam).add(true, this);
+      Flt radius_frac=Atan(Sqr(size*0.5f))/PI_2; // this formula matches visual results of Sun image size vs specular reflection, use "size*0.5" because usually the image on the texture fades out smoothly from the center, instead of having full opacity until the image borders with sharp alpha cutout
+      LightDir(-pos, light_color_l, radius_frac, light_vol, light_vol_exp, light_vol_steam).add(true, this);
    }
 }
 void Astro::Draw()

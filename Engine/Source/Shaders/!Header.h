@@ -1492,29 +1492,35 @@ struct GpuLightDir
    Vec  dir; // high precision needed for HQ specular
    VecH color;
    VecH vol_exponent_steam;
+   Half radius_frac; // 0..1
 };
 struct GpuLightPoint
 {
-   Flt  power;
-   Half lum_max, vol, vol_max;
+   Flt  power , // 0..Inf
+        radius; // 0..Inf
    Vec  pos;
+   Half lum_max,
+        vol, vol_max;
    VecH color;
 };
 struct GpuLightLinear
 {
-   Flt  neg_inv_range;
-   Half vol, vol_max;
+   Flt  neg_inv_range, // -1/range
+        radius       ; // 0..Inf
    Vec  pos;
    VecH color;
+   Half vol, vol_max;
 };
 struct GpuLightCone
 {
-   Flt      neg_inv_range;
-   Half     scale, vol, vol_max;
+   Flt      neg_inv_range, // -1/range
+            radius       ; // 0..Inf
    Vec2     falloff;
    Vec      pos;
    VecH     color;
    MatrixH3 mtrx;
+   Half     scale,
+            vol, vol_max;
 };
 
 BUFFER(LightDir   ) GpuLightDir    LightDir   ; BUFFER_END

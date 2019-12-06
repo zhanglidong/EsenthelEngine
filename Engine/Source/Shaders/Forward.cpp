@@ -525,8 +525,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                  ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false); // specular
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                                        ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
       #endif

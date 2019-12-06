@@ -112,6 +112,9 @@ void Particle_VS(VtxInput vtx,
              outTex  /=ParticleFrames                              ;
    #endif
    }
+#if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
+   outTex.xy*=ImgSize.xy;
+#endif
    outVtx=Project(pos);
 }
 /******************************************************************************/

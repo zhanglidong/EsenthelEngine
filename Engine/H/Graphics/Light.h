@@ -21,7 +21,8 @@ struct LightDir // Directional Light
 {
    Vec dir         , // direction          , normalized vector
        color_l     ; // color linear gamma , (0,0,0) .. (1,1,1)
-   Flt vol         , // volumetric amount  , (0..1  )
+   Flt radius_frac , // radius fraction    , (0..1  )
+       vol         , // volumetric amount  , (0..1  )
        vol_exponent, // volumetric exponent, (0..Inf)
        vol_steam   ; // volumetric steam   , (0..1  )
 
@@ -29,7 +30,7 @@ struct LightDir // Directional Light
    void set(                                     ); // use only outside Renderer rendering, before drawing any shade'able meshes
 
    LightDir() {}
-   LightDir(C Vec &dir, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_exponent=1, Flt vol_steam=0.5f) {T.dir=dir; T.color_l=color_l; T.vol=vol; T.vol_exponent=vol_exponent; T.vol_steam=vol_steam;}
+   LightDir(C Vec &dir, C Vec &color_l=Vec(1, 1, 1), Flt radius_frac=0.0036f, Flt vol=0, Flt vol_exponent=1, Flt vol_steam=0.5f) {T.dir=dir; T.color_l=color_l; T.radius_frac=radius_frac; T.vol=vol; T.vol_exponent=vol_exponent; T.vol_steam=vol_steam;}
 
 #if EE_PRIVATE
    Bool toScreenRect(Rect &rect)C {rect=D.viewRect(); return true;}

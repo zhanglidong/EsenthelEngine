@@ -97,8 +97,8 @@ VecH LightDir_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    VecH    lum_rgb=LightDir.color.rgb*lum;
-   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
-   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true, LightDir.radius_frac); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                                                 ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightPoint_PS

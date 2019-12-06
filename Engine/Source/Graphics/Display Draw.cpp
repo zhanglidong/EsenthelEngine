@@ -941,6 +941,9 @@ void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos, ALPHA_MODE a
    #endif
       v[0].color    =v[1].color    =v[2].color    =v[3].color    =color;
       v[0].size     =v[1].size     =v[2].size     =v[3].size     =size;
+   #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
+      Sh.ImgSize->setConditional(_part.xy);
+   #endif
       SET_TEX(v[0].tex, TEX_ZERO, TEX_ZERO);
       SET_TEX(v[1].tex, TEX_ONE , TEX_ZERO);
       SET_TEX(v[2].tex, TEX_ZERO, TEX_ONE );
