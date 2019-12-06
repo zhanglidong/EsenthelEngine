@@ -657,6 +657,7 @@ class Project
       APPLY_DIV,
       APPLY_ADD,
       APPLY_SUB,
+      APPLY_AVG,
       APPLY_MIN,
       APPLY_MAX,
       APPLY_METAL,
@@ -694,6 +695,7 @@ class Project
             if(p.value=="div"                                                )mode=APPLY_DIV;else
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
+            if(p.value=="avg" || p.value=="average"                          )mode=APPLY_AVG;else
             if(p.value=="min"                                                )mode=APPLY_MIN;else
             if(p.value=="max"                                                )mode=APPLY_MAX;else
             if(p.value=="metal"                                              )mode=APPLY_METAL;else
@@ -737,6 +739,7 @@ class Project
                         case APPLY_DIV         : c=base/l; break;
                         case APPLY_ADD         : c=base+l; break;
                         case APPLY_SUB         : c=base-l; break;
+                        case APPLY_AVG         : c=Avg(base, l); break;
                         case APPLY_MIN         : c=Min(base, l); break;
                         case APPLY_MAX         : c=Max(base, l); break;
                         case APPLY_METAL       : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)

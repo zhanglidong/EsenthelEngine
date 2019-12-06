@@ -174,6 +174,7 @@ class Project
       APPLY_DIV,
       APPLY_ADD,
       APPLY_SUB,
+      APPLY_AVG,
       APPLY_MIN,
       APPLY_MAX,
       APPLY_METAL,
