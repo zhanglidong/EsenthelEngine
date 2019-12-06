@@ -52,7 +52,7 @@
 #define EPS_MATERIAL_BUMP (1.0f/8192)       // Material  Bump     Epsilon (default value used for ignoring Material.bump effect)
 #define EPS_ANIM_POS      0.0002f           // Animation Position Epsilon (default value used for optimizing animation positions)
 #define EPS_ANIM_SCALE    0.0002f           // Animation Scale    Epsilon (default value used for optimizing animation scales)
-#define EPS_ANIM_ANGLE    0.001f            // Animation Angle    Epsilon (default value used for optimizing animation rotation angles)
+#define EPS_ANIM_ANGLE    0.0002f           // Animation Angle    Epsilon (default value used for optimizing animation rotation angles)
 #define EPS_COL8          (0.5f/ 256)       // Color              Epsilon (this gives  8-bit color precision)
 #define EPS_COL           (0.5f/1024)       // Color              Epsilon (this gives 10-bit color precision)
 #define EPS_COL8_COS      (1-EPS_COL8)      // Color Cos          Epsilon (Dot product of 2 directional vectors giving  8-bit color precision)
