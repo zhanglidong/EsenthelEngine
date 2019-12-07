@@ -223,16 +223,24 @@ public:
    static void ImageResize1024(ProjectEx &proj);
    static void ImageResize2048(ProjectEx &proj);
 
-   static void MtrlRGB1                (ProjectEx &proj);
-   static void MtrlRGB                 (ProjectEx &proj);
+   static void MtrlSetRGB1             (ProjectEx &proj);
+   static void MtrlSetRGB              (ProjectEx &proj);
    static void MtrlMulRGB              (ProjectEx &proj);
-   static void MtrlRGBCur              (ProjectEx &proj);
-   static void MtrlAlpha               (ProjectEx &proj);
+   static void MtrlSetRGBCur           (ProjectEx &proj);
+   static void MtrlSetNormalCur        (ProjectEx &proj);
+   static void MtrlSetSmoothCur        (ProjectEx &proj);
+   static void MtrlSetReflectCur       (ProjectEx &proj);
+   static void MtrlResetAlpha          (ProjectEx &proj);
    static void MtrlCullOn              (ProjectEx &proj);
    static void MtrlCullOff             (ProjectEx &proj);
    static void MtrlFlipNrmYOn          (ProjectEx &proj);
    static void MtrlFlipNrmYOff         (ProjectEx &proj);
    static void MtrlReloadBaseTex       (ProjectEx &proj);
+
+   static void MtrlSetNormalTexCur     (ProjectEx &proj);
+   static void MtrlSetSmoothTexCur     (ProjectEx &proj);
+   static void MtrlSetReflectTexCur    (ProjectEx &proj);
+
    static void MtrlMulTexCol           (ProjectEx &proj);
    static void MtrlMulTexNormal        (ProjectEx &proj);
    static void MtrlMulTexSmooth        (ProjectEx &proj);
@@ -350,8 +358,14 @@ public:
    bool forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time);
    void imageMipMap(C MemPtr<UID> &elm_ids, bool on);
    void imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size);
-   void mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul=false);
-   void mtrlAlpha(C MemPtr<UID> &elm_ids);
+   void mtrlResetAlpha(C MemPtr<UID> &elm_ids);
+   void mtrlSetRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul=false);
+   bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false);
+   bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
+   bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
+   bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
+   bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
+   bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize);

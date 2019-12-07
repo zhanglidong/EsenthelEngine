@@ -767,7 +767,7 @@ class SetMtrlColorClass : PropWin
 
    static void OK(SetMtrlColorClass &smc)
    {
-      Proj.mtrlRGB(smc.elms, smc.rgb, smc.mul);
+      Proj.mtrlSetRGB(smc.elms, smc.rgb, smc.mul);
       smc.hide();
    }
 

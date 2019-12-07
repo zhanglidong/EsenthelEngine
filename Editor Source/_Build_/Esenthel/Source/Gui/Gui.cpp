@@ -890,7 +890,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    }
    void SetMtrlColorClass::OK(SetMtrlColorClass &smc)
    {
-      Proj.mtrlRGB(smc.elms, smc.rgb, smc.mul);
+      Proj.mtrlSetRGB(smc.elms, smc.rgb, smc.mul);
       smc.hide();
    }
    void SetMtrlColorClass::create()

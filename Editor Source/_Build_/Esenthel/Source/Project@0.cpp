@@ -405,19 +405,25 @@ void DrawProject()
    void ProjectEx::ImageResize512(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 512);}
    void ProjectEx::ImageResize1024(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 1024);}
    void ProjectEx::ImageResize2048(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 2048);}
-   void ProjectEx::MtrlRGB1(ProjectEx &proj) {proj.mtrlRGB            (proj.menu_list_sel, 1);}
-   void ProjectEx::MtrlRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel);}
-   void ProjectEx::MtrlMulRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel, true);}
-   void ProjectEx::MtrlRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlRGB            (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlAlpha(ProjectEx &proj) {proj.mtrlAlpha          (proj.menu_list_sel);}
-   void ProjectEx::MtrlCullOn(ProjectEx &proj) {proj.mtrlCull           (proj.menu_list_sel, true );}
-   void ProjectEx::MtrlCullOff(ProjectEx &proj) {proj.mtrlCull           (proj.menu_list_sel, false);}
-   void ProjectEx::MtrlFlipNrmYOn(ProjectEx &proj) {proj.mtrlFlipNrmY       (proj.menu_list_sel, true );}
-   void ProjectEx::MtrlFlipNrmYOff(ProjectEx &proj) {proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
-   void ProjectEx::MtrlReloadBaseTex(ProjectEx &proj) {proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
-   void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {proj.mtrlMulTexCol      (proj.menu_list_sel);}
-   void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {proj.mtrlMulTexNormal   (proj.menu_list_sel);}
-   void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
+   void ProjectEx::MtrlSetRGB1(ProjectEx &proj) {                proj.mtrlSetRGB         (proj.menu_list_sel, 1);}
+   void ProjectEx::MtrlSetRGB(ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel);}
+   void ProjectEx::MtrlMulRGB(ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel, true);}
+   void ProjectEx::MtrlSetRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetRGB         (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetNormalCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal     );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetSmoothCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth     );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetReflectCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect    );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlResetAlpha(ProjectEx &proj) {                proj.mtrlResetAlpha     (proj.menu_list_sel);}
+   void ProjectEx::MtrlCullOn(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, true );}
+   void ProjectEx::MtrlCullOff(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, false);}
+   void ProjectEx::MtrlFlipNrmYOn(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, true );}
+   void ProjectEx::MtrlFlipNrmYOff(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
+   void ProjectEx::MtrlReloadBaseTex(ProjectEx &proj) {                proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
+   void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit. normal_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit. smooth_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetReflectTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexReflect  (proj.menu_list_sel, MtrlEdit.edit.reflect_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {                proj.mtrlMulTexCol      (proj.menu_list_sel);}
+   void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {                proj.mtrlMulTexNormal   (proj.menu_list_sel);}
+   void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {                proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
    void ProjectEx::MtrlMoveToObj(ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
    void ProjectEx::MtrlMerge(ProjectEx &proj) {MSM             .display(proj.menu_list_sel);}
    void ProjectEx::MtrlConvertToAtlas(ProjectEx &proj) {ConvertToAtlas  .setElms(proj.menu_list_sel);}
@@ -1398,7 +1404,24 @@ void DrawProject()
          Server.setElmShort(image->id);
       }
    }
-   void ProjectEx::mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul)
+   void ProjectEx::mtrlResetAlpha(C MemPtr<UID> &elm_ids)
+   {
+      REPA(elm_ids)
+      if(Elm *mtrl=findElm(elm_ids[i], ELM_MTRL))
+      if(ElmMaterial *mtrl_data=mtrl->mtrlData())
+      if(MtrlEdit.elm==mtrl)MtrlEdit.resetAlpha();else
+      {
+         EditMaterial edit; if(edit.load(editPath(mtrl->id)))
+         {
+            mtrl_data->newVer();
+            edit.resetAlpha();
+            Save(edit, editPath(mtrl->id));
+            makeGameVer(*mtrl);
+            Server.setElmLong(mtrl->id);
+         }
+      }
+   }
+   void ProjectEx::mtrlSetRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul)
    {
       if(!mul || srgb!=1)
       REPA(elm_ids)
@@ -1416,22 +1439,92 @@ void DrawProject()
          }
       }
    }
-   void ProjectEx::mtrlAlpha(C MemPtr<UID> &elm_ids)
+   bool ProjectEx::mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul)
    {
+      bool ok=true;
+      if(!mul || normal!=1)
       REPA(elm_ids)
-      if(Elm *mtrl=findElm(elm_ids[i], ELM_MTRL))
-      if(ElmMaterial *mtrl_data=mtrl->mtrlData())
-      if(MtrlEdit.elm==mtrl)MtrlEdit.resetAlpha();else
       {
-         EditMaterial edit; if(edit.load(editPath(mtrl->id)))
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.normal!=normal)
          {
-            mtrl_data->newVer();
-            edit.resetAlpha();
-            Save(edit, editPath(mtrl->id));
-            makeGameVer(*mtrl);
-            Server.setElmLong(mtrl->id);
+            if(mul)edit.normal*=normal;else edit.normal=normal; edit.normal_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setNrm");
          }
       }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul)
+   {
+      bool ok=true;
+      if(!mul || smooth!=1)
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.smooth!=smooth)
+         {
+            if(mul)edit.smooth*=smooth;else edit.smooth=smooth; edit.smooth_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setSmooth");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul)
+   {
+      bool ok=true;
+      if(!mul || reflect!=1)
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.reflect!=reflect)
+         {
+            if(mul)edit.reflect*=reflect;else edit.reflect=reflect; edit.reflect_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setReflect");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.normal_map, normal_map, true))
+         {
+            edit.normal_map=normal_map; edit.normal_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexNrm");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.smooth_map, smooth_map, true))
+         {
+            edit.smooth_map=smooth_map; edit.smooth_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexSmooth");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.reflect_map, reflect_map, true))
+         {
+            edit.reflect_map=reflect_map; edit.reflect_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexReflect");
+         }
+      }
+      return ok;
    }
    void ProjectEx::mtrlCull(C MemPtr<UID> &elm_ids, bool on)
    {
@@ -1533,17 +1626,15 @@ void DrawProject()
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.color_s.xyz, Vec(1)) && edit.color_map.is())
          {
-            if(!Equal(edit.color_s.xyz, Vec(1)) && edit.color_map.is())
-            {
-               Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.color_map);
-               Vec mul=edit.color_s.xyz; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p->value);
-               if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
-               else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
-               edit.color_map=Edit::FileParams::Encode(fps); edit.color_map_time.now();
-               edit.color_s.xyz=1; edit.color_time.now();
-               mtrlSync(elm_ids[i], edit, true, false, "mulTexCol");
-            }
+            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.color_map);
+            Vec mul=edit.color_s.xyz; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p->value);
+            if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
+            else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
+            edit.color_map=Edit::FileParams::Encode(fps); edit.color_map_time.now();
+            edit.color_s.xyz=1; edit.color_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexCol");
          }
       }
       return ok;
@@ -1554,18 +1645,16 @@ void DrawProject()
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.normal, 1) && edit.hasNormalMap())
          {
-            if(!Equal(edit.normal, 1) && edit.hasNormalMap())
-            {
-               edit.separateNormalMap();
-               Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.normal_map);
-               flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scaleXY"))mul*=p->asFlt();
-               if(Equal(mul, 1))DelTransform(fps, "scaleXY");
-               else             SetTransform(fps, "scaleXY", TextVecEx(mul));
-               edit.normal_map=Edit::FileParams::Encode(fps); edit.normal_map_time.now();
-               edit.normal=1; edit.normal_time.now();
-               mtrlSync(elm_ids[i], edit, true, false, "mulTexNrm");
-            }
+            edit.separateNormalMap();
+            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.normal_map);
+            flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scaleXY"))mul*=p->asFlt();
+            if(Equal(mul, 1))DelTransform(fps, "scaleXY");
+            else             SetTransform(fps, "scaleXY", TextVecEx(mul));
+            edit.normal_map=Edit::FileParams::Encode(fps); edit.normal_map_time.now();
+            edit.normal=1; edit.normal_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexNrm");
          }
       }
       return ok;
@@ -1576,17 +1665,15 @@ void DrawProject()
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.smooth, 1) && edit.smooth_map.is())
          {
-            if(!Equal(edit.smooth, 1) && edit.smooth_map.is())
-            {
-               Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.smooth_map);
-               flt mul=edit.smooth; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p->asFlt();
-               if(Equal(mul, 1))DelTransform(fps, "mulRGB");
-               else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
-               edit.smooth_map=Edit::FileParams::Encode(fps); edit.smooth_map_time.now();
-               edit.smooth=1; edit.smooth_time.now();
-               mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
-            }
+            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.smooth_map);
+            flt mul=edit.smooth; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p->asFlt();
+            if(Equal(mul, 1))DelTransform(fps, "mulRGB");
+            else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
+            edit.smooth_map=Edit::FileParams::Encode(fps); edit.smooth_map_time.now();
+            edit.smooth=1; edit.smooth_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
          }
       }
       return ok;
@@ -3775,11 +3862,11 @@ void DrawProject()
             {
                Node<MenuElm> &m=(o+="Material");
                {
-                  m.New().create("Set RGB to (1, 1, 1)"      , MtrlRGB1  , T).desc("This option will set RGB color to (1, 1, 1) in all selected materials");
-                  m.New().create("Set RGB to .."             , MtrlRGB   , T).desc("This option will set RGB color to manually specified value in all selected materials");
-                  m.New().create("Set RGB to Edited Material", MtrlRGBCur, T).desc("This option will set RGB color to currently edited Material RGB value in all selected materials");
-                  m.New().create("Set Alpha to 1 or 0.5"     , MtrlAlpha , T).desc("This option will set Alpha value to 0.5 for alpha-tested techniques and to 1.0 for other techniques in all selected materials");
-                  m.New().create("Multiply RGB by .."        , MtrlMulRGB, T).desc("This option will multiply RGB color by manually specified value in all selected materials");
+                  m.New().create("Set RGB to (1, 1, 1)"      , MtrlSetRGB1   , T).desc("This option will set RGB color to (1, 1, 1) in all selected materials");
+                  m.New().create("Set RGB to .."             , MtrlSetRGB    , T).desc("This option will set RGB color to manually specified value in all selected materials");
+                  m.New().create("Set RGB to Edited Material", MtrlSetRGBCur , T).desc("This option will set RGB color to currently edited Material RGB value in all selected materials");
+                  m.New().create("Multiply RGB by .."        , MtrlMulRGB    , T).desc("This option will multiply RGB color by manually specified value in all selected materials");
+                  m.New().create("Set Alpha to 1 or 0.5"     , MtrlResetAlpha, T).desc("This option will set Alpha value to 0.5 for alpha-tested techniques and to 1.0 for other techniques in all selected materials");
                   m++;
                   m.New().create("Enable Cull" , MtrlCullOn , T).desc("This option will set Cull value to true for all selected materials");
                   m.New().create("Disable Cull", MtrlCullOff, T).desc("This option will set Cull value to false for all selected materials");
@@ -3790,7 +3877,14 @@ void DrawProject()
                   m.New().create("Merge into one"  , MtrlMerge         , T).desc("This option will merge all selected materials into one\nMaterial textures are not combined in this mode");
                   m.New().create("Convert to Atlas", MtrlConvertToAtlas, T).desc("This option will merge all selected materials into one\nMaterial textures will be combined together");
                   m++;
+                  m.New().create("Set Smooth Value to Edited Material" , MtrlSetSmoothCur , T);
+                  m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
+                  m++;
                   m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
+                  m++;
+                  m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
+                  m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
+                  m.New().create("Set Reflect Texture to Edited Material", MtrlSetReflectTexCur, T);
                   m++;
                   m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
                   m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);
