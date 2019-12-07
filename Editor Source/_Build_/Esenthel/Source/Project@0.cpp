@@ -3877,10 +3877,10 @@ void DrawProject()
                   m.New().create("Merge into one"  , MtrlMerge         , T).desc("This option will merge all selected materials into one\nMaterial textures are not combined in this mode");
                   m.New().create("Convert to Atlas", MtrlConvertToAtlas, T).desc("This option will merge all selected materials into one\nMaterial textures will be combined together");
                   m++;
+                  m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
+                  m++;
                   m.New().create("Set Smooth Value to Edited Material" , MtrlSetSmoothCur , T);
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
-                  m++;
-                  m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
                   m++;
                   m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
                   m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
