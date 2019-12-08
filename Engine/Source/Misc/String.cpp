@@ -1400,10 +1400,10 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include NUL char
+            Int len_1=t-start; // this will include SPACE/NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.minNumDiscard(len_1);
+               word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(Contains(src, word.data(), case_sensitive, whole_words))return true;
             }
@@ -1423,10 +1423,10 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include NUL char
+            Int len_1=t-start; // this will include SPACE/NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.minNumDiscard(len_1);
+               word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1445,10 +1445,10 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       {
          Char8 c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include NUL char
+            Int len_1=t-start; // this will include SPACE/NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.minNumDiscard(len_1);
+               word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1467,10 +1467,10 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include NUL char
+            Int len_1=t-start; // this will include SPACE/NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.minNumDiscard(len_1);
+               word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1489,10 +1489,10 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       {
          Char8 c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include NUL char
+            Int len_1=t-start; // this will include SPACE/NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.minNumDiscard(len_1);
+               word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
