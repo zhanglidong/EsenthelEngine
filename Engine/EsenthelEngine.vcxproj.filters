@@ -2111,6 +2111,9 @@
     <ClCompile Include="Source\Graphics\Shader Compilers.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Image_Filter_Waifu.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">
@@ -2572,6 +2575,12 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\SPIRV-Cross\lib\spirv-cross-c-shared.lib">
       <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\x64\Release\Waifu2x.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\Release\Waifu2x.lib">
+      <Filter>H\_\Libs\32</Filter>
     </Library>
   </ItemGroup>
 </Project>

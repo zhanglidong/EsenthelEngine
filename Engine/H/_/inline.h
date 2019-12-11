@@ -69,6 +69,10 @@ extern Bool (*CompressPVRTC)(C Image &src, Image &dest, Int quality   );
 inline void   SupportCompressPVRTC() {if(WINDOWS_OLD || MAC || LINUX)CompressPVRTC=_CompressPVRTC;}
 
 inline void SupportCompressAll() {SupportCompressBC(); SupportCompressETC(); SupportCompressPVRTC();}
+
+extern Bool  _ResizeWaifu (C Image &src, Image &dest, Bool clamp);
+extern Bool (*ResizeWaifu)(C Image &src, Image &dest, Bool clamp);
+inline void   SupportFilterWaifu() {ResizeWaifu=_ResizeWaifu;}
 /******************************************************************************/
 // STRING / TEXT
 /******************************************************************************/

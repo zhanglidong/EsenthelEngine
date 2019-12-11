@@ -162,6 +162,8 @@ static const Flt CFSMW8[8][8]= // [y][x]
 /******************************************************************************/
 // FILTERING
 /******************************************************************************/
+Bool (*ResizeWaifu)(C Image &src, Image &dest, Bool clamp);
+/******************************************************************************/
 static Flt Linear(Flt x) {ABS(x); if(x>=1)return 0; return 1-x;}
 /******************************************************************************/
 #define CEIL(x) int(x+0.99f)
@@ -5375,6 +5377,7 @@ struct CopyContext
                   }
                   ImageThreads.init().process(dest.lh(), DownsizeArea, T);
                }else
+               if(filter==FILTER_WAIFU && ResizeWaifu && (dest.lw()>src.lw() || dest.lh()>src.lh()) && src.ld()==1 && dest.ld()==1 && ResizeWaifu(src, dest, clamp)){}else
                // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
                if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
                && src.ld()==1)
