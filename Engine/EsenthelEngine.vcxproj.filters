@@ -2582,5 +2582,14 @@
     <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\Release\Waifu2x.lib">
       <Filter>H\_\Libs\32</Filter>
     </Library>
+    <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\ARM\Release Universal\Waifu2x.lib">
+      <Filter>H\_\Libs\ARM</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\Release Universal\Waifu2x.lib">
+      <Filter>H\_\Libs\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\x64\Release Universal\Waifu2x.lib">
+      <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
   </ItemGroup>
 </Project>

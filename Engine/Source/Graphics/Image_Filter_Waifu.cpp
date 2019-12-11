@@ -100,7 +100,7 @@ static struct WaifuClass
                data.setNum(f.size());
                if(f.getFast(data.data(), data.elms()))
                {
-                  auto temp=w2xc::w2xconv_init_with_tta(w2xc::W2XCONV_GPU_DISABLE, Cpu.threads(), 0, false);
+                  auto temp=w2xc::w2xconv_init_with_tta(w2xc::W2XCONV_GPU_DISABLE, Cpu.threads(), false);
                   f.readMem(data.data(), data.elms());
                   temp->scale2_models.resize(f.getUInt());
                   for(Int i=0; i<temp->scale2_models.size(); i++)
