@@ -122,7 +122,7 @@ static struct WaifuClass
       }
       return waifu!=null;
    }
-   Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3 !!
+   Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3, should be resized x2 using FILTER_NONE !!
    {
       SyncLocker locker(lock); // waifu is not thread-safe (however it operates on a thread pool)
       if(waifu)
@@ -149,7 +149,7 @@ static Bool LockedMipHasAlpha(C Image &image) // assumes that image is not compr
    }
    return false;
 }
-Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images are not compressed and already locked, processes locked mip-map only
+Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images are not compressed and already locked, 'src' is smaller than 'dest', processes locked mip-map only
 {
    if(Waifu.init())
    {
