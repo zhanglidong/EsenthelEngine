@@ -155,7 +155,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
    {
       Image temp[2], temp_alpha;
     C Image *s=&src;
-      Int i=0;
+      Int    i=0;
       do{
          Image &dest=temp[i]; i^=1;
          if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
