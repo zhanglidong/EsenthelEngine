@@ -122,7 +122,7 @@ static struct WaifuClass
       }
       return waifu!=null;
    }
-   Bool process(Image &image, Bool clamp)
+   Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3 !!
    {
       SyncLocker locker(lock); // waifu is not thread-safe (however it operates on a thread pool)
       if(waifu)
@@ -133,11 +133,27 @@ static struct WaifuClass
    }
 }Waifu;
 /******************************************************************************/
-Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images are not compressed, processes locked mip-map only
+static Bool LockedMipHasAlpha(C Image &image) // assumes that image is not compressed and already locked, processes locked mip-map only
+{
+   if(image.typeInfo().a)
+   {
+      if(image.highPrecision())
+      {
+         REPD(y, image.lh())
+         REPD(x, image.lw())if(!Equal(image.colorF(x, y).w, 1.0f, 0.5f/255))return true;
+      }else
+      {
+         REPD(y, image.lh())
+         REPD(x, image.lw())if(image.color(x, y).a!=255)return true;
+      }
+   }
+   return false;
+}
+Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images are not compressed and already locked, processes locked mip-map only
 {
    if(Waifu.init())
    {
-      Image temp[2];
+      Image temp[2], temp_alpha;
     C Image *s=&src;
       Int i=0;
       do{
@@ -148,8 +164,46 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
          if(!Waifu.process(dest, clamp))return false;
          s=&dest;
       }while(s->lw()<dest.lw() || s->lh()<dest.lh());
+
+      if(dest.typeInfo().a && LockedMipHasAlpha(src))
+      {
+         if(!s->copyTry(temp_alpha, -1, -1, -1, dest.type(), IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))return false; // copy to 'temp_alpha' and include alpha channel format
+
+         // copy alpha channel from 'src' into 'temp' as RGB
+         s=&src;
+         {
+            Image &dest=temp[i]; i^=1;
+            if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
+            REPD(y, dest.lh())
+            REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2).w);
+            if(!Waifu.process(dest, clamp))return false;
+            s=&dest;
+         }
+
+         // upscale alpha
+         while(s->lw()<dest.lw() || s->lh()<dest.lh())
+         {
+            Image &dest=temp[i]; i^=1;
+            if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
+            REPD(y, dest.lh())
+            REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2));
+            if(!Waifu.process(dest, clamp))return false;
+            s=&dest;
+         }
+
+         // put alpha from 's' to 'temp_alpha'
+         REPD(y, temp_alpha.lh())
+         REPD(x, temp_alpha.lw())
+         {
+            Vec4 c=temp_alpha.colorF(x, y);
+            c.w=s->pixelF(x, y);
+            temp_alpha.colorF(x, y, c);
+         }
+
+         s=&temp_alpha;
+      }
+
       return dest.injectMipMap(*s, dest.lMipMap(), dest.lCubeFace(), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA);
-      // FIXME process alpha channel
    }
    return false;
 }
