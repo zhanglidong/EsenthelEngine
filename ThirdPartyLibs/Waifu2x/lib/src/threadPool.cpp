@@ -34,7 +34,7 @@
 #define wmb() __asm__ __volatile__ ("":::"memory")
 
 #elif defined _MSC_VER
-	#if _MSC_VER >= 1911
+   #if defined(_M_IX86) || defined(_M_X64)
 		#define rmb() _mm_mfence()
 		#define wmb() _mm_mfence()
 	#else
@@ -51,7 +51,9 @@
 
 #ifdef _WIN32
    #include <process.h>
-   #include <intrin.h>
+   #if defined(_M_IX86) || defined(_M_X64)
+      #include <intrin.h>
+   #endif
 #elif defined __linux
    #include <unistd.h>
    #include <sys/eventfd.h>

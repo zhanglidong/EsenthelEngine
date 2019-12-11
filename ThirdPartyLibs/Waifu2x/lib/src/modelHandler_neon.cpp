@@ -138,8 +138,7 @@ namespace w2xc
 		const float *fbiases,
 		const float *weight,
 		int ip_width,
-		int ip_height,
-		int nJob
+		int ip_height
 	)
 	{
 		if (simd_available(nInputPlanes, nOutputPlanes))
@@ -154,8 +153,7 @@ namespace w2xc
 				fbiases,
 				weight,
 				ip_width,
-				ip_height,
-				nJob
+				ip_height
 			);
 		}
 		else
@@ -170,8 +168,7 @@ namespace w2xc
 				fbiases,
 				weight,
 				ip_width,
-				ip_height,
-				nJob
+				ip_height
 			);
 		}
 	}

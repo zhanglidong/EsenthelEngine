@@ -57,8 +57,7 @@ namespace w2xc
 		W2XConvFlopsCounter *flops,
 		int blockSize,
 		enum image_format fmt,
-		int log_level,
-      bool clamp // ESENTHEL CHANGED
+      bool clamp
 	);
 }
 

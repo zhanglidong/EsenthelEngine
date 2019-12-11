@@ -64,6 +64,7 @@ namespace w2xc
 {
 	void initCUDAGlobal(std::vector<W2XConvProcessor> *proc_list)
 	{
+#ifdef HAVE_CUDA
 #ifdef _WIN32
 		handle = LoadLibraryA("nvcuda.dll");
 #elif defined __APPLE__
@@ -134,7 +135,7 @@ namespace w2xc
 			proc_list->push_back(proc);
 		}
 
-		return;
+#endif
 	}
 
 	bool initCUDA(ComputeEnv *env, int dev_id)
@@ -204,7 +205,6 @@ namespace w2xc
 
 		if (r != CUDA_SUCCESS)
 		{
-			//printf("load data failed %d\n", (int)r);
 			cuCtxDestroy(ctxt);
 			cuStreamDestroy(stream);
 			return false;
@@ -389,7 +389,6 @@ namespace w2xc
 
 		if (r != CUDA_SUCCESS)
 		{
-			printf("fail: alloc bias %d.", (int)r);
 			exit(1);
 		}
 
@@ -662,7 +661,6 @@ namespace w2xc
 		r = cuStreamSynchronize(dev->stream);
 		if (r != CUDA_SUCCESS)
 		{
-			printf("fail stream sync: %d\n", r);
 			exit(1);
 		}
 

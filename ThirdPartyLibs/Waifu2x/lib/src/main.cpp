@@ -86,9 +86,6 @@ class CustomFailOutput : public TCLAP::StdOutput
 		{
 			std::string progName = _cmd.getProgramName();
 
-			std::cerr << "PARSE ERROR: " << e.argId() << std::endl
-					  << "			 " << e.error() << std::endl << std::endl;
-
 			if (_cmd.hasHelpAndVersion())
 			{
 				std::cerr << "Brief USAGE: " << std::endl;

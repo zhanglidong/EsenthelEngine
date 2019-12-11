@@ -34,9 +34,6 @@
     <ClCompile Include="..\lib\src\Env.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib\src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib\src\modelHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,6 +44,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\lib\src\modelHandler_fma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\src\modelHandler_neon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

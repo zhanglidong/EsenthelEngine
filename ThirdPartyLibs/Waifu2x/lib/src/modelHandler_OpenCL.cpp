@@ -123,11 +123,7 @@ namespace w2xc
 #define FreeLibrary dlclose
 
 #endif
-		if (!handle)
-		{
-			printf("No openCL handle found, is libOpenCL installed?\n");
-			return;
-		}
+		if (!handle)return;
 
 #define LOAD(name)                              \
         p_##name = (decltype(p_##name)) GetProcAddress(handle, #name); \
@@ -536,28 +532,20 @@ namespace w2xc
 								}
 								catch (fs::filesystem_error& e)
 								{
-									printf("Error creating directory: %s\n", e.what());
 									exit(EXIT_FAILURE);
 								}
 							}
 
 							bin_path = user_folder + "/" + dev_nameStr + ".bin";
 							fp = fopen(bin_path.c_str(), "wb");
-							printf("Writing OpenCL-Binary to: %s\n",bin_path.c_str());
 						}
 						else
 						{
-							printf("Error opening file %s: [%d] %s\n",bin_path.c_str(),errno,strerror(errno));
 							exit (EXIT_FAILURE);
 						}
 #else
-						printf("Error opening file %s: [%d] %s\n",bin_path.c_str(),errno,strerror(errno));
 						exit (EXIT_FAILURE);
 #endif
-				}
-				else
-				{
-					printf("Writing OpenCL-Binary to: %s\n",bin_path.c_str());
 				}
 			}
 
@@ -849,21 +837,12 @@ namespace w2xc
 
 		if (err != CL_SUCCESS)
 		{
-			printf("enqueue ndrange error : %d\n", err);
 			exit(1);
 		}
 
 		err = clWaitForEvents(1, &event);
-
 		if (err != CL_SUCCESS)
 		{
-			printf("wait ndrange error : %d\n", err);
-			exit(1);
-		}
-
-		if (err != CL_SUCCESS)
-		{
-			printf("read buffer error : %d\n", err);
 			exit(1);
 		}
 

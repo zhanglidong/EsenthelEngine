@@ -556,7 +556,7 @@ namespace w2xc
 
 				switch (proc->sub_type)
 				{
-#ifdef X86OPT
+#if ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
 					case W2XCONV_PROC_HOST_FMA:
 					{
 						filter_FMA_impl(env, packed_input, packed_output,
@@ -579,7 +579,7 @@ namespace w2xc
 						break;
 					}
 #endif
-#ifdef ARMOPT
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
 					case W2XCONV_PROC_HOST_NEON:
 					{
 						filter_NEON_impl(env, packed_input, packed_output,
@@ -607,9 +607,6 @@ namespace w2xc
 
 			double t2 = getsec();
 
-			printf("(w=%d,h=%d) (ip=%d,op=%d) %f %f %f[gflops]\n", size.width, size.height, nInputPlanes, nOutputPlanes, t1-t0, t2-t1, ops/(1000*1000*1000));
-			printf("ver2 : %f [Gflops]\n", (ops/(1000.0*1000.0*1000.0)) / (t2-t1));
-			printf("orig : %f [Gflops]\n", (ops/(1000.0*1000.0*1000.0)) / (t1-t0));
 			int error_count = 0;
 
 			float *packed_output_cv = (float*)packed_output_cv_buf->get_read_ptr_host(env, out_size);
@@ -633,7 +630,6 @@ namespace w2xc
 					int xpos = pixpos % size.width;
 					int ypos = pixpos / size.width;
 
-					printf("d=%.20f %.20f %.20f @ (%d,%d,%d,%d) \n",r, v0, v1, xpos, ypos, plane, i);
 					error_count++;
 
 					if (error_count >= 256)
@@ -691,7 +687,7 @@ namespace w2xc
 
 				switch (proc->sub_type)
 				{
-#ifdef X86OPT
+#if ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
 					case W2XCONV_PROC_HOST_FMA:
 					{
 						filter_FMA_impl
@@ -741,7 +737,7 @@ namespace w2xc
 						break;
 					}
 #endif
-#ifdef ARMOPT
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
 					case W2XCONV_PROC_HOST_NEON:
 					{
 						filter_NEON_impl
@@ -848,11 +844,6 @@ namespace w2xc
 			}
 		}
 
-		//printf("%d %d %d\n",
-		//       (int)cuda_available,
-		//       (int)cl_available,
-		//       (int)avx_available);
-
 		const struct W2XConvProcessor *proc = conv->target_processor;
 
 		if ((cl_available && proc->type == W2XCONV_PROC_OPENCL) ||
@@ -868,246 +859,4 @@ namespace w2xc
 
 		return ret;
 	}
-
-   // FIXME
-	/*Model::Model(FILE *binfp)
-	{
-		uint32_t nInputPlanes, nOutputPlanes;
-
-		fread(&nInputPlanes, 4, 1, binfp);
-		fread(&nOutputPlanes, 4, 1, binfp);
-
-		this->nInputPlanes = nInputPlanes;
-		this->nOutputPlanes = nOutputPlanes;
-		this->kernelSize = 3;
-		this->weights.clear();
-		this->biases.clear();
-
-		// setting weight matrices
-		for (uint32_t oi=0; oi<nOutputPlanes; oi++)
-		{
-			for (uint32_t ii=0; ii<nInputPlanes; ii++)
-			{
-				W2Mat writeMatrix(kernelSize, kernelSize, CV_32FC1);
-
-				for (int yi=0; yi<3; yi++)
-				{
-					for (int xi=0; xi<3; xi++)
-					{
-						double v;
-						fread(&v, 8, 1, binfp);
-						writeMatrix.at<float>(yi, xi) = (float) v;
-					}
-				}
-
-				this->weights.emplace_back(std::move(writeMatrix));
-			}
-		}
-
-		for (uint32_t oi = 0; oi < nOutputPlanes; oi++)
-		{
-			double v;
-			fread(&v, 8, 1, binfp);
-			biases.push_back(v);
-		}
-	}
-
-	Model::Model(int nInputPlane, int nOutputPlane, const float *coef_list, const float *bias)
-	{
-		this->nInputPlanes = nInputPlane;
-		this->nOutputPlanes = nOutputPlane;
-		this->kernelSize = 3;
-   #if 1 // ESENTHEL CHANGED
-		this->weights.resize(nOutputPlanes*nInputPlanes);
-		int w=0;
-      for (uint32_t oi = 0; oi < (uint32_t)nOutputPlanes; oi++)
-		{
-			for (uint32_t ii = 0; ii < (uint32_t)nInputPlanes; ii++)
-			{
-				auto &writeMatrix=this->weights[w++]; writeMatrix=W2Mat(kernelSize, kernelSize, CV_32FC1);
-            memcpy(writeMatrix.data, coef_list, kernelSize*kernelSize*sizeof(float)); coef_list+=kernelSize*kernelSize;
-         }
-      }
-		this->biases.resize(nOutputPlanes); memcpy(biases.data(), bias, nOutputPlanes*sizeof(float));
-   #else
-		this->weights.clear();
-		this->biases.clear();
-
-		int cur = 0;
-
-		// setting weight matrices
-		for (uint32_t oi = 0; oi < (uint32_t)nOutputPlanes; oi++)
-		{
-			for (uint32_t ii = 0; ii < (uint32_t)nInputPlanes; ii++)
-			{
-				W2Mat writeMatrix(kernelSize, kernelSize, CV_32FC1);
-
-				for (int yi = 0; yi < 3; yi++)
-				{
-					for (int xi = 0; xi < 3; xi++)
-					{
-						writeMatrix.at<float>(yi, xi) = coef_list[cur++]; // ESENTHEL CHANGED
-					}
-				}
-		
-				this->weights.emplace_back(std::move(writeMatrix));
-			}
-		}
-
-		for (uint32_t oi = 0; oi < (uint32_t)nOutputPlanes; oi++)
-		{
-			biases.push_back(bias[oi]); // ESENTHEL CHANGED
-		}
-   #endif
-	}
-	bool modelUtility::generateModelFromJSON
-	(
-		const _tstring &fileName,
-		std::vector<std::unique_ptr<Model> > &models
-	)
-	{
-		_tstring binpath = fileName + _T(".bin");
-		FILE *binfp = _tfopen(binpath.c_str(), _T("rb"));
-
-		if (binfp)
-		{
-			bool need_update = update_test(binpath.c_str(), fileName.c_str());
-
-			if (need_update)
-			{
-				fclose(binfp);
-				binfp = NULL;
-			}
-		}
-
-		if (binfp)
-		{
-			uint32_t nModel;
-
-			fread(&nModel, 4, 1, binfp);
-
-			for (uint32_t i=0; i<nModel; i++)
-			{
-				std::unique_ptr<Model> m = std::unique_ptr<Model>(
-					new Model(binfp));
-				models.push_back(std::move(m));
-			}
-
-			fclose(binfp);
-		}
-		else
-		{		
-			std::ifstream jsonFile;
-
-			jsonFile.open(fileName);
-			if (!jsonFile.is_open())
-			{
-				std::string fname = _tstr2str(fileName);
-				std::cerr << "Error : couldn't open " << fname << std::endl;
-				return false;
-			}
-
-			picojson::value jsonValue;
-			jsonFile >> jsonValue;
-
-			std::string errMsg = picojson::get_last_error();
-
-			if (!errMsg.empty())
-			{
-				std::cerr << "Error : PicoJSON Error : " << errMsg << std::endl;
-				return false;
-			}
-
-			picojson::array& objectArray = jsonValue.get<picojson::array>();
-
-			for (auto&& obj : objectArray)
-			{
-				std::unique_ptr<Model> m = std::unique_ptr<Model>(
-					new Model(obj.get<picojson::object>()));
-				models.push_back(std::move(m));
-			}
-
-			binfp = _tfopen(binpath.c_str(), _T("wb"));
-			if (binfp)
-			{
-				size_t nModel = objectArray.size();
-				fwrite(&nModel, 4, 1, binfp);
-				
-				for (auto&& m : models)
-				{
-					uint32_t nInputPlanes = m->getNInputPlanes();
-					uint32_t nOutputPlanes = m->getNOutputPlanes();
-
-					fwrite(&nInputPlanes, 4, 1, binfp);
-					fwrite(&nOutputPlanes, 4, 1, binfp);
-
-					std::vector<W2Mat> &weights = m->getWeigts();
-
-					int nw = (int) weights.size();
-
-					for (int wi = 0; wi < nw; wi++)
-					{
-						W2Mat &wm = weights[wi];
-						double v;
-						v = wm.at<float>(0,0);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(0,1);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(0,2);
-						fwrite(&v, 1, 8, binfp);
-
-						v = wm.at<float>(1,0);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(1,1);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(1,2);
-						fwrite(&v, 1, 8, binfp);
-
-						v = wm.at<float>(2,0);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(2,1);
-						fwrite(&v, 1, 8, binfp);
-						v = wm.at<float>(2,2);
-						fwrite(&v, 1, 8, binfp);
-					}
-
-				   // ESENTHEL CHANGED
-            #if 0
-               std::vector<double> &b = m->getBiases();
-					fwrite(&b[0], 8, b.size(), binfp);
-            #else
-               std::vector<float> &b = m->getBiases();
-               for(int i=0; i<b.size(); i++){double d=b[i]; fwrite(&d, sizeof(d), 1, binfp);}
-            #endif
-				}
-
-				fclose(binfp);
-			}
-		}
-		return true;
-	}
-
-	void modelUtility::generateModelFromMEM
-	(
-		int layer_depth,
-		int num_input_plane,
-		const int *num_map, // num_map[layer_depth]
-		const float *coef_list, // coef_list[layer_depth][num_map][3x3]
-		const float *bias, // bias[layer_depth][num_map]
-		std::vector<std::unique_ptr<Model> > &models
-	)
-	{
-		int cur = 0;
-		models.resize(layer_depth);
-
-		models[0] = std::unique_ptr<Model>(new Model(num_input_plane, num_map[0], &coef_list[0], &bias[0]));
-
-		cur += num_map[0];
-
-		for (int li = 1; li < layer_depth; li++)
-		{
-			models[li] = std::unique_ptr<Model>(new Model(num_map[li - 1], num_map[li], &coef_list[cur * 3 * 3], &bias[cur]));
-			cur += num_map[li];
-		}
-	}*/
 }

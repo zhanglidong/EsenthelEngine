@@ -22,6 +22,7 @@
 */
 
 #include "threadPool.hpp"
+#include "Env.hpp"
 #include "params.h"
 #include <algorithm>
 #include <vector>

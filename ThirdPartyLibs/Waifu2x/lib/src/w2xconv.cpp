@@ -1,22 +1,14 @@
-#define W2XCONV_IMPL
-#define _WIN32_WINNT 0x0600
-
-#define ENABLE_AVX 1
-
 #include <thread>
 
-#ifdef X86OPT
-//#if (defined __GNUC__) || (defined __clang__)
+#if ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
 #ifndef _WIN32
 #include <cpuid.h>
 #else
-#ifndef HAVE_OPENCV
 #include <intrin.h>
 #endif
 #endif
-#endif // X86OPT
 
-#ifdef ARMOPT
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
 #if defined __ANDROID__
 #include <cpu-features.h>
 #elif (defined(__linux))
@@ -31,7 +23,6 @@
 #endif
 
 #include <limits.h>
-#include <sstream>
 
 #include "w2xconv.h"
 #include "sec.hpp"
@@ -56,7 +47,7 @@ static void global_init2(void)
 		host.dev_name = "Generic";
 		host.num_core = std::thread::hardware_concurrency();
 
-#ifdef X86OPT
+#if ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
 #ifdef _WIN32
 #define x_cpuid(p,eax) __cpuid(p, eax)
 		typedef int cpuid_t;
@@ -86,7 +77,7 @@ static void global_init2(void)
 
 		x_cpuid(v, 1);
 
-		if (ENABLE_AVX && (v[2] & 0x18000000) == 0x18000000)
+		if ((v[2] & 0x18000000) == 0x18000000)
 		{
 			if (v[2] & (1<<12))
 			{
@@ -101,31 +92,11 @@ static void global_init2(void)
 		{
 			host.sub_type = W2XCONV_PROC_HOST_SSE3;
 		}
-#endif // X86OPT
-
-#ifdef ARMOPT
-		bool have_neon = false;
-#if defined(__ARM_NEON)
-// armv8 or -march=armv7-a for all files
-		have_neon = true;
-#elif defined(__ANDROID__)
-		int hwcap = android_getCpuFeatures();
-		if (hwcap & ANDROID_CPU_ARM_FEATURE_NEON)
-		{
-			have_neon = true;
-		}
-#elif defined(__linux)
-		int hwcap = getauxval(AT_HWCAP);
-		if (hwcap & HWCAP_ARM_NEON)
-		{
-			have_neon = true;
-		}
 #endif
-		if (have_neon)
-		{
-			host.dev_name = "ARM NEON";
-			host.sub_type = W2XCONV_PROC_HOST_NEON;
-		}
+
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
+		host.dev_name = "ARM NEON";
+		host.sub_type = W2XCONV_PROC_HOST_NEON;
 #endif // ARMOPT
 
 #ifdef PPCOPT
@@ -381,25 +352,25 @@ static int select_device(enum W2XConvGPUMode gpu)
 	return 0; // ??
 }
 
-W2XConv * w2xconv_init(enum W2XConvGPUMode gpu, int nJob, int log_level)
+W2XConv * w2xconv_init(enum W2XConvGPUMode gpu, int nJob)
 {
-	return w2xconv_init_with_tta(gpu, nJob, log_level, false);
+	return w2xconv_init_with_tta(gpu, nJob, false);
 }
 
-W2XConv * w2xconv_init_with_tta(enum W2XConvGPUMode gpu, int nJob, int log_level, bool tta_mode)
+W2XConv * w2xconv_init_with_tta(enum W2XConvGPUMode gpu, int nJob, bool tta_mode)
 {
 	global_init();
 
 	int proc_idx = select_device(gpu);
-	return w2xconv_init_with_processor_and_tta(proc_idx, nJob, log_level, tta_mode);
+	return w2xconv_init_with_processor_and_tta(proc_idx, nJob, tta_mode);
 }
 
-struct W2XConv * w2xconv_init_with_processor(int processor_idx, int nJob, int log_level)
+struct W2XConv * w2xconv_init_with_processor(int processor_idx, int nJob)
 {
-	return w2xconv_init_with_processor_and_tta(processor_idx, nJob, log_level, false);
+	return w2xconv_init_with_processor_and_tta(processor_idx, nJob, false);
 }
 
-struct W2XConv * w2xconv_init_with_processor_and_tta(int processor_idx, int nJob, int log_level, bool tta_mode)
+struct W2XConv * w2xconv_init_with_processor_and_tta(int processor_idx, int nJob, bool tta_mode)
 {
 	global_init();
 
@@ -435,7 +406,6 @@ struct W2XConv * w2xconv_init_with_processor_and_tta(int processor_idx, int nJob
 	c->env.tpool = w2xc::initThreadPool(nJob);
 #endif
 
-	c->log_level = log_level;
 	c->tta_mode = tta_mode;
 	c->target_processor = proc;
 	c->last_error.code = W2XCONV_NOERROR;
@@ -482,99 +452,6 @@ void clearError(W2XConv *conv)
 	}
 }
 
-char * w2xconv_strerror(W2XConvError *e)
-{
-	std::ostringstream oss;
-	char *str;
-
-	switch (e->code)
-		{
-		case W2XCONV_NOERROR:
-		{
-			oss << "no error";
-			break;
-		}
-		case W2XCONV_ERROR_OPENCL:
-		{
-			oss << "opencl_err: " << e->u.errno_;
-			break;
-		}
-		case W2XCONV_ERROR_WIN32_ERROR:
-		{
-			oss << "win32_err: " << e->u.errno_;
-			break;
-		}
-		case W2XCONV_ERROR_WIN32_ERROR_PATH:
-		{
-			oss << "win32_err: " << e->u.win32_path.errno_ << "(" << e->u.win32_path.path << ")";
-			break;
-		}
-		case W2XCONV_ERROR_LIBC_ERROR:
-		{
-			oss << strerror(e->u.errno_);
-			break;
-		}
-		case W2XCONV_ERROR_LIBC_ERROR_PATH:
-		{
-			str = strerror(e->u.libc_path.errno_);
-			oss << str << "(" << e->u.libc_path.path << ")";
-			break;
-		}
-		case W2XCONV_ERROR_MODEL_LOAD_FAILED:
-		{
-			oss << "model load failed: " << e->u.path;
-			break;
-		}
-		case W2XCONV_ERROR_IMREAD_FAILED:
-		{
-			oss << "cv::imread(\"" << e->u.path << "\") failed";
-			break;
-		}
-		case W2XCONV_ERROR_IMWRITE_FAILED:
-		{
-			oss << "cv::imwrite(\"" << e->u.path << "\") failed";
-			break;
-		}
-		case W2XCONV_ERROR_RGB_MODEL_MISMATCH_TO_Y:
-		{
-			oss << "cannot apply rgb model to yuv.";
-			break;
-		}
-		case W2XCONV_ERROR_Y_MODEL_MISMATCH_TO_RGB_F32:
-		{
-			oss << "cannot apply y model to rgb_f32.";
-			break;
-		}
-		case W2XCONV_ERROR_SCALE_LIMIT:
-		{
-			oss << "image scale is too big to convert.";
-			break;
-		}	
-		case W2XCONV_ERROR_SIZE_LIMIT:
-		{
-			oss << "image width (or height) under 40px cannot converted in this scale."; 
-			break;
-		}	
-		case W2XCONV_ERROR_WEBP_SIZE_LIMIT:
-		{
-			oss << "output size too big for webp format. use png or jpg instead."; 
-			break;
-		}
-		case W2XCONV_ERROR_WEBP_LOSSY_SIZE_LIMIT:
-		{
-			oss << "output size too big for lossy webp format. use -q 101 for lossless webp instead."; 
-			break;
-		}
-	}
-
-	return strdup(oss.str().c_str());
-}
-
-void w2xconv_free(void *p)
-{
-	free(p);
-}
-
 static void setError(W2XConv *conv, enum W2XConvErrorCode code)
 {
 	clearError(conv);
@@ -600,7 +477,7 @@ void w2xconv_fini(struct W2XConv *conv)
 bool w2xconv_2x_rgb_f32_esenthel(struct W2XConv *conv, unsigned char *data, size_t pitch, int w, int h, bool clamp)
 {
 	W2Mat mat(w, h, CV_32FC3, data, pitch);
-   return w2xc::convertWithModels(conv, &conv->env, mat, mat, conv->scale2_models, &conv->flops, 0, w2xc::IMAGE_RGB_F32, conv->log_level, clamp);
+   return w2xc::convertWithModels(conv, &conv->env, mat, mat, conv->scale2_models, &conv->flops, 0, w2xc::IMAGE_RGB_F32, clamp);
 }
 
 }

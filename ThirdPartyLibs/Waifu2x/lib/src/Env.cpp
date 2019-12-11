@@ -22,15 +22,6 @@
 */
 
 #include "Env.hpp"
-#include "Buffer.hpp"
-
-#ifdef X86OPT
-#ifdef __GNUC__
-#include <cpuid.h>
-#else
-#include <intrin.h>
-#endif
-#endif // X86OPT
 
 namespace w2xc
 {

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Waifu2x", "Waifu2x.vcxproj", "{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}"
 EndProject
@@ -11,6 +11,10 @@ Global
 		Debug|Emscripten = Debug|Emscripten
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Release Universal|ARM = Release Universal|ARM
+		Release Universal|Emscripten = Release Universal|Emscripten
+		Release Universal|Win32 = Release Universal|Win32
+		Release Universal|x64 = Release Universal|x64
 		Release|ARM = Release|ARM
 		Release|Emscripten = Release|Emscripten
 		Release|Win32 = Release|Win32
@@ -25,6 +29,14 @@ Global
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Debug|Win32.Build.0 = Debug|Win32
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Debug|x64.ActiveCfg = Debug|x64
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Debug|x64.Build.0 = Debug|x64
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|ARM.ActiveCfg = Release Universal|ARM
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|ARM.Build.0 = Release Universal|ARM
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|Emscripten.ActiveCfg = Release Universal|Emscripten
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|Emscripten.Build.0 = Release Universal|Emscripten
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|Win32.ActiveCfg = Release Universal|Win32
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|Win32.Build.0 = Release Universal|Win32
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|x64.ActiveCfg = Release Universal|x64
+		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release Universal|x64.Build.0 = Release Universal|x64
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release|ARM.ActiveCfg = Release|ARM
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release|ARM.Build.0 = Release|ARM
 		{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}.Release|Emscripten.ActiveCfg = Release|Emscripten
@@ -36,5 +48,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {230844BB-2AB2-48C1-8451-045885082283}
 	EndGlobalSection
 EndGlobal
