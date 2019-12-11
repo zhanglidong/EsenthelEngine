@@ -156,6 +156,8 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
       Image temp[2], temp_alpha;
     C Image *s=&src;
       Int    i=0;
+
+      // process RGB
       do{
          Image &dest=temp[i]; i^=1;
          if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
@@ -165,6 +167,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
          s=&dest;
       }while(s->lw()<dest.lw() || s->lh()<dest.lh());
 
+      // process ALPHA
       if(dest.typeInfo().a && LockedMipHasAlpha(src)) // it's important to skip alpha when not needed because it requires a separate resize call (making resize 2x slower)
       {
          if(!s->copyTry(temp_alpha, -1, -1, -1, dest.type(), IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))return false; // copy to 'temp_alpha' and include alpha channel format
@@ -203,6 +206,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
          s=&temp_alpha;
       }
 
+      // store into 'dest'
       return dest.injectMipMap(*s, dest.lMipMap(), dest.lCubeFace(), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA);
    }
    return false;
