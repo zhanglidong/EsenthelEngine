@@ -205,6 +205,9 @@ namespace w2xc
 		return true;
 	}
 
+   static constexpr int Mid(int x, int min, int max) {return (x>=max) ? max : (x<=min) ? min : x;}
+   static constexpr int Mod(int x, int y           ) {int z=x%y; return (z>=0) ? z : z+y;}
+
 	static bool convertWithModelsBlockSplit
 	(
 		W2XConv *conv,
@@ -232,121 +235,20 @@ namespace w2xc
 		W2Mat tempMat_2(tempWidth, tempHeight, inputPlane_2.type);
 		int elem_size = CV_ELEM_SIZE(inputPlane_2.type);
 
-		/* y border */
-		for (int bi=0; bi<nModel; bi++)
-		{
-			char *dst;
-			char *src;
-
-			/* top */
-			dst = tempMat_2.ptr<char>(bi) + elem_size * nModel;
-			src = inputPlane_2.ptr<char>(0);
-			memcpy(dst, src, inputWidth * elem_size);
-
-			/* bottom */
-			dst = tempMat_2.ptr<char>(inputHeight + nModel + bi) + elem_size * nModel;
-			src = inputPlane_2.ptr<char>(inputHeight - 1);
-			memcpy(dst, src, inputWidth * elem_size);
-		}
-
-		/* body */
-		for (int bi=0; bi<inputHeight; bi++)
-		{
-			char *dst;
-			char *src;
-			dst = tempMat_2.ptr<char>(bi + nModel) + elem_size * nModel;
-			src = inputPlane_2.ptr<char>(bi);
-			memcpy(dst, src, inputWidth * elem_size);
-		}
-
-		/* x border */
-		for (int bi=0; bi<tempHeight; bi++)
-		{
-			char *left = tempMat_2.ptr<char>(bi);
-			char *right = left + elem_size * (nModel + inputWidth);
-			uint32_t v32;
-			uint32_t v_0, v_1, v_2;
-
-			switch (elem_size)
-			{
-				case 1:
-				{
-					memset(left, left[nModel], nModel);
-					memset(right, right[-1], nModel);
-					break;
-				}
-				case 3:
-				{
-					v_0 = ((unsigned char*)left)[nModel*3+0];
-					v_1 = ((unsigned char*)left)[nModel*3+1];
-					v_2 = ((unsigned char*)left)[nModel*3+2];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						left[xi*3+0] = v_0;
-						left[xi*3+1] = v_1;
-						left[xi*3+2] = v_2;
-					}
-
-					v_0 = ((unsigned char*)right)[-3+0];
-					v_1 = ((unsigned char*)right)[-3+1];
-					v_2 = ((unsigned char*)right)[-3+2];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						right[xi*3+0] = v_0;
-						right[xi*3+1] = v_1;
-						right[xi*3+2] = v_2;
-					}
-					
-					break;
-				}
-				case 4:
-				{
-					v32 = ((uint32_t*)left)[nModel];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						((uint32_t*)left)[xi] = v32;
-					}
-					
-					v32 = ((uint32_t*)right)[-1];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						((uint32_t*)right)[xi] = v32;
-					}
-					
-					break;
-				}
-				case 12:
-				{
-					v_0 = ((uint32_t*)left)[nModel*3+0];
-					v_1 = ((uint32_t*)left)[nModel*3+1];
-					v_2 = ((uint32_t*)left)[nModel*3+2];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						((uint32_t*)left)[xi*3+0] = v_0;
-						((uint32_t*)left)[xi*3+1] = v_1;
-						((uint32_t*)left)[xi*3+2] = v_2;
-					}
-
-					v_0 = ((uint32_t*)right)[-3+0];
-					v_1 = ((uint32_t*)right)[-3+1];
-					v_2 = ((uint32_t*)right)[-3+2];
-					
-					for (int xi=0; xi<nModel; xi++)
-					{
-						((uint32_t*)right)[xi*3+0] = v_0;
-						((uint32_t*)right)[xi*3+1] = v_1;
-						((uint32_t*)right)[xi*3+2] = v_2;
-					}
-					
-					break;
-				}
-			}
-		}
+      // ESENTHEL CHANGED
+      for(int y=0; y<tempHeight; y++)
+      {
+         int    ys=y-nModel;
+         char *dst=   tempMat_2.ptr<char>(y),
+              *src=inputPlane_2.ptr<char>(clamp ? Mid(ys, 0, inputHeight-1) : Mod(ys, inputHeight));
+         for(int x=0; x<tempWidth ; x++)
+         {
+            int      xs=x-nModel;
+            char *src_x=src+elem_size*(clamp ? Mid(xs, 0, inputWidth-1) : Mod(xs, inputWidth));
+            memcpy(dst, src_x, elem_size);
+            dst+=elem_size;
+         }
+      }
 
 		if (blockSize == 0)
 		{
