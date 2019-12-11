@@ -585,6 +585,7 @@ enum UNIT_TYPE
 {
    UNIT_DEFAULT,
    UNIT_PIXEL  ,
+   UNIT_REAL   ,
    UNIT_PERCENT, // 1/100
    UNIT_PERMIL , // 1/1000
 };

@@ -200,7 +200,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -287,7 +287,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -465,7 +465,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -554,7 +554,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;winmm.lib;wininet.lib;ws2_32.lib;imm32.lib;psapi.lib;rpcrt4.lib;version.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;oldnames.lib;iphlpapi.lib;secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>

@@ -246,7 +246,7 @@ const Pose PoseIdentity;
    }
       ::MtrlImages::ImageResize& MtrlImages::ImageResize::clearParams()
       {
-         size.zero(); filter=FILTER_BEST; clamp=false; return T;
+         size.zero(); filter=-1; clamp=false; return T;
       }
       ::MtrlImages::ImageResize& MtrlImages::ImageResize::del()
       {
@@ -265,21 +265,17 @@ const Pose PoseIdentity;
       ::MtrlImages::ImageResize& MtrlImages::ImageResize::setFrom(C TextParam &param)
       {
          clearParams();
-         if(param.name.is())
+         if(param.name.is() && ResizeTransformAny(param.name))
          {
-            if(param.name=="resize"         ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=false;}else
-            if(param.name=="resizeWrap"     ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=false;}else
-            if(param.name=="resizeClamp"    ){size=TextVecI2Ex(param.value); filter=FILTER_BEST      ; clamp=true ;}else
-            if(param.name=="resizeLinear"   ){size=TextVecI2Ex(param.value); filter=FILTER_LINEAR    ; clamp=false;}else
-            if(param.name=="resizeCubic"    ){size=TextVecI2Ex(param.value); filter=FILTER_CUBIC_FAST; clamp=false;}else
-            if(param.name=="resizeNoStretch"){size=TextVecI2Ex(param.value); filter=FILTER_NO_STRETCH; clamp=false;}
-            // Warning: "maxSize" is not supported
+            size  =GetSize     (param.name, param.value, size3());
+            filter=GetFilter   (param.name);
+            clamp =GetClampWrap(param.name, false);
          }
          return T;
       }
       void MtrlImages::ImageResize::apply()
       {
-         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, filter, clamp ? IC_CLAMP : IC_WRAP);
+         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, clamp ? IC_CLAMP : IC_WRAP);
       }
       MtrlImages::ImageResize::operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    MtrlImages& MtrlImages::del()
@@ -389,6 +385,6 @@ Chunk::Chunk() : ver(0) {}
 
 MtrlImages::MtrlImages() : flip_normal_y(false), tex(0) {}
 
-MtrlImages::ImageResize::ImageResize() : size(0), filter(FILTER_BEST), clamp(false) {}
+MtrlImages::ImageResize::ImageResize() : size(0), filter(-1), clamp(false) {}
 
 /******************************************************************************/

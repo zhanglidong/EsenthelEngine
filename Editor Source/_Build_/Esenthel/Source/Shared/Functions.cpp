@@ -643,6 +643,37 @@ VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2)
    if(pow2)size.set(NearestPow2(size.x), NearestPow2(size.y), NearestPow2(size.z));
    return size;
 }
+VecI2 GetSize(C Str &name, C Str &value, C VecI &src)
+{
+   VecI2 size;
+   if(value=="quarter")size.set(Max(1, src.x/4), Max(1, src.y/4));else
+   if(value=="half"   )size.set(Max(1, src.x/2), Max(1, src.y/2));else
+   if(value=="double" )size=src.xy*2;else
+   {
+      Vec2 sf; if(Contains(value, ','))sf=TextVec2(value);else sf=TextFlt(value);
+      UNIT_TYPE unit=GetUnitType(value);
+      size.x=Round(ConvertUnitType(sf.x, src.x, unit));
+      size.y=Round(ConvertUnitType(sf.y, src.y, unit));
+   }
+   size=ImageSize(src, size, false).xy;
+   if(Starts(name, "maxSize")){MIN(size.x, src.x); MIN(size.y, src.y);}
+   return size;
+}
+int GetFilter(C Str &name)
+{
+   if(Contains(name, "point"    ) || Contains(name, "FilterNone"))return FILTER_NONE;
+   if(Contains(name, "linear"   ))return FILTER_LINEAR;
+   if(Contains(name, "cubic"    ))return FILTER_CUBIC_FAST;
+   if(Contains(name, "waifu"    ))return FILTER_WAIFU;
+   if(Contains(name, "NoStretch"))return FILTER_NO_STRETCH;
+                                  return -1;
+}
+bool GetClampWrap(C Str &name, bool default_clamp)
+{
+   if(Contains(name, "clamp"))return true ; // clamp=1
+   if(Contains(name, "wrap" ))return false; // clamp=0
+                              return default_clamp; // default
+}
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, bool env, C VecI2 &custom_size, C int *force_type)
 {
    VecI size=edit.size3();
@@ -801,10 +832,11 @@ bool ChannelMonoTransform(C Str &value)
    return value.length()<=1 // up to 1 channels is treated as mono
    || ChannelIndex(value[0])==ChannelIndex(value[1]) && ChannelIndex(value[0])==ChannelIndex(value[2]); // check that RGB channels are the same
 }
-bool  PartialTransform(C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
-bool   ResizeTransform(C Str       &name) {return name=="resize" || name=="resizeWrap" || name=="resizeClamp" || name=="resizeLinear" || name=="resizeCubic" || name=="maxSize";} // skip "resizeNoStretch" because it's more like "crop"
-bool     MonoTransform(C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
-bool  NonMonoTransform(C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
+bool PartialTransform   (C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
+bool  ResizeTransformAny(C Str       &name) {return Starts(name, "resize") || Starts(name, "maxSize");}
+bool  ResizeTransform   (C Str       &name) {return ResizeTransformAny(name) && !Contains(name, "NoStretch");} // skip "NoStretch" because it's more like "crop"
+bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
+bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
 {
    int values=Occurrences(p.value, ',');
    return p.name=="inverseR"
@@ -1068,36 +1100,12 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       VecI4 v=TextVecI4(param.value);
       image.crop(image, v.x, v.y, v.z, v.w);
    }else
-   if(param.name=="resize" || param.name=="resizeWrap" || param.name=="resizeClamp" || param.name=="resizeLinear" || param.name=="resizeCubic" || param.name=="resizeNoStretch")
+   if(ResizeTransformAny(param.name))
    {
-      VecI2 s;
-      if(param.value=="quarter")s.set(Max(1, image.w()/4), Max(1, image.h()/4));else
-      if(param.value=="half"   )s.set(Max(1, image.w()/2), Max(1, image.h()/2));else
-      if(param.value=="double" )s=image.size()*2;else
-      {
-         Vec2 sf; if(Contains(param.value, ','))sf=param.asVec2();else sf=param.asFlt();
-         UNIT_TYPE unit=GetUnitType(param.value);
-         s.x=Round(ConvertUnitType(sf.x, image.w(), unit));
-         s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
-      }
-      s=ImageSize(image.size3(), s, false).xy;
-      bool resize_clamp=((param.name=="resizeClamp") ? true : (param.name=="resizeWrap" || param.name=="resizeNoStretch") ? false : clamp);
-      image.resize(s.x, s.y, (param.name=="resizeNoStretch") ? FILTER_NO_STRETCH : (param.name=="resizeLinear") ? FILTER_LINEAR : (param.name=="resizeCubic") ? FILTER_CUBIC_FAST : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP));
-   }else
-   if(param.name=="maxSize")
-   {
-      VecI2 s;
-      if(param.value=="quarter")s.set(Max(1, image.w()/4), Max(1, image.h()/4));else
-      if(param.value=="half"   )s.set(Max(1, image.w()/2), Max(1, image.h()/2));else
-      if(param.value=="double" )s=image.size()*2;else
-      {
-         Vec2 sf; if(Contains(param.value, ','))sf=param.asVec2();else sf=param.asFlt();
-         UNIT_TYPE unit=GetUnitType(param.value);
-         s.x=Round(ConvertUnitType(sf.x, image.w(), unit));
-         s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
-      }
-      s=ImageSize(image.size3(), s, false).xy;
-      image.resize(Min(image.w(), s.x), Min(image.h(), s.y), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP));
+      VecI2 size        =GetSize     (param.name, param.value, image.size3());
+      int   filter      =GetFilter   (param.name);
+      bool  resize_clamp=GetClampWrap(param.name, clamp);
+      image.resize(size.x, size.y, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP));
    }else
    if(param.name=="tile")image.tile(param.asInt());else
    if(param.name=="inverseRGB")
@@ -2710,6 +2718,7 @@ void Diff(MemPtr<Rename> diff, C MemPtr<Rename> &current, C MemPtr<Rename> &desi
 UNIT_TYPE UnitType(C Str &s)
 {
    if(s=="px"                 )return UNIT_PIXEL;
+   if(s=="x"                  )return UNIT_REAL;
    if(s=="pc" || s=='%'       )return UNIT_PERCENT;
    if(s=="pm" || s==CharPermil)return UNIT_PERMIL;
    return UNIT_DEFAULT;
@@ -2730,6 +2739,7 @@ flt ConvertUnitType(flt value, flt full, UNIT_TYPE unit)
    switch(unit)
    {
       default          : return value;
+      case UNIT_REAL   : return value     *full;
       case UNIT_PERCENT: return value/ 100*full;
       case UNIT_PERMIL : return value/1000*full;
    }

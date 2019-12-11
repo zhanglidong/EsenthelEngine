@@ -15,6 +15,7 @@ enum FILTER_TYPE : Byte // Filtering Type
    FILTER_BEST             , // automatically choose the best filter (currently FILTER_CUBIC_FAST_SHARP for down-scaling and FILTER_CUBIC for up-scaling)
    FILTER_NO_STRETCH       , // does not perform any stretching, pixels out of range are either wrapped or clamped
    FILTER_WAIFU            , // super quality however super slow, this filter is available only if 'SupportFilterWaifu' was called inside 'InitPre', it's used only for up-scaling
+   FILTER_NUM              , // number of filters
 #if EE_PRIVATE
    FILTER_DOWN=FILTER_CUBIC_FAST_SHARP, // best filter used for down-scaling
 #endif

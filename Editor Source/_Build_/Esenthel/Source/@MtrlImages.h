@@ -4,9 +4,9 @@ class MtrlImages
 {
    class ImageResize : Image
    {
-      VecI2       size; // if >0 then image should be resized
-      FILTER_TYPE filter;
-      bool        clamp ;
+      VecI2 size; // if >0 then image should be resized
+      int   filter;
+      bool  clamp ;
 
       ImageResize& clearParams();
       ImageResize& del();

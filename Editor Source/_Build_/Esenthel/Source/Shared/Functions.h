@@ -145,6 +145,9 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth);
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2);
 VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2);
+VecI2 GetSize(C Str &name, C Str &value, C VecI &src);
+int GetFilter(C Str &name);
+bool GetClampWrap(C Str &name, bool default_clamp);
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, bool env, C VecI2 &custom_size=0, C int *force_type=null);
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type=null);
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines=false);
@@ -154,10 +157,11 @@ void AdjustMaterialParams(EditWaterMtrl &edit, WaterMtrl &game, uint old_base_te
 bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_maps=-1, bool decompress=false);
 int ChannelIndex(char c);
 bool ChannelMonoTransform(C Str &value);
-bool  PartialTransform(C TextParam &p   );
-bool   ResizeTransform(C Str       &name);
-bool     MonoTransform(C TextParam &p   );
-bool  NonMonoTransform(C TextParam &p   );
+bool PartialTransform   (C TextParam &p   );
+bool  ResizeTransformAny(C Str       &name);
+bool  ResizeTransform   (C Str       &name);
+bool    MonoTransform   (C TextParam &p   );
+bool NonMonoTransform   (C TextParam &p   );
 bool HighPrecTransform(C Str &name);
 bool SizeDependentTransform(C TextParam &p);
 bool ForcesMono(C Str &file);
