@@ -165,7 +165,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
          s=&dest;
       }while(s->lw()<dest.lw() || s->lh()<dest.lh());
 
-      if(dest.typeInfo().a && LockedMipHasAlpha(src))
+      if(dest.typeInfo().a && LockedMipHasAlpha(src)) // it's important to skip alpha when not needed because it requires a separate resize call (making resize 2x slower)
       {
          if(!s->copyTry(temp_alpha, -1, -1, -1, dest.type(), IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))return false; // copy to 'temp_alpha' and include alpha channel format
 
