@@ -191,7 +191,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
             s=&dest;
          }
 
-         // put alpha from 's' to 'temp_alpha'
+         // put alpha from 's' RGB to 'temp_alpha' A
          REPD(y, temp_alpha.lh())
          REPD(x, temp_alpha.lw())
          {
