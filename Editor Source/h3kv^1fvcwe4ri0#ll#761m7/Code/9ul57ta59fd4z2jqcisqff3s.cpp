@@ -148,6 +148,7 @@ void InitPre()
    }else
    {
       SupportCompressAll();
+      SupportFilterWaifu();
    #if LINUX
       SettingsPath=SystemPath(SP_APP_DATA).tailSlash(true)+".esenthel\\Editor\\";
    #elif DESKTOP
