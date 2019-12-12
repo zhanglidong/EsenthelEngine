@@ -26,12 +26,12 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
-#include "sec.hpp"
 #include "common.hpp"
 #include "filters.hpp"
 #include "params.h"
 #include "Env.hpp"
 #include "w2xconv.h"
+#include "threadPool.hpp"
 
 namespace w2xc
 {
@@ -47,122 +47,96 @@ namespace w2xc
 		const float *packed_input = (float*)packed_input_buf->get_read_ptr_host(env, in_size);
 		float *packed_output = (float*)packed_output_buf->get_write_ptr_host(env);
 
-		std::atomic<int> yi_shared(0);
-
-		auto thread_func = [&]()
+		auto thread_func = [&](IntPtr yi)
 		{
 			int w = size.width;
 			int h = size.height;
 
-			while (true)
+			float *out_line = packed_output + w*nOutputPlanes * yi;
+
+			int yi0 = yi-1;
+			int yi1 = yi;
+			int yi2 = yi+1;
+
+			if (yi == 0)
 			{
-				int yi = yi_shared++;
+				yi0 = 0;
+			}
 
-				if (yi >= h)
+			if (yi == h-1)
+			{
+				yi2 = yi1;
+			}
+
+			const float *in_line0 = packed_input + w * nInputPlanes * yi0;
+			const float *in_line1 = packed_input + w * nInputPlanes * yi1;
+			const float *in_line2 = packed_input + w * nInputPlanes * yi2;
+
+			for (int xi=0; xi<w; xi++)
+			{
+				int x0 = xi-1;
+				int x1 = xi;
+				int x2 = xi+1;
+
+				if (xi == 0)
 				{
-					break;
+					x0 = 0;
 				}
 
-				float *out_line = packed_output + w*nOutputPlanes * yi;
-
-				int yi0 = yi-1;
-				int yi1 = yi;
-				int yi2 = yi+1;
-
-				if (yi == 0)
+				if (xi == w-1)
 				{
-					yi0 = 0;
+					x2 = x1;
 				}
 
-				if (yi == h-1)
+				const float *in00 = in_line0 + x0 * nInputPlanes;
+				const float *in01 = in_line0 + x1 * nInputPlanes;
+				const float *in02 = in_line0 + x2 * nInputPlanes;
+
+				const float *in10 = in_line1 + x0 * nInputPlanes;
+				const float *in11 = in_line1 + x1 * nInputPlanes;
+				const float *in12 = in_line1 + x2 * nInputPlanes;
+
+				const float *in20 = in_line2 + x0 * nInputPlanes;
+				const float *in21 = in_line2 + x1 * nInputPlanes;
+				const float *in22 = in_line2 + x2 * nInputPlanes;
+
+				for (int oi=0; oi<nOutputPlanes; oi++)
 				{
-					yi2 = yi1;
-				}
+					float sum = 0;
 
-				const float *in_line0 = packed_input + w * nInputPlanes * yi0;
-				const float *in_line1 = packed_input + w * nInputPlanes * yi1;
-				const float *in_line2 = packed_input + w * nInputPlanes * yi2;
-
-				for (int xi=0; xi<w; xi++)
-				{
-					int x0 = xi-1;
-					int x1 = xi;
-					int x2 = xi+1;
-
-					if (xi == 0)
+					for (int ii=0; ii<nInputPlanes; ii++)
 					{
-						x0 = 0;
+						int wMatIndex = nInputPlanes * oi + ii;
+						const float *w = weights[wMatIndex].ptr<float>(0);
+
+						sum += in00[ii] * w[0];
+						sum += in01[ii] * w[1];
+						sum += in02[ii] * w[2];
+
+						sum += in10[ii] * w[3];
+						sum += in11[ii] * w[4];
+						sum += in12[ii] * w[5];
+
+						sum += in20[ii] * w[6];
+						sum += in21[ii] * w[7];
+						sum += in22[ii] * w[8];
 					}
 
-					if (xi == w-1)
-					{
-						x2 = x1;
-					}
+					float v = sum;
+					v += (float) biases[oi];
+					float mtz = (std::max)(v, 0.0f);
+					float ltz = (std::min)(v, 0.0f);
+					v = ltz*0.1f + mtz;
 
-					const float *in00 = in_line0 + x0 * nInputPlanes;
-					const float *in01 = in_line0 + x1 * nInputPlanes;
-					const float *in02 = in_line0 + x2 * nInputPlanes;
-
-					const float *in10 = in_line1 + x0 * nInputPlanes;
-					const float *in11 = in_line1 + x1 * nInputPlanes;
-					const float *in12 = in_line1 + x2 * nInputPlanes;
-
-					const float *in20 = in_line2 + x0 * nInputPlanes;
-					const float *in21 = in_line2 + x1 * nInputPlanes;
-					const float *in22 = in_line2 + x2 * nInputPlanes;
-
-					for (int oi=0; oi<nOutputPlanes; oi++)
-					{
-						float sum = 0;
-
-						for (int ii=0; ii<nInputPlanes; ii++)
-						{
-							int wMatIndex = nInputPlanes * oi + ii;
-							const float *w = weights[wMatIndex].ptr<float>(0);
-
-							sum += in00[ii] * w[0];
-							sum += in01[ii] * w[1];
-							sum += in02[ii] * w[2];
-
-							sum += in10[ii] * w[3];
-							sum += in11[ii] * w[4];
-							sum += in12[ii] * w[5];
-
-							sum += in20[ii] * w[6];
-							sum += in21[ii] * w[7];
-							sum += in22[ii] * w[8];
-						}
-
-						float v = sum;
-						v += (float) biases[oi];
-						float mtz = (std::max)(v, 0.0f);
-						float ltz = (std::min)(v, 0.0f);
-						v = ltz*0.1f + mtz;
-
-						out_line[xi*nOutputPlanes + oi] = v;
-					}
+					out_line[xi*nOutputPlanes + oi] = v;
 				}
 			}
 		};
 
-		int w = size.width;
-		int h = size.height;
-		std::vector<std::thread> workerThreads;
-		int nJob = env->threads;
-		
-		for (int ji=0; ji<nJob; ji++)
-		{
-			workerThreads.emplace_back(std::thread(thread_func));
-		}
-
-		for (auto&th : workerThreads)
-		{
-			th.join();
-		}
+      EE::MultiThreadedCall(size.height, thread_func);
 		return true;
 	}
 
-//#define COMPARE_RESULT
 	bool Model::filter_AVX_OpenCL
 	(
 		W2XConv *conv,
@@ -495,158 +469,9 @@ namespace w2xc
 			}
 		}
 
-		bool compare_result = false;
-
-#ifdef COMPARE_RESULT
-		compare_result = true;
-#endif
-
 		size_t in_size = size.width * size.height * sizeof(float) * nInputPlanes;
 		size_t out_size = size.width * size.height * sizeof(float) * nOutputPlanes;
 
-		if (compare_result)
-		{
-			Buffer *packed_output_cv_buf = new Buffer(env, sizeof(float) * size.width * size.height * nOutputPlanes);
-
-			double t0 = getsec();
-			filter_CV(env, packed_input_buf, packed_output_cv_buf, size);
-			//filter_FMA_impl(packed_input, packed_output_cv,
-			//		nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat, size);
-			double t1 = getsec();
-
-			/* 3x3 = 9 fma */
-			double ops = size.width * size.height * 9.0 * 2.0 * nOutputPlanes * nInputPlanes;
-
-#ifdef CLLIB_H
-			if (proc->type == W2XCONV_PROC_OPENCL)
-			{
-				filter_OpenCL_impl
-				(
-					env,
-					packed_input_buf,
-					packed_output_buf,
-					nInputPlanes,
-					nOutputPlanes,
-					fbiases_flat,
-					weight_flat,
-					size.width,
-					size.height
-				);
-			}else
-#endif
-         if (proc->type == W2XCONV_PROC_CUDA)
-			{
-				filter_CUDA_impl
-				(
-					env,
-					packed_input_buf,
-					packed_output_buf,
-					nInputPlanes,
-					nOutputPlanes,
-					fbiases_flat,
-					weight_flat,
-					size.width,
-					size.height
-				);
-			}
-			else
-			{
-				const float *packed_input = (float*)packed_input_buf->get_read_ptr_host(env, in_size);
-				float *packed_output = (float*)packed_output_buf->get_write_ptr_host(env);
-
-				switch (proc->sub_type)
-				{
-#if ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
-					case W2XCONV_PROC_HOST_FMA:
-					{
-						filter_FMA_impl(env, packed_input, packed_output,
-								nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat,
-								size.width, size.height);
-						break;
-					}
-					case W2XCONV_PROC_HOST_AVX:
-					{
-						filter_AVX_impl(env, packed_input, packed_output,
-								nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat,
-								size.width, size.height);
-						break;
-					}
-					case W2XCONV_PROC_HOST_SSE3:
-					{
-						filter_SSE_impl(env, packed_input, packed_output,
-								nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat,
-								size.width, size.height);
-						break;
-					}
-#endif
-#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
-					case W2XCONV_PROC_HOST_NEON:
-					{
-						filter_NEON_impl(env, packed_input, packed_output,
-								nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat,
-								size.width, size.height);
-						break;
-					}
-#endif
-#ifdef PPCOPT
-					case W2XCONV_PROC_HOST_ALTIVEC:
-					{
-						filter_AltiVec_impl(env, packed_input, packed_output,
-								nInputPlanes, nOutputPlanes, fbiases_flat, weight_flat,
-								size.width, size.height);
-						break;
-					}
-#endif
-					default:
-					{
-						filter_CV(env, packed_input_buf, packed_output_buf, size);
-						break;
-					}
-				}
-			}
-
-			double t2 = getsec();
-
-			int error_count = 0;
-
-			float *packed_output_cv = (float*)packed_output_cv_buf->get_read_ptr_host(env, out_size);
-			float *packed_output = (float*)packed_output_buf->get_read_ptr_host(env, out_size);
-
-			for (int i=0; i<size.width * size.height * nOutputPlanes; i++)
-			{
-				float v0 = packed_output_cv[i];
-				float v1 = packed_output[i];
-				float d = fabs(v0 - v1);
-
-				float r0 = d/fabs(v0);
-				float r1 = d/fabs(v1);
-
-				float r = (std::max)(r0, r1);
-
-				if (r > 0.1f && d > 0.000001f)
-				{
-					int plane = i % nOutputPlanes;
-					int pixpos = i / nOutputPlanes;
-					int xpos = pixpos % size.width;
-					int ypos = pixpos / size.width;
-
-					error_count++;
-
-					if (error_count >= 256)
-					{
-						exit(1);
-					}
-				}
-			}
-
-			if (error_count != 0)
-			{
-				exit(1);
-			}
-
-			delete packed_output_cv_buf;
-		}
-		else
 		{
 #ifdef CLLIB_H
 			if (proc->type == W2XCONV_PROC_OPENCL)

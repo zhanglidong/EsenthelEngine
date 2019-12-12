@@ -42,8 +42,6 @@ namespace w2xc
 
 #define IS_3CHANNEL(f) (((f)==w2xc::IMAGE_BGR) || ((f)==w2xc::IMAGE_RGB) || ((f)==w2xc::IMAGE_RGB_F32))
 
-   struct W2XConvFlopsCounter;
-
 /**
  * convert inputPlane to outputPlane by convoluting with models.
  */
@@ -54,7 +52,6 @@ namespace w2xc
 		W2Mat &inputPlanes,
 		W2Mat &outputPlanes,
 		std::vector<Model> &models,
-		W2XConvFlopsCounter *flops,
 		int blockSize,
 		enum image_format fmt,
       bool clamp

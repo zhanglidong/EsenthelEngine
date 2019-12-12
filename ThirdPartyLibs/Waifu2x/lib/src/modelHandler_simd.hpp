@@ -244,60 +244,38 @@ namespace w2xc
 		unsigned int num_block_ver = CEIL_DIV(hsz, block_size_ver);
 		unsigned int total_block = num_block_hor * num_block_ver;
 
-		std::atomic<unsigned int> block_counter(0U);
-
-		auto func = [&]()
+		auto func = [&](IntPtr bi)
 		{
-			while (true)
-			{
-				unsigned int bi = block_counter++;
+			unsigned int block_x = bi % num_block_hor;
+			unsigned int block_y = bi / num_block_hor;
 
-				if (bi >= total_block)
-				{
-					return;
-				}
+			unsigned int y_start = block_y * block_size_ver;
+			unsigned int y_end = (std::min)(y_start + block_size_ver, hsz);
 
-				unsigned int block_x = bi % num_block_hor;
-				unsigned int block_y = bi / num_block_hor;
-
-				unsigned int y_start = block_y * block_size_ver;
-				unsigned int y_end = (std::min)(y_start + block_size_ver, hsz);
-
-				unsigned int x_start = block_x * block_size_hor;
-				unsigned int x_end = (std::min)(x_start + block_size_hor, wsz);
+			unsigned int x_start = block_x * block_size_hor;
+			unsigned int x_end = (std::min)(x_start + block_size_hor, wsz);
 				
-				for (unsigned int yi=y_start; yi<y_end; yi++)
-				{
-					const float *input_block = packed_input + (nInputPlanes*yi*wsz);
-					float *output_block = packed_output + (nOutputPlanes*yi*wsz);
+			for (unsigned int yi=y_start; yi<y_end; yi++)
+			{
+				const float *input_block = packed_input + (nInputPlanes*yi*wsz);
+				float *output_block = packed_output + (nOutputPlanes*yi*wsz);
 
-					apply_filter_line
-					(
-						wsz, 
-						hsz,
-						input_block,
-						weight,
-						output_block,
-						fbiases,
-						nInputPlanes,
-						nOutputPlanes,
-						x_start,
-						x_end,
-						yi
-					);
-				}
+				apply_filter_line
+				(
+					wsz, 
+					hsz,
+					input_block,
+					weight,
+					output_block,
+					fbiases,
+					nInputPlanes,
+					nOutputPlanes,
+					x_start,
+					x_end,
+					yi
+				);
 			}
 		};
-#if !defined(_WIN32) && !defined(__linux)
-		std::vector<std::thread> workerThreads;
-		for (int ji=0; ji<env->threads; ji++) {
-			workerThreads.emplace_back(std::thread(func));
-		}
-		for (auto& th : workerThreads) {
-			th.join();
-		}
-#else
-		w2xc::startFunc(env->tpool, func);
-#endif
+      EE::MultiThreadedCall(total_block, func);
 	}
 }

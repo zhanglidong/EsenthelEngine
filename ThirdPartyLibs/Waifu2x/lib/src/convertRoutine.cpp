@@ -25,7 +25,6 @@
 #include "convertRoutine.hpp"
 #include "common.hpp"
 #include "Buffer.hpp"
-#include "sec.hpp"
 #include "w2xconv.h"
 
 namespace w2xc
@@ -39,7 +38,6 @@ namespace w2xc
 		W2Mat &inputPlane, W2Mat &outputPlane,
 		Buffer *input_buf, Buffer *output_buf,
 		std::vector<Model> &models,
-		W2XConvFlopsCounter *flops,
 		enum image_format fmt
 	);
 
@@ -49,7 +47,6 @@ namespace w2xc
 		ComputeEnv *env,
 		W2Mat &inputPlane,
 		W2Mat &outputPlane, std::vector<Model> &models,
-		W2XConvFlopsCounter *flops,
 		int blockSize,
 		enum image_format fmt,
       bool clamp
@@ -61,13 +58,12 @@ namespace w2xc
 		ComputeEnv *env,
 		W2Mat &inputPlane, W2Mat &outputPlane,
 		std::vector<Model> &models,
-		W2XConvFlopsCounter *flops,
 		int blockSize,
 		enum image_format fmt,
       bool clamp
    )
 	{
-		return convertWithModelsBlockSplit(conv, env, inputPlane, outputPlane, models, flops, blockSize, fmt, clamp);
+		return convertWithModelsBlockSplit(conv, env, inputPlane, outputPlane, models, blockSize, fmt, clamp);
 	}
 
 	static bool convertWithModelsBasic
@@ -77,7 +73,7 @@ namespace w2xc
 		W2Mat &inputPlane, W2Mat &outputPlane,
 		Buffer *packed_input_buf,
 		Buffer *packed_output_buf,
-		std::vector<Model> &models, W2XConvFlopsCounter *flops,
+		std::vector<Model> &models,
 		enum image_format fmt
 	)
 	{
@@ -115,32 +111,18 @@ namespace w2xc
 			}
 		}
 
-		double t00 = getsec();
-		double ops_sum = 0;
-
 		for (int index = 0; index < (int)models.size(); index++)
 		{
 			int nOutputPlanes = models[index].getNOutputPlanes();
 			int nInputPlanes = models[index].getNInputPlanes();
-
-			double t0 = getsec();
 
 			if (!models[index].filter(conv, env, packed_input_buf, packed_output_buf, filterSize))
 			{
 				std::exit(-1);
 			}
 			
-			double t1 = getsec();
-			double ops = filterSize.width * filterSize.height * 9.0 * 2.0 * nOutputPlanes * nInputPlanes;
-			
-			ops_sum += ops;
-
-			flops->flop += ops;
-			flops->filter_sec += t1-t0;
-
 			std::swap(packed_input_buf, packed_output_buf);
 		}
-		double t01 = getsec();
 
 		if (IS_3CHANNEL(fmt))
 		{
@@ -191,7 +173,6 @@ namespace w2xc
 		W2Mat &inputPlane_2,
 		W2Mat &outputPlane_2,
 		std::vector<Model> &models,
-		W2XConvFlopsCounter *flops,
 		int blockSize,
 		enum image_format fmt,
       bool clamp
@@ -210,7 +191,6 @@ namespace w2xc
 		W2Mat tempMat_2(tempWidth, tempHeight, inputPlane_2.type);
 		int elem_size = CV_ELEM_SIZE(inputPlane_2.type);
 
-      // ESENTHEL CHANGED
       for(int y=0; y<tempHeight; y++)
       {
          int    ys=y-nModel;
@@ -366,7 +346,6 @@ namespace w2xc
 						elemSize = 4;
 						break;
 					}
-					//FutureNote: no default(-break) ?
 				}
 
 				if (!convertWithModelsBasic
@@ -378,7 +357,6 @@ namespace w2xc
 						input_buf,
 						output_buf,
 						models,
-						flops,
 						fmt
 					)
 				)return false;

@@ -60,8 +60,6 @@ static inline void * w2xc_aligned_malloc(size_t size, size_t alignment)
 #include <string>
 #include "CLlib.h"
 #include "CUDAlib.h"
-#include "threadPool.hpp"
-#include "sec.hpp"
 
 namespace w2xc
 {

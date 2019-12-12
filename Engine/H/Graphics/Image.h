@@ -758,10 +758,8 @@ struct ImageThreadsClass : Threads
       if(!created())createIfEmpty(false, Cpu.threads()-1, 0, "EE.Image #"); // -1 because we will do processing on the caller thread too
       return T;
    }
-   T1(USER_DATA) void process(Int elms, void func(IntPtr elm_index, USER_DATA &user, Int thread_index), USER_DATA &user)
-   {
-      process1(elms, func, user, INT_MAX); // use all available threads, including this one
-   }
+                 void process(Int elms, void func(IntPtr elm_index, Ptr        user, Int thread_index), Ptr        user) {process1(elms, func, user, INT_MAX);} // use all available threads, including this one
+   T1(USER_DATA) void process(Int elms, void func(IntPtr elm_index, USER_DATA &user, Int thread_index), USER_DATA &user) {process1(elms, func, user, INT_MAX);} // use all available threads, including this one
 }extern ImageThreads;
 
 extern const ImagePtr ImageNull;

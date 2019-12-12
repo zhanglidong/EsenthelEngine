@@ -25,12 +25,16 @@
 #include <limits.h>
 
 #include "w2xconv.h"
-#include "sec.hpp"
 #include "Buffer.hpp"
 #include "modelHandler.hpp"
 #include "convertRoutine.hpp"
 #include "filters.hpp"
 #include "cvwrap.hpp"
+#ifdef _WIN32
+   #include <windows.h>
+#else
+   #include <pthread.h>
+#endif
 
 namespace w2xc
 {
@@ -236,7 +240,6 @@ static void global_init2(void)
 }
 
 #ifdef _WIN32
-#include <windows.h>
 static INIT_ONCE global_init_once = INIT_ONCE_STATIC_INIT;
 
 static BOOL CALLBACK global_init1(PINIT_ONCE initOnce, PVOID Parameter, PVOID *Context)
@@ -250,8 +253,6 @@ static void global_init(void)
 	InitOnceExecuteOnce(&global_init_once, global_init1, nullptr, nullptr);
 }
 #else
-#include <pthread.h>
-
 static pthread_once_t global_init_once = PTHREAD_ONCE_INIT;
 
 static void global_init1()
@@ -352,35 +353,14 @@ static int select_device(enum W2XConvGPUMode gpu)
 	return 0; // ??
 }
 
-W2XConv * w2xconv_init(enum W2XConvGPUMode gpu, int nJob)
-{
-	return w2xconv_init_with_tta(gpu, nJob, false);
-}
-
-W2XConv * w2xconv_init_with_tta(enum W2XConvGPUMode gpu, int nJob, bool tta_mode)
+W2XConv* w2xconv_init()
 {
 	global_init();
 
-	int proc_idx = select_device(gpu);
-	return w2xconv_init_with_processor_and_tta(proc_idx, nJob, tta_mode);
-}
-
-struct W2XConv * w2xconv_init_with_processor(int processor_idx, int nJob)
-{
-	return w2xconv_init_with_processor_and_tta(processor_idx, nJob, false);
-}
-
-struct W2XConv * w2xconv_init_with_processor_and_tta(int processor_idx, int nJob, bool tta_mode)
-{
-	global_init();
+   int processor_idx = select_device(W2XCONV_GPU_DISABLE);
 
 	struct W2XConv *c = new struct W2XConv;
 	struct W2XConvProcessor *proc = &processor_list[processor_idx];
-
-	if (nJob == 0)
-	{
-		nJob = std::thread::hardware_concurrency();
-	}
 
 	switch (proc->type)
 	{
@@ -396,22 +376,10 @@ struct W2XConv * w2xconv_init_with_processor_and_tta(int processor_idx, int nJob
 			break;
 		}
 #endif
-		default: //FutureNote: if PROC_HOST is breaking too.. why not just default: break.. and if aesthetics.. why not case, then default?
-		case W2XCONV_PROC_HOST:
-			break;
 	}
 
-   c->env.threads=nJob;
-#if defined(_WIN32) || defined(__linux)
-	c->env.tpool = w2xc::initThreadPool(nJob);
-#endif
-
-	c->tta_mode = tta_mode;
 	c->target_processor = proc;
 	c->last_error.code = W2XCONV_NOERROR;
-	c->flops.flop = 0;
-	c->flops.filter_sec = 0;
-	c->flops.process_sec = 0;
 
 	return c;
 }
@@ -466,18 +434,14 @@ void w2xconv_fini(struct W2XConv *conv)
 #ifdef CLLIB_H
 	w2xc::finiOpenCL(&conv->env);
 #endif
-#if defined(_WIN32) || defined(__linux)
-	w2xc::finiThreadPool(conv->env.tpool);
-#endif
 
 	delete conv;
 }
 
-// ESENTHEL CHANGED
 bool w2xconv_2x_rgb_f32_esenthel(struct W2XConv *conv, unsigned char *data, size_t pitch, int w, int h, bool clamp)
 {
 	W2Mat mat(w, h, CV_32FC3, data, pitch);
-   return w2xc::convertWithModels(conv, &conv->env, mat, mat, conv->scale2_models, &conv->flops, 0, w2xc::IMAGE_RGB_F32, clamp);
+   return w2xc::convertWithModels(conv, &conv->env, mat, mat, conv->scale2_models, 0, w2xc::IMAGE_RGB_F32, clamp);
 }
 
 }

@@ -51,7 +51,6 @@ namespace w2xc
 			const W2Size &size
 		);
 
-      // ESENTHEL CHANGED
       struct Weight
       {
          float w[3][3];

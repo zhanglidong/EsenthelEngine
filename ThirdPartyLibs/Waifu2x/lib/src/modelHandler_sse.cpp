@@ -25,7 +25,6 @@
 #include <immintrin.h>
 #include <atomic>
 #include "filters.hpp"
-#include "sec.hpp"
 #include "Env.hpp"
 
 struct v256_t
@@ -34,7 +33,7 @@ struct v256_t
 };
 
 
-static inline ALWAYS_INLINE v256_t madd256(v256_t const &v0, v256_t const &v1, v256_t const &v2)
+static inline v256_t madd256(v256_t const &v0, v256_t const &v1, v256_t const &v2)
 {
 	v256_t ret;
 	ret.v0 = _mm_add_ps(_mm_mul_ps(v0.v0,v1.v0), v2.v0);
@@ -140,7 +139,6 @@ static inline __m128 madd_vreg(__m128 a, __m128 b, __m128 c)
 #define SIMD_OPLANE
 
 #include "modelHandler_simd.hpp"
-
 
 namespace w2xc
 {

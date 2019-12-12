@@ -25,7 +25,6 @@
 #include <atomic>
 #include <arm_neon.h>
 #include "filters.hpp"
-#include "sec.hpp"
 
 struct v256_t
 {
@@ -33,7 +32,7 @@ struct v256_t
 };
 
 
-static inline ALWAYS_INLINE v256_t madd256(v256_t const &v0, v256_t const &v1, v256_t const &v2)
+static inline v256_t madd256(v256_t const &v0, v256_t const &v1, v256_t const &v2)
 {
 	v256_t ret;
 	ret.v0 = vmlaq_f32(v2.v0, v0.v0, v1.v0);

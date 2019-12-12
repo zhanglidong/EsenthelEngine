@@ -35,7 +35,6 @@
 #include <string>
 #include <string.h>
 #include "filters.hpp"
-#include "sec.hpp"
 #include "CLlib.h"
 #include "params.h"
 #ifdef __APPLE__
@@ -450,7 +449,6 @@ namespace w2xc
 
 		if (!bin_avaiable)
 		{
-			//FutureNote: [1] ?
 			const char *source[1] =
 			{
 				prog 
@@ -852,4 +850,3 @@ namespace w2xc
 	}
 
 }
-

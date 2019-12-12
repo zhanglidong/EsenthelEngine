@@ -24,98 +24,37 @@
 #ifndef THREAD_POOL_HPP
 #define THREAD_POOL_HPP
 
-#if defined(_WIN32) || defined(__linux)
-
-#include <thread>
-#include <atomic>
-
-#ifdef __linux
-
-typedef int event_t;
+#if defined _WIN64 || defined __LP64__
+   #define X64 1 // 64-bit
+#else
+   #define X64 0 // 32-bit
 #endif
 
 #ifdef _WIN32
-
-#include <windows.h>
-
-typedef HANDLE event_t;
-
+   #define PLATFORM(windows, unix) windows
+#else
+   #define PLATFORM(windows, unix) unix
 #endif
 
-namespace w2xc
+typedef   PLATFORM(  signed __int32,  int32_t)   I32,    Int;
+typedef   PLATFORM(  signed __int64,  int64_t)   I64,   Long;
+typedef                       void              *Ptr        ;
+
+#if X64
+   typedef I64 IntPtr;
+#else
+   typedef I32 IntPtr;
+#endif
+
+#define T1(a      )   template<typename a                        > // 1 type  template
+
+namespace EE
 {
-	void notify_event(event_t ev);
-	event_t create_event(void);
-	void delete_event(event_t ev);
-	void notify_event(event_t ev);
-
-	struct ThreadPool;
-
-	struct ThreadFuncBase
-	{
-		virtual void operator() () = 0;
-		virtual ~ThreadFuncBase() { }
-	};
-	template<typename FuncT>
-	struct ThreadFunc : public ThreadFuncBase
-	{
-		FuncT f;
-		ThreadFunc(FuncT const &f) : f(f) {}
-
-		virtual void operator()()
-		{
-			f();
-		}
-
-		virtual ~ThreadFunc(){}
-	};
-
-	extern void startFuncBody(ThreadPool *p, ThreadFuncBase *f);
-
-	template <typename FuncT> void
-	startFunc(ThreadPool *p, FuncT const &f)
-	{
-		ThreadFuncBase *fb = new ThreadFunc<FuncT>(f);
-		startFuncBody(p, fb);
-		delete fb;
-	}
-
-	struct Thread
-	{
-		ThreadPool *p;
-		event_t to_client;
-		std::thread t;
-
-		void func();
-		Thread() : to_client(create_event()) {}
-
-		void start(ThreadPool *p);
-
-		~Thread()
-		{
-			delete_event(to_client);
-		}
-
-		Thread(const Thread&) = delete;
-		Thread&	operator=(const Thread&) = delete;
-		Thread&	operator=(Thread&&) = delete;
-	};
-
-	struct ThreadPool
-	{
-		int num_thread;
-		std::atomic<int> fini_count;
-		std::atomic<bool> fini_all;
-
-		Thread *threads;
-		event_t to_master;
-		ThreadFuncBase *func;
-	};
-
-	struct ThreadPool * initThreadPool(int cpu);
-	void finiThreadPool(struct ThreadPool *p);
+            void WaifuMultiThreadedCall (Int elms, void func(IntPtr elm_index, Ptr   user, Int thread_index), Ptr user);
+            void WaifuMultiThreadedCall1(Int elms, void func(IntPtr elm_index, Ptr   user, Int thread_index), Ptr user);
+   T1(FUNC) void CallFunc               (                    IntPtr elm_index, FUNC &func, Int thread_index) {func(elm_index);}
+   T1(FUNC) void MultiThreadedCall      (Int elms, FUNC &func) {WaifuMultiThreadedCall (elms, (void(*)(IntPtr elm_index, Ptr user, Int thread_index))CallFunc<FUNC>, &func);}
+   T1(FUNC) void MultiThreadedCall1     (Int elms, FUNC &func) {WaifuMultiThreadedCall1(elms, (void(*)(IntPtr elm_index, Ptr user, Int thread_index))CallFunc<FUNC>, &func);}
 }
-
-#endif // __APPLE__
 
 #endif

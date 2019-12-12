@@ -25,7 +25,6 @@
 #include "Buffer.hpp"
 #include "params.h"
 #include "filters.hpp"
-#include "sec.hpp"
 #include <stdio.h>
 #include <string.h>
 #include "w2xconv.h"

@@ -13,9 +13,6 @@
     <ClCompile Include="..\lib\src\modelHandler_sse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib\src\threadPool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib\src\w2xconv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -29,9 +26,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\lib\src\cvwrap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\src\Env.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\lib\src\modelHandler.cpp">
@@ -77,12 +71,6 @@
     <ClInclude Include="..\lib\src\params.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\lib\src\sec.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\src\tchar.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\src\threadPool.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -96,9 +84,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\src\common.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\src\compiler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\src\convertRoutine.hpp">

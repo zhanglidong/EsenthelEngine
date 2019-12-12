@@ -55,7 +55,6 @@
     <ClCompile Include="..\lib\src\common.cpp" />
     <ClCompile Include="..\lib\src\convertRoutine.cpp" />
     <ClCompile Include="..\lib\src\cvwrap.cpp" />
-    <ClCompile Include="..\lib\src\Env.cpp" />
     <ClCompile Include="..\lib\src\modelHandler.cpp" />
     <ClCompile Include="..\lib\src\modelHandler_avx.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
@@ -98,7 +97,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal|ARM'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\lib\src\threadPool.cpp" />
     <ClCompile Include="..\lib\src\w2xconv.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -109,7 +107,6 @@
     <ClInclude Include="..\lib\src\Buffer.hpp" />
     <ClInclude Include="..\lib\src\CLlib.h" />
     <ClInclude Include="..\lib\src\common.hpp" />
-    <ClInclude Include="..\lib\src\compiler.h" />
     <ClInclude Include="..\lib\src\convertRoutine.hpp" />
     <ClInclude Include="..\lib\src\CUDAlib.h" />
     <ClInclude Include="..\lib\src\cvwrap.hpp" />
@@ -123,8 +120,6 @@
     <ClInclude Include="..\lib\src\modelHandler_simd_unroll4.hpp" />
     <ClInclude Include="..\lib\src\modelHandler_simd_unroll5.hpp" />
     <ClInclude Include="..\lib\src\params.h" />
-    <ClInclude Include="..\lib\src\sec.hpp" />
-    <ClInclude Include="..\lib\src\tchar.h" />
     <ClInclude Include="..\lib\src\threadPool.hpp" />
     <ClInclude Include="..\lib\src\w2xconv.h" />
   </ItemGroup>

@@ -27,25 +27,16 @@
 namespace w2xc
 {
 
-struct ThreadPool;
 struct OpenCLDev;
 struct CUDADev;
 
 struct ComputeEnv
 {
-    int num_cl_dev;
-    int num_cuda_dev;
-    OpenCLDev *cl_dev_list;
-    CUDADev *cuda_dev_list;
-    double transfer_wait;
-
-    unsigned int pref_block_size;
-
-    int threads; // ESENTHEL CHANGED
-#if defined(_WIN32) || defined(__linux)
-    w2xc::ThreadPool *tpool;
-#endif
-    ComputeEnv();
+    int num_cl_dev=0;
+    int num_cuda_dev=0;
+    OpenCLDev *cl_dev_list=nullptr;
+    CUDADev *cuda_dev_list=nullptr;
+    unsigned int pref_block_size=512;
 };
 
 }

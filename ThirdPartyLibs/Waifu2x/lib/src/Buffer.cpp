@@ -108,12 +108,12 @@ void Buffer::release(ComputeEnv *env)
         cuda_valid_list[i] = false;
     }
 
-    if (host_ptr)
-	{
-        w2xc_aligned_free(host_ptr);
-    }
-    host_ptr = nullptr;
-    host_valid = false;
+   if (host_ptr)
+   {
+      w2xc_aligned_free(host_ptr);
+      host_ptr = nullptr;
+   }
+   host_valid = false;
 }
 
 void Buffer::invalidate(ComputeEnv *env)
@@ -209,10 +209,7 @@ CUdeviceptr Buffer::get_read_ptr_cuda(ComputeEnv *env,int devid, size_t read_byt
         }
     }
 
-    //double t0 = getsec();
     cuMemcpyHtoD(cuda_ptr_list[devid], host_ptr, read_byte_size);
-    //double t1 = getsec();
-    //env->transfer_wait = t1-t0;
     cuda_valid_list[devid] = true;
     CUcontext old;
     cuCtxPopCurrent(&old);
@@ -274,10 +271,7 @@ void * Buffer::get_read_ptr_host(ComputeEnv *env, size_t read_byte_size)
 	{
         CUDADev *dev = &env->cuda_dev_list[last_write.devid];
         cuCtxPushCurrent(dev->context);
-        //double t0 = getsec();
         cuMemcpyDtoH(host_ptr, cuda_ptr_list[last_write.devid], read_byte_size);
-        //double t1 = getsec();
-        //env->transfer_wait = t1-t0;
 
         CUcontext old;
         cuCtxPopCurrent(&old);

@@ -25,7 +25,6 @@
 #include <immintrin.h>
 #include <atomic>
 #include "filters.hpp"
-#include "sec.hpp"
 #include "Env.hpp"
 
 #define HAVE_AVX

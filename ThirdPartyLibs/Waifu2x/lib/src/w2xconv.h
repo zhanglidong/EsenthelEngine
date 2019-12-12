@@ -94,13 +94,6 @@ struct W2XConvError
 	} u;
 };
 
-struct W2XConvFlopsCounter
-{
-	double flop;
-	double filter_sec;
-	double process_sec;
-};
-
 enum W2XConvProcessorType
 {
 	W2XCONV_PROC_HOST,
@@ -164,9 +157,7 @@ struct W2XConvProcessor
 struct W2XConv
 {
 	struct W2XConvError last_error;
-	struct W2XConvFlopsCounter flops;
 	const struct W2XConvProcessor *target_processor;
-	bool tta_mode;
 
 	std::string dev_name;
 
@@ -177,13 +168,8 @@ struct W2XConv
 
 const struct W2XConvProcessor *w2xconv_get_processor_list(size_t *ret_num);
 
-struct W2XConv *w2xconv_init(enum W2XConvGPUMode gpu, int njob /* 0 = auto */);
-struct W2XConv *w2xconv_init_with_tta(enum W2XConvGPUMode gpu, int njob /* 0 = auto */, bool tta_mode);
-
-struct W2XConv *w2xconv_init_with_processor(int processor_idx, int njob);
-struct W2XConv *w2xconv_init_with_processor_and_tta(int processor_idx, int njob, bool tta_mode);
-
-void w2xconv_fini(struct W2XConv *conv);
+struct W2XConv* w2xconv_init();
+void            w2xconv_fini(struct W2XConv *conv);
 
 bool w2xconv_2x_rgb_f32_esenthel(struct W2XConv *conv, unsigned char *data, size_t pitch, int w, int h, bool clamp);
 

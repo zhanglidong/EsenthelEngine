@@ -21,11 +21,11 @@
 * SOFTWARE.
 */
 
-#include "threadPool.hpp"
 #include "Env.hpp"
 #include "params.h"
 #include <algorithm>
 #include <vector>
+#include "threadPool.hpp"
 
 namespace w2xc
 {
@@ -597,7 +597,7 @@ namespace w2xc
 
 		std::atomic<unsigned int> block_counter(0U);
 
-		auto func = [&]()
+		auto func = [&](IntPtr elm_index)
 		{
 			float *intermediate = (float*)w2xc_aligned_malloc(sizeof(float)*nOutputPlanes*2, 64);
 
@@ -747,18 +747,6 @@ namespace w2xc
 			}
 		};
 
-#if !defined(_WIN32) && !defined(__linux)
-		std::vector<std::thread> workerThreads;
-		for (int ji=0; ji<env->threads; ji++)
-		{
-			workerThreads.emplace_back(std::thread(func));
-		}
-		for (auto& th : workerThreads)
-		{
-			th.join();
-		}
-#else
-		startFunc(env->tpool, func);
-#endif
+      EE::MultiThreadedCall1(total_block, func);
 	}
 }

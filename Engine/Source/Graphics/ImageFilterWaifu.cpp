@@ -13,6 +13,9 @@
 
 namespace EE{
 /******************************************************************************/
+void WaifuMultiThreadedCall (Int elms, void func(IntPtr elm_index, Ptr user, Int thread_index), Ptr user) {ImageThreads.process(    elms                          , func, user);}
+void WaifuMultiThreadedCall1(Int elms, void func(IntPtr elm_index, Ptr user, Int thread_index), Ptr user) {ImageThreads.process(Min(elms, ImageThreads.threads1()), func, user);}
+/******************************************************************************/
 static struct WaifuClass
 {
    w2xc::W2XConv *waifu=null;
@@ -100,7 +103,7 @@ static struct WaifuClass
                data.setNum(f.size());
                if(f.getFast(data.data(), data.elms()))
                {
-                  auto temp=w2xc::w2xconv_init_with_tta(w2xc::W2XCONV_GPU_DISABLE, Cpu.threads(), false);
+                  auto temp=w2xc::w2xconv_init();
                   f.readMem(data.data(), data.elms());
                   temp->scale2_models.resize(f.getUInt());
                   for(Int i=0; i<temp->scale2_models.size(); i++)
@@ -124,12 +127,7 @@ static struct WaifuClass
    }
    Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3, should be resized x2 using FILTER_NONE !!
    {
-      SyncLocker locker(lock); // waifu is not thread-safe (however it operates on a thread pool)
-      if(waifu)
-      {
-         return w2xc::w2xconv_2x_rgb_f32_esenthel(waifu, image.data(), image.pitch(), image.w(), image.h(), clamp);
-      }
-      return false;
+      return waifu && w2xc::w2xconv_2x_rgb_f32_esenthel(waifu, image.data(), image.pitch(), image.w(), image.h(), clamp);
    }
 }Waifu;
 /******************************************************************************/

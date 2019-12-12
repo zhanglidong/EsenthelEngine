@@ -25,9 +25,7 @@
 #define COMMON_HPP
 
 #include <vector>
-#include "compiler.h"
 #include "cvwrap.hpp"
-#include "tchar.h"
 
 namespace w2xc
 {
