@@ -2558,7 +2558,7 @@
     </ClCompile>
     <ClCompile Include="Source\Edit\Undo.cpp" />
     <ClCompile Include="Source\Graphics\Image RT.cpp" />
-    <ClCompile Include="Source\Graphics\Image_Filter_Waifu.cpp" />
+    <ClCompile Include="Source\Graphics\ImageFilterWaifu.cpp" />
     <ClCompile Include="Source\Graphics\Import\BC_Compress.cpp" />
     <ClCompile Include="Source\Graphics\Import\ETC_Compress.cpp" />
     <ClCompile Include="Source\Graphics\Import\PVRTC_Compress.cpp" />
