@@ -5037,7 +5037,7 @@ struct CopyContext
                Int xc=(x+x_offset)&1;
                REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
             }
-            Normalize(color, rgb, alpha_weight, ALPHA_LIMIT_LINEAR);
+            Normalize(color, rgb, alpha_weight, alpha_limit);
             SetColor(dest_data_x, dest.type(), dest.hwType(), color);
             dest_data_x+=dest.bytePP();
          }
@@ -5396,6 +5396,7 @@ struct CopyContext
                if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
                && src.ld()==1)
                {
+                  alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : ALPHA_LIMIT_LINEAR);
                   ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeLinear, T);
                }else
                {
