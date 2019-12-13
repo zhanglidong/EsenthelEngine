@@ -6,7 +6,7 @@
 enum FILTER_TYPE : Byte // Filtering Type
 {
    FILTER_NONE             , //  1.0000 speed, worst  quality, uses 1x1 samples no 2D filtering
-   FILTER_LINEAR           , // ~0.7300 speed, low    quality, uses 2x2 samples in 2D filtering
+   FILTER_LINEAR           , // ~0.7500 speed, low    quality, uses 2x2 samples in 2D filtering
    FILTER_CUBIC_FAST       , // ~0.1700 speed, high   quality, uses 4x4 samples in 2D filtering, low    sharpening is applied
    FILTER_CUBIC_FAST_SMOOTH, // ~0.1700 speed, blurry quality, uses 4x4 samples in 2D filtering, no     sharpening is applied, result will appear blurry however without aliasing
    FILTER_CUBIC_FAST_SHARP , // ~0.1700 speed, high   quality, uses 4x4 samples in 2D filtering, high   sharpening is applied (best for down-scaling)
