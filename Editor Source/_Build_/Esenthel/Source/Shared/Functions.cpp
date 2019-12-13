@@ -661,7 +661,7 @@ VecI2 GetSize(C Str &name, C Str &value, C VecI &src)
 }
 int GetFilter(C Str &name)
 {
-   if(Contains(name, "point"    ) || Contains(name, "FilterNone"))return FILTER_NONE;
+   if(Contains(name, "nearest"  ) || Contains(name, "point") || Contains(name, "FilterNone"))return FILTER_NONE;
    if(Contains(name, "linear"   ))return FILTER_LINEAR;
    if(Contains(name, "cubic"    ))return FILTER_CUBIC_FAST;
    if(Contains(name, "waifu"    ))return FILTER_WAIFU;
