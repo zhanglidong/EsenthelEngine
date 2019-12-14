@@ -27,9 +27,15 @@
 #include "filters.hpp"
 #include "Env.hpp"
 
+#if !defined _WIN32 && ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
+   #define FUNC_ATTR __attribute__((target("fma,avx")))
+#else
+   #define FUNC_ATTR
+#endif
+
 typedef __m256 v256_t;
 
-static inline __m256 madd256(__m256 v0, __m256 v1, __m256 v2)
+FUNC_ATTR static inline __m256 madd256(__m256 v0, __m256 v1, __m256 v2)
 {
 	return _mm256_fmadd_ps(v0, v1, v2);
 }
@@ -44,8 +50,7 @@ static inline __m256 madd256(__m256 v0, __m256 v1, __m256 v2)
 #define set1 _mm256_set1_ps
 #define mul256 _mm256_mul_ps
 
-
-static inline float hadd8(__m256 v)
+FUNC_ATTR static inline float hadd8(__m256 v)
 {
 	v = _mm256_hadd_ps(v, v);
 	v = _mm256_hadd_ps(v, v);
@@ -56,10 +61,7 @@ static inline float hadd8(__m256 v)
 	return v0 + v1;
 }
 
-
-
 #include "modelHandler_avx_func.hpp"
-
 
 #undef UNROLL
 typedef __m256 vreg_t;

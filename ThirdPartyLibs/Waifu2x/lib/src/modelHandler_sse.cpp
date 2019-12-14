@@ -27,6 +27,12 @@
 #include "filters.hpp"
 #include "Env.hpp"
 
+#if !defined _WIN32 && ((defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__))
+   #define FUNC_ATTR __attribute__((target("sse3")))
+#else
+   #define FUNC_ATTR
+#endif
+
 struct v256_t
 {
 	__m128 v0, v1;
@@ -80,7 +86,7 @@ static inline v256_t set1(float a)
 	return ret;
 }
 
-static inline float hadd8(v256_t const &v)
+FUNC_ATTR static inline float hadd8(v256_t const &v)
 {
 	__m128 sum4 = _mm_add_ps(v.v0, v.v1);
 	sum4 = _mm_hadd_ps(sum4, sum4);

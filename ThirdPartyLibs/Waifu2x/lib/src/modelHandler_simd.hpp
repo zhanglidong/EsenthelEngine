@@ -24,6 +24,10 @@
 #include <string.h>
 #include "threadPool.hpp"
 
+#ifndef FUNC_ATTR
+#define FUNC_ATTR
+#endif
+
 namespace w2xc
 {
 
@@ -32,7 +36,7 @@ namespace w2xc
 		return ((nInputPlanes % (VEC_NELEM*4)) == 0 && (nOutputPlanes % (VEC_NELEM*2)) == 0);
 	}
 
-	static void apply_filter_line
+	FUNC_ATTR static void apply_filter_line
 	(
 		unsigned long width,
 		unsigned long height,

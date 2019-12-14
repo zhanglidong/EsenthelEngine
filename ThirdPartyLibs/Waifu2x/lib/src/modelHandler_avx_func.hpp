@@ -27,12 +27,16 @@
 #include <vector>
 #include "threadPool.hpp"
 
+#ifndef FUNC_ATTR
+#define FUNC_ATTR
+#endif
+
 namespace w2xc
 {
 #define BLOCK_SIZE_HOR 256
 #define BLOCK_SIZE_VER 16
 	template <bool border, bool ip0>
-	static void apply_filter
+	FUNC_ATTR static void apply_filter
 	(
 		unsigned long xi,
 		unsigned long wsz,
@@ -188,7 +192,7 @@ namespace w2xc
 	}
 
 	template <bool border>
-	static inline void filter_2elem
+	FUNC_ATTR static inline void filter_2elem
 	(
 		const float *packed_input,
 		int nInputPlanes,
@@ -314,7 +318,7 @@ namespace w2xc
 	}
 
 	template <bool border>
-	static void filter_1elem_output1
+	FUNC_ATTR static void filter_1elem_output1
 	(
 		const float *packed_input,
 		int nInputPlanes,
@@ -432,7 +436,7 @@ namespace w2xc
 	}
 
 	template <bool border>
-	static void filter_1elem_output3
+	FUNC_ATTR static void filter_1elem_output3
 	(
 		const float *packed_input,
 		int nInputPlanes,
