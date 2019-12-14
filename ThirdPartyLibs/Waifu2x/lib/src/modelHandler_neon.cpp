@@ -21,6 +21,8 @@
 * SOFTWARE.
 */
 
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
+
 #include <thread>
 #include <atomic>
 #include <arm_neon.h>
@@ -172,3 +174,5 @@ namespace w2xc
 		}
 	}
 }
+
+#endif

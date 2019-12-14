@@ -1,0 +1,404 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		378EB30D23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */; };
+		378EB30E23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */; };
+		378EB30F23A51D4F0098C290 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F223A51D480098C290 /* Buffer.cpp */; };
+		378EB31023A51D4F0098C290 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F223A51D480098C290 /* Buffer.cpp */; };
+		378EB31123A51D4F0098C290 /* modelHandler_avx_func.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F323A51D480098C290 /* modelHandler_avx_func.hpp */; };
+		378EB31223A51D4F0098C290 /* modelHandler_avx_func.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F323A51D480098C290 /* modelHandler_avx_func.hpp */; };
+		378EB31323A51D4F0098C290 /* common.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F423A51D480098C290 /* common.hpp */; };
+		378EB31423A51D4F0098C290 /* common.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F423A51D480098C290 /* common.hpp */; };
+		378EB31523A51D4F0098C290 /* modelHandler.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F523A51D480098C290 /* modelHandler.hpp */; };
+		378EB31623A51D4F0098C290 /* modelHandler.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F523A51D480098C290 /* modelHandler.hpp */; };
+		378EB31723A51D4F0098C290 /* modelHandler_sse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F623A51D490098C290 /* modelHandler_sse.cpp */; };
+		378EB31923A51D4F0098C290 /* modelHandler_simd_unroll4.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F723A51D490098C290 /* modelHandler_simd_unroll4.hpp */; };
+		378EB31A23A51D4F0098C290 /* modelHandler_simd_unroll4.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F723A51D490098C290 /* modelHandler_simd_unroll4.hpp */; };
+		378EB31B23A51D4F0098C290 /* convertRoutine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F823A51D490098C290 /* convertRoutine.cpp */; };
+		378EB31C23A51D4F0098C290 /* convertRoutine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F823A51D490098C290 /* convertRoutine.cpp */; };
+		378EB31D23A51D4F0098C290 /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F923A51D490098C290 /* common.cpp */; };
+		378EB31E23A51D4F0098C290 /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F923A51D490098C290 /* common.cpp */; };
+		378EB31F23A51D4F0098C290 /* modelHandler_simd_unroll1.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FA23A51D490098C290 /* modelHandler_simd_unroll1.hpp */; };
+		378EB32023A51D4F0098C290 /* modelHandler_simd_unroll1.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FA23A51D490098C290 /* modelHandler_simd_unroll1.hpp */; };
+		378EB32123A51D4F0098C290 /* modelHandler_simd_unroll5.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FB23A51D4A0098C290 /* modelHandler_simd_unroll5.hpp */; };
+		378EB32223A51D4F0098C290 /* modelHandler_simd_unroll5.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FB23A51D4A0098C290 /* modelHandler_simd_unroll5.hpp */; };
+		378EB32323A51D4F0098C290 /* modelHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FC23A51D4A0098C290 /* modelHandler.cpp */; };
+		378EB32423A51D4F0098C290 /* modelHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FC23A51D4A0098C290 /* modelHandler.cpp */; };
+		378EB32523A51D4F0098C290 /* CUDAlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FD23A51D4A0098C290 /* CUDAlib.h */; };
+		378EB32623A51D4F0098C290 /* CUDAlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2FD23A51D4A0098C290 /* CUDAlib.h */; };
+		378EB32723A51D4F0098C290 /* cvwrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FE23A51D4A0098C290 /* cvwrap.cpp */; };
+		378EB32823A51D4F0098C290 /* cvwrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FE23A51D4A0098C290 /* cvwrap.cpp */; };
+		378EB32923A51D4F0098C290 /* modelHandler_avx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FF23A51D4B0098C290 /* modelHandler_avx.cpp */; };
+		378EB32C23A51D4F0098C290 /* modelHandler_neon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB30023A51D4B0098C290 /* modelHandler_neon.cpp */; };
+		378EB32D23A51D4F0098C290 /* params.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30123A51D4B0098C290 /* params.h */; };
+		378EB32E23A51D4F0098C290 /* params.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30123A51D4B0098C290 /* params.h */; };
+		378EB32F23A51D4F0098C290 /* modelHandler_fma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB30223A51D4B0098C290 /* modelHandler_fma.cpp */; };
+		378EB33123A51D4F0098C290 /* filters.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30323A51D4B0098C290 /* filters.hpp */; };
+		378EB33223A51D4F0098C290 /* filters.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30323A51D4B0098C290 /* filters.hpp */; };
+		378EB33323A51D4F0098C290 /* Buffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30423A51D4C0098C290 /* Buffer.hpp */; };
+		378EB33423A51D4F0098C290 /* Buffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30423A51D4C0098C290 /* Buffer.hpp */; };
+		378EB33523A51D4F0098C290 /* Env.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30523A51D4C0098C290 /* Env.hpp */; };
+		378EB33623A51D4F0098C290 /* Env.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30523A51D4C0098C290 /* Env.hpp */; };
+		378EB33723A51D4F0098C290 /* modelHandler_simd.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30623A51D4C0098C290 /* modelHandler_simd.hpp */; };
+		378EB33823A51D4F0098C290 /* modelHandler_simd.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30623A51D4C0098C290 /* modelHandler_simd.hpp */; };
+		378EB33923A51D4F0098C290 /* convertRoutine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30723A51D4D0098C290 /* convertRoutine.hpp */; };
+		378EB33A23A51D4F0098C290 /* convertRoutine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30723A51D4D0098C290 /* convertRoutine.hpp */; };
+		378EB33B23A51D4F0098C290 /* CLlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30823A51D4D0098C290 /* CLlib.h */; };
+		378EB33C23A51D4F0098C290 /* CLlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30823A51D4D0098C290 /* CLlib.h */; };
+		378EB33D23A51D4F0098C290 /* threadPool.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30923A51D4D0098C290 /* threadPool.hpp */; };
+		378EB33E23A51D4F0098C290 /* threadPool.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30923A51D4D0098C290 /* threadPool.hpp */; };
+		378EB33F23A51D4F0098C290 /* w2xconv.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30A23A51D4E0098C290 /* w2xconv.h */; };
+		378EB34023A51D4F0098C290 /* w2xconv.h in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30A23A51D4E0098C290 /* w2xconv.h */; };
+		378EB34123A51D4F0098C290 /* w2xconv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB30B23A51D4E0098C290 /* w2xconv.cpp */; };
+		378EB34223A51D4F0098C290 /* w2xconv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB30B23A51D4E0098C290 /* w2xconv.cpp */; };
+		378EB34323A51D4F0098C290 /* cvwrap.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30C23A51D4E0098C290 /* cvwrap.hpp */; };
+		378EB34423A51D4F0098C290 /* cvwrap.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB30C23A51D4E0098C290 /* cvwrap.hpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0BDA9CC5121EE4C400ED5E97 /* libWaifu2x.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libWaifu2x.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_simd_unroll2.hpp; path = ../lib/src/modelHandler_simd_unroll2.hpp; sourceTree = "<group>"; };
+		378EB2F223A51D480098C290 /* Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Buffer.cpp; path = ../lib/src/Buffer.cpp; sourceTree = "<group>"; };
+		378EB2F323A51D480098C290 /* modelHandler_avx_func.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_avx_func.hpp; path = ../lib/src/modelHandler_avx_func.hpp; sourceTree = "<group>"; };
+		378EB2F423A51D480098C290 /* common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = common.hpp; path = ../lib/src/common.hpp; sourceTree = "<group>"; };
+		378EB2F523A51D480098C290 /* modelHandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler.hpp; path = ../lib/src/modelHandler.hpp; sourceTree = "<group>"; };
+		378EB2F623A51D490098C290 /* modelHandler_sse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = modelHandler_sse.cpp; path = ../lib/src/modelHandler_sse.cpp; sourceTree = "<group>"; };
+		378EB2F723A51D490098C290 /* modelHandler_simd_unroll4.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_simd_unroll4.hpp; path = ../lib/src/modelHandler_simd_unroll4.hpp; sourceTree = "<group>"; };
+		378EB2F823A51D490098C290 /* convertRoutine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convertRoutine.cpp; path = ../lib/src/convertRoutine.cpp; sourceTree = "<group>"; };
+		378EB2F923A51D490098C290 /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../lib/src/common.cpp; sourceTree = "<group>"; };
+		378EB2FA23A51D490098C290 /* modelHandler_simd_unroll1.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_simd_unroll1.hpp; path = ../lib/src/modelHandler_simd_unroll1.hpp; sourceTree = "<group>"; };
+		378EB2FB23A51D4A0098C290 /* modelHandler_simd_unroll5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_simd_unroll5.hpp; path = ../lib/src/modelHandler_simd_unroll5.hpp; sourceTree = "<group>"; };
+		378EB2FC23A51D4A0098C290 /* modelHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = modelHandler.cpp; path = ../lib/src/modelHandler.cpp; sourceTree = "<group>"; };
+		378EB2FD23A51D4A0098C290 /* CUDAlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CUDAlib.h; path = ../lib/src/CUDAlib.h; sourceTree = "<group>"; };
+		378EB2FE23A51D4A0098C290 /* cvwrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cvwrap.cpp; path = ../lib/src/cvwrap.cpp; sourceTree = "<group>"; };
+		378EB2FF23A51D4B0098C290 /* modelHandler_avx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = modelHandler_avx.cpp; path = ../lib/src/modelHandler_avx.cpp; sourceTree = "<group>"; };
+		378EB30023A51D4B0098C290 /* modelHandler_neon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = modelHandler_neon.cpp; path = ../lib/src/modelHandler_neon.cpp; sourceTree = "<group>"; };
+		378EB30123A51D4B0098C290 /* params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = params.h; path = ../lib/src/params.h; sourceTree = "<group>"; };
+		378EB30223A51D4B0098C290 /* modelHandler_fma.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = modelHandler_fma.cpp; path = ../lib/src/modelHandler_fma.cpp; sourceTree = "<group>"; };
+		378EB30323A51D4B0098C290 /* filters.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filters.hpp; path = ../lib/src/filters.hpp; sourceTree = "<group>"; };
+		378EB30423A51D4C0098C290 /* Buffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Buffer.hpp; path = ../lib/src/Buffer.hpp; sourceTree = "<group>"; };
+		378EB30523A51D4C0098C290 /* Env.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Env.hpp; path = ../lib/src/Env.hpp; sourceTree = "<group>"; };
+		378EB30623A51D4C0098C290 /* modelHandler_simd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = modelHandler_simd.hpp; path = ../lib/src/modelHandler_simd.hpp; sourceTree = "<group>"; };
+		378EB30723A51D4D0098C290 /* convertRoutine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = convertRoutine.hpp; path = ../lib/src/convertRoutine.hpp; sourceTree = "<group>"; };
+		378EB30823A51D4D0098C290 /* CLlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CLlib.h; path = ../lib/src/CLlib.h; sourceTree = "<group>"; };
+		378EB30923A51D4D0098C290 /* threadPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = threadPool.hpp; path = ../lib/src/threadPool.hpp; sourceTree = "<group>"; };
+		378EB30A23A51D4E0098C290 /* w2xconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = w2xconv.h; path = ../lib/src/w2xconv.h; sourceTree = "<group>"; };
+		378EB30B23A51D4E0098C290 /* w2xconv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = w2xconv.cpp; path = ../lib/src/w2xconv.cpp; sourceTree = "<group>"; };
+		378EB30C23A51D4E0098C290 /* cvwrap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = cvwrap.hpp; path = ../lib/src/cvwrap.hpp; sourceTree = "<group>"; };
+		D2AAC046055464E500DB518D /* libWaifu2x.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libWaifu2x.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0BDA9CC3121EE4C400ED5E97 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D289987405E68DCB004EDB86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* lzma */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7795FE84155DC02AAC07 /* Source */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = lzma;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				378EB2F223A51D480098C290 /* Buffer.cpp */,
+				378EB30423A51D4C0098C290 /* Buffer.hpp */,
+				378EB30823A51D4D0098C290 /* CLlib.h */,
+				378EB2F923A51D490098C290 /* common.cpp */,
+				378EB2F423A51D480098C290 /* common.hpp */,
+				378EB2F823A51D490098C290 /* convertRoutine.cpp */,
+				378EB30723A51D4D0098C290 /* convertRoutine.hpp */,
+				378EB2FD23A51D4A0098C290 /* CUDAlib.h */,
+				378EB2FE23A51D4A0098C290 /* cvwrap.cpp */,
+				378EB30C23A51D4E0098C290 /* cvwrap.hpp */,
+				378EB30523A51D4C0098C290 /* Env.hpp */,
+				378EB30323A51D4B0098C290 /* filters.hpp */,
+				378EB2F323A51D480098C290 /* modelHandler_avx_func.hpp */,
+				378EB2FF23A51D4B0098C290 /* modelHandler_avx.cpp */,
+				378EB30223A51D4B0098C290 /* modelHandler_fma.cpp */,
+				378EB30023A51D4B0098C290 /* modelHandler_neon.cpp */,
+				378EB2FA23A51D490098C290 /* modelHandler_simd_unroll1.hpp */,
+				378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */,
+				378EB2F723A51D490098C290 /* modelHandler_simd_unroll4.hpp */,
+				378EB2FB23A51D4A0098C290 /* modelHandler_simd_unroll5.hpp */,
+				378EB30623A51D4C0098C290 /* modelHandler_simd.hpp */,
+				378EB2F623A51D490098C290 /* modelHandler_sse.cpp */,
+				378EB2FC23A51D4A0098C290 /* modelHandler.cpp */,
+				378EB2F523A51D480098C290 /* modelHandler.hpp */,
+				378EB30123A51D4B0098C290 /* params.h */,
+				378EB30923A51D4D0098C290 /* threadPool.hpp */,
+				378EB30B23A51D4E0098C290 /* w2xconv.cpp */,
+				378EB30A23A51D4E0098C290 /* w2xconv.h */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC046055464E500DB518D /* libWaifu2x.a */,
+				0BDA9CC5121EE4C400ED5E97 /* libWaifu2x.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		0BDA9CC1121EE4C400ED5E97 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				378EB30E23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */,
+				378EB31623A51D4F0098C290 /* modelHandler.hpp in Headers */,
+				378EB33223A51D4F0098C290 /* filters.hpp in Headers */,
+				378EB34423A51D4F0098C290 /* cvwrap.hpp in Headers */,
+				378EB34023A51D4F0098C290 /* w2xconv.h in Headers */,
+				378EB31223A51D4F0098C290 /* modelHandler_avx_func.hpp in Headers */,
+				378EB32623A51D4F0098C290 /* CUDAlib.h in Headers */,
+				378EB33A23A51D4F0098C290 /* convertRoutine.hpp in Headers */,
+				378EB33E23A51D4F0098C290 /* threadPool.hpp in Headers */,
+				378EB31A23A51D4F0098C290 /* modelHandler_simd_unroll4.hpp in Headers */,
+				378EB33823A51D4F0098C290 /* modelHandler_simd.hpp in Headers */,
+				378EB33623A51D4F0098C290 /* Env.hpp in Headers */,
+				378EB33C23A51D4F0098C290 /* CLlib.h in Headers */,
+				378EB32023A51D4F0098C290 /* modelHandler_simd_unroll1.hpp in Headers */,
+				378EB32E23A51D4F0098C290 /* params.h in Headers */,
+				378EB31423A51D4F0098C290 /* common.hpp in Headers */,
+				378EB33423A51D4F0098C290 /* Buffer.hpp in Headers */,
+				378EB32223A51D4F0098C290 /* modelHandler_simd_unroll5.hpp in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2AAC043055464E500DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				378EB30D23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */,
+				378EB31523A51D4F0098C290 /* modelHandler.hpp in Headers */,
+				378EB33123A51D4F0098C290 /* filters.hpp in Headers */,
+				378EB34323A51D4F0098C290 /* cvwrap.hpp in Headers */,
+				378EB33F23A51D4F0098C290 /* w2xconv.h in Headers */,
+				378EB31123A51D4F0098C290 /* modelHandler_avx_func.hpp in Headers */,
+				378EB32523A51D4F0098C290 /* CUDAlib.h in Headers */,
+				378EB33923A51D4F0098C290 /* convertRoutine.hpp in Headers */,
+				378EB33D23A51D4F0098C290 /* threadPool.hpp in Headers */,
+				378EB31923A51D4F0098C290 /* modelHandler_simd_unroll4.hpp in Headers */,
+				378EB33723A51D4F0098C290 /* modelHandler_simd.hpp in Headers */,
+				378EB33523A51D4F0098C290 /* Env.hpp in Headers */,
+				378EB33B23A51D4F0098C290 /* CLlib.h in Headers */,
+				378EB31F23A51D4F0098C290 /* modelHandler_simd_unroll1.hpp in Headers */,
+				378EB32D23A51D4F0098C290 /* params.h in Headers */,
+				378EB31323A51D4F0098C290 /* common.hpp in Headers */,
+				378EB33323A51D4F0098C290 /* Buffer.hpp in Headers */,
+				378EB32123A51D4F0098C290 /* modelHandler_simd_unroll5.hpp in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		0BDA9CC4121EE4C400ED5E97 /* iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0BDA9CD0121EE51C00ED5E97 /* Build configuration list for PBXNativeTarget "iOS" */;
+			buildPhases = (
+				0BDA9CC1121EE4C400ED5E97 /* Headers */,
+				0BDA9CC2121EE4C400ED5E97 /* Sources */,
+				0BDA9CC3121EE4C400ED5E97 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iOS;
+			productName = iPhone;
+			productReference = 0BDA9CC5121EE4C400ED5E97 /* libWaifu2x.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		D2AAC045055464E500DB518D /* Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "Mac" */;
+			buildPhases = (
+				D2AAC043055464E500DB518D /* Headers */,
+				D2AAC044055464E500DB518D /* Sources */,
+				D289987405E68DCB004EDB86 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Mac;
+			productName = lzma;
+			productReference = D2AAC046055464E500DB518D /* libWaifu2x.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Waifu2x" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* lzma */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2AAC045055464E500DB518D /* Mac */,
+				0BDA9CC4121EE4C400ED5E97 /* iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0BDA9CC2121EE4C400ED5E97 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				378EB31E23A51D4F0098C290 /* common.cpp in Sources */,
+				378EB32423A51D4F0098C290 /* modelHandler.cpp in Sources */,
+				378EB32823A51D4F0098C290 /* cvwrap.cpp in Sources */,
+				378EB32C23A51D4F0098C290 /* modelHandler_neon.cpp in Sources */,
+				378EB34223A51D4F0098C290 /* w2xconv.cpp in Sources */,
+				378EB31C23A51D4F0098C290 /* convertRoutine.cpp in Sources */,
+				378EB31023A51D4F0098C290 /* Buffer.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2AAC044055464E500DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				378EB31D23A51D4F0098C290 /* common.cpp in Sources */,
+				378EB32323A51D4F0098C290 /* modelHandler.cpp in Sources */,
+				378EB32723A51D4F0098C290 /* cvwrap.cpp in Sources */,
+				378EB32F23A51D4F0098C290 /* modelHandler_fma.cpp in Sources */,
+				378EB31723A51D4F0098C290 /* modelHandler_sse.cpp in Sources */,
+				378EB32923A51D4F0098C290 /* modelHandler_avx.cpp in Sources */,
+				378EB34123A51D4F0098C290 /* w2xconv.cpp in Sources */,
+				378EB31B23A51D4F0098C290 /* convertRoutine.cpp in Sources */,
+				378EB30F23A51D4F0098C290 /* Buffer.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0B96A71D1304843300CDC521 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_THREADSAFE_STATICS = NO;
+				PRODUCT_NAME = Waifu2x;
+			};
+			name = Debug;
+		};
+		0B96A71E1304843300CDC521 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Waifu2x;
+			};
+			name = Debug;
+		};
+		0B96A71F1304843300CDC521 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Waifu2x;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		0BDA9CC7121EE4C400ED5E97 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Waifu2x;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		1DEB91ED08733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Waifu2x;
+			};
+			name = Release;
+		};
+		1DEB91F108733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_THREADSAFE_STATICS = NO;
+				PRODUCT_NAME = Waifu2x;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0BDA9CD0121EE51C00ED5E97 /* Build configuration list for PBXNativeTarget "iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0BDA9CC7121EE4C400ED5E97 /* Release */,
+				0B96A71F1304843300CDC521 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91ED08733DB70010E9CD /* Release */,
+				0B96A71E1304843300CDC521 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Waifu2x" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91F108733DB70010E9CD /* Release */,
+				0B96A71D1304843300CDC521 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
