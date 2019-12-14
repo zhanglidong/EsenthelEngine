@@ -948,6 +948,8 @@
 		378307C61A0710BE002383BF /* Image RT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378307C31A0710BE002383BF /* Image RT.cpp */; };
 		37834C5623A520F700AE51F1 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37834C5523A520F700AE51F1 /* libWaifu2x.a */; };
 		37834C5823A5211300AE51F1 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37834C5723A5211300AE51F1 /* libWaifu2x.a */; };
+		37834C5A23A522BD00AE51F1 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
+		37834C5B23A522BE00AE51F1 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
 		378591001F9DAE1500F8950C /* PVRTC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FD1F9DAE1300F8950C /* PVRTC_Compress.cpp */; };
 		378591011F9DAE1500F8950C /* ETC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FE1F9DAE1400F8950C /* ETC_Compress.cpp */; };
 		378591021F9DAE1500F8950C /* BC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FF1F9DAE1400F8950C /* BC_Compress.cpp */; };
@@ -3218,6 +3220,7 @@
 				0B0063C6123834F1005641F5 /* Grab.cpp in Sources */,
 				370E5A39195FE0A700A719A5 /* Undo.cpp in Sources */,
 				0B0063C7123834F1005641F5 /* Joint.cpp in Sources */,
+				37834C5B23A522BE00AE51F1 /* ImageFilterWaifu.cpp in Sources */,
 				0B0063C8123834F1005641F5 /* Phys Body.cpp in Sources */,
 				0B0063C9123834F1005641F5 /* Physics Draw.cpp in Sources */,
 				0B0063CA123834F1005641F5 /* Physics Test.cpp in Sources */,
@@ -3821,6 +3824,7 @@
 				0BD8E4A3121D6EB400850427 /* Destruct Mesh.cpp in Sources */,
 				0BD8E4A4121D6EB400850427 /* Grab.cpp in Sources */,
 				370E5A38195FE0A700A719A5 /* Undo.cpp in Sources */,
+				37834C5A23A522BD00AE51F1 /* ImageFilterWaifu.cpp in Sources */,
 				0BD8E4A5121D6EB400850427 /* Joint.cpp in Sources */,
 				0BD8E4A6121D6EB400850427 /* Phys Body.cpp in Sources */,
 				0BD8E4A7121D6EB400850427 /* Physics Draw.cpp in Sources */,
