@@ -490,6 +490,7 @@ namespace w2xc
 				);
 			}else
 #endif
+#ifdef HAVE_CUDA
          if (proc->type == W2XCONV_PROC_CUDA)
 			{
 				filter_CUDA_impl
@@ -504,8 +505,8 @@ namespace w2xc
 					size.width,
 					size.height
 				);
-			}
-			else
+			}else
+#endif
 			{
 				const float *packed_input = (float*)packed_input_buf->get_read_ptr_host(env, in_size);
 				float *packed_output = (float*)packed_output_buf->get_write_ptr_host(env);

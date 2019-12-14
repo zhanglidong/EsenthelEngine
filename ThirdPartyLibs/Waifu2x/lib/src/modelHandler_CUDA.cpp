@@ -21,6 +21,8 @@
 * SOFTWARE.
 */
 
+#ifdef HAVE_CUDA
+
 #include "CUDAlib.h"
 #include "Buffer.hpp"
 #include "params.h"
@@ -37,7 +39,6 @@ static HMODULE handle;
 static void *handle;
 #endif
 
-#ifdef HAVE_CUDA
     #include <cuda_runtime_api.h>
     #if !defined(CUDART_VERSION)
         #error CUDART_VERSION must be defined by cuda_runtime_api.h
@@ -51,8 +52,6 @@ static void *handle;
     static const char prog30[] =
         #include "modelHandler_CUDA.ptx30.h"
 	;
-#endif // HAVE_CUDA
-
 
 #define CUDA_DECL(name) \
 	t##name name;
@@ -670,3 +669,5 @@ namespace w2xc
 		cuCtxPopCurrent(&old);
 	}
 }
+
+#endif // HAVE_CUDA

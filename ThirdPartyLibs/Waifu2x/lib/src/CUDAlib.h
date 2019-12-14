@@ -21,6 +21,7 @@
 * SOFTWARE.
 */
 
+#ifdef HAVE_CUDA
 #ifndef CUDALIB_H
 #define CUDALIB_H
 
@@ -160,4 +161,5 @@ typedef CUresult (CUDAAPI * tcuProfilerStart)(void);
 
 FOR_EACH_CUDA_FUNC(CUDA_PROTOTYPE,CUDA_PROTOTYPE)
 
+#endif
 #endif

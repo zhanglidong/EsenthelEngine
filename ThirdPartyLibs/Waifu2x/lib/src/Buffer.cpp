@@ -37,8 +37,10 @@ Buffer::Buffer(ComputeEnv *env, size_t byte_size) : env(env), byte_size(byte_siz
     cl_valid_list = new bool[num_cl_dev];
 #endif
 
+#ifdef HAVE_CUDA
     cuda_ptr_list = new CUdeviceptr[num_cuda_dev];
     cuda_valid_list = new bool[num_cuda_dev];
+#endif
 
     clear(env);
 }
@@ -51,28 +53,31 @@ Buffer::~Buffer()
     delete [] cl_ptr_list;
     delete [] cl_valid_list;
 #endif
+#ifdef HAVE_CUDA
     delete [] cuda_ptr_list;
     delete [] cuda_valid_list;
+#endif
 }
 
 void Buffer::clear(ComputeEnv *env)
 {
-    int num_cl_dev = env->num_cl_dev;
-    int num_cuda_dev = env->num_cuda_dev;
-    int i;
+   int num_cl_dev = env->num_cl_dev;
+   int num_cuda_dev = env->num_cuda_dev;
 
 #ifdef CLLIB_H
-    for (i=0; i<num_cl_dev; i++)
-	{
+   for (int i=0; i<num_cl_dev; i++)
+   {
         cl_valid_list[i] = false;
         cl_ptr_list[i] = nullptr;
-    }
+   }
 #endif
-    for (i=0; i<num_cuda_dev; i++)
+#ifdef HAVE_CUDA
+   for (int i=0; i<num_cuda_dev; i++)
 	{
-        cuda_valid_list[i] = false;
-        cuda_ptr_list[i] = 0;
-    }
+      cuda_valid_list[i] = false;
+      cuda_ptr_list[i] = 0;
+   }
+#endif
 
     host_valid = false;
     host_ptr = nullptr;
@@ -83,30 +88,29 @@ void Buffer::release(ComputeEnv *env)
 {
     int num_cl_dev = env->num_cl_dev;
     int num_cuda_dev = env->num_cuda_dev;
-    int i;
 
 #ifdef CLLIB_H
-    for (i=0; i<num_cl_dev; i++)
+   for (int i=0; i<num_cl_dev; i++)
 	{
-        if (cl_ptr_list[i])
-		{
-            clReleaseMemObject(cl_ptr_list[i]);
-        }
-
-        cl_ptr_list[i] = nullptr;
-        cl_valid_list[i] = false;
+      if (cl_ptr_list[i])
+      {
+         clReleaseMemObject(cl_ptr_list[i]);
+         cl_ptr_list[i] = nullptr;
+      }
+      cl_valid_list[i] = false;
     }
 #endif
-    for (i=0; i<num_cuda_dev; i++)
+#ifdef HAVE_CUDA
+   for(int i=0; i<num_cuda_dev; i++)
 	{
-        if (cuda_ptr_list[i])
-		{
-            cuMemFree(cuda_ptr_list[i]);
-        }
-
-        cuda_ptr_list[i] = 0;
-        cuda_valid_list[i] = false;
-    }
+      if(cuda_ptr_list[i])
+      {
+         cuMemFree(cuda_ptr_list[i]);
+         cuda_ptr_list[i] = nullptr;
+      }
+      cuda_valid_list[i] = false;
+   }
+#endif
 
    if (host_ptr)
    {
@@ -120,20 +124,14 @@ void Buffer::invalidate(ComputeEnv *env)
 {
     int num_cl_dev = env->num_cl_dev;
     int num_cuda_dev = env->num_cuda_dev;
-    int i;
 
 #ifdef CLLIB_H
-    for (i=0; i<num_cl_dev; i++)
-	{
-        cl_valid_list[i] = false;
-    }
+   for (int i=0; i<num_cl_dev; i++)cl_valid_list[i] = false;
 #endif
-    for (i=0; i<num_cuda_dev; i++)
-	{
-        cuda_valid_list[i] = false;
-    }
-
-    host_valid = false;
+#ifdef HAVE_CUDA
+   for (int i=0; i<num_cuda_dev; i++)cuda_valid_list[i] = false;
+#endif
+   host_valid = false;
 }
 #ifdef CLLIB_H
 cl_mem Buffer::get_read_ptr_cl(ComputeEnv *env,int devid, size_t read_byte_size)
@@ -182,6 +180,7 @@ cl_mem Buffer::get_write_ptr_cl(ComputeEnv *env,int devid)
 }
 #endif
 
+#ifdef HAVE_CUDA
 CUdeviceptr Buffer::get_read_ptr_cuda(ComputeEnv *env,int devid, size_t read_byte_size)
 {
     if (cuda_valid_list[devid])
@@ -217,8 +216,6 @@ CUdeviceptr Buffer::get_read_ptr_cuda(ComputeEnv *env,int devid, size_t read_byt
     return cuda_ptr_list[devid];
 }
 
-
-
 CUdeviceptr Buffer::get_write_ptr_cuda(ComputeEnv *env,int devid)
 {
     invalidate(env);
@@ -245,50 +242,45 @@ CUdeviceptr Buffer::get_write_ptr_cuda(ComputeEnv *env,int devid)
 
     return cuda_ptr_list[devid];
 }
-
+#endif
 
 void * Buffer::get_read_ptr_host(ComputeEnv *env, size_t read_byte_size)
 {
-    if (host_valid)
-	{
-        return host_ptr;
-    }
+   if (host_valid)
+      return host_ptr;
 
-    if (host_ptr == nullptr)
-	{
-        host_ptr = w2xc_aligned_malloc(byte_size, 64);
-    }
+   if (host_ptr == nullptr)
+      host_ptr = w2xc_aligned_malloc(byte_size, 64);
 
 #ifdef CLLIB_H
-    if (last_write.type == Processor::OpenCL)
+   if (last_write.type == Processor::OpenCL)
 	{
-        OpenCLDev *dev = &env->cl_dev_list[last_write.devid];
-        clEnqueueReadBuffer(dev->queue, cl_ptr_list[last_write.devid], CL_TRUE, 0, read_byte_size, host_ptr, 0, nullptr, nullptr);
-    }
-	else
+      OpenCLDev *dev = &env->cl_dev_list[last_write.devid];
+      clEnqueueReadBuffer(dev->queue, cl_ptr_list[last_write.devid], CL_TRUE, 0, read_byte_size, host_ptr, 0, nullptr, nullptr);
+   }else
 #endif   
+#ifdef HAVE_CUDA
    if (last_write.type == Processor::CUDA)
 	{
-        CUDADev *dev = &env->cuda_dev_list[last_write.devid];
-        cuCtxPushCurrent(dev->context);
-        cuMemcpyDtoH(host_ptr, cuda_ptr_list[last_write.devid], read_byte_size);
+      CUDADev *dev = &env->cuda_dev_list[last_write.devid];
+      cuCtxPushCurrent(dev->context);
+      cuMemcpyDtoH(host_ptr, cuda_ptr_list[last_write.devid], read_byte_size);
 
-        CUcontext old;
-        cuCtxPopCurrent(&old);
-    }
-	else
+      CUcontext old;
+      cuCtxPopCurrent(&old);
+   }else
+#endif
 	{
-        abort();
-    }
+      abort();
+   }
 
-    host_valid = true;
-    return host_ptr;
+   host_valid = true;
+   return host_ptr;
 }
 
 
 bool Buffer::prealloc(W2XConv *conv, ComputeEnv *env)
 {
-    int devid;
     if (host_ptr == nullptr)
 	{
         host_ptr = w2xc_aligned_malloc(byte_size, 64);
@@ -309,7 +301,7 @@ bool Buffer::prealloc(W2XConv *conv, ComputeEnv *env)
 		{
 			// xx
 			//devid = conv->target_processor->dev_id;
-			devid = 0;
+			int devid = 0;
 			if (cl_ptr_list[devid] == nullptr)
 			{
 				cl_int err;
@@ -331,14 +323,14 @@ bool Buffer::prealloc(W2XConv *conv, ComputeEnv *env)
 				}
 
 			}
-			break;
-		}
+		}break;
 #endif
+#ifdef HAVE_CUDA
 		case W2XCONV_PROC_CUDA:
 		{
 			// xx
 			// devid = conv->target_processor->dev_id;
-			devid = 0;
+			int devid = 0;
 
 			if (cuda_ptr_list[devid] == 0)
 			{
@@ -354,9 +346,8 @@ bool Buffer::prealloc(W2XConv *conv, ComputeEnv *env)
 					return false;
 				}
 			}
-			break;
-		}
-
+		}break;
+#endif
     }
 	
     return true;

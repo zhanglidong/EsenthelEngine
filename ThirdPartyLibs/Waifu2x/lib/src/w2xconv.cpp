@@ -8,14 +8,6 @@
 #endif
 #endif
 
-#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__)
-#if defined __ANDROID__
-#include <cpu-features.h>
-#elif (defined(__linux))
-#include <sys/auxv.h>
-#endif
-#endif
-
 #ifdef PPCOPT
 #ifdef HAVE_AUXV
 #include <sys/auxv.h>
@@ -129,7 +121,9 @@ static void global_init2(void)
 #ifdef CLLIB_H
 	w2xc::initOpenCLGlobal(&processor_list);
 #endif
+#ifdef HAVE_CUDA
 	w2xc::initCUDAGlobal(&processor_list);
+#endif
 
 
 	/*
@@ -364,17 +358,17 @@ W2XConv* w2xconv_init()
 
 	switch (proc->type)
 	{
+#ifdef HAVE_CUDA
 		case W2XCONV_PROC_CUDA:
 		{
 			w2xc::initCUDA(&c->env, proc->dev_id);
-			break;
-		}
+		}break;
+#endif
 #ifdef CLLIB_H
 		case W2XCONV_PROC_OPENCL:
 		{
 			if(!w2xc::initOpenCL(c, &c->env, proc))return NULL;
-			break;
-		}
+		}break;
 #endif
 	}
 
@@ -430,7 +424,9 @@ void w2xconv_fini(struct W2XConv *conv)
 {
 	clearError(conv);
 
+#ifdef HAVE_CUDA
 	w2xc::finiCUDA(&conv->env);
+#endif
 #ifdef CLLIB_H
 	w2xc::finiOpenCL(&conv->env);
 #endif

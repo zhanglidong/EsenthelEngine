@@ -83,6 +83,7 @@ struct OpenCLDev {
 };
 #endif
 
+#ifdef HAVE_CUDA
 struct CUDADev {
     std::string name;
 
@@ -102,6 +103,7 @@ struct CUDADev {
 
     CUstream stream;
 };
+#endif
 
 struct Processor {
     enum type
@@ -124,13 +126,17 @@ struct Buffer {
 #ifdef CLLIB_H
     cl_mem *cl_ptr_list;
 #endif
+#ifdef HAVE_CUDA
     CUdeviceptr *cuda_ptr_list;
+#endif
 
     bool host_valid;
 #ifdef CLLIB_H
     bool *cl_valid_list;
-   #endif
+#endif
+#ifdef HAVE_CUDA
     bool *cuda_valid_list;
+#endif
 
     Processor last_write;
 
@@ -148,8 +154,10 @@ struct Buffer {
     cl_mem get_read_ptr_cl(ComputeEnv *env,int devid, size_t read_byte_size);
     cl_mem get_write_ptr_cl(ComputeEnv *env,int devid);
 #endif
+#ifdef HAVE_CUDA
     CUdeviceptr get_read_ptr_cuda(ComputeEnv *env,int devid, size_t read_byte_size);
     CUdeviceptr get_write_ptr_cuda(ComputeEnv *env,int devid);
+#endif
     void *get_write_ptr_host(ComputeEnv *env);
     void *get_read_ptr_host(ComputeEnv *env, size_t read_byte_size);
     bool prealloc(W2XConv *conv, ComputeEnv *env);
