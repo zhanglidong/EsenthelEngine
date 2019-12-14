@@ -946,6 +946,8 @@
 		378307C41A0710BE002383BF /* Image RT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378307C31A0710BE002383BF /* Image RT.cpp */; };
 		378307C51A0710BE002383BF /* Image RT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378307C31A0710BE002383BF /* Image RT.cpp */; };
 		378307C61A0710BE002383BF /* Image RT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378307C31A0710BE002383BF /* Image RT.cpp */; };
+		37834C5623A520F700AE51F1 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37834C5523A520F700AE51F1 /* libWaifu2x.a */; };
+		37834C5823A5211300AE51F1 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37834C5723A5211300AE51F1 /* libWaifu2x.a */; };
 		378591001F9DAE1500F8950C /* PVRTC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FD1F9DAE1300F8950C /* PVRTC_Compress.cpp */; };
 		378591011F9DAE1500F8950C /* ETC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FE1F9DAE1400F8950C /* ETC_Compress.cpp */; };
 		378591021F9DAE1500F8950C /* BC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FF1F9DAE1400F8950C /* BC_Compress.cpp */; };
@@ -1665,6 +1667,8 @@
 		378307BB1A0710AA002383BF /* Image Atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Image Atlas.h"; sourceTree = "<group>"; };
 		378307BC1A0710AA002383BF /* Image RT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Image RT.h"; sourceTree = "<group>"; };
 		378307C31A0710BE002383BF /* Image RT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Image RT.cpp"; sourceTree = "<group>"; };
+		37834C5523A520F700AE51F1 /* libWaifu2x.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWaifu2x.a; path = "../ThirdPartyLibs/Waifu2x/Mac/Build/Release-iphoneos/libWaifu2x.a"; sourceTree = "<group>"; };
+		37834C5723A5211300AE51F1 /* libWaifu2x.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWaifu2x.a; path = "../ThirdPartyLibs/Waifu2x/Mac/Build/Release-iphonesimulator/libWaifu2x.a"; sourceTree = "<group>"; };
 		378590FD1F9DAE1300F8950C /* PVRTC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PVRTC_Compress.cpp; sourceTree = "<group>"; };
 		378590FE1F9DAE1400F8950C /* ETC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ETC_Compress.cpp; sourceTree = "<group>"; };
 		378590FF1F9DAE1400F8950C /* BC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BC_Compress.cpp; sourceTree = "<group>"; };
@@ -1748,6 +1752,7 @@
 				3747E0AD21AE44BC0001AFC5 /* libGameAnalytics.a in Frameworks */,
 				3716E2DC1BB8EC490037177D /* libVorbis.a in Frameworks */,
 				376EDCB41FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */,
+				37834C5823A5211300AE51F1 /* libWaifu2x.a in Frameworks */,
 				3716E2981BB8EA5A0037177D /* libLZ4.a in Frameworks */,
 				3716E2D01BB8EBFE0037177D /* libTheora.a in Frameworks */,
 				37E70CD71FEC8DF000F10018 /* libmbedTLS.a in Frameworks */,
@@ -1853,6 +1858,7 @@
 				376EDCD21FB416D200B77302 /* libSimulationController.a in Frameworks */,
 				376EDCEA1FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */,
 				3716E2C01BB8EB5D0037177D /* libRecast.a in Frameworks */,
+				37834C5623A520F700AE51F1 /* libWaifu2x.a in Frameworks */,
 				376EDCB31FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */,
 				3706B2E61E972C0D0057BFB5 /* libFDK-AAC.a in Frameworks */,
 				377FCFB71B1826E90007F1BD /* libChartboost.a in Frameworks */,
@@ -2928,6 +2934,7 @@
 				3716E2CF1BB8EBFE0037177D /* libTheora.a */,
 				3716E2D91BB8EC300037177D /* libTiff.a */,
 				3716E2DB1BB8EC490037177D /* libVorbis.a */,
+				37834C5723A5211300AE51F1 /* libWaifu2x.a */,
 				3716E2E51BB8EC840037177D /* libWebP.a */,
 				37AE2BDC1D30F194004D8A41 /* libZStd.a */,
 			);
@@ -2993,6 +3000,7 @@
 				3716E2DD1BB8EC510037177D /* libVorbis.a */,
 				37B2FF8E19399A5200A63FAD /* libvpx_armv7.a */,
 				37D2A26119E6591400F1092B /* libvpx_arm64.a */,
+				37834C5523A520F700AE51F1 /* libWaifu2x.a */,
 				3716E2E31BB8EC7E0037177D /* libWebP.a */,
 				37AE2BDA1D30F185004D8A41 /* libZStd.a */,
 			);
