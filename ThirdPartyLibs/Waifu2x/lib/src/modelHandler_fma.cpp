@@ -21,6 +21,8 @@
 * SOFTWARE.
 */
 
+#if (defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__)
+
 #include <thread>
 #include <immintrin.h>
 #include <atomic>
@@ -132,3 +134,5 @@ namespace w2xc
 		}
 	}
 }
+
+#endif

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		372035A923A523A600DD279B /* modelHandler_avx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2FF23A51D4B0098C290 /* modelHandler_avx.cpp */; };
+		372035AA23A523A600DD279B /* modelHandler_fma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB30223A51D4B0098C290 /* modelHandler_fma.cpp */; };
+		372035AB23A523A600DD279B /* modelHandler_sse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F623A51D490098C290 /* modelHandler_sse.cpp */; };
 		378EB30D23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */; };
 		378EB30E23A51D4F0098C290 /* modelHandler_simd_unroll2.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 378EB2F123A51D480098C290 /* modelHandler_simd_unroll2.hpp */; };
 		378EB30F23A51D4F0098C290 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2F223A51D480098C290 /* Buffer.cpp */; };
@@ -289,6 +292,9 @@
 			files = (
 				378EB31E23A51D4F0098C290 /* common.cpp in Sources */,
 				378EB32423A51D4F0098C290 /* modelHandler.cpp in Sources */,
+				372035A923A523A600DD279B /* modelHandler_avx.cpp in Sources */,
+				372035AA23A523A600DD279B /* modelHandler_fma.cpp in Sources */,
+				372035AB23A523A600DD279B /* modelHandler_sse.cpp in Sources */,
 				378EB32823A51D4F0098C290 /* cvwrap.cpp in Sources */,
 				378EB32C23A51D4F0098C290 /* modelHandler_neon.cpp in Sources */,
 				378EB34223A51D4F0098C290 /* w2xconv.cpp in Sources */,
