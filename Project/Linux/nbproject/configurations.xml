@@ -38,7 +38,6 @@
         </cTool>
         <ccTool>
           <architecture>2</architecture>
-          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -206,6 +205,18 @@
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblinux.a">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../ThirdPartyLibs/Waifu2x/Linux"
+                            CT="3"
+                            CN="Release"
+                            AC="true"
+                            BL="false"
+                            WD="../../ThirdPartyLibs/Waifu2x/Linux"
+                            BC="${MAKE} -j7 -f Makefile CONF=Release"
+                            CC="${MAKE} -j7 -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblinux.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
             <linkerLibFileItem>../../ThirdPartyLibs/FreeType/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/Bullet/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/Snappy/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
@@ -262,7 +273,6 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <architecture>2</architecture>
-          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -432,6 +442,18 @@
                             AC="true"
                             BL="false"
                             WD="../../ThirdPartyLibs/Tiff/Linux"
+                            BC="${MAKE} -j7 -f Makefile CONF=Release"
+                            CC="${MAKE} -j7 -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblinux.a">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../ThirdPartyLibs/Waifu2x/Linux"
+                            CT="3"
+                            CN="Release"
+                            AC="true"
+                            BL="false"
+                            WD="../../ThirdPartyLibs/Waifu2x/Linux"
                             BC="${MAKE} -j7 -f Makefile CONF=Release"
                             CC="${MAKE} -j7 -f Makefile CONF=Release clean"
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblinux.a">

@@ -17,6 +17,7 @@
                 <make-dep-project>../../ThirdPartyLibs/Recast/Linux</make-dep-project>
                 <make-dep-project>../../ThirdPartyLibs/Png/Linux</make-dep-project>
                 <make-dep-project>../../ThirdPartyLibs/Vorbis/Linux</make-dep-project>
+                <make-dep-project>../../ThirdPartyLibs/Waifu2x/Linux</make-dep-project>
                 <make-dep-project>../../Engine/Linux</make-dep-project>
                 <make-dep-project>../../ThirdPartyLibs/Theora/Linux</make-dep-project>
             </make-dep-projects>
