@@ -399,6 +399,7 @@
         <itemPath>../Source/Graphics/Image Pixel.cpp</itemPath>
         <itemPath>../Source/Graphics/Image RT.cpp</itemPath>
         <itemPath>../Source/Graphics/Image.cpp</itemPath>
+        <itemPath>../Source/Graphics/ImageFilterWaifu.cpp</itemPath>
         <itemPath>../Source/Graphics/Light.cpp</itemPath>
         <itemPath>../Source/Graphics/Material.cpp</itemPath>
         <itemPath>../Source/Graphics/Particle.cpp</itemPath>
@@ -406,10 +407,10 @@
         <itemPath>../Source/Graphics/Renderer Targets.cpp</itemPath>
         <itemPath>../Source/Graphics/Renderer.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Compiler.cpp</itemPath>
+        <itemPath>../Source/Graphics/Shader Compilers.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Get.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Main.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader.cpp</itemPath>
-        <itemPath>../Source/Graphics/Shader Compilers.cpp</itemPath>
         <itemPath>../Source/Graphics/Sky.cpp</itemPath>
         <itemPath>../Source/Graphics/Sun.cpp</itemPath>
         <itemPath>../Source/Graphics/Vertex Index Buffer.cpp</itemPath>
@@ -680,7 +681,6 @@
         </cTool>
         <ccTool>
           <architecture>2</architecture>
-          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -1457,11 +1457,19 @@
       </item>
       <item path="../Source/Graphics/Image.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../Source/Graphics/ImageFilterWaifu.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../Source/Graphics/Import/BC.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BC.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Import/BC_Compress.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../Source/Graphics/Import/BC_Compress.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BMP.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1525,16 +1533,16 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../Source/Graphics/Shader Compilers.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../Source/Graphics/Shader Get.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Shader Main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Shader.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Graphics/Shader Compilers.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../Source/Graphics/Sky.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -2084,7 +2092,6 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <architecture>2</architecture>
-          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -2867,11 +2874,19 @@
       </item>
       <item path="../Source/Graphics/Image.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../Source/Graphics/ImageFilterWaifu.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../Source/Graphics/Import/BC.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BC.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Import/BC_Compress.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../Source/Graphics/Import/BC_Compress.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BMP.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -2935,16 +2950,16 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../Source/Graphics/Shader Compilers.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../Source/Graphics/Shader Get.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Shader Main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Shader.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Graphics/Shader Compilers.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../Source/Graphics/Sky.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -6,10 +6,10 @@
 /******************************************************************************/
 #include "stdafx.h"
 
-#include "C:/Esenthel/ThirdPartyLibs/begin.h"
-#include "C:/Esenthel/ThirdPartyLibs/Waifu2x/lib/src/w2xconv.h"
-#include "C:/Esenthel/ThirdPartyLibs/Waifu2x/lib/src/modelHandler.hpp"
-#include "C:/Esenthel/ThirdPartyLibs/end.h"
+#include "../../../ThirdPartyLibs/begin.h"
+#include "../../../ThirdPartyLibs/Waifu2x/lib/src/w2xconv.h"
+#include "../../../ThirdPartyLibs/Waifu2x/lib/src/modelHandler.hpp"
+#include "../../../ThirdPartyLibs/end.h"
 
 namespace EE{
 /******************************************************************************/
