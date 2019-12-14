@@ -959,6 +959,7 @@
 		378A349B1A2576050057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349C1A2576060057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378EB2F023A5069C0098C290 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
+		378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378EB34523A51FAC0098C290 /* libWaifu2x.a */; };
 		379084A51B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
 		379084A61B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
 		379084A71B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
@@ -1673,6 +1674,7 @@
 		378A34981A2575D20057DD1F /* DLL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DLL.h; sourceTree = "<group>"; };
 		378A34991A2575F40057DD1F /* DLL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DLL.cpp; sourceTree = "<group>"; };
 		378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageFilterWaifu.cpp; sourceTree = "<group>"; };
+		378EB34523A51FAC0098C290 /* libWaifu2x.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWaifu2x.a; path = ../ThirdPartyLibs/Waifu2x/Mac/Build/Release/libWaifu2x.a; sourceTree = "<group>"; };
 		3790849C1B3E61D600B8E7DC /* Obj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Obj.h; sourceTree = "<group>"; };
 		379084A01B3E61FE00B8E7DC /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Object.h; sourceTree = "<group>"; };
 		379084A41B3E623100B8E7DC /* Obj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Obj.cpp; sourceTree = "<group>"; };
@@ -1786,6 +1788,7 @@
 				3716E2AC1BB8EAE00037177D /* libOgg.a in Frameworks */,
 				376EDCD51FB4172400B77302 /* libSceneQuery.a in Frameworks */,
 				379982331FB5671800B31132 /* libJpegTurbo.a in Frameworks */,
+				378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */,
 				0BED409F17E2FC9100B2DD6C /* libfbxsdk.a in Frameworks */,
 				3716E2D61BB8EC200037177D /* libTiff.a in Frameworks */,
 				376EDCD11FB416D200B77302 /* libSimulationController.a in Frameworks */,
@@ -2956,6 +2959,7 @@
 				3716E2D51BB8EC200037177D /* libTiff.a */,
 				3716E2DF1BB8EC590037177D /* libVorbis.a */,
 				37B2FF88193987D300A63FAD /* libvpx.a */,
+				378EB34523A51FAC0098C290 /* libWaifu2x.a */,
 				3716E2E11BB8EC760037177D /* libWebP.a */,
 				37AE2BD81D30F16A004D8A41 /* libZStd.a */,
 			);
@@ -4113,6 +4117,7 @@
 					"../ThirdPartyLibs/Theora/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Tiff/Mac/Build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Vorbis/Mac/build/Release-iphonesimulator",
+					"../ThirdPartyLibs/Waifu2x/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Webp/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/mbedTLS/Mac/Build/Release-iphonesimulator",
 					../ThirdPartyLibs/AdMob,
@@ -4155,6 +4160,7 @@
 					"../ThirdPartyLibs/Theora/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Tiff/Mac/Build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Vorbis/Mac/build/Release-iphonesimulator",
+					"../ThirdPartyLibs/Waifu2x/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/Webp/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/mbedTLS/Mac/Build/Release-iphonesimulator",
 					../ThirdPartyLibs/AdMob,
@@ -4198,6 +4204,7 @@
 					../ThirdPartyLibs/PVRTC/PVRTex/OSX_x86/Static,
 					../ThirdPartyLibs/Vorbis/Mac/build/Release,
 					../ThirdPartyLibs/VP/Mac,
+					../ThirdPartyLibs/Waifu2x/Mac/build/Release,
 					../ThirdPartyLibs/Webp/Mac/build/Release,
 					../ThirdPartyLibs/mbedTLS/Mac/Build/Release,
 					../ThirdPartyLibs/Flac/Mac/Build/Release,
@@ -4237,6 +4244,7 @@
 					../ThirdPartyLibs/PVRTC/PVRTex/OSX_x86/Static,
 					../ThirdPartyLibs/Vorbis/Mac/build/Release,
 					../ThirdPartyLibs/VP/Mac,
+					../ThirdPartyLibs/Waifu2x/Mac/build/Release,
 					../ThirdPartyLibs/Webp/Mac/build/Release,
 					../ThirdPartyLibs/mbedTLS/Mac/Build/Release,
 					../ThirdPartyLibs/Flac/Mac/Build/Release,
@@ -4267,6 +4275,7 @@
 					"../ThirdPartyLibs/Tiff/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/Vorbis/Mac/build/Release-iphoneos",
 					../ThirdPartyLibs/VP/Mac,
+					"../ThirdPartyLibs/Waifu2x/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/Webp/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/LZHAM/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/LZMA/Mac/build/Release-iphoneos",
@@ -4310,6 +4319,7 @@
 					"../ThirdPartyLibs/Tiff/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/Vorbis/Mac/build/Release-iphoneos",
 					../ThirdPartyLibs/VP/Mac,
+					"../ThirdPartyLibs/Waifu2x/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/Webp/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/LZHAM/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/LZMA/Mac/build/Release-iphoneos",
