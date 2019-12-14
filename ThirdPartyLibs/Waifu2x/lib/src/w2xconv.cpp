@@ -15,6 +15,7 @@
 #endif
 
 #include <limits.h>
+#include <string.h>
 
 #include "w2xconv.h"
 #include "Buffer.hpp"

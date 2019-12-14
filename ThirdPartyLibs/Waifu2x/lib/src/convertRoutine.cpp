@@ -22,6 +22,7 @@
 */
 
 #include <limits.h>
+#include <cstring>
 #include "convertRoutine.hpp"
 #include "common.hpp"
 #include "Buffer.hpp"

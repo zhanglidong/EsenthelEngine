@@ -27,9 +27,6 @@
 #include "filters.hpp"
 #include "Env.hpp"
 
-#define HAVE_FMA
-#define HAVE_AVX
-
 typedef __m256 v256_t;
 
 static inline __m256 madd256(__m256 v0, __m256 v1, __m256 v2)
