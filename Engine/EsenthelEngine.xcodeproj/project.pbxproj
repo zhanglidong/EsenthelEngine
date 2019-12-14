@@ -958,6 +958,7 @@
 		378A349A1A2575F40057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349B1A2576050057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349C1A2576060057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
+		378EB2F023A5069C0098C290 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
 		379084A51B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
 		379084A61B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
 		379084A71B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
@@ -1671,6 +1672,7 @@
 		378A34971A2575D20057DD1F /* Callback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Callback.h; sourceTree = "<group>"; };
 		378A34981A2575D20057DD1F /* DLL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DLL.h; sourceTree = "<group>"; };
 		378A34991A2575F40057DD1F /* DLL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DLL.cpp; sourceTree = "<group>"; };
+		378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageFilterWaifu.cpp; sourceTree = "<group>"; };
 		3790849C1B3E61D600B8E7DC /* Obj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Obj.h; sourceTree = "<group>"; };
 		379084A01B3E61FE00B8E7DC /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Object.h; sourceTree = "<group>"; };
 		379084A41B3E623100B8E7DC /* Obj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Obj.cpp; sourceTree = "<group>"; };
@@ -2057,6 +2059,7 @@
 				0BFCADF8148C200100A3C772 /* Image Pixel.cpp */,
 				378307C31A0710BE002383BF /* Image RT.cpp */,
 				0BFCADF9148C200100A3C772 /* Image.cpp */,
+				378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */,
 				0B18992412DA3FD300499CA9 /* Light.cpp */,
 				0B18992512DA3FD300499CA9 /* Material.cpp */,
 				0B18992712DA3FD300499CA9 /* Particle.cpp */,
@@ -3580,6 +3583,7 @@
 				0B1899EC12DA3FD300499CA9 /* Grid.cpp in Sources */,
 				0B1899ED12DA3FD300499CA9 /* Index.cpp in Sources */,
 				378307AC1A071031002383BF /* MenuBar.cpp in Sources */,
+				378EB2F023A5069C0098C290 /* ImageFilterWaifu.cpp in Sources */,
 				0B1899EE12DA3FD300499CA9 /* Map.cpp in Sources */,
 				0B1899F212DA3FD300499CA9 /* Memory.cpp in Sources */,
 				0B189B3012DA3FED00499CA9 /* Export OBJ.cpp in Sources */,
