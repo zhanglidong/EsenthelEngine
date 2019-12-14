@@ -594,6 +594,7 @@ void MakeWebLibs()
    params.space()+=S+'"'+ThirdPartyLibsPath+"Theora/Windows/Emscripten/Release/Theora.bc\"";
    params.space()+=S+'"'+ThirdPartyLibsPath+"Vorbis/Windows/Emscripten/Release/Vorbis.bc\"";
    params.space()+=S+'"'+ThirdPartyLibsPath+"Vorbis/Windows/Emscripten/Release/Vorbis File.bc\"";
+   params.space()+=S+'"'+ThirdPartyLibsPath+"Waifu2x/Windows/Emscripten/Release/Waifu2x.bc\"";
    params.space()+=S+'"'+ThirdPartyLibsPath+"Webp/Windows/Emscripten/Release/WebP.bc\"";
    params.space()+=S+'"'+ThirdPartyLibsPath+"Zlib/Windows/Emscripten/Release/Zlib.bc\"";
    params.space()+=S+'"'+ThirdPartyLibsPath+"Zstd/Windows/bin/Emscripten/Release/zstdlib.bc\"";
