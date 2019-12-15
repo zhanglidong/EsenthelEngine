@@ -1944,9 +1944,11 @@ void RendererClass::postProcess()
                   Sh.imgSize(*_col); shader=(combine ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
                break;
 
-               case FILTER_BEST       :
-               case FILTER_CUBIC      :
-               case FILTER_CUBIC_SHARP:
+               case FILTER_BEST            :
+               case FILTER_WAIFU           : // fall back to best available shaders
+
+               case FILTER_CUBIC_PLUS      :
+               case FILTER_CUBIC_PLUS_SHARP:
                   pixels=3+1; // 3 for filtering + 1 for borders
                   Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(combine ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
                break;

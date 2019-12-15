@@ -301,7 +301,7 @@ void Spectrometer::get(Flt *meter, Int meter_elms, Flt time, FILTER_TYPE filter)
          {
             case FILTER_NONE  : CopyN(meter, &_image.pixF(0, y), meter_elms); break;
             case FILTER_LINEAR: REP(meter_elms)meter[i]=_image.pixelFLinear   (i, yf, false); break;
-            default           : REP(meter_elms)meter[i]=_image.pixelFCubicFast(i, yf, false); break; // FILTER_CUBIC and others (actually use CubicFast because it uses fewer samples)
+            default           : REP(meter_elms)meter[i]=_image.pixelFCubicFast(i, yf, false); break; // FILTER_CUBIC* and others (actually use CubicFast because it uses fewer samples)
          }else
          {
             if(filter==FILTER_NONE)yf=y;
@@ -310,7 +310,7 @@ void Spectrometer::get(Flt *meter, Int meter_elms, Flt time, FILTER_TYPE filter)
             {
                case FILTER_NONE  : // here for FILTER_NONE we're also using 'pixelFLinear' because we need to stretch horizontally
                case FILTER_LINEAR: REP(meter_elms)meter[i]=_image.pixelFLinear   (i*mul, yf, false); break;
-               default           : REP(meter_elms)meter[i]=_image.pixelFCubicFast(i*mul, yf, false); break; // FILTER_CUBIC and others (actually use CubicFast because it uses fewer samples)
+               default           : REP(meter_elms)meter[i]=_image.pixelFCubicFast(i*mul, yf, false); break; // FILTER_CUBIC* and others (actually use CubicFast because it uses fewer samples)
             }
          }
          return;

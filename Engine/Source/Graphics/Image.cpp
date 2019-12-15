@@ -1958,9 +1958,9 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       Bool same_size=(src->size3()==target.size3());
       if(same_size // if we use the same size (for which case 'filter' and IC_KEEP_EDGES are ignored)
       || (
-            (filter==FILTER_BEST || filter==FILTER_DOWN) // we're going to use default filter for downsampling (which is typically used for mip-map generation)
-         && !FlagTest(flags, IC_KEEP_EDGES)              // we're not keeping the edges                        (which is typically used for mip-map generation)
-         && !env                                         // for 'env' allow copying only if we have same size, so we can copy only first mip-map (in case others are blurred specially)
+            (filter==FILTER_BEST || filter==FILTER_DOWN || filter==FILTER_WAIFU) // we're going to use default filter for downsampling (which is typically used for mip-map generation), FILTER_WAIFU falls back to FILTER_BEST
+         && !FlagTest(flags, IC_KEEP_EDGES)                                      // we're not keeping the edges                        (which is typically used for mip-map generation)
+         && !env                                                                 // for 'env' allow copying only if we have same size, so we can copy only first mip-map (in case others are blurred specially)
          )
       )copied_mip_maps=CopyMipMaps(*src, target, ignore_gamma, max_mip_maps);
       if(!copied_mip_maps)

@@ -158,9 +158,11 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       case FILTER_CUBIC_FAST_SMOOTH:
       case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[0]); break;
 
-      case FILTER_BEST       :
-      case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
+      case FILTER_BEST            :
+      case FILTER_WAIFU           : // fall back to best available shaders
+
+      case FILTER_CUBIC_PLUS      :
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -205,9 +207,11 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       case FILTER_CUBIC_FAST_SMOOTH:
       case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[1]); break;
 
-      case FILTER_BEST       :
-      case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;
+      case FILTER_BEST            :
+      case FILTER_WAIFU           : // fall back to best available shaders
+
+      case FILTER_CUBIC_PLUS      :
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;
    }
    VI.color  (color    );
    VI.color1 (color_add);
@@ -260,7 +264,7 @@ void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
    }
 }
 /******************************************************************************/
-#define DEFAULT_FILTER (MOBILE ? FILTER_LINEAR : FILTER_CUBIC)
+#define DEFAULT_FILTER (MOBILE ? FILTER_LINEAR : FILTER_BEST)
 void Image::drawFs(                                    FIT_MODE fit, Int filter)C {drawFilter(                  T.fit(D.rect(), fit), (filter>=0) ? FILTER_TYPE(filter) : DEFAULT_FILTER);}
 void Image::drawFs(C Color &color, C Color &color_add, FIT_MODE fit, Int filter)C {drawFilter(color, color_add, T.fit(D.rect(), fit), (filter>=0) ? FILTER_TYPE(filter) : DEFAULT_FILTER);}
 /******************************************************************************/

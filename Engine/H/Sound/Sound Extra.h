@@ -316,7 +316,7 @@ struct Spectrometer : SoundDataCallback
    Spectrometer& del   ();
    Spectrometer& create(Int resolution);
 
-   void get(Flt *meter, Int meter_elms, Flt time, FILTER_TYPE filter=FILTER_LINEAR); // set 'meter' of 'meter_elms' (recommended size is 'Spectrometer.resolution') to spectrometer reading at 'time' sound time, 'filter'=filtering (only FILTER_NONE, FILTER_LINEAR and FILTER_CUBIC are supported)
+   void get(Flt *meter, Int meter_elms, Flt time, FILTER_TYPE filter=FILTER_LINEAR); // set 'meter' of 'meter_elms' (recommended size is 'Spectrometer.resolution') to spectrometer reading at 'time' sound time, 'filter'=filtering (only FILTER_NONE, FILTER_LINEAR and FILTER_CUBIC_FAST are supported)
    // 'meter' array will have intensities for ranges from 1 Hz to SoundFrequency/2 Hz
    // which means that for 44100 Hz Sound, last 'meter' element will have 22050 Hz intensity
    //              and for 48000 Hz Sound, last 'meter' element will have 24000 Hz intensity

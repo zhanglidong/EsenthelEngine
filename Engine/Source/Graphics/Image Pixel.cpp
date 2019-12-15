@@ -27,8 +27,8 @@ namespace EE{
 #define ALPHA_LIMIT_CUBIC_FAST        (1.0f/ 8)
 #define ALPHA_LIMIT_CUBIC_FAST_SMOOTH (1.0f/16)
 #define ALPHA_LIMIT_CUBIC_FAST_SHARP  (1.0f/ 4) // Warning: if increasing this value then it might cause overflow for integer processing (for 'CWA8AlphaLimit')
-#define ALPHA_LIMIT_CUBIC             (1.0f/ 6)
-#define ALPHA_LIMIT_CUBIC_SHARP       (1.0f/ 4)
+#define ALPHA_LIMIT_CUBIC_PLUS        (1.0f/ 6)
+#define ALPHA_LIMIT_CUBIC_PLUS_SHARP  (1.0f/ 4)
 #define ALPHA_LIMIT_NONE              FLT_MIN // use FLT_MIN so we still process 0<alpha_limit
 
 /*
@@ -175,14 +175,14 @@ ASSERT(CEIL(0.9f)==1);
 ASSERT(CEIL(1.0f)==1);
 ASSERT(CEIL(1.1f)==2);
 
-#define CUBIC_FAST_RANGE       2
-#define CUBIC_FAST_SAMPLES    CEIL(CUBIC_FAST_RANGE)
-#define CUBIC_MED_SHARPNESS   (2/2.5f) // (2/2.65f) is smooth and correctly works with gradients, but (2/2.5f) is sharper and looks like JincJinc for regular images
-#define CUBIC_SHARP_SHARPNESS (2/2.5f) // (2/2.65f) is smooth and correctly works with gradients, but (2/2.5f) is sharper and looks like JincJinc for regular images
-#define CUBIC_MED_RANGE       (2/CUBIC_MED_SHARPNESS  )
-#define CUBIC_SHARP_RANGE     (2/CUBIC_SHARP_SHARPNESS)
-#define CUBIC_MED_SAMPLES     CEIL(CUBIC_MED_RANGE    )
-#define CUBIC_SHARP_SAMPLES   CEIL(CUBIC_SHARP_RANGE  )
+#define CUBIC_FAST_RANGE            2
+#define CUBIC_FAST_SAMPLES         CEIL(CUBIC_FAST_RANGE)
+#define CUBIC_PLUS_SHARPNESS       (2/2.5f) // (2/2.65f) is smooth and correctly works with gradients, but (2/2.5f) is sharper and looks like JincJinc for regular images
+#define CUBIC_PLUS_SHARP_SHARPNESS (2/2.5f) // (2/2.65f) is smooth and correctly works with gradients, but (2/2.5f) is sharper and looks like JincJinc for regular images
+#define CUBIC_PLUS_RANGE           (2/CUBIC_PLUS_SHARPNESS      )
+#define CUBIC_PLUS_SHARP_RANGE     (2/CUBIC_PLUS_SHARP_SHARPNESS)
+#define CUBIC_PLUS_SAMPLES         CEIL(CUBIC_PLUS_RANGE        )
+#define CUBIC_PLUS_SHARP_SAMPLES   CEIL(CUBIC_PLUS_SHARP_RANGE  )
 
 static INLINE Flt Cubic(Flt x, const Flt blur, const Flt sharpen) // x=0..2
 {
@@ -199,14 +199,14 @@ static INLINE Flt RobidouxSharp    (Flt x) {return Cubic(x,  6/(13+7*SQRT2),   7
 static INLINE Flt CubicFast      (Flt x) {return Cubic(x, 1.0f/3, 1.0f/3);}
 static INLINE Flt CubicFastSmooth(Flt x) {return Cubic(x, 1.0f  , 0.000f);}
 static INLINE Flt CubicFastSharp (Flt x) {return Cubic(x, 0.0f  , 0.500f);}
-static INLINE Flt CubicMed       (Flt x) {return Cubic(x, 0.0f  , 0.400f);}
-static INLINE Flt CubicSharp     (Flt x) {return Cubic(x, 0.0f  , 0.500f);}
+static INLINE Flt CubicPlus      (Flt x) {return Cubic(x, 0.0f  , 0.400f);}
+static INLINE Flt CubicPlusSharp (Flt x) {return Cubic(x, 0.0f  , 0.500f);}
 
 static Flt CubicFast2      (Flt xx) {return CubicFast      (SqrtFast(xx));}
 static Flt CubicFastSmooth2(Flt xx) {return CubicFastSmooth(SqrtFast(xx));}
 static Flt CubicFastSharp2 (Flt xx) {return CubicFastSharp (SqrtFast(xx));}
-static Flt CubicMed2       (Flt xx) {return CubicMed       (SqrtFast(xx));}
-static Flt CubicSharp2     (Flt xx) {return CubicSharp     (SqrtFast(xx));}
+static Flt CubicPlus2      (Flt xx) {return CubicPlus      (SqrtFast(xx));}
+static Flt CubicPlusSharp2 (Flt xx) {return CubicPlusSharp (SqrtFast(xx));}
 /******************************************************************************/
 #define SINC_RANGE      2
 #define JINC_HALF_RANGE 1.2196698912665045f
@@ -2102,17 +2102,17 @@ Flt Image::pixel3DFCubicFastSharp(Flt x, Flt y, Flt z, Bool clamp)C
    return 0;
 }
 /******************************************************************************/
-Flt Image::pixelFCubic(Flt x, Flt y, Bool clamp)C
+Flt Image::pixelFCubicPlus(Flt x, Flt y, Bool clamp)C
 {
    if(lw() && lh())
    {
-      Int xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(x), yi=Floor(y);
-      Flt xw[CUBIC_MED_SAMPLES*2], yw[CUBIC_MED_SAMPLES*2];
-      Flt p [CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+      Int xo[CUBIC_PLUS_SAMPLES*2], yo[CUBIC_PLUS_SAMPLES*2], xi=Floor(x), yi=Floor(y);
+      Flt xw[CUBIC_PLUS_SAMPLES*2], yw[CUBIC_PLUS_SAMPLES*2];
+      Flt p [CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_MED_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         xo[i]=xi-CUBIC_PLUS_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2128,26 +2128,26 @@ Flt Image::pixelFCubic(Flt x, Flt y, Bool clamp)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_PLUS_RANGE))
          {
-            w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); v+=p[y][x]*w; weight+=w;
+            w=CubicPlus2(w*Sqr(CUBIC_PLUS_SHARPNESS)); v+=p[y][x]*w; weight+=w;
          }
       }
       return v/weight;
    }
    return 0;
 }
-Flt Image::pixelFCubicSharp(Flt x, Flt y, Bool clamp)C
+Flt Image::pixelFCubicPlusSharp(Flt x, Flt y, Bool clamp)C
 {
    if(lw() && lh())
    {
-      Int xo[CUBIC_SHARP_SAMPLES*2], yo[CUBIC_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y);
-      Flt xw[CUBIC_SHARP_SAMPLES*2], yw[CUBIC_SHARP_SAMPLES*2];
-      Flt p [CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2];
+      Int xo[CUBIC_PLUS_SHARP_SAMPLES*2], yo[CUBIC_PLUS_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y);
+      Flt xw[CUBIC_PLUS_SHARP_SAMPLES*2], yw[CUBIC_PLUS_SHARP_SAMPLES*2];
+      Flt p [CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         xo[i]=xi-CUBIC_PLUS_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2163,27 +2163,27 @@ Flt Image::pixelFCubicSharp(Flt x, Flt y, Bool clamp)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_SHARP_RANGE))
+         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_PLUS_SHARP_RANGE))
          {
-            w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); v+=p[y][x]*w; weight+=w;
+            w=CubicPlusSharp2(w*Sqr(CUBIC_PLUS_SHARP_SHARPNESS)); v+=p[y][x]*w; weight+=w;
          }
       }
       return v/weight;
    }
    return 0;
 }
-Flt Image::pixel3DFCubic(Flt x, Flt y, Flt z, Bool clamp)C
+Flt Image::pixel3DFCubicPlus(Flt x, Flt y, Flt z, Bool clamp)C
 {
    if(lw() && lh() && ld())
    {
-      Int xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], zo[CUBIC_MED_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
-      Flt xw[CUBIC_MED_SAMPLES*2], yw[CUBIC_MED_SAMPLES*2], zw[CUBIC_MED_SAMPLES*2];
-      Flt p [CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+      Int xo[CUBIC_PLUS_SAMPLES*2], yo[CUBIC_PLUS_SAMPLES*2], zo[CUBIC_PLUS_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
+      Flt xw[CUBIC_PLUS_SAMPLES*2], yw[CUBIC_PLUS_SAMPLES*2], zw[CUBIC_PLUS_SAMPLES*2];
+      Flt p [CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_MED_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
-         zo[i]=zi-CUBIC_MED_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
+         xo[i]=xi-CUBIC_PLUS_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         zo[i]=zi-CUBIC_PLUS_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2202,27 +2202,27 @@ Flt Image::pixel3DFCubic(Flt x, Flt y, Flt z, Bool clamp)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_MED_RANGE))
+         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_PLUS_RANGE))
          {
-            w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); v+=p[z][y][x]*w; weight+=w;
+            w=CubicPlus2(w*Sqr(CUBIC_PLUS_SHARPNESS)); v+=p[z][y][x]*w; weight+=w;
          }
       }
       return v/weight;
    }
    return 0;
 }
-Flt Image::pixel3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp)C
+Flt Image::pixel3DFCubicPlusSharp(Flt x, Flt y, Flt z, Bool clamp)C
 {
    if(lw() && lh() && ld())
    {
-      Int xo[CUBIC_SHARP_SAMPLES*2], yo[CUBIC_SHARP_SAMPLES*2], zo[CUBIC_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
-      Flt xw[CUBIC_SHARP_SAMPLES*2], yw[CUBIC_SHARP_SAMPLES*2], zw[CUBIC_SHARP_SAMPLES*2];
-      Flt p [CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2];
+      Int xo[CUBIC_PLUS_SHARP_SAMPLES*2], yo[CUBIC_PLUS_SHARP_SAMPLES*2], zo[CUBIC_PLUS_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
+      Flt xw[CUBIC_PLUS_SHARP_SAMPLES*2], yw[CUBIC_PLUS_SHARP_SAMPLES*2], zw[CUBIC_PLUS_SHARP_SAMPLES*2];
+      Flt p [CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
-         zo[i]=zi-CUBIC_SHARP_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
+         xo[i]=xi-CUBIC_PLUS_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         zo[i]=zi-CUBIC_PLUS_SHARP_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2241,9 +2241,9 @@ Flt Image::pixel3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_SHARP_RANGE))
+         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_PLUS_SHARP_RANGE))
          {
-            w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); v+=p[z][y][x]*w; weight+=w;
+            w=CubicPlusSharp2(w*Sqr(CUBIC_PLUS_SHARP_SHARPNESS)); v+=p[z][y][x]*w; weight+=w;
          }
       }
       return v/weight;
@@ -2251,17 +2251,17 @@ Flt Image::pixel3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp)C
    return 0;
 }
 /******************************************************************************/
-Vec4 Image::colorFCubic(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+Vec4 Image::colorFCubicPlus(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
-      Int  xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(x), yi=Floor(y);
-      Flt  xw[CUBIC_MED_SAMPLES*2], yw[CUBIC_MED_SAMPLES*2];
-      Vec4 c [CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+      Int  xo[CUBIC_PLUS_SAMPLES*2], yo[CUBIC_PLUS_SAMPLES*2], xi=Floor(x), yi=Floor(y);
+      Flt  xw[CUBIC_PLUS_SAMPLES*2], yw[CUBIC_PLUS_SAMPLES*2];
+      Vec4 c [CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_MED_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         xo[i]=xi-CUBIC_PLUS_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2279,27 +2279,27 @@ Vec4 Image::colorFCubic(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_PLUS_RANGE))
          {
-            w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
+            w=CubicPlus2(w*Sqr(CUBIC_PLUS_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS);
       return color;
    }
    return 0;
 }
-Vec4 Image::colorFCubicSharp(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+Vec4 Image::colorFCubicPlusSharp(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
-      Int  xo[CUBIC_SHARP_SAMPLES*2], yo[CUBIC_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y);
-      Flt  xw[CUBIC_SHARP_SAMPLES*2], yw[CUBIC_SHARP_SAMPLES*2];
-      Vec4 c [CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2];
+      Int  xo[CUBIC_PLUS_SHARP_SAMPLES*2], yo[CUBIC_PLUS_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y);
+      Flt  xw[CUBIC_PLUS_SHARP_SAMPLES*2], yw[CUBIC_PLUS_SHARP_SAMPLES*2];
+      Vec4 c [CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         xo[i]=xi-CUBIC_PLUS_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2317,28 +2317,28 @@ Vec4 Image::colorFCubicSharp(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_SHARP_RANGE))
+         Flt w=xw[x]+yw[y]; if(w<Sqr(CUBIC_PLUS_SHARP_RANGE))
          {
-            w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
+            w=CubicPlusSharp2(w*Sqr(CUBIC_PLUS_SHARP_SHARPNESS)); Add(color, rgb, c[y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS_SHARP);
       return color;
    }
    return 0;
 }
-Vec4 Image::color3DFCubic(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
+Vec4 Image::color3DFCubicPlus(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh() && ld())
    {
-      Int  xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], zo[CUBIC_MED_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
-      Flt  xw[CUBIC_MED_SAMPLES*2], yw[CUBIC_MED_SAMPLES*2], zw[CUBIC_MED_SAMPLES*2];
-      Vec4 c [CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+      Int  xo[CUBIC_PLUS_SAMPLES*2], yo[CUBIC_PLUS_SAMPLES*2], zo[CUBIC_PLUS_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
+      Flt  xw[CUBIC_PLUS_SAMPLES*2], yw[CUBIC_PLUS_SAMPLES*2], zw[CUBIC_PLUS_SAMPLES*2];
+      Vec4 c [CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_MED_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
-         zo[i]=zi-CUBIC_MED_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
+         xo[i]=xi-CUBIC_PLUS_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         zo[i]=zi-CUBIC_PLUS_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2359,28 +2359,28 @@ Vec4 Image::color3DFCubic(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_MED_RANGE))
+         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_PLUS_RANGE))
          {
-            w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
+            w=CubicPlus2(w*Sqr(CUBIC_PLUS_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS);
       return color;
    }
    return 0;
 }
-Vec4 Image::color3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
+Vec4 Image::color3DFCubicPlusSharp(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh() && ld())
    {
-      Int  xo[CUBIC_SHARP_SAMPLES*2], yo[CUBIC_SHARP_SAMPLES*2], zo[CUBIC_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
-      Flt  xw[CUBIC_SHARP_SAMPLES*2], yw[CUBIC_SHARP_SAMPLES*2], zw[CUBIC_SHARP_SAMPLES*2];
-      Vec4 c [CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2][CUBIC_SHARP_SAMPLES*2];
+      Int  xo[CUBIC_PLUS_SHARP_SAMPLES*2], yo[CUBIC_PLUS_SHARP_SAMPLES*2], zo[CUBIC_PLUS_SHARP_SAMPLES*2], xi=Floor(x), yi=Floor(y), zi=Floor(z);
+      Flt  xw[CUBIC_PLUS_SHARP_SAMPLES*2], yw[CUBIC_PLUS_SHARP_SAMPLES*2], zw[CUBIC_PLUS_SHARP_SAMPLES*2];
+      Vec4 c [CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2][CUBIC_PLUS_SHARP_SAMPLES*2];
       REPA(xo)
       {
-         xo[i]=xi-CUBIC_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
-         yo[i]=yi-CUBIC_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
-         zo[i]=zi-CUBIC_SHARP_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
+         xo[i]=xi-CUBIC_PLUS_SHARP_SAMPLES+1+i; xw[i]=Sqr(x-xo[i]);
+         yo[i]=yi-CUBIC_PLUS_SHARP_SAMPLES+1+i; yw[i]=Sqr(y-yo[i]);
+         zo[i]=zi-CUBIC_PLUS_SHARP_SAMPLES+1+i; zw[i]=Sqr(z-zo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, lw()-1);
@@ -2401,12 +2401,12 @@ Vec4 Image::color3DFCubicSharp(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weigh
       REPAD(y, yo)
       REPAD(x, xo)
       {
-         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_SHARP_RANGE))
+         Flt w=xw[x]+yw[y]+zw[z]; if(w<Sqr(CUBIC_PLUS_SHARP_RANGE))
          {
-            w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
+            w=CubicPlusSharp2(w*Sqr(CUBIC_PLUS_SHARP_SHARPNESS)); Add(color, rgb, c[z][y][x], w, alpha_weight); weight+=w;
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS_SHARP);
       return color;
    }
    return 0;
@@ -3261,14 +3261,14 @@ Vec4 Image::areaColorFCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool
    }
    return 0;
 }
-Vec4 Image::areaColorFCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFCubicPlus(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
       // f=(p-center)/size
-      const Vec2 size_a(Max(CUBIC_MED_RANGE, size.x*CUBIC_MED_RANGE), Max(CUBIC_MED_RANGE, size.y*CUBIC_MED_RANGE));
-      Vec2 x_mul_add; x_mul_add.x=CUBIC_MED_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
-      Vec2 y_mul_add; y_mul_add.x=CUBIC_MED_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
+      const Vec2 size_a(Max(CUBIC_PLUS_RANGE, size.x*CUBIC_PLUS_RANGE), Max(CUBIC_PLUS_RANGE, size.y*CUBIC_PLUS_RANGE));
+      Vec2 x_mul_add; x_mul_add.x=CUBIC_PLUS_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
+      Vec2 y_mul_add; y_mul_add.x=CUBIC_PLUS_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
 
       // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
       Int x0=CeilSpecial(pos.x-size_a.x), x1=FloorSpecial(pos.x+size_a.x),
@@ -3283,25 +3283,25 @@ Vec4 Image::areaColorFCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_we
          for(Int x=x0; x<=x1; x++)
          {
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
-            if(w<Sqr(CUBIC_MED_RANGE))
+            if(w<Sqr(CUBIC_PLUS_RANGE))
             {
-               w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicPlus2(w*Sqr(CUBIC_PLUS_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS);
       return color;
    }
    return 0;
 }
-Vec4 Image::areaColorFCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFCubicPlusSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
       // f=(p-center)/size
-      const Vec2 size_a(Max(CUBIC_SHARP_RANGE, size.x*CUBIC_SHARP_RANGE), Max(CUBIC_SHARP_RANGE, size.y*CUBIC_SHARP_RANGE));
-      Vec2 x_mul_add; x_mul_add.x=CUBIC_SHARP_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
-      Vec2 y_mul_add; y_mul_add.x=CUBIC_SHARP_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
+      const Vec2 size_a(Max(CUBIC_PLUS_SHARP_RANGE, size.x*CUBIC_PLUS_SHARP_RANGE), Max(CUBIC_PLUS_SHARP_RANGE, size.y*CUBIC_PLUS_SHARP_RANGE));
+      Vec2 x_mul_add; x_mul_add.x=CUBIC_PLUS_SHARP_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
+      Vec2 y_mul_add; y_mul_add.x=CUBIC_PLUS_SHARP_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
 
       // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
       Int x0=CeilSpecial(pos.x-size_a.x), x1=FloorSpecial(pos.x+size_a.x),
@@ -3316,13 +3316,13 @@ Vec4 Image::areaColorFCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alp
          for(Int x=x0; x<=x1; x++)
          {
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
-            if(w<Sqr(CUBIC_SHARP_RANGE))
+            if(w<Sqr(CUBIC_PLUS_SHARP_RANGE))
             {
-               w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicPlusSharp2(w*Sqr(CUBIC_PLUS_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
-      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_SHARP);
+      Normalize(color, rgb, weight, alpha_weight, ALPHA_LIMIT_CUBIC_PLUS_SHARP);
       return color;
    }
    return 0;
@@ -4788,8 +4788,8 @@ struct CopyContext
          dest_data_x+=dest.bytePP();
       }
    }
-   static void UpsizeCubic(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsizeCubic(elm_index);}
-          void upsizeCubic(IntPtr elm_index)
+   static void UpsizeCubicPlus(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsizeCubicPlus(elm_index);}
+          void upsizeCubicPlus(IntPtr elm_index)
    {
       Int z=elm_index/dest.lh(),
           y=elm_index%dest.lh();
@@ -4798,12 +4798,12 @@ struct CopyContext
       Byte *dest_data_x=dest_data_y;
       Flt   sy=y*y_mul_add.x+y_mul_add.y,
             sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
-      Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
-      Flt   yw[CUBIC_MED_SAMPLES*2];
+      Int   xo[CUBIC_PLUS_SAMPLES*2], yo[CUBIC_PLUS_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
+      Flt   yw[CUBIC_PLUS_SAMPLES*2];
       REPA( xo)
       {
-         xo[i]=xi-CUBIC_MED_SAMPLES+1+i;
-         yo[i]=yi-CUBIC_MED_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
+         xo[i]=xi-CUBIC_PLUS_SAMPLES+1+i;
+         yo[i]=yi-CUBIC_PLUS_SAMPLES+1+i; yw[i]=Sqr(sy-yo[i]);
          if(clamp)
          {
             Clamp(xo[i], 0, src.lw()-1);
@@ -4816,9 +4816,9 @@ struct CopyContext
       }
       if(NeedMultiChannel(src.type(), dest.type()))
       {
-         Vec4 c[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+         Vec4 c[CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
          src.gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+         REPD(x, CUBIC_PLUS_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
          Int x_offset=0;
          FREPD(x, dest.lw()) // iterate forward so we can increase pointers
@@ -4827,9 +4827,9 @@ struct CopyContext
             Int xi2=Floor(sx); if(xi!=xi2)
             {
                xi=xi2;
-               Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               Int xo_last=xi+CUBIC_PLUS_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
                src.gather(&c[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-               x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+               x_offset=(x_offset+1)%(CUBIC_PLUS_SAMPLES*2);
             }
 
             Flt  weight=0;
@@ -4837,13 +4837,13 @@ struct CopyContext
             Vec4 color =0;
             REPAD(x, xo)
             {
-               Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-               Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+               Int xc=(x+x_offset)%(CUBIC_PLUS_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_PLUS_SAMPLES+1+x));
                REPAD(y, yo)
                {
-                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_PLUS_RANGE))
                   {
-                     w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
+                     w=Weight(w*Sqr(CUBIC_PLUS_SHARPNESS)); Add(color, rgb, c[xc][y], w, alpha_weight); weight+=w;
                   }
                }
             }
@@ -4853,9 +4853,9 @@ struct CopyContext
          }
       }else
       {
-         Flt v[CUBIC_MED_SAMPLES*2][CUBIC_MED_SAMPLES*2];
+         Flt v[CUBIC_PLUS_SAMPLES*2][CUBIC_PLUS_SAMPLES*2];
          src.gather(&v[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
-         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
+         REPD(x, CUBIC_PLUS_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
          Int x_offset=0;
          FREPD(x, dest.lw()) // iterate forward so we can increase pointers
@@ -4864,21 +4864,21 @@ struct CopyContext
             Int xi2=Floor(sx); if(xi!=xi2)
             {
                xi=xi2;
-               Int xo_last=xi+CUBIC_MED_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
+               Int xo_last=xi+CUBIC_PLUS_SAMPLES; if(clamp)Clamp(xo_last, 0, src.lw()-1);else xo_last=Mod(xo_last, src.lw());
                src.gather(&v[x_offset][0], &xo_last, 1, yo, Elms(yo)); // read new column
-               x_offset=(x_offset+1)%(CUBIC_MED_SAMPLES*2);
+               x_offset=(x_offset+1)%(CUBIC_PLUS_SAMPLES*2);
             }
 
             Flt weight=0, value=0;
             REPAD(x, xo)
             {
-               Int xc=(x+x_offset)%(CUBIC_MED_SAMPLES*2);
-               Flt xw=Sqr(sx-(xi-CUBIC_MED_SAMPLES+1+x));
+               Int xc=(x+x_offset)%(CUBIC_PLUS_SAMPLES*2);
+               Flt xw=Sqr(sx-(xi-CUBIC_PLUS_SAMPLES+1+x));
                REPAD(y, yo)
                {
-                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_MED_RANGE))
+                  Flt w=xw+yw[y]; if(w<Sqr(CUBIC_PLUS_RANGE))
                   {
-                     w=Weight(w*Sqr(CUBIC_MED_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
+                     w=Weight(w*Sqr(CUBIC_PLUS_SHARPNESS)); value+=v[xc][y]*w; weight+=w;
                   }
                }
             }
@@ -5094,9 +5094,9 @@ struct CopyContext
                case FILTER_CUBIC_FAST       : color=((src.ld()<=1) ? src.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
                case FILTER_CUBIC_FAST_SMOOTH: color=((src.ld()<=1) ? src.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
                case FILTER_CUBIC_FAST_SHARP : color=((src.ld()<=1) ? src.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-               default                      : // FILTER_BEST
-               case FILTER_CUBIC            : color=((src.ld()<=1) ? src.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_SHARP      : color=((src.ld()<=1) ? src.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+               default                      : // FILTER_BEST, FILTER_WAIFU
+               case FILTER_CUBIC_PLUS       : color=((src.ld()<=1) ? src.colorFCubicPlus      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicPlus      (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_PLUS_SHARP : color=((src.ld()<=1) ? src.colorFCubicPlusSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicPlusSharp (         sx ,          sy ,          sz , clamp)); break;
             }
             SetColor(dest_data_x, dest.type(), dest.hwType(), color);
             dest_data_x+=dest.bytePP();
@@ -5114,9 +5114,9 @@ struct CopyContext
                case FILTER_CUBIC_FAST       : pix=((src.ld()<=1) ? src.pixelFCubicFast      (         sx ,          sy , clamp) : src.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
                case FILTER_CUBIC_FAST_SMOOTH: pix=((src.ld()<=1) ? src.pixelFCubicFastSmooth(         sx ,          sy , clamp) : src.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
                case FILTER_CUBIC_FAST_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicFastSharp (         sx ,          sy , clamp) : src.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-               default                      : // FILTER_BEST
-               case FILTER_CUBIC            : pix=((src.ld()<=1) ? src.pixelFCubic          (         sx ,          sy , clamp) : src.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_SHARP      : pix=((src.ld()<=1) ? src.pixelFCubicSharp     (         sx ,          sy , clamp) : src.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+               default                      : // FILTER_BEST, FILTER_WAIFU
+               case FILTER_CUBIC_PLUS       : pix=((src.ld()<=1) ? src.pixelFCubicPlus      (         sx ,          sy , clamp) : src.pixel3DFCubicPlus      (         sx ,          sy ,          sz , clamp)); break;
+               case FILTER_CUBIC_PLUS_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicPlusSharp (         sx ,          sy , clamp) : src.pixel3DFCubicPlusSharp (         sx ,          sy ,          sz , clamp)); break;
             }
             SetPixelF(dest_data_x, dest.hwType(), pix);
             dest_data_x+=dest.bytePP();
@@ -5286,6 +5286,7 @@ struct CopyContext
                         ImageThreads.init().process(dest.lh(), Downsize2xLinear, T);
                      }goto finish;
 
+                     case FILTER_WAIFU: // there's no downscale for Waifu, so fall back to best available
                      case FILTER_BEST:
                      case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // this operates on source native gamma
                      {
@@ -5361,10 +5362,10 @@ struct CopyContext
                      case FILTER_LINEAR           : linear_gamma=true ; area_color=&Image::areaColorLLinear         ; break;
                      case FILTER_CUBIC_FAST       : linear_gamma=true ; area_color=&Image::areaColorLCubicFast      ; break;
                      case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; area_color=&Image::areaColorLCubicFastSmooth; break;
-                     default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST
+                     default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST, FILTER_WAIFU
                      case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
-                     case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
-                     case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
+                     case FILTER_CUBIC_PLUS       : linear_gamma=false; area_color=&Image::areaColorFCubicPlus      ; break; // FILTER_CUBIC_PLUS       is not suitable for linear gamma
+                     case FILTER_CUBIC_PLUS_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicPlusSharp ; break; // FILTER_CUBIC_PLUS_SHARP is not suitable for linear gamma
                   }
                   manual_linear_to_srgb=false;
                   set_color=SetColor; // pointer to function
@@ -5378,14 +5379,14 @@ struct CopyContext
                   }
                   ImageThreads.init().process(dest.lh(), DownsizeArea, T);
                }else
-               if(filter==FILTER_WAIFU && ResizeWaifu && (dest.lw()>src.lw() || dest.lh()>src.lh()) && src.ld()==1 && dest.ld()==1 && ResizeWaifu(src, dest, flags)){}else
+               if((filter==FILTER_BEST || filter==FILTER_WAIFU) && ResizeWaifu && (dest.lw()>src.lw() || dest.lh()>src.lh()) && src.ld()==1 && dest.ld()==1 && ResizeWaifu(src, dest, flags)){}else
                // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
-               if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
+               if((filter==FILTER_BEST || filter==FILTER_CUBIC_PLUS || filter==FILTER_CUBIC_PLUS_SHARP) // optimized Cubic+ upscale, check FILTER_BEST again in case Waifu was not available
                && src.ld()==1)
                {
-                  alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : (filter==FILTER_CUBIC_SHARP) ? ALPHA_LIMIT_CUBIC_SHARP : ALPHA_LIMIT_CUBIC);
-                  Weight     =(                                    (filter==FILTER_CUBIC_SHARP) ? CubicSharp2             : CubicMed2        ); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
-                  ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubic, T);
+                  alpha_limit=(no_alpha_limit ? ALPHA_LIMIT_NONE : (filter==FILTER_CUBIC_PLUS_SHARP) ? ALPHA_LIMIT_CUBIC_PLUS_SHARP : ALPHA_LIMIT_CUBIC_PLUS);
+                  Weight     =(                                    (filter==FILTER_CUBIC_PLUS_SHARP) ? CubicPlusSharp2              : CubicPlus2            ); ASSERT(CUBIC_PLUS_SAMPLES==CUBIC_PLUS_SHARP_SAMPLES && CUBIC_PLUS_RANGE==CUBIC_PLUS_SHARP_RANGE && CUBIC_PLUS_SHARPNESS==CUBIC_PLUS_SHARP_SHARPNESS);
+                  ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeCubicPlus, T);
                }else
                if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
                && src.ld()==1)
