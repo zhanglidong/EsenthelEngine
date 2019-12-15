@@ -70,8 +70,8 @@ inline void   SupportCompressPVRTC() {if(WINDOWS_OLD || MAC || LINUX)CompressPVR
 
 inline void SupportCompressAll() {SupportCompressBC(); SupportCompressETC(); SupportCompressPVRTC();}
 
-extern Bool  _ResizeWaifu (C Image &src, Image &dest, Bool clamp);
-extern Bool (*ResizeWaifu)(C Image &src, Image &dest, Bool clamp);
+extern Bool  _ResizeWaifu (C Image &src, Image &dest, UInt flags);
+extern Bool (*ResizeWaifu)(C Image &src, Image &dest, UInt flags);
 inline void   SupportFilterWaifu() {ResizeWaifu=_ResizeWaifu;}
 /******************************************************************************/
 // STRING / TEXT

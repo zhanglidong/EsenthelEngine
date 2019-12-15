@@ -162,7 +162,7 @@ static const Flt CFSMW8[8][8]= // [y][x]
 /******************************************************************************/
 // FILTERING
 /******************************************************************************/
-Bool (*ResizeWaifu)(C Image &src, Image &dest, Bool clamp);
+Bool (*ResizeWaifu)(C Image &src, Image &dest, UInt flags);
 /******************************************************************************/
 static Flt Linear(Flt x) {ABS(x); if(x>=1)return 0; return 1-x;}
 /******************************************************************************/
@@ -4523,9 +4523,10 @@ struct CopyContext
 {
  C Image &src ;
    Image &dest;
-   const Bool clamp, keep_edges, alpha_weight, no_alpha_limit, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
-   const Int  src_faces1;
+   const Bool        clamp, keep_edges, alpha_weight, no_alpha_limit, src_srgb, dest_srgb, ignore_gamma, ignore_gamma_ds, src_high_prec, high_prec;
    const FILTER_TYPE filter;
+   const Int         src_faces1;
+   const UInt        flags;
    void (*const SetColor)(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color);
 
    // case-dependent
@@ -5123,7 +5124,7 @@ struct CopyContext
       }
    }
 
-   CopyContext(C Image &src, Image &dest, FILTER_TYPE filter, UInt flags) : src(src), dest(dest), filter(filter),
+   CopyContext(C Image &src, Image &dest, FILTER_TYPE filter, UInt flags) : src(src), dest(dest), filter(filter), flags(flags),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
       alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && src.typeInfo().a), // only if source has alpha
@@ -5377,7 +5378,7 @@ struct CopyContext
                   }
                   ImageThreads.init().process(dest.lh(), DownsizeArea, T);
                }else
-               if(filter==FILTER_WAIFU && ResizeWaifu && (dest.lw()>src.lw() || dest.lh()>src.lh()) && src.ld()==1 && dest.ld()==1 && ResizeWaifu(src, dest, clamp)){}else
+               if(filter==FILTER_WAIFU && ResizeWaifu && (dest.lw()>src.lw() || dest.lh()>src.lh()) && src.ld()==1 && dest.ld()==1 && ResizeWaifu(src, dest, flags)){}else
                // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
                if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
                && src.ld()==1)

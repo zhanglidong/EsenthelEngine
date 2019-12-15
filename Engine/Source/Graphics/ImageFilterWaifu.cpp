@@ -125,7 +125,7 @@ static struct WaifuClass
       }
       return waifu!=null;
    }
-   Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3, should be resized x2 using FILTER_NONE !!
+   Bool process(Image &image, Bool clamp) // !! 'image' must be IMAGE_F32_3 or IMAGE_F32_3_SRGB, should be resized x2 using FILTER_NONE !!
    {
       return waifu && w2xc::w2xconv_2x_rgb_f32_esenthel(waifu, image.data(), image.pitch(), image.w(), image.h(), clamp);
    }
@@ -147,20 +147,22 @@ static Bool LockedMipHasAlpha(C Image &image) // assumes that image is not compr
    }
    return false;
 }
-Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images are not compressed and already locked, 'src' is smaller than 'dest', processes locked mip-map only
+Bool _ResizeWaifu(C Image &src, Image &dest, UInt flags) // assumes that images are not compressed and already locked, 'src' is smaller than 'dest', processes locked mip-map only
 {
    if(Waifu.init())
    {
+      Bool  clamp=IcClamp(flags);
       Image temp[2], temp_alpha;
     C Image *s=&src;
       Int    i=0;
 
       // process RGB
+      IMAGE_TYPE type=(s->sRGB() ? IMAGE_F32_3_SRGB : IMAGE_F32_3);
       do{
          Image &dest=temp[i]; i^=1;
-         if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
+         if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, type))return false;
          REPD(y, dest.lh())
-         REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2));
+         REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2)); // always use native gamma
          if(!Waifu.process(dest, clamp))return false;
          s=&dest;
       }while(s->lw()<dest.lw() || s->lh()<dest.lh());
@@ -168,7 +170,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
       // process ALPHA
       if(dest.typeInfo().a && LockedMipHasAlpha(src)) // it's important to skip alpha when not needed because it requires a separate resize call (making resize 2x slower)
       {
-         if(!s->copyTry(temp_alpha, -1, -1, -1, dest.type(), IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))return false; // copy to 'temp_alpha' and include alpha channel format
+         if(!s->copyTry(temp_alpha, -1, -1, -1, dest.type(), IMAGE_SOFT, 1, FILTER_BEST, flags))return false; // copy to 'temp_alpha' and include alpha channel format
 
          // copy alpha channel from 'src' into 'temp' as RGB
          s=&src;
@@ -205,7 +207,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, Bool clamp) // assumes that images 
       }
 
       // store into 'dest'
-      return dest.injectMipMap(*s, dest.lMipMap(), dest.lCubeFace(), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA);
+      return dest.injectMipMap(*s, dest.lMipMap(), dest.lCubeFace(), FILTER_BEST, flags);
    }
    return false;
 }
