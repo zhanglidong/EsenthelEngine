@@ -93,6 +93,7 @@ class MeshParts : Window
       ObjEdit.vtx_face_sel_text.visible(parts.edit_selected());
       ObjEdit.vtx_face_sel_mode.visible(parts.edit_selected());
       ObjEdit.trans_mesh.setAnchorPos();
+      if(parts.edit_selected())SetObjOp(OP_OBJ_NONE);
    }
    static void HiddenToggle(Part &p)
    {
