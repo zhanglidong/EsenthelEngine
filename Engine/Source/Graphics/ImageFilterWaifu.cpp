@@ -151,13 +151,13 @@ Bool _ResizeWaifu(C Image &src, Image &dest, UInt flags) // assumes that images 
 {
    if(Waifu.init())
    {
-      Bool  clamp=IcClamp(flags);
-      Image temp[2], temp_alpha;
+      Bool   clamp=IcClamp(flags);
+      Image  temp[2], temp_alpha;
     C Image *s=&src;
       Int    i=0;
 
       // process RGB
-      IMAGE_TYPE type=(s->sRGB() ? IMAGE_F32_3_SRGB : IMAGE_F32_3);
+      IMAGE_TYPE type=(s->sRGB() ? IMAGE_F32_3_SRGB : IMAGE_F32_3); // Waifu works best when operating on perceptual gamma (sRGB for colors and linear for non-colors (normap maps/alpha/etc.)) so just operate on image native gamma. When linear gamma is used for colors, then brightness can change significantly compared to original image.
       do{
          Image &dest=temp[i]; i^=1;
          if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, type))return false;
