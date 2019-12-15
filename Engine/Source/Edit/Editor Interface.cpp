@@ -7,7 +7,7 @@ namespace Edit{
 #define EI_VER 37 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
-#define CLIENT_WAIT_TIME_LONG    (10*60*1000) // 10*60 seconds, some operations may take a long time to complete
+#define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
 #define CLIENT_WAIT_TIME_PUBLISH (60*60*1000) // 60*60 seconds, publishing may take very long time (especially when creating PVRTC textures)
 
 ASSERT( EI_NUM<=256); // because they're stored as bytes
