@@ -39,7 +39,7 @@ class VideoOptions : PropWin
          FILTER_NONE,
          FILTER_LINEAR,
          FILTER_CUBIC_FAST,
-         FILTER_CUBIC,
+         FILTER_CUBIC_PLUS,
       };
       static cchar8 *TexUse_t[]=
       {

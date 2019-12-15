@@ -90,14 +90,14 @@ WorldBrushClass Brush;
             {
                Vec2 d=pos*pattern_scale;
                     d.y=1-d.y;
-               f*=image_sw.pixelFCubic(d.x*(image_sw.w()-1), d.y*(image_sw.h()-1), false);
+               f*=image_sw.pixelFCubicPlus(d.x*(image_sw.w()-1), d.y*(image_sw.h()-1), false);
             }else
             {
                Vec2 d=(pos-cur.pos().xz())/size;
                     d.rotateCosSin(rotate_cos, rotate_sin);
                     d=d*0.5f+0.5f;
                     d.y=1-d.y;
-               f*=image_sw.pixelFCubic(d.x*(image_sw.w()-1), d.y*(image_sw.h()-1), true);
+               f*=image_sw.pixelFCubicPlus(d.x*(image_sw.w()-1), d.y*(image_sw.h()-1), true);
             }
          }
          return f;

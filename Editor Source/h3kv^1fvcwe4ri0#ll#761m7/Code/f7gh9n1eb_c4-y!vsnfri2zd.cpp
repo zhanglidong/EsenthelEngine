@@ -198,7 +198,7 @@ class HeightBrushClass : Window
                   case HB_AVG    : REP(WorldEdit.curTotal()){Cursor &cur=WorldEdit.curAll(i); if(cur.valid() && cur.on())AdjustValTime(pos_y,     cur._brush_height,       Lerp(1.0, 0.5, Brush.power(pos, true, cur)), speed);} break;
                   case HB_LEVEL  : REP(WorldEdit.curTotal()){Cursor &cur=WorldEdit.curAll(i); if(cur.valid() && cur.on())AdjustValTime(pos_y,     cur._brush_height,       Lerp(1.0, 0.5, Brush.power(pos, true, cur)), speed);} break;
                   case HB_FLAT   : REP(WorldEdit.curTotal()){Cursor &cur=WorldEdit.curAll(i); if(cur.valid() && cur.on())              pos_y+=Mid(cur._brush_height-pos_y, -speed, speed)*Brush.power(pos, true, cur)         ;} break;
-                  case HB_NOISE  : pos_y+=d*speed*(noise.pixelFCubic(x*noise_mul+nx, y*noise_mul+ny, false)*2-1); break;
+                  case HB_NOISE  : pos_y+=d*speed*(noise.pixelFCubicPlus(x*noise_mul+nx, y*noise_mul+ny, false)*2-1); break;
                   case HB_SOFT   :
                   {
                      flt sum=0;

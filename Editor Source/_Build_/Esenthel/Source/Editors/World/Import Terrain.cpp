@@ -300,7 +300,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
             {
                flt fx=  (area_xy.x-area_rect.min.x + x/flt(res-1))/(area_rect.w()+1),
                    fy=1-(area_xy.y-area_rect.min.y + y/flt(res-1))/(area_rect.h()+1),
-                   h =height_image.pixelFCubic(fx*height_image.w(), fy*height_image.h(), true);
+                   h =height_image.pixelFCubicPlus(fx*height_image.w(), fy*height_image.h(), true);
                switch(height_mode)
                {
                   default: hm.height(x, y, Lerp(height.x, height.y, h)); break; // set
@@ -319,7 +319,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
             {
                flt  fx=  (area_xy.x-area_rect.min.x + x/flt(res-1))/(area_rect.w()+1),
                     fy=1-(area_xy.y-area_rect.min.y + y/flt(res-1))/(area_rect.h()+1);
-               Vec4 c =mtrl_image.colorFCubic(fx*mtrl_image.w(), fy*mtrl_image.h(), true);
+               Vec4 c =mtrl_image.colorFCubicPlus(fx*mtrl_image.w(), fy*mtrl_image.h(), true);
                REPA(mtrl_channel_index)if(!mtrl_channel_index.c[i])c.c[i]=0; // if material wasn't set, then clear its intensity
 
                if(mtrl_mode==0 || empty) // set
@@ -359,7 +359,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
             {
                flt  fx=  (area_xy.x-area_rect.min.x + x/flt(res-1))/(area_rect.w()+1),
                     fy=1-(area_xy.y-area_rect.min.y + y/flt(res-1))/(area_rect.h()+1);
-               Vec4 c =color_image.colorFCubic(fx*color_image.w(), fy*color_image.h(), true);
+               Vec4 c =color_image.colorFCubicPlus(fx*color_image.w(), fy*color_image.h(), true);
                switch(color_mode)
                {
                   default: hm.color(x, y, Color(c)); break; // set

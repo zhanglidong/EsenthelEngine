@@ -41,7 +41,7 @@ VideoOptions VidOpt;
          FILTER_NONE,
          FILTER_LINEAR,
          FILTER_CUBIC_FAST,
-         FILTER_CUBIC,
+         FILTER_CUBIC_PLUS,
       };
       cchar8 *VideoOptions::Advanced::TexUse_t[]=
       {
