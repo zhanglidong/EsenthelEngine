@@ -1004,10 +1004,17 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
             }
             images.sort(Compare); // sort by order
          }
-         if(!append && Kb.shift() && images.elms()) // process in special way
+         if(!append && images.elms()) // process in special way
          {
-            if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"); // get smooth from alpha channel (Unity style)
-            if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"); // convert from metal map
+            if(Kb.shift())
+            {
+               if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"); // get smooth from alpha channel (Unity style)
+               if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"); // convert from metal map
+            }
+            if(Kb.alt())
+            {
+               if(tex.type==TEX_SMOOTH)images[0].params.New().set("inverseRGB"); // get smooth from roughness (inverse)
+            }
          }
          Str drop=Edit::FileParams::Encode(SCAST(Memc<Edit::FileParams>, images));
          tex.setFile(append ? Edit::FileParams::Merge(tex.file, drop) : drop);
