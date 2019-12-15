@@ -794,6 +794,7 @@ int GetFilter(C Str &name)
 {
    if(Contains(name, "nearest"  ) || Contains(name, "point") || Contains(name, "FilterNone"))return FILTER_NONE;
    if(Contains(name, "linear"   ))return FILTER_LINEAR;
+   if(Contains(name, "cubic+"   ) || Contains(name, "cubicPlus"))return FILTER_CUBIC; // !! check this before "cubic" !!
    if(Contains(name, "cubic"    ))return FILTER_CUBIC_FAST;
    if(Contains(name, "waifu"    ))return FILTER_WAIFU;
    if(Contains(name, "NoStretch"))return FILTER_NO_STRETCH;
