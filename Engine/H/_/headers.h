@@ -189,6 +189,7 @@
          #define SECURITY_WIN32
          #include <Security.h>
          #include <comdef.h>
+         #include <Icm.h>
       #else
          #include <collection.h>
          #include <ppltasks.h>

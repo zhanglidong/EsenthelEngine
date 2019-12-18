@@ -492,52 +492,28 @@ Vec4 SRGBToDisplay(C Color &s)
    return Vec4(ByteSRGBToDisplay(s.r), ByteSRGBToDisplay(s.g), ByteSRGBToDisplay(s.b), ByteToFlt(s.a));
 }
 /******************************************************************************/
-#if WINDOWS_OLD && DX11
-   #include <Icm.h>
-#endif
-Str GetColorProfilePath() // get the path for current monitor color profile
+#if WINDOWS_OLD
+struct WinColorTransform
 {
-#if WINDOWS_OLD && DX11
-   if(SwapChain)
-   {
-      IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
-      {
-         DXGI_OUTPUT_DESC desc; Bool ok=OK(output->GetDesc(&desc)); output->Release();
-         if(ok)
-         {
-            DISPLAY_DEVICEW displayDevice; Zero(displayDevice); displayDevice.cb=SIZE(displayDevice);
-            for(Int i=0; EnumDisplayDevicesW(desc.DeviceName, i, &displayDevice, 0); i++)
-               //if(FlagAll(displayDevice.StateFlags, DISPLAY_DEVICE_ACTIVE|DISPLAY_DEVICE_ATTACHED))
-            {
-               wchar_t file_name[MAX_PATH];
-               DLL mscms; if(mscms.createFile("Mscms.dll"))
-               if(auto WcsGetDefaultColorProfile=(decltype(&::WcsGetDefaultColorProfile))mscms.getFunc("WcsGetDefaultColorProfile")) // available on Vista+
-             //if(BOOL (WINAPI *WcsGetDefaultColorProfile)(WCS_PROFILE_MANAGEMENT_SCOPE scope, PCWSTR pDeviceName, COLORPROFILETYPE cptColorProfileType, COLORPROFILESUBTYPE cpstColorProfileSubType, DWORD dwProfileID, DWORD cbProfileName, LPWSTR pProfileName)=(decltype(WcsGetDefaultColorProfile))mscms.getFunc("WcsGetDefaultColorProfile")) // available on Vista+
-               if(WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER, displayDevice.DeviceKey, CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))
-               if(file_name[0])
-               {
-                  if(FullPath(WChar(file_name)))return file_name;
-                  return SystemPath(SP_SYSTEM).tailSlash(true)+"spool/drivers/color/"+file_name;
-               }
-               break;
-            }
-         }
-      }
-   }
-#endif
-   return S;
-}
-/******************************************************************************
-#include "../../../ThirdPartyLibs/QCMS/lib/qcms.h"
-   Str p=GetColorProfilePath(); if(p.is())
-   {
-   #if 0
-      PROFILE profile;
-      profile.dwType      =PROFILE_FILENAME;
-      profile.pProfileData=ConstCast(p());
-      profile.cbDataSize  =(p.length()+1)*SIZE(Char);
+   HPROFILE   profile  =null;
+   HTRANSFORM transform=null;
 
-      if(HPROFILE dest_profile=OpenColorProfileW(&profile, PROFILE_READ, FILE_SHARE_READ, OPEN_EXISTING))
+  ~WinColorTransform() {del();}
+   void del()
+   {
+      if(transform){DeleteColorTransform(transform); transform=null;}
+      if(profile  ){CloseColorProfile   (profile  ); profile  =null;}
+   }
+   Bool create(C Str &name)
+   {
+      del();
+
+      PROFILE profile_desc;
+      profile_desc.dwType      =PROFILE_FILENAME;
+      profile_desc.pProfileData=ConstCast(name());
+      profile_desc.cbDataSize  =(name.length()+1)*SIZE(Char);
+
+      if(profile=OpenColorProfileW(&profile_desc, PROFILE_READ, FILE_SHARE_READ, OPEN_EXISTING))
       {
          LOGCOLORSPACEA lcs; Zero(lcs);
          lcs.lcsSignature=LCS_SIGNATURE; 
@@ -546,49 +522,115 @@ Str GetColorProfilePath() // get the path for current monitor color profile
          lcs.lcsCSType=LCS_sRGB; 
          lcs.lcsIntent=LCS_GM_GRAPHICS; // this is Relative Colorimetric, alternatively try LCS_GM_ABS_COLORIMETRIC
 
-         if(HTRANSFORM transform=CreateColorTransformA(&lcs, dest_profile, null, BEST_MODE|USE_RELATIVE_COLORIMETRIC))
-         {
-            COLOR src, dest;
-            REPD(y, img.h())
-            REPD(x, img.w())
-            {
-               Vec4 c=img.colorF(x, y);
-               src.rgb.red  =Mid(RoundPos(c.x*65535), 0, 65535);
-               src.rgb.green=Mid(RoundPos(c.y*65535), 0, 65535);
-               src.rgb.blue =Mid(RoundPos(c.z*65535), 0, 65535);
-               TranslateColors(transform, &src, 1, COLOR_RGB, &dest, COLOR_RGB);
-               c.x=dest.rgb.red  /65535.0f;
-               c.y=dest.rgb.green/65535.0f;
-               c.z=dest.rgb.blue /65535.0f;
-               img.colorF(x, y, c);
-            }
-            DeleteColorTransform(transform);
-         }
-         CloseColorProfile(dest_profile);
+         if(transform=CreateColorTransformA(&lcs, profile, null, BEST_MODE|USE_RELATIVE_COLORIMETRIC))
+            return true;
       }
-   #else
-      if(qcms_profile *qcms_dest=qcms_profile_from_unicode_path(p))
+      del(); return false;
+   }
+   Bool convert(C Vec4 &src, Vec4 &dest, Bool &different)C
+   {
+      if(transform)
       {
-         if(qcms_profile *qcms_srgb=qcms_profile_sRGB())
-         {
-            if(qcms_transform *transform=qcms_transform_create(qcms_srgb, QCMS_DATA_RGB_8, qcms_dest, QCMS_DATA_RGB_8, QCMS_INTENT_RELATIVE_COLORIMETRIC))
-            {
-                           REPD(y, img.h())
-                           REPD(x, img.w())
-                           {
-                              Color c=img.color(x, y), d;
-                              qcms_transform_data(transform, &c, &d, 1); d.a=c.a;
-                              img.color(x, y, d);
-                           }
+         COLOR s, d;
+         s.rgb.red  =Mid(RoundPos(src.x*65535), 0, 65535);
+         s.rgb.green=Mid(RoundPos(src.y*65535), 0, 65535);
+         s.rgb.blue =Mid(RoundPos(src.z*65535), 0, 65535);
+         TranslateColors(transform, &s, 1, COLOR_RGB, &d, COLOR_RGB);
+         dest.x=d.rgb.red  /65535.0f;
+         dest.y=d.rgb.green/65535.0f;
+         dest.z=d.rgb.blue /65535.0f;
+         different=(s.rgb.red  !=d.rgb.red
+                 || s.rgb.green!=d.rgb.green
+                 || s.rgb.blue !=d.rgb.blue);
+         return true;
+      }
+      dest=src; different=false;
+      return false;
+   }
+};
+#endif
+#if 0
+#include "../../../ThirdPartyLibs/QCMS/lib/qcms.h"
+struct QCMSColorTransform
+{
+   qcms_profile   *qcms_dest=null;
+   qcms_profile   *qcms_srgb=null;
+   qcms_transform *transform=null;
 
-               qcms_transform_release(transform);
+  ~QCMSColorTransform() {del();}
+   void del()
+   {
+      if(transform){qcms_transform_release(transform); transform=null;}
+      if(qcms_srgb){qcms_profile_release  (qcms_srgb); qcms_srgb=null;}
+      if(qcms_dest){qcms_profile_release  (qcms_dest); qcms_dest=null;}
+   }
+   Bool create(C Str &name)
+   {
+      del();
+      if(qcms_dest=qcms_profile_from_unicode_path(name))
+      if(qcms_srgb=qcms_profile_sRGB())
+      if(transform=qcms_transform_create(qcms_srgb, QCMS_DATA_RGB_8, qcms_dest, QCMS_DATA_RGB_8, QCMS_INTENT_RELATIVE_COLORIMETRIC))
+         return true;
+      del(); return false;
+   }
+   Bool convert(C Vec4 &src, Vec4 &dest, Bool &different)C
+   {
+      if(transform)
+      {
+         Color s, d;
+         s=src;
+         qcms_transform_data(transform, &s, &d, 1); d.a=s.a;
+         dest=d;
+         different=(s.r!=d.r
+                 || s.g!=d.g
+                 || s.b!=d.b);
+         return true;
+      }
+      dest=src; different=false;
+      return false;
+   }
+};
+#endif
+Bool SetColorLUT(C Str &color_profile, Image &lut)
+{
+   if(color_profile.is())
+   {
+   #if WINDOWS_OLD
+      WinColorTransform profile; if(profile.create(color_profile))
+      {
+         // input is always sRGB, output is always linear
+         Bool high_prec=(D.monitorPrecision()>IMAGE_PRECISION_8 || D.dither());
+         if( !high_prec || !lut.create3DTry(64, 64, 64, IMAGE_F16_3        , 1, false))
+         if( !high_prec || !lut.create3DTry(64, 64, 64, IMAGE_F16_4        , 1, false))
+         if(               !lut.create3DTry(64, 64, 64, IMAGE_R8G8B8A8_SRGB, 1, false))
+            return false;
+
+         if(lut.lock(LOCK_WRITE))
+         {
+            Bool different=false;
+            Vec4 src; src.w=1;
+            REPD(z, lut.d())
+            {
+               src.z=z/Flt(lut.d()-1);
+               REPD(y, lut.h())
+               {
+                  src.y=y/Flt(lut.h()-1);
+                  REPD(x, lut.w())
+                  {
+                     src.x=x/Flt(lut.w()-1);
+                     Vec4 dest; Bool diff; profile.convert(src, dest, diff);
+                     lut.color3DS(x, y, z, dest); different|=diff;
+                  }
+               }
             }
-            qcms_profile_release(qcms_srgb);
+            lut.unlock();
+            if(different)return true; // no point in using LUT if it's not different
          }
-         qcms_profile_release(qcms_dest);
       }
    #endif
    }
+   lut.del(); return false;
+}
 /******************************************************************************/
 }
 /******************************************************************************/

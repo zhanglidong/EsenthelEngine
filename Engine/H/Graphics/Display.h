@@ -177,6 +177,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    void     gammaSet         (                             );
    Bool     densityFast      (Byte             density     );
    void     densityUpdate    (                             );
+   void     setColorLUT      (                             );
                                                                 Bool             densityUsed       ()C {return _density!=127   ;} // get if Density is != 1.0
                                                                 Bool             densityUpsample   ()C {return _density> 127   ;} // get if Density is >  1.0
                                                                 Byte             densityByte       ()C {return _density        ;} // get    Density Byte
@@ -186,6 +187,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                       constexpr Bool             signedVelRT       ()C {return DX11            ;} // if Velocity Render Target is signed #SIGNED_VEL_RT
                                                                 Flt              eyeDistance_2     ()C {return _eye_dist_2     ;}
                                                                 Bool             exclusiveFull     ()C;                           // if actually in exclusive full-screen mode
+   Display& colorManaged     (Bool             managed     );   Bool             colorManaged      ()C {return _color_managed  ;} // get/set if application should make use of installed color profile in the system, Warning: this slows down performance
 #endif
                                                                 Rect             rect              ()C {return Rect(-w(), -h(), w(), h());} // get full screen rectangle
    Display& exclusive        (Bool             exclusive   );   Bool             exclusive         ()C {return _exclusive      ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching
@@ -483,13 +485,15 @@ private:
       RectI       full, work;
       Bool        primary;
       Mems<VecI2> modes;
+      Str         name;
    #if WINDOWS_OLD
-      Char        device_name[32];
+      Char        device_name[32], device_key[128];
    #endif
 
    #if EE_PRIVATE
       Bool  is  ()C {return full.w()>0;} // if initialized
       VecI2 mode()C; // get current mode
+      Str   colorProfilePath()C;
    #if WINDOWS_OLD
       Bool set(HMONITOR monitor);
    #endif
@@ -511,7 +515,7 @@ private:
    SHADER_MODEL      _shader_model;
    IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec;
    FILTER_TYPE       _density_filter;
-   Bool              _full, _sync, _exclusive, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
+   Bool              _full, _sync, _exclusive, _color_managed, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _bloom_allow, _glow_allow, _ao_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow,
                      _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
@@ -550,7 +554,7 @@ private:
    Viewport          _view_main, _view_active;
    Str8              _device_name;
    ImagePtr          _color_palette[2], _env_map;
-   Image             _color_palette_soft[2];
+   Image             _color_palette_soft[2], _color_lut;
    Mems<VecI2>       _modes;
    SyncLock          _lock;
  C Material*         _set_shader_material;

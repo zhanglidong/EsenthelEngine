@@ -585,7 +585,7 @@ Display::Monitor::Monitor()
    primary=false;
    full=work.zero();
 #if WINDOWS_OLD
-   device_name[0]='\0';
+   device_key[0]=device_name[0]='\0';
 #endif
 }
 VecI2 Display::Monitor::mode()C
@@ -629,6 +629,26 @@ VecI2 Display::Monitor::mode()C
    return D.screen(); // TODO:
 #endif
 }
+Str Display::Monitor::colorProfilePath()C
+{
+#if WINDOWS_OLD
+   if(Is(device_key))
+   {
+      wchar_t file_name[MAX_PATH];
+   #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
+      DLL mscms; if(mscms.createFile("Mscms.dll"))
+      if(auto WcsGetDefaultColorProfile=(decltype(&::WcsGetDefaultColorProfile))mscms.getFunc("WcsGetDefaultColorProfile")) // available on Vista+
+   #endif
+      if(WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER, WChar(device_key), CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))
+      if(Is(file_name))
+      {
+         if(FullPath(WChar(file_name)))return file_name;
+         return SystemPath(SP_SYSTEM).tailSlash(true)+"spool/drivers/color/"+file_name;
+      }
+   }
+#endif
+   return S;
+}
 #if WINDOWS_OLD
 Bool Display::Monitor::set(HMONITOR monitor)
 {
@@ -639,6 +659,15 @@ Bool Display::Monitor::set(HMONITOR monitor)
       work.set(monitor_info.rcWork   .left, monitor_info.rcWork   .top, monitor_info.rcWork   .right, monitor_info.rcWork   .bottom);
       primary=FlagTest(monitor_info.dwFlags, MONITORINFOF_PRIMARY);
       Set(device_name, WChar(monitor_info.szDevice)); ASSERT(ELMS(device_name)==ELMS(monitor_info.szDevice));
+
+      DISPLAY_DEVICEW display_device; Zero(display_device); display_device.cb=SIZE(display_device);
+      for(Int i=0; EnumDisplayDevicesW(WChar(device_name), i, &display_device, 0); i++)
+         //if(FlagAll(display_device.StateFlags, DISPLAY_DEVICE_ACTIVE|DISPLAY_DEVICE_ATTACHED))
+      {
+         name=display_device.DeviceString;
+         Set(device_key, WChar(display_device.DeviceKey)); ASSERT(ELMS(device_key)==ELMS(display_device.DeviceKey));
+         break;
+      }
 
       MemtN<VecI2, 128> modes;
       DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);
@@ -761,6 +790,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
   _sync            =true;
   _exclusive       =true;
+  _color_managed   =false;
   _hp_col_rt       =false;
   _hp_nrm_rt       =false;
   _hp_lum_rt       =false;
@@ -1532,6 +1562,7 @@ if(LogInit)LogN("Display.create");
 _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
+            setColorLUT();
            viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
         Renderer.create();
@@ -2404,7 +2435,7 @@ Display& Display::monitorPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(!created())_monitor_prec=precision;else
-   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
+   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode()){Reset(); setColorLUT();}}
    return T;
 }
 Bool Display::exclusiveFull()C
@@ -2430,6 +2461,20 @@ Display& Display::exclusive(Bool exclusive)
          if(findMode())Reset();
       }
    #endif
+   }
+   return T;
+}
+void Display::setColorLUT()
+{
+   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->colorProfilePath(), _color_lut))return;
+  _color_lut.del();
+}
+Display& Display::colorManaged(Bool managed)
+{
+   if(_color_managed!=managed)
+   {
+     _color_managed=managed;
+      setColorLUT();
    }
    return T;
 }
@@ -2573,16 +2618,16 @@ void Display::setSync()
 }
 Display& Display::sync(Bool sync) {if(T._sync!=sync){T._sync=sync; setSync();} return T;}
 /******************************************************************************/
-Display& Display::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ;             } return T;}
-Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
-Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
-Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
-Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
-Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
-Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
-Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
-Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
-Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}
+Display& Display::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ; setColorLUT();} return T;}
+Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;               } return T;}
+Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();  } return T;}
+Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();  } return T;}
+Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();  } return T;}
+Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();  } return T;}
+Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();  } return T;}
+Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;               } return T;}
+Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;               } return T;}
+Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;               } return T;}
 
 Display& Display::eyeDistance(Flt dist)
 {

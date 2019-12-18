@@ -151,6 +151,6 @@ INLINE C Vec4&   SRGBToDisplay(C Vec4 &s) {return s;}
 #endif
 
 void InitSRGB();
-Str GetColorProfilePath();
+Bool SetColorLUT(C Str &color_profile, Image &lut);
 #endif
 /******************************************************************************/
