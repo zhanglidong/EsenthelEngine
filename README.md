@@ -21,6 +21,7 @@ that you make from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
 You can make changes to Esenthel Engine source code.
+You don't have to make changes code public, but it would be cool if you could.
 
 ATTRIBUTION
 You don't have to show Esenthel Logo or mention the Engine anywhere in your game/app,
