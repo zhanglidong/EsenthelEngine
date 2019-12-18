@@ -241,6 +241,7 @@ struct RendererClass // handles rendering
    void rtClear        ();
    void rtClean        ();
    void rtDel          ();
+   Bool rtCreateMain   ();
    Bool rtCreate       ();
    void setMain        ();
    void update         ();
@@ -279,11 +280,10 @@ private:
    void        (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
    ImageRT       _main, _main_ds,
-               #if WEB // #WebSRGB
                  _main_temp, _main_temp_ds,
-               #endif
                  _shd_map, _cld_map,
                  _eye_adapt_scale[2],
+                *_ptr_main, *_ptr_main_ds, // need if have to perform color management
                 *_cur_main, *_cur_main_ds,
                 *_cur[4], *_cur_ds,
                 *_ui, *_ui_ds,

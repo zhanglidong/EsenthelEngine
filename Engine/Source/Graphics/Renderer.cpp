@@ -89,13 +89,8 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _mesh_draw_mask    =0xFFFFFFFF;
    SetVariation(0);
 
-#if WEB // #WebSRGB
-  _ui   =_cur_main   =&_main_temp;
-  _ui_ds=_cur_main_ds=&_main_temp_ds;
-#else
-  _ui   =_cur_main   =&_main;
-  _ui_ds=_cur_main_ds=&_main_ds;
-#endif
+  _ui   =_cur_main   =_ptr_main   =&_main;
+  _ui_ds=_cur_main_ds=_ptr_main_ds=&_main_ds;
 }
 void RendererClass::del()
 {
@@ -1848,11 +1843,11 @@ void RendererClass::postProcess()
    if(!D._view_main.full)Sh.ImgClamp->setConditional(imgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
-   if(!_get_target) // if we're going to output to the monitor
+   if(!_get_target) // if we're going to output to '_final'
    {
-      IMAGE_PRECISION  monitor_prec=D.monitorPrecision();
-      if(D.dither() && monitor_prec==IMAGE_PRECISION_8)monitor_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
-      MIN(rt_prec,     monitor_prec);
+      IMAGE_PRECISION  final_prec=_final->precision();
+      if(D.dither() && final_prec<=IMAGE_PRECISION_8)final_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
+      MIN(rt_prec,     final_prec);
    }
    if(eye_adapt)
    {

@@ -598,11 +598,11 @@ Bool SetColorLUT(C Str &color_profile, Image &lut)
    #if WINDOWS_OLD
       WinColorTransform profile; if(profile.create(color_profile))
       {
-         // input is always sRGB, output is always linear
-         Bool high_prec=(D.monitorPrecision()>IMAGE_PRECISION_8 || D.dither());
-         if( !high_prec || !lut.create3DTry(64, 64, 64, IMAGE_F16_3        , 1, false))
-         if( !high_prec || !lut.create3DTry(64, 64, 64, IMAGE_F16_4        , 1, false))
-         if(               !lut.create3DTry(64, 64, 64, IMAGE_R8G8B8A8_SRGB, 1, false))
+         const Int res=64;
+         Bool high_prec=(Renderer._main.highPrecision() || D.dither()); // here we can't use any SRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
+         if( !high_prec || !lut.create3DTry(res, res, res, IMAGE_F16_3      , 1, false))
+         if( !high_prec || !lut.create3DTry(res, res, res, IMAGE_F16_4      , 1, false))
+         if(               !lut.create3DTry(res, res, res, IMAGE_R10G10B10A2, 1))
             return false;
 
          if(lut.lock(LOCK_WRITE))
@@ -619,7 +619,7 @@ Bool SetColorLUT(C Str &color_profile, Image &lut)
                   {
                      src.x=x/Flt(lut.w()-1);
                      Vec4 dest; Bool diff; profile.convert(src, dest, diff);
-                     lut.color3DS(x, y, z, dest); different|=diff;
+                     lut.color3DF(x, y, z, dest); different|=diff;
                   }
                }
             }

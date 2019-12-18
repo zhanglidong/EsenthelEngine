@@ -103,18 +103,20 @@ VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
 VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
 
+#if defined DITHER && defined GAMMA
 VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 NOPERSP PIXEL              ):TARGET
 {
    VecH4 col=Tex(ImgX, inTex).x*Color[0]+Color[1];
 #if DITHER
-   ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !GAMMA); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
+   ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !GAMMA); // don't perform gamma conversions inside dither, because this means we have sRGB color which we're going to convert to linear below
 #endif
 #if GAMMA
    col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
 #endif
    return col;
 }
+#endif
 
 VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex);}
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex)*Color[0]+Color[1];}
@@ -473,6 +475,44 @@ void ClearLight_PS(out VecH lum :TARGET0,
 {
    lum =Color[0].rgb;
    spec=0;
+}
+/******************************************************************************/
+// COLOR LUT - HDR, DITHER, IN_GAMMA, OUT_GAMMA
+/******************************************************************************/
+VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                  NOPERSP PIXEL              ):TARGET
+{
+   VecH4 col=TexLod(Img, inTex);
+
+   // now 'col' is Linear
+
+#if HDR // LUT supports only 0..1 ranges, so convert color to that range, and remaining data store as 'add'
+   VecH clamped=Sat(col.rgb), add=col.rgb-clamped; col.rgb=clamped; // this is all linear
+#endif
+
+#if IN_GAMMA // FIXMENOW can use LinearToSRGBFast with a remapped LUT?
+   col.rgb=LinearToSRGB(col.rgb); // make sure we have sRGB
+#endif
+
+   // now 'col' is sRGB
+
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy, false); // don't perform gamma conversions inside dither, because at this stage, color is in sRGB
+#endif
+
+   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y);
+
+#if OUT_GAMMA
+   col.rgb=SRGBToLinear(col.rgb);
+#endif
+
+   // now 'col' is Linear
+
+#if HDR
+   col.rgb+=add; // add what was cut before
+#endif
+
+   return col;
 }
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams

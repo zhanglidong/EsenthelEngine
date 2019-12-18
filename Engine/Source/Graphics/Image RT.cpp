@@ -309,7 +309,8 @@ Bool ImageRT::createViews()
 }
 Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
 {
-   delThis(); // delete only this without super 'del', because it's possible this image already has what 'desc' is requesting, so 'createTryEx' could do nothing as long as we're not deleting it here first
+   if(T.size()==size && T.type()==type && T.mode()==mode && T.samples()==samples)return true; // do a fast check if we already have what we want, to avoid re-creating the same stuff
+   delThis(); // delete only this without super 'del', because that will already be done in 'createTryEx' below
    if(super::createTryEx(size.x, size.y, 1, type, mode, 1, samples)
 #if GL
    || mode==IMAGE_DS && super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
@@ -335,7 +336,7 @@ Bool ImageRT::map()
       {
          adjustInfo(hwW(), hwH(), hwD(), hwType()); if(createViews())
          {
-            if(LINEAR_GAMMA && hwType()==IMAGE_R8G8B8A8) // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
+            if(LINEAR_GAMMA && hwType()==IMAGE_R8G8B8A8) // #SwapFlipSRGB may fail to create sRGB, in that case create as linear and 'swapRTV' in 'ImageRT.map'
             {
                if(!canSwapRTV())return false;
                swapSRGB(); if(!_srv)Swap(_srv, _srv_srgb);

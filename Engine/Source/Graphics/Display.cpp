@@ -2162,6 +2162,23 @@ Bool Display::flip()
 {
    if(created())
    {
+      if(D.colorManagedActual())
+      {
+         ImageRT &src=Renderer._main_temp, &dest=Renderer._main;
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
+         Sh.Vol->set(D._color_lut);
+         Int  res      =D._color_lut.w(); Sh.ImgSize->set(Vec2(Flt(res-1)/res, 0.5f/res)); // assumes all 3 dimensions are same size
+         Bool hdr      =(src.highPrecision() && dest.highPrecision()), // need HDR only if both are high precision
+              dither   =(D.dither() && !dest.highPrecision()),
+               in_gamma=LINEAR_GAMMA,  in_swap=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap){ in_gamma=false; src .swapSRV();} // can't swap for hdr because shader assumes that input is Linear
+         Bool out_gamma=LINEAR_GAMMA, out_swap=(out_gamma && dest.canSwapRTV()        ); if(out_swap){out_gamma=false; dest.swapRTV();}
+         Renderer.set(&dest, null, false);
+         Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]->draw(src);
+         if( in_swap)src .swapSRV();
+         if(out_swap)dest.swapRTV();
+         D.alpha(alpha);
+         Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
+      }
    #if DX11
       Bool sync=ActualSync(); if(!OK(SwapChain->Present(sync, sync ? 0 : PresentFlags)))
       {
@@ -2466,8 +2483,22 @@ Display& Display::exclusive(Bool exclusive)
 }
 void Display::setColorLUT()
 {
-   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->colorProfilePath(), _color_lut))return;
+   SyncLocker locker(D._lock); // needed by '_color_lut' and 'rtCreateMain'
+   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->colorProfilePath(), _color_lut))
+   {
+      if(!Sh.ColorLUT[0][0][0][0])
+         REPD(hdr      , 2)
+         REPD(dither   , 2)
+         REPD( in_gamma, 2)
+         REPD(out_gamma, 2)
+            if(!(Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]=Sh.find(S+"ColorLUT"+hdr+dither+in_gamma+out_gamma)))goto error; // use 'find' to allow fail
+
+      if(Sh.ColorLUT[0][0][0][0])goto ok;
+   }
+error:
   _color_lut.del();
+ok:
+   Renderer.rtCreateMain(); // always needs to be called, if succeeded or failed
 }
 Display& Display::colorManaged(Bool managed)
 {
@@ -3402,12 +3433,7 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          {
             SyncLocker locker(_lock);
             Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-         #if WEB // #WebSRGB
-            Renderer._main_temp
-         #else
-            Renderer._main
-         #endif
-               .copyHw(*Renderer._fade, true);
+            Renderer._ptr_main->copyHw(*Renderer._fade, true);
            _fade_get =false  ;
            _fade_step=0      ;
            _fade_len =seconds;
@@ -3464,12 +3490,7 @@ void Display::fadeDraw()
      _fade_get =false;
      _fade_step=0    ;
       Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-   #if WEB // #WebSRGB
-      Renderer._main_temp
-   #else
-      Renderer._main
-   #endif
-         .copyHw(*Renderer._fade, true);
+      Renderer._ptr_main->copyHw(*Renderer._fade, true);
    }
 }
 /******************************************************************************/

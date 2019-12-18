@@ -142,13 +142,8 @@ void RendererClass::rtDel()
   _back   .clear();
   _back_ds.clear();
 
-#if WEB // #WebSRGB
-  _ui   =_cur_main   =&_main_temp;
-  _ui_ds=_cur_main_ds=&_main_temp_ds;
-#else
-  _ui   =_cur_main   =&_main;
-  _ui_ds=_cur_main_ds=&_main_ds;
-#endif
+  _ui   =_cur_main   =_ptr_main   =&_main;
+  _ui_ds=_cur_main_ds=_ptr_main_ds=&_main_ds;
 
    unmapMain();
 #if DX11 || IOS // only on these platforms we're creating custom '_main_ds', on other platforms the system creates it, so we're not deleting (to keep the info about IMAGE_TYPE and samples)
@@ -162,6 +157,41 @@ void RendererClass::rtDel()
    REPAO(_cur_id    )=NULL; _cur_ds_id=NULL;
    REPAO(_cur_ds_ids)=NULL;
 }
+Bool RendererClass::rtCreateMain() // !! call only under lock !!
+{
+   ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds;
+   Bool secondary=(D.colorManagedActual() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
+   if(  secondary)
+   {
+      if(!_main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples()))goto error;
+      if(!_main_temp_ds.create(_main.size(), IMAGE_D24S8        , IMAGE_DS, _main.samples()))goto error;
+     _ptr_main   =&_main_temp;
+     _ptr_main_ds=&_main_temp_ds;
+   }else
+   {
+   clear:
+     _main_temp   .del();
+     _main_temp_ds.del();
+     _ptr_main   =&_main;
+     _ptr_main_ds=&_main_ds;
+      D._color_lut.del(); // can't color manage without temp's
+   }
+   if(old!=_ptr_main || old_ds!=_ptr_main_ds) // if changed something
+   {
+      // remap from old to new
+      if(_ui         ==old    )_ui         =_ptr_main;
+      if(_ui_ds      ==old_ds )_ui_ds      =_ptr_main_ds;
+      if(_cur_main   ==old    )_cur_main   =_ptr_main;
+      if(_cur_main_ds==old_ds )_cur_main_ds=_ptr_main_ds;
+      ImageRT *cur[ELMS(Renderer._cur)], *cur_ds;
+      REPA(cur){cur[i]=Renderer._cur[i]; if(cur[i]==old   )cur[i]=_ptr_main   ;}
+                cur_ds=Renderer._cur_ds; if(cur_ds==old_ds)cur_ds=_ptr_main_ds;
+      Renderer.set(cur[0], cur[1], cur[2], cur[3], cur_ds, true);
+   }
+   return ok;
+error:
+   ok=false; goto clear;
+}
 Bool RendererClass::rtCreate()
 {
    if(LogInit)LogN("RendererClass.rtCreate");
@@ -173,12 +203,7 @@ Bool RendererClass::rtCreate()
 
    if(!mapMain())return false;
 
-#if WEB // #WebSRGB
-   if(!_main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples()))return false;
-   if(!_main_temp_ds.create(_main.size(), IMAGE_D24S8        , IMAGE_DS, _main.samples()))return false;
-#endif
-
-   // depth
+   // main depth
 #if DX11
    if(!_main_ds.create(_main.size(), IMAGE_D24S8, IMAGE_DS, _main.samples()))return false;
 #elif IOS // on iOS we have access to '_main' so let's keep '_main_ds' the same
@@ -193,6 +218,9 @@ Bool RendererClass::rtCreate()
 #else // other platforms have '_main_ds' linked with '_main' provided by the system
   _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_GL_RB, _main.samples()); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
 #endif
+
+   // secondary main
+   if(!rtCreateMain())return false;
 
    createShadowMap();
 
@@ -251,13 +279,8 @@ void RendererClass::setMain() // !! requires 'D._lock' !! this is called after R
      _ui_ds=&VR._ui_ds;
    }else
    {
-   #if WEB // #WebSRGB
-     _ui   =&_main_temp;
-     _ui_ds=&_main_temp_ds;
-   #else
-     _ui   =&_main;
-     _ui_ds=&_main_ds;
-   #endif
+     _ui   =_ptr_main;
+     _ui_ds=_ptr_main_ds;
    }
   _cur_main   =_ui;
   _cur_main_ds=_ui_ds;
@@ -632,11 +655,7 @@ void RendererClass::finalizeGlow()
 /******************************************************************************/
 Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int mip_maps, Bool alpha)
 {
-#if WEB // #WebSRGB
-   if(image.capture(_main_temp))
-#else
-   if(image.capture(_main))
-#endif
+   if(image.capture(*_ptr_main))
    {
       if(type<=0)type=image.type();else MIN(type, IMAGE_TYPES);
       if(!_ds_1s)alpha=false;
@@ -702,11 +721,7 @@ Bool RendererClass::screenShot(C Str &name, Bool alpha)
    {
       if(capture(temp, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, true))return temp.Export(name);
    }else
-#if WEB // #WebSRGB
-   if(temp.capture(_main_temp)) // no alpha
-#else
-   if(temp.capture(_main)) // no alpha
-#endif
+   if(temp.capture(*_ptr_main)) // no alpha
    {
       if(temp.typeInfo().a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
       return temp.Export(name);

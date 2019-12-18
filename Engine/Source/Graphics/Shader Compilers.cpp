@@ -101,6 +101,12 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
       src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
       src.New("ClearLight"   , "Draw_VS"         , "ClearLight_PS");
 
+      REPD(hdr      , 2)
+      REPD(dither   , 2)
+      REPD( in_gamma, 2)
+      REPD(out_gamma, 2)
+         src.New("ColorLUT", "Draw_VS", "ColorLUT_PS")("HDR", hdr, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
+
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
 
