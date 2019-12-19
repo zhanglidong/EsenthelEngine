@@ -492,6 +492,12 @@ Vec4 SRGBToDisplay(C Color &s)
    return Vec4(ByteSRGBToDisplay(s.r), ByteSRGBToDisplay(s.g), ByteSRGBToDisplay(s.b), ByteToFlt(s.a));
 }
 /******************************************************************************/
+#define COLOR_TRANSFOR_MAX_DELTA (DEBUG && 0)
+#if     COLOR_TRANSFOR_MAX_DELTA
+#pragma message("!! Warning: Use only for testing !!")
+static Int MaxDelta=0;
+#endif
+
 #if WINDOWS_OLD
 struct WinColorTransform
 {
@@ -539,6 +545,13 @@ struct WinColorTransform
          dest.x=d.rgb.red  /65535.0f;
          dest.y=d.rgb.green/65535.0f;
          dest.z=d.rgb.blue /65535.0f;
+
+      #if COLOR_TRANSFOR_MAX_DELTA
+         MAX(MaxDelta, Abs(s.rgb.red  -d.rgb.red  ));
+         MAX(MaxDelta, Abs(s.rgb.green-d.rgb.green));
+         MAX(MaxDelta, Abs(s.rgb.blue -d.rgb.blue ));
+      #endif
+
          different=(s.rgb.red  !=d.rgb.red
                  || s.rgb.green!=d.rgb.green
                  || s.rgb.blue !=d.rgb.blue);
@@ -581,6 +594,11 @@ struct QCMSColorTransform
          s=src;
          qcms_transform_data(transform, &s, &d, 1); d.a=s.a;
          dest=d;
+
+      #if COLOR_TRANSFOR_MAX_DELTA
+         MAX(MaxDelta, ColorDiffSum(s, d));
+      #endif
+
          different=(s.r!=d.r
                  || s.g!=d.g
                  || s.b!=d.b);
@@ -598,11 +616,12 @@ Bool SetColorLUT(C Str &color_profile, Image &lut)
    #if WINDOWS_OLD
       WinColorTransform profile; if(profile.create(color_profile))
       {
+         // here we can't use any SRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
          const Int res=64;
-         Bool high_prec=(Renderer._main.highPrecision() || D.dither()); // here we can't use any SRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
-         if( !high_prec || !lut.create3DTry(res, res, res, IMAGE_F16_3      , 1, false))
-         if( !high_prec || !lut.create3DTry(res, res, res, IMAGE_F16_4      , 1, false))
-         if(               !lut.create3DTry(res, res, res, IMAGE_R10G10B10A2, 1))
+         Bool prec16=(Renderer._main.precision()>=IMAGE_PRECISION_16); // can ignore dither because we always set at least 10-bits
+         if(!(prec16 && lut.create3DTry(res, res, res, IMAGE_F16_3      , 1, false)))
+         if(!(prec16 && lut.create3DTry(res, res, res, IMAGE_F16_4      , 1, false)))
+         if(!(          lut.create3DTry(res, res, res, IMAGE_R10G10B10A2, 1       )))
             return false;
 
          if(lut.lock(LOCK_WRITE))

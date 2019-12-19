@@ -634,16 +634,28 @@ Str Display::Monitor::colorProfilePath()C
 #if WINDOWS_OLD
    if(Is(device_key))
    {
-      wchar_t file_name[MAX_PATH];
    #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
       DLL mscms; if(mscms.createFile("Mscms.dll"))
       if(auto WcsGetDefaultColorProfile=(decltype(&::WcsGetDefaultColorProfile))mscms.getFunc("WcsGetDefaultColorProfile")) // available on Vista+
-   #endif
-      if(WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER, WChar(device_key), CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))
-      if(Is(file_name))
       {
-         if(FullPath(WChar(file_name)))return file_name;
-         return SystemPath(SP_SYSTEM).tailSlash(true)+"spool/drivers/color/"+file_name;
+         auto WcsGetUsePerUserProfiles =(decltype(&::WcsGetUsePerUserProfiles ))mscms.getFunc("WcsGetUsePerUserProfiles" ); // available on Vista+, optional
+   #else
+      {
+   #endif
+         wchar_t file_name[MAX_PATH];
+         BOOL    user=true;
+
+      #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
+         if(WcsGetUsePerUserProfiles)
+      #endif
+            WcsGetUsePerUserProfiles(WChar(device_key), CLASS_MONITOR, &user);
+
+         if(WcsGetDefaultColorProfile(user ? WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER : WCS_PROFILE_MANAGEMENT_SCOPE_SYSTEM_WIDE, WChar(device_key), CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))
+         if(Is(file_name))
+         {
+            if(FullPath(WChar(file_name)))return file_name;
+            return SystemPath(SP_SYSTEM).tailSlash(true)+"spool/drivers/color/"+file_name;
+         }
       }
    }
 #endif
