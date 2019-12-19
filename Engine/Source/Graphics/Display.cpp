@@ -1748,18 +1748,12 @@ Bool Display::findMode()
       }
 
       SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
-   #if !GDI_COMPATIBLE
-      #if 0
-      /* disable this as last time this was tested, it provided slower results, also there was a few second slow down when changing sync during app runtime:
-                                          windowed sync=false | windowed sync=true | fullscreen sync=true
-         DXGI_SWAP_EFFECT_DISCARD             850 fps       |       42 fps       |       16.9 fps
-         DXGI_SWAP_EFFECT_FLIP_DISCARD        655 fps       |       34 fps       |       16.4 fps       */
+   #if !GDI_COMPATIBLE // flip modes are incompatible with GDI
       {
          VecI4 ver=OSVerNumber();
          if(        ver.x>=10                 )SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_FLIP_DISCARD   ;else // DXGI_SWAP_EFFECT_FLIP_DISCARD    is available on Windows 10
          if(Compare(ver, VecI4(6, 2, 0, 0))>=0)SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;     // DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL is available on Windows 8 - https://msdn.microsoft.com/en-us/library/windows/desktop/bb173077(v=vs.85).aspx
       }
-      #endif
    #endif
       if(AllowTearing && SwapChainDesc.SwapEffect==DXGI_SWAP_EFFECT_FLIP_DISCARD)SwapChainDesc.Flags|=DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
       PresentFlags=((!sync && (SwapChainDesc.Flags&DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) && SwapChainDesc.Windowed) ? DXGI_PRESENT_ALLOW_TEARING : 0); // according to docs, we can use DXGI_PRESENT_ALLOW_TEARING only with DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING and in windowed mode - https://msdn.microsoft.com/en-us/library/windows/desktop/bb509554(v=vs.85).aspx
