@@ -144,25 +144,28 @@ void ColorPicker::SatLum::draw(C GuiPC &gpc)
       ColorPicker &cp  =*(ColorPicker*)user;
       Rect         rect=T.rect()+gpc.offset;
 
-      Int steps=8;
+      const Int steps=(LINEAR_GAMMA ? 24 : 8);
       FREPD(y, steps)
-      FREPD(x, steps)
       {
-         Flt sx=Flt(x)/steps, sx1=Flt(x+1)/steps,
-             sy=Flt(y)/steps, sy1=Flt(y+1)/steps;
+         Flt sy =Flt(y  )/steps,
+             sy1=Flt(y+1)/steps,
+             d  =rect.lerpY(sy ),
+             u  =rect.lerpY(sy1);
+         FREPD(x, steps)
+         {
+            Flt sx =Flt(x  )/steps,
+                sx1=Flt(x+1)/steps,
+                l  =rect.lerpX(sx ),
+                r  =rect.lerpX(sx1);
 
-         Color clu=ColorHSB(cp._hsb.x, sx , sy1),
-               cru=ColorHSB(cp._hsb.x, sx1, sy1),
-               crd=ColorHSB(cp._hsb.x, sx1, sy ),
-               cld=ColorHSB(cp._hsb.x, sx , sy );
+            Color clu=ColorHSB(cp._hsb.x, sx , sy1),
+                  cru=ColorHSB(cp._hsb.x, sx1, sy1),
+                  crd=ColorHSB(cp._hsb.x, sx1, sy ),
+                  cld=ColorHSB(cp._hsb.x, sx , sy );
 
-         Flt l=rect.lerpX(sx ),
-             r=rect.lerpX(sx1),
-             d=rect.lerpY(sy ),
-             u=rect.lerpY(sy1);
-
-         VI.tri(clu, cru, cld, Vec2(l, u), Vec2(r, u), Vec2(l, d));
-         VI.tri(cru, crd, cld, Vec2(r, u), Vec2(r, d), Vec2(l, d));
+            VI.tri(clu, cru, cld, Vec2(l, u), Vec2(r, u), Vec2(l, d));
+            VI.tri(cru, crd, cld, Vec2(r, u), Vec2(r, d), Vec2(l, d));
+         }
       }
       VI.end();
       
@@ -193,9 +196,9 @@ void ColorPicker::Hue::draw(C GuiPC &gpc)
       ColorPicker &cp  =*(ColorPicker*)user;
       Rect         rect=T.rect()+gpc.offset;
 
-      Int   steps=3*(LINEAR_GAMMA ? 24 : 2);
-      Flt   y    =rect.min.y;
-      Color prev =RED;
+      const Int   steps=3*(LINEAR_GAMMA ? 24 : 2);
+            Flt   y    =rect.min.y;
+            Color prev =RED;
       FREP(steps)
       {
          Flt   s   =Flt(i+1)/steps, yn=rect.lerpY(s);
