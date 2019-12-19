@@ -1894,6 +1894,9 @@ Display::RESET_RESULT Display::ResetTry(Bool set)
 
       #if DX11
          #if WINDOWS_OLD
+            // https://docs.microsoft.com/en-us/windows/win32/direct3darticles/dxgi-best-practices
+            if(!SwapChainDesc.Windowed){ResizeTarget(); ResizeBuffers();} // if want fullscreen then first set new size, so the following 'SetFullscreenState' will set mode based on desired resolution (only 'ResizeBuffers' was needed in tests, however keep both just in case), don't call this if we want non-fullscreen mode, because if we're already in fullscreen, then this could switch to another fullscreen mode, so first disable fullscreen with 'SetFullscreenState' below
+
             if(ok&=OK(SwapChain->SetFullscreenState(!SwapChainDesc.Windowed, SwapChainDesc.Windowed ? null : Output)))
             if(ok&=ResizeTarget())
          #elif 0 // both 'SetFullscreenState' and 'ResizeTarget' fail on WINDOWS_NEW, instead, 'TryEnterFullScreenMode', 'ExitFullScreenMode', 'TryResizeView' are used
