@@ -906,7 +906,6 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bloom_scale   =0.5f;
   _bloom_cut     =0.3f;
   _bloom_blurs   =1;
-  _bloom_sat     =false;
   _bloom_max     =false;
   _bloom_half    =!MOBILE;
   _bloom_samples =!MOBILE;
@@ -3018,7 +3017,6 @@ Display& Display::bloomCut     (Flt  cut     ) {MAX  (cut     , 0); _bloom_cut  
 Display& Display::bloomHalf    (Bool half    ) {                    _bloom_half    =half    ; return T;}
 Display& Display::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4); _bloom_blurs   =blurs   ; return T;}
 Display& Display::bloomSamples (Bool high    ) {                    _bloom_samples =high    ; return T;}
-Display& Display::bloomSaturate(Bool saturate) {                    _bloom_sat     =saturate; return T;}
 Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){ _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
 Bool     Display::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/

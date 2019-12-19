@@ -210,8 +210,6 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::LitColRTPrec(  Advanced &adv, C Str &text) {       D.litColRTPrecision(IMAGE_PRECISION(TextInt(text)));}
       Str  VideoOptions::Advanced::BloomScale(C Advanced &adv             ) {return DefaultEnvironment.bloom.scale;}
       void VideoOptions::Advanced::BloomScale(  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.scale=TextFlt(text);}
-      Str  VideoOptions::Advanced::BloomSat(C Advanced &adv             ) {return DefaultEnvironment.bloom.saturate;}
-      void VideoOptions::Advanced::BloomSat(  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.saturate=TextBool(text);}
       Str  VideoOptions::Advanced::AmbLight(C Advanced &adv             ) {return DefaultEnvironment.ambient.color_s.max();}
       void VideoOptions::Advanced::AmbLight(  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color_s=TextFlt(text);}
       Str  VideoOptions::Advanced::AOContrast(C Advanced &adv             ) {return D.ambientContrast();}
@@ -284,7 +282,6 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Light RT"    , MemberDesc(DATA_BOOL).setFunc(LumRTPrec    , LumRTPrec    )).desc("Enable high precision light render target\nThis increases lighting precision in Deferred Renderer.");
          props.New().create("Bloom Scale"                , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);
-         props.New().create("Bloom Saturate"             , MemberDesc(DATA_BOOL).setFunc(BloomSat     , BloomSat     ));
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 8);
          props.New().create("Ambient Occlusion Range"    , MemberDesc(DATA_REAL).setFunc(AORange      , AORange      )).range(0, 2);

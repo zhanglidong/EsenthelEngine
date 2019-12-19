@@ -28,7 +28,6 @@ struct Environment
    {
       Bool on      , // if enabled     , true/false, default=true
            half    , // half/quarter   , true/false, default=true, this specifies whether bloom should be calculated using half of quarter sized render targets (half is more precise but slower, quarter is more blurred)
-           saturate, // saturation     , true/false, default=true
            maximum ; // maximum filter , true/false, default=false
       Byte blurs   ; // number of blurs,    0..4   , default=1
       Flt  original, // original color ,    0..Inf , default=1.0

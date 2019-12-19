@@ -274,7 +274,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
                                                            : half_res ? D.bloomScale()
                                                                       : D.bloomScale()/(gamma ? 2 : 4),
                                                                        -D.bloomCut()*D.bloomScale()));
-      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
+      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times

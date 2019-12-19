@@ -4,7 +4,7 @@ class EditEnv : Environment
 {
    UID       sun_id, star_id, skybox_id, cloud_id[4];
    TimeStamp ambient_on_time, ambient_color_time, night_shade_color_time,
-             bloom_on_time, bloom_half_time, bloom_saturate_time, bloom_maximum_time, bloom_blurs_time, bloom_original_time, bloom_scale_time, bloom_cut_time,
+             bloom_on_time, bloom_half_time, bloom_maximum_time, bloom_blurs_time, bloom_original_time, bloom_scale_time, bloom_cut_time,
              clouds_on_time, clouds_vertical_scale_time,
              clouds_scale_time[4], clouds_velocity_time[4], clouds_color_time[4], clouds_image_time[4],
              fog_on_time, fog_affect_sky_time, fog_density_time, fog_color_time,

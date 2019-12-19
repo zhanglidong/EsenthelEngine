@@ -261,7 +261,6 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& bloomOriginal(Flt  original);   Flt  bloomOriginal()C {return _bloom_original;} // set/get Bloom Original Color  (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
    Display& bloomScale   (Flt  scale   );   Flt  bloomScale   ()C {return _bloom_scale   ;} // set/get Bloom Scale           (   0..Inf , default=0.5                     ), the change is instant, you can call it real-time
    Display& bloomCut     (Flt  cut     );   Flt  bloomCut     ()C {return _bloom_cut     ;} // set/get Bloom Cutoff          (   0..Inf , default=0.3                     ), the change is instant, you can call it real-time
-   Display& bloomSaturate(Bool saturate);   Bool bloomSaturate()C {return _bloom_sat     ;} // set/get Bloom Saturation      (true/false, default=false                   ), the change is instant, you can call it real-time, true=faster and saturates the colors, false=slower and preserves original colors
    Display& bloomMaximum (Bool on      );   Bool bloomMaximum ()C {return _bloom_max     ;} // set/get Bloom Maximum Filter  (true/false, default=false                   ), the change is instant, you can call it real-time
    Display& bloomHalf    (Bool half    );   Bool bloomHalf    ()C {return _bloom_half    ;} // set/get Bloom Half/Quarter    (true/false, default=true  (false for Mobile)), this specifies whether bloom should be calculated using half or quarter sized render targets (half is more precise but slower, quarter is more blurred), the change is instant, you can call it real-time
    Display& bloomBlurs   (Byte blurs   );   Byte bloomBlurs   ()C {return _bloom_blurs   ;} // set/get Bloom Number of Blurs (   0..4   , default=1                       ), the change is instant, you can call it real-time
@@ -517,7 +516,7 @@ private:
    SHADER_MODEL      _shader_model;
    IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec;
    FILTER_TYPE       _density_filter;
-   Bool              _full, _sync, _exclusive, _color_managed, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
+   Bool              _full, _sync, _exclusive, _color_managed, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _bloom_allow, _glow_allow, _ao_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow,
                      _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _allow_stereo, _draw_null_mtrl, _mtrl_blend;

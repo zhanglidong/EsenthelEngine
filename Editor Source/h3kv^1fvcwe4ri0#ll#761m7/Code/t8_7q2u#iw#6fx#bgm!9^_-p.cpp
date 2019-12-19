@@ -94,7 +94,6 @@ bool SaveSettings(C Str &name="Settings.txt")
       video.nodes.New().set("BumpMapping"             , D.bumpMode());
       video.nodes.New().set("MotionBlur"              , D.motionMode());
       video.nodes.New().set("BloomScale"              , DefaultEnvironment.bloom.scale);
-      video.nodes.New().set("BloomSaturate"           , DefaultEnvironment.bloom.saturate);
       video.nodes.New().set("AmbientLight"            , DefaultEnvironment.ambient.color_s.max());
       video.nodes.New().set("AmbientOcclusion"        , D.ambientMode());
       video.nodes.New().set("AmbientOcclusionRange"   , D.ambientRange());
@@ -218,9 +217,8 @@ void ApplySettings(C TextData &data=Settings)
    }
    if(C TextNode *video=data.findNode("Video"))
    {
-      if(C TextParam *p=video.findNode("BloomScale"   ))DefaultEnvironment.bloom.scale    =p.asFlt ();
-      if(C TextParam *p=video.findNode("BloomSaturate"))DefaultEnvironment.bloom.saturate =p.asBool();
-      if(C TextParam *p=video.findNode("AmbientLight" ))DefaultEnvironment.ambient.color_s=p.asFlt ();
+      if(C TextParam *p=video.findNode("BloomScale"  ))DefaultEnvironment.bloom.scale    =p.asFlt();
+      if(C TextParam *p=video.findNode("AmbientLight"))DefaultEnvironment.ambient.color_s=p.asFlt();
    }
    if(C TextNode *store=data.findNode("Store"))
    {

@@ -41,28 +41,35 @@ Bool Environment::Ambient::load(File &f, CChar *path)
 /******************************************************************************/
 void Environment::Bloom::set()C
 {
-   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomSaturate(saturate).bloomMaximum(maximum).bloomHalf(half).bloomBlurs(blurs);
+   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomMaximum(maximum).bloomHalf(half).bloomBlurs(blurs);
 }
 void Environment::Bloom::get()
 {
-   original=D.bloomOriginal(); scale=D.bloomScale(); cut=D.bloomCut(); saturate=D.bloomSaturate(); maximum=D.bloomMaximum(); half=D.bloomHalf(); blurs=D.bloomBlurs();
+   original=D.bloomOriginal(); scale=D.bloomScale(); cut=D.bloomCut(); maximum=D.bloomMaximum(); half=D.bloomHalf(); blurs=D.bloomBlurs();
    on=!(Equal(original, 1) && Equal(scale, 0));
 }
 void Environment::Bloom::reset()
 {
-   on=true; half=true; saturate=true; maximum=false; blurs=1; original=1.0f; scale=0.5f; cut=0.3f;
+   on=true; half=true; maximum=false; blurs=1; original=1.0f; scale=0.5f; cut=0.3f;
 }
 
 Bool Environment::Bloom::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(2); // version
-   f<<on<<half<<saturate<<maximum<<blurs<<original<<scale<<cut;
+   f.cmpUIntV(3); // version
+   f<<on<<half<<maximum<<blurs<<original<<scale<<cut;
    return f.ok();
 }
 Bool Environment::Bloom::load(File &f, CChar *path)
 {
+   Bool saturate; Flt contrast;
    switch(f.decUIntV())
    {
+      case 3:
+      {
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut;
+         if(f.ok())return true;
+      }break;
+
       case 2:
       {
          f>>on>>half>>saturate>>maximum>>blurs>>original>>scale>>cut;
@@ -71,13 +78,13 @@ Bool Environment::Bloom::load(File &f, CChar *path)
 
       case 1:
       {
-         Flt contrast; f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; saturate=true;
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast;
          if(f.ok())return true;
       }break;
 
       case 0:
       {
-         Flt contrast; f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; saturate=true; scale*=2;
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; scale*=2;
          if(f.ok())return true;
       }break;
    }

@@ -64,8 +64,6 @@ class EnvEditor : ClosableWindow
    static Str  BloomScale   (C EditEnv &env             ) {return env.bloom.scale;}
    static void BloomCut     (  EditEnv &env, C Str &text) {env.bloom.cut=TextFlt(text); env.bloom_cut_time.getUTC();}
    static Str  BloomCut     (C EditEnv &env             ) {return env.bloom.cut;}
-   static void BloomSaturate(  EditEnv &env, C Str &text) {env.bloom.saturate=TextBool(text); env.bloom_saturate_time.getUTC();}
-   static Str  BloomSaturate(C EditEnv &env             ) {return env.bloom.saturate;}
    static void BloomMaximum (  EditEnv &env, C Str &text) {env.bloom.maximum=TextBool(text); env.bloom_maximum_time.getUTC();}
    static Str  BloomMaximum (C EditEnv &env             ) {return env.bloom.maximum;}
    static void BloomHalf    (  EditEnv &env, C Str &text) {env.bloom.half=TextBool(text); env.bloom_half_time.getUTC();}
@@ -197,7 +195,6 @@ class EnvEditor : ClosableWindow
       bloom.add("Original", MemberDesc(DATA_REAL).setFunc(BloomOriginal, BloomOriginal)).range(0, 2).mouseEditSpeed(0.5);
       bloom.add("Scale"   , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2).mouseEditSpeed(0.5);
       bloom.add("Cut"     , MemberDesc(DATA_REAL).setFunc(BloomCut     , BloomCut     )).range(0, 1).mouseEditSpeed(0.4);
-      bloom.add("Saturate", MemberDesc(DATA_BOOL).setFunc(BloomSaturate, BloomSaturate));
       bloom.add("Maximum" , MemberDesc(DATA_BOOL).setFunc(BloomMaximum , BloomMaximum ));
       bloom.add("Half Res", MemberDesc(DATA_BOOL).setFunc(BloomHalf    , BloomHalf    ));
       bloom.add("Blurs"   , MemberDesc(DATA_INT ).setFunc(BloomBlurs   , BloomBlurs   )).range(0, 4).mouseEditSpeed(3);
