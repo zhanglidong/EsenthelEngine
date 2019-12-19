@@ -486,21 +486,21 @@ VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
 
    // now 'col' is Linear
 
-#if HDR // LUT supports only 0..1 ranges, so convert color to that range, and remaining data store as 'add'
-   VecH clamped=Sat(col.rgb), add=col.rgb-clamped; col.rgb=clamped; // this is all linear
+#if HDR // LUT supports only 0..1 ranges, so calculate how much color we have on top of that range, perform this in linear space before gamma conversion to avoid loss of precision
+   VecH add=col.rgb-Sat(col.rgb); // this is linear
 #endif
 
-#if IN_GAMMA // FIXMENOW can use LinearToSRGBFast with a remapped LUT?
+#if IN_GAMMA
    col.rgb=LinearToSRGB(col.rgb); // make sure we have sRGB
 #endif
 
    // now 'col' is sRGB
 
+   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y);
+
 #if DITHER
    ApplyDither(col.rgb, pixel.xy, false); // don't perform gamma conversions inside dither, because at this stage, color is in sRGB
 #endif
-
-   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y);
 
 #if OUT_GAMMA
    col.rgb=SRGBToLinear(col.rgb);
@@ -509,7 +509,7 @@ VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
    // now 'col' is Linear
 
 #if HDR
-   col.rgb+=add; // add what was cut before
+   col.rgb+=add; // add leftovers
 #endif
 
    return col;
