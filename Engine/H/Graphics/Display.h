@@ -494,7 +494,8 @@ private:
    #if EE_PRIVATE
       Bool  is  ()C {return full.w()>0;} // if initialized
       VecI2 mode()C; // get current mode
-      Str   colorProfilePath()C;
+      Str           colorProfilePath()C;
+      Str   standardColorProfilePath()C;
    #if WINDOWS_OLD
       Bool set(HMONITOR monitor);
    #endif

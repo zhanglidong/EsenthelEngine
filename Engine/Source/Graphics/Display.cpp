@@ -629,6 +629,14 @@ VecI2 Display::Monitor::mode()C
    return D.screen(); // TODO:
 #endif
 }
+Str Display::Monitor::standardColorProfilePath()C
+{
+#if WINDOWS_OLD
+   wchar_t file_name[MAX_PATH]; file_name[0]='\0'; DWORD size=SIZE(file_name); // must be size in bytes
+   if(GetStandardColorSpaceProfile(null, LCS_sRGB, file_name, &size))return file_name; // this is "Color Management \ Advanced \ Device Profile"
+#endif
+   return S;
+}
 Str Display::Monitor::colorProfilePath()C
 {
 #if WINDOWS_OLD
@@ -642,20 +650,15 @@ Str Display::Monitor::colorProfilePath()C
    #else
       {
    #endif
-         wchar_t file_name[MAX_PATH];
+         wchar_t file_name[MAX_PATH]; file_name[0]='\0';
          BOOL    user=true;
 
       #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
          if(WcsGetUsePerUserProfiles)
       #endif
-            WcsGetUsePerUserProfiles(WChar(device_key), CLASS_MONITOR, &user);
+            WcsGetUsePerUserProfiles(WChar(device_key), CLASS_MONITOR, &user); // this is needed to get precise information (without this call results were not always OK)
 
-         if(WcsGetDefaultColorProfile(user ? WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER : WCS_PROFILE_MANAGEMENT_SCOPE_SYSTEM_WIDE, WChar(device_key), CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))
-         if(Is(file_name))
-         {
-            if(FullPath(WChar(file_name)))return file_name;
-            return SystemPath(SP_SYSTEM).tailSlash(true)+"spool/drivers/color/"+file_name;
-         }
+         if(WcsGetDefaultColorProfile(user ? WCS_PROFILE_MANAGEMENT_SCOPE_CURRENT_USER : WCS_PROFILE_MANAGEMENT_SCOPE_SYSTEM_WIDE, WChar(device_key), CPT_ICC, CPST_RGB_WORKING_SPACE, 0, SIZE(file_name), file_name))return file_name;
       }
    }
 #endif
@@ -2496,7 +2499,7 @@ Display& Display::exclusive(Bool exclusive)
 void Display::setColorLUT()
 {
    SyncLocker locker(D._lock); // needed by '_color_lut' and 'rtCreateMain'
-   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->colorProfilePath(), _color_lut))
+   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->standardColorProfilePath(), monitor->colorProfilePath(), _color_lut))
    {
       if(!Sh.ColorLUT[0][0][0][0])
          REPD(hdr      , 2)
