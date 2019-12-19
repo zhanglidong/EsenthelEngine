@@ -701,29 +701,31 @@ void MotionBlur::load()
 
       REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
 
-      REPD(dither, 2)
-      REPD(alpha , 2)
-         Blur[dither][alpha]=shader->get(S8+"Blur"+dither+alpha);
+      Dilates[0].pixels=1;
+      Dilates[1].pixels=2;
+      Dilates[2].pixels=4;
+      Dilates[3].pixels=6;
+      Dilates[4].pixels=8;
+      Dilates[5].pixels=12;
+      Dilates[6].pixels=16;
+      Dilates[7].pixels=24;
+      Dilates[8].pixels=32;
+      ASSERT(ELMS(Dilates)==9);
 
-      pixels[0].pixels=1;
-      pixels[1].pixels=2;
-      pixels[2].pixels=4;
-      pixels[3].pixels=6;
-      pixels[4].pixels=8;
-      pixels[5].pixels=12;
-      pixels[6].pixels=16;
-      pixels[7].pixels=24;
-      pixels[8].pixels=32;
-      ASSERT(ELMS(pixels)==9);
+      Blurs[0].samples=5;
+      Blurs[1].samples=7;
+      Blurs[2].samples=9;
+      Blurs[3].samples=14;
+      ASSERT(ELMS(Blurs)==4);
    }
 }
-C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
+C MotionBlur::DilateRange* MotionBlur::getDilate(Int pixels, Bool diagonal)
 {
-   if(pixel<=0)return null;
-   Pixel *p;
-   FREPA(pixels) // start from the smallest to find exact match or bigger, order is important
+   if(pixels<=0)return null;
+   DilateRange *p;
+   FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
    {
-      p=&pixels[i]; if(p->pixels>=pixel)break; // if this covers desired range of pixels to blur
+      p=&Dilates[i]; if(p->pixels>=pixels)break; // if this covers desired range of pixels to blur
    }
    if(!p->DilateX[diagonal])
    {
@@ -731,6 +733,17 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
       p->DilateY[diagonal]=shader->get(S8+"DilateY"+diagonal+p->pixels);
    }
    return p;
+}
+Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
+{
+   BlurRange *b;
+   FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
+   {
+      b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
+   }
+   Shader* &shader=b->Blur[dither][alpha];
+   if(!shader)shader=T.shader->get(S8+"Blur"+dither+alpha+b->samples);
+   return shader;
 }
 /******************************************************************************/
 Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+D.gatherAvailable());}

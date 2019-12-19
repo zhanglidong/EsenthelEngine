@@ -22,7 +22,10 @@
    Warning: because max_dir_length is encoded in Signed RT Z channel without MAD range adjustment, it loses 1 bit precision
 
 /******************************************************************************/
-#define      MAX_BLUR_SAMPLES 7
+#ifndef MAX_BLUR_SAMPLES
+#define MAX_BLUR_SAMPLES 1
+#endif
+
 #define VARIABLE_BLUR_SAMPLES 0 // 0=is much faster for all 3 cases (no/small/full blur), default=0
 #define     TEST_BLUR_PIXELS  0 // test what pixels actually get blurred (they will be set to RED color) use only for debugging
 #define ALWAYS_DILATE_LENGTH  0 // 0=gave better results (when camera was rotated slightly), default=0

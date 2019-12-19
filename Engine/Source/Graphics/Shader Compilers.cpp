@@ -552,11 +552,13 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
    REPD(clamp, 2)src.New("SetDirs", "Draw_VS", "SetDirs_PS")("CLAMP", clamp);
 
-   REPD(dither, 2)
-   REPD(alpha , 2)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha);
+   const Int samples[]={5, 7, 9, 14}; // 5-720, 7-1080, 9-1440, 14-2160
+   REPD (dither, 2)
+   REPD (alpha , 2)
+   REPAD(sample, samples)
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha, "MAX_BLUR_SAMPLES", samples[sample]);
 
-   Int ranges[]={1, 2, 4, 6, 8, 12, 16, 24, 32};
+   const Int ranges[]={1, 2, 4, 6, 8, 12, 16, 24, 32};
    REPD (diagonal, 2)
    REPAD(range   , ranges)
    {

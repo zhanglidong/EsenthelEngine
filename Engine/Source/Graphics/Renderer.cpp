@@ -338,7 +338,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    }
    Int  dilate_round_pixels=dilate_round_steps*dilate_round_range, dilate_ortho_pixels=Max(Round(pixels)-dilate_round_pixels, 0);
    Bool diagonal=(D.motionDilate()==DILATE_ORTHO2);
- C MotionBlur::Pixel *ortho=Mtn.pixel(dilate_ortho_pixels, diagonal); if(ortho)dilate_ortho_pixels=ortho->pixels; // reset 'dilate_ortho_pixels' because it can actually be bigger based on what is supported
+ C MotionBlur::DilateRange *ortho=Mtn.getDilate(dilate_ortho_pixels, diagonal); if(ortho)dilate_ortho_pixels=ortho->pixels; // reset 'dilate_ortho_pixels' because it can actually be bigger based on what is supported
    const Int total_pixels=dilate_round_pixels+dilate_ortho_pixels; // round+ortho
    DEBUG_ASSERT(D.motionDilate()==DILATE_ROUND ? dilate_ortho_pixels==0 : true, "Ortho should be zero in round mode");
 
@@ -404,7 +404,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 
    Sh.Img[1]->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.Blur[D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision()][combine]->draw(src); // here blurring may generate high precision values
+   Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), combine)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution
 
    return false;
 }

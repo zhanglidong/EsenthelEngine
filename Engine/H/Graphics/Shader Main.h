@@ -414,18 +414,24 @@ struct MotionBlur
    Shader      *Explosion          ,
                *Convert      [2][2], // [High][Clamp]
                *Dilate             ,
-               *SetDirs      [2]   , // [Clamp]
-               *Blur         [2][2]; // [Dither][Alpha]
+               *SetDirs      [2]   ; // [Clamp]
 
-   struct Pixel
+   struct DilateRange
    {
       Int     pixels;
       Shader *DilateX[2], // [Diagonal]
              *DilateY[2]; // [Diagonal]
-   }pixels[9];
+   }Dilates[9];
+
+   struct BlurRange
+   {
+      Int     samples;
+      Shader *Blur[2][2]; // [Dither][Alpha]
+   }Blurs[4];
 
    void load();
- C Pixel* pixel(Int pixel, Bool diagonal);
+ C DilateRange* getDilate(Int pixels , Bool diagonal);
+        Shader* getBlur  (Int samples, Bool dither, Bool alpha);
 }extern
    Mtn;
 
