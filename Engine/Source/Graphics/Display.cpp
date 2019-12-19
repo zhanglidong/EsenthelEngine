@@ -1577,7 +1577,6 @@ if(LogInit)LogN("Display.create");
 _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
-            setColorLUT();
            viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
         Renderer.create();
@@ -2168,6 +2167,7 @@ void Display::after(Bool resize_callback)
    )App._window_size=res();
    if(_gamma)gammaSet(); // force reset gamma
    aspectRatioEx(true, !resize_callback);
+   setColorLUT();
 }
 /******************************************************************************/
 Bool Display::flip()
@@ -2464,7 +2464,7 @@ Display& Display::monitorPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(!created())_monitor_prec=precision;else
-   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode()){Reset(); setColorLUT();}}
+   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
    return T;
 }
 Bool Display::exclusiveFull()C
@@ -2493,22 +2493,36 @@ Display& Display::exclusive(Bool exclusive)
    }
    return T;
 }
+static Str LastColorProfile[2];
 void Display::setColorLUT()
 {
-   SyncLocker locker(D._lock); // needed by '_color_lut' and 'rtCreateMain'
-   if(_color_managed && created())if(auto monitor=getMonitor())if(SetColorLUT(monitor->standardColorProfilePath(), monitor->colorProfilePath(), _color_lut))
+   SyncLocker locker(D._lock); // needed by 'LastColorProfile', '_color_lut' and 'rtCreateMain'
+   Str src_color_profile, dest_color_profile;
+   if(_color_managed && created())if(auto monitor=getMonitor())
    {
-      if(!Sh.ColorLUT[0][0][0][0])
-         REPD(hdr      , 2)
-         REPD(dither   , 2)
-         REPD( in_gamma, 2)
-         REPD(out_gamma, 2)
-            if(!(Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]=Sh.find(S+"ColorLUT"+hdr+dither+in_gamma+out_gamma)))goto error; // use 'find' to allow fail
-
-      if(Sh.ColorLUT[0][0][0][0])goto ok;
+       src_color_profile=monitor->standardColorProfilePath();
+      dest_color_profile=monitor->        colorProfilePath();
    }
-error:
-  _color_lut.del();
+   // set only if different
+   if(!EqualPath(LastColorProfile[0],  src_color_profile)
+   || !EqualPath(LastColorProfile[1], dest_color_profile))
+   {
+      LastColorProfile[0]= src_color_profile;
+      LastColorProfile[1]=dest_color_profile;
+      if(SetColorLUT(src_color_profile, dest_color_profile, _color_lut))
+      {
+         if(!Sh.ColorLUT[0][0][0][0])
+            REPD(hdr      , 2)
+            REPD(dither   , 2)
+            REPD( in_gamma, 2)
+            REPD(out_gamma, 2)
+               if(!(Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]=Sh.find(S+"ColorLUT"+hdr+dither+in_gamma+out_gamma)))goto error; // use 'find' to allow fail
+
+         if(Sh.ColorLUT[0][0][0][0])goto ok;
+      }
+   error:
+     _color_lut.del();
+   }
 ok:
    Renderer.rtCreateMain(); // always needs to be called, if succeeded or failed
 }
@@ -2661,16 +2675,16 @@ void Display::setSync()
 }
 Display& Display::sync(Bool sync) {if(T._sync!=sync){T._sync=sync; setSync();} return T;}
 /******************************************************************************/
-Display& Display::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ; setColorLUT();} return T;}
-Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;               } return T;}
-Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();  } return T;}
-Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();  } return T;}
-Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();  } return T;}
-Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();  } return T;}
-Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();  } return T;}
-Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;               } return T;}
-Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;               } return T;}
-Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;               } return T;}
+Display& Display::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ;             } return T;}
+Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
+Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
+Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
+Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
+Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
+Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
+Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
+Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
+Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}
 
 Display& Display::eyeDistance(Flt dist)
 {

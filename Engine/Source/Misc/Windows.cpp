@@ -1133,13 +1133,17 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 #if 0
    switch(msg)
    {
+      case WM_INPUT:
       case WM_KEYDOWN:
       case WM_KEYUP:
 
       case WM_MOUSEMOVE:
       case WM_MBUTTONUP:
       case WM_MOUSEWHEEL:
+      case WM_MOUSEACTIVATE:
 
+      case WM_NCLBUTTONDOWN:
+      case WM_NCMOUSEMOVE:
       case WM_NCPAINT:
       case WM_NCHITTEST:
     //case WM_NCCALCSIZE:
@@ -1160,28 +1164,37 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
             case WM_POWERBROADCAST: s+=S+"POWERBROADCAST:"+wParam; break;
             case WM_DISPLAYCHANGE: s+=S+"DISPLAYCHANGE:"+LOWORD(lParam)+'x'+HIWORD(lParam); break; // this is resolution of the primary monitor and not the one that's changing
             case WM_ACTIVATE: s+=S+"ACTIVATE:"+(wParam==WA_ACTIVE || wParam==WA_CLICKACTIVE); break;
-            case WM_NCACTIVATE: s+=S+"NCACTIVATE"; break;
-            case WM_ACTIVATEAPP: s+=S+"ACTIVATEAPP"; break;
+            case WM_NCACTIVATE: s+="NCACTIVATE"; break;
+            case WM_ACTIVATEAPP: s+="ACTIVATEAPP"; break;
+            case WM_EXITSIZEMOVE: s+="EXITSIZEMOVE"; break;
             case WM_MOVE: s+=S+"MOVE:"+(short)LOWORD(lParam)+','+(short)HIWORD(lParam); break;
+            case WM_MOVING: s+="MOVING"; break;
             case WM_SIZE: s+=S+"SIZE:"+LOWORD(lParam)+','+HIWORD(lParam); break;
-            case WM_NCHITTEST: s+=S+"NCHITTEST"; break;
-            case WM_NCCALCSIZE: s+=S+"NCCALCSIZE"; break;
-            case WM_SETFOCUS: s+=S+"SETFOCUS"; break;
-            case WM_KILLFOCUS: s+=S+"KILLFOCUS"; break;
-            case WM_DWMNCRENDERINGCHANGED: s+=S+"DWMNCRENDERINGCHANGED"; break;
+            case WM_NCHITTEST: s+="NCHITTEST"; break;
+            case WM_NCCALCSIZE: s+="NCCALCSIZE"; break;
+            case WM_SETFOCUS: s+="SETFOCUS"; break;
+            case WM_KILLFOCUS: s+="KILLFOCUS"; break;
+            case WM_DWMNCRENDERINGCHANGED: s+="DWMNCRENDERINGCHANGED"; break;
             case WM_SETTINGCHANGE:
             {
-               s+=S+"SETTINGCHANGE: SPI_";
+               s+="SETTINGCHANGE: SPI_";
                switch(wParam)
                {
                   default: s+=TextHex(wParam); break;
                   case SPI_SETWORKAREA: {RECT rect; SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0); s+=S+"SETWORKAREA:"+rect.left+','+rect.top+','+rect.right+','+rect.bottom;} break;
                }
             }break;
+            case WM_SYSCOMMAND:
+            {
+               s+="SYSCOMMAND";
+            }break;
             case WM_WINDOWPOSCHANGING: {WINDOWPOS &wp=*(WINDOWPOS*)lParam; s+=S+"WINDOWPOSCHANGING:"+wp.x+','+wp.y+' '+wp.cx+','+wp.cy;} break;
             case WM_WINDOWPOSCHANGED : {WINDOWPOS &wp=*(WINDOWPOS*)lParam; s+=S+"WINDOWPOSCHANGED:" +wp.x+','+wp.y+' '+wp.cx+','+wp.cy;} break;
-            case WM_STYLECHANGING: s+=S+"STYLECHANGING"; break;
-            case WM_STYLECHANGED: s+=S+"STYLECHANGED"; break;
+            case WM_STYLECHANGING: s+="STYLECHANGING"; break;
+            case WM_STYLECHANGED: s+="STYLECHANGED"; break;
+            case WM_THEMECHANGED: s+="THEMECHANGED"; break;
+            case WM_IME_SETCONTEXT: s+="IME_SETCONTEXT"; break;
+            case WM_IME_NOTIFY: s+="IME_NOTIFY"; break;
             default: s+=TextHex(msg)+", wParam:"+TextHex(wParam)+", lParam:"+TextHex((ULong)lParam); break;
          }
          LogN(s);
@@ -1210,8 +1223,9 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          // instead of activating the app here, we need to wait to check if WM_NCLBUTTONDOWN gets called to determine whether app was activated with a click on the title bar
       }break;
 
-      case WM_INITMENUPOPUP  : case WM_ENTERSIZEMOVE: Pause(true ); break;
-      case WM_UNINITMENUPOPUP: case WM_EXITSIZEMOVE : Pause(false); break; // WM_EXITSIZEMOVE called when (finished dragging by title bar or resizing by edge/corner, snapped by User), NOT called when (maximized, snapped by OS)
+      case WM_INITMENUPOPUP  : case WM_ENTERSIZEMOVE: Pause(true); break;
+      case WM_UNINITMENUPOPUP: Pause(false); break;
+      case WM_EXITSIZEMOVE   : Pause(false); D.setColorLUT(); break; // called when (finished dragging by title bar or resizing by edge/corner, snapped by User), NOT called when (maximized, snapped by OS), call 'setColorLUT' in case moved to another monitor with different color profile
 
       case WM_MOVE: // called when moved (dragged by title bar, snapped by User/OS, maximized, minimized)
          if(!WindowMinimized(hwnd) && !WindowMaximized(hwnd) && !D.full()) // use 'hwnd' instead of 'App.hwnd' because WM_MOVE is being called while window is being created "_hwnd=CreateWindowEx(..)" and pointer wasn't set yet, need to check for 'WindowMinimized' and 'WindowMaximized' instead of 'App.minimized' and 'App.maximized' because these are not yet available
