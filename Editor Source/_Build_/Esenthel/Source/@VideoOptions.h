@@ -62,6 +62,8 @@ class VideoOptions : PropWin
       static void EyeAdaptBrigh(  Advanced &adv, C Str &text);
       static Str  Exclusive    (C Advanced &adv             );
       static void Exclusive    (  Advanced &adv, C Str &text);
+      static Str  ColorManaged (C Advanced &adv             );
+      static void ColorManaged (  Advanced &adv, C Str &text);
       static Str  DiffuseMode  (C Advanced &adv             );
       static void DiffuseMode  (  Advanced &adv, C Str &text);
       static Str  MonitorPrec  (C Advanced &adv             );

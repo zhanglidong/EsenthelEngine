@@ -192,6 +192,8 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::EyeAdaptBrigh(  Advanced &adv, C Str &text) {       D.eyeAdaptationBrightness(TextFlt(text));}
       Str  VideoOptions::Advanced::Exclusive(C Advanced &adv             ) {return D.exclusive();}
       void VideoOptions::Advanced::Exclusive(  Advanced &adv, C Str &text) {       D.exclusive(TextBool(text));}
+      Str  VideoOptions::Advanced::ColorManaged(C Advanced &adv             ) {return D.colorManaged();}
+      void VideoOptions::Advanced::ColorManaged(  Advanced &adv, C Str &text) {       D.colorManaged(TextBool(text));}
       Str  VideoOptions::Advanced::DiffuseMode(C Advanced &adv             ) {return D.diffuseMode();}
       void VideoOptions::Advanced::DiffuseMode(  Advanced &adv, C Str &text) {       D.diffuseMode((DIFFUSE_MODE)TextInt(text));}
       Str  VideoOptions::Advanced::MonitorPrec(C Advanced &adv             ) {return D.monitorPrecision();}
@@ -249,7 +251,10 @@ VideoOptions VidOpt;
          int  tex_filter=Elms(TexFilter_t); FREPA(TexFilter_t)if(TextInt(TexFilter_t[i])>D.maxTexFilter()){tex_filter=i; break;}
          props.New().create("Field of View"        , MemberDesc(DATA_REAL).setFunc(Fov          , Fov          )).range(0.001f, 120).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).desc("Set Field of View");
 diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFunc(DiffuseMode  , DiffuseMode  )).setEnum(DiffuseMode_t, Elms(DiffuseMode_t)).desc("Set Diffuse Mode");
+      #if WINDOWS_OLD
          props.New().create("Exclusive Fullscreen" , MemberDesc(DATA_BOOL).setFunc(Exclusive    , Exclusive    )).desc("If fullscreen mode should be exclusive\nExclusive mode offers better performance\nNon-exclusive mode offers faster Alt+Tab switching");
+         props.New().create("Color Managed"        , MemberDesc(DATA_BOOL).setFunc(ColorManaged , ColorManaged )).desc("Enabling makes Application use the installed monitor color profile in the system\nWarning: this slows down performance");
+      #endif
          props.New().create("Texture Filtering"    , MemberDesc(         ).setFunc(TexFilter    , TexFilter    )).setEnum(TexFilter_t, tex_filter).desc("Configure Texture Anisotropic Filtering Quality");
          props.New().create("Texture Mip Filtering", MemberDesc(DATA_BOOL).setFunc(TexMipFilter , TexMipFilter )).desc("Configure Texture Mip Map Filtering");
          props.New().create("Detail Texture"       , MemberDesc(         ).setFunc(DetailTexUse , DetailTexUse )).setEnum(TexUse_t, Elms(TexUse_t)).desc("Set when Detail Texture is used");
