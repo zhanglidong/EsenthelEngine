@@ -25,6 +25,8 @@ class VideoOptions : PropWin
              && RS_REFLECTION==12 && RS_WATER_COLOR==13 && RS_WATER_NORMAL==14 && RS_WATER_LIGHT==15);
       static cchar8 *ShadowReduceFlicker_t[]
 ;
+      static cchar8 *ColorSpace_t[]
+; ASSERT(COLOR_SPACE_NONE==0 && COLOR_SPACE_SRGB==1 && COLOR_SPACE_DCI_P3==2 && COLOR_SPACE_NUM==3);
 
       static Str  Fov          (C Advanced &adv             );
       static void Fov          (  Advanced &adv, C Str &text);
@@ -62,8 +64,8 @@ class VideoOptions : PropWin
       static void EyeAdaptBrigh(  Advanced &adv, C Str &text);
       static Str  Exclusive    (C Advanced &adv             );
       static void Exclusive    (  Advanced &adv, C Str &text);
-      static Str  ColorManaged (C Advanced &adv             );
-      static void ColorManaged (  Advanced &adv, C Str &text);
+      static Str  ColorSpace   (C Advanced &adv             );
+      static void ColorSpace   (  Advanced &adv, C Str &text);
       static Str  DiffuseMode  (C Advanced &adv             );
       static void DiffuseMode  (  Advanced &adv, C Str &text);
       static Str  MonitorPrec  (C Advanced &adv             );

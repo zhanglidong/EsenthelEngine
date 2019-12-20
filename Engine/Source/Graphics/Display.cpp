@@ -2521,7 +2521,7 @@ ok:
 }
 Display& Display::colorSpace(COLOR_SPACE color_space)
 {
-   if(_color_space!=color_space)
+   if(InRange(color_space, COLOR_SPACE_NUM) && _color_space!=color_space)
    {
      _color_space=color_space;
       setColorLUT();

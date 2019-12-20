@@ -8,6 +8,7 @@ enum COLOR_SPACE : Byte
    COLOR_SPACE_NONE  ,
    COLOR_SPACE_SRGB  ,
    COLOR_SPACE_DCI_P3,
+   COLOR_SPACE_NUM   ,
 };
 /******************************************************************************/
 struct Color // 4-Byte Color
