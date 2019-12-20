@@ -805,7 +805,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
   _sync            =true;
   _exclusive       =true;
-  _color_managed   =false;
+  _color_space     =COLOR_SPACE_NONE;
   _hp_col_rt       =false;
   _hp_nrm_rt       =false;
   _hp_lum_rt       =false;
@@ -2173,7 +2173,7 @@ Bool Display::flip()
 {
    if(created())
    {
-      if(D.colorManagedActual())
+      if(D.colorManaged())
       {
          ImageRT &src=Renderer._main_temp, &dest=Renderer._main;
          ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
@@ -2492,23 +2492,17 @@ Display& Display::exclusive(Bool exclusive)
    }
    return T;
 }
-static Str LastColorProfile[2];
+static COLOR_SPACE LastSrcColorSpace;
+static Str         LastDestColorSpace;
 void Display::setColorLUT()
 {
-   SyncLocker locker(D._lock); // needed by 'LastColorProfile', '_color_lut' and 'rtCreateMain'
-   Str src_color_profile, dest_color_profile;
-   if(_color_managed && created())if(auto monitor=getMonitor())
+   SyncLocker locker(D._lock); // needed by 'LastSrcColorSpace', 'LastDestColorSpace', '_color_lut' and 'rtCreateMain'
+   Str dest_color_space; if(_color_space && created())if(auto monitor=getMonitor())dest_color_space=monitor->colorProfilePath();
+   if(LastSrcColorSpace!=_color_space || !EqualPath(LastDestColorSpace, dest_color_space)) // set only if different
    {
-       src_color_profile=monitor->standardColorProfilePath();
-      dest_color_profile=monitor->        colorProfilePath();
-   }
-   // set only if different
-   if(!EqualPath(LastColorProfile[0],  src_color_profile)
-   || !EqualPath(LastColorProfile[1], dest_color_profile))
-   {
-      LastColorProfile[0]= src_color_profile;
-      LastColorProfile[1]=dest_color_profile;
-      if(SetColorLUT(src_color_profile, dest_color_profile, _color_lut))
+      LastSrcColorSpace =    _color_space;
+      LastDestColorSpace=dest_color_space;
+      if(SetColorLUT(_color_space, dest_color_space, _color_lut))
       {
          if(!Sh.ColorLUT[0][0][0][0])
             REPD(hdr      , 2)
@@ -2525,11 +2519,11 @@ void Display::setColorLUT()
 ok:
    Renderer.rtCreateMain(); // always needs to be called, if succeeded or failed
 }
-Display& Display::colorManaged(Bool managed)
+Display& Display::colorSpace(COLOR_SPACE color_space)
 {
-   if(_color_managed!=managed)
+   if(_color_space!=color_space)
    {
-     _color_managed=managed;
+     _color_space=color_space;
       setColorLUT();
    }
    return T;

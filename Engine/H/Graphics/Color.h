@@ -3,6 +3,13 @@
    4-Byte Colors helper functions.
 
 /******************************************************************************/
+enum COLOR_SPACE : Byte
+{
+   COLOR_SPACE_NONE  ,
+   COLOR_SPACE_SRGB  ,
+   COLOR_SPACE_DCI_P3,
+};
+/******************************************************************************/
 struct Color // 4-Byte Color
 {
    union
@@ -151,6 +158,6 @@ INLINE C Vec4&   SRGBToDisplay(C Vec4 &s) {return s;}
 #endif
 
 void InitSRGB();
-Bool SetColorLUT(C Str &src_color_profile, C Str &dest_color_profile, Image &lut);
+Bool SetColorLUT(COLOR_SPACE src_color_space, C Str &dest_color_space, Image &lut);
 #endif
 /******************************************************************************/

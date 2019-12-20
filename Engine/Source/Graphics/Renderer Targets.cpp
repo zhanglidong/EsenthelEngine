@@ -160,7 +160,7 @@ void RendererClass::rtDel()
 Bool RendererClass::rtCreateMain() // !! call only under lock !!
 {
    ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds;
-   Bool secondary=(D.colorManagedActual() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
+   Bool secondary=(D.colorManaged() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
    if(  secondary)
    {
       if(!_main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples()))goto error;

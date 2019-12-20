@@ -498,40 +498,56 @@ Vec4 SRGBToDisplay(C Color &s)
 static Int MaxDelta=0;
 #endif
 
+static CChar8* ColorSpaceFileName(COLOR_SPACE color_space)
+{
+   switch(color_space)
+   {
+      case COLOR_SPACE_SRGB  : return "Color/sRGB.icm";
+      case COLOR_SPACE_DCI_P3: return "Color/DCI-P3.icm";
+      default                : return null;
+   }
+}
+
 #if WINDOWS_OLD
 struct WinColorTransform
 {
    HPROFILE   dest_profile=null;
+   HPROFILE    src_profile=null;
    HTRANSFORM transform   =null;
 
   ~WinColorTransform() {del();}
    void del()
    {
       if(transform   ){DeleteColorTransform(transform   ); transform   =null;}
+      if( src_profile){CloseColorProfile   ( src_profile);  src_profile=null;}
       if(dest_profile){CloseColorProfile   (dest_profile); dest_profile=null;}
    }
-   Bool create(C Str &src_name, C Str &dest_name)
+   Bool create(COLOR_SPACE src_color_space, C Str &dest_color_space)
    {
       del();
 
-      PROFILE profile_desc;
-      profile_desc.dwType      =PROFILE_FILENAME;
-      profile_desc.pProfileData=ConstCast(dest_name());
-      profile_desc.cbDataSize  =dest_name.length()*SIZE(Char);
-
-      if(dest_profile=OpenColorProfileW(&profile_desc, PROFILE_READ, FILE_SHARE_READ, OPEN_EXISTING))
+      PROFILE profile;
+      profile.dwType      =PROFILE_FILENAME;
+      profile.pProfileData=ConstCast(dest_color_space());
+      profile.cbDataSize  =dest_color_space.length()*SIZE(Char);
+      if(dest_profile=OpenColorProfileW(&profile, PROFILE_READ, FILE_SHARE_READ, OPEN_EXISTING))
       {
-         LOGCOLORSPACEA lcs; Zero(lcs);
-         lcs.lcsSignature=LCS_SIGNATURE; 
-         lcs.lcsVersion=0x400;
-         lcs.lcsSize=SIZE(lcs);
-         lcs.lcsCSType=LCS_sRGB; // using 'LCS_sRGB' selects "Color Management \ Advanced \ Device Profile" (alternative is LCS_WINDOWS_COLOR_SPACE which is always the same)
-         lcs.lcsIntent=LCS_GM_GRAPHICS; // this is Relative Colorimetric, alternatively try LCS_GM_ABS_COLORIMETRIC
-
-         // can ignore 'src_name' because it's already selected through 'LCS_sRGB'
-
-         if(transform=CreateColorTransformA(&lcs, dest_profile, null, BEST_MODE|USE_RELATIVE_COLORIMETRIC))
-            return true;
+         File f; if(f.readTry(ColorSpaceFileName(src_color_space)))
+         {
+            Memt<Byte> data; data.setNum(f.size()); if(f.getFast(data.data(), data.elms()))
+            {
+               profile.dwType      =PROFILE_MEMBUFFER;
+               profile.pProfileData=data.data();
+               profile.cbDataSize  =data.elms();
+               if(src_profile=OpenColorProfileW(&profile, PROFILE_READ, FILE_SHARE_READ, OPEN_EXISTING))
+               {
+                  HPROFILE profiles[]={src_profile, dest_profile};
+                  DWORD     intents[]={INTENT_PERCEPTUAL};
+                  if(transform=CreateMultiProfileTransform(profiles, Elms(profiles), intents, Elms(intents), BEST_MODE, INDEX_DONT_CARE))
+                     return true;
+               }
+            }
+         }
       }
       del(); return false;
    }
@@ -586,17 +602,28 @@ struct QCMSColorTransform
       if(qcms_src ){qcms_profile_release  (qcms_src ); qcms_src =null;}
       if(qcms_dest){qcms_profile_release  (qcms_dest); qcms_dest=null;}
    }
-   Bool create(C Str &src_name, C Str &dest_name)
+   Bool create(COLOR_SPACE src_color_space, C Str &dest_color_space)
    {
       del();
 
-      if(src_name.is())qcms_src=qcms_profile_from_unicode_path(MakeFullColorProfilePath(src_name));
-      if(!qcms_src    )qcms_src=qcms_profile_sRGB(); // if none specified or failed to load (can happen if "sRGB virtual device model" is selected), then use default sRGB
+      if(qcms_dest=qcms_profile_from_unicode_path(MakeFullColorProfilePath(dest_color_space)))
+      {
+         switch(src_color_space)
+         {
+            case COLOR_SPACE_SRGB: qcms_src=qcms_profile_sRGB(); break;
+            default              :
+            {
+               File f; if(f.readTry(ColorSpaceFileName(src_color_space)))
+               {
+                  Memt<Byte> data; data.setNum(f.size()); if(f.getFast(data.data(), data.elms()))qcms_src=qcms_profile_from_memory(data.data(), data.elms());
+               }
+            }break;
+         }
 
-      if(qcms_src)
-      if(qcms_dest=qcms_profile_from_unicode_path(MakeFullColorProfilePath(dest_name)))
-      if(transform=qcms_transform_create(qcms_src, QCMS_DATA_RGB_8, qcms_dest, QCMS_DATA_RGB_8, QCMS_INTENT_RELATIVE_COLORIMETRIC))
-         return true;
+         if(qcms_src)
+         if(transform=qcms_transform_create(qcms_src, QCMS_DATA_RGB_8, qcms_dest, QCMS_DATA_RGB_8, QCMS_INTENT_PERCEPTUAL))
+            return true;
+      }
       del(); return false;
    }
    Bool convert(C Vec4 &src, Vec4 &dest, Bool &different)C
@@ -622,12 +649,12 @@ struct QCMSColorTransform
    }
 };
 #endif
-Bool SetColorLUT(C Str &src_color_profile, C Str &dest_color_profile, Image &lut)
+Bool SetColorLUT(COLOR_SPACE src_color_space, C Str &dest_color_space, Image &lut)
 {
-   if(dest_color_profile.is())
+   if(src_color_space!=COLOR_SPACE_NONE && dest_color_space.is())
    {
    #if WINDOWS_OLD
-      WinColorTransform ct; if(ct.create(src_color_profile, dest_color_profile))
+      WinColorTransform ct; if(ct.create(src_color_space, dest_color_space))
       {
          // here we can't use any SRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
          const Int res=64;
