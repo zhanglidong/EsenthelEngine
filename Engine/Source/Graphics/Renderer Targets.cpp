@@ -163,8 +163,11 @@ Bool RendererClass::rtCreateMain() // !! call only under lock !!
    Bool secondary=(D.colorManaged() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
    if(  secondary)
    {
-      if(!_main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples()))goto error;
-      if(!_main_temp_ds.create(_main.size(), IMAGE_D24S8        , IMAGE_DS, _main.samples()))goto error;
+      Bool high_prec=D.colorManaged(); // if we're going to convert colors then we need high precision
+      if(!(high_prec && _main_temp   .create(_main.size(), IMAGE_F16_4        , IMAGE_RT, _main.samples())))
+      if(!(             _main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples())))goto error;
+
+      if(!(             _main_temp_ds.create(_main.size(), IMAGE_D24S8        , IMAGE_DS, _main.samples())))goto error;
      _ptr_main   =&_main_temp;
      _ptr_main_ds=&_main_temp_ds;
    }else
