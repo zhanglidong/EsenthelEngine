@@ -394,8 +394,8 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // goes simultaneously in b
          if(length1>=i && allow1)range1=i;
       }
 
-      Half dir_length0=range0/Half(MAX_MOTION_BLUR_PIXEL_RANGE),
-           dir_length1=range1/Half(MAX_MOTION_BLUR_PIXEL_RANGE);
+      Half dir_length0=Max(0, range0-0.5)/Half(MAX_MOTION_BLUR_PIXEL_RANGE), // actually go half of a pixel less, because we've made tests using linear filtering, so it's possible we've partially covered an obstacle, which causes very visible leaking when rotating camera around an object with black background (angular velocity of background pixels caused blur to go until character pixels and there was leaking because character pixels were still partially processed), this fixes the problem, if there were no obstacles found then codes below make 'dir_length' longer
+           dir_length1=Max(0, range1-0.5)/Half(MAX_MOTION_BLUR_PIXEL_RANGE); // actually go half of a pixel less, because we've made tests using linear filtering, so it's possible we've partially covered an obstacle, which causes very visible leaking when rotating camera around an object with black background (angular velocity of background pixels caused blur to go until character pixels and there was leaking because character pixels were still partially processed), this fixes the problem, if there were no obstacles found then codes below make 'dir_length' longer
 
    #if 1
       // normally with the formula above, we can get only integer precision, 'range0' and 'range1' can only be set to integer steps, based on which we set vectors
@@ -434,9 +434,9 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #endif
 
    VecH4 color;
-   color.MASK=TexLod(Img, inTex).MASK;
+   color.MASK=TexLod(Img, inTex).MASK; // can't use 'TexPoint' because 'Img' can be supersampled
 #if !ALPHA
-   color.a=1; // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be supersampled
+   color.a=1; // force full alpha so back buffer effects can work ok
 #endif
 
    BRANCH if(any(blur)) // we can use 'any' here because small values got clipped out already in 'SetDirs'
@@ -484,7 +484,7 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
       color.r=1;
    #endif
    #if 0 // test how many samples were used for blurring
-      color.rgb=samples/16.0;
+      color.rgb=samples/Half(MAX_BLUR_SAMPLES);
    #endif
    }
 
