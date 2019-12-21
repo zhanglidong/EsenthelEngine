@@ -1337,7 +1337,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Set Vertex Ambient Occlusion"  , MeshSetVtxAO  , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_WIN           )).desc("This option will calculate Ambient Occlusion for each vertex and store it as vertex color.");
          n.New().create("Create Face"                   , MeshCreateFace, T).kbsc(KbSc(KB_F, KBSC_CTRL_CMD                    )).desc("This option will create 1 face from selected vertexes");
          n.New().create("Merge Faces"                   , MeshMergeFaces, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD                    )).desc("This option will merge 2 selected/highlighted faces if they share 2 vertexes");
-         n.New().create("Rotate Quads"                  , MeshRotQuads  , T);
+         n.New().create("Rotate Quads"                  , MeshRotQuads  , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
          n.New().create("Convert Quads To Tris"         , MeshQuadToTri , T);
          n.New().create("Tesselate"                     , MeshTesselate , T).kbsc(KbSc(KB_T, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, keeping original vertexes in place");
          n.New().create("Subdivide"                     , MeshSubdivide , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, repositioning original vertexes");
