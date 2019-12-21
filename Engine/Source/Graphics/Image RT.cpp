@@ -143,7 +143,7 @@ Bool ImageRT::depthTexture()C
 #endif
 void ImageRT::discard()
 {
-#if DX11
+#if DX11 && TILE_BASED_GPU // disable on non-tile-based GPU as it actually decreases performance (as tested on GeForce 1050 Ti TODO: check again in the future)
    if(DEBUG_DISCARD)clearHw(PURPLE);else
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
 #elif GL && !MAC && !LINUX // Mac doesn't have GL 4.3 'glInvalidateFramebuffer', Linux GeForce drivers have bugs (TODO: check again in the future)
