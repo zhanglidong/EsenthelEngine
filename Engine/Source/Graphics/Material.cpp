@@ -392,8 +392,9 @@ void Material::setBlend()C
 }
 void Material::setBlendForce()C
 {
-   if(_alpha_factor.a && !hasAlpha()) // if has glow in material settings and on texture channel, then it means we need to disable it for forced blend, which operates on alpha instead of glow
-   {
+   if(_alpha_factor.a // if has glow in material settings
+   && base_2 && base_0) // and on texture channel (glow is in Base0 but only if Base2 is present #MaterialTextureLayout)
+   { // then it means we need to disable it for forced blend, which operates on alpha instead of glow
       if(MaterialLast==this)MaterialLast=null;
       D.alphaFactor(TRANSPARENT);
    }else
