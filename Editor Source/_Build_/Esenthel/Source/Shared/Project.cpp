@@ -1524,6 +1524,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       {
          Elm &obj=elms[i]; if(ElmObj *obj_data=obj.objData())if(obj_data->mesh_id==phys_data->mesh_id) // check if object mesh matches phys mesh
          {
+            makeGameVer(obj);
             objs.binaryInclude(obj.id);
          }
       }
@@ -1798,7 +1799,9 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                {
                   Mesh original, updated;
                   Load(original, path, T.game_path); updated.load(src_data, T.game_path); src_data.pos(0);
-                  if(OverrideMeshSkel(&original, null)!=OverrideMeshSkel(&updated, null))rebuild=meshToObjElm(&elm); // set object of this mesh to be rebuilt
+                  if(OverrideMeshSkel(&original, null)!=OverrideMeshSkel(&updated, null)
+                  || (data_changed&CHANGE_AFFECT_OBJ) // if change affects object
+                  )rebuild=meshToObjElm(&elm); // set object of this mesh to be rebuilt
                }
                file_changed=true; if(SafeOverwrite(src_data, path))SavedMesh(path);
             }

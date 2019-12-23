@@ -291,13 +291,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    uint ElmObj::undo(C ElmObj &src)
    {
       uint   changed =super::undo(src);
-             changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+             changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_AFFECT_FILE; // MESH ID is stored in OBJ file
       return changed; // don't adjust 'ver' here because it also relies on 'EditObject', because of that this is included in 'ElmFileInShort'
    }
    uint ElmObj::sync(C ElmObj &src)
    {
       uint   changed =super::sync(src);
-             changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+             changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_AFFECT_FILE; // MESH ID is stored in OBJ file
       return changed; // don't adjust 'ver' here because it also relies on 'EditObject', because of that this is included in 'ElmFileInShort'
    }
    void ElmObj::from(C EditObject &params)
@@ -388,9 +388,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::undo(src);
 
-      changed|=UndoID( obj_id, src. obj_id)*CHANGE_NORMAL;
-      changed|=UndoID(skel_id, src.skel_id)*CHANGE_AFFECT_FILE;
-      changed|=UndoID(phys_id, src.phys_id)*CHANGE_NORMAL;
+      changed|=UndoID( obj_id, src. obj_id)*CHANGE_NORMAL; // OBJ ID is not stored in the MESH file
+      changed|=UndoID(skel_id, src.skel_id)*(CHANGE_AFFECT_FILE|CHANGE_AFFECT_OBJ); // SKEL ID is stored in MESH file, and may affect OBJ file
+      changed|=UndoID(phys_id, src.phys_id)*                    CHANGE_AFFECT_OBJ ; // PHYS ID is not stored in the MESH file but OBJ file
       changed|=Undo(      body_time, src.      body_time,       body_id, src.      body_id)*CHANGE_AFFECT_FILE;
       changed|=Undo(draw_group_time, src.draw_group_time, draw_group_id, src.draw_group_id)*CHANGE_AFFECT_FILE;
     //changed|=Undo( transform_time, src. transform_time, transform    , src.transform    )*CHANGE_AFFECT_FILE; transform is not undone here
@@ -402,9 +402,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::sync(src);
 
-      changed|=SyncID( obj_id, src. obj_id)*CHANGE_NORMAL;
-      changed|=SyncID(skel_id, src.skel_id)*CHANGE_AFFECT_FILE;
-      changed|=SyncID(phys_id, src.phys_id)*CHANGE_NORMAL;
+      changed|=SyncID( obj_id, src. obj_id)* CHANGE_NORMAL; // OBJ ID is not stored in the MESH file
+      changed|=SyncID(skel_id, src.skel_id)*(CHANGE_AFFECT_FILE|CHANGE_AFFECT_OBJ); // SKEL ID is stored in MESH file, and may affect OBJ file
+      changed|=SyncID(phys_id, src.phys_id)*                    CHANGE_AFFECT_OBJ ; // PHYS ID is not stored in the MESH file but OBJ file
       changed|=Sync(      body_time, src.      body_time,       body_id, src.      body_id)*CHANGE_AFFECT_FILE;
       changed|=Sync(draw_group_time, src.draw_group_time, draw_group_id, src.draw_group_id)*CHANGE_AFFECT_FILE;
       changed|=Sync( transform_time, src. transform_time, transform    , src.transform    )*CHANGE_AFFECT_FILE;
@@ -801,7 +801,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::undo(src);
 
-      changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+      changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL; // MESH ID is not stored in the SKEL file
 
       if(changed)newVer();
       return changed;
@@ -810,7 +810,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::sync(src);
 
-      changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+      changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL; // MESH ID is not stored in the SKEL file
 
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return changed;
@@ -877,7 +877,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::undo(src);
 
-      changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+      changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL; // MESH ID is not stored in the PHYS file
       changed|=Undo(   mtrl_time, src.   mtrl_time, mtrl_id, src.mtrl_id)*CHANGE_AFFECT_FILE;
       changed|=Undo(density_time, src.density_time, density, src.density)*CHANGE_AFFECT_FILE;
 
@@ -890,7 +890,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::sync(src);
 
-      changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
+      changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL; // MESH ID is not stored in the PHYS file
       changed|=Sync(   mtrl_time, src.   mtrl_time, mtrl_id, src.mtrl_id)*CHANGE_AFFECT_FILE;
       changed|=Sync(density_time, src.density_time, density, src.density)*CHANGE_AFFECT_FILE;
 
@@ -997,7 +997,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::undo(src);
 
-      changed|=Undo(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL;
+      changed|=Undo(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL; // SKEL ID is not stored in the ANIM file
       if(Undo(  loop_time, src.  loop_time)){changed|=CHANGE_AFFECT_FILE; loop  (src.loop  ());}
       if(Undo(linear_time, src.linear_time)){changed|=CHANGE_AFFECT_FILE; linear(src.linear());}
       if(Undo(  file_time, src.  file_time)){changed|=CHANGE_AFFECT_FILE; transform=src.transform; root_move=src.root_move; root_rot=src.root_rot; FlagCopy(flag, src.flag, ROOT_ALL);}
@@ -1009,7 +1009,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=super::sync(src);
 
-      changed|=Sync(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL;
+      changed|=Sync(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL; // SKEL ID is not stored in the ANIM file
       if(Sync(  loop_time, src.  loop_time)){changed|=CHANGE_AFFECT_FILE; loop  (src.loop  ());}
       if(Sync(linear_time, src.linear_time)){changed|=CHANGE_AFFECT_FILE; linear(src.linear());}
 

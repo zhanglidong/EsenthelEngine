@@ -534,6 +534,7 @@ enum
 {
    CHANGE_NORMAL     =1<<0, // set this first so that it will be equivalent to 'bool', because below some codes use "uint changed|=Sync(..)"
    CHANGE_AFFECT_FILE=1<<1, // this change affects the file
+   CHANGE_AFFECT_OBJ =1<<2, // needed for special handling of MESH->PHYS link, which is actually stored in OBJ, and Meshes Skeleton which may affect Object
 };
 /******************************************************************************/
 enum OBJ_TYPE // Object Class Types
