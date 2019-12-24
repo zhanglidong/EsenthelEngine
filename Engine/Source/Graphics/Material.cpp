@@ -801,6 +801,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          else              alpha_from_col=true;
       }
       FILTER_TYPE alpha_filter=Filter((alpha_from_col && alpha.filter<0) ? color.filter : alpha.filter);
+      VecI2       alpha_size; if(!alpha_src->is())alpha_size.zero();else alpha_size.set((alpha.size.x>0) ? alpha.size.x : (alpha_from_col && color.size.x>0) ? color.size.x : alpha_src->w(),
+                                                                                        (alpha.size.y>0) ? alpha.size.y : (alpha_from_col && color.size.y>0) ? color.size.y : alpha_src->h());
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
       if(  color_src->is())ret|=BT_COLOR  ;
@@ -841,8 +843,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          }
       }else // put alpha in W channel
       {
-         Int w=Max(ImgW(color, color_src), ImgW(alpha, alpha_src)),
-             h=Max(ImgH(color, color_src), ImgH(alpha, alpha_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(ImgW(color, color_src), alpha_size.x),
+             h=Max(ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
          if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)                ))alpha_src=&alpha_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
@@ -896,8 +898,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       // base_2 SRBA
       if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA /*&& ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_ALPHA)*/) // always create 'base2' so we can determine layout based on 'base2' presence
       {
-         Int w=Max(1, Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), !alpha_src->is() ? 0 : (alpha.size.x>0) ? alpha.size.x : (alpha_from_col && color.size.x>0) ? color.size.x : alpha_src->w())), // Max 1 in case all images are empty, but we still need it
-             h=Max(1, Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), !alpha_src->is() ? 0 : (alpha.size.y>0) ? alpha.size.y : (alpha_from_col && color.size.y>0) ? color.size.y : alpha_src->h())); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(1, Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), alpha_size.x)), // Max 1 in case all images are empty, but we still need it
+             h=Max(1, Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), alpha_size.y)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
          if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( smooth.filter), ( smooth.clamp?IC_CLAMP:IC_WRAP))) smooth_src=& smooth_temp;else goto error;
          if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(reflect.filter), (reflect.clamp?IC_CLAMP:IC_WRAP)))reflect_src=&reflect_temp;else goto error;
