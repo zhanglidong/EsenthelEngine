@@ -1087,9 +1087,12 @@ bool ExtractResize(MemPtr<Edit.FileParams> files, TextParam &resize)
    return false;
 }
 /******************************************************************************/
-void MakeHighPrec(Image &image)
+void AdjustImage(Image &image, bool alpha, bool high_prec)
 {
-   if(!image.highPrecision())image.copyTry(image, -1, -1, -1, ImageTypeHighPrec(image.type()));
+   IMAGE_TYPE   type=image.type();
+   if(alpha    )type=ImageTypeIncludeAlpha(type);
+   if(high_prec)type=ImageTypeHighPrec    (type);
+   image.copyTry(image, -1, -1, -1, type);
 }
 void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box)
 {
@@ -1212,7 +1215,6 @@ Vec2  LerpToMad(flt from, flt to) {return Vec2(to-from, from);}
 Vec2 ILerpToMad(flt from, flt to) {return Vec2(1/(to-from), from/(from-to));}
 flt   FloatSelf(flt x) {return x;}
 flt   PowMax   (flt x, flt y) {return (x<=0) ? 0 : Pow(x, y);}
-void IncludeAlpha(Image &image) {image.copyTry(image, -1, -1, -1, ImageTypeIncludeAlpha(image.type()));}
 
 void TransformImage(Image &image, TextParam param, bool clamp)
 {
@@ -1225,7 +1227,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       param.value.clip(at_pos);
    }
 
-   if(HighPrecTransform(param.name))MakeHighPrec(image); // if transform might generate high precision values then make sure we can store them
+   if(HighPrecTransform(param.name))AdjustImage(image, false, true); // if transform might generate high precision values then make sure we can store them
 
    if(param.name=="crop")
    {
@@ -1365,7 +1367,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case 6: {Vec2 ma[3]={ILerpToMad(TextFlt(c[0]), TextFlt(c[3])), ILerpToMad(TextFlt(c[1]), TextFlt(c[4])), ILerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
       }
    }else
-   if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){IncludeAlpha(image); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
+   if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){AdjustImage(image, true, false); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
    if(param.name=="mulRGB")image.mulAdd(Vec4(TextVecEx(param.value), 1), 0, &box);else
    if(param.name=="addRGB")image.mulAdd(1, Vec4(TextVecEx(param.value), 0), &box);else
    if(param.name=="mulAddRGB")

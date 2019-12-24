@@ -719,7 +719,7 @@ class Project
             if(layer.is())
             {
                // put 'layer' onto image
-               if(layer.highPrecision())MakeHighPrec(image);
+               AdjustImage(image, layer.typeInfo().a>0, layer.highPrecision());
                REPD(y, layer.h())
                REPD(x, layer.w())
                {
