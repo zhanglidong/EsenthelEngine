@@ -1008,8 +1008,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          {
             if(Kb.shift())
             {
-               if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"); // get smooth from alpha channel (Unity style)
-               if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"); // convert from metal map
+               if(tex.type==TEX_COLOR  )images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
+               if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"  ); // get smooth from alpha channel (Unity style)
+               if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"  ); // convert from metal map
             }
             if(Kb.alt())
             {
