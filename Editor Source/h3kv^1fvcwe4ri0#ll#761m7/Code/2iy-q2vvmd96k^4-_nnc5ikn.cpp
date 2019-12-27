@@ -262,13 +262,15 @@ class AnimEditor : Viewport4Region
                   Vec2         p=AnimEdit.screenPos()+Vec2(0.01, -0.25);
                   int       bone=AnimEdit.lit_bone;
                   Skeleton *skel=AnimEdit.skel;
-                                                       D.text(ObjEdit.ts, p, S+"Time: "+AnimEdit.animTime()+'/'+anim.length()+"s ("+Round(AnimEdit.timeToFrac(AnimEdit.animTime())*100)+"%)"); p.y-=ObjEdit.ts.size.y;
+                  flt frame; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame))frame_t=S+", "+Round(frame)+"f";
+                                                       D.text(ObjEdit.ts, p, S+"Time: "+AnimEdit.animTime()+'/'+anim.length()+"s ("+Round(AnimEdit.timeToFrac(AnimEdit.animTime())*100)+'%'+frame_t+')'); p.y-=ObjEdit.ts.size.y;
                   if(skel && InRange(bone, skel.bones))D.text(ObjEdit.ts, p, S+"Bone \""+skel.bones[bone].name+"\", Parent: "+(InRange(skel.bones[bone].parent, skel.bones) ? S+'"'+skel.bones[skel.bones[bone].parent].name+'"' : S+"none"));
                   if(Gui.ms()==this)
                   {
                      flt frac=Frac(LerpR(r.min.x, r.max.x, Ms.pos().x)), time=frac*anim.length();
+                     if(AnimEdit.timeToFrame(time, frame))frame_t=S+", "+Round(frame)+"f";else frame_t.clear();
                      TextStyleParams ts; ts.align.set(0, 1); ts.size=0.052;
-                     Str t=S+time+"s ("+Round(frac*100)+"%)";
+                     Str t=S+time+"s ("+Round(frac*100)+'%'+frame_t+')';
                      flt w_2=ts.textWidth(t)/2, x=Ms.pos().x; Clamp(x, r.min.x+w_2, r.max.x-w_2);
                      D.text(ts, x, r.max.y, t);
                   }
@@ -914,9 +916,19 @@ class AnimEditor : Viewport4Region
    ElmAnim* data()C {return elm ? elm.animData() : null;}
    Animation* getVisAnim() {return optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
 
-   flt  timeToFrac(flt time)C {return (anim && anim.length()) ? time/anim.length() : 0;}
-   flt  animTime  (        )C {return _anim_time;}
-   void animTime  (flt time)
+   flt  timeToFrac (flt time)C {return (anim && anim.length()) ? time/anim.length() : 0;}
+   bool timeToFrame(flt time, flt &frame)C
+   {
+      if(ElmAnim *d=data())if(d.fps>0)
+      {
+         frame=time*d.fps;
+         Edit.FileParams fps=d.src_file; if(C TextParam *p=fps.findParam("speed"))frame*=p.asFlt();
+         return true;
+      }
+      frame=0; return false;
+   }
+   flt  animTime(        )C {return _anim_time;}
+   void animTime(flt time)
    {
       if(_anim_time!=time)
       {

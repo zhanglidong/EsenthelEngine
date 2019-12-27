@@ -809,9 +809,10 @@ ImporterClass Importer;
                if(ElmAnim *anim_data=elm->animData())
                {
                   Mems<Edit::FileParams> file_params=Edit::FileParams::Decode(import.file);
-
-                  Animation &anim=import.anims[0].anim;
+                  XAnimation &xanim=import.anims[0];
+                   Animation & anim=xanim.anim;
                   anim_data->newVer();
+                  anim_data->fps=xanim.fps;
                   anim_data->file_time.getUTC(); // file was changed
                   anim_data->setSrcFile(import.file);
                   if(import.has_loop) // if import has information about looping then use it
@@ -1030,6 +1031,7 @@ ImporterClass Importer;
                            anim_data->transform=skel_data->transform;
                            anim_data->loop     (xanim.anim.loop()).linear(xanim.anim.linear());
                            anim_data->src_file =fp.encode();
+                           anim_data->fps      =xanim.fps;
                         }
                         xanim.anim.transform(m, new_skel, false);
                         xanim.anim.optimize(); // optimize after transform
@@ -1260,6 +1262,7 @@ ImporterClass Importer;
                anim_data->transform=skel_data->transform;
                anim_data->loop     (xanim.anim.loop()).linear(xanim.anim.linear());
                anim_data->src_file =fp.encode();
+               anim_data->fps      =xanim.fps;
             }
 
             // save and send

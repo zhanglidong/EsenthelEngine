@@ -21,6 +21,7 @@ class ElmAnim : ElmData
    UID       skel_id;
    Pose      transform;
    Vec       root_move, root_rot;
+   flt       fps;
    ushort    flag;
    TimeStamp loop_time, linear_time, skel_time, file_time;
 

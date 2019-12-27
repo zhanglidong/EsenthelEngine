@@ -78,6 +78,7 @@ SplitAnimation SplitAnim;
                         anim_data->skel_id  =base_data->skel_id  ; anim_data->skel_time=time;
                         anim_data->transform=base_data->transform;
                         anim_data->linear   (base_data->linear()); // set linear to the same value as the main animation, this will make reload use that value
+                        anim_data->fps      =base_data->fps;
                         anim_data->setSrcFile(Edit::FileParams::Encode(files), time); Proj.elmReload(anim_elm->id, false, false);
                         // sending to Server was already queued in 'Proj.newElm'
                      }

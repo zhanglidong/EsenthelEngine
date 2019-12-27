@@ -1154,6 +1154,7 @@ class ElmAnim : ElmData
    UID       skel_id=UIDZero;
    Pose      transform;
    Vec       root_move=VecZero, root_rot=VecZero;
+   flt       fps=0;
    ushort    flag=LOOP;
    TimeStamp loop_time, linear_time, skel_time, file_time;
 
@@ -1204,7 +1205,7 @@ class ElmAnim : ElmData
       changed|=Undo(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL; // SKEL ID is not stored in the ANIM file
       if(Undo(  loop_time, src.  loop_time)){changed|=CHANGE_AFFECT_FILE; loop  (src.loop  ());}
       if(Undo(linear_time, src.linear_time)){changed|=CHANGE_AFFECT_FILE; linear(src.linear());}
-      if(Undo(  file_time, src.  file_time)){changed|=CHANGE_AFFECT_FILE; transform=src.transform; root_move=src.root_move; root_rot=src.root_rot; FlagCopy(flag, src.flag, ROOT_ALL);}
+      if(Undo(  file_time, src.  file_time)){changed|=CHANGE_AFFECT_FILE; transform=src.transform; root_move=src.root_move; root_rot=src.root_rot; fps=src.fps; FlagCopy(flag, src.flag, ROOT_ALL);}
 
       if(changed)newVer();
       return changed;
@@ -1224,7 +1225,7 @@ class ElmAnim : ElmData
    {
       bool changed=false;
 
-      if(Sync(file_time, src.file_time)){changed|=true; transform=src.transform; root_move=src.root_move; root_rot=src.root_rot; FlagCopy(flag, src.flag, ROOT_ALL);}
+      if(Sync(file_time, src.file_time)){changed|=true; transform=src.transform; root_move=src.root_move; root_rot=src.root_rot; fps=src.fps; FlagCopy(flag, src.flag, ROOT_ALL);}
 
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return true;
@@ -1247,35 +1248,41 @@ class ElmAnim : ElmData
    virtual bool save(File &f)C override
    {
       super.save(f);
-      f.cmpUIntV(3);
-      f<<skel_id<<transform<<root_move<<root_rot<<flag<<loop_time<<linear_time<<skel_time<<file_time;
+      f.cmpUIntV(4);
+      f<<skel_id<<transform<<root_move<<root_rot<<fps<<flag<<loop_time<<linear_time<<skel_time<<file_time;
       return f.ok();
    }
    virtual bool load(File &f)override
    {
       if(super.load(f))switch(f.decUIntV())
       {
+         case 4:
+         {
+            f>>skel_id>>transform>>root_move>>root_rot>>fps>>flag>>loop_time>>linear_time>>skel_time>>file_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
-            f>>skel_id>>transform>>root_move>>root_rot>>flag>>loop_time>>linear_time>>skel_time>>file_time;
+            f>>skel_id>>transform>>root_move>>root_rot>>flag>>loop_time>>linear_time>>skel_time>>file_time; fps=0;
             if(f.ok())return true;
          }break;
 
          case 2:
          {
-            f>>skel_id>>transform>>root_move>>root_rot; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time;
+            f>>skel_id>>transform>>root_move>>root_rot; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time; fps=0;
             if(f.ok())return true;
          }break;
 
          case 1:
          {
-            f>>skel_id>>transform>>root_move; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time; rootRotZero();
+            f>>skel_id>>transform>>root_move; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time; rootRotZero(); fps=0;
             if(f.ok())return true;
          }break;
 
          case 0:
          {
-            f>>skel_id>>transform; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time; rootMoveZero(); rootRotZero();
+            f>>skel_id>>transform; flag=OldFlag(f.getByte()); f>>loop_time>>linear_time>>skel_time>>file_time; rootMoveZero(); rootRotZero(); fps=0;
             if(f.ok())return true;
          }break;
       }
@@ -1293,6 +1300,7 @@ class ElmAnim : ElmData
     if(flag&ROOT_DEL_POS)nodes.New().set   ("RootDelPos"  , FlagAll(flag, ROOT_DEL_POS) ? S : S+(FlagTest(flag, ROOT_DEL_POS_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Z) ? 'Z' : '\0'));
     if(flag&ROOT_DEL_ROT)nodes.New().set   ("RootDelRot"  , FlagAll(flag, ROOT_DEL_ROT) ? S : S+(FlagTest(flag, ROOT_DEL_ROT_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Z) ? 'Z' : '\0'));
     if(flag&ROOT_SMOOTH )nodes.New().set   ("RootSmooth"  );
+    if(fps>0            )nodes.New().set   ("FPS"         , fps);
                          nodes.New().set   ("LoopTime"    ,   loop_time.text());
                          nodes.New().set   ("LinearTime"  , linear_time.text());
                          nodes.New().set   ("SkeletonTime",   skel_time.text());
@@ -1311,6 +1319,7 @@ class ElmAnim : ElmData
          if(n.name=="Loop"        )loop  (n.asBool1());else
          if(n.name=="Linear"      )linear(n.asBool1());else
          if(n.name=="RootSmooth"  )FlagSet(flag, ROOT_SMOOTH, n.asBool1());else
+         if(n.name=="FPS"         )        fps=n.asFlt ();else
          if(n.name=="LoopTime"    )  loop_time=n.asText();else
          if(n.name=="LinearTime"  )linear_time=n.asText();else
          if(n.name=="SkeletonTime")  skel_time=n.asText();else

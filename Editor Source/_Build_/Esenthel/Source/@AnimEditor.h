@@ -251,9 +251,10 @@ public:
    ElmAnim* data()C;       
    Animation* getVisAnim();
 
-   flt  timeToFrac(flt time)C;
-   flt  animTime  (        )C;
-   void animTime  (flt time);
+   flt  timeToFrac (flt time)C;           
+   bool timeToFrame(flt time, flt&frame)C;
+   flt  animTime(        )C;           
+   void animTime(flt time);
    void setLoop(bool loop);
    void setLinear(bool linear);
    void selBone(int bone);
