@@ -998,9 +998,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
                ImageSource &image=images[i]; image.i=i;
                Str base=GetBaseNoExt(image.name);
                REPA(base)if(CharFlag(base[i])&(CHARF_DIG|CHARF_UNDER))base.setChar(i, ' '); // replace _ and digits with space so whole words can work OK, because _ is treated as char and "_ao1" fails
-               if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal");}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
-               if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mul"  );}else // AO
-               if(                                                           Contains(base, "illumination")    ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend");}     // glow
+               if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
+               if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
+               if(                                                           Contains(base, "illumination")    ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
             }
             images.sort(Compare); // sort by order
          }

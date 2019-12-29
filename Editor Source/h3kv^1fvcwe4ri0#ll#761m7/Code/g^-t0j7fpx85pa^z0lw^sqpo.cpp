@@ -654,6 +654,7 @@ class Project
       APPLY_BLEND,
       APPLY_BLEND_PREMUL,
       APPLY_MUL,
+      APPLY_MUL_RGB,
       APPLY_DIV,
       APPLY_ADD,
       APPLY_SUB,
@@ -692,6 +693,7 @@ class Project
             if(p.value=="blend"                                              )mode=APPLY_BLEND;else
             if(p.value=="blendPremultiplied" || p.value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
             if(p.value=="mul"                                                )mode=APPLY_MUL;else
+            if(p.value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
             if(p.value=="div"                                                )mode=APPLY_DIV;else
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
@@ -736,6 +738,7 @@ class Project
                         case APPLY_BLEND       : c =             Blend(base, l); break;
                         case APPLY_BLEND_PREMUL: c =PremultipliedBlend(base, l); break;
                         case APPLY_MUL         : c=base*l; break;
+                        case APPLY_MUL_RGB     : c.set(base.xyz*l.xyz, base.w); break;
                         case APPLY_DIV         : c=base/l; break;
                         case APPLY_ADD         : c=base+l; break;
                         case APPLY_SUB         : c=base-l; break;
