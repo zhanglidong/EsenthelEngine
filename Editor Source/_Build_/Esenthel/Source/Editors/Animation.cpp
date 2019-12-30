@@ -691,6 +691,20 @@ AnimEditor AnimEdit;
          }
       }
    }
+   void AnimEditor::RootFromBodyXZ(AnimEditor &editor)
+   {
+      if(ElmAnim *d=editor.data())if(editor.skel)
+      {
+         editor.undos.set("rootFromBody");
+         uint flag=d->flag;
+         FlagDisable(d->flag, ElmAnim::ROOT_DEL_POS_X|ElmAnim::ROOT_DEL_POS_Z|ElmAnim::ROOT_DEL_ROT_Y);
+         FlagEnable (d->flag, ElmAnim::ROOT_DEL_POS_Y|ElmAnim::ROOT_DEL_ROT_X|ElmAnim::ROOT_DEL_ROT_Z|ElmAnim::ROOT_FROM_BODY);
+         if(d->flag!=flag)
+         {
+            editor.anim->adjustForSameTransformWithDifferentSkeleton(*editor.skel, *editor.skel, Max(0, editor.skel->findBoneI(BONE_SPINE)), null, d->rootFlags()); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui(); editor.setChanged();
+         }
+      }
+   }
    void AnimEditor::RootSetMove(AnimEditor &editor)
    {
       if(ElmAnim *d=editor.data())
@@ -936,9 +950,10 @@ AnimEditor AnimEdit;
       n.New().create("Paste Bone Position Z"       , SkelBonePosPasteZ, T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD|KBSC_SHIFT));
       n.New().create("Paste Bone Position X"       , SkelBonePosPasteX, T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD|KBSC_WIN_CTRL));
       n++;
-      n.New().create("Set Root From Body Z"      , RootFromBodyZ, T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD));
-      n.New().create("Set Root From Body X"      , RootFromBodyX, T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_SHIFT));
-      n.New().create("Del Root Position+Rotation", RootDel      , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT));
+      n.New().create("Set Root From Body Z"      , RootFromBodyZ , T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD));
+      n.New().create("Set Root From Body X"      , RootFromBodyX , T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_SHIFT));
+      n.New().create("Set Root From Body XZ"     , RootFromBodyXZ, T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_ALT));
+      n.New().create("Del Root Position+Rotation", RootDel       , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT));
       n++;
       n.New().create("Mirror"  , Mirror, T).desc("Mirror entire animation along X axis");
       n.New().create("Rotate X", RotX  , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along X axis");

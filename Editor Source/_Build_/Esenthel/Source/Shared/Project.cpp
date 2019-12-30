@@ -627,6 +627,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(p->value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
             if(p->value=="div"                                                )mode=APPLY_DIV;else
             if(p->value=="add"                                                )mode=APPLY_ADD;else
+            if(p->value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
             if(p->value=="sub"                                                )mode=APPLY_SUB;else
             if(p->value=="avg" || p->value=="average"                          )mode=APPLY_AVG;else
             if(p->value=="min"                                                )mode=APPLY_MIN;else
@@ -672,6 +673,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                         case APPLY_MUL_RGB     : c.set(base.xyz*l.xyz, base.w); break;
                         case APPLY_DIV         : c=base/l; break;
                         case APPLY_ADD         : c=base+l; break;
+                        case APPLY_ADD_RGB     : c.set(base.xyz+l.xyz, base.w); break;
                         case APPLY_SUB         : c=base-l; break;
                         case APPLY_AVG         : c=Avg(base, l); break;
                         case APPLY_MIN         : c=Min(base, l); break;

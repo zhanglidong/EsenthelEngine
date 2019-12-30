@@ -218,6 +218,7 @@ public:
    static void RootFromBody(AnimEditor &editor);
    static void RootFromBodyX(AnimEditor &editor);
    static void RootFromBodyZ(AnimEditor &editor);
+   static void RootFromBodyXZ(AnimEditor &editor);
    static void RootSetMove(AnimEditor &editor);
    static void RootSetRot(AnimEditor &editor);
    static Str  RootMoveX(C AnimEditor &editor);         

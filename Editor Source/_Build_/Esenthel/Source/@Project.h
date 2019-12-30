@@ -174,6 +174,7 @@ class Project
       APPLY_MUL_RGB,
       APPLY_DIV,
       APPLY_ADD,
+      APPLY_ADD_RGB,
       APPLY_SUB,
       APPLY_AVG,
       APPLY_MIN,
