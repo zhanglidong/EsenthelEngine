@@ -107,7 +107,8 @@ public:
    static Str  DownsizeTexMobile(C MaterialRegion &mr          );
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t);
 
-   /*static cchar8 *TexQuality[]=
+   /*FIXME
+   static cchar8 *TexQuality[]=
    {
       "2-bit Low (default)",
       "4-bit High",

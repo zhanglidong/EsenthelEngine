@@ -37,10 +37,6 @@ const bool          MiscOnTop=false,
                     TolerantSecondaryServer=false, // will ignore DeviceID when getting confirmation from secondary authentication server
                     SupportBC7       =true , // if support BC7 compression
                     WebBC7           =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-                    ForceHQMtrlBase0 =false, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
-                    ForceHQMtrlBase1 =true , // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
-                    ForceHQMtrlBase2 =false, // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
-                    ForceHQMtrlDetail=true , // if always use high quality compression for Material Detail Texture (NxNyColBump        ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
                     ImportRemovedElms=false, 
                     RenameAnimBonesOnSkelChange=true; // See also: FIND_ANIM_BY_NAME_ONLY in the Engine
                                             // min size of mesh box (in meters) to split it

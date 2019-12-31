@@ -375,7 +375,8 @@ class MaterialRegion : Region
    static Str  DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
 
-   /*static cchar8 *TexQuality[]=
+   /*FIXME
+   static cchar8 *TexQuality[]=
    {
       "2-bit Low (default)",
       "4-bit High",

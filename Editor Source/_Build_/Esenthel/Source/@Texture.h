@@ -10,7 +10,7 @@ class Texture
       REGENERATE=1<<3, // if this texture needs to be regenerated
    };
    UID id; // texture id
-   sbyte  quality; // -1=PVRTC1_2, 0=default, 1=BC7
+   sbyte  quality; // -1=PVRTC1_2, 0=default, 1=BC7, 2=uncompressed
    byte  downsize, // downsize
          channels, // assume RGB by default (no alpha used)
             flags;

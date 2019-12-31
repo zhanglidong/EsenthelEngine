@@ -317,16 +317,16 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
    bool sign=false;
    if(flags&WATER_MTRL)
    {
-      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #WaterMaterialTextureLayout
-      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
-      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC4_SIGN; compress_type=null;}} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
+      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0>0)flags|=FORCE_HQ; flags|=SRGB;} // #WaterMaterialTextureLayout
+      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
+      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC4_SIGN; compress_type=null;}} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
    }else
    {
-      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
-      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
-      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
+      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0>0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
+      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
+      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2>0)flags|=FORCE_HQ;} // #MaterialTextureLayout
    }
-   if(flags&MTRL_DETAIL){if(ForceHQMtrlDetail)flags|=FORCE_HQ;}
+   if(flags&MTRL_DETAIL){if(ForceHQMtrlDetail>0)flags|=FORCE_HQ;}
    if(md5 || compress_type)
    {
       // set initial values

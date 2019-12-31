@@ -33,10 +33,6 @@ extern const bool          MiscOnTop,
                     TolerantSecondaryServer, // will ignore DeviceID when getting confirmation from secondary authentication server
                     SupportBC7        , // if support BC7 compression
                     WebBC7           , // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-                    ForceHQMtrlBase0 , // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
-                    ForceHQMtrlBase1  , // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
-                    ForceHQMtrlBase2 , // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
-                    ForceHQMtrlDetail , // if always use high quality compression for Material Detail Texture (NxNyColBump        ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
                     ImportRemovedElms, 
                     RenameAnimBonesOnSkelChange;
 extern const COMPRESS_TYPE ServerNetworkCompression     , ClientNetworkCompression     , EsenthelProjectCompression     ;

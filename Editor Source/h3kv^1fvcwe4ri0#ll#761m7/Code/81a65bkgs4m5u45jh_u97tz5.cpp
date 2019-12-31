@@ -1588,12 +1588,14 @@ class ProjectEx : ProjectHierarchy
          {
             if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
             {
-               EditMaterial edit; if(edit.load(editPath(mtrl.id)))if(ElmMaterial *mtrl_data=mtrl.mtrlData())
+               EditMaterial edit; if(edit.load(editPath(mtrl.id)))if(edit.tex_quality!=quality)if(ElmMaterial *mtrl_data=mtrl.mtrlData())
                {
+                  edit.tex_quality=quality; edit.tex_quality_time.now();
                   mtrl_data.newVer();
-                  mtrl_data.texQuality(edit.tex_quality=quality); edit.tex_quality_time.now();
+                  mtrl_data.texQuality(edit.tex_quality);
                   Save(edit, editPath(mtrl.id));
                 //makeGameVer(*mtrl); this is not needed because 'tex_quality' is not stored in the game version, instead textures are converted during publishing
+                  // FIXME make base textures?
                   Server.setElmLong(mtrl.id); // Long is needed because 'tex_quality_time' is only in edit
                }
             }

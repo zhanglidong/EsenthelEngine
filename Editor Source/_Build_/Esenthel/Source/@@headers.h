@@ -615,6 +615,10 @@ const int  EE_APP_BUILD        =62;
 const uint EditMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL|VTX_TAN_BIN), // TanBin are not needed in Edit because they're always re-created if needed
            GameMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL);
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
+                    ForceHQMtrlBase0 =-1, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
+                    ForceHQMtrlBase1 = 1, // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
+                    ForceHQMtrlBase2 =-1, // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
+                    ForceHQMtrlDetail= 1, // if always use high quality compression for Material Detail Texture (NxNyColSmooth      ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
                     HeightBrushNoiseRes=256,
                     MtrlBrushSlots=14,
                     MaxDemoProjElms=64,
