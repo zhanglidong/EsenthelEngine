@@ -2562,9 +2562,9 @@ void Include(Rect  &rect, bool &is, C Rect  &x) {if(is          )rect|=x;else{is
 void Include(Box   &box , bool &is, C Vec   &v) {if(is          )box |=v;else{is=true; box =v;}}
 void Include(Box   &box , bool &is, C Box   &b) {if(is          )box |=b;else{is=true; box =b;}}
 /******************************************************************************/
-void DrawMatrix(C Matrix &matrix, int axis)
+void DrawMatrix(C Matrix &matrix, int bold_axis)
 {
-   matrix.draw(); switch(axis)
+   matrix.draw(); switch(bold_axis)
    {
       case 0: DrawArrow2(RED  , matrix.pos, matrix.pos+matrix.x, 0.005f); break;
       case 1: DrawArrow2(GREEN, matrix.pos, matrix.pos+matrix.y, 0.005f); break;

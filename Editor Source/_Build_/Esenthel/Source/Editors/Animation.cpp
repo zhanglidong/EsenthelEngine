@@ -520,37 +520,41 @@ AnimEditor AnimEdit;
       Renderer.setDepthForDebugDrawing();
       if(     axis ()){SetMatrix(); MatrixIdentity.draw();}
       if(show_grid ()){SetMatrix(); bool line_smooth=D.lineSmooth(false); int size=8; Plane(VecZero, Vec(0, 1, 0)).drawLocal(Color(255, 128), size, false, size*(3*2)); D.lineSmooth(line_smooth);} // disable line smoothing because it can be very slow for lots of full-screen lines
-      if(draw_bones())
+      if(draw_bones() || settings()==0) // always draw axis for root when settings are visible
       {
          SetMatrix();
          D.depthLock(false);
-         int sel_bone2=((op()==OP_ORN2) ? boneParent(sel_bone) : -1);
-         REPA(anim_skel.bones)
+         int drawn_matrix_for_bone=INT_MIN;
+         if( draw_bones())
          {
-            SkelBone bone=transformedBone(i);
-            bool has_keys=false; if(AnimKeys *keys=findVisKeys(i))switch(op())
+            int sel_bone2=((op()==OP_ORN2) ? boneParent(sel_bone) : -1);
+            REPA(anim_skel.bones)
             {
-               case OP_ORN  :
-               case OP_ORN2 : has_keys=(keys->orns  .elms()>0); break;
-               case OP_POS  : has_keys=(keys->poss  .elms()>0); break;
-               case OP_SCALE: has_keys=(keys->scales.elms()>0); break;
+               SkelBone bone=transformedBone(i);
+               bool has_keys=false; if(AnimKeys *keys=findVisKeys(i))switch(op())
+               {
+                  case OP_ORN  :
+                  case OP_ORN2 : has_keys=(keys->orns  .elms()>0); break;
+                  case OP_POS  : has_keys=(keys->poss  .elms()>0); break;
+                  case OP_SCALE: has_keys=(keys->scales.elms()>0); break;
+               }
+               Color col=(has_keys ? PURPLE : CYAN);
+               bool  lit=(lit_bone==i), sel=(sel_bone==i || sel_bone2==i);
+               if(lit && sel)col=LitSelColor;else 
+               if(       sel)col=   SelColor;else
+               if(lit       )col=      col  ;else 
+                             col.a=140;
+               bone.draw(col);
             }
-            Color col=(has_keys ? PURPLE : CYAN);
-            bool  lit=(lit_bone==i), sel=(sel_bone==i || sel_bone2==i);
-            if(lit && sel)col=LitSelColor;else 
-            if(       sel)col=   SelColor;else
-            if(lit       )col=      col  ;else 
-                          col.a=140;
-            bone.draw(col);
+          //if(skel && InRange(sel_bone, skel.bones)) don't check this so we can draw just for root too
+            {
+               if(op()==OP_ORN || op()==OP_ORN2 )orn_target.draw(RED, 0.005f);
+               if(op()==OP_POS || op()==OP_SCALE
+              || (op()==OP_ORN || op()==OP_ORN2 || (anim && anim->keys.is()) || settings()==0) && sel_bone<0 // always draw axis for root
+               )DrawMatrix(transformedBoneAxis(drawn_matrix_for_bone=sel_bone), bone_axis);
+            }
          }
-       //if(skel && InRange(sel_bone, skel.bones)) don't check this so we can draw just for root too
-         {
-            if(op()==OP_ORN || op()==OP_ORN2 )orn_target.draw(RED, 0.005f);
-            if(op()==OP_POS || op()==OP_SCALE
-           || (op()==OP_ORN || op()==OP_ORN2 || (anim && anim->keys.is()) || settings()==0) && sel_bone<0 // always draw axis for root
-            )DrawMatrix(transformedBoneAxis(sel_bone), bone_axis);
-         }
-         if(sel_bone>=0 && settings()==0)DrawMatrix(transformedBoneAxis(-1), -1); // always draw axis for root when settings are visible
+         if(drawn_matrix_for_bone!=-1 && settings()==0)DrawMatrix(transformedBoneAxis(-1), -1); // always draw axis for root when (not yet drawn and settings are visible)
          D.depthUnlock();
       }
       D.lineSmooth(line_smooth);

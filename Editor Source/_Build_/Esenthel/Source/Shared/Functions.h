@@ -252,7 +252,7 @@ void Include(Rect  &rect, bool &is, C Vec2  &x);
 void Include(Rect  &rect, bool &is, C Rect  &x);
 void Include(Box   &box , bool &is, C Vec   &v);
 void Include(Box   &box , bool &is, C Box   &b);
-void DrawMatrix(C Matrix &matrix, int axis);
+void DrawMatrix(C Matrix &matrix, int bold_axis);
 void Hide(GuiObj &go);
 Rect GetRect(C Rect &rect, Memt<Rect> &rects);
 void Include(MemPtr<UID> ids, C UID &id);
