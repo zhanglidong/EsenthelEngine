@@ -158,11 +158,20 @@ Bool _ResizeWaifu(C Image &src, Image &dest, UInt flags) // assumes that images 
 
       // process RGB
       IMAGE_TYPE type=(s->sRGB() ? IMAGE_F32_3_SRGB : IMAGE_F32_3); // Waifu works best when operating on perceptual gamma (sRGB for colors and linear for non-colors (normap maps/alpha/etc.)) so just operate on image native gamma. When linear gamma is used for colors, then brightness can change significantly compared to original image.
+      Bool first=true;
       do{
          Image &dest=temp[i]; i^=1;
          if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, type))return false;
-         REPD(y, dest.lh())
-         REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2)); // always use native gamma
+         if(first) // saturate because Waifu will not work well if values are outside of 0..1 range
+         {
+            first=false;
+            REPD(y, dest.lh())
+            REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2).sat()); // always use native gamma
+         }else
+         {
+            REPD(y, dest.lh())
+            REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2)); // always use native gamma
+         }
          if(!Waifu.process(dest, clamp))return false;
          s=&dest;
       }while(s->lw()<dest.lw() || s->lh()<dest.lh());
@@ -178,7 +187,7 @@ Bool _ResizeWaifu(C Image &src, Image &dest, UInt flags) // assumes that images 
             Image &dest=temp[i]; i^=1;
             if(!dest.createSoftTry(s->lw()*2, s->lh()*2, 1, IMAGE_F32_3))return false;
             REPD(y, dest.lh())
-            REPD(x, dest.lw())dest.colorF(x, y, s->colorF(x/2, y/2).w);
+            REPD(x, dest.lw())dest.colorF(x, y, Sat(s->colorF(x/2, y/2).w)); // saturate because Waifu will not work well if values are outside of 0..1 range
             if(!Waifu.process(dest, clamp))return false;
             s=&dest;
          }

@@ -1378,9 +1378,10 @@ void CodeEditor::update(Bool active)
                   if(!build_debug) // skip for DEBUG because it interferes with incremental linking
                   if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL)
                {
-                  File f; if(f.readStdTry(build_exe))
+                  Str  error;
+                  File f; if(!f.readStdTry(build_exe))error="Can't open file";else
                   {
-                     Memc<ExeSection> sections; if(ParseExe(f, sections))
+                     Memc<ExeSection> sections; if(!ParseExe(f, sections))error="Can't parse EXE";else
                      {
                         xxHash64 file_hash;
                       C ExeSection *section_hash_ptr=null;
@@ -1392,27 +1393,32 @@ void CodeEditor::update(Bool active)
                               case ExeSection::HASH    : section_hash_ptr=&section; break; // remember HASH section for use later
                               default:
                               {
-                                 if(!f.pos(section.offset))goto hash_error;
-                                 ULong section_hash=f.xxHash64(section.size); if(!f.ok())goto hash_error; // get hash of this section
+                                 if(!f.pos(section.offset)){error="Seek failed"; goto hash_error;}
+                                 ULong section_hash=f.xxHash64(section.size); if(!f.ok()){error="Hash failed"; goto hash_error;} // get hash of this section
                                  file_hash.update(&section_hash, SIZE(section_hash)); // update file hash based on section hash, use this method so in the app we can just once calculate hash per section just like here, and combine section hashes for final hash
                               }break;
                            }
                         }
-                        if(section_hash_ptr && (build_debug ? section_hash_ptr->size>=SIZE(ULong) : section_hash_ptr->size==SIZE(ULong))) // when building in DEBUG mode, some extra data may be allocated
+                        if(!section_hash_ptr)error="Hash section not found";else
+                        if(build_debug ? section_hash_ptr->size<SIZE(ULong) : section_hash_ptr->size!=SIZE(ULong))error="Invalid hash section size";else // when building in DEBUG mode, some extra data may be allocated
                         {
                            ULong hash=file_hash();
                            if(Cipher *cipher=CE.cei().appEmbedCipher())cipher->encrypt(&hash, &hash, SIZE(hash), 0); // encrypt with project cipher
-                           if(!f.pos(section_hash_ptr->offset))goto hash_error;
-                           if( f.getULong()==hash)goto hash_ok; // file already has correct hash, check this in case we are building for 2nd time and file was already adjusted, perhaps that EXE is already running so we can't modify it
-                           if( f.appendTry(build_exe) && f.pos(section_hash_ptr->offset)) // modify hash
+                           if(!f.pos(section_hash_ptr->offset))error="Seek failed";else
                            {
-                              f.putULong(hash);
-                              if(f.flushOK())goto hash_ok;
+                              if( f.getULong()==hash)goto hash_ok; // file already has correct hash, check this in case we are building for 2nd time and file was already adjusted, perhaps that EXE is already running so we can't modify it
+                              if(!f.appendTry(build_exe))error="Can't edit EXE";else // modify hash
+                              if(!f.pos(section_hash_ptr->offset))error="Seek failed";else
+                              {
+                                 f.putULong(hash);
+                                 if(!f.flushOK())error="Flush failed";else
+                                    goto hash_ok;
+                              }
                            }
                         }
                      }
                   }
-               hash_error: BuildError("Error: Can't set EXE hash", at_end); //ok=false; ignore clearing 'ok' to allow proceeding in case hash is not needed by the user
+               hash_error: BuildError(S+"Error: Can't set EXE hash"+(error.is() ? S+" ("+error+")" : S), at_end); //ok=false; ignore clearing 'ok' to allow proceeding in case hash is not needed by the user
                hash_ok   :;
                }
                if(ok)
