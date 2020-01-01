@@ -1648,10 +1648,10 @@ void DrawProject()
       {
          if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
          {
-            EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+            EditMaterial edit; if(!mtrlGet(mtrl->id, edit))ok=false;else
             {
                edit.tex_quality=quality; edit.tex_quality_time.now();
-               ok&=mtrlSync(elm_ids[i], edit, true, false, "texQuality");
+               ok&=mtrlSync(mtrl->id, edit, true, false, "texQuality");
             }
          }
       }
