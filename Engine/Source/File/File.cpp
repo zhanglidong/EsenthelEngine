@@ -1031,7 +1031,7 @@ File& File::decOrient4(Matrix3 &m)
 /******************************************************************************/
 UInt File::memUsage()C
 {
-   UInt   mem=_buf_size;
+   UInt mem=_buf_size;
    switch(_type)
    {
       case FILE_MEM : if(_writable)mem+=_size           ; break;

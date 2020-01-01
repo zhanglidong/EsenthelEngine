@@ -42,6 +42,8 @@ constexpr Bool Greater( Int a,  Int b) {return      a >     b ;}
 constexpr Bool Greater(UInt a, UInt b) {return      a >     b ;}
 constexpr Bool Greater( Int a, UInt b) {return Long(a)>Long(b);} // faster than "Unsigned(a)>b && a>0"
 constexpr Bool Greater(UInt a,  Int b) {return Long(a)>Long(b);} // faster than "a>Unsigned(b) && b>0"
+constexpr Bool Greater(Long a, UInt b) {return      a >Long(b);}
+constexpr Bool Greater(UInt a, Long b) {return Long(a)>     b ;}
 
 Str GetBase     (C Str &name); // get     base name                  , sample usage: GetBase     ("C:/Folder/file.ext") -> "file.ext"
 Str GetBaseNoExt(C Str &name); // get     base name without extension, sample usage: GetBaseNoExt("C:/Folder/file.ext") -> "file"
