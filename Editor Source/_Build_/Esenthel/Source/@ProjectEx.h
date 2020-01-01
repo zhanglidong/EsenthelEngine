@@ -368,8 +368,8 @@ public:
    bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
-   void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize);
-   void mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality);
+   void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero);
+   bool mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero); // !! this is not perfect !!
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexSmooth(C MemPtr<UID> &elm_ids);

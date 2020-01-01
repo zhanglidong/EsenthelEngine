@@ -1560,22 +1560,48 @@ void DrawProject()
          }
       }
    }
-   void ProjectEx::mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize)
+   void ProjectEx::mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0, C UID &base_1, C UID &base_2)
    {
       Memt<UID> mtrls;
-      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->downsize_tex_mobile!=downsize)
+      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())//if(mtrl_data.downsize_tex_mobile!=downsize) skip check here, so we can always process similar materials even if this one already has desired value
          if(mtrls.binaryInclude(mtrl->id)) // if just added
       {
          // include other materials that have the same textures
-         if(mtrl_data->base_0_tex.valid() || mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
-            FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test->downsize_tex_mobile!=downsize && test->base_0_tex==mtrl_data->base_0_tex && test->base_1_tex==mtrl_data->base_1_tex && test->base_2_tex==mtrl_data->base_2_tex)mtrls.binaryInclude(elms[i].id);
+         EditMaterial edit; if(mtrlGet(mtrl->id, edit))
+         {
+            // can't check by just 'mtrl_data.base_*_tex' because textures for this material could have been already reloaded with different quality, which could generate a different ID for them, instead we will check materials by Tex ID and Tex Src File
+            // can't just compare materials by Tex Src File because this is not stored in ElmMaterial and would require loading 'EditMaterial' for all materials which would be slow
+            // so only materials which tex ID is included in 'tex_ids' will be loaded
+            Memt<UID> tex_ids;
+            if(mtrl_data->base_0_tex.valid())tex_ids.binaryInclude(mtrl_data->base_0_tex); // include searching for 'mtrl_data.base_0_tex'
+            if(mtrl_data->base_1_tex.valid())tex_ids.binaryInclude(mtrl_data->base_1_tex); // include searching for 'mtrl_data.base_1_tex'
+            if(mtrl_data->base_2_tex.valid())tex_ids.binaryInclude(mtrl_data->base_2_tex); // include searching for 'mtrl_data.base_2_tex'
+            if(          base_0    .valid())tex_ids.binaryInclude(          base_0    ); // include searching for 'base_0' (Tex ID before reload)
+            if(          base_1    .valid())tex_ids.binaryInclude(          base_1    ); // include searching for 'base_1' (Tex ID before reload)
+            if(          base_2    .valid())tex_ids.binaryInclude(          base_2    ); // include searching for 'base_2' (Tex ID before reload)
+            if(tex_ids.elms()) // if has any Tex ID's to compare
+               FREPA(elms)if(C ElmMaterial *test_data=elms[i].mtrlData())if(test_data->downsize_tex_mobile!=downsize) // check all materials
+                  if(tex_ids.binaryHas(test_data->base_0_tex) // if their textures match any in 'tex_ids'
+                  || tex_ids.binaryHas(test_data->base_1_tex)
+                  || tex_ids.binaryHas(test_data->base_2_tex))
+            {
+               EditMaterial test;
+               if(mtrlGet(elms[i].id, test)) // do extra checks if maps are the same
+               if(edit.  color_map.is() && EqualPath(edit.  color_map, test.  color_map)
+               || edit. smooth_map.is() && EqualPath(edit. smooth_map, test. smooth_map)
+               || edit.reflect_map.is() && EqualPath(edit.reflect_map, test.reflect_map)
+               || edit.   bump_map.is() && EqualPath(edit.   bump_map, test.   bump_map)
+               || edit. normal_map.is() && EqualPath(edit. normal_map, test. normal_map)
+               || edit.   glow_map.is() && EqualPath(edit.   glow_map, test.   glow_map))
+                  mtrls.binaryInclude(elms[i].id); // process this material too
+            }
+         }
       }
-      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
+      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))if(ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->downsize_tex_mobile!=downsize)
       {
          if(MtrlEdit.elm==mtrl)MtrlEdit.downsizeTexMobile(downsize);else
          {
-            EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(ElmMaterial *mtrl_data=mtrl->mtrlData())
+            EditMaterial edit; if(edit.load(editPath(mtrl->id)))
             {
                mtrl_data->newVer();
                mtrl_data->downsize_tex_mobile=edit.downsize_tex_mobile=downsize; edit.downsize_tex_mobile_time.now();
@@ -1586,32 +1612,50 @@ void DrawProject()
          }
       }
    }
-   void ProjectEx::mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality)
+   bool ProjectEx::mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality, C UID &base_0, C UID &base_1, C UID &base_2) // !! this is not perfect !!
    {
+      bool ok=true;
       Memt<UID> mtrls;
-      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->tex_quality!=quality)
+      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())//if(mtrl_data.tex_quality!=quality) skip check here, so we can always process similar materials even if this one already has desired value
          if(mtrls.binaryInclude(mtrl->id)) // if just added
       {
          // include other materials that have the same textures
-         if(mtrl_data->base_0_tex.valid() || mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
-            FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test->tex_quality!=quality && test->base_0_tex==mtrl_data->base_0_tex && test->base_1_tex==mtrl_data->base_1_tex && test->base_2_tex==mtrl_data->base_2_tex)mtrls.binaryInclude(elms[i].id);
-      }
-      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
-      {
-         if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
+         EditMaterial edit; if(mtrlGet(mtrl->id, edit) && edit.color_map.is())
          {
-            EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(ElmMaterial *mtrl_data=mtrl->mtrlData())
+            // tex quality affects only 'base_0'
+            // can't check by just 'mtrl_data.base_0_tex' because textures for this material could have been already reloaded with different quality, which could generate a different ID for them, instead we will check materials by Tex ID and Tex Src File
+            // can't just compare materials by Tex Src File because this is not stored in ElmMaterial and would require loading 'EditMaterial' for all materials which would be slow
+            // so only materials which tex ID is included in 'tex_ids' will be loaded
+            Memt<UID> tex_ids;
+            if(mtrl_data->base_0_tex.valid())tex_ids.binaryInclude(mtrl_data->base_0_tex); // include searching for 'mtrl_data.base_0_tex'
+            if(mtrl_data->base_1_tex.valid())tex_ids.binaryInclude(mtrl_data->base_1_tex); // include searching for 'mtrl_data.base_1_tex'
+            if(mtrl_data->base_2_tex.valid())tex_ids.binaryInclude(mtrl_data->base_2_tex); // include searching for 'mtrl_data.base_2_tex'
+            if(          base_0    .valid())tex_ids.binaryInclude(          base_0    ); // include searching for 'base_0' (Tex ID before reload)
+            if(          base_1    .valid())tex_ids.binaryInclude(          base_1    ); // include searching for 'base_1' (Tex ID before reload)
+            if(          base_2    .valid())tex_ids.binaryInclude(          base_2    ); // include searching for 'base_2' (Tex ID before reload)
+            if(tex_ids.elms()) // if has any Tex ID's to compare
+               FREPA(elms)if(C ElmMaterial *test_data=elms[i].mtrlData())if(test_data->tex_quality!=quality) // check all materials
+                  if(tex_ids.binaryHas(test_data->base_0_tex) // if their textures match any in 'tex_ids'
+                  || tex_ids.binaryHas(test_data->base_1_tex)
+                  || tex_ids.binaryHas(test_data->base_2_tex))
             {
-               mtrl_data->newVer();
-               mtrl_data->tex_quality=edit.tex_quality=quality; edit.tex_quality_time.now();
-               Save(edit, editPath(mtrl->id));
-             //makeGameVer(*mtrl); this is not needed because 'tex_quality' is not stored in the game version, instead textures are converted during publishing
-               // FIXME make base textures?
-               Server.setElmLong(mtrl->id); // Long is needed because 'tex_quality_time' is only in edit
+               EditMaterial test; if(mtrlGet(elms[i].id, test) && EqualPath(edit.color_map, test.color_map)) // do extra check if color map is the same
+                  mtrls.binaryInclude(elms[i].id); // process this material too
             }
          }
       }
+      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))if(ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->tex_quality!=quality)
+      {
+         if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
+         {
+            EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+            {
+               edit.tex_quality=quality; edit.tex_quality_time.now();
+               ok&=mtrlSync(elm_ids[i], edit, true, false, "texQuality");
+            }
+         }
+      }
+      return ok;
    }
    bool ProjectEx::mtrlMulTexCol(C MemPtr<UID> &elm_ids)
    {

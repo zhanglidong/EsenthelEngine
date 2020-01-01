@@ -241,7 +241,7 @@ class EditMaterial
       changed|=CHANGED_PARAM*SyncByValue(               tech_time, time, tech               , src.technique          );
       changed|=CHANGED_PARAM*SyncByValue(               cull_time, time, cull               , src.cull               );
       changed|=              SyncByValue(      flip_normal_y_time, time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=CHANGED_PARAM*SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        );
+      changed|=              SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_BASE            ); // set CHANGED_BASE too because this should trigger reloading base textures
       changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
 
       changed|=CHANGED_PARAM*SyncByValueEqual(  color_time, time, color_s, src.color_s);
@@ -309,10 +309,10 @@ class EditMaterial
          light_map=src.light_map;
          light_tex=src.light_tex;
       }
-      changed|=Sync(               cull_time, src.               cull_time,                cull, src.               cull)*CHANGED_PARAM;
-      changed|=Sync(               tech_time, src.               tech_time,                tech, src.               tech)*CHANGED_PARAM;
-      changed|=Sync(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
-      changed|=Sync(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
+      changed|=Sync(               cull_time, src.               cull_time,                cull, src.               cull)* CHANGED_PARAM;
+      changed|=Sync(               tech_time, src.               tech_time,                tech, src.               tech)* CHANGED_PARAM;
+      changed|=Sync(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*(CHANGED_PARAM|CHANGED_BASE);
+      changed|=Sync(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)* CHANGED_PARAM;
 
       changed|=Sync(    color_time, src.    color_time, color_s  , src.color_s  )*CHANGED_PARAM;
       changed|=Sync(  ambient_time, src.  ambient_time, ambient  , src.ambient  )*CHANGED_PARAM;
@@ -371,10 +371,10 @@ class EditMaterial
          light_map=src.light_map;
          light_tex=src.light_tex;
       }
-      changed|=Undo(               cull_time, src.               cull_time,                cull, src.               cull)*CHANGED_PARAM;
-      changed|=Undo(               tech_time, src.               tech_time,                tech, src.               tech)*CHANGED_PARAM;
-      changed|=Undo(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
-      changed|=Undo(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
+      changed|=Undo(               cull_time, src.               cull_time,                cull, src.               cull)* CHANGED_PARAM;
+      changed|=Undo(               tech_time, src.               tech_time,                tech, src.               tech)* CHANGED_PARAM;
+      changed|=Undo(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*(CHANGED_PARAM|CHANGED_BASE);
+      changed|=Undo(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)* CHANGED_PARAM;
 
       changed|=Undo(    color_time, src.    color_time, color_s  , src.color_s  )*CHANGED_PARAM;
       changed|=Undo(  ambient_time, src.  ambient_time, ambient  , src.ambient  )*CHANGED_PARAM;
