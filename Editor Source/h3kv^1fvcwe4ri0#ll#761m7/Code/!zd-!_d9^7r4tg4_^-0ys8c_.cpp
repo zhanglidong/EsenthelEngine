@@ -97,10 +97,6 @@ class ProjectSettings : ClosableWindow
       {
          ListColumn(MEMBER(CompressType, name), LCW_MAX_DATA_PARENT, "name"),
       };
-      ListColumn name_desc_column[]=
-      {
-         ListColumn(MEMBER(NameDesc, name), LCW_MAX_DATA_PARENT, "Name"),
-      };
       ListColumn class_name_desc_column[]=
       {
          ListColumn(MEMBER(ClassNameDesc, name), LCW_MAX_DATA_PARENT, "Name"),
@@ -118,7 +114,7 @@ class ProjectSettings : ClosableWindow
       T+=compress_level.create(Rect_LU(compress_type.rect().ru(), 0.1, compress_type.rect().h()), cmpr_lvl, Elms(cmpr_lvl)).set(9, QUIET).func(CompressLevelChanged, T).desc("Compression level\n0=Fastest compression but biggest size\n..\n22=Slowest compression but smallest size"); y-=p;
       T+=mtrl_simplify_t.create(Vec2(0.015, y), "Simplify Materials", &ts);
       T+=mtrl_simplify  .create(Rect_L(0.32, y, 0.2, h)).func(MaterialSimplifyChanged, T).desc("Select if materials should be simplified when published.\nSimplifying material means removing its Normal, Bump, Smooth, Reflect and Glow maps, and keeping only Color and Alpha maps.\nThis can be used on Mobile platforms.\nEnabling this option reduces package size of the application (because fewer textures are included).\nWhen materials are simplified then removed textures are baked onto the color map, improving quality of the material."); // #MaterialTextureLayout
-      mtrl_simplify.setColumns(name_desc_column, Elms(name_desc_column), true).setData(mtrl_simplify_nd, Elms(mtrl_simplify_nd)).set(0, QUIET).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=p;
+      mtrl_simplify.setColumns(NameDescListColumn, Elms(NameDescListColumn), true).setData(mtrl_simplify_nd, Elms(mtrl_simplify_nd)).set(0, QUIET).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=p;
       T+=text_data_t.create(Vec2(0.015, y), "SVN Compatibility", &ts);
       T+=text_data.create(Rect_L(0.32, y, 0.52, h), text_data_modes, Elms(text_data_modes)).func(TextDataChanged, T).desc("This option allows to enable SVN Compatibility.\n\nBy default, Project Data can be synchronized across multiple computers only by using Esenthel Server application.\nWith this option enabled, you can synchronize your Project by using SVN as well.\n\nDisabled - Project Data is stored in Binary format only, which makes Project saving/loading faster, however SVN synchronization unavailable.\n\nEnabled - Project Data is stored in Binary and Text format, which makes Project saving/loading slower, however SVN synchronization possible.\nBinary version is used only as backup, in case the Text file would get messed up and is unable to be read from.\nHowever if the Text file is OK, then it will take precendence over Binary file, and Project Data will be read from the Text file and not the Binary file."); y-=p;
       T+=ok.create(Rect_D(clientWidth()/2, -clientHeight()+0.03, 0.3, 0.06), "OK").func(HideProjAct, SCAST(GuiObj, T));

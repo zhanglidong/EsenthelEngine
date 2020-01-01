@@ -520,14 +520,15 @@ enum MODE
 /******************************************************************************/
 enum
 {
-   FORCE_HQ    =1<<0, // high quality
-   IGNORE_ALPHA=1<<1,
-   SRGB        =1<<2,
-   MTRL_BASE_0 =1<<3,
-   MTRL_BASE_1 =1<<4,
-   MTRL_BASE_2 =1<<5,
-   WATER_MTRL  =1<<6,
-   MTRL_DETAIL =1<<7,
+   IGNORE_ALPHA=1<<0,
+   SRGB        =1<<1,
+   MTRL_BASE_0 =1<<2,
+   MTRL_BASE_1 =1<<3,
+   MTRL_BASE_2 =1<<4,
+   WATER_MTRL  =1<<5,
+   MTRL_DETAIL =1<<6,
+   MTRL_MACRO  =1<<7,
+   MTRL_LIGHT  =1<<8,
 };
 /******************************************************************************/
 enum
@@ -615,10 +616,6 @@ const int  EE_APP_BUILD        =62;
 const uint EditMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL|VTX_TAN_BIN), // TanBin are not needed in Edit because they're always re-created if needed
            GameMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL);
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
-                    ForceHQMtrlBase0 =-1, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout
-                    ForceHQMtrlBase1 = 1, // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
-                    ForceHQMtrlBase2 =-1, // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureLayout
-                    ForceHQMtrlDetail= 1, // if always use high quality compression for Material Detail Texture (NxNyColSmooth      ) #MaterialTextureLayout, set to true because normals need this (without this, they get very blocky due to low quality)
                     HeightBrushNoiseRes=256,
                     MtrlBrushSlots=14,
                     MaxDemoProjElms=64,
@@ -644,8 +641,8 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMinSize=4;
 const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE;
 const uint          NewElmTime=1;
-const uint ProjectVersion     =69, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=68;
+const uint ProjectVersion     =70, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=69;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=5            , EsenthelProjectCompressionLevel=5;
 /******************************************************************************/
 // TYPEDEFS

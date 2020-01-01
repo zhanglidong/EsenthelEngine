@@ -75,8 +75,8 @@ class ImporterClass
                base_1.load(b1); ImageProps(base_1, &base_1_id, null, MTRL_BASE_1);
                base_2.load(b2); ImageProps(base_2, &base_2_id, null, MTRL_BASE_2);
                detail.load(d ); ImageProps(detail, &detail_id, null, MTRL_DETAIL);
-               macro .load(m ); ImageProps(macro , & macro_id, null, SRGB|IGNORE_ALPHA);
-               light .load(l ); ImageProps(light , & light_id, null, SRGB|IGNORE_ALPHA);
+               macro .load(m ); ImageProps(macro , & macro_id, null, MTRL_MACRO );
+               light .load(l ); ImageProps(light , & light_id, null, MTRL_LIGHT );
 
                Edit.FileParams fp; 
                fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb");  color_map=fp.encode();
@@ -120,10 +120,10 @@ class ImporterClass
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
                uint       bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
-               IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0      ); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
-                              ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1      ); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
-                              ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2      ); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
-                              ImageProps( light, & light_id, &ct, SRGB|IGNORE_ALPHA); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
+               IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
+                              ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
+                              ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
+                              ImageProps( light, & light_id, &ct, MTRL_LIGHT ); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
                mtrl._adjustParams(~bt, bt);
             }
          }

@@ -419,71 +419,74 @@ bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type) // returns if any change w
 
 enum
 {
-   FORCE_HQ    =1<<0, // high quality
-   IGNORE_ALPHA=1<<1,
-   SRGB        =1<<2,
-   MTRL_BASE_0 =1<<3,
-   MTRL_BASE_1 =1<<4,
-   MTRL_BASE_2 =1<<5,
-   WATER_MTRL  =1<<6,
-   MTRL_DETAIL =1<<7,
+   IGNORE_ALPHA=1<<0,
+   SRGB        =1<<1,
+   MTRL_BASE_0 =1<<2,
+   MTRL_BASE_1 =1<<3,
+   MTRL_BASE_2 =1<<4,
+   WATER_MTRL  =1<<5,
+   MTRL_DETAIL =1<<6,
+   MTRL_MACRO  =1<<7,
+   MTRL_LIGHT  =1<<8,
 }
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
-   VecI size;
-   uint flags;
+   VecI       size;
+   byte       flags;
+   IMAGE_TYPE type;
 
-   ImageHashHeader(C Image &image, bool sign)
+   ImageHashHeader(C Image &image, IMAGE_TYPE type)
    {
+      ASSERT(SIZE(ImageHashHeader)==3*4+4); // make sure all compilers generate the same size
       Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
       size=image.size3();
       if(image.cube())flags|=1;
-      if(image.sRGB())flags|=2;
-      if(sign        )flags|=4;
-      // other flags can be used for example to force high quality, like BC7 instead of BC1
+      T.type=type;
    }
 }
-void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint flags=SRGB) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
+void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flags=SRGB, Edit.Material.TEX_QUALITY quality=Edit.Material.MEDIUM) // calculate image hash and best type for image compression
 {
-   bool sign=false;
-   if(flags&WATER_MTRL)
+   if(hash || best_type)
    {
-      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0>0)flags|=FORCE_HQ; flags|=SRGB;} // #WaterMaterialTextureLayout
-      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
-      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC4_SIGN; compress_type=null;}} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
-   }else
-   {
-      if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0>0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
-      if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1>0)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
-      if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2>0)flags|=FORCE_HQ;} // #MaterialTextureLayout
-   }
-   if(flags&MTRL_DETAIL){if(ForceHQMtrlDetail>0)flags|=FORCE_HQ;}
-   if(md5 || compress_type)
-   {
-      // set initial values
-      if(md5          )md5.zero();
-      if(compress_type)*compress_type=IMAGE_NONE;
-
-      // calculate
       if(image.is())
       {
-         MD5  m;
+         bool       sign=false;
+         IMAGE_TYPE type=IMAGE_NONE;
+         if(flags&WATER_MTRL)
+         {
+            if(flags&MTRL_BASE_0){MAX(quality, MinMtrlTexQualityBase0); flags|=SRGB;} // #WaterMaterialTextureLayout
+            if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
+            if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8_SIGN   : IMAGE_BC4_SIGN);} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
+         }else
+         {
+            if(flags&MTRL_BASE_0){MAX(quality, MinMtrlTexQualityBase0); flags|=SRGB;} // #MaterialTextureLayout
+            if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
+            if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2);} // #MaterialTextureLayout
+         }
+         if(flags&MTRL_DETAIL){MAX(quality, MinMtrlTexQualityDetail);}
+         if(flags&MTRL_MACRO ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
+         if(flags&MTRL_LIGHT ){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
+
+         MD5  h;
          bool bc1=true, // BC1 4-bit uses 1-bit alpha (0 or 255) (R,G,B,a?255:0)
               bc2=true, // BC2 8-bit uses 4-bit alpha
               bc4=true, // BC4 4-bit is (R,0,0,1)
               bc5=true, // BC5 8-bit is (R,G,0,1)
               srgb=FlagTest(flags, SRGB),
+              calc_type=(type==IMAGE_NONE), // if have to calculate type, always calculate type if unknown (even if 'best_type' is null), because it affects hash
               force_alpha=((flags&IGNORE_ALPHA) && image.typeInfo().a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
-              extract=((md5 && (sign ? image.hwType()!=IMAGE_R8G8B8A8_SIGN : (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB))) // hash is based on RGBA format
-                    || (compress_type && image.compressed()) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
+              extract=((hash && (sign ? image.hwType()!=IMAGE_R8G8B8A8_SIGN : (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB))) // hash is based on RGBA format
+                    || (calc_type && image.compressed()) // checking 'type' requires color reads so copy to RGBA soft to make them faster
                     || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
-         if(md5)m.update(&ImageHashHeader(image, sign), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb/sign images will always have different hash
          Image temp; C Image *src=(extract ? &temp : &image);
          Color min(255, 255), max(0, 0);
          FREPD(face, image.faces())
          {
-            int src_face=face; if(extract)if(image.extractMipMap(temp, sign ? IMAGE_R8G8B8A8_SIGN : image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
-            if( src.lockRead(0, DIR_ENUM(src_face)))
+            int src_face=face;
+            if(extract)
+               if(image.extractMipMap(temp, sign ? IMAGE_R8G8B8A8_SIGN : image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0; // !! RGBA is needed because below we use 'pixC' !!
+               else goto error;
+            if(src.lockRead(0, DIR_ENUM(src_face)))
             {
                if(force_alpha) // set before calculating hash
                {
@@ -492,11 +495,19 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
                   REPD(y, temp.h())
                   REPD(x, temp.w())temp.pixC(x, y, z).a=alpha;
                }
-               if(md5          )FREPD(z,  src.d())
-                                FREPD(y,  src.h())m.update(src.data() + y*src.pitch() + z*src.pitch2(), src.w()*src.bytePP()); // don't use 'src.pitch' to ignore any extra padding
-               if(compress_type) REPD(z,  src.d())
-                                 REPD(y,  src.h())
-                                 REPD(x,  src.w())
+               if(hash)
+               {
+                  int pitch =src.w()*src.bytePP(), // don't use 'src.pitch'                       to ignore any extra padding
+                      pitch2=pitch  *src.h     (); // use "pitch*src.h()" instead of 'src.pitch2' to ignore any extra padding
+                  FREPD(z, src.d()) // process in order
+                  {
+                     if(src.pitch()==pitch)h.update(src.data()                 + z*src.pitch2(), pitch2); // if don't have any extra padding then we can update hash for all Y's in one go
+                     else FREPD(y, src.h())h.update(src.data() + y*src.pitch() + z*src.pitch2(), pitch ); // process in order
+                  }
+               }
+               if(calc_type)REPD(z, src.d())
+                            REPD(y, src.h())
+                            REPD(x, src.w())
                {
                   Color c=src.color3D(x, y, z);
                   byte  bc2_a=((c.a*15+128)/255)*255/15;
@@ -509,25 +520,43 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
                   MAX(max.r, c.r); MAX(max.g, c.g); MAX(max.b, c.b); MAX(max.a, c.a);
                }
                src.unlock();
-            }
+            }else goto error;
          }
 
-         if(md5          )*md5=m();
-         if(compress_type)
+         if(calc_type)
          {
             if(                      min.a<254)bc1=false; // BC1 supports only           A=255 #BC1RGB
             if(max.g>1 || max.b>1 || min.a<254)bc4=false; // BC4 supports only G=0, B=0, A=255
             if(           max.b>1 || min.a<254)bc5=false; // BC5 supports only      B=0, A=255
-            if((flags&MTRL_BASE_2) && !(flags&WATER_MTRL) && max.b-min.b>1)bc1=false; // if this is Base2 Ext and have bump map #MaterialTextureLayout then disable BC1 and use high quality BC7
+            if((flags&MTRL_BASE_2) && !(flags&WATER_MTRL) && max.b-min.b>1)MAX(quality, Edit.Material.HIGH); // if this is Base2 Ext and have bump map #MaterialTextureLayout then disable MEDIUM quality BC1 and use HIGH quality BC7
 
-            if(bc4 && !srgb            )*compress_type=                         IMAGE_BC4 ;else // BC4 is 4-bit HQ so use it always if possible (doesn't support sRGB)
-            if(bc1 && !(flags&FORCE_HQ))*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // use BC1 only if we don't want HQ
-            if(bc5 && !srgb            )*compress_type=                         IMAGE_BC5 ;else // BC5 has better quality for RG than BC7 so check it first (doesn't support sRGB)
-            if(SupportBC7              )*compress_type=(srgb ? IMAGE_BC7_SRGB : IMAGE_BC7);else
-            if(bc1                     )*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // check BC1 again, now without HQ
-            if(bc2                     )*compress_type=(srgb ? IMAGE_BC2_SRGB : IMAGE_BC2);else
-                                        *compress_type=(srgb ? IMAGE_BC3_SRGB : IMAGE_BC3);
+            if(quality>=Edit.Material.FULL)
+            {
+               if(srgb || min.a<254 || max.b>1)type=IMAGE_R8G8B8A8_SRGB;else // sRGB or has Alpha or has Blue
+               if(                     max.g>1)type=IMAGE_R8G8         ;else // has Green
+                                               type=IMAGE_R8           ;
+            }else
+            {
+               if(bc4 && !srgb                     )type=                         IMAGE_BC4 ;else // BC4 is 4-bit HQ so use it always if possible (doesn't support sRGB)
+               if(bc1 && quality<Edit.Material.HIGH)type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // use BC1 only if we don't want HQ
+               if(bc5 && !srgb                     )type=                         IMAGE_BC5 ;else // BC5 has better quality for RG than BC7 so check it first (doesn't support sRGB)
+               if(SupportBC7                       )type=(srgb ? IMAGE_BC7_SRGB : IMAGE_BC7);else
+               if(bc1                              )type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // check BC1 again, now without HQ
+               if(bc2                              )type=(srgb ? IMAGE_BC2_SRGB : IMAGE_BC2);else
+                                                    type=(srgb ? IMAGE_BC3_SRGB : IMAGE_BC3);
+            }
          }
+         if(best_type)*best_type=type;
+         if(hash     )
+         {
+            h.update(&ImageHashHeader(image, type), SIZE(ImageHashHeader)); // need to append hash with a header, to make sure different sized/cube/srgb/sign/quality images will always have different hash
+           *hash=h();
+         }
+      }else
+      {
+      error:
+         if(hash     )hash.zero();
+         if(best_type)*best_type=IMAGE_NONE;
       }
    }
 }
@@ -838,7 +867,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_
    if(force_type)dest_type=IMAGE_TYPE(*force_type);else
    if(type==ElmImage.ALPHA)dest_type=IMAGE_A8;else
    if(type==ElmImage.FULL )dest_type=(has_color ? (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8) : has_alpha ? (srgb ? IMAGE_L8A8_SRGB : IMAGE_L8A8) : (srgb ? IMAGE_L8_SRGB : IMAGE_L8));else
-                           ImageProps(*src, null, &dest_type, (srgb ? SRGB : 0) | (ignore_alpha ? IGNORE_ALPHA : 0) | ((type==ElmImage.COMPRESSED2) ? FORCE_HQ : 0));
+                           ImageProps(*src, null, &dest_type, (srgb ? SRGB : 0) | (ignore_alpha ? IGNORE_ALPHA : 0), (type==ElmImage.FULL) ? Edit.Material.FULL : (type==ElmImage.COMPRESSED2) ? Edit.Material.HIGH : Edit.Material.MEDIUM);
 
    if((src.type()==IMAGE_L8 || src.type()==IMAGE_L8_SRGB) &&  dest_type==IMAGE_A8
    ||  src.type()==IMAGE_A8                               && (dest_type==IMAGE_L8 || dest_type==IMAGE_L8_SRGB))

@@ -605,10 +605,10 @@ class ElmMaterial : ElmData
       USES_TEX_ALPHA=1<<0,
       USES_TEX_BUMP =1<<1,
       USES_TEX_GLOW =1<<2,
-      TEX_QUALITY_HI=1<<3,
    }
-   UID  base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
-   byte downsize_tex_mobile=0, flag=0;
+   UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
+   byte                      downsize_tex_mobile=0, flag=0;
+   Edit.Material.TEX_QUALITY tex_quality=Edit.Material.MEDIUM;
 
    // get
    bool equal(C ElmMaterial &src)C {return super.equal(src);}
@@ -617,15 +617,6 @@ class ElmMaterial : ElmData
    bool usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}   void usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
    bool usesTexBump ()C {return FlagTest(flag, USES_TEX_BUMP );}   void usesTexBump (bool on) {return FlagSet(flag, USES_TEX_BUMP , on);}
    bool usesTexGlow ()C {return FlagTest(flag, USES_TEX_GLOW );}   void usesTexGlow (bool on) {return FlagSet(flag, USES_TEX_GLOW , on);}
-
-   int texQuality()C
-   {
-      return (flag&TEX_QUALITY_HI) ? 1 : 0;
-   }
-   void texQuality(int q)
-   {
-      FlagSet(flag, TEX_QUALITY_HI, q>0);
-   }
 
    virtual bool mayContain (C UID &id)C override {return false;}
    virtual bool containsTex(C UID &id, bool test_merged)C override
@@ -658,11 +649,11 @@ class ElmMaterial : ElmData
        light_tex=src. light_tex;
 
       downsize_tex_mobile=src.downsize_tex_mobile;
+      tex_quality        =src.tex_quality;
 
       usesTexAlpha(src.usesTexAlpha());
       usesTexBump (src.usesTexBump ());
       usesTexGlow (src.usesTexGlow ());
-      texQuality  (src.tex_quality   );
    }
    uint undo(C ElmMaterial &src) // don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
@@ -679,8 +670,8 @@ class ElmMaterial : ElmData
    virtual bool save(File &f)C override
    {
       super.save(f);
-      f.cmpUIntV(5);
-      f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex<<downsize_tex_mobile<<flag;
+      f.cmpUIntV(6);
+      f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex<<downsize_tex_mobile<<tex_quality<<flag;
       return f.ok();
    }
    virtual bool load(File &f)override
@@ -688,15 +679,21 @@ class ElmMaterial : ElmData
       UID old_reflection_tex;
       if(super.load(f))switch(f.decUIntV())
       {
+         case 6:
+         {
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>tex_quality>>flag;
+            if(f.ok())return true;
+         }break;
+
          case 5:
          {
-            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>flag;
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>flag; if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
          case 4:
          {
-            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>downsize_tex_mobile>>flag; base_2_tex.zero();
+            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>downsize_tex_mobile>>flag; base_2_tex.zero(); if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
@@ -736,7 +733,7 @@ class ElmMaterial : ElmData
       if(   macro_tex.valid())nodes.New().setFN("Macro"            ,    macro_tex);
       if(   light_tex.valid())nodes.New().setFN("Light"            ,    light_tex);
       if(downsize_tex_mobile )nodes.New().set  ("MobileTexDownsize", downsize_tex_mobile);
-                              nodes.New().set  ("TexQuality"       , texQuality());
+                              nodes.New().set  ("TexQuality"       ,  tex_quality);
       if(usesTexAlpha())nodes.New().set("UsesTexAlpha");
       if(usesTexBump ())nodes.New().set("UsesTexBump" );
       if(usesTexGlow ())nodes.New().set("UsesTexGlow" );
@@ -753,8 +750,8 @@ class ElmMaterial : ElmData
          if(n.name=="Detail"           )n.getValue(detail_tex);else
          if(n.name=="Macro"            )n.getValue( macro_tex);else
          if(n.name=="Light"            )n.getValue( light_tex);else
-         if(n.name=="MobileTexDownsize")downsize_tex_mobile=n.asInt() ;else
-         if(n.name=="TexQuality"       )texQuality         (n.asInt());else
+         if(n.name=="MobileTexDownsize")downsize_tex_mobile=                           n.asInt();else
+         if(n.name=="TexQuality"       )tex_quality        =(Edit.Material.TEX_QUALITY)n.asInt();else
          if(n.name=="UsesTexAlpha"     )FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
          if(n.name=="UsesTexBump"      )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
          if(n.name=="UsesTexGlow"      )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
@@ -769,11 +766,11 @@ class ElmWaterMtrl : ElmData
       USES_TEX_ALPHA=1<<0,
       USES_TEX_BUMP =1<<1,
       USES_TEX_GLOW =1<<2,
-      TEX_QUALITY_HI=1<<3,
    }
 
-   UID  base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero;
-   byte flag=0;
+   UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero;
+   byte                      flag=0;
+   Edit.Material.TEX_QUALITY tex_quality=Edit.Material.MEDIUM;
 
    // get
    bool equal(C ElmMaterial &src)C {return super.equal(src);}
@@ -782,15 +779,6 @@ class ElmWaterMtrl : ElmData
    bool usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}   void usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
    bool usesTexBump ()C {return FlagTest(flag, USES_TEX_BUMP );}   void usesTexBump (bool on) {return FlagSet(flag, USES_TEX_BUMP , on);}
    bool usesTexGlow ()C {return FlagTest(flag, USES_TEX_GLOW );}   void usesTexGlow (bool on) {return FlagSet(flag, USES_TEX_GLOW , on);}
-
-   int texQuality()C
-   {
-      return (flag&TEX_QUALITY_HI) ? 1 : 0;
-   }
-   void texQuality(int q)
-   {
-      FlagSet(flag, TEX_QUALITY_HI, q>0);
-   }
 
    // get
    bool equal(C ElmWaterMtrl &src)C {return super.equal(src);}
@@ -819,10 +807,12 @@ class ElmWaterMtrl : ElmData
       base_0_tex=src.base_0_tex;
       base_1_tex=src.base_1_tex;
       base_2_tex=src.base_2_tex;
+
+      tex_quality=src.tex_quality;
+
       usesTexAlpha(src.usesTexAlpha());
       usesTexBump (src.usesTexBump ());
       usesTexGlow (src.usesTexGlow ());
-      texQuality  (src.tex_quality   );
    }
    uint undo(C ElmWaterMtrl &src) {return super.undo(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    uint sync(C ElmWaterMtrl &src) {return super.sync(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't sync 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
@@ -831,8 +821,8 @@ class ElmWaterMtrl : ElmData
    virtual bool save(File &f)C override
    {
       super.save(f);
-      f.cmpUIntV(2);
-      f<<base_0_tex<<base_1_tex<<base_2_tex<<flag;
+      f.cmpUIntV(3);
+      f<<base_0_tex<<base_1_tex<<base_2_tex<<tex_quality<<flag;
       return f.ok();
    }
    virtual bool load(File &f)override
@@ -840,15 +830,21 @@ class ElmWaterMtrl : ElmData
       UID old_reflection_tex;
       if(super.load(f))switch(f.decUIntV())
       {
+         case 3:
+         {
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>tex_quality>>flag;
+            if(f.ok())return true;
+         }break;
+
          case 2:
          {
-            f>>base_0_tex>>base_1_tex>>base_2_tex>>flag;
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>flag; if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
          case 1:
          {
-            f>>base_0_tex>>base_1_tex>>old_reflection_tex>>flag; base_2_tex.zero();
+            f>>base_0_tex>>base_1_tex>>old_reflection_tex>>flag; base_2_tex.zero(); if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
@@ -866,7 +862,7 @@ class ElmWaterMtrl : ElmData
       if(base_0_tex.valid())nodes.New().setFN("Base0"       , base_0_tex);
       if(base_1_tex.valid())nodes.New().setFN("Base1"       , base_1_tex);
       if(base_2_tex.valid())nodes.New().setFN("Base2"       , base_2_tex);
-                            nodes.New().set  ("TexQuality"  , texQuality());
+                            nodes.New().set  ("TexQuality"  , tex_quality);
       if(usesTexAlpha()    )nodes.New().set  ("UsesTexAlpha");
       if(usesTexBump ()    )nodes.New().set  ("UsesTexBump" );
       if(usesTexGlow ()    )nodes.New().set  ("UsesTexGlow" );
@@ -880,7 +876,7 @@ class ElmWaterMtrl : ElmData
          if(n.name=="Base0"       )n.getValue(base_0_tex);else
          if(n.name=="Base1"       )n.getValue(base_1_tex);else
          if(n.name=="Base2"       )n.getValue(base_2_tex);else
-         if(n.name=="TexQuality"  )texQuality(n.asInt() );else
+         if(n.name=="TexQuality"  )tex_quality=(Edit.Material.TEX_QUALITY)n.asInt();else
          if(n.name=="UsesTexAlpha")FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
          if(n.name=="UsesTexBump" )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
          if(n.name=="UsesTexGlow" )FlagSet(flag, USES_TEX_GLOW , n.asBool1());

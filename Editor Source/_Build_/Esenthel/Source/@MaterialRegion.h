@@ -107,14 +107,14 @@ public:
    static Str  DownsizeTexMobile(C MaterialRegion &mr          );
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t);
 
-   /*FIXME
-   static cchar8 *TexQuality[]=
+   class TexQualityND : NameDesc
    {
-      "2-bit Low (default)",
-      "4-bit High",
+      Edit::Material::TEX_QUALITY quality;
    };
-   static Str  TexQuality(C MaterialRegion &mr          ) {return mr.edit.tex_quality;}
-   static void TexQuality(  MaterialRegion &mr, C Str &t) {mr.edit.tex_quality=TextBool(t); mr.edit.tex_quality_time.getUTC();}*/
+   static TexQualityND TexQualities[]
+;
+   static Str  TexQuality(C MaterialRegion &mr          );
+   static void TexQuality(  MaterialRegion &mr, C Str &t);
 
    /*static .MaxTexSize max_tex_sizes[]=
    {
@@ -297,16 +297,16 @@ public:
 
    bool bigVisible()C;
 
-   void   setRGB         (C Vec           &srgb);
-   void   setNormal      (flt            normal);
-   void   setSmooth      (flt            smooth);
-   void   setReflect     (flt           reflect);
-   void resetAlpha       (                     );
-   void cull             (bool              on );
-   void flipNrmY         (bool              on ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts    ){undos.set("mts"    ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
-   void downsizeTexMobile(byte              ds );
-   void texQuality       (int               q  );
+   void   setRGB         (C Vec                   &srgb);
+   void   setNormal      (flt                    normal);
+   void   setSmooth      (flt                    smooth);
+   void   setReflect     (flt                   reflect);
+   void resetAlpha       (                             );
+   void cull             (bool                      on );
+   void flipNrmY         (bool                      on ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts) {if(edit.max_tex_size       !=mts    ){undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void downsizeTexMobile(byte                      ds );  
+   void texQuality       (Edit::Material::TEX_QUALITY q  ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
    virtual void resizeBase(C VecI2 &size, bool relative=false);
    virtual void resizeBase0(C VecI2 &size, bool relative=false);

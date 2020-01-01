@@ -137,7 +137,7 @@ bool HasAlpha(C Image &image);
 bool HasColor(C Image &image);
 bool NeedFullAlpha(Image &image, int dest_type);
 bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type);
-void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint flags=SRGB);
+void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flags=SRGB, Edit::Material::TEX_QUALITY quality=Edit::Material::MEDIUM);
 void LoadTexture(C Project &proj, C UID &tex_id, Image &image);
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow);
 void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow);

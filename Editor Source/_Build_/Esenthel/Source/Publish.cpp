@@ -468,12 +468,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
             // #MaterialTextureLayout
-            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0->sRGB(true); t0->downSize(downsize); MAX(t0->quality, ForceHQMtrlBase0 ); t0->flags|=flags;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){               t1->downSize(downsize); MAX(t1->quality, ForceHQMtrlBase1 ); t1->normal();}
-            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){               t2->downSize(downsize); MAX(t2->quality, ForceHQMtrlBase2 );}
-                         if(Texture *t=GetTexture(publish_texs, data->detail_tex)){               t ->downSize(downsize); MAX(t ->quality, ForceHQMtrlDetail); t->usesAlpha();} // Detail uses Alpha for Smooth
-                         if(Texture *t=GetTexture(publish_texs, data-> macro_tex)){t ->sRGB(true); t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data-> light_tex)){t ->sRGB(true); t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0->sRGB(true); t0->downSize(downsize); MAX(t0->quality, MinMtrlTexQualityBase0 ); MAX(t0->quality, data->tex_quality); t0->flags|=flags;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){               t1->downSize(downsize); MAX(t1->quality, MinMtrlTexQualityBase1 ); t1->normal();}
+            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){               t2->downSize(downsize); MAX(t2->quality, MinMtrlTexQualityBase2 );}
+                         if(Texture *t=GetTexture(publish_texs, data->detail_tex)){               t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityDetail); t->usesAlpha();} // Detail uses Alpha for Smooth
+                         if(Texture *t=GetTexture(publish_texs, data-> macro_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityMacro ); MAX(t ->quality, data->tex_quality);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data-> light_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityLight );} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t2)
@@ -491,9 +491,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
             // #WaterMaterialTextureLayout
-            Texture *t0; if(t0=GetTexture(publish_texs, data->base_0_tex)){t0->sRGB(true); MAX(t0->quality, ForceHQMtrlBase0);}
-            Texture *t1; if(t1=GetTexture(publish_texs, data->base_1_tex)){               MAX(t1->quality, ForceHQMtrlBase1); t1->normal();}
-            Texture *t2; if(t2=GetTexture(publish_texs, data->base_2_tex)){               MAX(t2->quality, ForceHQMtrlBase2); t2->channels=1; t2->sign(true);}
+            Texture *t0; if(t0=GetTexture(publish_texs, data->base_0_tex)){t0->sRGB(true); MAX(t0->quality, MinMtrlTexQualityBase0); MAX(t0->quality, data->tex_quality);}
+            Texture *t1; if(t1=GetTexture(publish_texs, data->base_1_tex)){               MAX(t1->quality, MinMtrlTexQualityBase1); t1->normal();}
+            Texture *t2; if(t2=GetTexture(publish_texs, data->base_2_tex)){               MAX(t2->quality, MinMtrlTexQualityBase2); t2->channels=1; t2->sign(true);}
 
             // check which base textures use Alpha Channel, #WaterMaterialTextureLayout
          }
@@ -584,12 +584,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // change type
          int change_type=-1; // sRGB is set below
-         if(tex.quality<2) // compress
+         if(tex.quality<Edit::Material::FULL) // compress
          {
-            if(android)change_type=((tex.channels==1) ? (tex.sign() ? IMAGE_ETC2_R_SIGN : IMAGE_ETC2_R) : (tex.channels==2) ? (tex.sign() ? IMAGE_ETC2_RG_SIGN : IMAGE_ETC2_RG) : (tex.channels==3) ? IMAGE_ETC2_RGB : IMAGE_ETC2_RGBA);else
-            if(iOS    )change_type=((tex.channels==1) ? (tex.sign() ? IMAGE_ETC2_R_SIGN : IMAGE_ETC2_R) : (tex.channels==2) ? (tex.sign() ? IMAGE_ETC2_RG_SIGN : IMAGE_ETC2_RG) : (tex.quality >=0) ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2 );else
-            if(web    )change_type=((tex.channels<=2) ? -1 : WebBC7 ? ((tex.channels==4 || tex.quality>0) ?        -1 : IMAGE_BC1)  // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
-                                                                    :   tex.channels==4                   ? IMAGE_BC3 : IMAGE_BC1); // if BC7 not supported for Web, then use BC3
+            if(android)change_type=((tex.channels==1) ? (tex.sign() ? IMAGE_ETC2_R_SIGN : IMAGE_ETC2_R) : (tex.channels==2) ? (tex.sign() ? IMAGE_ETC2_RG_SIGN : IMAGE_ETC2_RG) : (tex.channels==3                   ) ? IMAGE_ETC2_RGB : IMAGE_ETC2_RGBA);else
+            if(iOS    )change_type=((tex.channels==1) ? (tex.sign() ? IMAGE_ETC2_R_SIGN : IMAGE_ETC2_R) : (tex.channels==2) ? (tex.sign() ? IMAGE_ETC2_RG_SIGN : IMAGE_ETC2_RG) : (tex.quality >=Edit::Material::MEDIUM) ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2 );else
+            if(web    )change_type=((tex.channels<=2) ? -1 : WebBC7 ? ((tex.channels==4 || tex.quality>Edit::Material::MEDIUM) ?        -1 : IMAGE_BC1)  // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
+                                                                    :   tex.channels==4                                      ? IMAGE_BC3 : IMAGE_BC1); // if BC7 not supported for Web, then use BC3
             if(change_type>=0 && tex.sRGB())change_type=ImageTypeIncludeSRGB((IMAGE_TYPE)change_type); // set sRGB
          }
 
@@ -1171,6 +1171,6 @@ ImageConvert::ImageConvert() : pow2(false), clamp(true ), alpha_lum(false), has_
 
 PublishClass::PublishClass() : export_data_exe(Edit::EXE_EXE) {}
 
-Texture::Texture() : quality(0), downsize(0), channels(3), flags(0) {}
+Texture::Texture() : quality(Edit::Material::LOW), downsize(0), channels(3), flags(0) {}
 
 /******************************************************************************/

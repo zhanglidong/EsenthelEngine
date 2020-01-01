@@ -9,16 +9,16 @@ class Texture
       DYNAMIC   =1<<2, // if texture is dynamically generated
       REGENERATE=1<<3, // if this texture needs to be regenerated
    };
-   UID id; // texture id
-   sbyte  quality; // -1=PVRTC1_2, 0=default, 1=BC7, 2=uncompressed
-   byte  downsize, // downsize
-         channels, // assume RGB by default (no alpha used)
-            flags;
+   UID                            id; // texture id
+   Edit::Material::TEX_QUALITY quality;
+   byte                     downsize, // downsize
+                            channels, // assume RGB by default (no alpha used)
+                               flags;
 
    Texture& downSize(int size);
    
-   Texture& usesAlpha ();
-   Texture& normal    ();
+   Texture& usesAlpha();
+   Texture& normal   ();
 
    bool sRGB      ()C;   Texture& sRGB      (bool on);
    bool sign      ()C;   Texture& sign      (bool on);

@@ -29,6 +29,13 @@ MaterialTech mtrl_techs[]=
       "Half",
       "Quarter",
    };
+   ::MaterialRegion::TexQualityND MaterialRegion::TexQualities[]=
+   {
+      {u"Low"             , u"same as Medium except uses PVRTC1_2 for iOS"          , Edit::Material::LOW   },
+      {u"Medium (Default)", u"default mode, uses BC1 (or BC7 if have alpha channel)", Edit::Material::MEDIUM},
+      {u"High"            , u"always uses BC7 even if don't have alpha channel"     , Edit::Material::HIGH  },
+      {u"Full"            , u"uncompressed R8G8B8A8"                                , Edit::Material::FULL  },
+   };
    const flt MaterialRegion::BumpScale=0.10f;
 /******************************************************************************/
       void MaterialRegion::Change::create(ptr user)
@@ -323,6 +330,8 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::Tech(  MaterialRegion &mr, C Str &t) {mr.edit.tech=MATERIAL_TECHNIQUE(TextInt(t)); mr.edit.tech_time.now(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    void MaterialRegion::DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
+   Str  MaterialRegion::TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}
+   void MaterialRegion::TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality);}
    void MaterialRegion::RGB(MaterialRegion &mr)
    {
       mr.undos.set("brightness");
@@ -471,15 +480,15 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
    void MaterialRegion::MulTexSmooth(MaterialRegion &editor) {Proj.mtrlMulTexSmooth(editor.elm_id);}
    bool MaterialRegion::bigVisible()C {return visible() && big();}
-   void   MaterialRegion::setRGB(C Vec           &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"    ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setNormal(flt            normal) {if(edit.normal             !=normal ){undos.set("normal" ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setSmooth(flt            smooth) {if(edit.smooth             !=smooth ){undos.set("smooth" ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setReflect(flt           reflect) {if(edit.reflect            !=reflect){undos.set("reflect"); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::resetAlpha(                     ) {                                      undos.set("alpha"  ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
-   void MaterialRegion::cull(bool              on ) {if(edit.cull               !=on     ){undos.set("cull"   ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::flipNrmY(bool              on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"    ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}}
-   void MaterialRegion::downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"    ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::texQuality(int               q  ) {if(edit.tex_quality        !=q      ){undos.set("tq"     ); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setRGB(C Vec                   &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setNormal(flt                    normal) {if(edit.normal             !=normal ){undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setSmooth(flt                    smooth) {if(edit.smooth             !=smooth ){undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setReflect(flt                   reflect) {if(edit.reflect            !=reflect){undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::resetAlpha(                             ) {                                      undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
+   void MaterialRegion::cull(bool                      on ) {if(edit.cull               !=on     ){undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::flipNrmY(bool                      on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}}
+   void MaterialRegion::downsizeTexMobile(byte                      ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q  ) {if(edit.tex_quality        !=q      ){undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}}
    void MaterialRegion::resizeBase(C VecI2 &size, bool relative)
    {
       undos.set("resizeBase");
@@ -686,14 +695,15 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(TexScale, TexScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
 
   Property &mts=props.New().create("Mobile Tex Size", MemberDesc(DATA_INT).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
-//Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum(       TexQualityText, Elms(       TexQualityText)).desc("Select Texture Quality");
+  Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum().desc("Select Texture Quality");
+      tqi.combobox.setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData(TexQualities, Elms(TexQualities)); tqi.combobox.menu.list.setElmDesc(MEMBER(NameDesc, desc));
 
       ts.reset().size=0.038f; ts.align.set(1, 0);
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red->textline.rect().left(), red->button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       tech.combobox.resize(Vec2(0.27f, 0)); // increase size
       mts .combobox.resize(Vec2(0.12f, 0)); // increase size
-    //tqi .combobox.resize(Vec2(0.15, 0)); // increase size
+      tqi .combobox.resize(Vec2(0.12f, 0)); // increase size
 
       flt tex_size=prop_height*3; int i=-1;
       sub+=texs.New().create(TEX_COLOR     , MEMBER(EditMaterial,      color_map), MEMBER(EditMaterial,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T);

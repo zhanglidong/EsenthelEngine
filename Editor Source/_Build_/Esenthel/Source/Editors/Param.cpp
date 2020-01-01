@@ -907,10 +907,6 @@ ObjClassEditor ObjClassEdit;
    {
       T.world=world;
       flt y=-0.03f, h=0.04f;
-      ListColumn name_desc_column[]=
-      {
-         ListColumn(MEMBER(NameDesc, name), LCW_MAX_DATA_PARENT, "Name"),
-      };
       ts_black.reset(); ts_black.size=0.038f; ts_black.align.set(1, 0);
       ts_white.reset(); ts_white.size=0.038f; ts_white.align.set(1, 0);
       if(!is_class)
@@ -930,7 +926,7 @@ ObjClassEditor ObjClassEdit;
          }
          T+=t_class   .create(Vec2(0.01f, y), "Class"    , &ts_white); if(world)T+=o_class   .create(Rect_L(0.17f, y, h, h)).func(ChangedOClass        , T).desc("Override default class"         );else T+=b_class.create(Rect_L(0.01f, y, 0.10f, h), "Class").func(ToBase, T); T+=v_class   .create(Rect_L(0.22f          , y, 0.4f, h)).func(ChangedClass        , T).desc(S+"Object Class"+(world ? "" : "\nYou can drag and drop an object here to set it as the base")); y-=h;
          T+=t_const   .create(Vec2(0.01f, y), "Const"    , &ts_white);          T+=o_const   .create(Rect_L(0.17f, y, h, h)).func(ChangedOConst        , T).desc("Override default const"         );                                                                           T+=v_const   .create(Rect_L(0.22f+(0.4f-h)/2, y,   h, h)).func(ChangedConst        , T).desc("Object Const Mode.\nThis option should be enabled if the object will not be changed during the entire game.\nWhen the option is enabled the object will not be included in the SaveGame file,\nmaking the save file smaller."); y-=h;
-         T+=t_path    .create(Vec2(0.01f, y), "Path Mesh", &ts_white);          T+=o_path    .create(Rect_L(0.17f, y, h, h)).func(ChangedOPath         , T).desc("Override default path mesh"     );                                                                           T+=v_path    .create(Rect_L(0.22f          , y, 0.4f, h)).func(ChangedPath         , T).desc("Object Path Mesh Generation Mode."); v_path.setColumns(name_desc_column, Elms(name_desc_column)).setData(path_mode, Elms(path_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h;
+         T+=t_path    .create(Vec2(0.01f, y), "Path Mesh", &ts_white);          T+=o_path    .create(Rect_L(0.17f, y, h, h)).func(ChangedOPath         , T).desc("Override default path mesh"     );                                                                           T+=v_path    .create(Rect_L(0.22f          , y, 0.4f, h)).func(ChangedPath         , T).desc("Object Path Mesh Generation Mode."); v_path.setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData(path_mode, Elms(path_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h;
          T+=t_mesh_var.create(Vec2(0.01f, y), "Variation", &ts_white);          T+=o_mesh_var.create(Rect_L(0.17f, y, h, h)).func(ChangedOMeshVariation, T).desc("Override default mesh variation");                                                                           T+=v_mesh_var.create(Rect_L(0.22f          , y, 0.4f, h)).func(ChangedMeshVariation, T).desc("Mesh Material Variation."); y-=h/2+0.01f;
          rect(Rect_LU(0, 0, w, -y));
       }
@@ -939,8 +935,8 @@ ObjClassEditor ObjClassEdit;
       {
          param_window.button[1].show();
          param_window+=t_const      .create(Vec2(0.01f, y), "Const"    , &ts_black); param_window+=v_const      .create(Rect_L(0.18f+(0.23f-h)/2, y,    h, h)).func(ChangedConst     , T).desc("Object Const Mode.\nThis option should be enabled if the object will not be changed during the entire game.\nWhen the option is enabled the object will not be included in the SaveGame file,\nmaking the save file smaller."); y-=h;
-         param_window+=t_path       .create(Vec2(0.01f, y), "Path Mesh", &ts_black); param_window+=v_path       .create(Rect_L(0.18f           , y, 0.23f, h)).func(ChangedPath      , T).desc("Object Path Mesh Generation Mode."            ); v_path.setColumns(name_desc_column, Elms(name_desc_column)).setData( path_mode, Elms( path_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h;
-         param_window+=t_editor_type.create(Vec2(0.01f, y), "Draw As"  , &ts_black); param_window+=v_editor_type.create(Rect_L(0.18f           , y, 0.23f, h)).func(ChangedEditorType, T).desc("How the object should be drawn in the editor."); v_editor_type.setColumns(name_desc_column, Elms(name_desc_column)).setData(etype_mode, Elms(etype_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h/2+0.01f;
+         param_window+=t_path       .create(Vec2(0.01f, y), "Path Mesh", &ts_black); param_window+=v_path       .create(Rect_L(0.18f           , y, 0.23f, h)).func(ChangedPath      , T).desc("Object Path Mesh Generation Mode."            ); v_path       .setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData( path_mode, Elms( path_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h;
+         param_window+=t_editor_type.create(Vec2(0.01f, y), "Draw As"  , &ts_black); param_window+=v_editor_type.create(Rect_L(0.18f           , y, 0.23f, h)).func(ChangedEditorType, T).desc("How the object should be drawn in the editor."); v_editor_type.setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData(etype_mode, Elms(etype_mode)).menu.list.setElmDesc(MEMBER(NameDesc, desc)); y-=h/2+0.01f;
          param_window+=undo         .create(Rect_LU(v_path.rect().max.x+0.05f, v_const.rect().max.y, 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
          param_window+=redo         .create(Rect_LU(  undo.rect().ru()                            , 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       }

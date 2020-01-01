@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 38 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 39 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -190,9 +190,9 @@ static void Decode(File &f, MemPtr<FileParams>  file_params) {file_params=FilePa
 Material& Material::reset()
 {
    technique=MTECH_DEFAULT;
+   tex_quality=MEDIUM;
    cull=true;
    flip_normal_y=false;
-   tex_quality=0;
    downsize_tex_mobile=0;
    color_s=1;
    ambient=0;
@@ -216,7 +216,7 @@ Material& Material::reset()
 void Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<cull<<flip_normal_y<<tex_quality<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump
+   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump
     <<Encode( color_map)<<Encode(  alpha_map)
     <<Encode(  bump_map)<<Encode( normal_map)
     <<Encode(smooth_map)<<Encode(reflect_map)
@@ -234,7 +234,7 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>cull>>flip_normal_y>>tex_quality>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump;
+         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump;
          Decode(f,  color_map); Decode(f,   alpha_map);
          Decode(f,   bump_map); Decode(f,  normal_map);
          Decode(f, smooth_map); Decode(f, reflect_map);
@@ -509,6 +509,7 @@ Bool EditorInterface::selectElms(C MemPtr<UID> &elms)
 }
 Bool EditorInterface::reloadElms(C MemPtr<UID> &elms, Bool remember_result)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_RLD_ELMS)<<remember_result; elms.saveRaw(f); f.pos(0);
@@ -521,6 +522,7 @@ Bool EditorInterface::reloadElms(C MemPtr<UID> &elms, Bool remember_result)
 }
 Bool EditorInterface::cancelReloadElms(C MemPtr<UID> &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_RLD_ELMS_CANCEL); elms.saveRaw(f); f.pos(0);
@@ -533,7 +535,7 @@ Bool EditorInterface::cancelReloadElms(C MemPtr<UID> &elms)
 }
 Bool EditorInterface::reloadResult(C MemPtr<UID> &elms, MemPtr< IDParam<RELOAD_RESULT> > results)
 {
-   if(connected())
+   if(elms.elms() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_RLD_ELMS_GET_RESULT); elms.saveRaw(f); f.pos(0);
       if(_conn.send(f))
@@ -547,10 +549,11 @@ Bool EditorInterface::reloadResult(C MemPtr<UID> &elms, MemPtr< IDParam<RELOAD_R
       disconnect();
    }
 fail:
-   results.clear(); return false;
+   results.clear(); return !elms.elms(); // OK only if there were no elemenets
 }
 Bool EditorInterface::forgetReloadResult(C MemPtr<UID> &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_RLD_ELMS_FORGET_RESULT); elms.saveRaw(f); f.pos(0);
@@ -588,6 +591,7 @@ UID EditorInterface::newWorld(C Str &name, Int area_size, Int terrain_res, C UID
 /******************************************************************************/
 Bool EditorInterface::setElmName(C MemPtr< IDParam<Str> > &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_SET_ELM_NAME); elms.save(f); f.pos(0);
@@ -600,6 +604,7 @@ Bool EditorInterface::setElmName(C MemPtr< IDParam<Str> > &elms)
 }
 Bool EditorInterface::setElmRemoved(C MemPtr< IDParam<Bool> > &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_SET_ELM_REMOVED); elms.save(f); f.pos(0);
@@ -612,6 +617,7 @@ Bool EditorInterface::setElmRemoved(C MemPtr< IDParam<Bool> > &elms)
 }
 Bool EditorInterface::setElmPublish(C MemPtr< IDParam<Bool> > &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_SET_ELM_PUBLISH); elms.save(f); f.pos(0);
@@ -624,6 +630,7 @@ Bool EditorInterface::setElmPublish(C MemPtr< IDParam<Bool> > &elms)
 }
 Bool EditorInterface::setElmParent(C MemPtr< IDParam<UID> > &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_SET_ELM_PARENT); elms.save(f); f.pos(0);
@@ -636,6 +643,7 @@ Bool EditorInterface::setElmParent(C MemPtr< IDParam<UID> > &elms)
 }
 Bool EditorInterface::setElmSrcFile(C MemPtr< IDParam<Str> > &elms)
 {
+   if(!elms.elms())return true;
    if(connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_SET_ELM_SRC_FILE); elms.save(f); f.pos(0);

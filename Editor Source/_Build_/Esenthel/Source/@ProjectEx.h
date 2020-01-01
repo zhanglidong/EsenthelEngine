@@ -369,7 +369,7 @@ public:
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize);
-   void mtrlTexQuality(C MemPtr<UID> &elm_ids, int quality);
+   void mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality);
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexSmooth(C MemPtr<UID> &elm_ids);

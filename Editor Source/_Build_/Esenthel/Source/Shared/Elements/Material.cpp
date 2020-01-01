@@ -623,6 +623,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditMaterial::EditMaterial() : flip_normal_y(false), cull(true), tex_quality(0), downsize_tex_mobile(0), tech(MTECH_DEFAULT), color_s(1, 1, 1, 1), ambient(0, 0, 0), smooth(0), reflect(MATERIAL_REFLECT), glow(0), normal(0), bump(0), tex_scale(1), det_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), light_tex(UIDZero) {}
+EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), ambient(0, 0, 0), smooth(0), reflect(MATERIAL_REFLECT), glow(0), normal(0), bump(0), tex_scale(1), det_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), light_tex(UIDZero) {}
 
 /******************************************************************************/

@@ -222,9 +222,16 @@ struct FileParams
 /******************************************************************************/
 struct Material
 {
+   enum TEX_QUALITY : SByte
+   {
+      LOW  =-1, // same as MEDIUM except uses PVRTC1_2 for iOS
+      MEDIUM=0, // default mode, uses BC1 (or BC7 if have alpha channel)
+      HIGH  =1, // always uses BC7 even if don't have alpha channel
+      FULL  =2, // uncompressed R8G8B8A8
+   };
    MATERIAL_TECHNIQUE technique;
+   TEX_QUALITY        tex_quality;
    Bool               cull, flip_normal_y;
-   SByte              tex_quality;
    Byte               downsize_tex_mobile; // how much to downsize textures for Mobile platforms, 0=full size, 1=half size, 2=quarter size, ..
    Vec4               color_s; // sRGB Gamma
    Vec                ambient;

@@ -375,14 +375,19 @@ class MaterialRegion : Region
    static Str  DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
 
-   /*FIXME
-   static cchar8 *TexQuality[]=
+   class TexQualityND : NameDesc
    {
-      "2-bit Low (default)",
-      "4-bit High",
+      Edit.Material.TEX_QUALITY quality;
+   }
+   static TexQualityND TexQualities[]=
+   {
+      {u"Low"             , u"same as Medium except uses PVRTC1_2 for iOS"          , Edit.Material.LOW   },
+      {u"Medium (Default)", u"default mode, uses BC1 (or BC7 if have alpha channel)", Edit.Material.MEDIUM},
+      {u"High"            , u"always uses BC7 even if don't have alpha channel"     , Edit.Material.HIGH  },
+      {u"Full"            , u"uncompressed R8G8B8A8"                                , Edit.Material.FULL  },
    };
-   static Str  TexQuality(C MaterialRegion &mr          ) {return mr.edit.tex_quality;}
-   static void TexQuality(  MaterialRegion &mr, C Str &t) {mr.edit.tex_quality=TextBool(t); mr.edit.tex_quality_time.getUTC();}*/
+   static Str  TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}
+   static void TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality);}
 
    /*static .MaxTexSize max_tex_sizes[]=
    {
@@ -576,16 +581,16 @@ class MaterialRegion : Region
 
    bool bigVisible()C {return visible() && big();}
 
-   void   setRGB         (C Vec           &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"    ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void   setNormal      (flt            normal) {if(edit.normal             !=normal ){undos.set("normal" ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
-   void   setSmooth      (flt            smooth) {if(edit.smooth             !=smooth ){undos.set("smooth" ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
-   void   setReflect     (flt           reflect) {if(edit.reflect            !=reflect){undos.set("reflect"); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
-   void resetAlpha       (                     ) {                                      undos.set("alpha"  ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
-   void cull             (bool              on ) {if(edit.cull               !=on     ){undos.set("cull"   ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void flipNrmY         (bool              on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"    ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts    ){undos.set("mts"    ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
-   void downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"    ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQuality       (int               q  ) {if(edit.tex_quality        !=q      ){undos.set("tq"     ); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
+   void   setRGB         (C Vec                   &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void   setNormal      (flt                    normal) {if(edit.normal             !=normal ){undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
+   void   setSmooth      (flt                    smooth) {if(edit.smooth             !=smooth ){undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
+   void   setReflect     (flt                   reflect) {if(edit.reflect            !=reflect){undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
+   void resetAlpha       (                             ) {                                      undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
+   void cull             (bool                      on ) {if(edit.cull               !=on     ){undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void flipNrmY         (bool                      on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts) {if(edit.max_tex_size       !=mts    ){undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void downsizeTexMobile(byte                      ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void texQuality       (Edit.Material.TEX_QUALITY q  ) {if(edit.tex_quality        !=q      ){undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
    virtual void resizeBase(C VecI2 &size, bool relative=false)
    {
@@ -795,14 +800,15 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(TexScale, TexScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
 
   Property &mts=props.New().create("Mobile Tex Size", MemberDesc(DATA_INT).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
-//Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum(       TexQualityText, Elms(       TexQualityText)).desc("Select Texture Quality");
+  Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum().desc("Select Texture Quality");
+      tqi.combobox.setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData(TexQualities, Elms(TexQualities)); tqi.combobox.menu.list.setElmDesc(MEMBER(NameDesc, desc));
 
       ts.reset().size=0.038; ts.align.set(1, 0);
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red.textline.rect().left(), red.button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       tech.combobox.resize(Vec2(0.27, 0)); // increase size
       mts .combobox.resize(Vec2(0.12, 0)); // increase size
-    //tqi .combobox.resize(Vec2(0.15, 0)); // increase size
+      tqi .combobox.resize(Vec2(0.12, 0)); // increase size
 
       flt tex_size=prop_height*3; int i=-1;
       sub+=texs.New().create(TEX_COLOR     , MEMBER(EditMaterial,      color_map), MEMBER(EditMaterial,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T);

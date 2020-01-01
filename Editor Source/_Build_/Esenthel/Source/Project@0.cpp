@@ -1562,62 +1562,53 @@ void DrawProject()
    }
    void ProjectEx::mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize)
    {
-      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())
+      Memt<UID> mtrls;
+      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->downsize_tex_mobile!=downsize)
+         if(mtrls.binaryInclude(mtrl->id)) // if just added
       {
-         Memt<UID> mtrls;
-
-         // include this material
-         if(mtrl_data->downsize_tex_mobile!=downsize)mtrls.add(mtrl->id);
-
          // include other materials that have the same textures
          if(mtrl_data->base_0_tex.valid() || mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
                if(test->downsize_tex_mobile!=downsize && test->base_0_tex==mtrl_data->base_0_tex && test->base_1_tex==mtrl_data->base_1_tex && test->base_2_tex==mtrl_data->base_2_tex)mtrls.binaryInclude(elms[i].id);
-
-         REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
+      }
+      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
+      {
+         if(MtrlEdit.elm==mtrl)MtrlEdit.downsizeTexMobile(downsize);else
          {
-            if(MtrlEdit.elm==mtrl)MtrlEdit.downsizeTexMobile(downsize);else
+            EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(ElmMaterial *mtrl_data=mtrl->mtrlData())
             {
-               EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(ElmMaterial *mtrl_data=mtrl->mtrlData())
-               {
-                  mtrl_data->newVer();
-                  mtrl_data->downsize_tex_mobile=edit.downsize_tex_mobile=downsize; edit.downsize_tex_mobile_time.now();
-                  Save(edit, editPath(mtrl->id));
-                //makeGameVer(*mtrl); this is not needed because 'downsize_tex_mobile' is not stored in the game version, instead textures are downsized during publishing
-                  Server.setElmLong(mtrl->id); // Long is needed because 'downsize_tex_mobile_time' is only in edit
-               }
+               mtrl_data->newVer();
+               mtrl_data->downsize_tex_mobile=edit.downsize_tex_mobile=downsize; edit.downsize_tex_mobile_time.now();
+               Save(edit, editPath(mtrl->id));
+             //makeGameVer(*mtrl); this is not needed because 'downsize_tex_mobile' is not stored in the game version, instead textures are downsized during publishing
+               Server.setElmLong(mtrl->id); // Long is needed because 'downsize_tex_mobile_time' is only in edit
             }
          }
       }
    }
-   void ProjectEx::mtrlTexQuality(C MemPtr<UID> &elm_ids, int quality)
+   void ProjectEx::mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality)
    {
-      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())
+      Memt<UID> mtrls;
+      REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl->mtrlData())if(mtrl_data->tex_quality!=quality)
+         if(mtrls.binaryInclude(mtrl->id)) // if just added
       {
-         Memt<UID> mtrls;
-
-         // include this material
-         if(mtrl_data->texQuality()!=quality)mtrls.add(mtrl->id);
-
          // include other materials that have the same textures
          if(mtrl_data->base_0_tex.valid() || mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test->texQuality()!=quality && test->base_0_tex==mtrl_data->base_0_tex && test->base_1_tex==mtrl_data->base_1_tex && test->base_2_tex==mtrl_data->base_2_tex)mtrls.binaryInclude(elms[i].id);
-
-         REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
+               if(test->tex_quality!=quality && test->base_0_tex==mtrl_data->base_0_tex && test->base_1_tex==mtrl_data->base_1_tex && test->base_2_tex==mtrl_data->base_2_tex)mtrls.binaryInclude(elms[i].id);
+      }
+      REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
+      {
+         if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
          {
-            if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
+            EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(ElmMaterial *mtrl_data=mtrl->mtrlData())
             {
-               EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(edit.tex_quality!=quality)if(ElmMaterial *mtrl_data=mtrl->mtrlData())
-               {
-                  edit.tex_quality=quality; edit.tex_quality_time.now();
-                  mtrl_data->newVer();
-                  mtrl_data->texQuality(edit.tex_quality);
-                  Save(edit, editPath(mtrl->id));
-                //makeGameVer(*mtrl); this is not needed because 'tex_quality' is not stored in the game version, instead textures are converted during publishing
-                  // FIXME make base textures?
-                  Server.setElmLong(mtrl->id); // Long is needed because 'tex_quality_time' is only in edit
-               }
+               mtrl_data->newVer();
+               mtrl_data->tex_quality=edit.tex_quality=quality; edit.tex_quality_time.now();
+               Save(edit, editPath(mtrl->id));
+             //makeGameVer(*mtrl); this is not needed because 'tex_quality' is not stored in the game version, instead textures are converted during publishing
+               // FIXME make base textures?
+               Server.setElmLong(mtrl->id); // Long is needed because 'tex_quality_time' is only in edit
             }
          }
       }
@@ -1989,7 +1980,7 @@ void DrawProject()
       IMAGE_TYPE ct;
 
       // base 0
-         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0);
+         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0, material.tex_quality);
       if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayout
       if(base_0.is())
       {
@@ -2038,7 +2029,7 @@ void DrawProject()
       IMAGE_TYPE ct;
 
       // base 0
-         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0|WATER_MTRL);
+         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0|WATER_MTRL, material.tex_quality);
       if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
       if(base_0.is())
       {
@@ -2110,7 +2101,7 @@ void DrawProject()
       Image macro; if(loadImage(macro, null, material.macro_map, true)) // proceed only if loaded ok
       {
          macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, IC_WRAP);
-         IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, SRGB|IGNORE_ALPHA); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
+         IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, MTRL_MACRO); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
          if(macro.is())
          {
             if(includeTex(material.macro_tex))
@@ -2128,7 +2119,7 @@ void DrawProject()
       Image light; if(loadImage(light, null, material.light_map, true)) // proceed only if loaded ok
       {
          light.resize(NearestPow2(light.w()), NearestPow2(light.h()));
-         IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, SRGB|IGNORE_ALPHA); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed
+         IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, MTRL_LIGHT); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed
          if(light.is())
          {
             if(includeTex(material.light_tex))
