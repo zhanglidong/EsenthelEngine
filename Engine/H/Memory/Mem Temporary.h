@@ -32,10 +32,11 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
    Memt& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
-   UInt maxElms ()C {return _max_elms;}
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
+   UIntPtr elmsMem ()C;
+   UInt    maxElms ()C {return _max_elms;}
 
 #if EE_PRIVATE
    TYPE* dataNull()  {return elms() ? data() : null;} // get pointer to the start of the elements and null if there are no elements

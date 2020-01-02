@@ -6,9 +6,9 @@ T1(const_mem_addr TYPE) struct MemcThreadSafe : _MemcThreadSafe // Thread-Safe C
    MemcThreadSafe& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE* lockedData (     ) ; // get    pointer to the start of the elements, container must be locked first using the 'lock' method before using this method
  C TYPE* lockedData (     )C; // get    pointer to the start of the elements, container must be locked first using the 'lock' method before using this method

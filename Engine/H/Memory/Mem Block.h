@@ -22,10 +22,10 @@ T1(const_mem_addr TYPE) struct Memb : _Memb // Block Based Container
    Memb& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int    elms    ()C; // number of elements
-   UInt   elmSize ()C; // size   of element
-   UInt blockElms ()C; // number of elements per block
-   UInt   memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UInt  blockElms ()C; // number of elements per block
+   UIntPtr memUsage()C; // memory usage
 
    TYPE* addr      (Int i) ; // get    i-th  element address, null is returned if index is out of range
  C TYPE* addr      (Int i)C; // get    i-th  element address, null is returned if index is out of range

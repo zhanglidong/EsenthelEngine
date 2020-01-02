@@ -1448,7 +1448,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          Int clause_size=ImmGetCompositionStringA(Kb._imc, GCS_COMPCLAUSE, null, 0); // use A because W crashes for GCS_COMPCLAUSE under WinXP
          if( clause_size>0)
          {
-            Memc<UInt> clause; clause.setNum(clause_size/SIZE(UInt)); ImmGetCompositionStringA(Kb._imc, GCS_COMPCLAUSE, clause.data(), clause.elms()*clause.elmSize()); // use A because W crashes for GCS_COMPCLAUSE under WinXP
+            Memc<UInt> clause; clause.setNum(clause_size/SIZE(UInt)); ImmGetCompositionStringA(Kb._imc, GCS_COMPCLAUSE, clause.data(), clause.elmsMem()); // use A because W crashes for GCS_COMPCLAUSE under WinXP
             FREPA(clause)if(clause[i]>=Kb.immCursor())
             {
                Kb._imm_selection=clause[i];

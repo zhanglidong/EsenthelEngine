@@ -1023,7 +1023,7 @@ void GetDrives(MemPtr<Drive> drives)
       d.name="Drive";
       d.type=DRIVE_DISK;
    #else
-      Memc<struct statfs> st; Int fs=getfsstat(null, 0, MNT_NOWAIT); st.setNum(Max(0, fs)+16); fs=getfsstat(st.data(), st.elms()*st.elmSize(), MNT_NOWAIT);
+      Memc<struct statfs> st; Int fs=getfsstat(null, 0, MNT_NOWAIT); st.setNum(Max(0, fs)+16); fs=getfsstat(st.data(), st.elmsMem(), MNT_NOWAIT);
       FREP(fs)if(st[i].f_blocks && st[i].f_bsize)
       {
          Drive &d=drives.New();

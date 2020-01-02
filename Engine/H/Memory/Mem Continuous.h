@@ -18,9 +18,9 @@ T1(const_mem_addr TYPE) struct Memc : _Memc // Continuous Memory Based Container
    Memc& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE* data      (     ) ; // get    pointer to the start of the elements
  C TYPE* data      (     )C; // get    pointer to the start of the elements
@@ -136,9 +136,9 @@ T1(TYPE) struct MemcAbstract : _Memc // Continuous Memory Based Container which 
    MemcAbstract& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE* data      (     ) ; // get    pointer to the start of the elements
  C TYPE* data      (     )C; // get    pointer to the start of the elements

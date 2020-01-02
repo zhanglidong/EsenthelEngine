@@ -215,7 +215,7 @@ void ProcModules(UInt id, MemPtr<Str> modules)
    {
       Memt<HMODULE> temp; temp.setNum(temp.maxElms());
    again:;
-      DWORD num=0, size=temp.elms()*temp.elmSize();
+      DWORD num=0, size=temp.elmsMem();
       if(EnumProcessModules(hproc, temp.data(), size, &num))
       {
          Int elms=num/temp.elmSize();
@@ -271,7 +271,7 @@ void ProcList(MemPtr<UInt> id)
 #if WINDOWS_OLD
    Memt<DWORD> temp; temp.setNum(temp.maxElms());
 again:;
-   DWORD num=0, size=temp.elms()*temp.elmSize();
+   DWORD num=0, size=temp.elmsMem();
    if(EnumProcesses(temp.data(), size, &num))
    {
       if(num>=size){temp.addNum(Max(1, temp.elms()/4)); goto again;} // according to docs and tests, 'num' will be equal to 'size' if there are more processes that can fit into the buffer
@@ -286,7 +286,7 @@ again:;
    {
       Memt<kinfo_proc> temp; temp.setNum(Max(temp.maxElms(), Int(size/temp.elmSize()*5/4))); // allocate a bit more
    again:;
-      size_t size2=temp.elms()*temp.elmSize();
+      size_t size2=temp.elmsMem();
              code =sysctl(names, Elms(names), temp.data(), &size2, null, 0);
       if(!code && !size2 && size){size=0; temp.addNum(Max(1, temp.elms()/2)); goto again;} // if not enough memory then try again
       if(!code &&  size2>0)

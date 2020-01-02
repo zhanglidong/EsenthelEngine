@@ -28,9 +28,9 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
    MemPtr& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE* data      (     ) ; // get    pointer to the start of the elements
  C TYPE* data      (     )C; // get    pointer to the start of the elements

@@ -24,11 +24,11 @@ T1(TYPE) struct Memx : _Memx // Block Based Extended Container
    Memx& del  (); // remove all elements and free helper memory
 
    // get / set
-    Int   absElms ()C; // number of absolute elements
-    Int validElms ()C; // number of valid    elements
-    Int      elms ()C; // number of valid    elements
-   UInt   elmSize ()C; // size   of          element
-   UInt   memUsage()C; // memory usage
+    Int    absElms ()C; // number of absolute elements
+    Int  validElms ()C; // number of valid    elements
+    Int       elms ()C; // number of valid    elements
+   UInt    elmSize ()C; // size   of          element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE&   absElm  (Int i) ; // get i-th  absolute element
  C TYPE&   absElm  (Int i)C; // get i-th  absolute element
@@ -105,11 +105,11 @@ T1(TYPE) struct MemxAbstract : _Memx // Block Based Extended Container which all
    MemxAbstract& del  (); // remove all elements and free helper memory
 
    // get / set
-    Int   absElms ()C; // number of absolute elements
-    Int validElms ()C; // number of valid    elements
-    Int      elms ()C; // number of valid    elements
-   UInt   elmSize ()C; // size   of          element
-   UInt   memUsage()C; // memory usage
+    Int    absElms ()C; // number of absolute elements
+    Int  validElms ()C; // number of valid    elements
+    Int       elms ()C; // number of valid    elements
+   UInt    elmSize ()C; // size   of          element
+   UIntPtr memUsage()C; // memory usage
 
    TYPE&   absElm  (Int i) ; // get i-th  absolute element
  C TYPE&   absElm  (Int i)C; // get i-th  absolute element

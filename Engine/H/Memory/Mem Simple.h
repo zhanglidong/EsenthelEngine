@@ -23,9 +23,10 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int  elms    ()C; // number of elements
-   UInt elmSize ()C; // size   of element
-   UInt memUsage()C; // memory usage
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
+   UIntPtr elmsMem ()C;
 
    TYPE* data      (     ) ; // get    pointer to the start of the elements
  C TYPE* data      (     )C; // get    pointer to the start of the elements
@@ -61,12 +62,12 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
 
    // values
-   T1(VALUE) Int   find   (C VALUE &value)C {REPA(T)if(T[i]==value)return i; return -1;                                       } // check if 'value' is present in container and return its index, -1 if not found
-   T1(VALUE) Bool  has    (C VALUE &value)C {return find(value)>=0;                                                           } // check if 'value' is present in container
-   T1(VALUE) Mems& add    (C VALUE &value)  {New()=value; return T;                                                           } // add      'value' to container                                                                                       , this method changes the memory address of all elements
-   T1(VALUE) Bool  include(C VALUE &value)  {if(!has(value)){add(value); return true;} return false;                          } // include  'value' if it's not already present in container, returns true if value wasn't present and has been added  , this method changes the memory address of all elements
-   T1(VALUE) Bool  exclude(C VALUE &value)  {Int i=find(value); if(i>=0){remove(i);   return true ;}             return false;} // exclude  'value' if present  in container                , returns true if value was    present and has been removed, this method changes the memory address of all elements
-   T1(VALUE) Bool  toggle (C VALUE &value)  {Int i=find(value); if(i>=0){remove(i);   return false;} add(value); return true ;} // toggle   'value'    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
+   T1(VALUE) Int   find   (C VALUE &value)C {REPA(T)if(T[i]==value)return i; return -1;                                        } // check if 'value' is present in container and return its index, -1 if not found
+   T1(VALUE) Bool  has    (C VALUE &value)C {return find(value)>=0;                                                            } // check if 'value' is present in container
+   T1(VALUE) Mems& add    (C VALUE &value)  {New()=value; return T;                                                            } // add      'value' to container                                                                                       , this method changes the memory address of all elements
+   T1(VALUE) Bool  include(C VALUE &value)  {if(!has(value)){add(value); return true;} return false;                           } // include  'value' if it's not already present in container, returns true if value wasn't present and has been added  , this method changes the memory address of all elements
+   T1(VALUE) Bool  exclude(C VALUE &value)  {Int i=find(value); if(i>=0){remove(i);    return true ;}             return false;} // exclude  'value' if present  in container                , returns true if value was    present and has been removed, this method changes the memory address of all elements
+   T1(VALUE) Bool  toggle (C VALUE &value)  {Int i=find(value); if(i>=0){remove(i);    return false;} add(value); return true ;} // toggle   'value'    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
 
    T1(VALUE)   Bool  binarySearch (C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b)=Compare)C; // search sorted container for presence of 'value' and return if it was found in the container, 'index'=if the function returned true then this index points to the location where the 'value' is located in the container, if the function returned false then it means that 'value' was not found in the container however the 'index' points to the place where it should be added in the container while preserving sorted data, 'index' will always be in range (0..elms) inclusive
    T1(VALUE)   Bool  binaryHas    (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)C {Int i; return binarySearch(value, i, compare);                                                        } // check if 'value' (using binary search) is present in container
@@ -143,9 +144,9 @@ T1(const_mem_addr TYPE) struct FixedMems : private Mems<TYPE> // Unresizable Mem
 #endif
 {
    // get / set
-   Int  elms    ()C {return super::elms    ();} // number of elements
-   UInt elmSize ()C {return super::elmSize ();} // size   of element
-   UInt memUsage()C {return super::memUsage();} // memory usage
+   Int     elms    ()C {return super::elms    ();} // number of elements
+   UInt    elmSize ()C {return super::elmSize ();} // size   of element
+   UIntPtr memUsage()C {return super::memUsage();} // memory usage
 
    TYPE* data      (     )  {return super::data      ( );} // get pointer to the start of the elements
  C TYPE* data      (     )C {return super::data      ( );} // get pointer to the start of the elements

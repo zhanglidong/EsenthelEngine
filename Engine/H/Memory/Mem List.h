@@ -42,9 +42,9 @@ T1(TYPE) struct Meml : _Meml // List Based Container
    Meml& clear(); // remove all elements
 
    // get / set
-   Int  elms    ()C; // get number of elements
-   UInt elmSize ()C; // get size   of element
-   UInt memUsage()C; // get memory usage
+   Int     elms    ()C; // get number of elements
+   UInt    elmSize ()C; // get size   of element
+   UIntPtr memUsage()C; // get memory usage
 
    TYPE* addr      (Int       i   ) ; // get i-th MemlNode data address, null is returned if index is out of range
  C TYPE* addr      (Int       i   )C; // get i-th MemlNode data address, null is returned if index is out of range
