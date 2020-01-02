@@ -134,7 +134,7 @@ void _Memx::setNum(Int num)
       REP(elms()-num)removeValid(num+i);
    }
 }
-Int  _Memx::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memx.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
+Int  _Memx::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memx.addNum' size too big"); setNum(new_elms); return index;}
 void _Memx::reverseOrder()
 {
    Int last=elms()-1;

@@ -109,8 +109,8 @@ void _Memc::setNumZero(Int num, Int keep)
    if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]);  // create new elements
 }
 /******************************************************************************/
-Int _Memc::addNum    (Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNum' size too big"    ); if(new_elms<=0)clear();else setNum    (new_elms); return index;}
-Int _Memc::addNumZero(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNumZero' size too big"); if(new_elms<=0)clear();else setNumZero(new_elms); return index;}
+Int _Memc::addNum    (Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNum' size too big"    ); setNum    (new_elms); return index;}
+Int _Memc::addNumZero(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNumZero' size too big"); setNumZero(new_elms); return index;}
 /******************************************************************************/
 Ptr _Memc::NewAt(Int i)
 {

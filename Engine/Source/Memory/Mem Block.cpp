@@ -86,7 +86,7 @@ void _Memb::setNumZero(Int num)
    }
 }
 /******************************************************************************/
-Int _Memb::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memb.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
+Int _Memb::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memb.addNum' size too big"); setNum(new_elms); return index;}
 /******************************************************************************/
 Ptr _Memb::NewAt(Int i)
 {

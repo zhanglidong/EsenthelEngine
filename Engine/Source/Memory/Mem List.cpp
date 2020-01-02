@@ -29,7 +29,7 @@ void _Meml::setNumZero(Int num)
    for(; _elms>num; )removeLast();
    for(; _elms<num; )addZero   ();
 }
-Int _Meml::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Meml.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
+Int _Meml::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Meml.addNum' size too big"); setNum(new_elms); return index;}
 /******************************************************************************/
 Ptr _Meml::New  (     ) {return add()->data();}
 Ptr _Meml::NewAt(Int i)
