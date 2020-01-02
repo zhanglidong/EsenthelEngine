@@ -19,26 +19,39 @@ ThreadEmulation EmulatedThreads;
 
 #if WINDOWS // versions with _ are faster than those without
 #if !X64
-  Long AtomicGet(C Long &x) {Long old=x;        return _InterlockedCompareExchange64((LONG64*)&x, old, old);} // this version was the fastest
-//Long AtomicGet(C Long &x) {                   return _InterlockedCompareExchange64((LONG64*)&x,   0,   0);} // slightly slower (this can work with 0 because it compares x to 0 and sets 0 only then) but always returns the old value despite if it was zero or not
-//Long AtomicGet(C Long &x) {Long old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, old, old)!=old); return old;}
+  Long AtomicGet(C  Long &x) { Long old=x;        return _InterlockedCompareExchange64((LONG64*)&x, old, old);} // this version was the fastest
+//Long AtomicGet(C  Long &x) {                    return _InterlockedCompareExchange64((LONG64*)&x,   0,   0);} // slightly slower (this can work with 0 because it compares x to 0 and sets 0 only then) but always returns the old value despite if it was zero or not
+//Long AtomicGet(C  Long &x) { Long old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, old, old)!=old); return old;}
 
-void AtomicSet(Long &x, Long y) {Long old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, y, old)!=old);}
+ ULong AtomicGet(C ULong &x) {ULong old=x;        return _InterlockedCompareExchange64((LONG64*)&x, old, old);} // this version was the fastest
+
+void AtomicSet( Long &x,  Long y) { Long old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, y, old)!=old);}
+void AtomicSet(ULong &x, ULong y) {ULong old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, y, old)!=old);}
 #endif
 
 Int AtomicInc(Int &x) {return _InterlockedIncrement((LONG*)&x)-1;} // 'InterlockedIncrement' returns the new value
 Int AtomicDec(Int &x) {return _InterlockedDecrement((LONG*)&x)+1;} // 'InterlockedDecrement' returns the new value
 
-Int AtomicAdd(Int &x, Int y) {return _InterlockedExchangeAdd((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
-Int AtomicSub(Int &x, Int y) {return _InterlockedExchangeAdd((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
+#pragma warning(push)
+#pragma warning(disable:4146) // unary minus operator applied to unsigned type, result still unsigned
+ Int AtomicAdd( Int &x,  Int y) {return _InterlockedExchangeAdd((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
+UInt AtomicAdd(UInt &x, UInt y) {return _InterlockedExchangeAdd((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
+ Int AtomicSub( Int &x,  Int y) {return _InterlockedExchangeAdd((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
+UInt AtomicSub(UInt &x, UInt y) {return _InterlockedExchangeAdd((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
 
 #if X64
-Long AtomicAdd(Long &x, Long y) {return _InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
-Long AtomicSub(Long &x, Long y) {return _InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
+ Long AtomicAdd( Long &x,  Long y) {return _InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
+ULong AtomicAdd(ULong &x, ULong y) {return _InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
+ Long AtomicSub( Long &x,  Long y) {return _InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
+ULong AtomicSub(ULong &x, ULong y) {return _InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
 #else
-Long AtomicAdd(Long &x, Long y) {return InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
-Long AtomicSub(Long &x, Long y) {return InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
+ Long AtomicAdd( Long &x,  Long y) {return InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
+ULong AtomicAdd(ULong &x, ULong y) {return InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
+ Long AtomicSub( Long &x,  Long y) {return InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
+ULong AtomicSub(ULong &x, ULong y) {return InterlockedExchangeAdd64((LONG64*)&x, -y);} // 'InterlockedExchangeAdd64' returns the old value
 #endif
+
+#pragma warning(pop)
 
 Int AtomicAnd    (Int &x, Int y) {return _InterlockedAnd((LONG*)&x,  y);} // 'InterlockedAnd' returns the old value
 Int AtomicDisable(Int &x, Int y) {return _InterlockedAnd((LONG*)&x, ~y);} // 'InterlockedAnd' returns the old value
@@ -47,26 +60,35 @@ Int AtomicXor    (Int &x, Int y) {return _InterlockedXor((LONG*)&x,  y);} // 'In
 
 Int AtomicGetSet(Int &x, Int y) {return _InterlockedExchange((LONG*)&x, y);} // 'InterlockedExchange' returns the old value
 
-Bool AtomicCAS(Int  &x, Int  compare, Int  new_value) {return _InterlockedCompareExchange  ((LONG  *)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
-Bool AtomicCAS(Long &x, Long compare, Long new_value) {return _InterlockedCompareExchange64((LONG64*)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
-Bool AtomicCAS(Flt  &x, Flt  compare, Flt  new_value) {return _InterlockedCompareExchange  ((LONG  *)&x, (Int&)new_value, (Int&)compare)==(Int&)compare;} // 'InterlockedCompareExchange' returns the old value
+Bool AtomicCAS(Int   &x, Int   compare, Int   new_value) {return _InterlockedCompareExchange  ((LONG  *)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
+Bool AtomicCAS(UInt  &x, UInt  compare, UInt  new_value) {return _InterlockedCompareExchange  ((LONG  *)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
+Bool AtomicCAS(Long  &x, Long  compare, Long  new_value) {return _InterlockedCompareExchange64((LONG64*)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
+Bool AtomicCAS(ULong &x, ULong compare, ULong new_value) {return _InterlockedCompareExchange64((LONG64*)&x,       new_value,       compare)==      compare;} // 'InterlockedCompareExchange' returns the old value
+Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value) {return _InterlockedCompareExchange  ((LONG  *)&x, (Int&)new_value, (Int&)compare)==(Int&)compare;} // 'InterlockedCompareExchange' returns the old value
 #else
 #if !X64
-  Long AtomicGet(C Long &x) {Long old=x; return          __sync_val_compare_and_swap(&ConstCast(x), old, old);}              // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
-//Long AtomicGet(C Long &x) {            return          __sync_val_compare_and_swap(&ConstCast(x),   0,   0);}              // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
-//Long AtomicGet(C Long &x) {Long old; do old=x; while(!__sync_bool_compare_and_swap(&ConstCast(x), old, old)); return old;} // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
+  Long AtomicGet(C  Long &x) { Long old=x; return          __sync_val_compare_and_swap(&ConstCast(x), old, old);}              // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
+//Long AtomicGet(C  Long &x) {             return          __sync_val_compare_and_swap(&ConstCast(x),   0,   0);}              // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
+//Long AtomicGet(C  Long &x) { Long old; do old=x; while(!__sync_bool_compare_and_swap(&ConstCast(x), old, old)); return old;} // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
 
-void AtomicSet(Long &x, Long y) {Long old; do old=x; while(!__sync_bool_compare_and_swap(&x, old, y));}
+ ULong AtomicGet(C ULong &x) {ULong old=x; return          __sync_val_compare_and_swap(&ConstCast(x), old, old);}              // 'ConstCast' is used to mute a warning, it can be used because 'x' will be modified to 'old' only if it's equal to 'old' already
+
+void AtomicSet( Long &x,  Long y) { Long old; do old=x; while(!__sync_bool_compare_and_swap(&x, old, y));}
+void AtomicSet(ULong &x, ULong y) {ULong old; do old=x; while(!__sync_bool_compare_and_swap(&x, old, y));}
 #endif
 
 Int AtomicInc(Int &x) {return __sync_fetch_and_add(&x, +1);} // '__sync_fetch_and_add' returns the old value
 Int AtomicDec(Int &x) {return __sync_fetch_and_add(&x, -1);} // '__sync_fetch_and_add' returns the old value
 
-Int AtomicAdd(Int &x, Int y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
-Int AtomicSub(Int &x, Int y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
+ Int AtomicAdd( Int &x,  Int y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
+UInt AtomicAdd(UInt &x, UInt y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
+ Int AtomicSub( Int &x,  Int y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
+UInt AtomicSub(UInt &x, UInt y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
 
-Long AtomicAdd(Long &x, Long y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
-Long AtomicSub(Long &x, Long y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
+ Long AtomicAdd( Long &x,  Long y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
+ULong AtomicAdd(ULong &x, ULong y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
+ Long AtomicSub( Long &x,  Long y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
+ULong AtomicSub(ULong &x, ULong y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
 
 Int AtomicAnd    (Int &x, Int y) {return __sync_fetch_and_and(&x,  y);} // '__sync_fetch_and_and' returns the old value
 Int AtomicDisable(Int &x, Int y) {return __sync_fetch_and_and(&x, ~y);} // '__sync_fetch_and_and' returns the old value
@@ -75,9 +97,11 @@ Int AtomicXor    (Int &x, Int y) {return __sync_fetch_and_xor(&x,  y);} // '__sy
 
 Int AtomicGetSet(Int &x, Int y) {return __sync_lock_test_and_set(&x, y);} // '__sync_lock_test_and_set' returns the old value
 
-Bool AtomicCAS(Int  &x, Int  compare, Int  new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
-Bool AtomicCAS(Long &x, Long compare, Long new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
-Bool AtomicCAS(Flt  &x, Flt  compare, Flt  new_value) {return __sync_bool_compare_and_swap((Int*)&x, (Int&)compare, (Int&)new_value);}
+Bool AtomicCAS(Int   &x, Int   compare, Int   new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
+Bool AtomicCAS(UInt  &x, UInt  compare, UInt  new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
+Bool AtomicCAS(Long  &x, Long  compare, Long  new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
+Bool AtomicCAS(ULong &x, ULong compare, ULong new_value) {return __sync_bool_compare_and_swap(      &x,       compare,       new_value);}
+Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value) {return __sync_bool_compare_and_swap((Int*)&x, (Int&)compare, (Int&)new_value);}
 #endif
 /******************************************************************************/
 #undef  GetThreadId
