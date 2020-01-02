@@ -86,7 +86,7 @@ void _Memb::setNumZero(Int num)
    }
 }
 /******************************************************************************/
-Int _Memb::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
+Int _Memb::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memb.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
 /******************************************************************************/
 Ptr _Memb::NewAt(Int i)
 {
@@ -128,7 +128,7 @@ Ptr _Memb::_element(Int i)C
 }
 Ptr _Memb::operator()(Int i)
 {
-   if(i< 0     )Exit("i<0 inside _Memb.operator()(Int i)");
+   if(i< 0     )Exit("i<0 inside '_Memb.operator()(Int i)'");
    if(i>=elms())setNumZero(i+1);
    return T[i];
 }
@@ -247,29 +247,6 @@ void _Memb::copyFrom(CPtr src)
            full_blocks=elms()>>_shr;
       FREP(full_blocks){Copy(_ptr[i          ], src,              block_size  ); if(src)src=(Byte*)src+block_size;}
                         Copy(_ptr[full_blocks], src, (elms()&mask())*elmSize()); // last block
-   }
-}
-/******************************************************************************
-void _Memb::copyRaw(_Memb &dest)
-{
-   if(this!=&dest)
-   {
-      dest.del();
-
-      dest._ptr=null;
-      dest._shr=_shr;
-      dest._elm_size  =elmSize  (); dest._elms  =0;
-      dest._block_elms=blockElms(); dest._blocks=0;
-      dest._new=_new;
-      dest._del=_del;
-      dest.setNum(_elms);
-      if(_elms)
-      {
-         Int  block_size =blockSize(),
-              full_blocks=elms()>>_shr;
-         FREP(full_blocks)CopyFast(dest._ptr[i          ], _ptr[i   ],             block_size  );
-                          CopyFast(dest._ptr[full_blocks], _ptr[full], (_elms&mask())*elmSize()); // last block
-      }
    }
 }
 /******************************************************************************/

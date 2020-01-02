@@ -2996,11 +2996,11 @@ Str& Str::clip(Int length)
 Str8& Str8::trim(Int pos, Int length) {clip(pos+length).remove(0, pos); return T;}
 Str & Str ::trim(Int pos, Int length) {clip(pos+length).remove(0, pos); return T;}
 /******************************************************************************/
-Str8& Str8::reserveAdd(Int length) {return reserve(T.length()+length);}
-Str8& Str8::reserve   (Int length)
+Str8& Str8::reserve(Int length)
 {
    if(length>0)
    {
+      if(length>=INT_MAX)Exit("'Str8.reserve' size too big"); // check size because below we do "size=length+1" which can overflow
       Int size=length+1; // 1 extra for '\0'
       if( size>_d.elms()) // increase only
       {
@@ -3010,17 +3010,35 @@ Str8& Str8::reserve   (Int length)
    }
    return T;
 }
-Str& Str::reserveAdd(Int length) {return reserve(T.length()+length);}
-Str& Str::reserve   (Int length)
+Str& Str::reserve(Int length)
 {
    if(length>0)
    {
+      if(length>=INT_MAX)Exit("'Str.reserve' size too big"); // check size because below we do "size=length+1" which can overflow
       Int size=length+1; // 1 extra for '\0'
       if( size>_d.elms()) // increase only
       {
         _d.setNum(size, T.length()); // keep only characters that we have, instead of entire container
         _d[T.length()]='\0'; // have to set NUL, because we don't copy last character above, as it may not always exist (if container was empty)
       }
+   }
+   return T;
+}
+Str8& Str8::reserveAdd(Int length)
+{
+   Long new_length=Long(T.length())+length; if(new_length>0)
+   {
+      if(new_length>INT_MAX)Exit("'Str8.reserveAdd' size too big"); // check overflow because 'reserve' accepts 'length' as Int
+      reserve(new_length);
+   }
+   return T;
+}
+Str& Str::reserveAdd(Int length)
+{
+   Long new_length=Long(T.length())+length; if(new_length>0)
+   {
+      if(new_length>INT_MAX)Exit("'Str.reserveAdd' size too big"); // check overflow because 'reserve' accepts 'length' as Int
+      reserve(new_length);
    }
    return T;
 }

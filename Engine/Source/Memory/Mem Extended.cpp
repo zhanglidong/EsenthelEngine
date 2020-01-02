@@ -134,7 +134,7 @@ void _Memx::setNum(Int num)
       REP(elms()-num)removeValid(num+i);
    }
 }
-Int  _Memx::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
+Int  _Memx::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memx.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
 void _Memx::reverseOrder()
 {
    Int last=elms()-1;
@@ -198,7 +198,7 @@ void _Memx::moveToEnd  (Int i) {moveElm(i, elms()-1);}
 void _Memx::copyTo  ( Ptr dest)C {if(dest)FREPA(T){CopyFast(dest, T[i], elmSize());        dest=(Byte*)dest+elmSize();}}
 void _Memx::copyFrom(CPtr src )  {        FREPA(T){Copy    (T[i], src , elmSize()); if(src)src =(Byte*)src +elmSize();}} // use 'Copy' in case 'src' is null
 /******************************************************************************/
-UInt _Memx::memUsage()C
+UIntPtr _Memx::memUsage()C
 {
    return _abs.memUsage()
        +_valid.memUsage()

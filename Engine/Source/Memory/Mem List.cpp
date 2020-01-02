@@ -29,7 +29,7 @@ void _Meml::setNumZero(Int num)
    for(; _elms>num; )removeLast();
    for(; _elms<num; )addZero   ();
 }
-Int _Meml::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
+Int _Meml::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Meml.addNum' size too big"); if(new_elms<=0)clear();else setNum(new_elms); return index;}
 /******************************************************************************/
 Ptr _Meml::New  (     ) {return add()->data();}
 Ptr _Meml::NewAt(Int i)
@@ -41,6 +41,7 @@ Ptr _Meml::NewAt(Int i)
 /******************************************************************************/
 MemlNode* _Meml::add()
 {
+   if(elms()>=INT_MAX)Exit("'Meml.add' size too big");
    MemlNode *node=(MemlNode*)Alloc<Byte>(SIZE(MemlNode)+_elm_size);
    if(_last)_last->_next=node;else _first=node;
    node->_prev=_last;
@@ -52,6 +53,7 @@ MemlNode* _Meml::add()
 }
 MemlNode* _Meml::addZero()
 {
+   if(elms()>=INT_MAX)Exit("'Meml.addZero' size too big");
    MemlNode *node=(MemlNode*)AllocZero<Byte>(SIZE(MemlNode)+_elm_size);
    if(_last)_last->_next=node;else _first=node;
    node->_prev=_last;
@@ -64,6 +66,7 @@ MemlNode* _Meml::addZero()
 MemlNode* _Meml::addBefore(MemlNode *x)
 {
    if(!x)return null;
+   if(elms()>=INT_MAX)Exit("'Meml.addBefore' size too big");
    MemlNode *node=(MemlNode*)Alloc<Byte>(SIZE(MemlNode)+_elm_size);
    if(x->_prev)x->_prev->_next=node;else _first=node;
    node->_next=x;
@@ -76,6 +79,7 @@ MemlNode* _Meml::addBefore(MemlNode *x)
 MemlNode* _Meml::addAfter(MemlNode *x)
 {
    if(!x)return null;
+   if(elms()>=INT_MAX)Exit("'Meml.addAfter' size too big");
    MemlNode *node=(MemlNode*)Alloc<Byte>(SIZE(MemlNode)+_elm_size);
    if(x->_next)x->_next->_prev=node;else _last=node;
    node->_prev=x;
@@ -123,7 +127,7 @@ Ptr _Meml::_element(Int j)C
 }
 Ptr _Meml::operator()(Int i)
 {
-   if(i< 0     )Exit("i<0 inside _Meml.operator()(Int i)");
+   if(i< 0     )Exit("i<0 inside '_Meml.operator()(Int i)'");
    if(i>=elms())setNumZero(i+1);
    return T[i];
 }

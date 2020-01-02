@@ -98,17 +98,17 @@ void _Memc::setNumZero(Int num, Int keep)
       reserve(num);
    }
   _elms=num; // set '_elms' before accessing new elements to avoid range assert
-   ZeroFast(_element(keep), elmSize()*(elms()-keep)); // zero   new elements, have to use '_element' to avoid out of range errors
+   ZeroFast(_element(keep), elmSize()*UIntPtr(elms()-keep)); // zero   new elements, have to use '_element' to avoid out of range errors
    if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]);  // create new elements
 }
 /******************************************************************************/
-Int _Memc::addNum    (Int num) {Int index=elms(); setNum    (elms()+num); return index;}
-Int _Memc::addNumZero(Int num) {Int index=elms(); setNumZero(elms()+num); return index;}
+Int _Memc::addNum    (Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNum' size too big"    ); if(new_elms<=0)clear();else setNum    (new_elms); return index;}
+Int _Memc::addNumZero(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNumZero' size too big"); if(new_elms<=0)clear();else setNumZero(new_elms); return index;}
 /******************************************************************************/
 Ptr _Memc::NewAt(Int i)
 {
    Clamp(i, 0, elms());
-   Int old_elms=elms(); _elms++; // increase '_elms' before accessing new elements to avoid range assert
+   Int old_elms=elms(); if(old_elms>=INT_MAX)Exit("'Memc.NewAt' size too big"); _elms++; // increase '_elms' before accessing new elements to avoid range assert
    if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
      _maxElms(elms());
@@ -119,7 +119,7 @@ Ptr _Memc::NewAt(Int i)
    }else
    if(i<old_elms)
    {
-      MoveFast(T[i+1], T[i], (old_elms-i)*elmSize());
+      MoveFast(T[i+1], T[i], UIntPtr(old_elms-i)*elmSize());
    }
    Ptr elm=T[i]; if(_new)_new(elm); return elm;
 }
@@ -138,7 +138,7 @@ void _Memc::remove(Int i, Bool keep_order)
       if(_del)_del(T[i]);
       if(i<elms()-1)
       {
-         if(keep_order)MoveFast(T[i], T[     i+1], elmSize()*(elms()-1-i));
+         if(keep_order)MoveFast(T[i], T[     i+1], elmSize()*UIntPtr(elms()-1-i));
          else          CopyFast(T[i], T[elms()-1], elmSize());
       }
      _elms--;
@@ -153,8 +153,8 @@ void _Memc::removeNum(Int i, Int n, Bool keep_order)
       if(_del)REPD(j, n)_del(T[i+j]); // delete those elements
       if(i<elms()-n) // if there are any elements after those being removed
       {
-                      if(keep_order)MoveFast(T[i], T[     i+n], elmSize()*(elms()-n-i));else // move all    elements after i(+n) to left
-         {Int m=Min(n, elms()-i-n); CopyFast(T[i], T[elms()-m], elmSize()*        m   );}    // move last m elements to i-th
+                      if(keep_order)MoveFast(T[i], T[     i+n], elmSize()*UIntPtr(elms()-n-i));else // move all    elements after i(+n) to left
+         {Int m=Min(n, elms()-i-n); CopyFast(T[i], T[elms()-m], elmSize()*UIntPtr(       m  ));}    // move last m elements to i-th
       }
      _elms-=n;
    }
@@ -166,7 +166,7 @@ void _Memc::removeData(CPtr elm, Bool keep_order)
 /******************************************************************************/
 Ptr _Memc::operator()(Int i)
 {
-   if(i< 0     )Exit("i<0 inside _Memc.operator()(Int i)");
+   if(i< 0     )Exit("i<0 inside '_Memc.operator()(Int i)'");
    if(i>=elms())setNumZero(i+1);
    return T[i];
 }
@@ -174,7 +174,7 @@ Ptr _Memc::operator()(Int i)
 Int _Memc::index(CPtr elm)C
 {
    UIntPtr i=UIntPtr(elm)-UIntPtr(data());
-   if(i<UIntPtr(elms()*elmSize()))return i/elmSize(); // unsigned compare will already guarantee "i>=0 && "
+   if(i<elmsMem())return i/elmSize(); // unsigned compare will already guarantee "i>=0 && "
    return -1;
 }
 /******************************************************************************/
@@ -189,50 +189,34 @@ void _Memc::     swapOrder(Int i  , Int j             ) {if(InRange(i, T) && InR
 
 void _Memc::moveElmLeftUnsafe(Int elm, Int new_index, Ptr temp) {_MoveElmLeftUnsafe(data(), elmSize(), elm, new_index, temp);}
 /******************************************************************************/
-void _Memc::copyTo  ( Ptr dest)C {if(dest)CopyFast(dest  , data(), elms()*elmSize());}
-void _Memc::copyFrom(CPtr src )  {        Copy    (data(), src   , elms()*elmSize());} // use 'Copy' in case 'src' is null
-/******************************************************************************
-void _Memc::copyRaw(_Memc &dest)
-{
-   if(this!=&dest)
-   {
-      dest.del();
-
-      dest._elms    =_elms;
-      dest._elm_size=_elm_size;
-      dest._max_elms=_elms;
-      dest._new     =_new ;
-      dest._del     =_del ;
-      dest._data    =       Alloc(_elms*_elm_size);
-      CopyFast(dest._data, _data, _elms*_elm_size);
-   }
-}
+void _Memc::copyTo  ( Ptr dest)C {if(dest)CopyFast(dest  , data(), elmsMem());}
+void _Memc::copyFrom(CPtr src )  {        Copy    (data(), src   , elmsMem());} // use 'Copy' in case 'src' is null
 /******************************************************************************/
 Bool _Memc::saveRaw(File &f)C
 {
    f.cmpUIntV(elms());
-   f.put     (data(), elms()*elmSize());
+   f.put     (data(), elmsMem());
    return f.ok();
 }
 Bool _Memc::loadRaw(File &f)
 {
    setNum(f.decUIntV());
-   f.getFast(data(), elms()*elmSize());
-   if(f.ok())return true;
-   clear(); return false;
+   f.getFast(data(), elmsMem());
+   if(f.ok())return  true;
+   clear();  return false;
 }
 Bool _Memc::_saveRaw(File &f)C
 {
    f.putInt(elms());
-   f.put   (data(), elms()*elmSize());
+   f.put   (data(), elmsMem());
    return f.ok();
 }
 Bool _Memc::_loadRaw(File &f)
 {
    setNum(f.getInt());
-   f.getFast(data(), elms()*elmSize());
-   if(f.ok())return true;
-   clear(); return false;
+   f.getFast(data(), elmsMem());
+   if(f.ok())return  true;
+   clear();  return false;
 }
 /******************************************************************************/
 // MEMC THREAD SAFE
