@@ -4,11 +4,11 @@ struct _Memb // Block Based Container Base - Do not use this class, use 'Memb' i
    void del  ();
    void clear();
 
-   Int    elms    ()C {return _elms      ;}
-   UInt   elmSize ()C {return _elm_size  ;}
-   UInt blockElms ()C {return _block_elms;}
-   UInt blockSize ()C {return _block_elms*_elm_size;}
-   UInt   memUsage()C {return _blocks*blockSize();}
+   Int     elms    ()C {return _elms      ;}
+   UInt    elmSize ()C {return _elm_size  ;}
+   UInt  blockElms ()C {return _block_elms;}
+   UInt  blockSize ()C {return _block_elms*_elm_size;}
+   UIntPtr memUsage()C {return  UIntPtr(_blocks)*blockSize();}
 
    Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(i) : null;}
    Ptr operator[](Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _element(i);}

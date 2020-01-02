@@ -4,13 +4,13 @@ struct _Memx // Block Based Extended Container Base - Do not use this class, use
    void del  ();
    void clear();
 
-    Int   absElms ()C {return               _abs.elms();}
-    Int validElms ()C {return             _valid.elms();}
-    Int      elms ()C {return             _valid.elms();}
-   UInt   elmSize ()C {return _abs.elmSize()-SIZE(UInt);}
-   UInt   memUsage()C;
+    Int    absElms ()C {return               _abs.elms();}
+    Int  validElms ()C {return             _valid.elms();}
+    Int       elms ()C {return             _valid.elms();}
+   UInt    elmSize ()C {return _abs.elmSize()-SIZE(UInt);}
+   UIntPtr memUsage()C;
 #if EE_PRIVATE
-   UInt   maxElms ()C {return _valid.maxElms();}
+   UInt    maxElms ()C {return _valid.maxElms();}
 #endif
 
    Ptr   absElm  (Int i)C {return (Byte*)_abs  [i]+SIZE(UInt);}

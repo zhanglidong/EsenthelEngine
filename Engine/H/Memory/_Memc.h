@@ -4,13 +4,14 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    void del  ();
    void clear();
 
-   Int  elms    ()C {return _elms    ;}
-   UInt elmSize ()C {return _elm_size;}
-   Ptr  data    ()C {return _data    ;}
-   UInt memUsage()C {return _elm_size*_max_elms;}
+   Int     elms    ()C {return _elms    ;}
+   UInt    elmSize ()C {return _elm_size;}
+   Ptr     data    ()C {return _data    ;}
+   UIntPtr memUsage()C {return UIntPtr(_max_elms)*_elm_size;}
+   UIntPtr elmsMem ()C {return UIntPtr(    _elms)*_elm_size;}
 #if EE_PRIVATE
-   UInt maxElms    ()C {return _max_elms  ;}
-   Bool initialized()C {return _elm_size>0;}
+   UInt    maxElms    ()C {return _max_elms  ;}
+   Bool    initialized()C {return _elm_size>0;}
 #endif
 
    Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(      i) : null;}
@@ -77,7 +78,7 @@ private:
    void _maxElms(UInt max_elms);
 #endif
 
-   inline Ptr _element(Int i)C {return (Byte*)_data + i*_elm_size;}
+   inline Ptr _element(Int i)C {return (Byte*)_data + UIntPtr(i)*_elm_size;}
 
    NO_COPY_CONSTRUCTOR(_Memc);
 

@@ -4,9 +4,9 @@ struct _Meml // List Based Container Base - Do not use this class, use 'Meml' in
    void del  ();
    void clear();
 
-   Int  elms    ()C {return _elms    ;}
-   UInt elmSize ()C {return _elm_size;}
-   UInt memUsage()C {return  elms()*elmSize();}
+   Int     elms    ()C {return _elms    ;}
+   UInt    elmSize ()C {return _elm_size;}
+   UIntPtr memUsage()C {return  UIntPtr(elms())*elmSize();}
 
    Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(i) : null;}
    Ptr operator[](Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _element(i);}

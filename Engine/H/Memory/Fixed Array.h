@@ -20,11 +20,11 @@
 /******************************************************************************/
 template<typename TYPE, Int NUM> struct FixedArray // array of fixed size, with the option to dynamically replace the type of elements
 {
-   TYPE& operator[](Int i)  {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
- C TYPE& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
+   TYPE& operator[](Int i)  {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data + UIntPtr(i)*_elm_size) : _data_org[i];} // get i-th element in the container
+ C TYPE& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data + UIntPtr(i)*_elm_size) : _data_org[i];} // get i-th element in the container
 
-   Int elms   ()C {return  NUM     ;} // get number of          elements in this container
-   Int elmSize()C {return _elm_size;} // get size   of a single element  in this container
+   Int  elms   ()C {return  NUM     ;} // get number of          elements in this container
+   UInt elmSize()C {return _elm_size;} // get size   of a single element  in this container
 
    T1(EXTENDED) FixedArray& replaceClass(); // replace the type of class stored in the container, all elements are automatically removed before changing the type of the class, the new type must be extended from the base 'TYPE' (if you're receiving a compilation error pointing to this method this means that the new class isn't extended from the base class)
 
@@ -35,7 +35,7 @@ template<typename TYPE, Int NUM> struct FixedArray // array of fixed size, with 
    FixedArray& operator=(C FixedArray &src);
 
 private:
-   Int  _elm_size;
+   UInt _elm_size;
    TYPE _data_org[NUM], *_data;
 };
 /******************************************************************************/
