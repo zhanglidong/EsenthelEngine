@@ -5,8 +5,26 @@
 
 namespace EE{
 /******************************************************************************/
-static Int StrSize(Int New, Int Old) {return Max(16, New, Old + Old/2);}
-static Int StrNew (Int length) {Int size=length+1; return StrSize(size, size);}
+static Int StrSize(Int new_size, Int old_size)
+{
+   old_size=Min(INT_MAX, ULong(old_size) + UInt(old_size)/2); // clamp to avoid overflow
+   return   Max(16, new_size, old_size);
+}
+static Int NewStrSize(Int str_length, UInt extra_length)
+{
+   if(ULong length=ULong(str_length)+extra_length) // only if any is non-zero
+   {
+      ULong size=length+1; // +1 for NUL char
+      return Max(16, Min(INT_MAX, size + size/2)); // clamp to avoid overflow
+   }
+   return 0;
+}
+static Int StrSizeAdd(Int a_length, Int b_length)
+{
+   Long size=(Long(a_length)+b_length)+1; // +1 for NUL char
+   if(  size>INT_MAX)Exit("Str size too big");
+   return size;
+}
 /******************************************************************************/
 static const Char
             CharEnDash     =u'–',
@@ -2795,9 +2813,9 @@ Str ::Str (C BStr &s   ) {if(_length=s.length( )){_d.setNum(length()+1); CopyFas
 Str8::Str8(Bool    b   ) {   _length=         1 ; _d.setNum(         2); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
 Str ::Str (Bool    b   ) {   _length=         1 ; _d.setNum(         2); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
 
-Str8::Str8(C Str8 &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
-Str ::Str (C Str  &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
-Str ::Str (C Str8 &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); I(); FREP(length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0';}} // always set NUL manually because 's' can be null, don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
+Str8::Str8(C Str8 &s, UInt extra_length) {_length=s.length(); if(Int size=NewStrSize(length(), extra_length)){_d.setNum(size); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
+Str ::Str (C Str  &s, UInt extra_length) {_length=s.length(); if(Int size=NewStrSize(length(), extra_length)){_d.setNum(size); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
+Str ::Str (C Str8 &s, UInt extra_length) {_length=s.length(); if(Int size=NewStrSize(length(), extra_length)){_d.setNum(size); I(); FREP(length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0';}} // always set NUL manually because 's' can be null, don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
 
 Str8::Str8(SByte i) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
 Str ::Str (SByte i) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
@@ -2873,7 +2891,7 @@ Str8& Str8::insert(Int i, Char8 c)
    if(c)
    {
       Clamp(i, 0, length());
-      Int size=length()+2; if(size>_d.elms())
+      Int size=StrSizeAdd(length(), 1); if(size>_d.elms())
       {
          Mems<Char8> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
@@ -2894,7 +2912,7 @@ Str& Str::insert(Int i, Char c)
    if(c)
    {
       Clamp(i, 0, length());
-      Int size=length()+2; if(size>_d.elms())
+      Int size=StrSizeAdd(length(), 1); if(size>_d.elms())
       {
          Mems<Char> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
@@ -2916,7 +2934,7 @@ Str8& Str8::insert(Int i, C Str8 &text)
    if(text.is())
    {
       Clamp(i, 0, length());
-      Int size=length()+text.length()+1; if(size>_d.elms())
+      Int size=StrSizeAdd(length(), text.length()); if(size>_d.elms())
       {
          Mems<Char8> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
@@ -2937,7 +2955,7 @@ Str& Str::insert(Int i, C Str &text)
    if(text.is())
    {
       Clamp(i, 0, length());
-      Int size=length()+text.length()+1; if(size>_d.elms())
+      Int size=StrSizeAdd(length(), text.length()); if(size>_d.elms())
       {
          Mems<Char> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
@@ -3262,20 +3280,20 @@ Str& Str::operator=(C BStr &s)
 /******************************************************************************/
 static inline void Reserve(Str8 &s, Int length, Bool keep_nul=false) // !! does not set last char as NUL !!
 {
-      length+=s.length()+1; // +1 for NUL char
-   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length()+keep_nul);
+   Int size=StrSizeAdd(length, s.length());
+   if( size>s._d.elms())s._d.setNum(StrSize(size, s._d.elms()), s.length()+keep_nul);
 }
 static inline void Reserve(Str &s, Int length, Bool keep_nul=false) // !! does not set last char as NUL !!
 {
-      length+=s.length()+1; // +1 for NUL char
-   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length()+keep_nul);
+   Int size=StrSizeAdd(length, s.length());
+   if( size>s._d.elms())s._d.setNum(StrSize(size, s._d.elms()), s.length()+keep_nul);
 }
 /******************************************************************************/
 Str8& Str8::operator+=(CChar8 *t)
 {
    if(Is(t))
    {
-      Int t_length=Length(t), size=length()+t_length+1; // +1 for NUL char
+      Int t_length=Length(t), size=StrSizeAdd(length(), t_length);
       if(size>_d.elms())
       {
          UIntPtr offset=t-T(); if(offset<UIntPtr(length())) // if 't' is part of 'T'
@@ -3301,7 +3319,7 @@ Str& Str::operator+=(CChar *t)
 {
    if(Is(t))
    {
-      Int t_length=Length(t), size=length()+t_length+1; // +1 for NUL char
+      Int t_length=Length(t), size=StrSizeAdd(length(), t_length);
       if(size>_d.elms())
       {
          UIntPtr offset=t-T(); if(offset<UIntPtr(length())) // if 't' is part of 'T'
@@ -3475,7 +3493,7 @@ Str& Str::operator+=(C BStr &s)
 {
    if(s.is())
    {
-      CChar *t=s(); Int t_length=s.length(), size=length()+t_length+1; // +1 for NUL char
+      CChar *t=s(); Int t_length=s.length(), size=StrSizeAdd(length(), t_length);
       if(size>_d.elms())
       {
          UIntPtr offset=t-T();

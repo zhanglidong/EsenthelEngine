@@ -67,8 +67,8 @@ struct Str // Text String (16-bit per character)
    Str(NSString *s);   Str& operator=(NSString *s);   Str& operator+=(NSString *s);   Str operator+(NSString *s)C;
 #endif
    void alwaysAppend(Char c);
-   explicit Str(C Str8 &s, Int extra_length);
-   explicit Str(C Str  &s, Int extra_length);
+   explicit Str(C Str8 &s, UInt extra_length);
+   explicit Str(C Str  &s, UInt extra_length);
 #endif
    Str(           );
    Str(  Str   &&s);   Str& operator=(  Str   &&s);
