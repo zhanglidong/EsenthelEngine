@@ -144,18 +144,18 @@ static Memx<AllocData> *MemLog; // set this as a pointer so its dtor won't get a
 #endif
 
 #if MEM_COUNT_USAGE
-Long _MemUsage; // current memory usage
+UIntPtr _MemUsage; // current memory usage
 #endif
 
 #if MEM_PEAK
-Long _MemPeakUsage; // peak memory usage
+UIntPtr _MemPeakUsage; // peak memory usage
 #endif
 
 #if MEM_SINGLE_MAX
-IntPtr MaxSize;
+UIntPtr MaxSize;
 #endif
 
-Long MemUsage()
+UIntPtr MemUsage()
 {
 #if MEM_COUNT_USAGE
    return _MemUsage;
@@ -163,7 +163,7 @@ Long MemUsage()
    return 0;
 #endif
 }
-Long MemPeakUsage()
+UIntPtr MemPeakUsage()
 {
 #if MEM_PEAK
    return _MemPeakUsage;
@@ -192,7 +192,7 @@ void ListMemLeaks()
    MemInside=false;
 #endif
 }
-static void AllocError(IntPtr size)
+static void AllocError(ULong size)
 {
    Char8   temp[256];
    Char   error[512];
@@ -234,7 +234,7 @@ void Free(Ptr &data)
    #endif
 
    #if MEM_COUNT_USAGE
-      IntPtr data_size; {IntPtr *size=(IntPtr*)data-1; data=size; data_size=*size; AtomicSub(_MemUsage, data_size);}
+      UIntPtr data_size; {UIntPtr *size=(UIntPtr*)data-1; data=size; data_size=*size; AtomicSub(_MemUsage, data_size);}
       before+=SIZE(data_size); // make room for size
    #endif
 
@@ -276,13 +276,14 @@ void Free(Ptr &data)
 /******************************************************************************/
 // ALLOCATE
 /******************************************************************************/
-Ptr Alloc(IntPtr size)
+Ptr Alloc( IntPtr size) {return (size>0) ? Alloc((UIntPtr)size) : null;}
+Ptr Alloc(UIntPtr size)
 {
    if(size>0)
    {
    #if MEM_SINGLE_MAX
    again:
-      Long max=AtomicGet(MaxSize);
+      UIntPtr max=AtomicGet(MaxSize);
       if(size>max && !AtomicCAS(MaxSize, max, size))goto again;
    #endif
 
@@ -295,7 +296,7 @@ Ptr Alloc(IntPtr size)
    #endif
 
    #if MEM_COUNT_USAGE
-      IntPtr data_size=size; // remember this before increasing the size
+      UIntPtr data_size=size; // remember this before increasing the size
       before+=SIZE(data_size); // make room for size
    #endif
 
@@ -306,6 +307,7 @@ Ptr Alloc(IntPtr size)
    #if MEM_LEAK_FULL || MEM_COUNT_USAGE || MEM_GUARD
       before=Ceil16(before); // !! need to align 'before' because some codes (custom or in the system) make assumptions to malloc being aligned, for example without this, Apple platforms can crash !!
       size+=before+after;
+      if(size<data_size)AllocError(data_size); // check for overflow
    #endif
 
       if(Ptr data=malloc(size))
@@ -321,11 +323,11 @@ Ptr Alloc(IntPtr size)
 
       #if MEM_COUNT_USAGE
          {
-            IntPtr *size=(IntPtr*)debug-1; debug=size; *size=data_size; Long old_usage=AtomicAdd(_MemUsage, data_size);
+            UIntPtr *size=(UIntPtr*)debug-1; debug=size; *size=data_size; UIntPtr old_usage=AtomicAdd(_MemUsage, data_size);
          #if MEM_PEAK
-            for(Long new_usage=old_usage+data_size; ; )
+            for(UIntPtr new_usage=old_usage+data_size; ; )
             {
-               Long peak=AtomicGet(_MemPeakUsage);
+               UIntPtr peak=AtomicGet(_MemPeakUsage);
                if(new_usage<=peak
                || AtomicCAS(_MemPeakUsage, peak, new_usage))break;
             }
@@ -344,7 +346,7 @@ Ptr Alloc(IntPtr size)
                { // braces to make sure locals are removed inside the block
                   if(!MemLog)New(MemLog);
                   AllocData &ad=MemLog->New();
-                  *index=MemLog->absIndex(&ad);
+                 *index=MemLog->absIndex(&ad);
                   ad.data=index;
                }
                MemInside=false;
@@ -369,18 +371,28 @@ Ptr Alloc(IntPtr size)
    }
    return null;
 }
-Ptr AllocZero(IntPtr size)
+/******************************************************************************/
+#if !X64 // 32-bit
+Ptr Alloc( Long size) {return (size>0) ? Alloc((ULong)size) : null;}
+Ptr Alloc(ULong size)
 {
-   Ptr    data=Alloc(size); Zero(data, size);
+   if(size>UINT_MAX)AllocError(size); // 32-bit app can't allocate more than UINT_MAX
+   return Alloc((UIntPtr)size);
+}
+#endif
+/******************************************************************************/
+Ptr AllocZero( Long size) {return (size>0) ? AllocZero((ULong)size) : null;}
+Ptr AllocZero(ULong size)
+{
+   Ptr    data=Alloc(size); ZeroFast(data, size); // can use 'ZeroFast' here because 'size' is always >=0 and 'data' will be null only if "size==0" (otherwise 'Exit' is called)
    return data;
 }
 /******************************************************************************/
 // REALLOCATE
 /******************************************************************************/
-void _Realloc(Ptr &data, IntPtr size_new, IntPtr size_old)
+void _Realloc(Ptr &data,  Long size_new,  Long size_old) {_Realloc(data, (ULong)Max(size_new, 0), (ULong)Max(size_old, 0));}
+void _Realloc(Ptr &data, ULong size_new, ULong size_old)
 {
-   MAX(size_new, 0);
-   MAX(size_old, 0);
    if(size_new!=size_old)
    {
       Ptr p=Alloc(size_new);
@@ -388,10 +400,9 @@ void _Realloc(Ptr &data, IntPtr size_new, IntPtr size_old)
       Free(data); data=p;
    }
 }
-void _ReallocZero(Ptr &data, IntPtr size_new, IntPtr size_old)
+void _ReallocZero(Ptr &data,  Long size_new,  Long size_old) {_ReallocZero(data, (ULong)Max(size_new, 0), (ULong)Max(size_old, 0));}
+void _ReallocZero(Ptr &data, ULong size_new, ULong size_old)
 {
-   MAX(size_new, 0);
-   MAX(size_old, 0);
    if(size_new!=size_old)
    {
       Ptr p=Alloc(size_new); if(p)
@@ -483,21 +494,29 @@ void AlignedFree (Ptr   &data) {Free(data);}
 /******************************************************************************/
 // ZERO
 /******************************************************************************/
-void Zero(Ptr data, IntPtr size)
-{
-   if(data && size>0)memset(data, 0, size);
-}
+void Zero(Ptr data, ULong size) {if(data          )memset(data, 0, size);}
+void Zero(Ptr data,  Long size) {if(data && size>0)memset(data, 0, size);}
+void Zero(Ptr data, UInt  size) {if(data          )memset(data, 0, size);}
+void Zero(Ptr data,  Int  size) {if(data && size>0)memset(data, 0, size);}
 /******************************************************************************/
 // SET
 /******************************************************************************/
-void SetMem(Ptr data, Byte value, IntPtr size)
-{
-   if(data && size>0)memset(data, value, size);
-}
+void SetMem(Ptr data, Byte value, ULong size) {if(data          )memset(data, value, size);}
+void SetMem(Ptr data, Byte value,  Long size) {if(data && size>0)memset(data, value, size);}
+void SetMem(Ptr data, Byte value, UInt  size) {if(data          )memset(data, value, size);}
+void SetMem(Ptr data, Byte value,  Int  size) {if(data && size>0)memset(data, value, size);}
 /******************************************************************************/
 // COPY
 /******************************************************************************/
-void Copy(Ptr dest, CPtr src, IntPtr size)
+void Copy(Ptr dest, CPtr src, ULong size)
+{
+   if(dest)
+   {
+      if(src)memmove(dest, src, size);
+      else   memset (dest,   0, size);
+   }
+}
+void Copy(Ptr dest, CPtr src, Long size)
 {
    if(dest && size>0)
    {
@@ -505,6 +524,23 @@ void Copy(Ptr dest, CPtr src, IntPtr size)
       else   memset (dest,   0, size);
    }
 }
+void Copy(Ptr dest, CPtr src, UInt size)
+{
+   if(dest)
+   {
+      if(src)memmove(dest, src, size);
+      else   memset (dest,   0, size);
+   }
+}
+void Copy(Ptr dest, CPtr src, Int size)
+{
+   if(dest && size>0)
+   {
+      if(src)memmove(dest, src, size);
+      else   memset (dest,   0, size);
+   }
+}
+/******************************************************************************/
 void Copy(Ptr dest, CPtr src, IntPtr dest_size, IntPtr src_size)
 {
    if(dest && dest_size>0)
@@ -823,7 +859,7 @@ void Copy32To24(Ptr dest, CPtr src, Int elms)
 /******************************************************************************/
 // SWAP
 /******************************************************************************/
-void SwapFast(Ptr a, Ptr b, IntPtr size) // !! this will crash if "!a || !b || size<0" !!
+void SwapFast(Ptr a, Ptr b, UIntPtr size) // !! this will crash if "!a || !b || size<0" !!
 {
    U32 *i1=(U32*) a, *i2=(U32*) b; REPP  (size>>2)Swap(*i1++, *i2++); // size>>2 is faster than Int size/4
    U8  *j1=(U8 *)i1, *j2=(U8 *)i2; switch(size& 3)                    // size& 3 is faster than Int size%4 but doesn't work with negative numbers

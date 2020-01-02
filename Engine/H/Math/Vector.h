@@ -188,22 +188,24 @@ Int MaxI(Flt x, Flt y, Flt z, Flt w);
 Int MaxI(Dbl x, Dbl y, Dbl z, Dbl w);
 
 // get average value
-inline Int  AvgI(Int  x, Int  y                ) {return DivRound(x+y    , 2 )      ;}
-inline UInt AvgI(UInt x, UInt y                ) {return DivRound(x+y    , 2u)      ;}
-inline Flt  AvgF(Int  x, Int  y                ) {return         (x+y        )*0.5f ;}
-inline Flt  Avg (Flt  x, Flt  y                ) {return         (x+y        )*0.5f ;}
-inline Dbl  Avg (Dbl  x, Dbl  y                ) {return         (x+y        )*0.5  ;}
-inline Int  AvgI(Int  x, Int  y, Int  z        ) {return DivRound(x+y+z  , 3 )      ;}
-inline Byte AvgI(Byte x, Byte y, Byte z        ) {return DivRound(UInt(x+y+z), 3u)  ;}
-inline UInt AvgI(UInt x, UInt y, UInt z        ) {return DivRound(x+y+z  , 3u)      ;}
-inline Flt  AvgF(Int  x, Int  y, Int  z        ) {return         (x+y+z      )/3.0f ;}
-inline Flt  Avg (Flt  x, Flt  y, Flt  z        ) {return         (x+y+z      )/3.0f ;}
-inline Dbl  Avg (Dbl  x, Dbl  y, Dbl  z        ) {return         (x+y+z      )/3.0  ;}
-inline Int  AvgI(Int  x, Int  y, Int  z, Int  w) {return DivRound(x+y+z+w, 4 )      ;}
-inline UInt AvgI(UInt x, UInt y, UInt z, UInt w) {return DivRound(x+y+z+w, 4u)      ;}
-inline Flt  AvgF(Int  x, Int  y, Int  z, Int  w) {return         (x+y+z+w    )*0.25f;}
-inline Flt  Avg (Flt  x, Flt  y, Flt  z, Flt  w) {return         (x+y+z+w    )*0.25f;}
-inline Dbl  Avg (Dbl  x, Dbl  y, Dbl  z, Dbl  w) {return         (x+y+z+w    )*0.25 ;}
+inline Int   AvgI(Int   x, Int   y                ) {return DivRound(x+y    , 2   )      ;}
+inline UInt  AvgI(UInt  x, UInt  y                ) {return DivRound(x+y    , 2u  )      ;}
+inline Long  AvgI(Long  x, Long  y                ) {return DivRound(x+y    , 2ll )      ;}
+inline ULong AvgI(ULong x, ULong y                ) {return DivRound(x+y    , 2ull)      ;}
+inline Flt   AvgF(Int   x, Int   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Flt   x, Flt   y                ) {return         (x+y          )*0.5f ;}
+inline Dbl   Avg (Dbl   x, Dbl   y                ) {return         (x+y          )*0.5  ;}
+inline Int   AvgI(Int   x, Int   y, Int  z        ) {return DivRound(x+y+z  , 3   )      ;}
+inline Byte  AvgI(Byte  x, Byte  y, Byte z        ) {return DivRound(UInt(x+y+z)  , 3u)  ;}
+inline UInt  AvgI(UInt  x, UInt  y, UInt z        ) {return DivRound(x+y+z  , 3u  )      ;}
+inline Flt   AvgF(Int   x, Int   y, Int  z        ) {return         (x+y+z        )/3.0f ;}
+inline Flt   Avg (Flt   x, Flt   y, Flt  z        ) {return         (x+y+z        )/3.0f ;}
+inline Dbl   Avg (Dbl   x, Dbl   y, Dbl  z        ) {return         (x+y+z        )/3.0  ;}
+inline Int   AvgI(Int   x, Int   y, Int  z, Int  w) {return DivRound(x+y+z+w, 4   )      ;}
+inline UInt  AvgI(UInt  x, UInt  y, UInt z, UInt w) {return DivRound(x+y+z+w, 4u  )      ;}
+inline Flt   AvgF(Int   x, Int   y, Int  z, Int  w) {return         (x+y+z+w      )*0.25f;}
+inline Flt   Avg (Flt   x, Flt   y, Flt  z, Flt  w) {return         (x+y+z+w      )*0.25f;}
+inline Dbl   Avg (Dbl   x, Dbl   y, Dbl  z, Dbl  w) {return         (x+y+z+w      )*0.25 ;}
 /******************************************************************************/
 // TESTING
 /******************************************************************************/
