@@ -21,8 +21,10 @@ inline void AtomicSet(  Int  &x, Int  y) {x=y     ;}
 inline void AtomicSet(  UInt &x, UInt y) {x=y     ;}
 inline void AtomicSet(  Flt  &x, Flt  y) {x=y     ;}
 #if X64
-inline Long AtomicGet(C Long &x        ) {return x;}
-inline void AtomicSet(  Long &x, Long y) {x=y     ;}
+inline Long  AtomicGet(C Long  &x         ) {return x;}
+inline ULong AtomicGet(C ULong &x         ) {return x;}
+inline void  AtomicSet(  Long  &x, Long  y) {x=y     ;}
+inline void  AtomicSet(  ULong &x, ULong y) {x=y     ;}
 #endif
 T1(TYPE) void AtomicSet(TYPE* &x, TYPE *y) {x=y;}
 /******************************************************************************/
@@ -141,11 +143,18 @@ inline void Sort(FloatIndex *data, Int elms) {Sort(data, elms, FloatIndex::Compa
 /******************************************************************************/
 // MEMORY
 /******************************************************************************/
-void _Realloc    (Ptr &data, IntPtr size_new, IntPtr size_old); // reallocate memory without losing data                      , Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
-void _ReallocZero(Ptr &data, IntPtr size_new, IntPtr size_old); // reallocate memory without losing data and zero new elements, Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
+#if X64
+inline Ptr Alloc( Int size) {return Alloc(( IntPtr)size);}
+inline Ptr Alloc(UInt size) {return Alloc((UIntPtr)size);}
+#endif
 
-T1(TYPE) void Realloc    (TYPE* &data, Int elms_new, Int elms_old) {_Realloc    (*(Ptr*)&data, elms_new*SIZE(TYPE), elms_old*SIZE(TYPE));}
-T1(TYPE) void ReallocZero(TYPE* &data, Int elms_new, Int elms_old) {_ReallocZero(*(Ptr*)&data, elms_new*SIZE(TYPE), elms_old*SIZE(TYPE));}
+void _Realloc    (Ptr &data, ULong size_new, ULong size_old); // reallocate memory without losing data                      , Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
+void _Realloc    (Ptr &data,  Long size_new,  Long size_old); // reallocate memory without losing data                      , Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
+void _ReallocZero(Ptr &data, ULong size_new, ULong size_old); // reallocate memory without losing data and zero new elements, Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
+void _ReallocZero(Ptr &data,  Long size_new,  Long size_old); // reallocate memory without losing data and zero new elements, Exit on fail !! this function can be used only for memory allocated using 'Alloc', but not 'New' !!
+
+T1(TYPE) void Realloc    (TYPE* &data, Int elms_new, Int elms_old) {_Realloc    (*(Ptr*)&data, elms_new*SIZEL(TYPE), elms_old*SIZEL(TYPE));}
+T1(TYPE) void ReallocZero(TYPE* &data, Int elms_new, Int elms_old) {_ReallocZero(*(Ptr*)&data, elms_new*SIZEL(TYPE), elms_old*SIZEL(TYPE));}
 #if EE_PRIVATE
 T1(TYPE) void Realloc1    (TYPE* &data,              Int elms_old) {Realloc    (data, elms_old+1, elms_old);}
 T1(TYPE) void ReallocZero1(TYPE* &data,              Int elms_old) {ReallocZero(data, elms_old+1, elms_old);}

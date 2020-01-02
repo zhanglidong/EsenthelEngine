@@ -39,10 +39,17 @@ void _Memc::reserve(Int num)
    if(Greater(num, maxElms())) // num>maxElms()
    {
      _maxElms(num);
-     _Realloc(_data, maxElms()*elmSize(), elms()*elmSize());
+     _Realloc(_data, requiredMem(), elmsMem());
    }
 }
-void _Memc::reserveAdd(Int num) {reserve(elms()+num);}
+void _Memc::reserveAdd(Int num)
+{
+   Long new_elms=Long(elms())+num; if(new_elms>0)
+   {
+      if(new_elms>INT_MAX)Exit("'Memc.reserveAdd' size too big");
+      reserve(new_elms);
+   }
+}
 void _Memc::setNum(Int num)
 {
    MAX(num, 0);
@@ -112,9 +119,9 @@ Ptr _Memc::NewAt(Int i)
    if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
      _maxElms(elms());
-      Ptr temp=Alloc(maxElms()*elmSize()); // copy everything to a new buffer
-      CopyFast((Byte*)temp                , data(),           i *elmSize());
-      CopyFast((Byte*)temp+(i+1)*elmSize(), T[i]  , (old_elms-i)*elmSize());
+      Ptr temp=Alloc(requiredMem()); // copy everything to a new buffer
+      CopyFast((Byte*)temp                       , data(), UIntPtr(         i)*elmSize());
+      CopyFast((Byte*)temp+UIntPtr(i+1)*elmSize(), T[i]  , UIntPtr(old_elms-i)*elmSize());
       Free(_data); _data=temp;
    }else
    if(i<old_elms)

@@ -1144,7 +1144,7 @@ Bool File::size(Long size)
 
       case FILE_MEM:
       {
-         if(_writable)_Realloc(_mem, size, _size); // write mode allocated memory manually, so we need to reallocate it
+         if(_writable)_Realloc(_mem, Unsigned(size), _size); // write mode allocated memory manually, so we need to reallocate it
         _size=size;
       }break;
 

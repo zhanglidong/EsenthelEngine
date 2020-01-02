@@ -7,11 +7,12 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    Int     elms    ()C {return _elms    ;}
    UInt    elmSize ()C {return _elm_size;}
    Ptr     data    ()C {return _data    ;}
-   UIntPtr memUsage()C {return UIntPtr(_max_elms)*_elm_size;}
-   UIntPtr elmsMem ()C {return UIntPtr(    _elms)*_elm_size;}
+   UIntPtr memUsage()C {return  UIntPtr(_max_elms)*_elm_size;}
+   UIntPtr elmsMem ()C {return  UIntPtr(    _elms)*_elm_size;}
 #if EE_PRIVATE
    UInt    maxElms    ()C {return _max_elms  ;}
    Bool    initialized()C {return _elm_size>0;}
+   ULong   requiredMem()C {return  ULong(_max_elms)*_elm_size;} // this needs to use biggest possible type to check if we can support required size
 #endif
 
    Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(      i) : null;}
