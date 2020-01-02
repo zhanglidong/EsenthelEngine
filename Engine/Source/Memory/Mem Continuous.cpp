@@ -65,7 +65,7 @@ void _Memc::setNumZero(Int num)
    {
       reserve(num);
       Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
-      ZeroFast(T[old_elms], elmSize()*(elms()-old_elms));
+      ZeroFast(T[old_elms], elmSize()*UIntPtr(elms()-old_elms));
       if(_new)for(Int i=old_elms; i<elms(); i++)_new(T[i]);
    }else
    if(num<elms()) // remove elements
