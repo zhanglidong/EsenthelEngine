@@ -172,6 +172,7 @@ class Project
       APPLY_BLEND_PREMUL,
       APPLY_MUL,
       APPLY_MUL_RGB,
+      APPLY_MUL_A,
       APPLY_DIV,
       APPLY_ADD,
       APPLY_ADD_RGB,
