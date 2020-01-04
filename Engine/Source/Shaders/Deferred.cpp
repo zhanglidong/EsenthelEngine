@@ -96,13 +96,13 @@ void VS
    else            O.col=vtx.colorFast3();
 #endif
 
-   if(FX==FX_LEAF)
+   if(FX==FX_LEAF_2D || FX==FX_LEAF_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm     );else
                                BendLeaf(vtx.hlp(), pos          );
    }
-   if(FX==FX_LEAFS)
+   if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm     );else
@@ -189,7 +189,7 @@ void PS
 (
    VS_PS I,
 
-#if FX!=FX_GRASS_2D
+#if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif
 
@@ -679,14 +679,14 @@ void PS
 
    col+=Highlight.rgb;
 
-#if FX!=FX_GRASS_2D
+#if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    BackFlip(nrm, front);
 #endif
 
    output.color      (col         );
    output.glow       (glow        );
    output.normal     (nrm         );
-   output.translucent(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
+   output.translucent(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
    output.smooth     (smooth      );
    output.reflect    (reflect     );
    output.velocity   (I.vel, I.pos);

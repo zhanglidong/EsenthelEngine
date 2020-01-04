@@ -122,7 +122,7 @@ void VS
 VecH4 PS
 (
    VS_PS I,
-/*#if PIXEL_NORMAL && FX!=FX_GRASS_2D
+/*#if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif*/
    out Half outAlpha:TARGET2 // #RTOutput.Blend
@@ -150,7 +150,7 @@ VecH4 PS
       nrmh   =Transform(nrmh, I.mtrx);
    #endif
 
- /*#if FX!=FX_GRASS_2D
+ /*#if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
       BackFlip(nrmh, front);
    #endif*/
 

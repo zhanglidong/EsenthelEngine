@@ -97,13 +97,13 @@ void VS
    else            O.col=vtx.colorFast3();
 #endif
 
-   if(FX==FX_LEAF)
+   if(FX==FX_LEAF_2D || FX==FX_LEAF_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm     );else
                                BendLeaf(vtx.hlp(), pos          );
    }
-   if(FX==FX_LEAFS)
+   if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm     );else
@@ -269,7 +269,7 @@ VecH4 PS
    VS_PS I,
    PIXEL
 
-#if PIXEL_NORMAL && FX!=FX_GRASS_2D
+#if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
  , IS_FRONT
 #endif
 
@@ -446,7 +446,7 @@ VecH4 PS
    col+=Highlight.rgb;
 
 #if PIXEL_NORMAL
-   #if FX!=FX_GRASS_2D
+   #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
       BackFlip(nrmh, front);
    #endif
    Vec nrm=Normalize(Vec(nrmh)); // normalize after converting to HP, needed for HQ specular
@@ -456,7 +456,7 @@ VecH4 PS
    Vec eye_dir=Normalize(I.pos);
 #endif
 
-   Bool translucent=(FX==FX_GRASS_2D || FX==FX_GRASS_3D || FX==FX_LEAF || FX==FX_LEAFS);
+   Bool translucent=(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 

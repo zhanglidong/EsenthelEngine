@@ -91,7 +91,7 @@
    void LeafRegion::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      visible(MtrlEdit.visible() && (MtrlEdit.edit.tech==MTECH_LEAF || MtrlEdit.edit.tech==MTECH_BLEND_LIGHT_LEAF || MtrlEdit.edit.tech==MTECH_TEST_BLEND_LIGHT_LEAF) && meshHasMtrl(MtrlEdit.game));
+      visible(MtrlEdit.visible() && (MtrlEdit.edit.tech==MTECH_LEAF_2D || MtrlEdit.edit.tech==MTECH_LEAF || MtrlEdit.edit.tech==MTECH_BLEND_LIGHT_LEAF || MtrlEdit.edit.tech==MTECH_TEST_BLEND_LIGHT_LEAF) && meshHasMtrl(MtrlEdit.game));
       if(visible())
       {
          texture.image=(MtrlEdit.game ? MtrlEdit.game->base_0 : ImagePtr());

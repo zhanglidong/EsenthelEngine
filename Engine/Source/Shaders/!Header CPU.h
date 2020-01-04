@@ -23,8 +23,10 @@
 #define FX_NONE     0
 #define FX_GRASS_2D 1
 #define FX_GRASS_3D 2
-#define FX_LEAF     3
-#define FX_LEAFS    4
+#define FX_LEAF_2D  3
+#define FX_LEAF_3D  4
+#define FX_LEAFS_2D 5
+#define FX_LEAFS_3D 6
 
 #define MAX_MOTION_BLUR_PIXEL_RANGE 24
 

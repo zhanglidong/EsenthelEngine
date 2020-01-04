@@ -138,6 +138,7 @@ static Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
       case MTECH_ALPHA_TEST            :
       case MTECH_GRASS                 :
       case MTECH_GRASS_3D              :
+      case MTECH_LEAF_2D               :
       case MTECH_LEAF                  :
       case MTECH_TEST_BLEND_LIGHT      :
       case MTECH_TEST_BLEND_LIGHT_GRASS:
@@ -154,6 +155,7 @@ Bool Material::hasAlpha()C
       case MTECH_ALPHA_TEST:
       case MTECH_GRASS:
       case MTECH_GRASS_3D:
+      case MTECH_LEAF_2D:
       case MTECH_LEAF:
       case MTECH_BLEND:
       case MTECH_BLEND_LIGHT:
@@ -234,6 +236,29 @@ Bool Material::hasGrass3D()C
    }
 }
 Bool Material::hasLeaf()C
+{
+   switch(technique)
+   {
+      case MTECH_LEAF_2D:
+      case MTECH_LEAF:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasLeaf2D()C
+{
+   switch(technique)
+   {
+      case MTECH_LEAF_2D:
+         return true;
+
+      default: return false;
+   }
+}
+Bool Material::hasLeaf3D()C
 {
    switch(technique)
    {

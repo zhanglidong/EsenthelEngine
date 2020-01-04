@@ -27,12 +27,12 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm; if(TESSELATE)nrm=vtx.nrm();
 
-   if(FX==FX_LEAF)
+   if(FX==FX_LEAF_2D || FX==FX_LEAF_3D)
    {
       if(TESSELATE)BendLeaf(vtx.hlp(), pos, nrm);
       else         BendLeaf(vtx.hlp(), pos);
    }
-   if(FX==FX_LEAFS)
+   if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
       if(TESSELATE)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm);
       else         BendLeafs(vtx.hlp(), vtx.size(), pos);
