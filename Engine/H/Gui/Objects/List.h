@@ -70,7 +70,7 @@ enum LIST_FLAG // List Flag
    LIST_SEARCHABLE       =0x008, // if list is searchable (typing keys will change cursor position)
    LIST_IMMEDIATE_DESC   =0x010, // if immediately show description without any delays
    LIST_TYPE_SORT        =0x020, // if elements will be sorted by their "types" first (types are set using 'setElmType' method)
-   LIST_TYPE_LINE        =0x040, // if elements of different "types" won't be displayed in the same line in LDM_RECTS mode
+   LIST_TYPE_LINE        =0x040, // if elements of different "types" won't be displayed in the same line in LDM_RECTS mode, this will work only if LIST_TYPE_SORT is enabled
    LIST_MULTI_SEL        =0x080, // if list supports selection of multiple elements at one time (by using Shift, Ctrl, ..)
    LIST_RESIZABLE_COLUMNS=0x100, // if list columns can be resized using mouse
 };
