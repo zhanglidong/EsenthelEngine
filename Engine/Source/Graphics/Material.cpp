@@ -108,8 +108,8 @@ Material::Material()
    smooth   =0;
    reflect  =MATERIAL_REFLECT;
    glow     =0;
-   normal   =1;
-   bump     =BUMP_DEFAULT_PAR;
+   normal   =0;
+   bump     =0;
    det_power=0.3f;
    det_scale=4;
    tex_scale=1.0f;
