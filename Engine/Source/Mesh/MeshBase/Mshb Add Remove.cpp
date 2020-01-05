@@ -285,6 +285,9 @@ enum RDSF
 
 MeshBase& MeshBase::removeDoubleSideFaces(Bool remove_unused_vtxs)
 {
+   if(tri .elms() && !tri .adjFace()
+   || quad.elms() && !quad.adjFace())setAdjacencies(true, false);
+
    Memt<Byte> face_flag; face_flag.setNumZero(faces());
    {
       Index     face_face; linkFaceFace(face_face);
@@ -298,15 +301,16 @@ MeshBase& MeshBase::removeDoubleSideFaces(Bool remove_unused_vtxs)
          {
             ff|=RDSF_CHECKED; // mark as checked
 
-            VecI4 face_vtx; Int face_vtxs;
+            VecI4 face_vtx; Int face_vtxs; C Int *adjacent;
             if(InRange(f, tri))
             {
-               VecI &tri_vtx=face_vtx.xyz; tri_vtx=tri.ind(f); tri_vtx.remap(vtx.dup()); face_vtxs=3;
+               VecI &tri_vtx=face_vtx.xyz; tri_vtx=tri.ind(f); tri_vtx.remap(vtx.dup()); adjacent=tri.adjFace(f).c; face_vtxs=3;
             }else
             {
-               Int quad_index=f-tris(); face_vtx=quad.ind(quad_index); face_vtx.remap(vtx.dup()); face_vtxs=4;
+               Int quad_index=f-tris(); face_vtx=quad.ind(quad_index); face_vtx.remap(vtx.dup()); adjacent=quad.adjFace(quad_index).c; face_vtxs=4;
             }
 
+            // check overlapping faces
           C IndexGroup &ig=face_face.group[f]; REPA(ig) // iterate all faces connected to this face
             {
                VecI4 test_face_vtx; Int test_face_vtxs;
@@ -320,15 +324,27 @@ MeshBase& MeshBase::removeDoubleSideFaces(Bool remove_unused_vtxs)
                }
                Byte &test_ff=face_flag[test_face2];
                if( !(test_ff&(RDSF_REMOVE|RDSF_CHECKED))) // if this face was not yet removed or checked
-               {
                   if(SameVtxs(face_vtx.c, face_vtxs, test_face_vtx.c, test_face_vtxs)>=3) // if this is an overlapping face
+               {
+                  test_ff|=RDSF_REMOVE; // remove overlapping face
+               }
+            }
+
+            // iterate neighbors
+            REP(face_vtxs)
+            {
+               Int adj_face=adjacent[i]; if(adj_face!=-1) // !=-1 and not <0 because of SIGN_BIT for quads
+               {
+                  if(adj_face&SIGN_BIT) // quad
                   {
-                     test_ff|=RDSF_REMOVE; // remove overlapping face
-                  }else
-                  if(!(test_ff&RDSF_LIST) // not yet listed
-                  && Continuous(face_vtx.c, face_vtxs, test_face_vtx.c, test_face_vtxs))
+                     Int quad_index=adj_face^SIGN_BIT;
+                     adj_face=quad_index+tris();
+                  }//else adj_face=adj_face; // triangle
+                  Byte &test_ff=face_flag[adj_face];
+                  if( !(test_ff&(RDSF_REMOVE|RDSF_CHECKED|RDSF_LIST))) // if this face was not yet removed, checked or listed
                   {
-                     face_list.add(test_face2); test_ff|=RDSF_LIST; // mark as already listed
+                     test_ff|=RDSF_LIST; // mark as already listed
+                     face_list.add(adj_face);
                   }
                }
             }
