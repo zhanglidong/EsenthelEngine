@@ -732,13 +732,13 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
                {
                   Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
-                  Flt    angle=-FLT_MAX, // set as min possible value so any first test will pass
+                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
                          a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m); // calculate angle of the loose vertex on the 'f0' triangle and set it as base/zero angle
                   REPA(adj) // iterate adjacent faces
                   {
                      Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if( a<a0   )a+=PI2;
-                     if( a>angle){adj_i=i; angle=a;} // find face with biggest angle difference from 'a0'
+                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
+                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
                   }
                }
                Adj &a =adj[adj_i];
@@ -786,13 +786,13 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
                {
                   Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
-                  Flt    angle=-FLT_MAX, // set as min possible value so any first test will pass
+                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
                          a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m); // calculate angle of the loose vertex on the 'f0' quad and set it as base/zero angle
                   REPA(adj) // iterate adjacent faces
                   {
                      Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if( a<a0   )a+=PI2;
-                     if( a>angle){adj_i=i; angle=a;} // find face with biggest angle difference from 'a0'
+                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
+                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
                   }
                }
                Adj &a =adj[adj_i];

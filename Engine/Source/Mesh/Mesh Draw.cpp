@@ -1375,7 +1375,7 @@ void Mesh::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material   )C {
 /******************************************************************************/
 void MeshPart::drawBlend(C Vec4 *color)C
 {
-   DEBUG_ASSERT(Renderer()==RM_BLEND, "'MeshPart.drawBlend' called outside of RM_BLEND");
+   DEBUG_ASSERT(Renderer()==RM_BLEND || !Renderer._render, "'MeshPart.drawBlend' called outside of RM_BLEND");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation();
