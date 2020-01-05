@@ -634,7 +634,8 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
 
       // add double sided edges
       Memb<EdgeAdj> _edge(1024);
-   #if 1 // new version, that generates duplicates of edges
+   #if 0 // simple version, generates duplicates of edges, doesn't do any sorting if there are multiple face connections (for example 3 faces like "T")
+      do not use, we need sorting, for example for 'removeDoubleSideFaces'
       REPAD(f0, tri) // for each triangle
       {
          VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
@@ -693,22 +694,21 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                         break;
                      }
                   }
-               }
+               }//else quad with tri pairs were already checked before
             }
          }
       }
    #else
-      this version may crash the 'DirectX::OptimizeFaces'
       Memt<Adj> adj;
       REPAD(f0, tri) // for each triangle
       {
          VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 3) // for each triangle vertexes
+         REPD(f0vi, 3) // for each triangle edge
          {
-            Int f0v0=f0i.c[ f0vi     ],
-                f0v1=f0i.c[(f0vi+1)%3];
+            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
+                f0v1=f0i.c[(f0vi+1)%3]; // edge second vertex
             IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig) // for each face that the vertex belongs to
+            REPAD(vfi, ig) // for each face that edge first vertex belongs to
             {
                Int f1=ig[vfi];
                if( f1&SIGN_BIT) // quad
@@ -728,22 +728,24 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
             }
             if(adj.elms())
             {
-               if(adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
+               Int adj_i=0;
+               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
                {
-                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0)));
-                  Flt    angle, a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m);
-                  Int    max=-1; REPA(adj)
+                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
+                  Flt    angle=-FLT_MAX, // set as min possible value so any first test will pass
+                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m); // calculate angle of the loose vertex on the 'f0' triangle and set it as base/zero angle
+                  REPA(adj) // iterate adjacent faces
                   {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m); if(a<a0)a+=PI2;
-                     if(max<0 || a>angle){max=i; angle=a;}
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
+                     if( a<a0   )a+=PI2;
+                     if( a>angle){adj_i=i; angle=a;} // find face with biggest angle difference from 'a0'
                   }
-                  adj[0]=adj[max];
                }
-               Adj &a   =adj[0];
-               Int  f1  =a.face,
-                    f1vi=a.vtxi;
-               if(  f1&SIGN_BIT || f1>f0)
+               Adj &a =adj[adj_i];
+               Int  f1=a.face;
+               if(  f1&SIGN_BIT || f1>f0) // quad or triangle with bigger index
                {
+                  Int f1vi=a.vtxi;
                   if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
                   if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
                }
@@ -752,15 +754,15 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
          }
       }
 
-      REPAD(f0, quad) // quads
+      REPAD(f0, quad) // for each quad
       {
          VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 4)
+         REPD(f0vi, 4) // for each quad edge
          {
-            Int f0v0=f0i.c[ f0vi     ],
-                f0v1=f0i.c[(f0vi+1)%4];
+            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
+                f0v1=f0i.c[(f0vi+1)%4]; // edge second vertex
             IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig)
+            REPAD(vfi, ig) // for each face that edge first vertex belongs to
             {
                Int f1=ig[vfi];
                if( f1&SIGN_BIT) // quad
@@ -780,22 +782,24 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
             }
             if(adj.elms())
             {
-               if(adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
+               Int adj_i=0;
+               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
                {
-                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0)));
-                  Flt    angle, a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m);
-                  Int    max=-1; REPA(adj)
+                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
+                  Flt    angle=-FLT_MAX, // set as min possible value so any first test will pass
+                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m); // calculate angle of the loose vertex on the 'f0' quad and set it as base/zero angle
+                  REPA(adj) // iterate adjacent faces
                   {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m); if(a<a0)a+=PI2;
-                     if(max<0 || a>angle){max=i; angle=a;}
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
+                     if( a<a0   )a+=PI2;
+                     if( a>angle){adj_i=i; angle=a;} // find face with biggest angle difference from 'a0'
                   }
-                  adj[0]=adj[max];
                }
-               Adj &a   =adj[0];
-               Int  f1  =a.face,
-                    f1vi=a.vtxi;
-               if((f1&SIGN_BIT) && (f1^SIGN_BIT)>f0)
+               Adj &a =adj[adj_i];
+               Int  f1=a.face;
+               if((f1&SIGN_BIT) && (f1^SIGN_BIT)>f0) // quad with bigger index
                {
+                  Int f1vi=a.vtxi;
                   if(faces){quad.adjFace(f0).c[f0vi]=f1          ; quad.adjFace(f1^SIGN_BIT).c[f1vi]=f0^SIGN_BIT;}
                   if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1^SIGN_BIT).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1);}
                }
@@ -811,7 +815,7 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
          FREPA(tri)
          {
             Int *p=tri.adjEdge(i).c;
-            REPD(j, 3)if(p[j]<0)
+            REPD(j, 3)if(p[j]<0) // if any triangle edge didn't get linked to an edge, then it means it's empty (one-sided)
             {
                Int *v=tri.ind(i).c;
                p[j]=_edge.elms();
@@ -821,7 +825,7 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
          FREPA(quad)
          {
             Int *p=quad.adjEdge(i).c;
-            REPD(j, 4)if(p[j]<0)
+            REPD(j, 4)if(p[j]<0) // if any quad edge didn't get linked to an edge, then it means it's empty (one-sided)
             {
                Int *v=quad.ind(i).c;
                p[j]=_edge.elms();
