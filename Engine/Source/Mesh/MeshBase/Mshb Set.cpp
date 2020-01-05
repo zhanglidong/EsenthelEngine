@@ -734,8 +734,7 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                   Flt    angle, a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m);
                   Int    max=-1; REPA(adj)
                   {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if( a<a0)a+=PI2;
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m); if(a<a0)a+=PI2;
                      if(max<0 || a>angle){max=i; angle=a;}
                   }
                   adj[0]=adj[max];
@@ -787,8 +786,7 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                   Flt    angle, a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m);
                   Int    max=-1; REPA(adj)
                   {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if(a<a0)a+=PI2;
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m); if(a<a0)a+=PI2;
                      if(max<0 || a>angle){max=i; angle=a;}
                   }
                   adj[0]=adj[max];
