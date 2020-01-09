@@ -140,6 +140,7 @@ static void ClearLumMerged(C Vec4 &lum_color)
    }
 }
 /******************************************************************************/
+static inline Bool MergedClearLum() {return true;} // here always use "true" instead of "D.mergedClear()" to enable merged clear, because performance is the same and this workarounds Nvidia GeForce flickering bug - https://devtalk.nvidia.com/default/topic/1068770/directx-and-direct-compute/dx11-driver-bug-significant-flickering-on-geforce/
 static void GetLum()
 {
    ImageRTDesc rt_desc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGB_H : IMAGERT_SRGB, Renderer._col->samples());
@@ -157,7 +158,7 @@ static Bool SetLum()
    {
       GetLum();
              lum_color=(Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
-          merged_clear=D.mergedClear();
+          merged_clear=MergedClearLum();
       if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum_1s, Renderer._spec_1s);
    }
    Renderer.set(Renderer._lum_1s, Renderer._spec_1s, null, null, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
@@ -176,7 +177,7 @@ static void SetLumMS(Bool clear)
    {
       D.stencil(STENCIL_NONE);
       lum_color=(Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
-          merged_clear=D.mergedClear();
+          merged_clear=MergedClearLum();
       if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum, Renderer._spec);
    }
    Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
@@ -188,7 +189,7 @@ void RendererClass::getLumRT() // this is called after drawing all lights, in or
    {
       GetLum();
       Vec4    lum_color=(_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
-      Bool merged_clear=D.mergedClear();
+      Bool merged_clear=MergedClearLum();
       if( !merged_clear)
       {
          if(_lum_1s!=_lum)ClearLumSeparate(Vec4Zero , _lum_1s, _spec_1s);
@@ -216,7 +217,7 @@ static void SetWaterLum()
    {
       GetWaterLum();
              lum_color=Vec4(D.ambientColorD(), 0);
-          merged_clear=D.mergedClear();
+          merged_clear=MergedClearLum();
       if(!merged_clear)ClearLumSeparate(lum_color, Renderer._water_lum, Renderer._water_spec);
    }
    Renderer.set(Renderer._water_lum, Renderer._water_spec, null, null, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
@@ -232,7 +233,7 @@ void RendererClass::getWaterLumRT()
    {
       GetWaterLum();
       Vec4    lum_color=Vec4(D.ambientColorD(), 0);
-      Bool merged_clear=D.mergedClear();
+      Bool merged_clear=MergedClearLum();
       if( !merged_clear){                                                                      ClearLumSeparate(lum_color, _water_lum, _water_spec);}
       else              {set(_water_lum, _water_spec, null, null, _ds, true, NEED_DEPTH_READ); ClearLumMerged  (lum_color);}
    }
