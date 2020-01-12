@@ -962,10 +962,10 @@ static void CompressBC2(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
       }
    }
 }
-static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps, Bool sign)
+static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int steps, Bool sign)
 {
-   const Flt *pC=(6==cSteps) ? pC6 : pC8;
-   const Flt *pD=(6==cSteps) ? pD6 : pD8;
+   const Flt *pC=(6==steps) ? pC6 : pC8;
+   const Flt *pD=(6==steps) ? pD6 : pD8;
 
    const Flt MIN_VALUE=(sign ? -1 : 0);
    const Flt MAX_VALUE=1;
@@ -973,7 +973,7 @@ static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps, Bool
    // Find Min and Max points, as starting point
    Flt fX=MAX_VALUE;
    Flt fY=MIN_VALUE;
-   if(cSteps==8)
+   if(steps==8)
    {
       FREP(16)
       {
@@ -991,7 +991,7 @@ static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps, Bool
    }
 
    // Use Newton's Method to find local minima of sum-of-squares error
-   Flt fSteps=cSteps-1;
+   Flt fSteps=steps-1;
    for(Int iIteration=0; iIteration<8; iIteration++)
    {
       if(fY-fX < 1.0f/256)break;
@@ -1000,32 +1000,41 @@ static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps, Bool
       // Calculate new steps
       Flt pSteps[8];
 
-      for(Int iStep=0; iStep<cSteps; iStep++)pSteps[iStep]=pC[iStep]*fX + pD[iStep]*fY;
+      for(Int iStep=0; iStep<steps; iStep++)pSteps[iStep]=pC[iStep]*fX + pD[iStep]*fY;
 
-      if(cSteps==6)
+      Flt low, high;
+      if(steps==6)
       {
          pSteps[6]=MIN_VALUE;
          pSteps[7]=MAX_VALUE;
+
+          low=Avg(fX, MIN_VALUE);
+         high=Avg(fY, MAX_VALUE);
+      }else
+      { // never pass
+          low=-FLT_MAX;
+         high= FLT_MAX;
       }
 
       // Evaluate function, and derivatives
       Flt dX=0, dY=0, d2X=0, d2Y=0;
       FREP(16)
       {
-         Flt fDot=(pPoints[i]-fX)*fScale;
-         Int iStep;
-         if(fDot<=     0)iStep=(cSteps==6 && (pPoints[i]<= fX   *0.5f)) ? 6 :          0;else
-         if(fDot>=fSteps)iStep=(cSteps==6 && (pPoints[i]>=(fY+1)*0.5f)) ? 7 : (cSteps-1);else
-                         iStep=RoundPos(fDot);
-         if(iStep<cSteps)
+         Flt value=pPoints[i],
+             fDot =(value-fX)*fScale;
+         Int step;
+         if(fDot<=     0)step=(value<=low ) ? 6 :       0;else
+         if(fDot>=fSteps)step=(value>=high) ? 7 : steps-1;else // do "steps-1" instead of "1" because this index is for the 'pSteps' array which returns "1" index for last element
+                         step=RoundPos(fDot);
+         if(step<steps)
          {
-            Flt diff=pSteps[iStep]-pPoints[i];
+            Flt diff=pSteps[step]-value;
 
-            dX +=pC[iStep]*diff;
-            d2X+=pC[iStep]*pC[iStep];
+            dX +=    pC[step]*diff;
+            d2X+=Sqr(pC[step]);
 
-            dY +=pD[iStep]*diff;
-            d2Y+=pD[iStep]*pD[iStep];
+            dY +=    pD[step]*diff;
+            d2Y+=Sqr(pD[step]);
          }
       }
 
@@ -1075,13 +1084,13 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
    }
 
    // Optimize and Quantize Min and Max values
-   Int  uSteps=(fMinAlpha<=0 || fMaxAlpha>=1) ? 6 : 8;
-   Flt  fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, uSteps, false);
+   Int  steps=(fMinAlpha<=0 || fMaxAlpha>=1) ? 6 : 8;
+   Flt  fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, steps, false);
    Byte bAlphaA=RoundPos(fAlphaA*255); fAlphaA=bAlphaA/255.0f;
    Byte bAlphaB=RoundPos(fAlphaB*255); fAlphaB=bAlphaB/255.0f;
 
    // Setup block
-   if(uSteps==8 && bAlphaA==bAlphaB)
+   if(steps==8 && bAlphaA==bAlphaB)
    {
       bc.value[0]=bAlphaA;
       bc.value[1]=bAlphaB;
@@ -1091,8 +1100,9 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
 
    const Int *pSteps;
    Flt fStep[8];
+   Flt low, high;
 
-   if(uSteps==6)
+   if(steps==6)
    {
       bc.value[0]=bAlphaA;
       bc.value[1]=bAlphaB;
@@ -1106,6 +1116,9 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
       fStep[7]=1;
 
       pSteps=pSteps6;
+
+       low=Avg(fStep[0], 0);
+      high=Avg(fStep[1], 1);
    }else
    {
       bc.value[0]=bAlphaB;
@@ -1117,25 +1130,29 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
       for(Int i=1; i<7; i++)fStep[i+1]=(fStep[0]*(7-i) + fStep[1]*i)/7;
 
       pSteps=pSteps8;
+
+      // never pass
+       low=-FLT_MAX;
+      high= FLT_MAX;
    }
 
    // Encode alpha bitmap
-   Flt fSteps=uSteps-1, fScale=(fStep[0]!=fStep[1]) ? (fSteps/(fStep[1]-fStep[0])) : 0;
+   Flt fSteps=steps-1, fScale=(fStep[0]!=fStep[1]) ? (fSteps/(fStep[1]-fStep[0])) : 0;
    if(dither)Zero(error);
    for(Int iSet=0; iSet<2; iSet++)
    {
       UInt dw=0;
       Int  iMin=iSet*8;
-      Int  iLim=iMin+8;
-      for(Int i=iMin; i<iLim; i++)
+      Int  iMax=iMin+8;
+      for(Int i=iMin; i<iMax; i++)
       {
          Flt fAlph=color[i].x;
          if(dither)fAlph+=error[i];
          Flt fDot=(fAlph-fStep[0])*fScale;
 
          Int iStep;
-         if(fDot<=0     )iStep=(6==uSteps && (fAlph<= fStep[0]   *0.5f)) ? 6 : 0;else
-         if(fDot>=fSteps)iStep=(6==uSteps && (fAlph>=(fStep[1]+1)*0.5f)) ? 7 : 1;else
+         if(fDot<=0     )iStep=(fAlph<=low ) ? 6 : 0;else
+         if(fDot>=fSteps)iStep=(fAlph>=high) ? 7 : 1;else
                          iStep=pSteps[RoundPos(fDot)];
 
          dw=(iStep<<21)|(dw>>3);
@@ -1192,13 +1209,13 @@ static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
    }
 
    // Optimize and Quantize Min and Max values
-   Int   uSteps=(fMinAlpha<=-1 || fMaxAlpha>=1) ? 6 : 8;
-   Flt   fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, uSteps, true);
+   Int   steps=(fMinAlpha<=-1 || fMaxAlpha>=1) ? 6 : 8;
+   Flt   fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, steps, true);
    SByte bAlphaA=SFltToSByte(fAlphaA); fAlphaA=SByteToSFlt(bAlphaA);
    SByte bAlphaB=SFltToSByte(fAlphaB); fAlphaB=SByteToSFlt(bAlphaB);
 
    // Setup block
-   if(uSteps==8 && bAlphaA==bAlphaB)
+   if(steps==8 && bAlphaA==bAlphaB)
    {
       bc.value[0]=bAlphaA;
       bc.value[1]=bAlphaB;
@@ -1208,8 +1225,9 @@ static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
 
    const Int *pSteps;
    Flt fStep[8];
+   Flt low, high;
 
-   if(uSteps==6)
+   if(steps==6)
    {
       bc.value[0]=bAlphaA;
       bc.value[1]=bAlphaB;
@@ -1223,6 +1241,9 @@ static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
       fStep[7]= 1;
 
       pSteps=pSteps6;
+
+       low=Avg(fStep[0], -1);
+      high=Avg(fStep[1],  1);
    }else
    {
       bc.value[0]=bAlphaB;
@@ -1234,25 +1255,29 @@ static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
       for(Int i=1; i<7; i++)fStep[i+1]=(fStep[0]*(7-i) + fStep[1]*i)/7;
 
       pSteps=pSteps8;
+
+      // never pass
+       low=-FLT_MAX;
+      high= FLT_MAX;
    }
 
    // Encode alpha bitmap
-   Flt fSteps=uSteps-1, fScale=(fStep[0]!=fStep[1]) ? (fSteps/(fStep[1]-fStep[0])) : 0;
+   Flt fSteps=steps-1, fScale=(fStep[0]!=fStep[1]) ? (fSteps/(fStep[1]-fStep[0])) : 0;
    if(dither)Zero(error);
    for(Int iSet=0; iSet<2; iSet++)
    {
       UInt dw=0;
       Int  iMin=iSet*8;
-      Int  iLim=iMin+8;
-      for(Int i=iMin; i<iLim; i++)
+      Int  iMax=iMin+8;
+      for(Int i=iMin; i<iMax; i++)
       {
          Flt fAlph=color[i].x;
          if(dither)fAlph+=error[i];
          Flt fDot=(fAlph-fStep[0])*fScale;
 
          Int iStep;
-         if(fDot<=0     )iStep=(6==uSteps && (fAlph<= fStep[0]   *0.5f)) ? 6 : 0;else
-         if(fDot>=fSteps)iStep=(6==uSteps && (fAlph>=(fStep[1]+1)*0.5f)) ? 7 : 1;else
+         if(fDot<=0     )iStep=(fAlph<=low ) ? 6 : 0;else
+         if(fDot>=fSteps)iStep=(fAlph>=high) ? 7 : 1;else
                          iStep=pSteps[RoundPos(fDot)];
 
          dw=(iStep<<21)|(dw>>3);
