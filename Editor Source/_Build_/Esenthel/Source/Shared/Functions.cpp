@@ -3008,9 +3008,9 @@ Mems<Edit::FileParams> _DecodeFileParams(C Str &str)
    {
       ASSERT(SIZE(ImageHashHeader)==3*4+4); // make sure all compilers generate the same size
       Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
-      size=image.size3();
-      if(image.cube())flags|=1;
+      T.size=image.size3();
       T.type=type;
+      if(image.cube())T.flags|=1;
    }
    Rename& Rename::set(C Str &src, C Str &dest) {T.src=src; T.dest=dest; return T;}
    bool Rename::operator==(C Rename &rename)C {return Equal(src, rename.src, true) && Equal(dest, rename.dest, true);}

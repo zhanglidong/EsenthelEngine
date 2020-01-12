@@ -432,16 +432,16 @@ enum
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
    VecI       size;
-   byte       flags;
    IMAGE_TYPE type;
+   byte       flags;
 
    ImageHashHeader(C Image &image, IMAGE_TYPE type)
    {
       ASSERT(SIZE(ImageHashHeader)==3*4+4); // make sure all compilers generate the same size
       Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
-      size=image.size3();
-      if(image.cube())flags|=1;
+      T.size=image.size3();
       T.type=type;
+      if(image.cube())T.flags|=1;
    }
 }
 void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flags=SRGB, Edit.Material.TEX_QUALITY quality=Edit.Material.MEDIUM) // calculate image hash and best type for image compression
