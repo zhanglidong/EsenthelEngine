@@ -998,11 +998,7 @@ static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int steps, Bool 
       Flt fScale=fSteps/(fY-fX);
 
       // Calculate new steps
-      Flt pSteps[8];
-
-      for(Int iStep=0; iStep<steps; iStep++)pSteps[iStep]=pC[iStep]*fX + pD[iStep]*fY;
-
-      Flt low, high;
+      Flt pSteps[8], low, high; for(Int iStep=0; iStep<steps; iStep++)pSteps[iStep]=pC[iStep]*fX + pD[iStep]*fY;
       if(steps==6)
       {
          pSteps[6]=MIN_VALUE;
@@ -1099,9 +1095,7 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
    }
 
    const Int *pSteps;
-   Flt fStep[8];
-   Flt low, high;
-
+   Flt fStep[8], low, high;
    if(steps==6)
    {
       bc.value[0]=bAlphaA;
@@ -1224,9 +1218,7 @@ static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
    }
 
    const Int *pSteps;
-   Flt fStep[8];
-   Flt low, high;
-
+   Flt fStep[8], low, high;
    if(steps==6)
    {
       bc.value[0]=bAlphaA;
