@@ -1376,7 +1376,13 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       r.x=ConvertUnitType(r.x, image.w(), unit);
       r.y=ConvertUnitType(r.y, image.h(), unit);
       r.z=ConvertUnitType(r.z, image.d(), unit);
-      image.blur(r, clamp);
+      if(box.min.allZero() && box.max==image.size3())image.blur(r, clamp);else
+      {
+         Image temp; image.blur(temp, r, clamp);
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+      }
    }else
    if(param.name=="lerpRGB")
    {
