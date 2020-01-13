@@ -332,7 +332,7 @@ MaterialTech mtrl_techs[]=
    Str  MaterialRegion::DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    void MaterialRegion::DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
    Str  MaterialRegion::TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}
-   void MaterialRegion::TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality);}
+   void MaterialRegion::TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality, false);}
    void MaterialRegion::RGB(MaterialRegion &mr)
    {
       mr.undos.set("brightness");
@@ -481,15 +481,15 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
    void MaterialRegion::MulTexSmooth(MaterialRegion &editor) {Proj.mtrlMulTexSmooth(editor.elm_id);}
    bool MaterialRegion::bigVisible()C {return visible() && big();}
-   void   MaterialRegion::setRGB(C Vec                   &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setNormal(flt                    normal) {if(edit.normal             !=normal ){undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setSmooth(flt                    smooth) {if(edit.smooth             !=smooth ){undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
-   void   MaterialRegion::setReflect(flt                   reflect) {if(edit.reflect            !=reflect){undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::resetAlpha(                             ) {                                      undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
-   void MaterialRegion::cull(bool                      on ) {if(edit.cull               !=on     ){undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::flipNrmY(bool                      on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}}
-   void MaterialRegion::downsizeTexMobile(byte                      ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q  ) {if(edit.tex_quality        !=q      ){undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}}
+   void   MaterialRegion::setRGB(C Vec                   &srgb              ) {if(edit.color_s.xyz        !=srgb   ){        undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setNormal(flt                    normal              ) {if(edit.normal             !=normal ){        undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setSmooth(flt                    smooth              ) {if(edit.smooth             !=smooth ){        undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setReflect(flt                   reflect              ) {if(edit.reflect            !=reflect){        undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::resetAlpha(                                           ) {                                              undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
+   void MaterialRegion::cull(bool                      on               ) {if(edit.cull               !=on     ){        undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::flipNrmY(bool                      on               ) {if(edit.flip_normal_y      !=on     ){        undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}}
+   void MaterialRegion::downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds     ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q, bool undo) {if(edit.tex_quality        !=q      ){if(undo)undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}}
    void MaterialRegion::resizeBase(C VecI2 &size, bool relative)
    {
       undos.set("resizeBase");

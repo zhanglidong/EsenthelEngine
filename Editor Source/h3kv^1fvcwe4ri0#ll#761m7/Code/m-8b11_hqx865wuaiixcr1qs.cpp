@@ -387,7 +387,7 @@ class MaterialRegion : Region
       {u"Full"            , u"uncompressed R8G8B8A8"                                , Edit.Material.FULL  },
    };
    static Str  TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}
-   static void TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality);}
+   static void TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality, false);} // undo already called in 'PreChanged'
 
    /*static .MaxTexSize max_tex_sizes[]=
    {
@@ -581,16 +581,16 @@ class MaterialRegion : Region
 
    bool bigVisible()C {return visible() && big();}
 
-   void   setRGB         (C Vec                   &srgb) {if(edit.color_s.xyz        !=srgb   ){undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void   setNormal      (flt                    normal) {if(edit.normal             !=normal ){undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
-   void   setSmooth      (flt                    smooth) {if(edit.smooth             !=smooth ){undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
-   void   setReflect     (flt                   reflect) {if(edit.reflect            !=reflect){undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
-   void resetAlpha       (                             ) {                                      undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
-   void cull             (bool                      on ) {if(edit.cull               !=on     ){undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void flipNrmY         (bool                      on ) {if(edit.flip_normal_y      !=on     ){undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE         mts) {if(edit.max_tex_size       !=mts    ){undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
-   void downsizeTexMobile(byte                      ds ) {if(edit.downsize_tex_mobile!=ds     ){undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQuality       (Edit.Material.TEX_QUALITY q  ) {if(edit.tex_quality        !=q      ){undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void   setRGB         (C Vec                   &srgb              ) {if(edit.color_s.xyz        !=srgb   ){        undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void   setNormal      (flt                    normal              ) {if(edit.normal             !=normal ){        undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
+   void   setSmooth      (flt                    smooth              ) {if(edit.smooth             !=smooth ){        undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
+   void   setReflect     (flt                   reflect              ) {if(edit.reflect            !=reflect){        undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
+   void resetAlpha       (                                           ) {                                              undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
+   void cull             (bool                      on               ) {if(edit.cull               !=on     ){        undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void flipNrmY         (bool                      on               ) {if(edit.flip_normal_y      !=on     ){        undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts    ){        undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds     ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void texQuality       (Edit.Material.TEX_QUALITY q, bool undo=true) {if(edit.tex_quality        !=q      ){if(undo)undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
    virtual void resizeBase(C VecI2 &size, bool relative=false)
    {
