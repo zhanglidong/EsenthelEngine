@@ -708,6 +708,7 @@ Bool RendererClass::reflection()
       Byte             shd_soft       =D.shadowSoft       ();                     D.shadowSoft      (0                );
       Bool             shd_jitter     =D.shadowJitter     ();                     D.shadowJitter    (false            );
       EDGE_SOFTEN_MODE edge_soft      =D.edgeSoften       ();                     D._edge_soften    =EDGE_SOFTEN_NONE  ;
+      Bool             taa            =D.tAA              ();                     D._taa            =false             ;
       Bool             tesselation    =D.tesselationAllow ();                     D.tesselationAllow(false            );
       Byte             density        =D.densityByte      ();                     D.densityFast     (Mid(((D.densityByte()+1)>>_mirror_resolution)-1, 0, 255));
 
@@ -747,6 +748,7 @@ Bool RendererClass::reflection()
       D.shadowSoft      (shd_soft      );
       D.shadowJitter    (shd_jitter    );
       D._edge_soften    =edge_soft      ;
+      D._taa            =taa            ;
       D.tesselationAllow(tesselation   );
       D.densityFast     (density       );
 

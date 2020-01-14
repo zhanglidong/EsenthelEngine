@@ -84,6 +84,7 @@ void RendererClass::rtClear()
   _q0          .clear();
   _q1          .clear();
   _col         .clear();
+  _col_taa     .clear();
   _nrm         .clear();
   _ext         .clear();
   _vel         .clear();

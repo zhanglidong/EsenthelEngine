@@ -222,6 +222,10 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& edgeDetect       (EDGE_DETECT_MODE mode        );   EDGE_DETECT_MODE edgeDetect        ()C {return _edge_detect    ;} // set/get Edge Detect    Mode                    (EDGE_DETECT_MODE                   , default= EDGE_DETECT_NONE                             ), the change is instant, you can call it real-time
    Display& edgeSoften       (EDGE_SOFTEN_MODE mode        );   EDGE_SOFTEN_MODE edgeSoften        ()C {return _edge_soften    ;} // set/get Edge Softening Mode                    (EDGE_SOFTEN_MODE                   , default= EDGE_SOFTEN_NONE                             ), this is fake Anti-Aliasing, it is not used when Multi Sampling is enabled, the change is instant, you can call it real-time
    Display& smaaThreshold    (Flt              threshold   );   Flt              smaaThreshold     ()C {return _smaa_threshold ;} // set/get Edge Softening SMAA Threshold          (   0..1                            , default=            0.1                               ), this affects SMAA edge softening quality, lower values give better quality, while higher values give better performance, recommended values: 0.05=high quality, 0.1=medium, 0.15=high performance
+#if EE_PRIVATE
+   Display& tAA              (Bool             on          );   Bool             tAA               ()C {return _taa            ;} // set/get Temporal Anti-Aliasing                 (true/false                         , default=            false                             ), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time, Warning: this feature is experimental, it may produce artifacts/ghosting/smearing
+   Display& tAAReset         (                             );                                                                     // reset   Temporal Anti-Aliasing history                                                                                                      , call this method if you want to clear the history of previous rendering results
+#endif
    Display& eyeDistance      (Flt              dist        );   Flt              eyeDistance       ()C {return _eye_dist       ;} // set/get distance between the eyes              (-Inf..Inf                          , default=            0.064                             ), interpupillary distance (distance between the eye pupils) used for stereoscopic rendering, the change is instant, you can call it real-time
    Display& drawNullMaterials(Bool             on          );   Bool           drawNullMaterials   ()C {return _draw_null_mtrl ;} // set/get if draw mesh parts with no material    (true/false                         , default=            false                             ), the change is NOT instant, avoid calling real-time
    Display& secondaryOpenGLContexts(Byte       contexts    );   Int         secondaryOpenGLContexts()C;                           // set/get number of secondary OpenGL contexts to create during application initialization (this does not include the main context for the main thread which is always created), each secondary context allows 1 secondary thread to perform operations on the GPU data, for more information please check the 'ThreadMayUseGPUData' global function, this should be called only in 'InitPre', after that, calls to this method are ignored, this value is used only for OpenGL renderer, for DirectX it is ignored, default=1
@@ -517,10 +521,18 @@ private:
    IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec;
    FILTER_TYPE       _density_filter;
    COLOR_SPACE       _color_space;
-   Bool              _full, _sync, _exclusive, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_max, _bloom_half, _bloom_samples,
+   Bool              _full, _sync, _exclusive,
+                     _hp_col_rt, _hp_nrm_rt, _hp_lum_rt,
+                     _particles_soft, _particles_smooth,
+                     _tex_mip_filter, _tex_macro, _tex_detail_lod,
+                     _bloom_allow, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
-                     _bloom_allow, _glow_allow, _ao_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow,
-                     _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
+                     _ao_all, _amb_jitter, _amb_normal,
+                     _shd_jitter, _shd_reduce,
+                     _grass_shadow, _grass_mirror,
+                     _vol_light, _vol_add,
+                     _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _taa,
+                     _initialized, _resetting, _no_gpu, _can_draw;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,

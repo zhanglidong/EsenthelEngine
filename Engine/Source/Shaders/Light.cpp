@@ -16,6 +16,8 @@ BUFFER(LightMap)
    Flt LightMapScale=1;
 BUFFER_END
 #include "!Set Prec Default.h"
+
+#define SHADOW_PERCEPTUAL (SHADOW && 0) // disable because in tests it looked a little worse, and also it requires 1 extra MUL instruction
 /******************************************************************************/
 void Geom_VS // for 3D Geom
 (
@@ -79,6 +81,7 @@ VecH LightDir_PS
       if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightDir.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
+   if(SHADOW_PERCEPTUAL)lum*=shadow;
 
    // ext+col
 #if WATER
@@ -153,6 +156,7 @@ VecH LightPoint_PS
       if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightPoint.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
+   if(SHADOW_PERCEPTUAL)lum*=shadow;
 
    // ext+col
 #if WATER
@@ -227,6 +231,7 @@ VecH LightLinear_PS
       if(!WATER && nrm.w && -lum>EPS_LUM){outSpec=0; return LightLinear.color.rgb*(lum*-TRANSLUCENT_VAL);} // #RTOutput translucent
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
+   if(SHADOW_PERCEPTUAL)lum*=shadow;
 
    // ext+col
 #if WATER
@@ -312,6 +317,7 @@ VecH LightCone_PS
       }
       discard; // !! have to skip when "NdotL<=0" to don't apply negative values to RT !!
    }
+   if(SHADOW_PERCEPTUAL)lum*=shadow;
 
    // ext+col
 #if WATER

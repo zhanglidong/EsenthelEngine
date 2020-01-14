@@ -826,6 +826,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
+  _taa             =false;
 
   _initialized=false;
   _resetting  =false;
@@ -2750,6 +2751,17 @@ Display& Display::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
+Display& Display::tAA(Bool on)
+{
+   if(tAA()!=on)
+   {
+     _taa=on;
+      Renderer._col_taa.clear();
+   }
+   return T;
+}
+Display& Display::tAAReset() {Renderer._col_taa.clear(); return T;}
+
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 Display& Display::secondaryOpenGLContexts(Byte contexts)
 {
