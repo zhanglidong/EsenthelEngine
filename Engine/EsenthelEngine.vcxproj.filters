@@ -1023,6 +1023,9 @@
     <ClInclude Include="Source\Shaders\!Set Prec Struct.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Shaders\Cubic.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

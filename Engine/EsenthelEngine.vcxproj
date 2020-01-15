@@ -1708,6 +1708,7 @@
     <ClInclude Include="Source\Shaders\!Set Prec Image.h" />
     <ClInclude Include="Source\Shaders\!Set Prec Low.h" />
     <ClInclude Include="Source\Shaders\!Set Prec Struct.h" />
+    <ClInclude Include="Source\Shaders\Cubic.h" />
     <ClInclude Include="Source\Shaders\FXAA.h" />
     <ClInclude Include="Source\Shaders\Light Apply.h" />
     <ClInclude Include="stdafx.h" />
