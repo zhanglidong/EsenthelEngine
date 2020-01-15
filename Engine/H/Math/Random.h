@@ -196,4 +196,6 @@ private:
 /******************************************************************************/
 Flt SkewNormalAvg  (Flt shape); // calculate average value for Skew Normal distribution
 Flt SkewNormalShape(Flt avg  ); // calculate shape value for Skew Normal distribution which has an average value of 'avg'
+
+Flt Halton(Int index, Int base);
 /******************************************************************************/

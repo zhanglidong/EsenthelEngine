@@ -701,7 +701,7 @@ Bool RendererClass::reflection()
       Bool             hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
       IMAGE_PRECISION  lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
       Bool             eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
-      Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing Renderer._vol_is
+      Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing 'Renderer._vol_is'
       AMBIENT_MODE     amb_mode       =D.ambientMode      ();                     D.ambientMode     (AMBIENT_FLAT     );
       MOTION_MODE      mtn_mode       =D.motionMode       ();                     D.motionMode      (MOTION_NONE      );
       SHADOW_MODE      shd_mode       =D.shadowMode       (); if(!_mirror_shadows)D.shadowMode      (SHADOW_NONE      );
@@ -1475,6 +1475,14 @@ Bool RendererClass::waterPostLight()
   _mirror_rt .clear();
    return false;
 }
+void RendererClass::sky()
+{
+   Fog.Draw(false);
+   Sky.draw();
+   if(!mirror())AstroDraw();
+   Clouds.drawAll();
+      Fog.Draw(true);
+}
 void RendererClass::edgeDetect()
 {
    if(D.edgeDetect() && !mirror() && canReadDepth())
@@ -1495,14 +1503,6 @@ void RendererClass::edgeDetect()
          }break;
       }
    }
-}
-void RendererClass::sky()
-{
-   Fog.Draw(false);
-   Sky.draw();
-   if(!mirror())AstroDraw();
-   Clouds.drawAll();
-      Fog.Draw(true);
 }
 void RendererClass::blend()
 {

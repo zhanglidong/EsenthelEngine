@@ -1592,6 +1592,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {Bool v=bloomMaximum(); _bloom_max      =false           ; bloomMaximum(v);} // resetting will load shaders
    {auto v=edgeSoften  (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften  (v);} // resetting will load shaders
    {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
+   {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
    {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
    lod               (_lod_factor, _lod_factor_mirror);
    shadowJitterSet   ();
@@ -2581,6 +2582,7 @@ void Display::sizeChanged()
    }
 
    viewReset();
+   tAAReset ();
 }
 Display& Display::scale(Flt scale)
 {
@@ -2756,12 +2758,16 @@ Display& Display::tAA(Bool on)
    if(tAA()!=on)
    {
      _taa=on;
-      Renderer._col_taa.clear();
+      if(created())Sh.TAA=Sh.find("TAA");
+      tAAReset();
    }
    return T;
 }
-Display& Display::tAAReset() {Renderer._col_taa.clear(); return T;}
-
+Display& Display::tAAReset()
+{
+   Renderer._col_taa      .clear();
+   return T;
+}
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 Display& Display::secondaryOpenGLContexts(Byte contexts)
 {

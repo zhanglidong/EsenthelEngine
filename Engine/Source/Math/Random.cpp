@@ -4155,5 +4155,17 @@ Flt SimplexNoise::mask2(Dbl x, Dbl y, Int octaves, Flt sharpness)C
    return mask;
 }
 /******************************************************************************/
+Flt Halton(Int index, Int base)
+{
+	Flt result=0, inv_base=1.0f/base, frac=inv_base;
+	for(; index>0; )
+	{
+		result+=(index%base)*frac;
+		index /=base;
+		frac  *=inv_base;
+	}
+	return result;
+}
+/******************************************************************************/
 }
 /******************************************************************************/

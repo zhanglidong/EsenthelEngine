@@ -3480,9 +3480,9 @@ void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
 INLINE void TestProjMatrix(Matrix4 &m)
 {
 #if DEBUG
-   if(Any(           m.x.y, m.x.z, m.x.w)
-   || Any(  m.y.x,          m.y.z, m.y.w)
-   || Any(/*m.z.x,*/ m.z.y              ) // 'm.z.x' can be adjusted for VR Stereo
+   if(Any(         m.x  .y, m.x.z, m.x.w)
+   || Any(m.y  .x,          m.y.z, m.y.w)
+ //|| Any(m.z  .x, m.z  .y              ) // 'm.z.x' can be adjusted for VR Stereo or TAA, 'm.z.y' can be adjusted for TAA
    || Any(m.pos.x, m.pos.y              ))Exit("Shader 'Project' needs to be adjusted"); // 'm.pos.x' could be adjusted, however it's possible only for orthogonal mode, which is not used in VR (shadows are not stereo, and main view is always perspective based on VR FOV)
 #endif
 }

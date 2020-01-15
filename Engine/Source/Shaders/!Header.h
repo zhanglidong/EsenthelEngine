@@ -889,7 +889,10 @@ Vec GetVelocitiesCameraOnly(Vec view_space_pos)
 Vec4 Project(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, pos.y*ProjMatrix[1].y, pos.z*ProjMatrix[2].z + ProjMatrix[3].z, pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
+   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
+               pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+                                       pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
+                                       pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
 #else // slower
    return Transform(pos, ProjMatrix);
 #endif

@@ -190,8 +190,8 @@ struct RendererClass // handles rendering
    void waterPreLight     ();
    void light             ();
    Bool waterPostLight    ();
-   void edgeDetect        ();
    void sky               ();
+   void edgeDetect        ();
    void blend             ();
    void palette           (Int index);
    void behind            ();

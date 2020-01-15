@@ -830,6 +830,7 @@ static Bool ShadowMap(LightDir &light)
    skip:
 
       // matrix, transform from camera space to light space, ShdMatrix=CamMatrix/LightMatrix
+      // this is used for positions in camera view space, so multiply first by CamMatrix to convert from view space to world space, and then div by LightMatrix to convert to light space
       // potentially we could do 'light_matrix.inverse(true);" and then CamMatrix*light_matrix, however 'divNormalized' is just as fast
       if(Renderer._stereo)
       {
