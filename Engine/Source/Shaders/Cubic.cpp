@@ -154,7 +154,7 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    return Tex(Img, t/w).rgb*Half(w);
 }*/
 
-VecH4 TexCubic(Vec2 inTex)
+VecH4 TexCubicPlus(Vec2 inTex)
 {
    Vec2  pixel =inTex*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
@@ -204,7 +204,7 @@ VecH4 TexCubic(Vec2 inTex)
 #endif
    return color/weight;
 }
-VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
+VecH TexCubicPlusRGB(Vec2 inTex) // ignores alpha channel
 {
    Vec2  pixel =inTex*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
@@ -283,7 +283,7 @@ VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
 VecH4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
                       NOPERSP PIXEL              ):TARGET
 {
-   VecH4 col=TexCubic(inTex);
+   VecH4 col=TexCubicPlus(inTex);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
@@ -295,7 +295,7 @@ VecH4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
 VecH4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
                          NOPERSP PIXEL              ):TARGET
 {
-   VecH4 col=VecH4(TexCubicRGB(inTex), 1);
+   VecH4 col=VecH4(TexCubicPlusRGB(inTex), 1);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
