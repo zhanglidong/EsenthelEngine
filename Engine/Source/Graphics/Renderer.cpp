@@ -643,15 +643,15 @@ RendererClass& RendererClass::operator()(void (&render)())
       outline( );
 
       // 2D
-      finalizeGlow (); // !! assume that nothing below can trigger glow on the scene !!
-      applyOutline ();
-      edgeSoften   (); MEASURE(temp)
-      tAA          ();
+      finalizeGlow(); // !! assume that nothing below can trigger glow on the scene !!
+      applyOutline();
+      edgeSoften  (); MEASURE(temp)
+      tAA         ();
       // all following effects below that modify '_col' (and not create new '_col') should call 'downSample' first, otherwise they should call 'resolveMultiSample'
       if(AstroDrawRays())goto finished; MEASURE(_t_rays[1])
-      volumetric   (); MEASURE(_t_volumetric[1])
-      refract      (); MEASURE(_t_refract[1])
-      postProcess  (); MEASURE(_t_post_process[1])
+      volumetric  (); MEASURE(_t_volumetric[1])
+      refract     (); MEASURE(_t_refract[1])
+      postProcess (); MEASURE(_t_post_process[1])
    finished:;
    }
 
