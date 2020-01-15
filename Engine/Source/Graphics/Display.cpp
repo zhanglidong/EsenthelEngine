@@ -826,7 +826,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-  _taa             =false;
+  _taa             =_taa_enable=false;
 
   _initialized=false;
   _resetting  =false;
@@ -2766,6 +2766,7 @@ Display& Display::tAA(Bool on)
 Display& Display::tAAReset()
 {
    Renderer._col_taa      .clear();
+   Renderer._col_taa_alpha.clear();
    return T;
 }
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
@@ -3021,15 +3022,15 @@ Display& Display::bumpMode(BUMP_MODE mode)
    return T;
 }
 /******************************************************************************/
-Display& Display:: glowAllow   (Bool allow   ) {                     _glow_allow   =allow   ; return T;}
-Display& Display::bloomAllow   (Bool allow   ) {                    _bloom_allow   =allow   ; return T;}
-Display& Display::bloomOriginal(Flt  original) {MAX  (original, 0); _bloom_original=original; return T;}
-Display& Display::bloomScale   (Flt  scale   ) {MAX  (scale   , 0); _bloom_scale   =scale   ; return T;}
-Display& Display::bloomCut     (Flt  cut     ) {MAX  (cut     , 0); _bloom_cut     =cut     ; return T;}
-Display& Display::bloomHalf    (Bool half    ) {                    _bloom_half    =half    ; return T;}
-Display& Display::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4); _bloom_blurs   =blurs   ; return T;}
-Display& Display::bloomSamples (Bool high    ) {                    _bloom_samples =high    ; return T;}
-Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){ _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
+Display& Display:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
+Display& Display::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
+Display& Display::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
+Display& Display::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
+Display& Display::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
+Display& Display::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
+Display& Display::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
+Display& Display::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}
+Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){   _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
 Bool     Display::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/
 Display& Display::volLight(Bool on ) {_vol_light=    on     ; return T;}

@@ -79,35 +79,36 @@ void RendererClass::createShadowMap()
 }
 void RendererClass::rtClear()
 {
-  _h0          .clear();
-  _h1          .clear();
-  _q0          .clear();
-  _q1          .clear();
-  _col         .clear();
-  _col_taa     .clear();
-  _nrm         .clear();
-  _ext         .clear();
-  _vel         .clear();
-  _alpha       .clear();
-  _lum         .clear();
-  _lum_1s      .clear();
-  _spec        .clear();
-  _spec_1s     .clear();
-  _shd_1s      .clear();
-  _shd_ms      .clear();
-  _ds          .clear();
-  _ds_1s       .clear();
-  _water_col   .clear();
-  _water_nrm   .clear();
-  _water_ds    .clear();
-  _water_lum   .clear();
-  _water_spec  .clear();
-  _vol         .clear();
-  _ao          .clear();
-  _mirror_rt   .clear();
-  _outline_rt  .clear();
-  _sky_coverage.clear();
-  _final       =null;
+  _h0           .clear();
+  _h1           .clear();
+  _q0           .clear();
+  _q1           .clear();
+  _col          .clear();
+  _col_taa      .clear();
+  _col_taa_alpha.clear();
+  _nrm          .clear();
+  _ext          .clear();
+  _vel          .clear();
+  _alpha        .clear();
+  _lum          .clear();
+  _lum_1s       .clear();
+  _spec         .clear();
+  _spec_1s      .clear();
+  _shd_1s       .clear();
+  _shd_ms       .clear();
+  _ds           .clear();
+  _ds_1s        .clear();
+  _water_col    .clear();
+  _water_nrm    .clear();
+  _water_ds     .clear();
+  _water_lum    .clear();
+  _water_spec   .clear();
+  _vol          .clear();
+  _ao           .clear();
+  _mirror_rt    .clear();
+  _outline_rt   .clear();
+  _sky_coverage .clear();
+  _final        =null;
    // don't clear '_back' and '_back_ds' here in case they are used
 }
 void RendererClass::rtClean()

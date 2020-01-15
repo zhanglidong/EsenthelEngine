@@ -368,6 +368,10 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
       REPD(gamma , 2)
          src.New("SunRays", "DrawPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
    }
+   { // TAA
+      ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
+      src.New("TAA", "DrawPosXY_VS", "TAA_PS");
+   }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
       REPD(gamma, 2)
