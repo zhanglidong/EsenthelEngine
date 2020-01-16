@@ -3281,7 +3281,7 @@ void GetDelta(VecD &pos, VecD &angle, C MatrixD &prev, C MatrixD &cur)
 /******************************************************************************/
 void GetVel(Vec &vel, Vec &ang_vel, C Matrix &prev, C Matrix &cur, Flt dt)
 {
-   if(dt>EPS)
+   if(dt)
    {
       GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
@@ -3294,7 +3294,7 @@ void GetVel(Vec &vel, Vec &ang_vel, C Matrix &prev, C Matrix &cur, Flt dt)
 }
 void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &prev, C MatrixM &cur, Flt dt)
 {
-   if(dt>EPS)
+   if(dt)
    {
       GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
@@ -3307,7 +3307,7 @@ void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &prev, C MatrixM &cur, Flt dt)
 }
 void GetVel(Vec &vel, Vec &ang_vel, C Vec &prev2_pos, C Matrix &prev, C Matrix &cur, Flt dt)
 {
-   if(dt>EPS)
+   if(dt)
    {
       GetDelta(vel, ang_vel, prev2_pos, prev, cur);
           vel/=dt;
@@ -3320,7 +3320,7 @@ void GetVel(Vec &vel, Vec &ang_vel, C Vec &prev2_pos, C Matrix &prev, C Matrix &
 }
 void GetVel(Vec &vel, Vec &ang_vel, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur, Flt dt)
 {
-   if(dt>EPS)
+   if(dt)
    {
       GetDelta(vel, ang_vel, prev2_pos, prev, cur);
           vel/=dt;
@@ -3333,7 +3333,7 @@ void GetVel(Vec &vel, Vec &ang_vel, C VecD &prev2_pos, C MatrixM &prev, C Matrix
 }
 void GetVel(VecD &vel, VecD &ang_vel, C MatrixD &prev, C MatrixD &cur, Dbl dt)
 {
-   if(dt>EPSD)
+   if(dt)
    {
       GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
