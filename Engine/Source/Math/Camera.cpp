@@ -16,8 +16,10 @@ Camera::Camera()
    dist =1;
    at     .zero();
    matrix .setPos(0, 0, -1);
-       vel.zero();
-   ang_vel.zero();
+   pos_delta.zero();
+   ang_delta.zero();
+         vel.zero();
+     ang_vel.zero();
 
   _matrix_prev=matrix;
   _pos_prev1  =matrix.pos;
@@ -91,31 +93,29 @@ Camera& Camera::teleported()
   _matrix_prev=matrix; _pos_prev1=matrix.pos; // prevents velocity jump
    return T;
 }
-Camera& Camera::updateVelocities(CAM_ATTACHMENT attachment)
+Camera& Camera::updateVelocities()
 {
-   Flt dt=Time.d();
-   if(Physics.created())switch(attachment)
-   {
-      case CAM_ATTACH_CTRL:
-   #if !PHYSX // background thread processing (PhysX should always jump to 'CAM_ATTACH_ACTOR')
-      {
-         if( Game::WorldManager::update_objects_after_physics)goto attach_actor;
-         if(!Physics._last_updated)return T;
-          dt=Physics._last_updated_time;
-      }break;
+   Bool physics_relative=false;
 
-      attach_actor:
-   #endif
-      case CAM_ATTACH_ACTOR:
-      {
-         if(!Physics.updated())return T;
-          dt=Physics.updatedTime();
-      }break;
+   Flt dt=Time.d();
+   if(physics_relative && Physics.created())
+   {
+      if(!Physics.updated())return T;
+      dt=Physics.updatedTime();
    }
 
-   GetVel(vel, ang_vel, _pos_prev1, _matrix_prev, matrix, dt);
-  _pos_prev1=_matrix_prev.pos;
-  _matrix_prev=matrix;
+   GetDelta(pos_delta, ang_delta, _pos_prev1, _matrix_prev, matrix);
+   if(dt)
+   {
+          vel=pos_delta/dt;
+      ang_vel=ang_delta/dt;
+   }else
+   {
+          vel.zero();
+      ang_vel.zero();
+   }
+     _pos_prev1=_matrix_prev.pos;
+  _matrix_prev = matrix;
    return T;
 }
 /******************************************************************************/
@@ -162,7 +162,7 @@ void MotionScaleChanged() // !! this must match codes above !!
 /******************************************************************************/
 Bool Camera::save(File &f)C
 {
-   f.putMulti(Byte(0), yaw, pitch, roll, dist, at, matrix, vel, ang_vel); // version
+   f.putMulti(Byte(0), yaw, pitch, roll, dist, at, matrix, pos_delta, ang_delta, vel, ang_vel); // version
    return f.ok();
 }
 Bool Camera::load(File &f)
@@ -171,7 +171,7 @@ Bool Camera::load(File &f)
    {
       case 0:
       {
-         f.getMulti(yaw, pitch, roll, dist, at, matrix, vel, ang_vel); // version
+         f.getMulti(yaw, pitch, roll, dist, at, matrix, pos_delta, ang_delta, vel, ang_vel); // version
         _matrix_prev=matrix; _pos_prev1=matrix.pos;
          if(f.ok())return true;
       }break;
@@ -207,7 +207,7 @@ Camera& Camera::transformByMouse(Flt dist_min, Flt dist_max, UInt flag)
          +z*(Ms.d().y*mul.y);
    }
    setSpherical();
-   if(!(flag&CAMH_NO_VEL_UPDATE))updateVelocities(CAM_ATTACH_FREE);
+   if(!(flag&CAMH_NO_VEL_UPDATE))updateVelocities();
    if(!(flag&CAMH_NO_SET       ))set();
    return T;
 }

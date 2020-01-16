@@ -18,12 +18,6 @@ enum CAMH_FLAG // Camera Handle flags
    CAMH_NO_SET       =0x40, // don't automatically activate the camera
    CAMH_ROT          =CAMH_ROT_X|CAMH_ROT_Y, // rotate  on mouse move
 };
-enum CAM_ATTACHMENT // information about camera attachment
-{
-   CAM_ATTACH_FREE , // no attachment
-   CAM_ATTACH_ACTOR, // camera is attached to a physical actor
-   CAM_ATTACH_CTRL , // camera is attached to a character controller
-};
 /******************************************************************************/
 struct Camera
 {
@@ -34,8 +28,10 @@ struct Camera
    VecD    at    ; // point where camera is looking at               , default=VecD(0,0,0)
    MatrixM matrix; // camera object matrix                           , default=MatrixIdentity-Vec(0,0,1)
 
-   Vec        vel, // camera         velocity (this gets modified when calling 'updateVelocities')
-          ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
+   Vec     pos_delta, // camera position delta   (this gets modified when calling 'updateVelocities')
+           ang_delta, // camera angle    delta   (this gets modified when calling 'updateVelocities')
+                 vel, // camera         velocity (this gets modified when calling 'updateVelocities')
+             ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
 
    Camera& operator+=(C VecD &offset) {at+=offset; matrix.pos+=offset; return T;} // move camera by 'offset'
    Camera& operator-=(C VecD &offset) {at-=offset; matrix.pos-=offset; return T;} // move camera by 'offset'
@@ -52,8 +48,8 @@ struct Camera
 #if EE_PRIVATE
    Camera& teleported();
 #endif
-   Camera& updateVelocities(CAM_ATTACHMENT attachment=CAM_ATTACH_CTRL) ; // update camera velocities 'vel ang_vel' according to current 'matrix' and the one from previous frame, this needs to be called exactly once per frame, 'attachment'=specifies to what the camera is attached to (this affects only Motion Blur effect)
-   void    set             (                                         )C; // set as active camera - sets rendering matrixes, sets frustum, copies self to 'ActiveCam'
+   Camera& updateVelocities() ; // update camera velocities 'pos_delta ang_delta vel ang_vel' according to current 'matrix' and the one from previous frame, this needs to be called exactly once per frame
+   void    set             ()C; // set as active camera - sets rendering matrixes, sets frustum, copies self to 'ActiveCam'
 
    Camera& transformByMouse(Flt dist_min, Flt dist_max, UInt flag); // this is a helper method that transforms the camera basing on mouse input, 'dist_min'=minimum zoom distance, 'dist_max'=maximum zoom distance, 'flag'=CAMH_FLAG
 

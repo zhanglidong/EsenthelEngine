@@ -1993,7 +1993,7 @@ namespace Edit
 
 T2(TA, TB)  File&  File::putMulti(C TA &a, C TB &b)
 {
- C Int size=SIZE(a)+SIZE(b);
+ C UInt size=SIZE(a)+SIZE(b);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2002,15 +2002,16 @@ T2(TA, TB)  File&  File::putMulti(C TA &a, C TB &b)
 }
 T2(TA, TB)  File&  File::getMulti(TA &a, TB &b)
 {
- C Int size=SIZE(a)+SIZE(b);
+ C UInt size=SIZE(a)+SIZE(b);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
    return T;
 }
+
 T3(TA, TB, TC)  File&  File::putMulti(C TA &a, C TB &b, C TC &c)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2020,16 +2021,17 @@ T3(TA, TB, TC)  File&  File::putMulti(C TA &a, C TB &b, C TC &c)
 }
 T3(TA, TB, TC)  File&  File::getMulti(TA &a, TB &b, TC &c)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
    Unaligned(c, (TC&)(buf[SIZE(a)+SIZE(b)]));
    return T;
 }
+
 T4(TA, TB, TC, TD)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2040,7 +2042,7 @@ T4(TA, TB, TC, TD)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d)
 }
 T4(TA, TB, TC, TD)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2048,9 +2050,10 @@ T4(TA, TB, TC, TD)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d)
    Unaligned(d, (TD&)(buf[SIZE(a)+SIZE(b)+SIZE(c)]));
    return T;
 }
+
 T5(TA, TB, TC, TD, TE)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2062,7 +2065,7 @@ T5(TA, TB, TC, TD, TE)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d
 }
 T5(TA, TB, TC, TD, TE)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2071,9 +2074,10 @@ T5(TA, TB, TC, TD, TE)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e)
    Unaligned(e, (TE&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)]));
    return T;
 }
+
 T6(TA, TB, TC, TD, TE, TF)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2086,7 +2090,7 @@ T6(TA, TB, TC, TD, TE, TF)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C T
 }
 T6(TA, TB, TC, TD, TE, TF)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2096,9 +2100,10 @@ T6(TA, TB, TC, TD, TE, TF)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE
    Unaligned(f, (TF&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)]));
    return T;
 }
+
 T7(TA, TB, TC, TD, TE, TF, TG)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2112,7 +2117,7 @@ T7(TA, TB, TC, TD, TE, TF, TG)  File&  File::putMulti(C TA &a, C TB &b, C TC &c,
 }
 T7(TA, TB, TC, TD, TE, TF, TG)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f, TG &g)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2123,9 +2128,10 @@ T7(TA, TB, TC, TD, TE, TF, TG)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d
    Unaligned(g, (TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]));
    return T;
 }
+
 T8(TA, TB, TC, TD, TE, TF, TG, TH)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2140,7 +2146,7 @@ T8(TA, TB, TC, TD, TE, TF, TG, TH)  File&  File::putMulti(C TA &a, C TB &b, C TC
 }
 T8(TA, TB, TC, TD, TE, TF, TG, TH)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f, TG &g, TH &h)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2152,9 +2158,10 @@ T8(TA, TB, TC, TD, TE, TF, TG, TH)  File&  File::getMulti(TA &a, TB &b, TC &c, T
    Unaligned(h, (TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]));
    return T;
 }
+
 T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i);
    Byte buf[size];
    Unaligned((TA&)(buf[0]), a);
    Unaligned((TB&)(buf[SIZE(a)]), b);
@@ -2170,7 +2177,7 @@ T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File&  File::putMulti(C TA &a, C TB &b, 
 }
 T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f, TG &g, TH &h, TI &i)
 {
- C Int size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i);
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i);
    Byte buf[size]; T>>buf;
    Unaligned(a, (TA&)(buf[0]));
    Unaligned(b, (TB&)(buf[SIZE(a)]));
@@ -2181,6 +2188,76 @@ T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File&  File::getMulti(TA &a, TB &b, TC &
    Unaligned(g, (TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]));
    Unaligned(h, (TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]));
    Unaligned(i, (TI&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)]));
+   return T;
+}
+
+T10(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i, C TJ &j)
+{
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j);
+   Byte buf[size];
+   Unaligned((TA&)(buf[0]), a);
+   Unaligned((TB&)(buf[SIZE(a)]), b);
+   Unaligned((TC&)(buf[SIZE(a)+SIZE(b)]), c);
+   Unaligned((TD&)(buf[SIZE(a)+SIZE(b)+SIZE(c)]), d);
+   Unaligned((TE&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)]), e);
+   Unaligned((TF&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)]), f);
+   Unaligned((TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]), g);
+   Unaligned((TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]), h);
+   Unaligned((TI&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)]), i);
+   Unaligned((TJ&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)]), j);
+   T<<buf;
+   return T;
+}
+T10(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f, TG &g, TH &h, TI &i, TJ &j)
+{
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j);
+   Byte buf[size]; T>>buf;
+   Unaligned(a, (TA&)(buf[0]));
+   Unaligned(b, (TB&)(buf[SIZE(a)]));
+   Unaligned(c, (TC&)(buf[SIZE(a)+SIZE(b)]));
+   Unaligned(d, (TD&)(buf[SIZE(a)+SIZE(b)+SIZE(c)]));
+   Unaligned(e, (TE&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)]));
+   Unaligned(f, (TF&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)]));
+   Unaligned(g, (TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]));
+   Unaligned(h, (TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]));
+   Unaligned(i, (TI&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)]));
+   Unaligned(j, (TJ&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)]));
+   return T;
+}
+
+T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File&  File::putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i, C TJ &j, C TK &k)
+{
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j)+SIZE(k);
+   Byte buf[size];
+   Unaligned((TA&)(buf[0]), a);
+   Unaligned((TB&)(buf[SIZE(a)]), b);
+   Unaligned((TC&)(buf[SIZE(a)+SIZE(b)]), c);
+   Unaligned((TD&)(buf[SIZE(a)+SIZE(b)+SIZE(c)]), d);
+   Unaligned((TE&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)]), e);
+   Unaligned((TF&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)]), f);
+   Unaligned((TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]), g);
+   Unaligned((TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]), h);
+   Unaligned((TI&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)]), i);
+   Unaligned((TJ&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)]), j);
+   Unaligned((TK&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j)]), k);
+   T<<buf;
+   return T;
+}
+T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File&  File::getMulti(TA &a, TB &b, TC &c, TD &d, TE &e, TF &f, TG &g, TH &h, TI &i, TJ &j, TK &k)
+{
+ C UInt size=SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j)+SIZE(k);
+   Byte buf[size]; T>>buf;
+   Unaligned(a, (TA&)(buf[0]));
+   Unaligned(b, (TB&)(buf[SIZE(a)]));
+   Unaligned(c, (TC&)(buf[SIZE(a)+SIZE(b)]));
+   Unaligned(d, (TD&)(buf[SIZE(a)+SIZE(b)+SIZE(c)]));
+   Unaligned(e, (TE&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)]));
+   Unaligned(f, (TF&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)]));
+   Unaligned(g, (TG&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)]));
+   Unaligned(h, (TH&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)]));
+   Unaligned(i, (TI&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)]));
+   Unaligned(j, (TJ&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)]));
+   Unaligned(k, (TK&)(buf[SIZE(a)+SIZE(b)+SIZE(c)+SIZE(d)+SIZE(e)+SIZE(f)+SIZE(g)+SIZE(h)+SIZE(i)+SIZE(j)]));
    return T;
 }
 #endif

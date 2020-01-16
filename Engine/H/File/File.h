@@ -234,22 +234,26 @@ struct File
    void   limit(ULong &total_size, ULong &applied_offset, Long new_size); // temporarily limit current file to '0..new_size' size, current position will be mapped to 0
    void unlimit(ULong &total_size, ULong &applied_offset               ); // unlimit previously limited file
 
-   T2(TA, TB                            )  File& putMulti(C TA &a, C TB &b);
-   T2(TA, TB                            )  File& getMulti(  TA &a,   TB &b);
-   T3(TA, TB, TC                        )  File& putMulti(C TA &a, C TB &b, C TC &c);
-   T3(TA, TB, TC                        )  File& getMulti(  TA &a,   TB &b,   TC &c);
-   T4(TA, TB, TC, TD                    )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d);
-   T4(TA, TB, TC, TD                    )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d);
-   T5(TA, TB, TC, TD, TE                )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e);
-   T5(TA, TB, TC, TD, TE                )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e);
-   T6(TA, TB, TC, TD, TE, TF            )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f);
-   T6(TA, TB, TC, TD, TE, TF            )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f);
-   T7(TA, TB, TC, TD, TE, TF, TG        )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g);
-   T7(TA, TB, TC, TD, TE, TF, TG        )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g);
-   T8(TA, TB, TC, TD, TE, TF, TG, TH    )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h);
-   T8(TA, TB, TC, TD, TE, TF, TG, TH    )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h);
-   T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i);
-   T9(TA, TB, TC, TD, TE, TF, TG, TH, TI)  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h,   TI &i);
+   T2 (TA, TB                                    )  File& putMulti(C TA &a, C TB &b);
+   T2 (TA, TB                                    )  File& getMulti(  TA &a,   TB &b);
+   T3 (TA, TB, TC                                )  File& putMulti(C TA &a, C TB &b, C TC &c);
+   T3 (TA, TB, TC                                )  File& getMulti(  TA &a,   TB &b,   TC &c);
+   T4 (TA, TB, TC, TD                            )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d);
+   T4 (TA, TB, TC, TD                            )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d);
+   T5 (TA, TB, TC, TD, TE                        )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e);
+   T5 (TA, TB, TC, TD, TE                        )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e);
+   T6 (TA, TB, TC, TD, TE, TF                    )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f);
+   T6 (TA, TB, TC, TD, TE, TF                    )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f);
+   T7 (TA, TB, TC, TD, TE, TF, TG                )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g);
+   T7 (TA, TB, TC, TD, TE, TF, TG                )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g);
+   T8 (TA, TB, TC, TD, TE, TF, TG, TH            )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h);
+   T8 (TA, TB, TC, TD, TE, TF, TG, TH            )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h);
+   T9 (TA, TB, TC, TD, TE, TF, TG, TH, TI        )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i);
+   T9 (TA, TB, TC, TD, TE, TF, TG, TH, TI        )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h,   TI &i);
+   T10(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ    )  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i, C TJ &j);
+   T10(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ    )  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h,   TI &i,   TJ &j);
+   T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File& putMulti(C TA &a, C TB &b, C TC &c, C TD &d, C TE &e, C TF &f, C TG &g, C TH &h, C TI &i, C TJ &j, C TK &k);
+   T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File& getMulti(  TA &a,   TB &b,   TC &c,   TD &d,   TE &e,   TF &f,   TG &g,   TH &h,   TI &i,   TJ &j,   TK &k);
 
    // fast but unsafe save/load methods for multiple elements at the same time
    T2(TYPE_FROM, TYPE_TO)  File& putRange(C TYPE_FROM &from, C TYPE_TO &to) {put(&from, UIntPtr(&to)-UIntPtr(&from)+SIZE(to)); return T;}
