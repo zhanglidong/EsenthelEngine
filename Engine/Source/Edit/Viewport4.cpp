@@ -975,7 +975,7 @@ void Viewport4::update()
    }
 
    // finalize cameras
-   REPAO(view).camera.setSpherical().updateVelocities(CAM_ATTACH_FREE);
+   REPAO(view).camera.setSpherical().updateVelocities();
 
    // set main view
    setViewportCamera();
