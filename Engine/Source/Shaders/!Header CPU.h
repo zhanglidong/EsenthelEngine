@@ -29,6 +29,7 @@
 #define FX_LEAFS_3D 6
 
 #define MAX_MOTION_BLUR_PIXEL_RANGE 24
+#define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too
 
 #define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per tri)
 

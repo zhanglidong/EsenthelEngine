@@ -397,12 +397,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    // check how far can we go (remove leaks)
    Sh.ImgXY ->set(converted);
    Sh.Img[0]->set(dilated  );
-   rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
+   rt_desc.rt_type=(MOTION_BLUR_PREDICTIVE ? D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
+                                           : D.signedVelRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect);
    if(stage==RS_VEL_LEAK && show(helper, false, D.signedVelRT()))return true;
 
-   Sh.Img[1]->set(helper);
+   (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY)->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), combine)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution
 
