@@ -24,6 +24,7 @@ enum IMAGERT_TYPE : Byte // Image Render Target Type, this describes a group of 
    IMAGERT_ONE_S  , // IMAGE_R8_SIGN, IMAGE_F16, IMAGE_R8G8_SIGN, IMAGE_F32  , IMAGE_R8G8B8A8_SIGN
    IMAGERT_TWO    , //                           IMAGE_R8G8     , IMAGE_F16_2, IMAGE_R8G8B8A8     
    IMAGERT_TWO_S  , //                           IMAGE_R8G8_SIGN, IMAGE_F16_2, IMAGE_R8G8B8A8_SIGN
+   IMAGERT_TWO_H  , // IMAGE_F16_2, IMAGE_F32_2
    IMAGERT_DS     , // IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16
    IMAGERT_NUM    , // number of Image render targets
 

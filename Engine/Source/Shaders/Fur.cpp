@@ -88,12 +88,12 @@ void Soft_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex :TEXCOORD,
-   out Vec4 outPos4:POS4    ,
+   out Vec2 outTex    :TEXCOORD,
+   out Vec  outOrigPos:ORIG_POS,
 #if SIZE
-   out Half outLen :LENGTH  ,
+   out Half outLen    :LENGTH  ,
 #endif
-   out Vec4 outVtx :POSITION
+   out Vec4 outVtx    :POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -112,7 +112,7 @@ void Soft_VS
       nrm+=GetBoneFurVel(     bone, vtx.weight()); nrm=Normalize(nrm);
       nrm =TransformDir (nrm, bone, vtx.weight());
    }
-   outPos4=Project(pos); // set in 'outPos4' the original position without expansion
+   outOrigPos=ProjectXYW(pos); // set in 'outOrigPos' the original position without expansion
 #if SIZE
    outLen=vtx.size();
 #endif
@@ -122,10 +122,10 @@ void Soft_VS
 /******************************************************************************/
 VecH4 Soft_PS
 (
-   Vec2 inTex :TEXCOORD,
-   Vec4 inPos4:POS4
+   Vec2 inTex    :TEXCOORD,
+   Vec  inOrigPos:ORIG_POS
 #if SIZE
- , Half inLen :LENGTH
+ , Half inLen    :LENGTH
 #endif
 , out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
@@ -144,7 +144,7 @@ VecH4 Soft_PS
    outAlpha=color.a;
    
    if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
-              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToScreen(inOrigPos)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }
 /******************************************************************************/

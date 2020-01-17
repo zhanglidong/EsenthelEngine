@@ -897,6 +897,17 @@ Vec4 Project(Vec pos)
    return Transform(pos, ProjMatrix);
 #endif
 }
+Vec ProjectXYW(Vec pos)
+{
+#if 1 // 2x faster on Intel (made no difference for GeForce)
+   return Vec(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
+              pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+                                    //pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
+                                      pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
+#else // slower
+   return Transform(pos, ProjMatrix).xyw;
+#endif
+}
 /******************************************************************************/
 Vec  MatrixX(Matrix3  m) {return m[0];}
 VecH MatrixX(MatrixH3 m) {return m[0];}
@@ -937,6 +948,10 @@ Vec2 ScreenToPosXY(Vec2 screen, Flt z) // return view space xy position at z='z'
 Vec2 ProjectedPosToScreen(Vec4 projected_pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
 {
    return (projected_pos.xy/projected_pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
+}
+Vec2 ProjectedPosXYWToScreen(Vec projected_pos_xyw) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range, same as 'ProjectedPosToScreen' except Z channel is skipped because it's not needed
+{
+   return (projected_pos_xyw.xy/projected_pos_xyw.z) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
 Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'ProjectedPosToScreen', returns (0,0)..(1,1) range
 {
