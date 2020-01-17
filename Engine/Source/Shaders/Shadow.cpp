@@ -34,8 +34,8 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   outTex  =PosToScreen  (outPos);
- //outPosXY=ScreenToPosXY(outTex);
+   outTex  =ProjectedPosToScreen(outPos);
+ //outPosXY=      ScreenToPosXY (outTex);
 #endif
 }
 /******************************************************************************/

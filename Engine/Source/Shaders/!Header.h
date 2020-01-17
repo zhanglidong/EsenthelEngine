@@ -934,11 +934,11 @@ Vec2 ScreenToPosXY(Vec2 screen, Flt z) // return view space xy position at z='z'
    return ScreenToPosXY(screen)*z;
 }
 /******************************************************************************/
-Vec2 PosToScreen(Vec4 pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
+Vec2 ProjectedPosToScreen(Vec4 projected_pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
 {
-   return (pos.xy/pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
+   return (projected_pos.xy/projected_pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
-Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen', returns (0,0)..(1,1) range
+Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'ProjectedPosToScreen', returns (0,0)..(1,1) range
 {
    return pixel.xy*RTSize.xy;
 }
