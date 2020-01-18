@@ -6,27 +6,27 @@ namespace EE{
 /******************************************************************************
 Ball& Ball::setAnimated(C Box &box, C Matrix &matrix)
 {
-   r  =box.size  ().length()*matrix.x.length()*(0.5f*SCALE);
-   pos=box.center()         *matrix;
+   r  =LengthMul(box.size  (), matrix.x)*(0.5f*SCALE);
+   pos=          box.center()* matrix;
    return T;
 }
 Ball& Ball::setAnimated(C Box &box, C AnimatedSkeleton &anim_skel)
 {
-   r  =box.size  ().length()*anim_skel.scale ()*(0.5f*SCALE);
-   pos=box.center()         *anim_skel.matrix();
+   r  =LengthMul(box.size  (), anim_skel.matrix().x)*(0.5f*SCALE);
+   pos=          box.center()* anim_skel.matrix();
    return T;
 }
 /******************************************************************************/
 Ball& Ball::setAnimated(C Extent &ext, C Matrix &matrix)
 {
-   r  =ext.ext.length()*matrix.x.length()*SCALE;
-   pos=ext.pos         *matrix;
+   r  =LengthMul(ext.ext, matrix.x)*SCALE;
+   pos=          ext.pos* matrix;
    return T;
 }
 Ball& Ball::setAnimated(C Extent &ext, C AnimatedSkeleton &anim_skel)
 {
-   r  =ext.ext.length()*anim_skel.scale ()*SCALE;
-   pos=ext.pos         *anim_skel.matrix();
+   r  =LengthMul(ext.ext, anim_skel.matrix().x)*SCALE;
+   pos=          ext.pos* anim_skel.matrix();
    return T;
 }
 /******************************************************************************/

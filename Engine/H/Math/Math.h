@@ -278,6 +278,10 @@ Flt SigmoidSqrtInv(Flt y); // inverse function of 'SigmoidSqrt', SigmoidSqrtInv(
 Flt SigmoidGd     (Flt x);
 Flt SigmoidTanh   (Flt x);
 Flt SigmoidErf    (Flt x);
+
+#if EE_PRIVATE
+Flt LengthMul(C Vec &a, C Vec &b) {return SqrtFast(a.length2()*b.length2());} // return multiplication of vector lengths, faster version of "a.length()*b.length()"
+#endif
 /******************************************************************************/
 // ANGLES
 /******************************************************************************/
