@@ -806,30 +806,48 @@ Int Solve(Dbl a1, Dbl a2, Dbl b1, Dbl b2, Dbl c1, Dbl c2, Dbl &x, Dbl &y)
          31    |   +Inf -Inf   |        NaN        |
 
 /******************************************************************************/
+// based on codes by Fabian "ryg" Giesen, placed under Public Domain
 Half::operator Flt()C
 {
-   UInt f;
-   Int  e=(data&0x7C00);
-   if(e==     0)f=((data&0x8000)<<16);else
-   if(e==0x7C00)f=((data&0x8000)<<16) | (0xFF       <<23) | ((data&0x03FF)<<13);else
-                f=((data&0x8000)<<16) | ((e+0x1C000)<<13) | ((data&0x03FF)<<13); // (127-15)<<10 = 0x1C000
-   return (Flt&)f;
+   U32 xs =(data&0x8000)<<16;
+   U32 xem=(data&0X7FFF)<<13;
+   U32 xe =( xem&0xF800000); // &(0x7C00<<13)
+     xem+=0x38000000; // (127-15)<<23
+   if(xe==0xF800000)xem+=0x38000000;else // Inf/NaN
+   if(xe==0) // Zero/Denormal
+   {
+      xem+=0x800000;
+      ((Flt&)xem)-=6.10351563e-05f; // (Flt&)(0x38800000) renormalize
+   }
+   xs|=xem;
+   return (Flt&)xs;
+}
+static const U32 DenormMagic=((127-15)+(23-10)+1)<<23;
+Half::Half(Flt f)
+{
+   U32 &u=(U32&)f, sign=(u&0x80000000);
+   u^=sign;
+
+   // NOTE all the integer compares in this function can be safely compiled into signed compares since all operands are below 0x80000000. Important if you want fast straight SSE2 code since there's no unsigned PCMPGTD.
+   if(u>=((127+16)<<23)) // HALF_MAX, result is Inf or NaN (all exponent bits set)
+      data=(u>(255<<23)) ? 0x7E00 : 0x7C00; // NaN->qNaN and Inf->Inf
+   else
+   if(u<(113<<23)) // resulting FP16 is subnormal or zero
+   {
+      f+=(Flt&)DenormMagic; // use a magic value to align our 10 mantissa bits at the bottom of the float. as long as FP addition is round-to-nearest-even this just works.
+      data  =u-DenormMagic; // and one integer subtract of the bias later, we have our final float!
+   }else
+   {
+      U32 mantissa_odd=(u>>13)&1; // resulting mantissa is odd
+      u  +=((15-127)<<23)+0xFFF; // update exponent, rounding bias part 1
+      u  +=mantissa_odd; // rounding bias part 2
+      data=(u>>13); // take the bits!
+   }
+   data|=(sign>>16);
 }
 /*Half::Half(Bool b) {data=(b ? 15360 : 0);}
 Half::Half(Int  i) : Half(Flt(i)) {}
 Half::Half(UInt i) : Half(Flt(i)) {}*/
-Half::Half(Flt  f)
-{
-   UInt u=(U32&)f;
-// Int  e=((u>>23)&0xFF)+(15-127);
-// if(e<= 0)data= (u>>16)&0x8000;else
-// if(e> 31)data=((u>>16)&0x8000) | (31<<10) | ((u>>13)&0x03FF);else
-//          data=((u>>16)&0x8000) | ( e<<10) | ((u>>13)&0x03FF);
-   Int e =(u&0x7F800000);
-   if( e<=   0x38000000)data= (u>>16)&0x8000;else
-   if( e>=   0x47800000)data=((u>>16)&0x8000) | (           31 <<10) | ((u>>13)&0x03FF);else
-                        data=((u>>16)&0x8000) | ((e-0x38000000)>>13) | ((u>>13)&0x03FF);
-}
 /******************************************************************************/
 void DecRealByBit(Flt &r)
 {
