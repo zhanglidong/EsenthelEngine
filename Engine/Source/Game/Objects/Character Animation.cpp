@@ -286,8 +286,8 @@ void Chr::updateAnimation()
       Flt time    =AnimTime(T);
       Vec pos_foot=skel.skeleton()->bones[sac.toe_l].pos;
       skel.clear  ();
-      skel.animate(sac.stand , time, 1                      ).updateMatrixParents(MatrixIdentity, sac.toe_l); foot_offset=            pos_foot*skel.bones[sac.toe_l].matrix();
-      skel.animate(sac.crouch, time, anim.stand_crouch, true).updateMatrixParents(MatrixIdentity, sac.toe_l); foot_offset=foot_offset-pos_foot*skel.bones[sac.toe_l].matrix(); foot_offset.y=0;
+      skel.animate(sac.stand , time, 1                      ).updateMatrixParents(scale, sac.toe_l); foot_offset=            pos_foot*skel.bones[sac.toe_l].matrix();
+      skel.animate(sac.crouch, time, anim.stand_crouch, true).updateMatrixParents(scale, sac.toe_l); foot_offset=foot_offset-pos_foot*skel.bones[sac.toe_l].matrix(); foot_offset.y=0;
    }
 
    // set animations
@@ -334,6 +334,9 @@ void Chr::updateAnimation()
              .   rotateZ( anim.lean*(1-anim.straight_strafe)                       + anim.fly*(anim.fly_x - anim.fly_strafe           )                             )
              .   rotateX( anim.lean*(  anim.straight_strafe)*(anim.left_right*2-1) + anim.fly*(anim.fly_z - anim.fly_full_body*angle.y) + body_pitch_rest*-body_sign)
              .   rotateY(-angle.x);
+
+      // scale
+      m.scaleOrn(scale);
 
       // position
       m.pos =ctrl.actor.pos()                               ; // set initial position from the controller actor

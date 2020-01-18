@@ -177,8 +177,8 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
    output.normal      (0);
    output.translucent (0);
    output.smooth      (0);
-   output.velocityZero( );
    output.reflect     (0);
+   output.velocityZero( );
 }
 /******************************************************************************/
 // DECAL

@@ -47,8 +47,8 @@ void Color_PS
    output.normal      (Normalize(inNrm));
    output.translucent (0);
    output.smooth      (0);
-   output.velocityZero( );
    output.reflect     (0);
+   output.velocityZero( );
 }
 /******************************************************************************/
 // CIRCLE / SQUARE / GRID

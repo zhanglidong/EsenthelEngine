@@ -45,13 +45,13 @@ Ragdoll& Ragdoll::del()
   _aggr  .del(); // delete aggregate after actors, so they won't be re-inserted into scene when aggregate is deleted
    zero(); return T;
 }
-Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt density, Bool kinematic)
+Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, Bool kinematic)
 {
    del();
 
    if(T._skel=anim_skel.skeleton())
    {
-      T._scale=anim_skel.scale();
+      T._scale=scale;
 
       Memt<Shape> shapes;
     C Skeleton   &skel=*anim_skel.skeleton();
@@ -168,9 +168,9 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt density, Bool kinemat
    return false;
 }
 /******************************************************************************/
-Ragdoll& Ragdoll::create(C AnimatedSkeleton &anim_skel, Flt density, Bool kinematic)
+Ragdoll& Ragdoll::create(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, Bool kinematic)
 {
-   if(!createTry(anim_skel, density, kinematic))Exit("Can't create Ragdoll");
+   if(!createTry(anim_skel, scale, density, kinematic))Exit("Can't create Ragdoll");
    return T;
 }
 /******************************************************************************
@@ -285,13 +285,13 @@ Ragdoll& Ragdoll::toSkelBlend(AnimatedSkeleton &anim_skel, Flt blend)
       }
 
       // convert root to matrix, and zero himself so it won't be taken into account
-      Matrix temp=anim_skel.matrix(); temp.orn()/=anim_skel._scale; anim_skel.root.clear();
+      Matrix temp=anim_skel.matrix(); temp.normalize(); anim_skel.root.clear();
 
       // blend matrix with ragdoll main bone matrix
       ragdoll_body*=blend;
       temp        *=blend1;
       temp+=ragdoll_body;
-      temp.normalize();
+      temp.normalize().scaleOrn(_scale);
 
       // update skeleton according to obtained matrix
       anim_skel.updateMatrix(temp);

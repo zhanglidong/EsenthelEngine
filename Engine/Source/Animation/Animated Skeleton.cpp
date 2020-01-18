@@ -54,7 +54,6 @@ void AnimatedSkeleton::zero()
    fur_vel_scale=0;
    root.zero();
 
-  _scale   =0;
   _skeleton=null;
 }
 AnimatedSkeleton::AnimatedSkeleton() {zero();}
@@ -64,12 +63,10 @@ AnimatedSkeleton& AnimatedSkeleton::del()
    slots.del();
    zero(); return T;
 }
-AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Matrix &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
+AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C Matrix &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
 {
    auto temp=initial_matrix; // copy in case 'initial_matrix' belongs to this (for example 'root._matrix' and may get destroyed), use 'auto' depending on matrix type
-   temp.orn().scale(scale); // apply custom 'scale'
 
-      T._scale   =scale;
    if(T._skeleton=skeleton)
    {
       slots.setNum(skeleton->slots.elms()); REPAO(slots).zero();
@@ -100,7 +97,6 @@ AnimatedSkeleton& AnimatedSkeleton::create(AnimatedSkeleton &src)
 {
    if(&src!=this)
    {
-     _scale   =src._scale;
      _skeleton=src._skeleton;
       bones   =src. bones;
       slots   =src. slots;
@@ -303,12 +299,7 @@ static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_mat
 
    if(bone._disabled)
    {
-   #if 0 // slower
-      bone._matrix.setScale(anim_skel._scale).mul(body_matrix);
-   #else
       bone._matrix=body_matrix;
-      if(anim_skel._scale!=1)bone._matrix.orn().scale(anim_skel._scale);
-   #endif
    }else
    {
       Orient &bone_orn=bone.orn; // we can modify it directly, because we're just calling 'fix' on it
@@ -341,9 +332,6 @@ static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_mat
          // only position/scale
          bone._matrix=body_matrix;
 
-         // apply skeleton scale
-         if(anim_skel._scale!=1)bone._matrix.orn().scale(anim_skel._scale);
-
          // apply animation position
          if(bone.pos.any())bone._matrix.pos+=bone.pos*bone._matrix.orn();
 
@@ -366,9 +354,8 @@ static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_mat
       }
 
       // set position
-                             bone._matrix.pos=bone.pos;
-      if(anim_skel._scale!=1)bone._matrix.scale(anim_skel._scale);
-                             bone._matrix.mul(body_matrix);
+      bone._matrix.pos=bone.pos;
+      bone._matrix.mul(body_matrix);
    }
 }
 static void UpdateBoneMatrix(AnimatedSkeleton &anim_skel, Int i)
@@ -693,7 +680,7 @@ void AnimatedSkeleton::draw(C Color &bone_color, C Color &slot_color)C
 /******************************************************************************/
 Bool AnimatedSkeleton::save(File &f)C
 {
-   f.putMulti(Byte(0), _scale, matrix()); // version
+   f.putMulti(Byte(0), matrix()); // version
    f.putAsset(Skeletons.id(skeleton()));
    f.putMulti(fur_stiffness, fur_gravity, fur_vel_scale);
    return f.ok();
@@ -704,7 +691,7 @@ Bool AnimatedSkeleton::load(File &f)
    {
       case 0:
       {
-         f.getMulti(_scale, root._matrix); create(Skeletons(f.getAssetID()), _scale, root._matrix);
+         f.getMulti(root._matrix); create(Skeletons(f.getAssetID()), root._matrix);
          f.getMulti(fur_stiffness, fur_gravity, fur_vel_scale);
          if(f.ok())return true;
       }break;

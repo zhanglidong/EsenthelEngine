@@ -296,13 +296,12 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
    FixedMems<OrientP     > slots        ; //      transformed skeleton slot array
 
    // manage
-   AnimatedSkeleton& del   (                                                                                         ); // delete manually
-   AnimatedSkeleton& create(const_mem_addr C Skeleton *skeleton, Flt scale=1, C Matrix &initial_matrix=MatrixIdentity); // create from 'skeleton' object, 'scale'=skeleton scale, 'initial_matrix'=matrix set for the root bone (its scale is ignored)
-   AnimatedSkeleton& create(         AnimatedSkeleton &src                                                           ); // create from 'src'
+   AnimatedSkeleton& del   (                                                                            ); // delete manually
+   AnimatedSkeleton& create(const_mem_addr C Skeleton *skeleton, C Matrix &initial_matrix=MatrixIdentity); // create from 'skeleton' object, 'initial_matrix'=matrix set for the root bone
+   AnimatedSkeleton& create(         AnimatedSkeleton &src                                              ); // create from 'src'
 
    // get
- C Skeleton*     skeleton(     )C {return _skeleton                          ;} // get source   skeleton
-   Flt           scale   (     )C {return _scale                             ;} // get animated skeleton scale
+ C Skeleton*     skeleton(     )C {return _skeleton                          ;} // get source skeleton
    AnimSkelBone& boneRoot(Int i)  {return InRange(i, bones) ? bones[i] : root;} // get i-th transformed bone or root if index is out of range
  C AnimSkelBone& boneRoot(Int i)C {return ConstCast(T).boneRoot(i)           ;} // get i-th transformed bone or root if index is out of range
  C Vec   &       pos     (     )C {return root.matrix().pos                  ;} // get root position
@@ -389,7 +388,6 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
 #if !EE_PRIVATE
 private:
 #endif
-   Flt       _scale;
  C Skeleton *_skeleton;
    struct Instance
    {

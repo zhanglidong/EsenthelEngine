@@ -34,6 +34,7 @@ struct MainShaderClass
       *ImgX [4], *ImgXMS,
       *ImgXF[2],
       *ImgXY, *ImgXYMS,
+      *ImgXYF,
       *Env=&DummyImage,
       *Cub[2],
       *Vol,

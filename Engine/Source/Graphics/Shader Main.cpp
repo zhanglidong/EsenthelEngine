@@ -278,6 +278,7 @@ void MainShaderClass::getTechniques()
    ImgXF[1]=ShaderImages("ImgXF1" );
    ImgXY   =ShaderImages("ImgXY"  );
    ImgXYMS =ShaderImages("ImgXYMS");
+   ImgXYF  =ShaderImages("ImgXYF" );
 
    Env   =ShaderImages("Env"); Env->set(D.envMap()());
    Cub[0]=ShaderImages("Cub");

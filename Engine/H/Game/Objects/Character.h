@@ -39,7 +39,8 @@ struct Chr : Obj // Game Character Object
 
    ACTION_TYPE action      ; // action type, default=ACTION_NONE
    Bool        move_walking; // if move through path by walking instead of running, default=false
-   Flt         speed       , // move   speed, default= 4.1, for changing animations speed please check Chr::Animation::speed
+   Flt         scale       , // skeleton scale
+               speed       , // move   speed, default= 4.1, for changing animations speed please check Chr::Animation::speed
                turn_speed  , // turn   speed, default= 3.5
                flying_speed; // flying speed, default=25.0
    Vec2        angle       ; // look   angles

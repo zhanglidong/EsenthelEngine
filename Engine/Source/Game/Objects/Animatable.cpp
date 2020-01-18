@@ -36,7 +36,7 @@ void Animatable::create(Object &obj)
 void Animatable::setUnsavedParams()
 {
          mesh=(base ? base->mesh    () : MeshPtr());
-   skel.create(mesh ? mesh->skeleton() : null, scale, _matrix);
+   skel.create(mesh ? mesh->skeleton() : null, _matrix);
 
    if(base && base->phys())actor.create(*base->phys(), 0, scale)
                                 .matrix(_matrix)
@@ -65,7 +65,7 @@ Bool Animatable::update()
    skel.clear()
        .animate    (skel_anim, Time.time())
        .animateRoot(skel_anim ? skel_anim->animation() : null, Time.time())
-       .updateMatrix(_matrix).updateVelocities();
+       .updateMatrix(Matrix(_matrix).scaleOrn(scale)).updateVelocities();
    return true;
 }
 /******************************************************************************/

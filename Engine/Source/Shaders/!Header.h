@@ -40,6 +40,7 @@
 #define Matrix4 float4x4
 
 #define ImageF      Texture2D  <Flt  >
+#define ImageF2     Texture2D  <Vec2 >
 #define ImageH      Texture2D  <Half >
 #define ImageH2     Texture2D  <VecH2>
 #define Image       Texture2D  <VecH4>
@@ -438,6 +439,7 @@ Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY, EnvDFG;
+ImageF2   ImgXYF;
 ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
@@ -779,7 +781,7 @@ Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx
 VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx]);}
 
 Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
-VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
+VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);} // no need HP for dirs
 
 Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
 Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
@@ -823,7 +825,7 @@ VecH TransformDir(VecH dir, UInt mtrx)
 }
 
 Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
-VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);}
+VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);} // no need HP for dirs
 
 Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
 Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}

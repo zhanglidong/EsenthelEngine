@@ -234,6 +234,8 @@ struct File
    void   limit(ULong &total_size, ULong &applied_offset, Long new_size); // temporarily limit current file to '0..new_size' size, current position will be mapped to 0
    void unlimit(ULong &total_size, ULong &applied_offset               ); // unlimit previously limited file
 
+   T1 (TA                                        )  File& putMulti(C TA &a) {return T<<a;}
+   T1 (TA                                        )  File& getMulti(  TA &a) {return T>>a;}
    T2 (TA, TB                                    )  File& putMulti(C TA &a, C TB &b);
    T2 (TA, TB                                    )  File& getMulti(  TA &a,   TB &b);
    T3 (TA, TB, TC                                )  File& putMulti(C TA &a, C TB &b, C TC &c);

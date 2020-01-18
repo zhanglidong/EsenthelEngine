@@ -43,9 +43,8 @@ void Chr::setUnsavedParams()
 }
 void Chr::create(Object &obj)
 {
-   Matrix matrix=obj.matrixFinal();
-   Flt    scale =obj.scale      ();
-
+   Matrix matrix =obj.matrixFinal();
+   scale         =obj.scale      ();
    base          =obj.firstStored(); // copy pointer to object stored in project data
    mesh_variation=obj.meshVariationIndex();
    setUnsavedParams();
@@ -71,7 +70,7 @@ void Chr::create(Object &obj)
        .actor.obj(this);
 
    // create skeleton
-   skel.create(mesh->skeleton(), scale, matrix);
+   skel.create(mesh->skeleton(), matrix);
    sac.set(skel, base); // set default animations
 
    //
@@ -170,7 +169,7 @@ Bool Chr::save(File &f)
    {
       f.cmpUIntV(0); // version
 
-      f<<move_walking<<speed<<turn_speed<<flying_speed<<angle;
+      f<<move_walking<<scale<<speed<<turn_speed<<flying_speed<<angle;
 
       if(ctrl.save(f))
       if(skel.save(f))
@@ -202,7 +201,7 @@ Bool Chr::load(File &f)
    {
       case 0:
       {
-         f>>move_walking>>speed>>turn_speed>>flying_speed>>angle;
+         f>>move_walking>>scale>>speed>>turn_speed>>flying_speed>>angle;
 
          if(ctrl.load(f))
          if(skel.load(f))

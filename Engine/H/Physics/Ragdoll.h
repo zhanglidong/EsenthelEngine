@@ -20,9 +20,9 @@ struct Ragdoll // Physical Ragdoll, set of Bone Actors linked with Joints
    };
 
    // manage
-   Ragdoll& del      (                                                                  ); // delete
-   Ragdoll& create   (C AnimatedSkeleton &anim_skel, Flt density=1, Bool kinematic=false); // create from animated skeleton, 'kinematic'=if create the bone actors as kinematic (additionally this will not create joints), Exit  on fail
-   Bool     createTry(C AnimatedSkeleton &anim_skel, Flt density=1, Bool kinematic=false); // create from animated skeleton, 'kinematic'=if create the bone actors as kinematic (additionally this will not create joints), false on fail
+   Ragdoll& del      (                                                                               ); // delete
+   Ragdoll& create   (C AnimatedSkeleton &anim_skel, Flt scale=1, Flt density=1, Bool kinematic=false); // create from animated skeleton, 'scale'=skeleton scale, 'kinematic'=if create the bone actors as kinematic (additionally this will not create joints), Exit  on fail
+   Bool     createTry(C AnimatedSkeleton &anim_skel, Flt scale=1, Flt density=1, Bool kinematic=false); // create from animated skeleton, 'scale'=skeleton scale, 'kinematic'=if create the bone actors as kinematic (additionally this will not create joints), false on fail
 
    // operations
    Ragdoll& fromSkel     (C AnimatedSkeleton &anim_skel, C Vec &vel=VecZero, Bool immediate_even_for_kinematic_ragdoll=false); // set   ragdoll  from skeleton          , 'anim_skel' must have its matrixes updated, 'anim_skel' must be set to the same skeleton which ragdoll was created from, setting ragdoll bone matrixes is done using 'Actor::kinematicMoveTo' for kinematic ragdolls and 'Actor::matrix' for non kinematic ragdolls, however since 'Actor::kinematicMoveTo' doesn't set the matrixes immediately, you can set 'immediate_even_for_kinematic_ragdoll' to true, which will force setting the bone matrixes immediately using 'Actor::matrix' method.
