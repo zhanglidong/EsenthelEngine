@@ -35,8 +35,9 @@ void InitPre()
 bool Init()
 {
    // set cel shading
-   D.bumpMode  (BUMP_FLAT      ); // cel-shading works best with flat bump mapping
-   D.edgeDetect(EDGE_DETECT_FAT); // set edge detection
+   D.bumpMode   (BUMP_FLAT       ); // cel-shading works best with flat bump mapping
+   D.diffuseMode(DIFFUSE_LAMBERT ); // cel-shading works best with Lambert Diffuse Mode
+   D.edgeDetect (EDGE_DETECT_SOFT); // set edge detection
    Renderer.cel_shade_palette=UID(870572307, 1257265829, 2574792609, 949141860); // set light palette which modifies global lighting
 
    // set sky
@@ -73,7 +74,6 @@ bool Update()
 {
    if(Kb.bp(KB_ESC))return false;
    Cam.transformByMouse(0.01, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT));
-
    return true;
 }
 /******************************************************************************/
