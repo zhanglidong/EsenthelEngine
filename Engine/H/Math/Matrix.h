@@ -477,6 +477,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    CONVERSION Matrix(C MatrixD  &m);
    CONVERSION Matrix(C Matrix4  &m);
    CONVERSION Matrix(C OrientP  &o);
+   CONVERSION Matrix(C OrientM  &o);
 };extern Matrix
    const MatrixIdentity; // identity
 #if EE_PRIVATE
@@ -651,6 +652,7 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    CONVERSION MatrixM(C Matrix3 &m);
    CONVERSION MatrixM(C Matrix  &m);
    CONVERSION MatrixM(C MatrixD &m);
+   CONVERSION MatrixM(C OrientP &o);
    CONVERSION MatrixM(C OrientM &o);
 };extern MatrixM
    const MatrixMIdentity; // identity
@@ -799,6 +801,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
    CONVERSION MatrixD(C Matrix   &m);
    CONVERSION MatrixD(C MatrixM  &m);
    CONVERSION MatrixD(C OrientP  &o);
+   CONVERSION MatrixD(C OrientM  &o);
 };
 /******************************************************************************/
 struct Matrix4 // Matrix 4x4

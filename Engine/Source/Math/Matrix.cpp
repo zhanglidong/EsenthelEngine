@@ -2893,6 +2893,13 @@ Matrix::Matrix(C OrientP &orient)
    z  =orient.dir;
    pos=orient.pos;
 }
+Matrix::Matrix(C OrientM &orient)
+{
+   x  =orient.cross();
+   y  =orient.perp;
+   z  =orient.dir;
+   pos=orient.pos;
+}
 MatrixM::MatrixM(C Matrix3 &matrix)
 {
    x=matrix.x;
@@ -2913,6 +2920,13 @@ MatrixM::MatrixM(C MatrixD &matrix)
    y  =matrix.y  ;
    z  =matrix.z  ;
    pos=matrix.pos;
+}
+MatrixM::MatrixM(C OrientP &orient)
+{
+   x  =orient.cross();
+   y  =orient.perp;
+   z  =orient.dir;
+   pos=orient.pos;
 }
 MatrixM::MatrixM(C OrientM &orient)
 {
@@ -2944,6 +2958,10 @@ MatrixD::MatrixD(C MatrixM &matrix)
    pos=matrix.pos;
 }
 MatrixD::MatrixD(C OrientP &o) : MatrixD3(o)
+{
+   pos=o.pos;
+}
+MatrixD::MatrixD(C OrientM &o) : MatrixD3(o)
 {
    pos=o.pos;
 }
