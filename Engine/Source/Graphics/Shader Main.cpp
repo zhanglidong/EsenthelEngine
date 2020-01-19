@@ -689,11 +689,10 @@ void MotionBlur::load()
 {
    if(!shader)if(shader=ShaderFiles("Motion Blur"))
    {
-      MotionUVMulAdd     =GetShaderParam("MotionUVMulAdd");
-      MotionVelScaleLimit=GetShaderParam("MotionVelScaleLimit");
-      MotionPixelSize    =GetShaderParam("MotionPixelSize");
+      MotionScaleLimit=GetShaderParam("MotionScaleLimit");
+      MotionPixelSize =GetShaderParam("MotionPixelSize");
 
-      Explosion=shader->get("Explosion");
+      //Explosion=shader->get("Explosion");
 
       REPD(h, 2)
       REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+h+c);
@@ -702,17 +701,22 @@ void MotionBlur::load()
 
       REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
 
-      Dilates[0].pixels=1;
-      Dilates[1].pixels=2;
-      Dilates[2].pixels=4;
-      Dilates[3].pixels=6;
-      Dilates[4].pixels=8;
-      Dilates[5].pixels=12;
-      Dilates[6].pixels=16;
-      Dilates[7].pixels=24;
-      Dilates[8].pixels=32;
-      ASSERT(ELMS(Dilates)==9);
+      // #MotionBlurDilateRanges
+      Dilates[ 0].pixels=1;
+      Dilates[ 1].pixels=2;
+      Dilates[ 2].pixels=4;
+      Dilates[ 3].pixels=6;
+      Dilates[ 4].pixels=8;
+      Dilates[ 5].pixels=12;
+      Dilates[ 6].pixels=16;
+      Dilates[ 7].pixels=20;
+      Dilates[ 8].pixels=24;
+      Dilates[ 9].pixels=32;
+      Dilates[10].pixels=40;
+      Dilates[11].pixels=48;
+      ASSERT(ELMS(Dilates)==12 && MAX_MOTION_BLUR_PIXEL_RANGE==48);
 
+      // #MotionBlurSamples
       Blurs[0].samples=5;
       Blurs[1].samples=7;
       Blurs[2].samples=9;

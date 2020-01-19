@@ -8,7 +8,8 @@ static const Vec2 nrm[3]=
    Vec2(Cos(PI2*1/3), Sin(PI2*1/3)),
    Vec2(Cos(PI2*2/3), Sin(PI2*2/3)),
 };
-/******************************************************************************/
+/******************************************************************************
+void DrawVelocityBlur(Flt power, C Ball &ball); // draw velocity blur to the screen, this is used for blurring explosion effects when using motion blur, this can be called only in RM_BLEND mode
 void DrawVelocityBlur(Flt power, C Ball &ball)
 {
    if(Renderer._has_vel)

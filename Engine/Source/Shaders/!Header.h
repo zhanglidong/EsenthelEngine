@@ -109,6 +109,7 @@
 // CONSTANTS
 /******************************************************************************/
 #define MAX_MATRIX 256 // maximum number of matrixes
+#define FLT_MIN    1.175494351e-38F                   // Minimum positive value of 32-bit real (Flt )
 #define HALF_MIN   0.00006103515625                   // Minimum positive value of 16-bit real (Half)
 #define HALF_MAX   65504                              // Maximum possible value of 16-bit real (Half)
 #define EPS        0.0001                             // float epsilon
@@ -138,8 +139,10 @@
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
-#define SIGNED_NRM_RT 0     // if Normal   Render Target is signed, in GL it depends on "GL_EXT_render_snorm", never because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_VEL_RT (!GL) // if Velocity Render Target is signed, in GL it depends on "GL_EXT_render_snorm"
+// signed formats in GL depend on "GL_EXT_render_snorm"
+#define SIGNED_NRM_RT 0 // if Normal     Render Target  is  signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_VEL_RT 1 // if Velocity   Render Target  is  signed, always because we use IMAGE_F16_2       which is   signed
+#define SIGNED_MTN_RT 0 // if MotionBlur Render Targets are signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
@@ -349,7 +352,7 @@ BUFFER_I(Color, SBI_COLOR)
 BUFFER_END
 /******************************************************************************/
 BUFFER_I(Frame, SBI_FRAME) // once per-frame
-   Vec   CamAngVel                 ; // camera angular velocity, pre-multiplied by 'D.motionScale' (don't put to Camera Buffer because this is set once per-frame and ignored for shadow maps)
+   Vec   CamAngVel                 ; // camera angular velocity (actually delta not velocity, don't put to Camera Buffer because this is set once per-frame and ignored for shadow maps)
    Flt   TesselationDensity        ; // tesselation density
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
@@ -367,12 +370,12 @@ BUFFER_END
 
 struct Velocity
 {
-   VecH lin, //  linear, pre-multiplied by 'D.motionScale', use VecH to allow velocity functions work faster
-        ang; // angular, pre-multiplied by 'D.motionScale', use VecH to allow velocity functions work faster
+   VecH lin, //  linear, use VecH to allow velocity functions work faster
+        ang; // angular, use VecH to allow velocity functions work faster
 };
 
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
-   Velocity ObjVel[MAX_MATRIX]; // object velocities
+   Velocity ObjVel[MAX_MATRIX]; // object velocities (actually deltas not velocities)
 BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
@@ -838,55 +841,23 @@ Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, ViewMatrix
 Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
 #endif
 /******************************************************************************/
-// VELOCITIES
-/******************************************************************************/
-VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
-{
-   return             ObjVel[mtrx].lin
-  +TransformDir(Cross(ObjVel[mtrx].ang, local_pos), mtrx);
-}
-Vec GetCamAngVel(Vec view_space_pos)
-{
-   return -Cross(CamAngVel, view_space_pos);
-}
-Vec GetObjVel(VecH local_pos, Vec view_space_pos, UInt mtrx=0)
-{
-   return GetVel      (local_pos, mtrx)
-         +GetCamAngVel(view_space_pos);
-}
-Vec GetBoneVel(VecH local_pos, Vec view_space_pos, VecU bone, VecH weight)
-{
-   return (GetVel      (local_pos, bone.x)*weight.x
-          +GetVel      (local_pos, bone.y)*weight.y
-          +GetVel      (local_pos, bone.z)*weight.z)
-          +GetCamAngVel(view_space_pos);
-}
-/******************************************************************************/
-VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
-{
-   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
- //if(ORTHO_SUPPORT && !Viewport.ortho)
-   VecH vel_ps=vel/view_space_pos.z;
+Vec  MatrixX(Matrix3  m) {return m[0];}
+VecH MatrixX(MatrixH3 m) {return m[0];}
+Vec  MatrixY(Matrix3  m) {return m[1];}
+VecH MatrixY(MatrixH3 m) {return m[1];}
+Vec  MatrixZ(Matrix3  m) {return m[2];}
+VecH MatrixZ(MatrixH3 m) {return m[2];}
 
-#if !SIGNED_VEL_RT
-   vel_ps=vel_ps*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
-#endif
+Vec  MatrixX  (Matrix  m) {return m[0];}
+VecH MatrixX  (MatrixH m) {return m[0];}
+Vec  MatrixY  (Matrix  m) {return m[1];}
+VecH MatrixY  (MatrixH m) {return m[1];}
+Vec  MatrixZ  (Matrix  m) {return m[2];}
+VecH MatrixZ  (MatrixH m) {return m[2];}
+Vec  MatrixPos(Matrix  m) {return m[3];}
+VecH MatrixPos(MatrixH m) {return m[3];}
 
-   return vel_ps;
-}
-Vec GetVelocitiesCameraOnly(Vec view_space_pos)
-{
-   Vec vel=ObjVel[0].lin // set to object linear velocity in view space
-          +GetCamAngVel(view_space_pos); // add camera angular velocity
-
-   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
- //if(ORTHO_SUPPORT && !Viewport.ortho)
-      vel/=view_space_pos.z;
-
-   vel=Mid(vel, Vec(-1, -1, -1), Vec(1, 1, 1)); // clamp to get the same results as if stored in a RT
-
-   return vel; // this function always returns signed -1..1 version
-}
+Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
 Vec4 Project(Vec pos)
 {
@@ -910,24 +881,6 @@ Vec ProjectXYW(Vec pos)
    return Transform(pos, ProjMatrix).xyw;
 #endif
 }
-/******************************************************************************/
-Vec  MatrixX(Matrix3  m) {return m[0];}
-VecH MatrixX(MatrixH3 m) {return m[0];}
-Vec  MatrixY(Matrix3  m) {return m[1];}
-VecH MatrixY(MatrixH3 m) {return m[1];}
-Vec  MatrixZ(Matrix3  m) {return m[2];}
-VecH MatrixZ(MatrixH3 m) {return m[2];}
-
-Vec  MatrixX  (Matrix  m) {return m[0];}
-VecH MatrixX  (MatrixH m) {return m[0];}
-Vec  MatrixY  (Matrix  m) {return m[1];}
-VecH MatrixY  (MatrixH m) {return m[1];}
-Vec  MatrixZ  (Matrix  m) {return m[2];}
-VecH MatrixZ  (MatrixH m) {return m[2];}
-Vec  MatrixPos(Matrix  m) {return m[3];}
-VecH MatrixPos(MatrixH m) {return m[3];}
-
-Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
 Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
 {
@@ -955,9 +908,57 @@ Vec2 ProjectedPosXYWToScreen(Vec projected_pos_xyw) // prefer using 'PixelToScre
 {
    return (projected_pos_xyw.xy/projected_pos_xyw.z) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
+Vec2 PosToScreen(Vec pos)
+{
+   return ProjectedPosXYWToScreen(ProjectXYW(pos)); // TODO: can this be done faster?
+}
 Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'ProjectedPosToScreen', returns (0,0)..(1,1) range
 {
    return pixel.xy*RTSize.xy;
+}
+/******************************************************************************/
+// VELOCITIES
+/******************************************************************************/
+VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
+{
+   return             ObjVel[mtrx].lin
+  +TransformDir(Cross(ObjVel[mtrx].ang, local_pos), mtrx);
+}
+Vec GetCamAngVel(Vec view_pos)
+{
+   return -Cross(CamAngVel, view_pos);
+}
+Vec GetObjVel(VecH local_pos, Vec view_pos, UInt mtrx=0)
+{
+   return GetVel      (local_pos, mtrx)
+         +GetCamAngVel(view_pos);
+}
+Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need HP for vels
+{
+   return (GetVel      (local_pos, bone.x)*weight.x
+          +GetVel      (local_pos, bone.y)*weight.y
+          +GetVel      (local_pos, bone.z)*weight.z)
+          +GetCamAngVel(view_pos);
+}
+/******************************************************************************/
+VEL_RT_TYPE GetVelocityScreen(Vec projected_prev_pos_xyw, Vec2 screen)
+{
+   projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
+   VEL_RT_TYPE vel=ProjectedPosXYWToScreen(projected_prev_pos_xyw)-screen;
+#if !SIGNED_VEL_RT
+   vel=vel*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
+#endif
+   return vel;
+}
+VEL_RT_TYPE GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityScreen(projected_prev_pos_xyw, PixelToScreen(pixel));}
+VEL_RT_TYPE GetVelocitiesCameraOnly(Vec view_pos, Vec2 screen_pos)
+{
+   Vec view_vel=ObjVel[0].lin // set to object linear velocity in view space
+               +GetCamAngVel(view_pos); // add camera angular velocity
+
+   VEL_RT_TYPE vel=PosToScreen(view_pos-view_vel) - screen_pos;
+
+   return vel; // this function always returns signed -1..1 version
 }
 /******************************************************************************/
 // DEPTH
@@ -1943,10 +1944,10 @@ Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
 {
    // #RTOutput
-   VecH4 out0:TARGET0; // Col, Glow
-   VecH4 out1:TARGET1; // Nrm XYZ, Translucent
-   VecH2 out2:TARGET2; // Smooth, Reflect
-   VecH  out3:TARGET3; // Vel XYZ
+   VecH4       out0:TARGET0; // Col, Glow
+   VecH4       out1:TARGET1; // Nrm XYZ, Translucent
+   VecH2       out2:TARGET2; // Smooth, Reflect
+   VEL_RT_TYPE out3:TARGET3; // Velocity (TEXCOORD delta)
 
    // set components
    void color (VecH color ) {out0.rgb=color;}
@@ -1964,9 +1965,9 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    void smooth (Half smooth ) {out2.x=smooth ;}
    void reflect(Half reflect) {out2.y=reflect;}
 
-   void velocity    (Vec  vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
-   void velocityRaw (VecH vel                    ) {out3.xyz=vel;}
-   void velocityZero(                            ) {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
+   void velocity      (Vec projected_prev_pos_xyw, Vec4 pixel ) {out3.xy=GetVelocityPixel (projected_prev_pos_xyw, pixel );}
+   void velocityScreen(Vec projected_prev_pos_xyw, Vec2 screen) {out3.xy=GetVelocityScreen(projected_prev_pos_xyw, screen);}
+   void velocityZero  (                                       ) {out3.xy=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION

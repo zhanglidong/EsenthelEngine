@@ -183,8 +183,9 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Byte             densityByte       ()C {return _density        ;} // get    Density Byte
                                                                 Bool             multiSample       ()C {return _samples>1      ;} // get if Multi Sampling is used
                                                                 void             aspectRatioEx     (Bool force=true, Bool quiet=false);
-                                                      constexpr Bool             signedNrmRT       ()C {return false           ;} // if Normal   Render Target is signed #SIGNED_NRM_RT
-                                                      constexpr Bool             signedVelRT       ()C {return DX11            ;} // if Velocity Render Target is signed #SIGNED_VEL_RT
+                                                      constexpr Bool             signedNrmRT       ()C {return false           ;} // if Normal     Render Target  is  signed #SIGNED_NRM_RT
+                                                      constexpr Bool             signedVelRT       ()C {return true            ;} // if Velocity   Render Target  is  signed #SIGNED_VEL_RT
+                                                      constexpr Bool             signedMtnRT       ()C {return false           ;} // if MotionBlur Render Targets are signed #SIGNED_MTN_RT
                                                                 Flt              eyeDistance_2     ()C {return _eye_dist_2     ;}
                                                                 Bool             exclusiveFull     ()C;                           // if actually in exclusive full-screen mode
                                                                 Bool             colorManaged      ()C {return _color_lut.is() ;} // if need to perform any color transformations
@@ -327,7 +328,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    // Motion Blur
    Display& motionMode  (MOTION_MODE mode );   MOTION_MODE motionMode  ()C {return _mtn_mode  ;} // set/get Motion Blur Mode           (MOTION_MODE, default=MOTION_NONE  ), the change is instant, you can call it real-time
    Display& motionDilate(DILATE_MODE mode );   DILATE_MODE motionDilate()C {return _mtn_dilate;} // set/get Motion Blur Mode           (DILATE_MODE, default=DILATE_ORTHO2), the change is instant, you can call it real-time
-   Display& motionScale (Flt         scale);   Flt         motionScale ()C {return _mtn_scale ;} // set/get Motion Blur Velocity Scale (  0..Inf   , default=         0.04), the change is instant, you can call it real-time
+   Display& motionScale (Flt         scale);   Flt         motionScale ()C {return _mtn_scale ;} // set/get Motion Blur Velocity Scale (  0..1     , default=          1.0), the change is instant, you can call it real-time
    Display& motionRes   (Flt         scale);   Flt         motionRes   ()C;                      // set/get Motion Blur Resolution     (  0..1     , default=          1/3), this determines the size of the buffers used for calculating the Motion Blur effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
 
    // Depth of Field

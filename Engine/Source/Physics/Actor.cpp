@@ -748,6 +748,9 @@ Actor& Actor::addAccel  (C Vec &accel              ) {return addVel(accel*Physic
 /******************************************************************************/
 #endif
 /******************************************************************************/
+Vec Actor::posDelta()C {return Physics.updatedTime()*   vel();}
+Vec Actor::angDelta()C {return Physics.updatedTime()*angVel();}
+/******************************************************************************/
 Bool Actor::materialForce(PhysMtrl *material)
 {
    if(_actor)

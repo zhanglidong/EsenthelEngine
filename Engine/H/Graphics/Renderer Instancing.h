@@ -64,14 +64,14 @@ extern Memc<ShaderMaterialMesh> ShaderMaterialMeshes;
 struct SolidShaderMaterialMeshInstance
 {
    Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'SolidShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
-   Vec                      vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
+   Vec                      pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
    Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
    Color                    highlight;
    Byte                     stencil_value;
 
    SolidShaderMaterialMeshInstance& set();
-   SolidShaderMaterialMeshInstance& set(C Vec &vel, C Vec &ang_vel_shader);
+   SolidShaderMaterialMeshInstance& set(C Vec &pos_delta, C Vec &ang_delta_shader);
 };
 extern Memc<SolidShaderMaterialMeshInstance> SolidShaderMaterialMeshInstances;
 
@@ -264,7 +264,7 @@ struct BlendInstance
     C MeshPart::Variation     *variation;
    #endif
     C MeshPart                *mesh;
-      Vec                      vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
+      Vec                      pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
       Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
     C Memc<ShaderParamChange> *shader_param_changes;
       Color                    highlight;
@@ -294,8 +294,8 @@ struct BlendInstance
 struct BlendInstancesClass : Memc<BlendInstance>
 {
    BlendInstance& add   (Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation);
-   BlendInstance& add   (BLST   &blst  , C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &vel, C Vec &ang_vel_shader);
-   BlendInstance& addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &vel);
+   BlendInstance& add   (BLST   &blst  , C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &pos_delta, C Vec &ang_delta_shader);
+   BlendInstance& addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &pos_delta);
 
    void add(BlendObject        &blend_obj, C VecD &pos);
    void add(  Game::Obj        & game_obj );
@@ -311,7 +311,7 @@ struct ClothInstance
  C Cloth      *cloth;
    ShaderBase *shader;
  C Material   *material;
-   Vec         vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
+   Vec         pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
    Color       highlight;
 
 #if COUNT_MATERIAL_USAGE
@@ -321,7 +321,7 @@ struct ClothInstance
 struct ClothInstances : Memc<ClothInstance>
 {
    void add(C Cloth &cloth, Shader &shader, C Material &material);
-   void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel, C Vec &ang_vel_shader);
+   void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &pos_delta, C Vec &ang_delta_shader);
    void add(C Cloth &cloth, FRST   &frst  , C Material &material);
 };
 /******************************************************************************/

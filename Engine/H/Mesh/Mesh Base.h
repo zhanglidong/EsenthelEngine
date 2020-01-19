@@ -354,22 +354,23 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& setAdjacencies(Bool faces=true, Bool edges=false                    ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
 
    // transform
-   MeshBase& move     (              C Vec &move        ); //           move mesh
-   MeshBase& scale    (C Vec &scale                     ); // scale          mesh
-   MeshBase& scaleMove(C Vec &scale, C Vec &move        ); // scale and move mesh
-   MeshBase& setSize  (C Box &box                       ); // scale and move mesh to fit box
-   MeshBase& transform(C Matrix3              &matrix   ); // transform by matrix
-   MeshBase& transform(C Matrix               &matrix   ); // transform by matrix
-   MeshBase& animate  (C MemPtrN<Matrix, 256> &matrixes ); // animate   by matrixes
-   MeshBase& animate  (C AnimatedSkeleton     &anim_skel); // animate   by skeleton
-   MeshBase& mirrorX  (                                 ); // mirror in X axis
-   MeshBase& mirrorY  (                                 ); // mirror in Y axis
-   MeshBase& mirrorZ  (                                 ); // mirror in Z axis
-   MeshBase& reverse  (                                 ); // reverse all      faces
-   MeshBase& reverse  (  Int          face              ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
-   MeshBase& reverse  (C MemPtr<Int> &faces             ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& move     (              C Vec &move         ); //           move mesh
+   MeshBase& scale    (C Vec &scale                      ); // scale          mesh
+   MeshBase& scaleMove(C Vec &scale, C Vec &move         ); // scale and move mesh
+   MeshBase& setSize  (C Box &box                        ); // scale and move mesh to fit box
+   MeshBase& transform(C Matrix3               &matrix   ); // transform by matrix
+   MeshBase& transform(C Matrix                &matrix   ); // transform by matrix
+   MeshBase& animate  (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
+   MeshBase& animate  (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
+   MeshBase& animate  (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
+   MeshBase& mirrorX  (                                  ); // mirror in X axis
+   MeshBase& mirrorY  (                                  ); // mirror in Y axis
+   MeshBase& mirrorZ  (                                  ); // mirror in Z axis
+   MeshBase& reverse  (                                  ); // reverse all      faces
+   MeshBase& reverse  (  Int          face               ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& reverse  (C MemPtr<Int> &faces              ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
 #if EE_PRIVATE
-   MeshBase& rightToLeft(                               ); // convert from right hand to left hand coordinate system
+   MeshBase& rightToLeft(                                ); // convert from right hand to left hand coordinate system
 #endif
 
    // texture transform

@@ -20,9 +20,11 @@
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
 #define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
-#define SET_TEX    (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 #define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+
+#define SET_POS (TESSELATE || MACRO || (!FAST_TPOS && BUMP_MODE>SBUMP_FLAT))
+#define SET_TEX (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 /******************************************************************************
 SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
@@ -32,8 +34,11 @@ struct VS_PS
    Vec2 tex:TEXCOORD;
 #endif
 
-   Vec pos:POS; // always needed for velocity
-   Vec vel:VELOCITY;
+#if SET_POS
+   Vec pos:POS;
+#endif
+
+   Vec projected_prev_pos_xyw:PREV_POS;
 
 #if   BUMP_MODE> SBUMP_FLAT
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
@@ -79,7 +84,7 @@ void VS
    CLIP_DIST
 )
 {
-   Vec  pos=vtx.pos();
+   Vec  local_pos=vtx.pos(), view_pos, view_vel;
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
 #if SET_TEX
@@ -98,23 +103,23 @@ void VS
 
    if(FX==FX_LEAF_2D || FX==FX_LEAF_3D)
    {
-      if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
-      if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm     );else
-                               BendLeaf(vtx.hlp(), pos          );
+      if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm, tan);else
+      if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm     );else
+                               BendLeaf(vtx.hlp(), local_pos          );
    }
    if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
-      if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm, tan);else
-      if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm     );else
-                               BendLeafs(vtx.hlp(), vtx.size(), pos          );
+      if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm, tan);else
+      if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm     );else
+                               BendLeafs(vtx.hlp(), vtx.size(), local_pos          );
    }
 
    if(!SKIN)
    {
       if(true) // instance
       {
-         O.pos=TransformPos(pos,        vtx.instance());
-         O.vel=GetObjVel   (pos, O.pos, vtx.instance());
+         view_pos=TransformPos(local_pos,           vtx.instance());
+         view_vel=GetObjVel   (local_pos, view_pos, vtx.instance());
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm, vtx.instance());
@@ -123,14 +128,14 @@ void VS
          O.nrm    =TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(pos, O.pos, vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos, vtx.instance());
       #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
       }else
       {
-         O.pos=TransformPos(pos);
-         O.vel=GetObjVel   (pos, O.pos);
+         view_pos=TransformPos(local_pos);
+         view_vel=GetObjVel   (local_pos, view_pos);
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm);
@@ -139,7 +144,7 @@ void VS
          O.nrm    =TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(pos, O.pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos);
       #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
@@ -148,8 +153,8 @@ void VS
    {
       VecU bone    =vtx.bone  ();
       VecH weight_h=vtx.weight();
-      O.pos=TransformPos(pos,        bone, vtx.weight());
-      O.vel=GetBoneVel  (pos, O.pos, bone,     weight_h);
+      view_pos=TransformPos(local_pos,           bone, vtx.weight());
+      view_vel=GetBoneVel  (local_pos, view_pos, bone,     weight_h);
 
    #if   BUMP_MODE> SBUMP_FLAT
       O.mtrx[2]=TransformDir(nrm, bone, weight_h);
@@ -177,10 +182,14 @@ void VS
 #endif
 
 #if FAST_TPOS
-   O._tpos=TransformTP(-O.pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
+   O._tpos=TransformTP(-view_pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
 #endif
 
-   O_vtx=Project(O.pos); CLIP_PLANE(O.pos);
+#if SET_POS
+   O.pos=view_pos;
+#endif
+   O_vtx=Project(view_pos); CLIP_PLANE(view_pos);
+   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
 }
 /******************************************************************************/
 // PS
@@ -188,7 +197,7 @@ void VS
 void PS
 (
    VS_PS I,
-
+   PIXEL,
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif
@@ -607,7 +616,10 @@ void PS
    }
 
    // macro texture
-   Half mac_blend; if(MACRO)mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
+   Half mac_blend;
+#if MACRO
+   mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
+#endif
 
    // Smooth, Reflect, Bump, Alpha !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
    VecH2 sr; // smooth_reflect
@@ -683,13 +695,13 @@ void PS
    BackFlip(nrm, front);
 #endif
 
-   output.color      (col         );
-   output.glow       (glow        );
-   output.normal     (nrm         );
+   output.color      (col    );
+   output.glow       (glow   );
+   output.normal     (nrm    );
    output.translucent(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
-   output.smooth     (smooth      );
-   output.reflect    (reflect     );
-   output.velocity   (I.vel, I.pos);
+   output.smooth     (smooth );
+   output.reflect    (reflect);
+   output.velocity   (I.projected_prev_pos_xyw, pixel);
 }
 /******************************************************************************/
 // HULL / DOMAIN
@@ -708,8 +720,10 @@ VS_PS HS
 )
 {
    VS_PS O;
+
    O.pos=I[cp_id].pos;
-   O.vel=I[cp_id].vel;
+
+   O.projected_prev_pos_xyw=I[cp_id].projected_prev_pos_xyw;
 
 #if SET_TEX
    O.tex=I[cp_id].tex;
@@ -757,7 +771,7 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-   O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
+   O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y;
 
 #if SET_TEX
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;

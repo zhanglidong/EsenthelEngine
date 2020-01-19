@@ -133,15 +133,12 @@ void SetEyeMatrix()
 }
 static void SetCamAngVel()
 {
-   Sh.CamAngVel->setConditional(ActiveCam.ang_vel*CamMatrixInvMotionScale);
+   Sh.CamAngVel->setConditional(ActiveCam.ang_delta*CamMatrixInv.orn());
 }
 void ActiveCamChanged()
 {
    SetEyeMatrix(); SetCam(ActiveCam.matrix); Frustum.set();
    ActiveCamZ=Dot(ActiveCam.matrix.pos, ActiveCam.matrix.z);
-
-   // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
-   CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());
    SetCamAngVel();
 }
 void Camera::set()C // this should be called only outside of 'Renderer' rendering
@@ -150,14 +147,6 @@ void Camera::set()C // this should be called only outside of 'Renderer' renderin
    ConstCast(ActiveCam)=T; // always backup to 'ActiveCam' even if display not yet created, so we can activate it later
    if(changed_matrix)ActiveCamChanged();
    else              SetCamAngVel    (); // if haven't changed matrix, then just update velocity, don't do it conditionally, because we would have to make additional "if" before "ConstCast(ActiveCam)=T" to check for vel changes, which would be a slow down
-}
-void MotionScaleChanged() // !! this must match codes above !!
-{
-   Flt l=D.motionScale();
-   CamMatrixInvMotionScale.x.setLength(l);
-   CamMatrixInvMotionScale.y.setLength(l);
-   CamMatrixInvMotionScale.z.setLength(l);
-   SetCamAngVel();
 }
 /******************************************************************************/
 Bool Camera::save(File &f)C

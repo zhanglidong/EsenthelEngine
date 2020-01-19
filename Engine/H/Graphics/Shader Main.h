@@ -410,8 +410,7 @@ struct HDR
 struct MotionBlur
 {
    ShaderFile  *shader;
-   ShaderParam *MotionUVMulAdd     ,
-               *MotionVelScaleLimit,
+   ShaderParam *MotionScaleLimit   ,
                *MotionPixelSize    ;
    Shader      *Explosion          ,
                *Convert      [2][2], // [High][Clamp]
@@ -423,7 +422,7 @@ struct MotionBlur
       Int     pixels;
       Shader *DilateX[2], // [Diagonal]
              *DilateY[2]; // [Diagonal]
-   }Dilates[9];
+   }Dilates[12];
 
    struct BlurRange
    {

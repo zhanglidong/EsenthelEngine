@@ -491,13 +491,12 @@ struct GpuVelocity
    void set(C Vec &lin, C Vec &ang) {T.lin=lin; T.ang=ang;}
 };
 
-extern    MatrixM   ObjMatrix              , // object matrix
-                    CamMatrix              , // camera, this is always set, even when drawing shadows
-                    CamMatrixInv           , // camera inversed = ~CamMatrix
-                    EyeMatrix[2]           ; // 'ActiveCam.matrix' adjusted for both eyes 0=left, 1=right
-extern    Matrix3   CamMatrixInvMotionScale; // 'ActiveCam.matrix' inversed and scaled by 'D.motionScale'
-extern GpuMatrix   *ViewMatrix             ;
-extern GpuVelocity *ViewVel                ;
+extern    MatrixM   ObjMatrix   , // object matrix
+                    CamMatrix   , // camera, this is always set, even when drawing shadows
+                    CamMatrixInv, // camera inversed = ~CamMatrix
+                    EyeMatrix[2]; // 'ActiveCam.matrix' adjusted for both eyes 0=left, 1=right
+extern GpuMatrix   *ViewMatrix  ;
+extern GpuVelocity *ViewVel     ;
 #endif
 /******************************************************************************/
 struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed precision, uses Flt for orientation+scale and Dbl for position)
@@ -580,6 +579,7 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM& move    (C VecD  &move      ) {pos   +=move         ; return T;} // move
    MatrixM& moveBack(C VecD  &move      ) {pos   -=move         ; return T;} // move back
 
+   MatrixM& anchor(C Vec  &anchor); // set 'pos' of this matrix so that 'anchor' transformed by this matrix will remain the same - "anchor*T==anchor"
    MatrixM& anchor(C VecD &anchor); // set 'pos' of this matrix so that 'anchor' transformed by this matrix will remain the same - "anchor*T==anchor"
 
    MatrixM& scale   (  Flt  scale) {          T*=scale ; return T;} // scale
@@ -604,8 +604,9 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    Str asText(Int precision=INT_MAX)C {return super::asText(precision)+", Pos: "+pos.asText(precision);} // get text description
 
    // set (set methods reset the full matrix)
-   MatrixM& identity(); // set as identity
-   MatrixM& zero    (); // set all vectors to zero
+   MatrixM& identity(         ); // set as identity
+   MatrixM& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
+   MatrixM& zero    (         ); // set all vectors to zero
 
    MatrixM& setPos     (Dbl x, Dbl y, Dbl z          ); // set as positioned identity
    MatrixM& setPos     (C VecD2 &pos                 ); // set as positioned identity
@@ -629,6 +630,12 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM& setPosDir   (C VecD &pos, C Vec &dir                         ); // set as pos='pos', z='dir'         and calculate correct x,y, 'dir'          must be normalized
    MatrixM& setPosDir   (C VecD &pos, C Vec &dir, C Vec &up              ); // set as pos='pos', z='dir', y='up' and calculate correct x  , 'dir up'       must be normalized
    MatrixM& setPosDir   (C VecD &pos, C Vec &dir, C Vec &up, C Vec &right); // set as pos='pos', z='dir', y='up', x='right'               , 'dir up right' must be normalized
+
+   // operations
+   MatrixM& setTransformAtPos(C VecD &pos, C Matrix3 &matrix); // set as transformation at position
+   MatrixM& setTransformAtPos(C VecD &pos, C MatrixM &matrix); // set as transformation at position
+   MatrixM&    transformAtPos(C VecD &pos, C Matrix3 &matrix); //        transform      at position
+   MatrixM&    transformAtPos(C VecD &pos, C MatrixM &matrix); //        transform      at position
 
               MatrixM() {}
               MatrixM(  Flt      scale                  ) {setScale   (scale       );}
@@ -903,12 +910,12 @@ void SetFastMatrix    (                      ); // set object matrix to 'MatrixI
 void SetFastMatrix    (C Matrix  &matrix     ); // set object matrix
 void SetFastMatrix    (C MatrixM &matrix     ); // set object matrix
 
-void SetFastVel(                                         ); // set      object velocity to 'VecZero'
-void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader); // set      object velocity
-void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity assumes that index is 'InRange'
+void SetFastVel(                                                 ); // set      object velocity to 'VecZero'
+void SetFastVel(        C Vec &pos_delta, C Vec &ang_delta_shader); // set      object velocity
+void SetFastVel(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader); // set i-th object velocity assumes that index is 'InRange'
 
-void SetFastVelUncondNoChanged(        C Vec &vel, C Vec &ang_vel_shader); // set      object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later)
-void SetFastVelUncondNoChanged(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later) assumes that index is 'InRange'
+void SetFastVelUncondNoChanged(        C Vec &pos_delta, C Vec &ang_delta_shader); // set      object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later)
+void SetFastVelUncondNoChanged(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader); // set i-th object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later) assumes that index is 'InRange'
 
 void SetOneMatrix(                 ); // set object matrix to 'MatrixIdentity' and number of used matrixes to 1
 void SetOneMatrix(C Matrix  &matrix); // set object matrix                     and number of used matrixes to 1
@@ -919,11 +926,11 @@ void SetVelFur(C Matrix3 &view_matrix, C Vec &vel); // set velocity for fur effe
 void SetProjMatrix();
 void SetProjMatrix(Flt proj_offset);
 
-void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix); // 'obj_matrix'=object matrix (not view matrix)
+void SetAngDeltaShader(Vec &ang_delta_shader, C Vec &ang_delta, C Matrix3 &obj_matrix); // 'obj_matrix'=object matrix (not view matrix)
 #endif
 
-void SetMatrix(C Matrix  &matrix=MatrixIdentity                     ); // set active object rendering matrix and clear velocities to zero
-void SetMatrix(C MatrixM &matrix                                    ); // set active object rendering matrix and clear velocities to zero
-void SetMatrix(C Matrix  &matrix, C Vec &vel, C Vec &ang_vel=VecZero); // set active object rendering matrix and       velocities
-void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel=VecZero); // set active object rendering matrix and       velocities
+void SetMatrix(C Matrix  &matrix=MatrixIdentity                             ); // set active object rendering matrix and clear velocities to zero
+void SetMatrix(C MatrixM &matrix                                            ); // set active object rendering matrix and clear velocities to zero
+void SetMatrix(C Matrix  &matrix, C Vec &pos_delta, C Vec &ang_delta=VecZero); // set active object rendering matrix and       velocities from deltas
+void SetMatrix(C MatrixM &matrix, C Vec &pos_delta, C Vec &ang_delta=VecZero); // set active object rendering matrix and       velocities from deltas
 /******************************************************************************/

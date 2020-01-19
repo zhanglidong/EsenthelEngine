@@ -74,6 +74,22 @@ Capsule& Capsule::operator/=(C Matrix &m)
    r  /=m .avgScale ();
    return T;
 }
+Capsule& Capsule::operator*=(C MatrixM &m)
+{
+   pos*=m;
+   up *=m .orn();
+   h  *=up.normalize();
+   r  *=m .avgScale ();
+   return T;
+}
+Capsule& Capsule::operator/=(C MatrixM &m)
+{
+   pos/=m;
+   up /=m .orn();
+   h  *=up.normalize(); // 'h' should indeed be multiplied here because 'up' already got transformed in correct way
+   r  /=m .avgScale ();
+   return T;
+}
 /******************************************************************************/
 Capsule& Capsule::set(Flt r, C Vec &from, C Vec &to)
 {

@@ -25,7 +25,7 @@ struct Item : Obj // Game Item Object
    virtual Matrix matrixScaled(                ); // get matrix  , returned matrix is scaled by 'scale'
    virtual void   matrix      (C Matrix &matrix); // set matrix  , 'matrix' must be normalized
 
-   void setDrawingVelocities(C Vec &vel, C Vec &ang_vel); // manually set drawing velocities for motion blur effect, this method should be called for items in the inventory which have their actor deactivated, but still want to be drawn, this shouldn't be called before 'update' because 'update' sets the default velocities from the actor
+   void setDrawingVelocities(C Vec &pos_delta, C Vec &ang_delta); // manually set drawing velocities for motion blur effect, this method should be called for items in the inventory which have their actor deactivated, but still want to be drawn, this shouldn't be called before 'update' because 'update' sets the default velocities from the actor
 
    // callbacks
    virtual void memoryAddressChanged(); // called when object memory address has been changed, you should override it and adjust Actor::obj pointer for all actors
@@ -57,7 +57,7 @@ public: // following members/methods are public, however don't modify/call them 
 
 protected:
    Chr *_grabber;
-   Vec  _vel, _ang_vel;
+   Vec  _pos_delta, _ang_delta;
 };
 /******************************************************************************/
 } // namespace

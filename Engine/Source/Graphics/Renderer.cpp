@@ -297,22 +297,6 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
   _alpha.clear(); // already merged with '_col'
    if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
-static Flt PixelsToScale(Flt pixels, Int res) {return pixels*2/res;} // 'pixels=max blur range in pixels in one direction, 'res'=total resolution
-static Flt ScaleToPixels(Flt scale , Int res) {return scale*res/2 ;}
-static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when the RT is 'D.motionRes' sized because it needs that size and not the full size !!
-{
-   // see "C:\Users\Greg\SkyDrive\Code\Tests\Motion Blur.cpp"
-   const Flt scale=PixelsToScale(MAX_MOTION_BLUR_PIXEL_RANGE, 1080); // scale should be small, because inside the shader we do "x/(1 +- blur.z)"
-   const Flt limit=pixels/MAX_MOTION_BLUR_PIXEL_RANGE; // if we're using only 'pixels' then we have to limit from the full 0..1 range to the fraction
-
-   Vec2 viewport_center=D._view_active.recti.centerF()/Renderer.res(), size2=D._unscaled_size*(2/scale)*limit;
-   // pos=(inTex-viewport_center)*size2;
-   // pos=inTex*size2 - viewport_center*size2;
-   Mtn.MotionUVMulAdd     ->setConditional(Vec4(size2.x, size2.y, -viewport_center.x*size2.x, -viewport_center.y*size2.y));
-
-   Mtn.MotionVelScaleLimit->setConditional(Vec4(D.scale()/D.viewFovTanFull().x*limit, -D.scale()/D.viewFovTanFull().y*limit, scale, limit));
-   Mtn.MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
-}
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 {
@@ -323,26 +307,30 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    D.alpha(ALPHA_NONE);
 
    VecI2 res;
-   res.y=Min(ByteScaleRes(fxH(), D._mtn_res), 1080); // only up to 1080 is supported, because shaders support only up to MAX_MOTION_BLUR_PIXEL_RANGE pixels, but if we enable higher resolution then it would require more pixels
+   res.y=Min(ByteScaleRes(fxH(), D._mtn_res), 2160); // only up to 2160 is supported, because shaders support only up to MAX_MOTION_BLUR_PIXEL_RANGE pixels, but if we enable higher resolution then it would require more pixels
    res.x=Max(1, Round(res.y*D._unscaled_size.div())); // calculate proportionally to 'res.y' and current mode aspect (do not use 'D.aspectRatio' because that's the entire monitor screen aspect, and not application window), all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
-   const Flt pixels=res.y*(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/1080);
+   const Flt max_blur_pixel_range=res.y*(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/2160); // max blur pixel range for motion blur RT's resolution
    const Int dilate_round_range=1; // this value should be the same as "Int range" in "Dilate_PS" Motion Blur shader
          Int dilate_round_steps;
    switch(D.motionDilate()) // get round dilate steps 
    {
       default:
       case DILATE_ORTHO :
-      case DILATE_ORTHO2: dilate_round_steps=                                    0; break; // zero round steps
-      case DILATE_MIXED : dilate_round_steps=Round(pixels/dilate_round_range*0.3f); break; // 0.3f was chosen to achieve quality/performance that's between orthogonal and round mode
-      case DILATE_ROUND : dilate_round_steps=Round(pixels/dilate_round_range     ); break; // 'Round' should be enough
+      case DILATE_ORTHO2: dilate_round_steps=                                                  0; break; // zero round steps
+      case DILATE_MIXED : dilate_round_steps=Round(max_blur_pixel_range/dilate_round_range*0.3f); break; // 0.3f was chosen to achieve quality/performance that's between orthogonal and round mode
+      case DILATE_ROUND : dilate_round_steps=Round(max_blur_pixel_range/dilate_round_range     ); break; // 'Round' should be enough
    }
-   Int  dilate_round_pixels=dilate_round_steps*dilate_round_range, dilate_ortho_pixels=Max(Round(pixels)-dilate_round_pixels, 0);
+   Int  dilate_round_pixels=dilate_round_steps*dilate_round_range, dilate_ortho_pixels=Max(Round(max_blur_pixel_range)-dilate_round_pixels, 0);
    Bool diagonal=(D.motionDilate()==DILATE_ORTHO2);
  C MotionBlur::DilateRange *ortho=Mtn.getDilate(dilate_ortho_pixels, diagonal); if(ortho)dilate_ortho_pixels=ortho->pixels; // reset 'dilate_ortho_pixels' because it can actually be bigger based on what is supported
    const Int total_pixels=dilate_round_pixels+dilate_ortho_pixels; // round+ortho
    DEBUG_ASSERT(D.motionDilate()==DILATE_ROUND ? dilate_ortho_pixels==0 : true, "Ortho should be zero in round mode");
 
-   ImageRTDesc rt_desc(res.x, res.y, D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Dir.length)
+   const Flt limit=max_blur_pixel_range/MAX_MOTION_BLUR_PIXEL_RANGE; // if we're using only 'max_blur_pixel_range' then we have to limit from the full 0..1 range to the fraction (so we don't blur more (larger range) on lower res than full 2160 res)
+   Mtn.MotionScaleLimit->setConditional(Vec((D.motionScale()*(MOTION_BLUR_PREDICTIVE ? 0.5f : 1.0f)/MAX_MOTION_BLUR_PIXEL_RANGE)*res, limit)); // we want to convert "Vec2 tex_ofs=MAX_MOTION_BLUR_PIXEL_RANGE/res" to 1.0 and scale by 'D.motionScale', scale by half for MOTION_BLUR_PREDICTIVE to match blur stretching with predictive disabled
+   Mtn.MotionPixelSize ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/res); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
+
+   ImageRTDesc rt_desc(res.x, res.y, D.signedMtnRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Dir.length)
    ImageRTPtr  converted(rt_desc);
    Shader     *shader;
    if(camera_object)shader=Mtn.Convert[true ][!D._view_main.full];else
@@ -351,26 +339,29 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    }
    set(converted, null, false);
    Rect ext_rect, *rect=null;
+#if   VEL_RT_MODE==VEL_RT_VECH2
+   Sh.ImgXY ->set(_vel);
+#elif VEL_RT_MODE==VEL_RT_VEC2
+   Sh.ImgXYF->set(_vel);
+#endif
    if(D._view_main.full)REPS(_eye, _eye_num)
    {
       Rect *eye_rect=setEyeParams();
-      SetMotionBlurParams(pixels); // call after 'setEyeParams' because we need to set 'D._view_active'
-      shader->draw(_vel, eye_rect);
+      shader->draw(eye_rect);
    }else
    {
-      SetMotionBlurParams(pixels);
       ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(total_pixels+1)); // when not rendering entire viewport, then extend the rectangle because of 'Dilate' and 'SetDirs' checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
-      shader->draw(_vel, rect);
+      shader->draw(rect);
    }
   _vel.clear();
 
-   if(stage==RS_VEL_CONVERT && show(converted, false, D.signedVelRT()))return true;
+   if(stage==RS_VEL_CONVERT && show(converted, false, D.signedMtnRT()))return true;
 
    ImageRTPtr dilated=converted, helper;
 
    if(camera_object) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
    {
-      rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
+      rt_desc.rt_type=(D.signedMtnRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
       // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
       // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
       // remember that it doesn't make sense to perform depth based tests on not first steps "dilated!=converted",
@@ -392,16 +383,16 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
          set(helper, null, false); Mtn.Dilate->draw(dilated, rect); Swap(dilated, helper);
       }
    }
-   if(stage==RS_VEL_DILATED && show(dilated, false, D.signedVelRT()))return true;
+   if(stage==RS_VEL_DILATED && show(dilated, false, D.signedMtnRT()))return true;
 
    // check how far can we go (remove leaks)
    Sh.ImgXY ->set(converted);
    Sh.Img[0]->set(dilated  );
-   rt_desc.rt_type=(MOTION_BLUR_PREDICTIVE ? D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
-                                           : D.signedVelRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
+   rt_desc.rt_type=(MOTION_BLUR_PREDICTIVE ? D.signedMtnRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
+                                           : D.signedMtnRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect);
-   if(stage==RS_VEL_LEAK && show(helper, false, D.signedVelRT()))return true;
+   if(stage==RS_VEL_LEAK && show(helper, false, D.signedMtnRT()))return true;
 
    (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY)->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
@@ -969,10 +960,9 @@ start:
          // #RTOutput
          if(D._max_rt>=4)
          {
-            const Bool alpha=false;
                _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
-            if(_has_vel || alpha)
-               _vel.get(ImageRTDesc(_col->w(), _col->h(), alpha ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
+            if(_has_vel)
+               _vel.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO_H, _col->samples()));
          }
 
          const Bool merged_clear=D.mergedClear(),

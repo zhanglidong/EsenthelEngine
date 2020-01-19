@@ -7,81 +7,80 @@ VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + wei
 /******************************************************************************/
 // SKIN, SIZE, DIFFUSE
 /******************************************************************************/
+struct Base_VS_PS
+{
+   Vec2 tex:TEXCOORD;
+   VecH nrm:NORMAL  ; // !! not Normalized !!
+   Vec  projected_prev_pos_xyw:PREV_POS;
+#if SIZE
+   Half len:LENGTH  ;
+#endif
+};
 void Base_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex:TEXCOORD,
-   out VecH outNrm:NORMAL  , // !! not Normalized !!
-   out Vec  outPos:POS     ,
-   out Vec  outVel:VELOCITY,
-#if SIZE
-   out Half outLen:LENGTH  ,
-#endif
+   out Base_VS_PS O,
    out Vec4 outVtx:POSITION,
 
    CLIP_DIST
 )
 {
-   outTex=vtx.tex();
+   Vec view_pos, view_vel;
+   O.tex=vtx.tex();
 
    if(!SKIN)
    {
       if(true) // instance
       {
-         outPos=TransformPos(vtx.pos(),         vtx.instance());
-         outNrm=TransformDir(vtx.nrm(),         vtx.instance());
-         outVel=GetObjVel   (vtx.pos(), outPos, vtx.instance());
+         view_pos=TransformPos(vtx.pos(),           vtx.instance());
+            O.nrm=TransformDir(vtx.nrm(),           vtx.instance());
+         view_vel=GetObjVel   (vtx.pos(), view_pos, vtx.instance());
       }else
       {
-         outPos=TransformPos(vtx.pos());
-         outNrm=TransformDir(vtx.nrm());
-         outVel=GetObjVel   (vtx.pos(), outPos);
+         view_pos=TransformPos(vtx.pos());
+            O.nrm=TransformDir(vtx.nrm());
+         view_vel=GetObjVel   (vtx.pos(), view_pos);
       }
    }else
    {
       VecU bone=vtx.bone();
-      outPos=TransformPos(vtx.pos(),         bone, vtx.weight());
-      outNrm=TransformDir(vtx.nrm(),         bone, vtx.weight());
-      outVel=GetBoneVel  (vtx.pos(), outPos, bone, vtx.weight());
+      view_pos=TransformPos(vtx.pos(),           bone, vtx.weight());
+         O.nrm=TransformDir(vtx.nrm(),           bone, vtx.weight());
+      view_vel=GetBoneVel  (vtx.pos(), view_pos, bone, vtx.weight());
    }
 #if SIZE
-   outLen=vtx.size();
+   O.len=vtx.size();
 #endif
-   CLIP_PLANE(outPos); outVtx=Project(outPos);
+   CLIP_PLANE(view_pos); outVtx=Project(view_pos);
+   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
 }
 /******************************************************************************/
 void Base_PS
 (
-   Vec2 inTex:TEXCOORD,
-   VecH inNrm:NORMAL  ,
-   Vec  inPos:POS     ,
-   Vec  inVel:VELOCITY,
-#if SIZE
-   Half inLen:LENGTH  ,
-#endif
-
+   Base_VS_PS I,
+   PIXEL,
    out DeferredSolidOutput output
 )
 {
-   Half fur=Tex(FurCol, inTex*Material.det_scale).r;
+   Half fur=Tex(FurCol, I.tex*Material.det_scale).r;
 #if SIZE
-   VecH col=Sat(inLen*-fur+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
+   VecH col=Sat(I.len*-fur+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
-   VecH col=Sat(fur*FACTOR+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
+   VecH col=Sat(fur*FACTOR+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #endif
-   if(DIFFUSE)col*=Tex(Col, inTex).rgb;
+   if(DIFFUSE)col*=Tex(Col, I.tex).rgb;
    col=col*Material.color.rgb+Highlight.rgb;
 
-   inNrm=Normalize(inNrm);
+   I.nrm=Normalize(I.nrm);
 
    output.color      (col);
    output.glow       (0);
-   output.normal     (inNrm);
+   output.normal     (I.nrm);
    output.translucent(0);
    output.smooth     (Material.smooth);
-   output.velocity   (inVel, inPos);
    output.reflect    (Material.reflect);
+   output.velocity   (I.projected_prev_pos_xyw, pixel);
 }
 /******************************************************************************/
 void Soft_VS

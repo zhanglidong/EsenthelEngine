@@ -552,15 +552,15 @@ INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &mate
    ci.shader   =&shader;
    ci.material =&material; material.incUsage();
 }
-INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel, C Vec &ang_vel_shader)
+INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &pos_delta, C Vec &ang_delta_shader)
 {
    ClothInstance &ci=New();
-   ci.cloth         =&cloth;
-   ci.shader        =&shader;
-   ci.material      =&material; material.incUsage();
-   ci.vel           = vel;
-   ci.ang_vel_shader= ang_vel_shader;
-   ci.highlight     = Renderer._mesh_highlight;
+   ci.cloth           =&cloth;
+   ci.shader          =&shader;
+   ci.material        =&material; material.incUsage();
+   ci.pos_delta       = pos_delta;
+   ci.ang_delta_shader= ang_delta_shader;
+   ci.highlight       = Renderer._mesh_highlight;
 }
 INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material)
 {
@@ -570,7 +570,7 @@ INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material
    ci.material =&material; material.incUsage();
    ci.highlight= Renderer._mesh_highlight;
 }
-void Cloth::drawPhysical(C Vec &vel, C Vec &ang_vel)C
+void Cloth::drawPhysical(C Vec &pos_delta, C Vec &ang_delta)C
 {
    if(_cloth && Frustum(box()))
    {
@@ -580,8 +580,8 @@ void Cloth::drawPhysical(C Vec &vel, C Vec &ang_vel)C
       {
          case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
          {
-            Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, MatrixIdentity);
-            SolidClothInstances.add(T, *shader, material, vel, ang_vel_shader);
+            Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, MatrixIdentity);
+            SolidClothInstances.add(T, *shader, material, pos_delta, ang_delta_shader);
          }break;
 
          case RT_FORWARD: if(FRST *frst=_cloth_mesh->_phys_frst)if(Renderer.firstPass() || frst->all_passes)//if(Shader *shader=frst->getShader())

@@ -2,8 +2,6 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-// FIXME: support MatrixM (it would be best if we keep Matrix for all bones, but only global offset as VecD somehow) however it's unlikely
-/******************************************************************************/
 // ANIM SKEL BONE
 /******************************************************************************/
 void AnimatedSkeletonBone::clear()
@@ -39,7 +37,7 @@ Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
 {
    return _vel + Cross(_ang_vel, local_pos*matrix().orn());
 }
-void AnimatedSkeletonBone::forceMatrix(C Matrix &matrix)
+void AnimatedSkeletonBone::forceMatrix(C MatrixM &matrix)
 {
   _force_matrix=true;
   _matrix=matrix;
@@ -63,7 +61,7 @@ AnimatedSkeleton& AnimatedSkeleton::del()
    slots.del();
    zero(); return T;
 }
-AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C Matrix &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
+AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C MatrixM &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
 {
    auto temp=initial_matrix; // copy in case 'initial_matrix' belongs to this (for example 'root._matrix' and may get destroyed), use 'auto' depending on matrix type
 
@@ -121,9 +119,9 @@ Int           AnimatedSkeleton::findBoneI   (CChar8 *name)C {return skeleton() ?
 Int           AnimatedSkeleton::findSlotI   (CChar8 *name)C {return skeleton() ? skeleton()->findSlotI   (name) : -1  ;}
 Byte          AnimatedSkeleton::findSlotB   (CChar8 *name)C {return skeleton() ? skeleton()->findSlotB   (name) : 255 ;}
 AnimSkelBone* AnimatedSkeleton::findBone    (CChar8 *name)  {return bones.addr(  findBoneI   (name));}
-OrientP     * AnimatedSkeleton::findSlot    (CChar8 *name)  {return slots.addr(  findSlotI   (name));}
+OrientM     * AnimatedSkeleton::findSlot    (CChar8 *name)  {return slots.addr(  findSlotI   (name));}
 AnimSkelBone* AnimatedSkeleton:: getBone    (CChar8 *name)  {return bones.addr(   getBoneI   (name));}
-OrientP     * AnimatedSkeleton:: getSlot    (CChar8 *name)  {return slots.addr(   getSlotI   (name));}
+OrientM     * AnimatedSkeleton:: getSlot    (CChar8 *name)  {return slots.addr(   getSlotI   (name));}
 Int           AnimatedSkeleton:: getBoneI   (CChar8 *name)C {Int       i        =findBoneI   (name); if(i<0                       )Exit(S+    "Bone \""+name          +"\" not found in skeleton \""+Skeletons.name(skeleton())+"\"."); return i        ;}
 Int           AnimatedSkeleton:: getSlotI   (CChar8 *name)C {Int       i        =findSlotI   (name); if(i<0                       )Exit(S+    "Slot \""+name          +"\" not found in skeleton \""+Skeletons.name(skeleton())+"\"."); return i        ;}
 SkelAnim*     AnimatedSkeleton:: getSkelAnim(C Str  &name)C {SkelAnim *skel_anim=findSkelAnim(name); if(!skel_anim && name.is   ())Exit(S+"SkelAnim \""+name          +"\" not found in skeleton \""+Skeletons.name(skeleton())+"\"."); return skel_anim;}
@@ -293,7 +291,7 @@ AnimatedSkeleton& AnimatedSkeleton::animate(C Motion   &motion   ,              
 AnimatedSkeleton& AnimatedSkeleton::animate(C Str      &anim_name, Flt time, Flt blend, Bool replace) {if(anim_name.is   () && blend>EPS_ANIM_BLEND)if(skeleton())T.animate(*getSkelAnim(anim_name),        time,            blend  , replace);else AnimRoot(T, Animations(anim_name), time, blend, replace); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
 AnimatedSkeleton& AnimatedSkeleton::animate(C UID      &anim_id  , Flt time, Flt blend, Bool replace) {if(anim_id  .valid() && blend>EPS_ANIM_BLEND)if(skeleton())T.animate(*getSkelAnim(anim_id  ),        time,            blend  , replace);else AnimRoot(T, Animations(anim_id  ), time, blend, replace); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
 /******************************************************************************/
-static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_matrix)
+static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C MatrixM &body_matrix)
 {
    AnimSkelBone &bone=anim_skel.root;
 
@@ -476,20 +474,20 @@ matrix_set:
 static void UpdateSlot(AnimatedSkeleton &anim_skel, Int i)
 {
  C SkelSlot &skel_slot=anim_skel.skeleton()->slots[i];
-   OrientP  &     slot=anim_skel.            slots[i];
+   OrientM  &     slot=anim_skel.            slots[i];
    slot=skel_slot;
    slot.mul(anim_skel.boneRoot(skel_slot.bone).matrix(), true);
    if(skel_slot.bone!=skel_slot.bone1)
    {
-      OrientP secondary=skel_slot;
+      OrientM secondary=skel_slot;
       secondary.mul(anim_skel.boneRoot(skel_slot.bone1).matrix(), true);
       slot+=secondary;
       slot.fix();
-      slot.pos*=0.5f;
+      slot.pos*=0.5;
    }
 }
 /******************************************************************************/
-AnimatedSkeleton& AnimatedSkeleton::updateMatrix(C Matrix &body_matrix)
+AnimatedSkeleton& AnimatedSkeleton::updateMatrix(C MatrixM &body_matrix)
 {
    UpdateRootBoneMatrix(T, body_matrix);
    if(skeleton()) // test 'skeleton' once here, and not everytime in 'UpdateBoneMatrix' and 'UpdateSlot'
@@ -506,7 +504,7 @@ static void UpdateBoneMatrixRecursiveUp(AnimatedSkeleton &anim_skel, Int i)
    if(  parent<i)UpdateBoneMatrixRecursiveUp(anim_skel, parent); // first update parents, "parent<i" means that parent is !=0xFF (!= <null>), parent fits in minBones range and this prevents infinite loops (looped parent cycle)
                  UpdateBoneMatrix           (anim_skel,      i); // now   update self
 }
-AnimatedSkeleton& AnimatedSkeleton::updateMatrixParents(C Matrix &body_matrix, Int bone)
+AnimatedSkeleton& AnimatedSkeleton::updateMatrixParents(C MatrixM &body_matrix, Int bone)
 {
                                               UpdateRootBoneMatrix       (T, body_matrix); // first update root
    if(skeleton() && InRange(bone, minBones()))UpdateBoneMatrixRecursiveUp(T, bone       ); // now   update parents and self, test 'skeleton' once here, and not everytime in 'UpdateBoneMatrixRecursiveUp'
@@ -533,7 +531,7 @@ AnimatedSkeleton& AnimatedSkeleton::updateMatrixChildren(Int bone) // this updat
    return T;
 }
 /******************************************************************************/
-AnimatedSkeleton& AnimatedSkeleton::forceMatrix(Int bone, C Matrix &matrix, Bool auto_update_matrixes)
+AnimatedSkeleton& AnimatedSkeleton::forceMatrix(Int bone, C MatrixM &matrix, Bool auto_update_matrixes)
 {
    if(InRange(bone, bones))
    {
@@ -574,12 +572,29 @@ AnimatedSkeleton& AnimatedSkeleton::transformInWorldSpace(Int bone, C Matrix &ma
    }
    return T;
 }
+AnimatedSkeleton& AnimatedSkeleton::transformInWorldSpace(Int bone, C MatrixM &matrix, Bool auto_update_matrixes)
+{
+   if(InRange(bone, bones))
+   {
+      AnimSkelBone &b=bones[bone];
+
+      if(b._world_space_transform)b._world_space_transform_matrix*=matrix;else // if there was already a world transform, then adjust it
+      {
+         b._world_space_transform       =true;
+         b._world_space_transform_matrix=matrix;
+      }
+
+      if(auto_update_matrixes)updateMatrixChildren(bone); // this will update 'bone' too
+   }
+   return T;
+}
 /******************************************************************************/
 static Vec FurVel(C Vec &vel, Flt fur_vel_scale, Flt fur_gravity)
 {
    Vec    fur_vel=vel*fur_vel_scale; fur_vel.y+=fur_gravity; fur_vel.clipLength(0.92f);
    return fur_vel;
 }
+/*   AnimatedSkeleton& vel(C Vec &vel, C Vec &ang_vel=VecZero); // force custom velocity to root and all bones
 AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
 {
    Vec fur_vel=FurVel(vel, fur_vel_scale, fur_gravity);
@@ -594,12 +609,14 @@ AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
       bone._fur_vel=fur_vel;
    }
    return T;
-}
-void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool ragdoll_bones_only)
+}*/
+void AnimatedSkeleton::updateVelocities()
 {
+   Bool physics_relative=false, ragdoll_bones_only=false;
+   
    Flt time_mul;
 
-   if(according_to_physics_step && Physics.created())
+   if(physics_relative && Physics.created())
    {
       if(!       Physics.updated    ())return;
       time_mul=1/Physics.updatedTime();
@@ -609,9 +626,9 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
    }
 
    // root
-   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
-   root.    _vel*=time_mul;
-   root._ang_vel*=time_mul;
+   GetDelta(root._pos_delta, root._ang_delta, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
+   root.    _vel=root._pos_delta*time_mul;
+   root._ang_vel=root._ang_delta*time_mul;
    AdjustValTime(root._fur_vel, FurVel(vel(), fur_vel_scale, fur_gravity), fur_stiffness);
 
    // bones
@@ -623,45 +640,47 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
          AnimSkelBone &bone=            bones[i];
          if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
          {
-            GetDelta(bone._ang_vel, bone._matrix_prev, bone._matrix);
+            GetDelta(bone._ang_delta, bone._matrix_prev, bone._matrix);
 
             Vec     rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); // no need for VecD
             auto  trans_pos=rot_pos+bone.matrix().pos; // trans_pos=sbon.pos*bone.matrix(), use 'auto' depending on vector type
             Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement, no need for VecD
-            bone._vel=world_delta
-                     -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
+            bone._pos_delta=world_delta
+                           -Cross(bone._ang_delta, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
 
             bone._matrix_prev.orn()=bone.matrix();
             bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! this is needed for calculating velocities and 'worldPos' #AnimSkelBoneMatrixPrevPos
 
-            bone.    _vel*=time_mul;
-            bone._ang_vel*=time_mul;
+            bone.    _vel=bone._pos_delta*time_mul;
+            bone._ang_vel=bone._ang_delta*time_mul;
             AdjustValTime(bone._fur_vel, FurVel(world_delta*time_mul, fur_vel_scale, fur_gravity), fur_stiffness); // set based only on linear movement
          }else // inherit values from the parent
          {
             AnimSkelBone &parent=boneRoot(sbon.parent);
-            bone.    _vel=parent.    _vel;
-            bone._ang_vel=parent._ang_vel;
-            bone._fur_vel=parent._fur_vel;
+            bone._pos_delta=parent._pos_delta;
+            bone._ang_delta=parent._ang_delta;
+            bone.      _vel=parent.      _vel;
+            bone.  _ang_vel=parent.  _ang_vel;
+            bone.  _fur_vel=parent.  _fur_vel;
          }
       }
    }
 }
 /******************************************************************************/
-void AnimatedSkeleton::move(C Vec &d)
+void AnimatedSkeleton::move(C VecD &d)
 {
          root  +=d;
    REPAO(bones)+=d;
    REPAO(slots)+=d;
 }
-void AnimatedSkeleton::offset(C Vec &d)
+void AnimatedSkeleton::offset(C VecD &d)
 {
          root  ._matrix+=d;
    REPAO(bones)._matrix+=d;
    REPAO(slots)        +=d;
 }
 /******************************************************************************/
-void AnimatedSkeleton::getMatrixes(MemPtrN<Matrix, 256> matrixes)C
+void AnimatedSkeleton::getMatrixes(MemPtrN<MatrixM, 256> matrixes)C
 {
    matrixes.setNum(bones.elms()+1);
               matrixes[  0]=         matrix();

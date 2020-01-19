@@ -11,8 +11,8 @@ Item::Item()
 {
    scale=0;
    mesh_variation=0;
-  _vel    .zero();
-  _ang_vel.zero();
+  _pos_delta.zero();
+  _ang_delta.zero();
   _grabber=null;
 }
 /******************************************************************************/
@@ -43,10 +43,10 @@ Matrix Item::matrix      (                ) {return actor.matrix(      );       
 Matrix Item::matrixScaled(                ) {return actor.matrix(      ).scaleOrn(scale);}
 void   Item::matrix      (C Matrix &matrix) {       actor.matrix(matrix);                }
 /******************************************************************************/
-void Item::setDrawingVelocities(C Vec &vel, C Vec &ang_vel)
+void Item::setDrawingVelocities(C Vec &pos_delta, C Vec &ang_delta)
 {
-   T._vel    =vel    ;
-   T._ang_vel=ang_vel;
+   T._pos_delta=pos_delta;
+   T._ang_delta=ang_delta;
 }
 /******************************************************************************/
 // CALLBACKS
@@ -60,7 +60,7 @@ void Item::memoryAddressChanged()
 /******************************************************************************/
 Bool Item::update()
 {
-   setDrawingVelocities(actor.vel(), actor.angVel());
+   setDrawingVelocities(actor.posDelta(), actor.angDelta());
    return true;
 }
 /******************************************************************************/
@@ -73,7 +73,7 @@ UInt Item::drawPrepare()
       Matrix matrix=matrixScaled();
       if(Frustum(*mesh, matrix))
       {
-         SetVariation(mesh_variation); mesh->draw(matrix, _vel, _ang_vel);
+         SetVariation(mesh_variation); mesh->draw(matrix, _pos_delta, _ang_delta);
          SetVariation();
       }
    }

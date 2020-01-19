@@ -172,6 +172,7 @@ SkelBone& SkelBone::operator*=(C Vec &v)
    fixPerp();
    return T;
 }
+/******************************************************************************/
 SkelBone& SkelBone::operator*=(C Matrix3 &matrix)
 {
    pos   *=matrix;
@@ -194,6 +195,7 @@ SkelBone& SkelBone::operator/=(C Matrix3 &matrix)
    fixPerp();
    return T;
 }
+/******************************************************************************/
 SkelBone& SkelBone::operator*=(C Matrix &matrix)
 {
    pos   *=matrix;
@@ -206,6 +208,29 @@ SkelBone& SkelBone::operator*=(C Matrix &matrix)
    return T;
 }
 SkelBone& SkelBone::operator/=(C Matrix &matrix)
+{
+   pos   /=matrix;
+   dir   /=matrix.orn();
+   perp  /=matrix.orn();
+   length*=dir   .normalize(); // 'length' should indeed be multiplied here because 'dir' already got transformed in correct way
+   offset/=matrix.orn(); // !! position should not be applied here !!
+   shape /=matrix;
+   fixPerp();
+   return T;
+}
+/******************************************************************************/
+SkelBone& SkelBone::operator*=(C MatrixM &matrix)
+{
+   pos   *=matrix;
+   dir   *=matrix.orn();
+   perp  *=matrix.orn();
+   length*=dir   .normalize();
+   offset*=matrix.orn(); // !! position should not be applied here !!
+   shape *=matrix;
+   fixPerp();
+   return T;
+}
+SkelBone& SkelBone::operator/=(C MatrixM &matrix)
 {
    pos   /=matrix;
    dir   /=matrix.orn();

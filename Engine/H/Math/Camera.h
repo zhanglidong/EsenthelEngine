@@ -28,10 +28,10 @@ struct Camera
    VecD    at    ; // point where camera is looking at               , default=VecD(0,0,0)
    MatrixM matrix; // camera object matrix                           , default=MatrixIdentity-Vec(0,0,1)
 
-   Vec     pos_delta, // camera position delta   (this gets modified when calling 'updateVelocities')
-           ang_delta, // camera angle    delta   (this gets modified when calling 'updateVelocities')
-                 vel, // camera         velocity (this gets modified when calling 'updateVelocities')
-             ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
+   Vec  pos_delta, // camera position delta   (this gets modified when calling 'updateVelocities')
+        ang_delta, // camera angle    delta   (this gets modified when calling 'updateVelocities')
+              vel, // camera         velocity (this gets modified when calling 'updateVelocities')
+          ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
 
    Camera& operator+=(C VecD &offset) {at+=offset; matrix.pos+=offset; return T;} // move camera by 'offset'
    Camera& operator-=(C VecD &offset) {at-=offset; matrix.pos-=offset; return T;} // move camera by 'offset'
@@ -125,7 +125,6 @@ void InitCamera   ();
 void  SetCam      (C MatrixM &matrix); // 'Frustum' may have to be reset after calling this method
 void  SetEyeMatrix();
 void  ActiveCamChanged();
-void  MotionScaleChanged();
 
 extern Dbl ActiveCamZ;
 #endif

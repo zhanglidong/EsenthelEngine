@@ -881,7 +881,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
 
   _mtn_mode  =MOTION_NONE;
   _mtn_dilate=DILATE_ORTHO2;
-  _mtn_scale =0.04f;
+  _mtn_scale =1;
   _mtn_res   =FltToByteScale(1.0f/3);
 
   _dof_mode     =DOF_NONE;
@@ -1595,9 +1595,8 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
    {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
    lod               (_lod_factor, _lod_factor_mirror);
-   shadowJitterSet   ();
-   MotionScaleChanged();
-   SetMatrix         ();
+   shadowJitterSet();
+   SetMatrix      ();
 
   _initialized=true;
 
@@ -3118,10 +3117,10 @@ Display& Display::envColor(C Vec      &color) {if(_env_color!=color)            
 Display& Display::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
 /******************************************************************************/
 Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
-Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                     return T;}
-Display& Display::motionMode  (MOTION_MODE mode  )  {Clamp(mode , MOTION_NONE   , MOTION_MODE(MOTION_NUM-1));                       _mtn_mode  =mode ;                        return T;}
-Display& Display::motionDilate(DILATE_MODE mode  )  {Clamp(mode , DILATE_MODE(0), DILATE_MODE(DILATE_NUM-1));                       _mtn_dilate=mode ;                        return T;}
-Display& Display::motionScale (Flt         scale )  {MAX  (scale, 0                                        ); if(_mtn_scale!=scale){_mtn_scale =scale; MotionScaleChanged();} return T;} // this parameter affects 'Camera.set' -> 'CamMatrixInvMotionScale', and 'SetAngVelShader'
+Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}               return T;}
+Display& Display::motionMode  (MOTION_MODE mode  )  {Clamp(mode , MOTION_NONE   , MOTION_MODE(MOTION_NUM-1));                       _mtn_mode  =mode ;  return T;}
+Display& Display::motionDilate(DILATE_MODE mode  )  {Clamp(mode , DILATE_MODE(0), DILATE_MODE(DILATE_NUM-1));                       _mtn_dilate=mode ;  return T;}
+Display& Display::motionScale (Flt         scale )  {MAX  (scale, 0                                        ); if(_mtn_scale!=scale){_mtn_scale =scale;} return T;}
 /******************************************************************************/
 Display& Display::dofMode     (DOF_MODE mode     ) {Clamp(mode, DOF_NONE, DOF_MODE(DOF_NUM-1)); _dof_mode     =mode             ; return T;}
 Display& Display::dofFocusMode(Bool     realistic) {                                            _dof_foc_mode =(realistic!=0)   ; return T;}

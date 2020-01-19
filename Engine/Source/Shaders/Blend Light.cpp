@@ -15,7 +15,7 @@
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
-#define SET_POS        ((LIGHT && PER_PIXEL) || USE_VEL || SHADOW || REFLECT || TESSELATE)
+#define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
 #define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define SET_FOG        (!FOG_IN_COL)
@@ -51,7 +51,7 @@ struct VS_PS
 #endif
 
 #if USE_VEL
-   Vec vel:VELOCITY;
+   Vec projected_prev_pos_xyw:PREV_POS;
 #endif
 
 #if VTX_REFLECT
@@ -73,7 +73,7 @@ void VS
    out Vec4  O_vtx:POSITION
 )
 {
-   Vec  pos=vtx.pos();
+   Vec  local_pos=vtx.pos(), view_pos, view_vel;
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
 #if SET_TEX
@@ -86,25 +86,24 @@ void VS
 
    if(FX==FX_LEAF_2D || FX==FX_LEAF_3D)
    {
-      if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
-      if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm     );else
-                               BendLeaf(vtx.hlp(), pos          );
+      if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm, tan);else
+      if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm     );else
+                               BendLeaf(vtx.hlp(), local_pos          );
    }
    if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
-      if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm, tan);else
-      if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm     );else
-                               BendLeafs(vtx.hlp(), vtx.size(), pos          );
+      if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm, tan);else
+      if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm     );else
+                               BendLeafs(vtx.hlp(), vtx.size(), local_pos          );
    }
 
-   Vec local_pos; if(USE_VEL || FX==FX_GRASS_2D || FX==FX_GRASS_3D)local_pos=pos;
    if(!SKIN)
    {
       if(true) // instance
       {
-         pos=TransformPos(pos, vtx.instance());
+         view_pos=TransformPos(local_pos, vtx.instance());
       #if USE_VEL
-         O.vel=GetObjVel(local_pos, pos, vtx.instance());
+         view_vel=GetObjVel(local_pos, view_pos, vtx.instance());
       #endif
 
       #if   BUMP_MODE> SBUMP_FLAT
@@ -114,13 +113,13 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos, vtx.instance());
-         if(GRASS_FADE                        )  O.col.a*=1-GrassFadeOut(vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos, vtx.instance());
+         if(GRASS_FADE                        )       O.col.a*=1-GrassFadeOut(vtx.instance());
       }else
       {
-         pos=TransformPos(pos);
+         view_pos=TransformPos(local_pos);
       #if USE_VEL
-         O.vel=GetObjVel(local_pos, pos);
+         view_vel=GetObjVel(local_pos, view_pos);
       #endif
 
       #if   BUMP_MODE> SBUMP_FLAT
@@ -130,16 +129,16 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos);
          if(GRASS_FADE                        )O.col.a*=1-GrassFadeOut();
       }
    }else
    {
       VecU bone    =vtx.bone  ();
       VecH weight_h=vtx.weight();
-      pos=TransformPos(pos, bone, vtx.weight());
+      view_pos=TransformPos(local_pos, bone, vtx.weight());
    #if USE_VEL
-      O.vel=GetBoneVel(local_pos, pos, bone, weight_h);
+      view_vel=GetBoneVel(local_pos, view_pos, bone, weight_h);
    #endif
 
    #if   BUMP_MODE> SBUMP_FLAT
@@ -168,10 +167,10 @@ void VS
    O.nrm=nrm;
 #endif
 
-   Flt dist=Length(pos);
+   Flt dist=Length(view_pos);
 
 #if VTX_REFLECT
-   O.reflect_dir=ReflectDir(pos/dist, nrm);
+   O.reflect_dir=ReflectDir(view_pos/dist, nrm);
 #endif
 
    // sky
@@ -210,9 +209,12 @@ void VS
    }
    #endif
 
-   O_vtx=Project(pos);
+   O_vtx=Project(view_pos);
 #if SET_POS
-   O.pos=pos;
+   O.pos=view_pos;
+#endif
+#if USE_VEL
+   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
 #endif
 }
 /******************************************************************************/
@@ -221,17 +223,18 @@ void VS
 void PS
 (
    VS_PS I,
- //PIXEL,
-
+#if USE_VEL
+   PIXEL,
+#endif
 #if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif
 
-  out VecH4 outCol  :TARGET0
+  out VecH4            outCol  :TARGET0
 #if USE_VEL
-, out VecH4 outVel  :TARGET1
+, out VEL_RT_TYPE_FULL outVel  :TARGET1
 #endif
-, out Half  outAlpha:TARGET2 // #RTOutput.Blend
+, out Half             outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
    Half smooth, reflectivity;
@@ -369,7 +372,7 @@ void PS
    outAlpha=I.col.a;
 
 #if USE_VEL
-   outVel.xyz=GetVelocity_PS(I.vel, I.pos); outVel.w=I.col.a; // alpha needed because of blending
+   outVel.xy=GetVelocityPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
 #endif
 }
 /******************************************************************************/

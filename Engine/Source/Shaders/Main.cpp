@@ -446,28 +446,30 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2  inTex  :TEXCOORD,
 }
 /******************************************************************************/
 void ClearDeferred_VS(VtxInput vtx,
-          NOPERSP out VecH outVel:VELOCITY,
-          NOPERSP out Vec4 outVtx:POSITION )
+          NOPERSP out Vec2  outTex                :TEXCOORD,
+          NOPERSP out Vec   projected_prev_pos_xyw:PREV_POS,
+          NOPERSP out Vec4  outVtx                :POSITION)
 {
-   Vec pos=Vec(ScreenToPosXY(vtx.tex()), 1); // we shouldn't normalize this vector, instead, we should keep it at Z=1 so we don't have to divide by Z later
+   outTex=vtx.tex();
 
-   outVel=Cross(pos, CamAngVel);
-#if !SIGNED_VEL_RT
-   outVel=outVel*0.5+0.5;
-#endif
+   Vec view_pos=Vec(ScreenToPosXY(vtx.tex()), 1); // no need to normalize
+   Vec view_vel=GetCamAngVel(view_pos);
+   Vec prev_pos=view_pos-view_vel;
+   projected_prev_pos_xyw=ProjectXYW(prev_pos);
 
    outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
-void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
+void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
+                      NOPERSP Vec  projected_prev_pos_xyw:PREV_POS,
            out DeferredSolidOutput output) // #RTOutput
 {
-   output.color      (0);
-   output.glow       (0);
-   output.normal     (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
-   output.translucent(0);
-   output.smooth     (0);
-   output.reflect    (0);
-   output.velocityRaw(inVel);
+   output.color         (0);
+   output.glow          (0);
+   output.normal        (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.translucent   (0);
+   output.smooth        (0);
+   output.reflect       (0);
+   output.velocityScreen(projected_prev_pos_xyw, inTex);
 }
 /******************************************************************************/
 void ClearLight_PS(out VecH lum :TARGET0,

@@ -34,8 +34,7 @@
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(MotionBlur)
-   Vec4 MotionUVMulAdd;
-   Vec4 MotionVelScaleLimit;
+   VecH MotionScaleLimit;
    Vec2 MotionPixelSize;
 BUFFER_END
 #include "!Set Prec Default.h"
@@ -49,13 +48,13 @@ Bool InFront(Flt z_test, Flt z_base)
 {
    return z_test<=z_base+DEPTH_TOLERANCE; // if 'z_test' is in front of 'z_base' with DEPTH_TOLERANCE
 }
-/******************************************************************************/
+/******************************************************************************
 void Explosion_VS(VtxInput vtx,
               out Vec  outPos:TEXCOORD0,
               out Vec  outVel:TEXCOORD1,
               out Vec4 outVtx:POSITION )
 {
-   outVel=TransformTP(Normalize(vtx.pos())*Step, (Matrix3)CamMatrix);
+   outVel=TransformTP (Normalize(vtx.pos())*Step, (Matrix3)CamMatrix);
    outPos=TransformPos(vtx.pos());
    outVtx=Project     ( outPos  );
 }
@@ -63,7 +62,7 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
                   Vec   inVel:TEXCOORD1,
               out VecH outVel:TARGET1  ) // #RTOutput
 {
-   // there's no NaN because inPos.z is always >0 in PixelShader
+   need to update
    inVel/=inPos.z;
 #if !SIGNED_VEL_RT
    inVel=inVel*0.5+0.5;
@@ -73,55 +72,60 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
 /******************************************************************************/
 void Convert_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex  :TEXCOORD0,
-    NOPERSP out Vec2 outPos  :TEXCOORD1, // position relative to viewport center scaled from UV to ScreenPos
          #if MODE==0
-    NOPERSP out Vec2 outPosXY:TEXCOORD2,
+    NOPERSP out Vec2 outPosXY:TEXCOORD1,
          #endif
     NOPERSP out Vec4 outVtx  :POSITION )
 {
    outTex=vtx.tex();
-   outPos=outTex*MotionUVMulAdd.xy+MotionUVMulAdd.zw;
 #if MODE==0
    outPosXY=ScreenToPosXY(outTex);
 #endif
    outVtx=vtx.pos4();
 }
-VecH Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPos  :TEXCOORD1 // position relative to viewport center scaled from UV to ScreenPos
+VecH Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0
              #if MODE==0
-              , NOPERSP Vec2 inPosXY:TEXCOORD2
+              , NOPERSP Vec2 inPosXY:TEXCOORD1
              #endif
                ):TARGET
 {
-   Vec blur;
+   VEL_RT_TYPE blur;
 #if MODE==0
    Vec pos=(CLAMP ? GetPosLinear(UVClamp(inTex, CLAMP)) : GetPosLinear(inTex, inPosXY));
-   blur=GetVelocitiesCameraOnly(pos);
+   blur=GetVelocitiesCameraOnly(pos, inTex);
 #else
-      blur=TexLod(Img, UVClamp(inTex, CLAMP)).xyz; // have to use linear filtering because we may draw to smaller RT
+   #if   VEL_RT_MODE==VEL_RT_VECH2
+      blur=TexLod(ImgXY , UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
+   #elif VEL_RT_MODE==VEL_RT_VEC2
+      blur=TexLod(ImgXYF, UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
+   #endif
+
    #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1) and fix zero, unsigned texture formats don't have a precise zero when converted to signed, because both 127/255*2-1 and 128/255*2-1 aren't zeros, 127: (127/255-0.5)==-0.5/255, 128: (128/255-0.5)==0.5/255, 129: (129/255-0.5)==1.5/255, so let's compare <=1.0/255
-      blur=((Abs(blur-0.5)<=1.0/255) ? Vec(0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
+      blur=((Abs(blur-0.5)<=1.0/255) ? VEL_RT_TYPE(0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
    #endif
 #endif
 
-   blur=-blur; // use negative because if velocity is right, then we have to go left #VelSign
-
-   // see "C:\Users\Greg\SkyDrive\Code\Tests\Motion Blur.cpp"
-   // the following generates 2 delta vectors in screen space, they have different lengths (when blur.z!=0) due to perspective correction, one points towards center, and one away from center
-   blur*=MotionVelScaleLimit.xyz;
-   Vec delta;
-   delta.xy=(inPos+blur.xy)/(1+blur.z)-inPos;
-
-   // store direction and its length
-   Flt len0=Length(delta.xy), len=Min(len0, MotionVelScaleLimit.w);
-   if( len0)delta.xy*=(len + ROUND*0.5/MAX_MOTION_BLUR_PIXEL_RANGE)/len0; // NaN, add half pixel length which will trigger rounding effect
-            delta.z  = len; // here don't include rounding
-          //delta.w  = 0;
-
-#if !SIGNED_VEL_RT
-   delta.xy=delta.xy*0.5+0.5; // scale XY -1..1 -> 0..1, but leave Z in 0..1
+   blur*=MotionScaleLimit.xy; // scale by adjusted 'D.motionScale'
+   VEL_RT_TYPE_LEN len=Length(blur);
+   if(ROUND)
+   {
+      if(len>0.5/MAX_MOTION_BLUR_PIXEL_RANGE) // only if has some length already to avoid triggering blur processing for most of the screen with tiny movement
+      {
+         VEL_RT_TYPE_LEN desired_len=Min(len, MotionScaleLimit.z);
+         blur*=(desired_len + 0.5/MAX_MOTION_BLUR_PIXEL_RANGE)/len; // add half pixel length which will trigger rounding effect
+         len=desired_len;
+      }
+   }else
+   if(len>MotionScaleLimit.z) // limit length to 'MotionScaleLimit.z'
+   {
+      blur*=MotionScaleLimit.z/len;
+      len  =MotionScaleLimit.z;
+   }
+#if !SIGNED_MTN_RT
+   blur.xy=blur.xy*0.5+0.5; // scale XY -1..1 -> 0..1, but leave Z in 0..1
 #endif
-   return delta;
+
+   return VecH(blur, len);
 }
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -131,7 +135,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    VecH4 blur;
    blur.xyz=TexPoint(Img, inTex).xyz;
    blur.w=0;
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
    Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
@@ -142,7 +146,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    {
       Vec2 t=inTex+Vec2(x, y)*RTSize.xy;
       VecH b=TexPoint(Img, t).xyz;
-   #if !SIGNED_VEL_RT
+   #if !SIGNED_MTN_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
@@ -167,7 +171,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       if(ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z);
    }
 
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*0.5+0.5; // scale XY -1..1 -> 0..1, but leave Z in 0..1
 #endif
    return blur;
@@ -177,7 +181,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
    Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
@@ -188,7 +192,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    {
       t.x=inTex.x+RTSize.x*i;
       VecH b=TexPoint(Img, t).xyz;
-   #if !SIGNED_VEL_RT
+   #if !SIGNED_MTN_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
@@ -207,7 +211,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       {
          t=inTex+RTSize.xy*i;
          VecH b=TexPoint(Img, t).xyz;
-      #if !SIGNED_VEL_RT
+      #if !SIGNED_MTN_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
 
@@ -220,7 +224,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       }
    }
 
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*0.5+0.5; // scale XY -1..1 -> 0..1, but leave Z in 0..1
 #endif
    return blur;
@@ -230,7 +234,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
    Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
@@ -241,7 +245,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    {
       t.y=inTex.y+RTSize.y*i;
       VecH b=TexPoint(Img, t).xyz;
-   #if !SIGNED_VEL_RT
+   #if !SIGNED_MTN_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
@@ -260,7 +264,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       {
          t=inTex+RTSize.xy*Vec2(i, -i);
          VecH b=TexPoint(Img, t).xyz;
-      #if !SIGNED_VEL_RT
+      #if !SIGNED_MTN_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
 
@@ -273,7 +277,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       }
    }
 
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur.xy=blur.xy*0.5+0.5; // scale XY -1..1 -> 0..1, but leave Z in 0..1
 #endif
    return blur;
@@ -290,7 +294,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    //        Img   - dilated velocity (main blur direction)
 
    VecH blur_dir=TexPoint(Img, inTex).xyz; // XY=Dir, Z=Max Dir length of all nearby pixels
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur_dir.xy=((Abs(blur_dir.xy-0.5)<=1.0/255) ? VecH2(0, 0) : blur_dir.xy*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 
@@ -325,6 +329,9 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
          because we may find a pixel later, that is not blocked by any obstacles and overlaps the center.
       */
 
+      Half  blur_dir_length=Sqrt(blur_dir_length2);
+      VecH2 blur_dir_normalized=blur_dir.xy/blur_dir_length;
+
       // calculate both directions
       Vec2 tex_step0=-blur_dir.xy*MotionPixelSize; // #VelSign
    #if MOTION_BLUR_PREDICTIVE
@@ -340,13 +347,11 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       }
    #endif
 
-      Half  blur_dir_length=Sqrt(blur_dir_length2);
-      VecH2 blur_dir_normalized=blur_dir.xy/blur_dir_length;
       Flt   pixel_range=blur_dir_length*MAX_MOTION_BLUR_PIXEL_RANGE;
       tex_step0/=pixel_range; // 'tex_step0' is now 1 pixel length (we need this length, because we compare blur lengths/distances to "Int i" step)
 
       VecH2 pixel_vel=TexPoint(ImgXY, inTex).xy;
-   #if !SIGNED_VEL_RT
+   #if !SIGNED_MTN_RT
       pixel_vel=pixel_vel*2-1;
    #endif
 
@@ -374,7 +379,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
       Int samples=Round(blur_dir.z*MAX_MOTION_BLUR_PIXEL_RANGE); LOOP for(Int i=1; i<=samples; i++)
    #endif
       {
-         t0+=tex_step0; VecH2 v0=TexLod(ImgXY, t0).xy; if(!SIGNED_VEL_RT)v0=v0*2-1; // use linear filtering because texcoords are not rounded
+         t0+=tex_step0; VecH2 v0=TexLod(ImgXY, t0).xy; if(!SIGNED_MTN_RT)v0=v0*2-1; // use linear filtering because texcoords are not rounded
          Flt  z0=TexDepthLinear(t0); // use linear filtering because RT can be smaller and because texcoords are not rounded
          Half l0=Abs(Dot(v0, blur_dir_normalized))*MAX_MOTION_BLUR_PIXEL_RANGE;
 
@@ -393,7 +398,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
          if(length0>=i && allow0)range0=i;
 
       #if MOTION_BLUR_PREDICTIVE
-         t1+=tex_step1; VecH2 v1=TexLod(ImgXY, t1).xy; if(!SIGNED_VEL_RT)v1=v1*2-1;
+         t1+=tex_step1; VecH2 v1=TexLod(ImgXY, t1).xy; if(!SIGNED_MTN_RT)v1=v1*2-1;
          Flt  z1=TexDepthLinear(t1);
          Half l1=Abs(Dot(v1, blur_dir_normalized))*MAX_MOTION_BLUR_PIXEL_RANGE;
 
@@ -436,7 +441,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    #endif
    }
 
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    dirs=dirs*0.5+0.5; // scale -1..1 -> 0..1
 #endif
    return dirs;
@@ -449,13 +454,13 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #if MOTION_BLUR_PREDICTIVE
    // Img1 - 2 blur ranges (XY, ZW)
    VecH4 blur=TexLod(Img1, inTex); // use linear filtering because 'Img1' may be smaller
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur=((Abs(blur-0.5)<=1.0/255) ? VecH4(0, 0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 #else
    // ImgXY - blur range
    VecH2 blur=TexLod(ImgXY, inTex).xy; // use linear filtering because 'ImgXY' may be smaller
-#if !SIGNED_VEL_RT
+#if !SIGNED_MTN_RT
    blur=((Abs(blur-0.5)<=1.0/255) ? VecH2(0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 #endif

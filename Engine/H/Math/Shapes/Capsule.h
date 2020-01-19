@@ -42,6 +42,8 @@ struct Capsule // Capsule Shape
    Capsule& operator/=(C Matrix3 &m);
    Capsule& operator*=(C Matrix  &m);
    Capsule& operator/=(C Matrix  &m);
+   Capsule& operator*=(C MatrixM &m);
+   Capsule& operator/=(C MatrixM &m);
 
    friend Capsule operator+ (C Capsule &capsule, C Vec     &v) {return Capsule(capsule)+=v;}
    friend Capsule operator- (C Capsule &capsule, C Vec     &v) {return Capsule(capsule)-=v;}

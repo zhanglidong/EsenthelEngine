@@ -28,14 +28,23 @@
 #define FX_LEAFS_2D 5
 #define FX_LEAFS_3D 6
 
-#define MAX_MOTION_BLUR_PIXEL_RANGE 24
-#define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too
+// Motion Blur
+#define MAX_MOTION_BLUR_PIXEL_RANGE 48 // max range of pixels to blur for 2160p resolution, Warning: increasing this value will slow down performance because we need to do more dilation steps, also it would decrease precision for blur direction coordinates because currently 10-bit are used per channel
+#define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too, enable because even though this mode is not correct (it blurs both ways, including the future) it helps prevent "leaking" when rotating camera around an object, where one side doesn't get blurred because it wants to get samples behind the object however they're not avaialble since the object covers them, so when blurring in both ways, we can just use samples from the other side
 
-#define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per tri)
+#define VEL_RT_VECH2 0
+#define VEL_RT_VEC2  1
+#define VEL_RT_MODE  VEL_RT_VECH2
 
-#define TAA_WEIGHT (1.0/8)
-
-#define LCScale 0.2 // must be in sync with GLSL
+#if   VEL_RT_MODE==VEL_RT_VECH2
+   #define VEL_RT_TYPE_LEN  Half
+   #define VEL_RT_TYPE      VecH2
+   #define VEL_RT_TYPE_FULL VecH4 // need alpha for blending
+#elif VEL_RT_MODE==VEL_RT_VEC2
+   #define VEL_RT_TYPE_LEN  Flt
+   #define VEL_RT_TYPE      Vec2
+   #define VEL_RT_TYPE_FULL Vec4 // need alpha for blending
+#endif
 
 // Buffer Indexes
 #define SBI_FRAME      0
@@ -57,4 +66,11 @@
 #define SSI_SHADOW       4
 #define SSI_FONT         5
 #define SSI_LINEAR_CWW   6
+
+// Other
+#define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per tri)
+
+#define TAA_WEIGHT (1.0/8)
+
+#define LCScale 0.2 // must be in sync with GLSL
 /******************************************************************************/

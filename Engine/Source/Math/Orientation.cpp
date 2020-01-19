@@ -4,6 +4,7 @@ namespace EE{
 /******************************************************************************/
 Orient & Orient ::operator+=(C Orient  &orn) {dir+=orn.dir; perp+=orn.perp;               return T;}
 OrientP& OrientP::operator+=(C OrientP &orn) {dir+=orn.dir; perp+=orn.perp; pos+=orn.pos; return T;}
+OrientM& OrientM::operator+=(C OrientM &orn) {dir+=orn.dir; perp+=orn.perp; pos+=orn.pos; return T;}
 /******************************************************************************/
 Orient & Orient ::operator*=(Flt f) {dir*=f; perp*=f;         return T;}
 OrientD& OrientD::operator*=(Dbl f) {dir*=f; perp*=f;         return T;}
@@ -170,6 +171,8 @@ OrientM& OrientM::div(C MatrixM &matrix, Bool normalized)
 Orient ::Orient (C OrientD &orn) {dir=orn.dir; perp=orn.perp;}
 OrientD::OrientD(C Orient  &orn) {dir=orn.dir; perp=orn.perp; fix();} // call 'fix' to get high precision
 OrientP::OrientP(C Orient  &orn) {dir=orn.dir; perp=orn.perp; pos.zero();}
+OrientP::OrientP(C OrientM &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
+OrientM::OrientM(C OrientP &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
 
 Orient ::Orient (C Matrix3  &matrix) {dir=matrix.z; perp=matrix.y;}
 Orient ::Orient (C MatrixD3 &matrix) {dir=matrix.z; perp=matrix.y;}

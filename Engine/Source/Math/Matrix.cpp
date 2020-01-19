@@ -8,7 +8,6 @@ namespace EE{
       -reduce number of matrix operations in shaders
 
 /******************************************************************************/
-      Matrix3 CamMatrixInvMotionScale;
       MatrixM ObjMatrix(1),
               CamMatrix,
               CamMatrixInv,
@@ -1797,6 +1796,18 @@ Matrix& Matrix::identity(Flt blend)
    }
    return T;
 }
+MatrixM& MatrixM::identity(Flt blend)
+{
+   if(blend>0)
+   {
+      if(blend>=1)identity();else
+      {
+         pos*=1-blend;
+         super::identity(blend);
+      }
+   }
+   return T;
+}
 /******************************************************************************/
 Matrix& Matrix::setPos(Flt x, Flt y, Flt z)
 {
@@ -2744,6 +2755,15 @@ Matrix& Matrix::anchor(C Vec &anchor)
            z - x*T.x.z - y*T.y.z - z*T.z.z);
    return T;
 }
+
+MatrixM& MatrixM::anchor(C Vec &anchor)
+{
+   Dbl x=anchor.x, y=anchor.y, z=anchor.z;
+   pos.set(x - x*T.x.x - y*T.y.x - z*T.z.x,
+           y - x*T.x.y - y*T.y.y - z*T.z.y,
+           z - x*T.x.z - y*T.y.z - z*T.z.z);
+   return T;
+}
 MatrixM& MatrixM::anchor(C VecD &anchor)
 {
    Dbl x=anchor.x, y=anchor.y, z=anchor.z;
@@ -2752,6 +2772,7 @@ MatrixM& MatrixM::anchor(C VecD &anchor)
            z - x*T.x.z - y*T.y.z - z*T.z.z);
    return T;
 }
+
 MatrixD& MatrixD::anchor(C VecD &anchor)
 {
    Dbl x=anchor.x, y=anchor.y, z=anchor.z;
@@ -2765,6 +2786,11 @@ Matrix& Matrix::setTransformAtPos(C Vec &pos, C Matrix3 &matrix) {orn()=matrix; 
 Matrix& Matrix::setTransformAtPos(C Vec &pos, C Matrix  &matrix) {orn()=matrix; anchor(pos); move(matrix.pos); return T;}
 Matrix& Matrix::   transformAtPos(C Vec &pos, C Matrix3 &matrix) {return moveBack(pos).mul(matrix).move(pos);}
 Matrix& Matrix::   transformAtPos(C Vec &pos, C Matrix  &matrix) {return moveBack(pos).mul(matrix).move(pos);}
+
+MatrixM& MatrixM::setTransformAtPos(C VecD &pos, C Matrix3 &matrix) {orn()=matrix; anchor(pos);                   return T;}
+MatrixM& MatrixM::setTransformAtPos(C VecD &pos, C MatrixM &matrix) {orn()=matrix; anchor(pos); move(matrix.pos); return T;}
+MatrixM& MatrixM::   transformAtPos(C VecD &pos, C Matrix3 &matrix) {return moveBack(pos).mul(matrix).move(pos);}
+MatrixM& MatrixM::   transformAtPos(C VecD &pos, C MatrixM &matrix) {return moveBack(pos).mul(matrix).move(pos);}
 
 MatrixD& MatrixD::setTransformAtPos(C VecD &pos, C MatrixD3 &matrix) {orn()=matrix; anchor(pos);                   return T;}
 MatrixD& MatrixD::setTransformAtPos(C VecD &pos, C MatrixD  &matrix) {orn()=matrix; anchor(pos); move(matrix.pos); return T;}
@@ -3354,33 +3380,33 @@ void AnimatedSkeleton::setMatrix()C
    ObjMatrix=matrix(); // 'Mesh.drawBlend' makes use of the 'ObjMatrix' so it must be set
    if(Renderer._mesh_shader_vel) // we need to process velocities (this is disabled in 'Renderer.del' to prevent using shader handles after deletion)
    {
-      Vec ang_vel_shader;
+      Vec ang_delta_shader;
       if(VIRTUAL_ROOT_BONE)
       {
          ViewMatrix[0].fromMul(matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
-         SetAngVelShader(ang_vel_shader, angVel(), matrix());
-         SetFastVelUncondNoChanged(vel(), ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
+         SetAngDeltaShader(ang_delta_shader, root._ang_delta, matrix());
+         SetFastVelUncondNoChanged(root._pos_delta, ang_delta_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
       REP(matrixes)
       {
        C AnimSkelBone &bone=bones[i];
          ViewMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone.matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
-         SetAngVelShader(ang_vel_shader, bone._ang_vel, bone.matrix());
-         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone._vel, ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
+         SetAngDeltaShader(ang_delta_shader, bone._ang_delta, bone.matrix());
+         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone._pos_delta, ang_delta_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
       Sh.ObjVel->setChanged(); // call 'setChanged' only once, instead of for each bone
       /* Bone Splits old code
       if(VIRTUAL_ROOT_BONE)
       {
          Sh.ViewMatrix->set(GObjMatrix[0].fromMul(matrix(), CamMatrixInv));
-         Sh.ObjVel    ->set(GObjVel   [0]=v, ang_vel_shader              );
+         Sh.ObjVel    ->set(GObjVel   [0]=v, ang_delta_shader            );
       }
       REP(matrixes)
       {
          C AnimSkelBone &bone=bones[i];
-         v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
+         v=bone._pos_delta-ActiveCam.pos_delta; v*=CamMatrixInv.orn();
          Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix, CamMatrixInv), VIRTUAL_ROOT_BONE+i);
-         Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v, ang_vel_shader                  , VIRTUAL_ROOT_BONE+i);
+         Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v, ang_delta_shader                , VIRTUAL_ROOT_BONE+i);
       }*/
    }else
    {
@@ -3421,12 +3447,12 @@ void SetFastMatrix    (                      ) {Sh.ViewMatrix->set    (        C
 void SetFastMatrix    (C Matrix  &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
 void SetFastMatrix    (C MatrixM &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
 
-void SetFastVel(                                         ) {Sh.ObjVel->setConditional       ((   -ActiveCam.vel)*=CamMatrixInvMotionScale, VecZero          );}
-void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional       ((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader   );} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
-void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setInRangeConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader, i);} // !! 'ang_vel_shader' must come from 'SetAngVelShader', 'i' must be 'InRange' !!
+void SetFastVel(                                                 ) {Sh.ObjVel->setConditional       ((         -ActiveCam.pos_delta)*=CamMatrixInv.orn(), VecZero            );}
+void SetFastVel(        C Vec &pos_delta, C Vec &ang_delta_shader) {Sh.ObjVel->setConditional       ((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader   );} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader' !!
+void SetFastVel(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader) {Sh.ObjVel->setInRangeConditional((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader, i);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader', 'i' must be 'InRange' !!
 
-void SetFastVelUncondNoChanged(        C Vec &vel, C Vec &ang_vel_shader) {ViewVel[0].set((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader);} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
-void SetFastVelUncondNoChanged(Byte i, C Vec &vel, C Vec &ang_vel_shader) {ViewVel[i].set((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader);} // !! 'ang_vel_shader' must come from 'SetAngVelShader', 'i' must be 'InRange' !!
+void SetFastVelUncondNoChanged(        C Vec &pos_delta, C Vec &ang_delta_shader) {ViewVel[0].set((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader' !!
+void SetFastVelUncondNoChanged(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader) {ViewVel[i].set((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader', 'i' must be 'InRange' !!
 /******************************************************************************/
 // To be used for drawing without any velocities
 void SetOneMatrix()
@@ -3460,21 +3486,21 @@ void SetMatrix(C MatrixM &matrix)
    SetFastMatrix (matrix);
    SetFastVel    ();
 }
-void SetMatrix(C Matrix &matrix, C Vec &vel, C Vec &ang_vel)
+void SetMatrix(C Matrix &matrix, C Vec &pos_delta, C Vec &ang_delta)
 {
-   Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix);
+   Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, matrix);
    ObjMatrix=matrix;
    SetMatrixCount();
    SetFastMatrix (matrix);
-   SetFastVel    (vel, ang_vel_shader);
+   SetFastVel    (pos_delta, ang_delta_shader);
 }
-void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
+void SetMatrix(C MatrixM &matrix, C Vec &pos_delta, C Vec &ang_delta)
 {
-   Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix);
+   Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, matrix);
    ObjMatrix=matrix;
    SetMatrixCount();
    SetFastMatrix (matrix);
-   SetFastVel    (vel, ang_vel_shader);
+   SetFastVel    (pos_delta, ang_delta_shader);
 }
 /******************************************************************************/
 INLINE void TestProjMatrix(Matrix4 &m)

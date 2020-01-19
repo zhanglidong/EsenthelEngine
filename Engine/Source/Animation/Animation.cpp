@@ -2353,7 +2353,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
    }else
    if(root_flags&ROOT_SMOOTH)
    {
-      // FIXME
+      // FIXME ROOT_SMOOTH
    }
    if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
    {

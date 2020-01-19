@@ -547,7 +547,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 #ifdef MOTION_BLUR
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api).New(src_path+"Motion Blur.cpp");
-   src.New("Explosion", "Explosion_VS", "Explosion_PS");
+   //src.New("Explosion", "Explosion_VS", "Explosion_PS");
 
    REPD(mode , 2)
    REPD(clamp, 2)src.New("Convert", "Convert_VS", "Convert_PS")("MODE", mode, "CLAMP", clamp);
@@ -556,13 +556,13 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
    REPD(clamp, 2)src.New("SetDirs", "Draw_VS", "SetDirs_PS")("CLAMP", clamp);
 
-   const Int samples[]={5, 7, 9, 14}; // 5-720, 7-1080, 9-1440, 14-2160
+   const Int samples[]={5, 7, 9, 14}; // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
    REPD (dither, 2)
    REPD (alpha , 2)
    REPAD(sample, samples)
       src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha, "MAX_BLUR_SAMPLES", samples[sample]);
 
-   const Int ranges[]={1, 2, 4, 6, 8, 12, 16, 24, 32};
+   const Int ranges[]={1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48}; // #MotionBlurDilateRanges
    REPD (diagonal, 2)
    REPAD(range   , ranges)
    {

@@ -175,6 +175,7 @@ struct OrientP : Orient // Positioned Orientation
               OrientP() {}
               OrientP(C Vec        &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
    CONVERSION OrientP(C Orient     &o);
+   CONVERSION OrientP(C OrientM    &o);
    CONVERSION OrientP(C Matrix3    &m);
    CONVERSION OrientP(C Matrix     &m);
    CONVERSION OrientP(C MatrixM    &m);
@@ -187,6 +188,7 @@ struct OrientM : Orient // Positioned Orientation (mixed precision)
 
    OrientM& operator+=(C VecD    &v) {pos+=v; return T;}
    OrientM& operator-=(C VecD    &v) {pos-=v; return T;}
+   OrientM& operator+=(C OrientM &o);
    OrientM& operator*=(  Flt      f);
    OrientM& operator*=(C Vec     &v);
    OrientM& operator*=(C Matrix3 &m) {return mul(m);}
@@ -231,6 +233,7 @@ struct OrientM : Orient // Positioned Orientation (mixed precision)
               OrientM() {}
               OrientM(C VecD       &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
    CONVERSION OrientM(C Orient     &o);
+   CONVERSION OrientM(C OrientP    &o);
    CONVERSION OrientM(C Matrix3    &m);
    CONVERSION OrientM(C Matrix     &m);
    CONVERSION OrientM(C MatrixM    &m);

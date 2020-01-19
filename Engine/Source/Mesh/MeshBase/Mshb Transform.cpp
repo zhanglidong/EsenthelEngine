@@ -77,9 +77,37 @@ MeshBase& MeshBase::animate(C MemPtrN<Matrix, 256> &matrixes)
    }
    return T;
 }
+MeshBase& MeshBase::animate(C MemPtrN<MatrixM, 256> &matrixes)
+{
+   if(matrixes.elms())
+   {
+      Vec   *pos  =vtx.pos   (),
+            *nrm  =vtx.nrm   (),
+            *tan  =vtx.tan   (),
+            *bin  =vtx.bin   (),
+            *hlp  =vtx.hlp   (), v;
+    C VecB4 *blend=vtx.blend (),
+            *mtrx =vtx.matrix();
+
+      if(blend && mtrx)REPA(vtx)
+      {
+       C VecB4   &bi=*blend++; Vec4 b=bi; b/=255.0f; b.w=1-b.xyz.sum();
+       C MatrixM &m0=(InRange(mtrx->c[0], matrixes) ? matrixes[mtrx->c[0]] : matrixes[0]),
+                 &m1=(InRange(mtrx->c[1], matrixes) ? matrixes[mtrx->c[1]] : matrixes[0]),
+                 &m2=(InRange(mtrx->c[2], matrixes) ? matrixes[mtrx->c[2]] : matrixes[0]),
+                 &m3=(InRange(mtrx->c[3], matrixes) ? matrixes[mtrx->c[3]] : matrixes[0]); mtrx++;
+         if(pos){v=*pos; *pos=b.x*(v*m0      ) + b.y*(v*m1      ) + b.z*(v*m2      ) + b.w*(v*m3      );                   pos++;}
+         if(hlp){v=*hlp; *hlp=b.x*(v*m0      ) + b.y*(v*m1      ) + b.z*(v*m2      ) + b.w*(v*m3      );                   hlp++;}
+         if(nrm){v=*nrm; *nrm=b.x*(v*m0.orn()) + b.y*(v*m1.orn()) + b.z*(v*m2.orn()) + b.w*(v*m3.orn()); nrm->normalize(); nrm++;}
+         if(tan){v=*tan; *tan=b.x*(v*m0.orn()) + b.y*(v*m1.orn()) + b.z*(v*m2.orn()) + b.w*(v*m3.orn()); tan->normalize(); tan++;}
+         if(bin){v=*bin; *bin=b.x*(v*m0.orn()) + b.y*(v*m1.orn()) + b.z*(v*m2.orn()) + b.w*(v*m3.orn()); bin->normalize(); bin++;}
+      }
+   }
+   return T;
+}
 MeshBase& MeshBase::animate(C AnimatedSkeleton &anim_skel)
 {
-   MemtN<Matrix, 256> matrixes;
+   MemtN<MatrixM, 256> matrixes;
    anim_skel.getMatrixes(matrixes);
    animate(matrixes);
    return T;

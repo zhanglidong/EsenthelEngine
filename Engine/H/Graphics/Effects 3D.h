@@ -63,5 +63,3 @@ struct BlendObject // extendable class for depth-sorted rendering of graphics in
 /******************************************************************************/
 void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt radius, Bool sharp_ending, C MemPtr<Vec> &points); // draw laser effect using active matrix onto the screen, 'points'=array of laser points, this should be called in RM_SOLID and RM_AMBIENT modes
 /******************************************************************************/
-void DrawVelocityBlur(Flt power, C Ball &ball); // draw velocity blur to the screen, this is used for blurring explosion effects when using motion blur, this can be called only in RM_BLEND mode
-/******************************************************************************/
