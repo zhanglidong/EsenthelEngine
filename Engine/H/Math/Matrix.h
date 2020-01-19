@@ -326,11 +326,9 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    friend Matrix operator- (C Matrix  &m, C    Vec     &v) {return Matrix(m)-=v;                         } // get m-v
    friend Matrix operator* (C Matrix  &a, C    Matrix3 &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
    friend Matrix operator* (C Matrix  &a, C    Matrix  &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
-   friend Matrix operator* (C Matrix  &a, C    MatrixM &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
    friend Matrix operator* (C Matrix  &a, C RevMatrix  &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
    friend Matrix operator/ (C Matrix  &a, C    Matrix3 &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
    friend Matrix operator/ (C Matrix  &a, C    Matrix  &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
-   friend Matrix operator/ (C Matrix  &a, C    MatrixM &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
    friend Matrix operator~ (C Matrix  &m                 ) {Matrix temp; m.inverse(   temp); return temp;} // get inversed 'm'
    friend Matrix operator* (C Matrix3 &a, C    Matrix  &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
    friend Matrix operator/ (C Matrix3 &a, C    Matrix  &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
@@ -338,6 +336,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    void    mul(C    Matrix3 &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C    Matrix  &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C    MatrixM &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   void    mul(C    MatrixM &matrix, MatrixM &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C    Matrix  &matrix, Matrix4 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C    Matrix4 &matrix, Matrix4 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C RevMatrix  &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
@@ -351,12 +350,13 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    Matrix& mulTimes(Int n, C    Matrix &matrix              ) {mulTimes(n, matrix, T); return T;} // multiply self by 'matrix' 'n'-times
    Matrix& mulTimes(Int n, C RevMatrix &matrix              ) {mulTimes(n, matrix, T); return T;} // multiply self by 'matrix' 'n'-times
 
-   void    div(C Matrix3 &matrix, Matrix &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
-   void    div(C Matrix  &matrix, Matrix &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
-   void    div(C MatrixM &matrix, Matrix &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
-   Matrix& div(C Matrix3 &matrix              ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
-   Matrix& div(C Matrix  &matrix              ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
-   Matrix& div(C MatrixM &matrix              ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+   void    div(C Matrix3 &matrix, Matrix  &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void    div(C Matrix  &matrix, Matrix  &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void    div(C MatrixM &matrix, Matrix  &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void    div(C MatrixM &matrix, MatrixM &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   Matrix& div(C Matrix3 &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+   Matrix& div(C Matrix  &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+   Matrix& div(C MatrixM &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
 
    void    divNormalized(C Matrix3 &matrix, Matrix &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
    void    divNormalized(C Matrix  &matrix, Matrix &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
@@ -539,6 +539,8 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    friend MatrixM operator~ (C MatrixM &m              ) {MatrixM temp; m.inverse(   temp); return temp;} // get inversed 'm'
    friend MatrixM operator* (C Matrix3 &a, C MatrixM &b) {MatrixM temp; a.mul    (b, temp); return temp;} // get a*b
    friend MatrixM operator/ (C Matrix3 &a, C MatrixM &b) {MatrixM temp; a.div    (b, temp); return temp;} // get a/b
+   friend MatrixM operator* (C Matrix  &a, C MatrixM &b) {MatrixM temp; a.mul    (b, temp); return temp;} // get a*b
+   friend MatrixM operator/ (C Matrix  &a, C MatrixM &b) {MatrixM temp; a.div    (b, temp); return temp;} // get a/b
 
    void     mul(C MatrixM &matrix, Matrix  &dest)C; // multiply self by 'matrix' and store result in 'dest'
    void     mul(C Matrix3 &matrix, MatrixM &dest)C; // multiply self by 'matrix' and store result in 'dest'

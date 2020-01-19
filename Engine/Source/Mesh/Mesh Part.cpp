@@ -735,6 +735,21 @@ MeshPart& MeshPart::animate(C MemPtrN<Matrix, 256> &matrixes)
    }
    return T;
 }
+MeshPart& MeshPart::animate(C MemPtrN<MatrixM, 256> &matrixes)
+{
+   if(matrixes.elms())
+   {
+      Bool base_is=base.is();
+      if(! base_is)base.create(render);
+
+      base.animate(matrixes);
+      scaleParams (matrixes[0].maxScale());
+
+      if(render.is())render.create(base);
+      if(! base_is  )delBase();
+   }
+   return T;
+}
 MeshPart& MeshPart::animate(C AnimatedSkeleton &skel)
 {
    Bool base_is=base.is();

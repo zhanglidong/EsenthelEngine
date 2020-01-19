@@ -16,7 +16,7 @@ void SetCam(Camera &cam, C Box &box, flt yaw, flt pitch=0, flt zoom=1) // requir
    cam.roll=0;
    cam.dist=GetDist(box)*zoom;
    cam.at=box.center();
-   cam.setSpherical().updateVelocities(CAM_ATTACH_FREE).set();
+   cam.setSpherical().updateVelocities().set();
 }
 /******************************************************************************/
 class PreviewClass : Window // create as window so it will be above other windows in the editor
@@ -203,7 +203,7 @@ class PreviewClass : Window // create as window so it will be above other window
                   if(anim_skel.skeleton()!=skel || anim_skel.bones.elms()!=skel.bones.elms() || anim_skel.slots.elms()!=skel.slots.elms())anim_skel.create(skel);
                   skel_anim.create(*skel, *anim);
                   flt time=(anim.length() ? Frac(Time.appTime(), (dbl)anim.length()) : 0);
-                  anim_skel.clear().animate(skel_anim, time).animateRoot(*anim, time).updateMatrix().updateVelocities(false, false);
+                  anim_skel.clear().animate(skel_anim, time).animateRoot(*anim, time).updateMatrix().updateVelocities();
                }else
                {
                   anim_skel.del().updateMatrix().updateVelocities();

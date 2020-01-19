@@ -313,13 +313,13 @@ class IconEditor : PropWin
          skel=mesh->skeleton();
          if(data)mesh_variation=((data.variation_id==ElmIcon.InheritVariation) ? obj->meshVariationIndex() : mesh->variationFind(data.variation_id));
       }
-      if(T.skel.skeleton()!=skel || !T.skel.scale() || skel && skel.bones.elms()!=T.skel.bones.elms()){T.skel.create(skel); T.skel_anim.del();}
+      if(T.skel.skeleton()!=skel || skel && skel.bones.elms()!=T.skel.bones.elms()){T.skel.create(skel); T.skel_anim.del();}
      .Animation *anim=null; if(data)if(data.anim_id.valid())anim=Animations(Proj.gamePath(data.anim_id));
       if(skel_anim.animation()!=anim)
          if(skel && anim)skel_anim.create(*skel, *anim);else skel_anim.del();
 
       flt time=(data ? data.anim_pos : 0);
-      T.skel.clear().animate(skel_anim, time).animateRoot(anim, time).updateMatrix(matrix()).updateVelocities(false, false); T.skel.updateVelocities(false, false); // 'updateVelocities' twice to remove motion blur
+      T.skel.clear().animate(skel_anim, time).animateRoot(anim, time).updateMatrix(matrix()).updateVelocities(); T.skel.updateVelocities(); // 'updateVelocities' twice to remove motion blur
 
       // set viewport
       VecI2 size(settings.width, settings.height);

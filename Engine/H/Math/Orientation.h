@@ -144,7 +144,6 @@ struct OrientP : Orient // Positioned Orientation
    friend OrientP operator* (  Flt      f, C OrientP &o) {return OrientP(o)*=f;}
    friend OrientP operator* (C OrientP &o, C Matrix3 &m) {return OrientP(o)*=m;}
    friend OrientP operator* (C OrientP &o, C Matrix  &m) {return OrientP(o)*=m;}
-   friend OrientP operator* (C OrientP &o, C MatrixM &m) {return OrientP(o)*=m;}
 
    // set
    OrientP& zero     (                      ); // set all vectors to zero
@@ -259,6 +258,8 @@ struct AxisRoll // Axis+Roll based rotation
    AxisRoll& operator*=(  Flt      f     ) {axis*=f; roll*=f; return T;} // scale by 'f'
 };
 /******************************************************************************/
+inline OrientM operator* (C OrientP &o, C MatrixM &m) {return OrientM(o)*=m;}
+
 Orient Lerp(C Orient &a, C Orient &b, Flt step); // linear interpolation, 'step'=0..1
 /******************************************************************************/
 Bool Equal(C Orient  &a, C Orient  &b, Flt eps=EPS                   );

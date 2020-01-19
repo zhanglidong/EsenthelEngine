@@ -71,20 +71,21 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& material (C MaterialPtr &material, Int lod_index=0); // set material, 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader, if it's <0 then shader will not be reset), 'material' must point to object in constant memory address (mesh will store only the pointer to the material and later use it if needed)
 
    // transform
-   MeshLod& move         (              C Vec &move        ); //           move
-   MeshLod& scale        (C Vec &scale                     ); // scale
-   MeshLod& scaleMove    (C Vec &scale, C Vec &move        ); // scale and move
-   MeshLod& scaleMoveBase(C Vec &scale, C Vec &move        ); // scale and move (including the 'MeshBase' but without 'MeshRender')
-   MeshLod& transform    (C Matrix3              &matrix   ); // transform by matrix
-   MeshLod& transform    (C Matrix               &matrix   ); // transform by matrix
-   MeshLod& animate      (C MemPtrN<Matrix, 256> &matrixes ); // animate   by matrixes
-   MeshLod& animate      (C AnimatedSkeleton     &anim_skel); // animate   by skeleton
-   MeshLod& mirrorX      (                                 ); // mirror in X axis
-   MeshLod& mirrorY      (                                 ); // mirror in Y axis
-   MeshLod& mirrorZ      (                                 ); // mirror in Z axis
-   MeshLod& reverse      (                                 ); // reverse faces
+   MeshLod& move         (              C Vec &move         ); //           move
+   MeshLod& scale        (C Vec &scale                      ); // scale
+   MeshLod& scaleMove    (C Vec &scale, C Vec &move         ); // scale and move
+   MeshLod& scaleMoveBase(C Vec &scale, C Vec &move         ); // scale and move (including the 'MeshBase' but without 'MeshRender')
+   MeshLod& transform    (C Matrix3               &matrix   ); // transform by matrix
+   MeshLod& transform    (C Matrix                &matrix   ); // transform by matrix
+   MeshLod& animate      (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
+   MeshLod& animate      (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
+   MeshLod& animate      (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
+   MeshLod& mirrorX      (                                  ); // mirror in X axis
+   MeshLod& mirrorY      (                                  ); // mirror in Y axis
+   MeshLod& mirrorZ      (                                  ); // mirror in Z axis
+   MeshLod& reverse      (                                  ); // reverse faces
 #if EE_PRIVATE
-   MeshLod& rightToLeft  (                                 ); // convert from right hand to left hand coordinate system
+   MeshLod& rightToLeft  (                                  ); // convert from right hand to left hand coordinate system
 #endif
 
 #if EE_PRIVATE

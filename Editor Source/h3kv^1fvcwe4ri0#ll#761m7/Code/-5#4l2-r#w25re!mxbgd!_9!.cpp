@@ -14,13 +14,13 @@ class ImageEditor : PropWin
          {
             cam.yaw  -=Ms.d().x;
             cam.pitch+=Ms.d().y;
-            cam.setSpherical().updateVelocities(CAM_ATTACH_FREE);
+            cam.setSpherical().updateVelocities();
             Ms.freeze();
          }else
          if(visible())
          {
             cam.yaw+=Time.ad()/2;
-            cam.setSpherical().updateVelocities(CAM_ATTACH_FREE);
+            cam.setSpherical().updateVelocities();
          }
       }
       virtual void draw(C GuiPC &gpc)override

@@ -70,7 +70,7 @@ public:
 
    Bone* getBone(C Str &name);
 
-   void animate(C AnimSkel &anim_skel, C MemPtrN<Matrix, 256> &matrixes);
+   void animate(C AnimSkel &anim_skel, C MemPtrN<MatrixM, 256> &matrixes);
 
    class NodePtr
    {

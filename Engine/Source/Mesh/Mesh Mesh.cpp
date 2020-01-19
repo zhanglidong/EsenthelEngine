@@ -372,15 +372,16 @@ Mesh& Mesh::texRotate(  Flt     angle , Byte tex_index) {REP(lods())lod(i).texRo
 /******************************************************************************/
 // TRANSFORM
 /******************************************************************************/
-Mesh& Mesh::move         (              C Vec &move       ) {REP(lods())lod(i).move         (       move);              ext+=move;                     lod_center+=move; return T;}
-Mesh& Mesh::scale        (C Vec &scale                    ) {REP(lods())lod(i).scale        (scale      ); ext*=scale ;            lod_center*=scale ;                   return T;}
-Mesh& Mesh::scaleMove    (C Vec &scale, C Vec &move       ) {REP(lods())lod(i).scaleMove    (scale, move); ext*=scale ; ext+=move; lod_center*=scale ; lod_center+=move; return T;}
-Mesh& Mesh::scaleMoveBase(C Vec &scale, C Vec &move       ) {REP(lods())lod(i).scaleMoveBase(scale, move); ext*=scale ; ext+=move; lod_center*=scale ; lod_center+=move; return T;}
-Mesh& Mesh::transform    (C Matrix3              &matrix  ) {REP(lods())lod(i).transform    (matrix     ); ext*=matrix;            lod_center*=matrix;                   return T;}
-Mesh& Mesh::transform    (C Matrix               &matrix  ) {REP(lods())lod(i).transform    (matrix     ); ext*=matrix;            lod_center*=matrix;                   return T;}
-Mesh& Mesh::animate      (C MemPtrN<Matrix, 256> &matrixes) {REP(lods())lod(i).animate      (matrixes   ); setBox();                                                     return T;}
-Mesh& Mesh::animate      (C AnimatedSkeleton     &skel    ) {REP(lods())lod(i).animate      (skel       ); setBox();                                                     return T;}
-Mesh& Mesh::setSize      (C Box &box                      )
+Mesh& Mesh::move         (              C Vec &move        ) {REP(lods())lod(i).move         (       move);              ext+=move;                     lod_center+=move; return T;}
+Mesh& Mesh::scale        (C Vec &scale                     ) {REP(lods())lod(i).scale        (scale      ); ext*=scale ;            lod_center*=scale ;                   return T;}
+Mesh& Mesh::scaleMove    (C Vec &scale, C Vec &move        ) {REP(lods())lod(i).scaleMove    (scale, move); ext*=scale ; ext+=move; lod_center*=scale ; lod_center+=move; return T;}
+Mesh& Mesh::scaleMoveBase(C Vec &scale, C Vec &move        ) {REP(lods())lod(i).scaleMoveBase(scale, move); ext*=scale ; ext+=move; lod_center*=scale ; lod_center+=move; return T;}
+Mesh& Mesh::transform    (C Matrix3               &matrix  ) {REP(lods())lod(i).transform    (matrix     ); ext*=matrix;            lod_center*=matrix;                   return T;}
+Mesh& Mesh::transform    (C Matrix                &matrix  ) {REP(lods())lod(i).transform    (matrix     ); ext*=matrix;            lod_center*=matrix;                   return T;}
+Mesh& Mesh::animate      (C MemPtrN<Matrix , 256> &matrixes) {REP(lods())lod(i).animate      (matrixes   ); setBox();                                                     return T;}
+Mesh& Mesh::animate      (C MemPtrN<MatrixM, 256> &matrixes) {REP(lods())lod(i).animate      (matrixes   ); setBox();                                                     return T;}
+Mesh& Mesh::animate      (C AnimatedSkeleton      &skel    ) {REP(lods())lod(i).animate      (skel       ); setBox();                                                     return T;}
+Mesh& Mesh::setSize      (C Box &box                       )
 {
    Vec size=T.ext.size(),
        scale((size.x>EPS) ? box.w()/size.x : 0,

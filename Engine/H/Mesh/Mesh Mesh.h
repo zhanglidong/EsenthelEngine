@@ -91,21 +91,22 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    Mesh& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag=0, Flt weld_pos_eps=EPS); // join all parts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
 
    // transform
-   Mesh& move         (              C Vec &move        ); //           move
-   Mesh& scale        (C Vec &scale                     ); // scale
-   Mesh& scaleMove    (C Vec &scale, C Vec &move        ); // scale and move
-   Mesh& scaleMoveBase(C Vec &scale, C Vec &move        ); // scale and move (including the 'MeshBase' but without 'MeshRender')
-   Mesh& setSize      (C Box &box                       ); // scale and move to fit box
-   Mesh& transform    (C Matrix3              &matrix   ); // transform by matrix
-   Mesh& transform    (C Matrix               &matrix   ); // transform by matrix
-   Mesh& animate      (C MemPtrN<Matrix, 256> &matrixes ); // animate   by matrixes
-   Mesh& animate      (C AnimatedSkeleton     &anim_skel); // animate   by skeleton
-   Mesh& mirrorX      (                                 ); // mirror in X axis
-   Mesh& mirrorY      (                                 ); // mirror in Y axis
-   Mesh& mirrorZ      (                                 ); // mirror in Z axis
-   Mesh& reverse      (                                 ); // reverse faces
+   Mesh& move         (              C Vec &move         ); //           move
+   Mesh& scale        (C Vec &scale                      ); // scale
+   Mesh& scaleMove    (C Vec &scale, C Vec &move         ); // scale and move
+   Mesh& scaleMoveBase(C Vec &scale, C Vec &move         ); // scale and move (including the 'MeshBase' but without 'MeshRender')
+   Mesh& setSize      (C Box &box                        ); // scale and move to fit box
+   Mesh& transform    (C Matrix3               &matrix   ); // transform by matrix
+   Mesh& transform    (C Matrix                &matrix   ); // transform by matrix
+   Mesh& animate      (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
+   Mesh& animate      (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
+   Mesh& animate      (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
+   Mesh& mirrorX      (                                  ); // mirror in X axis
+   Mesh& mirrorY      (                                  ); // mirror in Y axis
+   Mesh& mirrorZ      (                                  ); // mirror in Z axis
+   Mesh& reverse      (                                  ); // reverse faces
 #if EE_PRIVATE
-   Mesh& rightToLeft  (                                 ); // convert from right hand to left hand coordinate system
+   Mesh& rightToLeft  (                                  ); // convert from right hand to left hand coordinate system
 #endif
 
    // texture transform

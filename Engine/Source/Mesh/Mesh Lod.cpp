@@ -385,19 +385,20 @@ MeshLod& MeshLod::texMap(C Tube   &tube  , Byte tex_index) {REPAO(parts).base.te
 /******************************************************************************/
 // TRANSFORM
 /******************************************************************************/
-MeshLod& MeshLod::move         (              C Vec &move       ) {                    REPAO(parts).     move         (       move);                                            return T;}
-MeshLod& MeshLod::scale        (C Vec &scale                    ) {                    REPAO(parts).     scale        (scale      ); scaleParams(      Abs(scale).max     ());  return T;}
-MeshLod& MeshLod::scaleMove    (C Vec &scale, C Vec &move       ) {                    REPAO(parts).     scaleMove    (scale, move); scaleParams(      Abs(scale).max     ());  return T;}
-MeshLod& MeshLod::scaleMoveBase(C Vec &scale, C Vec &move       ) {                    REPAO(parts).     scaleMoveBase(scale, move); scaleParams(      Abs(scale).max     ());  return T;}
-MeshLod& MeshLod::transform    (C Matrix3              &matrix  ) {                    REPAO(parts).     transform    (matrix     ); scaleParams(     matrix     .maxScale());  return T;}
-MeshLod& MeshLod::transform    (C Matrix               &matrix  ) {                    REPAO(parts).     transform    (matrix     ); scaleParams(     matrix     .maxScale());  return T;}
-MeshLod& MeshLod::animate      (C MemPtrN<Matrix, 256> &matrixes) {if(matrixes.elms()){REPAO(parts).     animate      (matrixes   ); scaleParams(     matrixes[0].maxScale());} return T;}
-MeshLod& MeshLod::animate      (C AnimatedSkeleton     &skel    ) {                    REPAO(parts).     animate      (skel       ); scaleParams(skel.matrix  ( ).maxScale());  return T;}
-MeshLod& MeshLod::mirrorX      (                                ) {                    REPAO(parts).base.mirrorX      (           );                                            return T;}
-MeshLod& MeshLod::mirrorY      (                                ) {                    REPAO(parts).base.mirrorY      (           );                                            return T;}
-MeshLod& MeshLod::mirrorZ      (                                ) {                    REPAO(parts).base.mirrorZ      (           );                                            return T;}
-MeshLod& MeshLod::rightToLeft  (                                ) {                    REPAO(parts).base.rightToLeft  (           );                                            return T;}
-MeshLod& MeshLod::reverse      (                                ) {                    REPAO(parts).base.reverse      (           );                                            return T;}
+MeshLod& MeshLod::move         (              C Vec &move        ) {                    REPAO(parts).     move         (       move);                                            return T;}
+MeshLod& MeshLod::scale        (C Vec &scale                     ) {                    REPAO(parts).     scale        (scale      ); scaleParams(      Abs(scale).max     ());  return T;}
+MeshLod& MeshLod::scaleMove    (C Vec &scale, C Vec &move        ) {                    REPAO(parts).     scaleMove    (scale, move); scaleParams(      Abs(scale).max     ());  return T;}
+MeshLod& MeshLod::scaleMoveBase(C Vec &scale, C Vec &move        ) {                    REPAO(parts).     scaleMoveBase(scale, move); scaleParams(      Abs(scale).max     ());  return T;}
+MeshLod& MeshLod::transform    (C Matrix3               &matrix  ) {                    REPAO(parts).     transform    (matrix     ); scaleParams(     matrix     .maxScale());  return T;}
+MeshLod& MeshLod::transform    (C Matrix                &matrix  ) {                    REPAO(parts).     transform    (matrix     ); scaleParams(     matrix     .maxScale());  return T;}
+MeshLod& MeshLod::animate      (C MemPtrN<Matrix , 256> &matrixes) {if(matrixes.elms()){REPAO(parts).     animate      (matrixes   ); scaleParams(     matrixes[0].maxScale());} return T;}
+MeshLod& MeshLod::animate      (C MemPtrN<MatrixM, 256> &matrixes) {if(matrixes.elms()){REPAO(parts).     animate      (matrixes   ); scaleParams(     matrixes[0].maxScale());} return T;}
+MeshLod& MeshLod::animate      (C AnimatedSkeleton      &skel    ) {                    REPAO(parts).     animate      (skel       ); scaleParams(skel.matrix  ( ).maxScale());  return T;}
+MeshLod& MeshLod::mirrorX      (                                 ) {                    REPAO(parts).base.mirrorX      (           );                                            return T;}
+MeshLod& MeshLod::mirrorY      (                                 ) {                    REPAO(parts).base.mirrorY      (           );                                            return T;}
+MeshLod& MeshLod::mirrorZ      (                                 ) {                    REPAO(parts).base.mirrorZ      (           );                                            return T;}
+MeshLod& MeshLod::rightToLeft  (                                 ) {                    REPAO(parts).base.rightToLeft  (           );                                            return T;}
+MeshLod& MeshLod::reverse      (                                 ) {                    REPAO(parts).base.reverse      (           );                                            return T;}
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/

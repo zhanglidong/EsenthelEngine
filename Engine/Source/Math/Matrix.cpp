@@ -478,6 +478,14 @@ void Matrix::mul(C MatrixM &m, Matrix &dest)C
    dest.pos.z=x*m.x.z + y*m.y.z + z*m.z.z + m.pos.z;
    super::mul(m.orn(), dest.orn());
 }
+void Matrix::mul(C MatrixM &m, MatrixM &dest)C
+{
+   Flt        x=pos.x , y=pos.y , z=pos.z;
+   dest.pos.x=x*m.x.x + y*m.y.x + z*m.z.x + m.pos.x;
+   dest.pos.y=x*m.x.y + y*m.y.y + z*m.z.y + m.pos.y;
+   dest.pos.z=x*m.x.z + y*m.y.z + z*m.z.z + m.pos.z;
+   super::mul(m.orn(), dest.orn());
+}
 void MatrixM::mul(C MatrixM &m, Matrix &dest)C
 {
    Dbl        x=pos.x , y=pos.y , z=pos.z;
@@ -892,6 +900,7 @@ void MatrixM ::div(C Matrix3  &m, MatrixM  &dest)C {Matrix3  temp; m.inverse(tem
 void MatrixD ::div(C MatrixD3 &m, MatrixD  &dest)C {MatrixD3 temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C Matrix   &m, Matrix   &dest)C {Matrix   temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C MatrixM  &m, Matrix   &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
+void Matrix  ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixM ::div(C MatrixM  &m, Matrix   &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixM ::div(C Matrix   &m, MatrixM  &dest)C {Matrix   temp; m.inverse(temp); mul(temp, dest);}
 void MatrixM ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}

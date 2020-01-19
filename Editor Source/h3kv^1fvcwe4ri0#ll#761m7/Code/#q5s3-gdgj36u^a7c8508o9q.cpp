@@ -215,11 +215,11 @@ class EditSkeleton
       return null;
    }
 
-   void animate(C AnimSkel &anim_skel, C MemPtrN<Matrix, 256> &matrixes)
+   void animate(C AnimSkel &anim_skel, C MemPtrN<MatrixM, 256> &matrixes)
    {
       REPAD(n, nodes)
       {
-         OrientP &orient_pos=nodes[n].orient_pos, temp; temp.zero(); bool processed=false;
+         OrientP &orient_pos=nodes[n].orient_pos; OrientM temp; temp.zero(); bool processed=false;
          REPAD(b, bones) // have to iterate all bones to check which are linked to this node
          {
           C Bone &bone=bones[b]; REPA(bone)if(bone[i].index==n)
