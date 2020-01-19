@@ -2,8 +2,8 @@
 class Obj
 {
    Matrix matrix; // matrix
-   Vec       vel, // linear  velocity
-         ang_vel; // angular velocity
+   Vec    pos_delta, // 'pos_delta' position delta (from previous to current frame)
+          ang_delta; // 'ang_delta' angle    delta (from previous to current frame)
 }
 
 Obj  object[12];
@@ -19,8 +19,7 @@ void InitPre()
    Ms.clip(null, 1);
 
    D.ambientPowerL(0                   )
-    .motionMode   (MOTION_CAMERA_OBJECT)  // enable   motion blur
-    .motionScale  (0.08                ); // increase motion blur scale
+    .motionMode   (MOTION_CAMERA_OBJECT); // enable motion blur
 }
 /******************************************************************************/
 bool Init()
@@ -62,8 +61,8 @@ bool Update()
       Vec2   v; CosSin(v.x, v.y, i*PI2/Elms(object) + Time.time()*speed); // calculate sine and cosine of angle
       Matrix new_matrix(Vec(v.x, 0, v.y));                                // create 'new_matrix' with initial position
 
-      // calculate velocity changes according to old and new matrix
-      GetVel(object[i].vel, object[i].ang_vel, object[i].matrix, new_matrix);
+      // calculate position/angle changes according to old and new matrix
+      GetDelta(object[i].pos_delta, object[i].ang_delta, object[i].matrix, new_matrix);
 
       // store new matrix
       object[i].matrix=new_matrix;
@@ -78,8 +77,8 @@ void Render() // rendering method
    {
       case RM_PREPARE:
       {
-         box.draw(MatrixIdentity, Vec(0, 0, 0));                                    // box is rendered with identity matrix and (0,0,0) velocity
-         REPA(object)ball.draw(object[i].matrix, object[i].vel, object[i].ang_vel); // draw ball objects with their matrix and velocities
+         box.draw(MatrixIdentity, Vec(0, 0, 0));                                            // box is rendered with identity matrix and (0,0,0) velocity
+         REPA(object)ball.draw(object[i].matrix, object[i].pos_delta, object[i].ang_delta); // draw ball objects with their matrix and deltas
 
          LightPoint(25, Vec(0, 3, 0)).add();
       }break;
