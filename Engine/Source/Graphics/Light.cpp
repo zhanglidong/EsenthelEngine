@@ -840,7 +840,7 @@ static Bool ShadowMap(LightDir &light)
 
    #if FLAT_SHADOW_MAP
       {
-         Matrix4 mp; ProjMatrix.mul(HsmMatrixSet(ShdDirStepDir[i]), mp);
+         Matrix4 mp; ProjMatrix.mul(HsmMatrixSet(ShdDirStepDir[i]), mp); // 'ProjMatrix' here is from shadow view
          REPS(Renderer._eye, Renderer._eye_num)ShdMatrix[Renderer._eye].mul(mp, ShdMatrix4[i][Renderer._eye]);
       }
    #else // cube shadow maps
@@ -933,6 +933,7 @@ static void ShadowMap(Flt range, VecD &pos)
       Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-GetBias(); // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
       Matrix  m;
       Matrix4 mp;
+      // 'ProjMatrix' here is from shadow view
       ProjMatrix.mul(HsmMatrixSet(DIR_RIGHT  ), mp); REPS(Renderer._eye, Renderer._eye_num){Matrix &s=ShdMatrix[Renderer._eye]; m=s; m.x.x=-s.x.z; m.y.x=-s.y.z; m.z.x=-s.z.z; m.pos.x=-s.pos.z; m.x.z= s.x.x; m.y.z= s.y.x; m.z.z= s.z.x; m.pos.z= s.pos.x; MatrixFovScale(m, f); m.scale(bias); m.mul(mp, ShdMatrix4[0][Renderer._eye]);} // right
       ProjMatrix.mul(HsmMatrixSet(DIR_LEFT   ), mp); REPS(Renderer._eye, Renderer._eye_num){Matrix &s=ShdMatrix[Renderer._eye]; m=s; m.x.x= s.x.z; m.y.x= s.y.z; m.z.x= s.z.z; m.pos.x= s.pos.z; m.x.z=-s.x.x; m.y.z=-s.y.x; m.z.z=-s.z.x; m.pos.z=-s.pos.x; MatrixFovScale(m, f); m.scale(bias); m.mul(mp, ShdMatrix4[1][Renderer._eye]);} // left
       ProjMatrix.mul(HsmMatrixSet(DIR_UP     ), mp); REPS(Renderer._eye, Renderer._eye_num){Matrix &s=ShdMatrix[Renderer._eye]; m=s; m.x.z= s.x.y; m.y.z= s.y.y; m.z.z= s.z.y; m.pos.z= s.pos.y; m.x.y=-s.x.z; m.y.y=-s.y.z; m.z.y=-s.z.z; m.pos.y=-s.pos.z; MatrixFovScale(m, f); m.scale(bias); m.mul(mp, ShdMatrix4[2][Renderer._eye]);} // up
@@ -981,7 +982,7 @@ static void ShadowMap(LightCone &light)
 #if FLAT_SHADOW_MAP
    {
       Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-GetBias(); // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
-      Matrix4 mp; ProjMatrix.mul(HsmMatrixCone, mp);
+      Matrix4 mp; ProjMatrix.mul(HsmMatrixCone, mp); // 'ProjMatrix' here is from shadow view
       REPS(Renderer._eye, Renderer._eye_num){Matrix m=ShdMatrix[Renderer._eye]; MatrixFovScale(m, f); m.scale(bias); m.mul(mp, ShdMatrix4[0][Renderer._eye]);}
    }
 #endif
