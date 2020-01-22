@@ -209,7 +209,7 @@ struct ViewportClass
 {
    Flt  from, range;
    Vec2 center, size, size_fov_tan;
-   Vec4 FracToPosXY, ScreenToPosXY, PosToScreen;
+   Vec4 FracToPosXY, UVToPosXY, ProjectedPosToUV;
 };
 
 BUFFER_I(Viewport, SBI_VIEWPORT)
@@ -352,30 +352,26 @@ BUFFER_I(Color, SBI_COLOR)
 BUFFER_END
 /******************************************************************************/
 BUFFER_I(Frame, SBI_FRAME) // once per-frame
-   Vec   CamAngVel                 ; // camera angular velocity (actually delta not velocity, don't put to Camera Buffer because this is set once per-frame and ignored for shadow maps)
-   Flt   TesselationDensity        ; // tesselation density
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
+   Flt   TesselationDensity        ; // tesselation density
    Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
    VecH  AmbientNSColor            ; // ambient combined with night shade
    VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
    VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
+   VecH4 BendFactorPrev            ; // factors used for grass/leaf bending calculation (for previous frame)
 BUFFER_END
 
 BUFFER_I(Camera, SBI_CAMERA) // this gets changed when drawing shadow maps
-   Matrix4 ProjMatrix; // projection matrix
-   Matrix  CamMatrix ; // camera     matrix
+   Matrix4 ProjMatrix    ; // projection matrix
+   Matrix4 ProjMatrixPrev; // projection matrix (for previous frame)
+   Matrix  CamMatrix     ; // camera     matrix
+   Matrix  CamMatrixPrev ; // camera     matrix (for previous frame)
 BUFFER_END
 
-struct Velocity
-{
-   VecH lin, //  linear, use VecH to allow velocity functions work faster
-        ang; // angular, use VecH to allow velocity functions work faster
-};
-
-BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
-   Velocity ObjVel[MAX_MATRIX]; // object velocities (actually deltas not velocities)
+BUFFER(ViewToViewPrev)
+   Matrix ViewToViewPrev; // converts from current view space to view space from previous frame
 BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
@@ -778,6 +774,10 @@ Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Matrix ViewMatrix[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
 BUFFER_END
+
+BUFFER_I(ObjMatrixPrev, SBI_OBJ_MATRIX_PREV) // !! WARNING: this CB is dynamically resized, do not add other members !!
+   Matrix ViewMatrixPrev[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix) for previous frame
+BUFFER_END
 #include "!Set Prec Default.h"
 
 Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx]);}
@@ -786,16 +786,31 @@ VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx
 Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
 VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);} // no need HP for dirs
 
+Vec  TransformPosPrev(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrixPrev[mtrx]);}
+VecH TransformDirPrev(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrixPrev[mtrx]);}
+
+Vec  TransformPosPrev(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrixPrev[bone.x]) + weight.y*Transform (pos, ViewMatrixPrev[bone.y]) + weight.z*Transform (pos, ViewMatrixPrev[bone.z]);}
+VecH TransformDirPrev(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrixPrev[bone.x]) + weight.y*Transform3(dir, ViewMatrixPrev[bone.y]) + weight.z*Transform3(dir, ViewMatrixPrev[bone.z]);} // no need HP for dirs
+
 Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
 Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
 Vec ViewMatrixZ  (UInt mtrx=0) {return ViewMatrix[mtrx][2];}
 Vec ViewMatrixPos(UInt mtrx=0) {return ViewMatrix[mtrx][3];}
+
+Vec ViewMatrixPrevX  (UInt mtrx=0) {return ViewMatrixPrev[mtrx][0];}
+Vec ViewMatrixPrevY  (UInt mtrx=0) {return ViewMatrixPrev[mtrx][1];}
+Vec ViewMatrixPrevZ  (UInt mtrx=0) {return ViewMatrixPrev[mtrx][2];}
+Vec ViewMatrixPrevPos(UInt mtrx=0) {return ViewMatrixPrev[mtrx][3];}
 
 Matrix GetViewMatrix() {return ViewMatrix[0];}
 #else // Mac currently has no known workaround and must use this. Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3 however a workaround was found to declare layout additionally for struct instead of just member.
 #include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Vec4 ViewMatrix[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
+BUFFER_END
+
+BUFFER_I(ObjMatrixPrev, SBI_OBJ_MATRIX_PREV) // !! WARNING: this CB is dynamically resized, do not add other members !!
+   Vec4 ViewMatrixPrev[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix) for previous frame
 BUFFER_END
 #include "!Set Prec Default.h"
 
@@ -830,13 +845,53 @@ VecH TransformDir(VecH dir, UInt mtrx)
 Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
 VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);} // no need HP for dirs
 
+// -
+
+Vec TransformPosPrev(Vec pos)
+{
+   return Vec(Dot(pos, ViewMatrixPrev[0].xyz) + ViewMatrixPrev[0].w,
+              Dot(pos, ViewMatrixPrev[1].xyz) + ViewMatrixPrev[1].w,
+              Dot(pos, ViewMatrixPrev[2].xyz) + ViewMatrixPrev[2].w);
+}
+VecH TransformDirPrev(VecH dir)
+{
+   return VecH(Dot(dir, ViewMatrixPrev[0].xyz),
+               Dot(dir, ViewMatrixPrev[1].xyz),
+               Dot(dir, ViewMatrixPrev[2].xyz));
+}
+
+Vec TransformPosPrev(Vec pos, UInt mtrx)
+{
+   mtrx*=3;
+   return Vec(Dot(pos, ViewMatrixPrev[mtrx  ].xyz) + ViewMatrixPrev[mtrx  ].w,
+              Dot(pos, ViewMatrixPrev[mtrx+1].xyz) + ViewMatrixPrev[mtrx+1].w,
+              Dot(pos, ViewMatrixPrev[mtrx+2].xyz) + ViewMatrixPrev[mtrx+2].w);
+}
+VecH TransformDirPrev(VecH dir, UInt mtrx)
+{
+   mtrx*=3;
+   return VecH(Dot(dir, ViewMatrixPrev[mtrx  ].xyz),
+               Dot(dir, ViewMatrixPrev[mtrx+1].xyz),
+               Dot(dir, ViewMatrixPrev[mtrx+2].xyz));
+}
+
+Vec  TransformPosPrev(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPosPrev(pos, bone.x) + weight.y*TransformPosPrev(pos, bone.y) + weight.z*TransformPosPrev(pos, bone.z);}
+VecH TransformDirPrev(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDirPrev(dir, bone.x) + weight.y*TransformDirPrev(dir, bone.y) + weight.z*TransformDirPrev(dir, bone.z);} // no need HP for dirs
+
+// -
+
 Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
 Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}
 Vec ViewMatrixZ  () {return Vec(ViewMatrix[0].z, ViewMatrix[1].z, ViewMatrix[2].z);}
 Vec ViewMatrixPos() {return Vec(ViewMatrix[0].w, ViewMatrix[1].w, ViewMatrix[2].w);}
 
+Vec ViewMatrixPrevPos() {return Vec(ViewMatrixPrev[0].w, ViewMatrixPrev[1].w, ViewMatrixPrev[2].w);}
+
 Vec ViewMatrixY  (UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].y, ViewMatrix[mtrx+1].y, ViewMatrix[mtrx+2].y);}
 Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, ViewMatrix[mtrx+1].w, ViewMatrix[mtrx+2].w);}
+
+Vec ViewMatrixPrevY  (UInt mtrx) {mtrx*=3; return Vec(ViewMatrixPrev[mtrx].y, ViewMatrixPrev[mtrx+1].y, ViewMatrixPrev[mtrx+2].y);}
+Vec ViewMatrixPrevPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrixPrev[mtrx].w, ViewMatrixPrev[mtrx+1].w, ViewMatrixPrev[mtrx+2].w);}
 
 Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
 #endif
@@ -857,7 +912,8 @@ VecH MatrixZ  (MatrixH m) {return m[2];}
 Vec  MatrixPos(Matrix  m) {return m[3];}
 VecH MatrixPos(MatrixH m) {return m[3];}
 
-Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
+Vec ObjWorldPos    (UInt mtrx=0) {return Transform(ViewMatrixPos    (mtrx), CamMatrix    );} // get the world position of the object matrix
+Vec ObjWorldPosPrev(UInt mtrx=0) {return Transform(ViewMatrixPrevPos(mtrx), CamMatrixPrev);} // get the world position of the object matrix in previous frame
 /******************************************************************************/
 Vec4 Project(Vec pos)
 {
@@ -881,44 +937,65 @@ Vec ProjectXYW(Vec pos)
    return Transform(pos, ProjMatrix).xyw;
 #endif
 }
-/******************************************************************************/
-Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
+Vec ProjectPrevXYW(Vec pos)
 {
-   return do_clamp ? Mid(screen, ImgClamp.xy, ImgClamp.zw) : screen;
+#if 1 // 2x faster on Intel (made no difference for GeForce)
+   return Vec(pos.x*ProjMatrixPrev[0].x + pos.z*ProjMatrixPrev[2].x, // "pos.z*ProjMatrixPrev[2].x" only needed for Stereo or TAA
+              pos.y*ProjMatrixPrev[1].y + pos.z*ProjMatrixPrev[2].y, // "pos.z*ProjMatrixPrev[2].y" only needed for           TAA
+                                        //pos.z*ProjMatrixPrev[2].z + ProjMatrixPrev[3].z,
+                                          pos.z*ProjMatrixPrev[2].w + ProjMatrixPrev[3].w);
+#else // slower
+   return Transform(pos, ProjMatrixPrev).xyw;
+#endif
+}
+/******************************************************************************/
+Vec2 UVClamp(Vec2 uv, Bool do_clamp=true)
+{
+   return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;
 }
 /******************************************************************************/
 Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
 {
    return frac * Viewport.FracToPosXY.xy + Viewport.FracToPosXY.zw;
 }
-Vec2 ScreenToPosXY(Vec2 screen) // return view space xy position at z=1
+Vec2 UVToPosXY(Vec2 uv) // return view space xy position at z=1
 {
-   return screen * Viewport.ScreenToPosXY.xy + Viewport.ScreenToPosXY.zw;
+   return uv * Viewport.UVToPosXY.xy + Viewport.UVToPosXY.zw;
 }
-Vec2 ScreenToPosXY(Vec2 screen, Flt z) // return view space xy position at z='z'
+Vec2 UVToPosXY(Vec2 uv, Flt z) // return view space xy position at z='z'
 {
-   return ScreenToPosXY(screen)*z;
+   return UVToPosXY(uv)*z;
 }
 /******************************************************************************/
-Vec2 ProjectedPosToScreen(Vec4 projected_pos) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range
+Vec2 ProjectedPosToUV(Vec4 projected_pos) // prefer using 'PixelToUV' if possible, returns (0,0)..(1,1) range
 {
-   return (projected_pos.xy/projected_pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
+   return (projected_pos.xy/projected_pos.w) * Viewport.ProjectedPosToUV.xy + Viewport.ProjectedPosToUV.zw;
 }
-Vec2 ProjectedPosXYWToScreen(Vec projected_pos_xyw) // prefer using 'PixelToScreen' if possible, returns (0,0)..(1,1) range, same as 'ProjectedPosToScreen' except Z channel is skipped because it's not needed
+Vec2 ProjectedPosXYWToUV(Vec projected_pos_xyw) // prefer using 'PixelToUV' if possible, returns (0,0)..(1,1) range, same as 'ProjectedPosToUV' except Z channel is skipped because it's not needed
 {
-   return (projected_pos_xyw.xy/projected_pos_xyw.z) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
+   return (projected_pos_xyw.xy/projected_pos_xyw.z) * Viewport.ProjectedPosToUV.xy + Viewport.ProjectedPosToUV.zw;
 }
-Vec2 PosToScreen(Vec pos)
+Vec2 PosToUV(Vec view_pos)
 {
-   return ProjectedPosXYWToScreen(ProjectXYW(pos)); // TODO: can this be done faster?
+   return ProjectedPosXYWToUV(ProjectXYW(view_pos)); // TODO: can this be done faster?
 }
-Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'ProjectedPosToScreen', returns (0,0)..(1,1) range
+Vec2 PixelToUV(Vec4 pixel) // faster and more accurate than 'ProjectedPosToUV', returns (0,0)..(1,1) range
 {
    return pixel.xy*RTSize.xy;
 }
 /******************************************************************************/
 // VELOCITIES
-/******************************************************************************/
+/******************************************************************************
+struct Velocity
+{
+   VecH lin, //  linear, use VecH to allow velocity functions work faster
+        ang; // angular, use VecH to allow velocity functions work faster
+};
+
+BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
+   Velocity ObjVel[MAX_MATRIX]; // object velocities (actually deltas not velocities)
+BUFFER_END
+
 VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
 {
    return             ObjVel[mtrx].lin
@@ -938,28 +1015,19 @@ Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need 
    return (GetVel      (local_pos, bone.x)*weight.x
           +GetVel      (local_pos, bone.y)*weight.y
           +GetVel      (local_pos, bone.z)*weight.z)
-          +GetCamAngVel(view_pos);
+          +GetCamAngVel( view_pos);
 }
 /******************************************************************************/
-VEL_RT_TYPE GetVelocityScreen(Vec projected_prev_pos_xyw, Vec2 screen)
+VEL_RT_TYPE GetVelocityUV(Vec projected_prev_pos_xyw, Vec2 uv)
 {
    projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
-   VEL_RT_TYPE vel=ProjectedPosXYWToScreen(projected_prev_pos_xyw)-screen;
+   VEL_RT_TYPE vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
 #if !SIGNED_VEL_RT
    vel=vel*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
 #endif
    return vel;
 }
-VEL_RT_TYPE GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityScreen(projected_prev_pos_xyw, PixelToScreen(pixel));}
-VEL_RT_TYPE GetVelocitiesCameraOnly(Vec view_pos, Vec2 screen_pos)
-{
-   Vec view_vel=ObjVel[0].lin // set to object linear velocity in view space
-               +GetCamAngVel(view_pos); // add camera angular velocity
-
-   VEL_RT_TYPE vel=PosToScreen(view_pos-view_vel) - screen_pos;
-
-   return vel; // this function always returns signed -1..1 version
-}
+VEL_RT_TYPE GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityUV(projected_prev_pos_xyw, PixelToUV(pixel));}
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
@@ -1003,10 +1071,10 @@ Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=
                     pos.xy=pos_xy*pos.z;
    return pos;
 }
-Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
+Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
+Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
 
 Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
 /******************************************************************************/
@@ -1124,7 +1192,7 @@ void DrawPosXY_VS(VtxInput vtx,
       NOPERSP out Vec4 outVtx  :POSITION )
 {
    outTex  =vtx.tex();
-   outPosXY=ScreenToPosXY(outTex);
+   outPosXY=UVToPosXY(outTex);
    outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
@@ -1360,83 +1428,93 @@ Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 #define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
-Vec2 GetGrassBend(Vec world_pos)
+Vec2 GetGrassBend(Vec world_pos, Bool prev=false)
 {
+   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
    Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
-   return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
-               (0.18*GrassBendScale)*Sin(offset+BendFactor.z) + (0.24*GrassBendScale)*Sin(offset+BendFactor.w));
+   return Vec2((0.28*GrassBendScale)*Sin(offset+bend_factor.x) + (0.32*GrassBendScale)*Sin(offset+bend_factor.y),
+               (0.18*GrassBendScale)*Sin(offset+bend_factor.z) + (0.24*GrassBendScale)*Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafBend(VecH center)
+VecH2 GetLeafBend(VecH center, Bool prev=false)
 {
+   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
    Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((0.28*LeafBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafBendScale)*(Half)Sin(offset+BendFactor.y),
-                (0.18*LeafBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafBendScale)*(Half)Sin(offset+BendFactor.w));
+   return VecH2((0.28*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (0.32*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
+                (0.18*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (0.24*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafsBend(VecH center)
+VecH2 GetLeafsBend(VecH center, Bool prev=false)
 {
+   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
    Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((0.28*LeafsBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafsBendScale)*(Half)Sin(offset+BendFactor.y),
-                (0.18*LeafsBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+BendFactor.w));
+   return VecH2((0.28*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (0.32*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
+                (0.18*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
 }
 /******************************************************************************/
 Half GrassFadeOut(UInt mtrx=0)
 {
    return Sat(Length2(ViewMatrixPos(mtrx))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
+void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
 {
-   Flt  b   =Cube(Sat(local_pos.y));
-   Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(ViewMatrixY(mtrx)));
-
-   view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x;
-   view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
+   Flt b=Cube(Sat(local_pos.y));
+   if(!prev)
+   {
+      Vec2 bend=GetGrassBend(ObjWorldPos(mtrx), prev)*(b*Length(ViewMatrixY(mtrx)));
+      view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x;
+      view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
+   }else
+   {
+      Vec2 bend=GetGrassBend(ObjWorldPosPrev(mtrx), prev)*(b*Length(ViewMatrixPrevY(mtrx)));
+      view_pos+=Vec(CamMatrixPrev[0].x, CamMatrixPrev[1].x, CamMatrixPrev[2].x)*bend.x;
+      view_pos+=Vec(CamMatrixPrev[0].y, CamMatrixPrev[1].y, CamMatrixPrev[2].y)*bend.y;
+   }
 }
 /******************************************************************************/
-void BendLeaf(VecH center, in out Vec pos)
+void BendLeaf(VecH center, in out Vec pos, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafBend(center);
+   VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm)
+void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafBend(center);
+   VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan)
+void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafBend(center);
+   VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;
 }
 /******************************************************************************/
-void BendLeafs(VecH center, Half offset, in out Vec pos)
+void BendLeafs(VecH center, Half offset, in out Vec pos, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm)
+void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan)
+void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;
@@ -1607,7 +1685,7 @@ Unity:
    half OneMinusReflectivityMetallic(half metallic) {lerp(dielectricSpec, 1, metallic);} with 'dielectricSpec' defined as 0.04
 To achieve compatibility with a lot of assets for those engines, Esenthel uses a similar formula, however tweaked to preserve original diffuse color and minimize reflectivity at low reflectivity values:
    for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
-   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
+   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp'), to workaround this, import metal textures with "?metalToReflect" param
 */
 Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster
 {
@@ -1965,9 +2043,9 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    void smooth (Half smooth ) {out2.x=smooth ;}
    void reflect(Half reflect) {out2.y=reflect;}
 
-   void velocity      (Vec projected_prev_pos_xyw, Vec4 pixel ) {out3.xy=GetVelocityPixel (projected_prev_pos_xyw, pixel );}
-   void velocityScreen(Vec projected_prev_pos_xyw, Vec2 screen) {out3.xy=GetVelocityScreen(projected_prev_pos_xyw, screen);}
-   void velocityZero  (                                       ) {out3.xy=(SIGNED_VEL_RT ? 0 : 0.5);}
+   void velocity    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetVelocityPixel(projected_prev_pos_xyw, pixel);}
+   void velocityUV  (Vec projected_prev_pos_xyw, Vec2 uv   ) {out3.xy=GetVelocityUV   (projected_prev_pos_xyw, uv   );}
+   void velocityZero(                                      ) {out3.xy=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION
@@ -1985,9 +2063,11 @@ struct HSData
        B201:TEXCOORD5,
        B111:TEXCOORD6;
 
+#if 0 // Cubic normals
    Vec N110:NORMAL0,
        N011:NORMAL1,
        N101:NORMAL2;
+#endif
 };
 Vec2 ToScreen(Vec pos)
 {

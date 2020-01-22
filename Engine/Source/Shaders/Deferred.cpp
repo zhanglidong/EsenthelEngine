@@ -23,6 +23,9 @@
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 #define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 
+#define USE_VEL 1
+#define TESSELATE_VEL (TESSELATE && USE_VEL && 0) // FIXME
+
 #define SET_POS (TESSELATE || MACRO || (!FAST_TPOS && BUMP_MODE>SBUMP_FLAT))
 #define SET_TEX (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 /******************************************************************************
@@ -38,7 +41,12 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
+#if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
+#endif
+#if TESSELATE_VEL
+   VecH nrm_prev:PREV_NORMAL;
+#endif
 
 #if   BUMP_MODE> SBUMP_FLAT
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
@@ -84,8 +92,11 @@ void VS
    CLIP_DIST
 )
 {
-   Vec  local_pos=vtx.pos(), view_pos, view_vel;
+   Vec  local_pos=vtx.pos(), view_pos;
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
+
+   // VEL
+   Vec local_pos_prev, view_pos_prev; VecH nrm_prev; if(USE_VEL){local_pos_prev=local_pos; if(TESSELATE_VEL)nrm_prev=nrm;}
 
 #if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
@@ -106,20 +117,30 @@ void VS
       if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm     );else
                                BendLeaf(vtx.hlp(), local_pos          );
+      if(USE_VEL)
+      {
+         if(TESSELATE_VEL)BendLeaf(vtx.hlp(), local_pos_prev, nrm_prev, true);else
+                          BendLeaf(vtx.hlp(), local_pos_prev          , true);
+      }
    }
    if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm     );else
                                BendLeafs(vtx.hlp(), vtx.size(), local_pos          );
+      if(USE_VEL)
+      {
+         if(TESSELATE_VEL)BendLeafs(vtx.hlp(), vtx.size(), local_pos_prev, nrm_prev, true);else
+                          BendLeafs(vtx.hlp(), vtx.size(), local_pos_prev          , true);
+      }
    }
 
    if(!SKIN)
    {
       if(true) // instance
       {
-         view_pos=TransformPos(local_pos,           vtx.instance());
-         view_vel=GetObjVel   (local_pos, view_pos, vtx.instance());
+                    view_pos     =TransformPos    (local_pos     , vtx.instance());
+         if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev, vtx.instance());
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm, vtx.instance());
@@ -127,15 +148,22 @@ void VS
       #elif BUMP_MODE==SBUMP_FLAT
          O.nrm    =TransformDir(nrm, vtx.instance());
       #endif
+      #if TESSELATE_VEL
+         O.nrm_prev=TransformDirPrev(nrm_prev, vtx.instance());
+      #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos, vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+         {
+                       BendGrass(local_pos     , view_pos     , vtx.instance());
+            if(USE_VEL)BendGrass(local_pos_prev, view_pos_prev, vtx.instance(), true);
+         }
       #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
       }else
       {
-         view_pos=TransformPos(local_pos);
-         view_vel=GetObjVel   (local_pos, view_pos);
+                    view_pos     =TransformPos    (local_pos);
+         if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev);
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm);
@@ -143,8 +171,15 @@ void VS
       #elif BUMP_MODE==SBUMP_FLAT
          O.nrm    =TransformDir(nrm);
       #endif
+      #if TESSELATE_VEL
+         O.nrm_prev=TransformDirPrev(nrm_prev);
+      #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos);
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+         {
+                       BendGrass(local_pos     , view_pos);
+            if(USE_VEL)BendGrass(local_pos_prev, view_pos_prev, 0, true);
+         }
       #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
@@ -153,14 +188,17 @@ void VS
    {
       VecU bone    =vtx.bone  ();
       VecH weight_h=vtx.weight();
-      view_pos=TransformPos(local_pos,           bone, vtx.weight());
-      view_vel=GetBoneVel  (local_pos, view_pos, bone,     weight_h);
+                 view_pos     =TransformPos    (local_pos     , bone, vtx.weight());
+      if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev, bone, vtx.weight());
 
    #if   BUMP_MODE> SBUMP_FLAT
       O.mtrx[2]=TransformDir(nrm, bone, weight_h);
       O.mtrx[0]=TransformDir(tan, bone, weight_h);
    #elif BUMP_MODE==SBUMP_FLAT
       O.nrm    =TransformDir(nrm, bone, weight_h);
+   #endif
+   #if TESSELATE_VEL
+      O.nrm_prev=TransformDirPrev(nrm_prev, bone, weight_h);
    #endif
    }
 
@@ -174,6 +212,9 @@ void VS
       O.mtrx[0]=Normalize(O.mtrx[0]);
    #elif BUMP_MODE==SBUMP_FLAT
       O.nrm    =Normalize(O.nrm);
+   #endif
+   #if TESSELATE_VEL
+      O.nrm_prev=Normalize(O.nrm_prev);
    #endif
    }
 
@@ -189,7 +230,9 @@ void VS
    O.pos=view_pos;
 #endif
    O_vtx=Project(view_pos); CLIP_PLANE(view_pos);
-   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
+#if USE_VEL
+   O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
+#endif
 }
 /******************************************************************************/
 // PS
@@ -197,7 +240,9 @@ void VS
 void PS
 (
    VS_PS I,
+#if USE_VEL
    PIXEL,
+#endif
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif
@@ -695,13 +740,17 @@ void PS
    BackFlip(nrm, front);
 #endif
 
-   output.color      (col    );
-   output.glow       (glow   );
-   output.normal     (nrm    );
-   output.translucent(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
-   output.smooth     (smooth );
-   output.reflect    (reflect);
-   output.velocity   (I.projected_prev_pos_xyw, pixel);
+   output.color       (col    );
+   output.glow        (glow   );
+   output.normal      (nrm    );
+   output.translucent (FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
+   output.smooth      (smooth );
+   output.reflect     (reflect);
+#if USE_VEL
+   output.velocity    (I.projected_prev_pos_xyw, pixel);
+#else
+   output.velocityZero();
+#endif
 }
 /******************************************************************************/
 // HULL / DOMAIN
@@ -716,14 +765,21 @@ HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I
 [outputcontrolpoints(3)]
 VS_PS HS
 (
-   InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID
+   InputPatch<VS_PS,3> I,
+   UInt cp_id:SV_OutputControlPointID
 )
 {
    VS_PS O;
 
    O.pos=I[cp_id].pos;
 
+#if USE_VEL
    O.projected_prev_pos_xyw=I[cp_id].projected_prev_pos_xyw;
+#endif
+
+#if TESSELATE_VEL
+   O.nrm_prev=I[cp_id].nrm_prev;
+#endif
 
 #if SET_TEX
    O.tex=I[cp_id].tex;
@@ -771,7 +827,10 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
+#if USE_VEL
+   // FIXME this should be tesselated
    O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y;
+#endif
 
 #if SET_TEX
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;

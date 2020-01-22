@@ -40,8 +40,8 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   outTex  =ProjectedPosToScreen(outPos);
-   outPosXY=      ScreenToPosXY (outTex);
+   outTex  =ProjectedPosToUV   (outPos);
+   outPosXY=          UVToPosXY(outTex);
 #endif
 }
 /******************************************************************************/
@@ -120,8 +120,8 @@ VecH LightPoint_PS
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToScreen(pixel);
-   Vec2 inPosXY=ScreenToPosXY(inTex);
+   Vec2 inTex  =PixelToUV   (pixel);
+   Vec2 inPosXY=   UVToPosXY(inTex);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
@@ -195,8 +195,8 @@ VecH LightLinear_PS
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToScreen(pixel);
-   Vec2 inPosXY=ScreenToPosXY(inTex);
+   Vec2 inTex  =PixelToUV   (pixel);
+   Vec2 inPosXY=   UVToPosXY(inTex);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
@@ -270,8 +270,8 @@ VecH LightCone_PS
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToScreen(pixel);
-   Vec2 inPosXY=ScreenToPosXY(inTex);
+   Vec2 inTex  =PixelToUV   (pixel);
+   Vec2 inPosXY=   UVToPosXY(inTex);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)

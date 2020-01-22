@@ -70,6 +70,13 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
    outVel=inVel;
 }
 /******************************************************************************/
+VEL_RT_TYPE GetVelocitiesCameraOnly(Vec view_pos, Vec2 uv)
+{
+   Vec view_pos_prev=Transform(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev
+   VEL_RT_TYPE vel=PosToUV(view_pos_prev) - uv;
+   return vel; // this function always returns signed -1..1 version
+}
+/******************************************************************************/
 void Convert_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex  :TEXCOORD0,
          #if MODE==0
@@ -79,7 +86,7 @@ void Convert_VS(VtxInput vtx,
 {
    outTex=vtx.tex();
 #if MODE==0
-   outPosXY=ScreenToPosXY(outTex);
+   outPosXY=UVToPosXY(outTex);
 #endif
    outVtx=vtx.pos4();
 }
@@ -100,8 +107,8 @@ VecH Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0
       blur=TexLod(ImgXYF, UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
    #endif
 
-   #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1) and fix zero, unsigned texture formats don't have a precise zero when converted to signed, because both 127/255*2-1 and 128/255*2-1 aren't zeros, 127: (127/255-0.5)==-0.5/255, 128: (128/255-0.5)==0.5/255, 129: (129/255-0.5)==1.5/255, so let's compare <=1.0/255
-      blur=((Abs(blur-0.5)<=1.0/255) ? VEL_RT_TYPE(0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
+   #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1)
+      blur=blur*2-1;
    #endif
 #endif
 

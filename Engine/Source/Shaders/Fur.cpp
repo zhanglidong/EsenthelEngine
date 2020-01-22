@@ -1,6 +1,8 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Fur.h"
+/******************************************************************************/
+#define USE_VEL 1
 #define FACTOR (-0.7) // prevents complete darkness at the bottom layers, gives ambient=0.3, it will match the 'size' version
 /******************************************************************************/
 VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
@@ -11,9 +13,11 @@ struct Base_VS_PS
 {
    Vec2 tex:TEXCOORD;
    VecH nrm:NORMAL  ; // !! not Normalized !!
-   Vec  projected_prev_pos_xyw:PREV_POS;
+#if USE_VEL
+   Vec projected_prev_pos_xyw:PREV_POS;
+#endif
 #if SIZE
-   Half len:LENGTH  ;
+   Half len:LENGTH;
 #endif
 };
 void Base_VS
@@ -26,40 +30,44 @@ void Base_VS
    CLIP_DIST
 )
 {
-   Vec view_pos, view_vel;
+   Vec view_pos, view_pos_prev;
    O.tex=vtx.tex();
 
    if(!SKIN)
    {
       if(true) // instance
       {
-         view_pos=TransformPos(vtx.pos(),           vtx.instance());
-            O.nrm=TransformDir(vtx.nrm(),           vtx.instance());
-         view_vel=GetObjVel   (vtx.pos(), view_pos, vtx.instance());
+                    view_pos     =TransformPos    (vtx.pos(), vtx.instance());
+         if(USE_VEL)view_pos_prev=TransformPosPrev(vtx.pos(), vtx.instance());
+                       O.nrm     =TransformDir    (vtx.nrm(), vtx.instance());
       }else
       {
-         view_pos=TransformPos(vtx.pos());
-            O.nrm=TransformDir(vtx.nrm());
-         view_vel=GetObjVel   (vtx.pos(), view_pos);
+                    view_pos     =TransformPos    (vtx.pos());
+         if(USE_VEL)view_pos_prev=TransformPosPrev(vtx.pos());
+                       O.nrm     =TransformDir    (vtx.nrm());
       }
    }else
    {
       VecU bone=vtx.bone();
-      view_pos=TransformPos(vtx.pos(),           bone, vtx.weight());
-         O.nrm=TransformDir(vtx.nrm(),           bone, vtx.weight());
-      view_vel=GetBoneVel  (vtx.pos(), view_pos, bone, vtx.weight());
+                 view_pos     =TransformPos    (vtx.pos(), bone, vtx.weight());
+      if(USE_VEL)view_pos_prev=TransformPosPrev(vtx.pos(), bone, vtx.weight());
+                    O.nrm     =TransformDir    (vtx.nrm(), bone, vtx.weight());
    }
 #if SIZE
    O.len=vtx.size();
 #endif
    CLIP_PLANE(view_pos); outVtx=Project(view_pos);
-   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
+#if USE_VEL
+   O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
+#endif
 }
 /******************************************************************************/
 void Base_PS
 (
    Base_VS_PS I,
+#if USE_VEL
    PIXEL,
+#endif
    out DeferredSolidOutput output
 )
 {
@@ -74,13 +82,17 @@ void Base_PS
 
    I.nrm=Normalize(I.nrm);
 
-   output.color      (col);
-   output.glow       (0);
-   output.normal     (I.nrm);
-   output.translucent(0);
-   output.smooth     (Material.smooth);
-   output.reflect    (Material.reflect);
-   output.velocity   (I.projected_prev_pos_xyw, pixel);
+   output.color       (col);
+   output.glow        (0);
+   output.normal      (I.nrm);
+   output.translucent (0);
+   output.smooth      (Material.smooth);
+   output.reflect     (Material.reflect);
+#if USE_VEL
+   output.velocity    (I.projected_prev_pos_xyw, pixel);
+#else
+   output.velocityZero();
+#endif
 }
 /******************************************************************************/
 void Soft_VS
@@ -143,7 +155,7 @@ VecH4 Soft_PS
    outAlpha=color.a;
    
    if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
-              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToScreen(inOrigPos)).rgb; // we need to access the un-expanded pixel and not current pixel
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(inOrigPos)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }
 /******************************************************************************/

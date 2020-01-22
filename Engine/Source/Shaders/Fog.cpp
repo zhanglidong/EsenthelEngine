@@ -69,7 +69,7 @@ void FogBox_PS
    out VecH4 mask :TARGET1
 )
 {
-   Flt z  =TexDepthPoint(PixelToScreen(pixel));
+   Flt z  =TexDepthPoint(PixelToUV(pixel));
    Vec pos=inTex,
        dir=Normalize(inPos); dir*=Min((SQRT3*2)*inSize.w, (z-inPos.z)/dir.z);
        dir=TransformTP(dir, inMat); // convert to box space
@@ -114,7 +114,7 @@ void FogBoxI_VS(VtxInput vtx,
 
    outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
    outTex  =vtx.tex();
-   outPosXY=ScreenToPosXY(outTex);
+   outPosXY=UVToPosXY(outTex);
 }
 void FogBoxI_PS
 (
@@ -189,7 +189,7 @@ void FogBall_PS
    out VecH4 mask :TARGET1
 )
 {
-   Flt z  =TexDepthPoint(PixelToScreen(pixel));
+   Flt z  =TexDepthPoint(PixelToUV(pixel));
    Vec pos=Normalize    (inTex),
        dir=Normalize    (inPos); Flt max_length=(z-inPos.z)/(dir.z*inSize);
        dir=Transform3   (dir, CamMatrix); // convert to ball space
@@ -217,7 +217,7 @@ void FogBallI_VS(VtxInput vtx,
 {
    outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
    outTex  =vtx.tex();
-   outPosXY=ScreenToPosXY(outTex);
+   outPosXY=UVToPosXY(outTex);
    outSize =Length(ViewMatrixX());
 }
 void FogBallI_PS

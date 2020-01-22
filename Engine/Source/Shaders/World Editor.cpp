@@ -162,7 +162,8 @@ HSData HSConstant(InputPatch<VS_PS_NOVTX,3> I) {return GetHSData(I[0].pos, I[1].
 [outputcontrolpoints(3)]
 VS_PS_NOVTX HS
 (
-   InputPatch<VS_PS_NOVTX,3> I, UInt cp_id:SV_OutputControlPointID
+   InputPatch<VS_PS_NOVTX,3> I,
+   UInt cp_id:SV_OutputControlPointID
 )
 {
    VS_PS_NOVTX O;

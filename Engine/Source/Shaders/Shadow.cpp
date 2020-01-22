@@ -34,8 +34,8 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   outTex  =ProjectedPosToScreen(outPos);
- //outPosXY=      ScreenToPosXY (outTex);
+   outTex  =ProjectedPosToUV   (outPos);
+ //outPosXY=          UVToPosXY(outTex);
 #endif
 }
 /******************************************************************************/
@@ -115,7 +115,7 @@ Half ShdBlur_PS
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToScreen(pixel);
+   Vec2 inTex=PixelToUV(pixel);
 #endif
 
    Half weight=0.25,
@@ -149,7 +149,7 @@ Half ShdBlurX_PS
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToScreen(pixel);
+   Vec2 inTex=PixelToUV(pixel);
 #endif
 
    Half weight=0.5,
@@ -176,7 +176,7 @@ Half ShdBlurY_PS
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToScreen(pixel);
+   Vec2 inTex=PixelToUV(pixel);
 #endif
 
    Half weight=0.5,

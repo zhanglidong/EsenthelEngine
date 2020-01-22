@@ -76,6 +76,9 @@ void VS
    Vec  local_pos=vtx.pos(), view_pos, view_vel;
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
+   // VEL
+   Vec local_pos_prev, view_pos_prev; if(USE_VEL)local_pos_prev=local_pos;
+
 #if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP)O.tex*=Material.tex_scale;
@@ -89,22 +92,22 @@ void VS
       if(BUMP_MODE> SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeaf(vtx.hlp(), local_pos, nrm     );else
                                BendLeaf(vtx.hlp(), local_pos          );
+      if(USE_VEL              )BendLeaf(vtx.hlp(), local_pos_prev, true);
    }
    if(FX==FX_LEAFS_2D || FX==FX_LEAFS_3D)
    {
       if(BUMP_MODE> SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm, tan);else
       if(BUMP_MODE==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), local_pos, nrm     );else
                                BendLeafs(vtx.hlp(), vtx.size(), local_pos          );
+      if(USE_VEL              )BendLeafs(vtx.hlp(), vtx.size(), local_pos_prev, true);
    }
 
    if(!SKIN)
    {
       if(true) // instance
       {
-         view_pos=TransformPos(local_pos, vtx.instance());
-      #if USE_VEL
-         view_vel=GetObjVel(local_pos, view_pos, vtx.instance());
-      #endif
+                    view_pos     =TransformPos    (local_pos     , vtx.instance());
+         if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev, vtx.instance());
 
       #if   BUMP_MODE> SBUMP_FLAT
          nrm=TransformDir(nrm, vtx.instance());
@@ -113,14 +116,16 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos, vtx.instance());
-         if(GRASS_FADE                        )       O.col.a*=1-GrassFadeOut(vtx.instance());
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+         {
+                       BendGrass(local_pos     , view_pos     , vtx.instance());
+            if(USE_VEL)BendGrass(local_pos_prev, view_pos_prev, vtx.instance(), true);
+         }
+         if(GRASS_FADE)O.col.a*=1-GrassFadeOut(vtx.instance());
       }else
       {
-         view_pos=TransformPos(local_pos);
-      #if USE_VEL
-         view_vel=GetObjVel(local_pos, view_pos);
-      #endif
+                    view_pos     =TransformPos    (local_pos);
+         if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev);
 
       #if   BUMP_MODE> SBUMP_FLAT
          nrm=TransformDir(nrm);
@@ -129,17 +134,19 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)BendGrass(local_pos, view_pos);
-         if(GRASS_FADE                        )O.col.a*=1-GrassFadeOut();
+         if(FX==FX_GRASS_2D || FX==FX_GRASS_3D)
+         {
+                       BendGrass(local_pos     , view_pos);
+            if(USE_VEL)BendGrass(local_pos_prev, view_pos_prev, 0, true);
+         }
+         if(GRASS_FADE)O.col.a*=1-GrassFadeOut();
       }
    }else
    {
       VecU bone    =vtx.bone  ();
       VecH weight_h=vtx.weight();
-      view_pos=TransformPos(local_pos, bone, vtx.weight());
-   #if USE_VEL
-      view_vel=GetBoneVel(local_pos, view_pos, bone, weight_h);
-   #endif
+                 view_pos     =TransformPos    (local_pos     , bone, vtx.weight());
+      if(USE_VEL)view_pos_prev=TransformPosPrev(local_pos_prev, bone, vtx.weight());
 
    #if   BUMP_MODE> SBUMP_FLAT
       nrm=TransformDir(nrm, bone, weight_h);
@@ -214,7 +221,7 @@ void VS
    O.pos=view_pos;
 #endif
 #if USE_VEL
-   O.projected_prev_pos_xyw=ProjectXYW(view_pos-view_vel);
+   O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
 }
 /******************************************************************************/

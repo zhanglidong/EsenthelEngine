@@ -95,7 +95,7 @@ VecH4 Sky_PS
    alpha=0; // flat uses ALPHA_NONE
 #else
    #if MULTI_SAMPLE==0
-      Flt frac=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z;
+      Flt frac=TexDepthPoint(PixelToUV(pixel))/Normalize(inPos).z;
       alpha=Sat(frac*SkyFracMulAdd.x + SkyFracMulAdd.y);
    #elif MULTI_SAMPLE==1
       Flt pos_scale=Normalize(inPos).z;

@@ -234,7 +234,7 @@ void Surface_PS
       O_nrm.xyz=nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 #else
-   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 inTex  =PixelToUV(pixel);
    Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
    Vec  eye_dir=Normalize(inPos);
 

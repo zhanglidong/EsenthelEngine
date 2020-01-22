@@ -46,7 +46,7 @@ void Clouds_VS(VtxInput vtx,
    NOPERSP out Vec  dir   :TEXCOORD,
    NOPERSP out Vec4 outVtx:POSITION)
 {
-   dir=Transform3(Vec(ScreenToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
+   dir=Transform3(Vec(UVToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
    outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
@@ -170,7 +170,7 @@ void CloudsDraw_VS(VtxInput vtx,
        NOPERSP out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
-   outPos=Vec(ScreenToPosXY(vtx.tex()), 1);
+   outPos=Vec(UVToPosXY(vtx.tex()), 1);
    outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,

@@ -452,10 +452,9 @@ void ClearDeferred_VS(VtxInput vtx,
 {
    outTex=vtx.tex();
 
-   Vec view_pos=Vec(ScreenToPosXY(vtx.tex()), 1); // no need to normalize
-   Vec view_vel=GetCamAngVel(view_pos);
-   Vec prev_pos=view_pos-view_vel;
-   projected_prev_pos_xyw=ProjectXYW(prev_pos);
+   Vec view_pos=Vec(UVToPosXY(vtx.tex()), 1); // no need to normalize
+   Vec prev_pos=Transform3(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev, use 'Transform3' to rotate only (angular velocity) and skip movement (linear velocity)
+   projected_prev_pos_xyw=ProjectPrevXYW(prev_pos);
 
    outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
@@ -463,13 +462,13 @@ void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
                       NOPERSP Vec  projected_prev_pos_xyw:PREV_POS,
            out DeferredSolidOutput output) // #RTOutput
 {
-   output.color         (0);
-   output.glow          (0);
-   output.normal        (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
-   output.translucent   (0);
-   output.smooth        (0);
-   output.reflect       (0);
-   output.velocityScreen(projected_prev_pos_xyw, inTex);
+   output.color      (0);
+   output.glow       (0);
+   output.normal     (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.translucent(0);
+   output.smooth     (0);
+   output.reflect    (0);
+   output.velocityUV (projected_prev_pos_xyw, inTex);
 }
 /******************************************************************************/
 void ClearLight_PS(out VecH lum :TARGET0,
@@ -498,7 +497,7 @@ VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
 
    // now 'col' is sRGB
 
-   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y);
+   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y).rgb;
 
 #if DITHER
    ApplyDither(col.rgb, pixel.xy, false); // don't perform gamma conversions inside dither, because at this stage, color is in sRGB
@@ -519,8 +518,8 @@ VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
 /******************************************************************************/
-Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].lin.x+FurVel[0].x+FurStep.x+Material.color.a+MultiMaterial0.color.a+MultiMaterial1.color.a+MultiMaterial2.color.a+MultiMaterial3.color.a+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
-Flt Params1_PS():TARGET {return CamAngVel.x+CamMatrix[0].x+AmbientContrast+HdrBrightness+LocalFogColor.x+OverlayOpaqueFrac()+BehindBias+Step;}
+Flt Params0_PS():TARGET {return VtxHeightmap+FurVel[0].x+FurStep.x+Material.color.a+MultiMaterial0.color.a+MultiMaterial1.color.a+MultiMaterial2.color.a+MultiMaterial3.color.a+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
+Flt Params1_PS():TARGET {return CamMatrix[0].x+AmbientContrast+HdrBrightness+LocalFogColor.x+OverlayOpaqueFrac()+BehindBias+Step+TransformPosPrev(0);}
 Flt Params2_PS():TARGET {return NightShadeColor.x;}
 /******************************************************************************/
 #if GL // #WebSRGB

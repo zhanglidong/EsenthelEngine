@@ -67,16 +67,16 @@ void AO_VS
 )
 {
    outTex   =vtx.tex();
-   outPosXY =ScreenToPosXY(outTex);
+   outPosXY =UVToPosXY(outTex);
 #if (NORMALS && !GEOM) || (!NORMALS && GEOM)
-   outPosXY1=ScreenToPosXY(outTex+RTSize.xy);
+   outPosXY1=UVToPosXY(outTex+RTSize.xy);
 #endif
    outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 
 /*#define NUM_DIRECTIONS 16
 #define NUM_STEPS      12
-Vec FetchEyePos(Vec2 UV) {return GetPos(TexDepthRawLinear(UV), ScreenToPosXY(UV));}
+Vec FetchEyePos(Vec2 UV) {return GetPos(TexDepthRawLinear(UV), UVToPosXY(UV));}
 Flt ComputeAO(Vec P, Vec N, Vec S)
 {
    Vec delta = S - P;
@@ -129,8 +129,8 @@ Half AO_PS
       {
          // 'nrm' does not need to be normalized, because following codes don't require that
       #if 0
-         Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)), // get view space direction that points slightly to the right of 'pos'
-             dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, RTSize.y)), 1)); // get view space direction that points slightly to the top   of 'pos'
+         Vec dir_right=Normalize(Vec(UVToPosXY(inTex+Vec2(RTSize.x, 0)), 1)), // get view space direction that points slightly to the right of 'pos'
+             dir_up   =Normalize(Vec(UVToPosXY(inTex+Vec2(0, RTSize.y)), 1)); // get view space direction that points slightly to the top   of 'pos'
 
          Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right), // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_right' ray
              pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   ); // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_up'    ray
@@ -161,8 +161,8 @@ Half AO_PS
       #if GEOM
       {
          #if 0 // made no difference
-            Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                       , ScreenToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
-                rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(ScreenToPosXY(inTex-RTSize.xy).x, inPosXY.y                       )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
+            Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                   , UVToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
+                rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(UVToPosXY(inTex-RTSize.xy).x, inPosXY.y                   )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
             nrm=Cross(rg, up);
          #else
             Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(inPosXY .x, inPosXY1.y)),
@@ -246,7 +246,7 @@ Half AO_PS
          Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          #if GEOM
          {
-            Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
+            Vec test_pos=GetPos(test_z, UVToPosXY(t)),
                 delta   =test_pos-pos;
 
          #ifdef THICKNESS

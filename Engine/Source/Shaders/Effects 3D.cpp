@@ -61,7 +61,7 @@ void Volume_PS
    out VecH4 mask :TARGET1
 )
 {
-   Flt z  =TexDepthPoint(PixelToScreen(pixel));
+   Flt z  =TexDepthPoint(PixelToUV(pixel));
    Vec pos=inTex;
    Vec dir=Normalize(inPos); dir*=Min((SQRT3*2)*Max(Volume.size), (z-(INSIDE ? Viewport.from : inPos.z))/dir.z);
        dir=TransformTP(dir, inMat); // convert to box space
@@ -226,7 +226,7 @@ VecH4 Decal_PS(PIXEL,
             #endif
               ):TARGET // #RTOutput
 {
-   Vec  pos  =GetPosPoint(PixelToScreen(pixel));
+   Vec  pos  =GetPosPoint(PixelToUV(pixel));
         pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);
    Half alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
 

@@ -369,7 +369,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    }
    { // TAA
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
-      src.New("TAA", "DrawPosXY_VS", "TAA_PS");
+      src.New("TAA", "Draw_VS", "TAA_PS");
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
