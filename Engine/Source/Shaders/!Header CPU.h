@@ -1,3 +1,9 @@
+/******************************************************************************
+
+   This header is visible on both CPU and GPU
+
+   !! If any change is made here then all shaders need to be recompiled !!
+
 /******************************************************************************/
 // Shader Bump Mapping Modes
 #define SBUMP_ZERO      0 // no vertex normal
@@ -47,16 +53,15 @@
 #endif
 
 // Buffer Indexes
-#define SBI_FRAME      0
-#define SBI_CAMERA     1
-#define SBI_OBJ_MATRIX 2
-#define SBI_OBJ_VEL    3
-#define SBI_MESH       4
-#define SBI_MATERIAL   5
-#define SBI_VIEWPORT   6
-#define SBI_COLOR      7
-#define SBI_NUM        8
-// !! if any change is made here then all shaders need to be recompiled !!
+#define SBI_FRAME           0
+#define SBI_CAMERA          1
+#define SBI_OBJ_MATRIX      2
+#define SBI_OBJ_MATRIX_PREV 3
+#define SBI_MESH            4
+#define SBI_MATERIAL        5
+#define SBI_VIEWPORT        6
+#define SBI_COLOR           7
+#define SBI_NUM             8
 
 // Sampler Indexes
 #define SSI_DEFAULT      0
@@ -68,7 +73,7 @@
 #define SSI_LINEAR_CWW   6
 
 // Other
-#define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per tri)
+#define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per-triangle)
 
 #define TAA_WEIGHT (1.0/8)
 

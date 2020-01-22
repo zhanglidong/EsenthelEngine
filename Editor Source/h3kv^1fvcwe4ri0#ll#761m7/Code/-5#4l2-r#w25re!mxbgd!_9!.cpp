@@ -12,15 +12,17 @@ class ImageEditor : PropWin
       {
          if(Gui.ms()==this && Ms.b(0))
          {
+            cam.updateBegin();
             cam.yaw  -=Ms.d().x;
             cam.pitch+=Ms.d().y;
-            cam.setSpherical().updateVelocities();
+            cam.setSpherical().updateEnd();
             Ms.freeze();
          }else
          if(visible())
          {
+            cam.updateBegin();
             cam.yaw+=Time.ad()/2;
-            cam.setSpherical().updateVelocities();
+            cam.setSpherical().updateEnd();
          }
       }
       virtual void draw(C GuiPC &gpc)override

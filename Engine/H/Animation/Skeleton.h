@@ -265,10 +265,6 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
    // the following parameters are valid only after calling 'updateMatrix'
  C MatrixM& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
 
-   // the following parameters are valid only after calling 'updateVelocities'
- C VecD& worldPos ()C {return _matrix_prev.pos;} // get transformed bone world space position, it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
-   Vec   pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space, it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
-
    // operations
    void clear(         ); //           clear 'orn rot pos scale'
    void clear(Flt blend); // partially clear 'orn rot pos scale', this method is similar to 'clear()' however it does not perform full reset of the bone. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
@@ -276,7 +272,7 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
    void forceMatrix(C MatrixM &matrix); // force usage of custom transformation 'matrix' for this bone, if used then the bone will ignore its transformations from the animations
 
 #if EE_PRIVATE
-   void operator+=(C VecD &d) {_matrix+=d; _matrix_prev+=d;}
+   void operator+=(C VecD &d) {_matrix+=d; _matrix_prev+=d; /*_world_pos+=d;*/}
    void zero() {Zero(T);}
 #endif
 
@@ -284,7 +280,6 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
 private:
 #endif
    Bool    _disabled, _disabled_children, _force_matrix, _world_space_transform;
-   Vec     _pos_delta, _ang_delta, _vel, _ang_vel, _fur_vel;
    MatrixM _matrix, _matrix_prev, _world_space_transform_matrix;
    friend struct AnimatedSkeleton;
 };
@@ -292,12 +287,9 @@ private:
 typedef AnimatedSkeleton AnimSkel;
 struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
 {
-   Flt                     fur_stiffness, // determines the speed of                fur velocities changes,    0..1  , default= 0.0001
-                           fur_gravity  , // gravity which affects                  fur velocities        , -Inf..Inf, default=-1
-                           fur_vel_scale; // how much does skeleton movement affect fur velocities        , -Inf..Inf, default=-0.75
-             AnimSkelBone  root         ; // root transformed skeleton bone
-   FixedMems<AnimSkelBone> bones        ; //      transformed skeleton bone array
-   FixedMems<OrientM     > slots        ; //      transformed skeleton slot array
+             AnimSkelBone  root ; // root transformed skeleton bone
+   FixedMems<AnimSkelBone> bones; //      transformed skeleton bone array
+   FixedMems<OrientM     > slots; //      transformed skeleton slot array
 
    // manage
    AnimatedSkeleton& del   (                                                                              ); // delete manually
@@ -310,8 +302,6 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
  C AnimSkelBone& boneRoot(Int i)C {return ConstCast(T).boneRoot(i)           ;} // get i-th transformed bone or root if index is out of range
  C VecD   &      pos     (     )C {return root.matrix().pos                  ;} // get root position
  C MatrixM&      matrix  (     )C {return root.matrix()                      ;} // get root matrix
- C Vec    &         vel  (     )C {return root.    _vel                      ;} // get root         velocity
- C Vec    &      angVel  (     )C {return root._ang_vel                      ;} // get root angular velocity
 
    SkelAnim*     findSkelAnim(C Str    &name                                  )C; // find skeleton    animation, null on fail
    SkelAnim*     findSkelAnim(C UID    &id                                    )C; // find skeleton    animation, null on fail
@@ -337,6 +327,9 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
    AnimatedSkeleton& disableChildren(Int i, Bool disable); // disables/enables animation of i-th bone's children
  
    // animate
+      // begin
+      AnimatedSkeleton& updateBegin(); // call this once per frame, before 'clear', 'animate', 'animateRoot' and 'updateMatrix'
+
       // prepare
       AnimatedSkeleton& clear(         ); //           clear 'AnimSkelBone' bones 'orn rot pos scale', call this method once before applying all animations to prepare for animating
       AnimatedSkeleton& clear(Flt blend); // partially clear 'AnimSkelBone' bones 'orn rot pos scale',      this method is similar to 'clear()' however it does not perform full reset of the bones. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
@@ -362,15 +355,15 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
       AnimatedSkeleton& transformInWorldSpace(Int bone, C Matrix  &matrix, Bool auto_update_matrixes=true); // transform bone by world space 'matrix', if 'auto_update_matrixes' is set to true then 'updateMatrixChildren(bone)' will be called automatically
       AnimatedSkeleton& transformInWorldSpace(Int bone, C MatrixM &matrix, Bool auto_update_matrixes=true); // transform bone by world space 'matrix', if 'auto_update_matrixes' is set to true then 'updateMatrixChildren(bone)' will be called automatically
 
-   // update
-   void updateVelocities(); // update velocities 'vel, angVel, bone.vel, bone.angVel' and bone world positions 'bone.worldPos' according to root and bone matrixes 'matrix, bone.matrix'. This needs to be called once per frame after all animations, modifications and 'updateMatrix' matrix updates.
+      // end
+      void updateEnd(); // call this once per frame, after 'clear', 'animate', 'animateRoot' and 'updateMatrix'
 
    // transform
    void move  (C VecD &delta); // move the whole skeleton                                                    , this method is to be used for distant      position modifications, it will not affect bone velocities, you can call this method optionally after matrix updates ('updateMatrix')
    void offset(C VecD &delta); // apply offset to root matrix, bone matrixes, and transformed slots by vector, this method is to be used for smooth local position modifications, it will     affect bone velocities, you can call this method optionally after matrix updates ('updateMatrix')
 
    // draw
-   void setMatrix()C; // set active rendering matrixes and velocities ('matrix, bone.matrix, vel, bone.vel') to the GPU shader data, call this right before drawing skinned meshes (when using mesh draw methods which don't accept matrix or skeleton parameter, if they do accept such parameters, then those methods will automatically set proper matrixes and you don't need to call 'setMatrix' manually)
+   void setMatrix()C; // set active rendering matrixes and velocities to the GPU shader data, call this right before drawing skinned meshes (when using mesh draw methods which don't accept matrix or skeleton parameter, if they do accept such parameters, then those methods will automatically set proper matrixes and you don't need to call 'setMatrix' manually)
    void draw     (C Color &bone_color, C Color &slot_color=TRANSPARENT)C; // draw animated bones and slots, this can be optionally called outside of Render function
 
    // io

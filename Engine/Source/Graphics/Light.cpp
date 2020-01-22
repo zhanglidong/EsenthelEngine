@@ -912,7 +912,7 @@ static void ShadowMap(Flt range, VecD &pos)
    #else
       Vec2 fov =PI_2;
    #endif
-    //Flt view_main_max=DistPointPlane(pos, ActiveCam.matrix.pos, ActiveCam.matrix.z)+range;
+    //Flt view_main_max=DistPointActiveCamPlaneZ(pos)+range;
       DrawShadowMap(DIR_FORWARD, MatrixM().setPos   (pos                                        ), flag, LOCAL_SHADOW_MAP_FROM, range, fov, FOV_XY, border, 0);
       DrawShadowMap(DIR_BACK   , MatrixM().setPosDir(pos, VecDir[DIR_BACK ], VecDir[DIR_UP     ]), flag, LOCAL_SHADOW_MAP_FROM, range, fov, FOV_XY, border, 0);
       DrawShadowMap(DIR_LEFT   , MatrixM().setPosDir(pos, VecDir[DIR_LEFT ], VecDir[DIR_UP     ]), flag, LOCAL_SHADOW_MAP_FROM, range, fov, FOV_XY, border, 0);
@@ -967,7 +967,7 @@ static void ShadowMap(LightCone &light)
 
    // shadow map
    MatrixM light_matrix=light.pyramid;
- //Flt view_main_max=DistPointPlane(light_matrix.pos, ActiveCam.matrix.pos, ActiveCam.matrix.z)+light.pyramid.h; // this is not precise but worst case scenario
+ //Flt view_main_max=DistPointActiveCamPlaneZ(light_matrix.pos)+light.pyramid.h; // this is not precise but worst case scenario
    DrawShadowMap(DIR_FORWARD, light_matrix, 0, LOCAL_SHADOW_MAP_FROM, light.pyramid.h, Vec2(2*Atan(light.pyramid.scale)), FOV_XY, border, 0); // use DIR_FORWARD because cube map shadows require that
 
    // matrix, transform from camera space to light space, ShdMatrix=CamMatrix/LightMatrix
@@ -1292,7 +1292,7 @@ void Light::draw()
       case LIGHT_POINT:
       {
          Flt range=CurrentLight.point.range(),
-             z_center=Dot(CurrentLight.point.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+             z_center=DistPointActiveCamPlaneZ(CurrentLight.point.pos); // Z relative to camera position
          CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
 
          if(CurrentLight.shadow)
@@ -1371,7 +1371,7 @@ void Light::draw()
       case LIGHT_LINEAR:
       {
          Flt range=CurrentLight.linear.range,
-             z_center=Dot(CurrentLight.linear.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+             z_center=DistPointActiveCamPlaneZ(CurrentLight.linear.pos); // Z relative to camera position
          CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
 
          if(CurrentLight.shadow)
@@ -1609,7 +1609,7 @@ void Light::drawForward(ALPHA_MODE alpha)
       case LIGHT_POINT:
       {
          Flt range=CurrentLight.point.range(),
-             z_center=Dot(CurrentLight.point.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+             z_center=DistPointActiveCamPlaneZ(CurrentLight.point.pos); // Z relative to camera position
          CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
 
          if(CurrentLight.shadow)
@@ -1686,7 +1686,7 @@ void Light::drawForward(ALPHA_MODE alpha)
       case LIGHT_LINEAR:
       {
          Flt range=CurrentLight.linear.range,
-             z_center=Dot(CurrentLight.linear.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+             z_center=DistPointActiveCamPlaneZ(CurrentLight.linear.pos); // Z relative to camera position
          CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
 
          if(CurrentLight.shadow)

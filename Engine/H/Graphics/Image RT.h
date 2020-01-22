@@ -47,6 +47,8 @@ struct ImageRTDesc // Render Target Description
    Byte         samples;
    IMAGERT_TYPE rt_type;
 
+   ImageRTDesc& type(IMAGERT_TYPE rt_type) {T.rt_type=rt_type; return T;}
+
             ImageRTDesc() {}
    explicit ImageRTDesc(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1) {size.set(w, h); T.rt_type=rt_type; T.samples=samples;}
 

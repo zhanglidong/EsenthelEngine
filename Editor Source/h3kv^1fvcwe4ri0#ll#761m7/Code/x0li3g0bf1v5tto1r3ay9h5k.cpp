@@ -319,7 +319,7 @@ class IconEditor : PropWin
          if(skel && anim)skel_anim.create(*skel, *anim);else skel_anim.del();
 
       flt time=(data ? data.anim_pos : 0);
-      T.skel.clear().animate(skel_anim, time).animateRoot(anim, time).updateMatrix(matrix()).updateVelocities(); T.skel.updateVelocities(); // 'updateVelocities' twice to remove motion blur
+      T.skel.updateBegin().clear().animate(skel_anim, time).animateRoot(anim, time).updateMatrix(matrix()).updateEnd(); T.skel.updateBegin().updateEnd(); // 'updateBegin,updateEnd' twice to remove motion blur
 
       // set viewport
       VecI2 size(settings.width, settings.height);

@@ -304,12 +304,13 @@ void WaterClass::begin()
     //Renderer._has_glow=true;
       D.alpha(ALPHA_NONE);
 
+      ImageRTDesc rt_desc(Renderer._col->w(), Renderer._col->h(), IMAGERT_SRGB);
       if(_use_secondary_rt)
       {
         _swapped_ds=false;
-         Renderer._water_col.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(),                                   IMAGERT_SRGB)); // here Alpha is unused
-         Renderer._water_nrm.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.signedNrmRT() ? IMAGERT_RGB_S : IMAGERT_RGB )); // here Alpha is unused
-         Renderer._water_ds .getDS(            Renderer._col->w(), Renderer._col->h(), 1, false);
+         Renderer._water_col.get  (rt_desc.type(                                  IMAGERT_SRGB)); // here Alpha is unused
+         Renderer._water_nrm.get  (rt_desc.type(D.signedNrmRT() ? IMAGERT_RGB_S : IMAGERT_RGB )); // here Alpha is unused
+         Renderer._water_ds .getDS(Renderer._col->w(), Renderer._col->h(), 1, false);
 
          if(Renderer.stage)switch(Renderer.stage)
          {
@@ -335,11 +336,11 @@ void WaterClass::begin()
       {
          if(Lights.elms() && Lights[0].type==LIGHT_DIR)Lights[0].dir.set();else LightDir(Vec(0,-1,0), VecZero).set();
          // we're going to draw water on top of existing RT, including refraction, so we need to have a color copy of what's underwater (background) for the refraction, also we want to do softing so we need to backup depth because we can't read and write to depth in the same time
-         Renderer._water_col.get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), GetImageRTType(Renderer._col->type()))); // create RT for the copy
+         Renderer._water_col.get(rt_desc.type(GetImageRTType(Renderer._col->type()))); // create RT for the copy
          Renderer._col->copyHw(*Renderer._water_col, false, D.viewRect()); // copy
          if(_shader_soft)
          {
-            Renderer._water_ds.get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), IMAGERT_F32));
+            Renderer._water_ds.get(rt_desc.type(IMAGERT_F32));
             Renderer._ds_1s->copyHw(*Renderer._water_ds, false, D.viewRect());
          }
          setImages(Renderer._water_col, Renderer._water_ds);

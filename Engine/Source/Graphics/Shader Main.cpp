@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 namespace EE{
 /******************************************************************************/
 MainShaderClass    Sh;
@@ -50,7 +49,7 @@ void CreateFontSampler()
 }
 #endif
 /******************************************************************************/
-static Vec4 DummyData[2]; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE);
+static Vec4 DummyData[1]; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE);
 MainShaderClass::MainShaderClass()
 {
    // 'Dummy' is used so we can already pre-assign some shader handles to this 'Dummy' at engine startup, so we don't have to check if they're not null "if(Sh.param)Sh.param->set(..)" but just operate on them straight away "Sh.param->set(..)"
@@ -321,15 +320,18 @@ void MainShaderClass::getTechniques()
    RTSize          =GetShaderParam("RTSize"  );
    Coords          =GetShaderParam("Coords"  );
    Viewport        =GetShaderParam("Viewport");
+   TAAOffset       =GetShaderParam("TAAOffset");
    DepthWeightScale=GetShaderParam("DepthWeightScale");
 
-   CamAngVel =GetShaderParam("CamAngVel" );
-   ObjVel    =GetShaderParam("ObjVel"    );
-   ViewMatrix=GetShaderParam("ViewMatrix");
-   CamMatrix =GetShaderParam("CamMatrix" );
-   ProjMatrix=GetShaderParam("ProjMatrix");
-   FurVel    =GetShaderParam("FurVel"    );
-   ClipPlane =GetShaderParam("ClipPlane" );
+   ViewMatrix    =GetShaderParam("ViewMatrix"    );
+   ViewMatrixPrev=GetShaderParam("ViewMatrixPrev");
+   CamMatrix     =GetShaderParam("CamMatrix"     );
+   CamMatrixPrev =GetShaderParam("CamMatrixPrev" );
+   ProjMatrix    =GetShaderParam("ProjMatrix"    );
+   ProjMatrixPrev=GetShaderParam("ProjMatrixPrev");
+   ViewToViewPrev=GetShaderParam("ViewToViewPrev");
+   FurVel        =GetShaderParam("FurVel"        );
+   ClipPlane     =GetShaderParam("ClipPlane"     );
 
             ConstCast(Renderer.highlight       )=GetShaderParam("Highlight");
    Material=ConstCast(Renderer.material_color_l)=GetShaderParam("Material");
@@ -355,6 +357,7 @@ void MainShaderClass::getTechniques()
 
    GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    BendFactor      =GetShaderParam("BendFactor");
+   BendFactorPrev  =GetShaderParam("BendFactorPrev");
 
    EnvColor          =GetShaderParam    ("EnvColor"          ); EnvColor->set(D.envColor());
    EnvMipMaps        =GetShaderParam    ("EnvMipMaps"        ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);

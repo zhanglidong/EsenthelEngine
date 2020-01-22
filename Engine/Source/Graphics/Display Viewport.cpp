@@ -126,21 +126,21 @@ inline Vec2 FracToPosXY(Vec2 screen) // return view space xy position at z=1
    return screen * (Viewport.fov_tan/Vec2(0.5,-0.5)) - (0.5*(Viewport.fov_tan/Vec2(0.5,-0.5)));
    return screen * Viewport.FracToPosXY.xy           + Viewport.FracToPosXY.zw                ;
 }
-inline Vec2 ScreenToPosXY(Vec2 screen) // return view space xy position at z=1
+inline Vec2 UVToPosXY(Vec2 uv) // return view space xy position at z=1
 {
-   return screen * (Viewport.fov_tan/Vec2(0.5,-0.5)/Viewport.size) - ((Viewport.min/Viewport.size+0.5)*(Viewport.fov_tan/Vec2(0.5,-0.5)));
-   return screen * Viewport.ScreenToPosXY.xy                       + Viewport.ScreenToPosXY.zw                                           ;
+   return uv * (Viewport.fov_tan/Vec2(0.5,-0.5)/Viewport.size) - ((Viewport.min/Viewport.size+0.5)*(Viewport.fov_tan/Vec2(0.5,-0.5)));
+   return uv * Viewport.UVToPosXY.xy                           + Viewport.UVToPosXY.zw                                               ;
 }
 inline Vec2 PosToScreen(Vec pos)
 {
    return (pos.xy/pos.z) * ((Vec2(0.5,-0.5)/Viewport.fov_tan+0.5)*Viewport.size) + Viewport.min;
 }
-inline Vec2 PosToScreen(Vec4 pos)
+inline Vec2 ProjectedPosToUV(Vec4 pos)
 {
    Vec2 screen=pos.xy/pos.w*Vec2(0.5,-0.5)+0.5; return screen*Viewport.size+(Viewport.min+0.5*RTSize.xy);
    return (pos.xy/pos.w*Vec2(0.5,-0.5)+0.5)*Viewport.size+(Viewport.min+0.5*RTSize.xy);
    return (pos.xy/pos.w) * (Vec2(0.5,-0.5)*Viewport.size) + (0.5*Viewport.size+Viewport.min+0.5*RTSize.xy);
-   return (pos.xy/pos.w) * Viewport.PosToScreen.xy        + Viewport.PosToScreen.zw                       ;
+   return (pos.xy/pos.w) * Viewport.ProjectedPosToUV.xy   + Viewport.ProjectedPosToUV.zw                  ;
 }
 /******************************************************************************/
 Display::Viewport& Display::Viewport::setViewport()
@@ -161,7 +161,7 @@ struct GpuViewport
 {
    Flt  from, range;//, ortho;
    Vec2 center, size, size_fov_tan;
-   Vec2 FracToPosXY[2], ScreenToPosXY[2], PosToScreen[2]; // helpers
+   Vec2 FracToPosXY[2], UVToPosXY[2], ProjectedPosToUV[2]; // helpers
 };
 #pragma pack(pop)
 Display::Viewport& Display::Viewport::setShader(Flt *offset)
@@ -182,23 +182,23 @@ Display::Viewport& Display::Viewport::setShader(Flt *offset)
    v.FracToPosXY[0]=      v_ft;
    v.FracToPosXY[1]=-0.5f*v_ft;
 
-   v.ScreenToPosXY[0]=                     v_ft/v.size;
-   v.ScreenToPosXY[1]=-(v_min/v.size+0.5f)*v_ft;
+   v.UVToPosXY[0]=                     v_ft/v.size;
+   v.UVToPosXY[1]=-(v_min/v.size+0.5f)*v_ft;
 
 #if DX11
-   v.PosToScreen[0]=Vec2(0.5f, -0.5f)*v.size;
-   v.PosToScreen[1]=            0.5f *v.size + v_min;
+   v.ProjectedPosToUV[0]=Vec2(0.5f, -0.5f)*v.size;
+   v.ProjectedPosToUV[1]=            0.5f *v.size + v_min;
 #elif GL
-   v.PosToScreen[0]=Vec2(0.5f, 0.5f)*v.size;
-   v.PosToScreen[1]=           0.5f *v.size + v_min;
+   v.ProjectedPosToUV[0]=Vec2(0.5f, 0.5f)*v.size;
+   v.ProjectedPosToUV[1]=           0.5f *v.size + v_min;
 #endif
 
    if(offset)
    {
-      Flt o=*offset*v.ScreenToPosXY[0].x*0.25f;
-      v.  FracToPosXY[1].x-=o;
-      v.ScreenToPosXY[1].x-=o;
-    //v.PosToScreen  [1].x this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur which uses 'PosToScreen')
+      Flt o=*offset*v.UVToPosXY[0].x*0.25f;
+      v.        FracToPosXY[1].x-=o;
+      v.          UVToPosXY[1].x-=o;
+    //v.ProjectedPosToUV   [1].x this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur)
    }
 
    Sh.Viewport->set(v);

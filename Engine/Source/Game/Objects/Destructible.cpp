@@ -252,7 +252,7 @@ UInt Destructible::drawPrepare()
       Matrix matrix=matrixScaled(); if(Frustum(*mesh, matrix))
       {
          SetVariation(mesh_variation);
-         mesh->draw(matrix, actors.elms() ? actors.first().vel() : VecZero, actors.elms() ? actors.first().angVel() : VecZero);
+         mesh->draw(matrix);
          SetVariation();
       }
    }

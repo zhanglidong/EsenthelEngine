@@ -85,6 +85,16 @@ inline Char8* TextPos(Char8 *src, Char8 c) {return ConstCast(TextPos((CChar8*)sr
 /******************************************************************************/
 inline void Matrix3::mul(C RevMatrix3 &matrix, Matrix3 &dest)C {matrix.mul(T, dest);}
 inline void Matrix ::mul(C RevMatrix  &matrix, Matrix  &dest)C {matrix.mul(T, dest);}
+
+#if EE_PRIVATE
+inline void SetFastMatrix(                 ) {Sh.ViewMatrix->set    (        CamMatrixInv);}
+inline void SetFastMatrix(C Matrix  &matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
+inline void SetFastMatrix(C MatrixM &matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
+
+inline void SetFastMatrixPrev(                 ) {Sh.ViewMatrixPrev->set    (        CamMatrixInvPrev);}
+inline void SetFastMatrixPrev(C Matrix  &matrix) {Sh.ViewMatrixPrev->fromMul(matrix, CamMatrixInvPrev);}
+inline void SetFastMatrixPrev(C MatrixM &matrix) {Sh.ViewMatrixPrev->fromMul(matrix, CamMatrixInvPrev);}
+#endif
 /******************************************************************************/
 // TEMPLATES
 /******************************************************************************/
@@ -1943,6 +1953,11 @@ INLINE void DisplayState::primType(UInt prim_type)
    }
 }
 #endif
+/******************************************************************************/
+// MESH
+/******************************************************************************/
+inline void MeshPart::draw(C MatrixM &matrix)C {draw(matrix, matrix);}
+inline void MeshLod ::draw(C MatrixM &matrix)C {draw(matrix, matrix);}
 /******************************************************************************/
 // SOUND
 /******************************************************************************/

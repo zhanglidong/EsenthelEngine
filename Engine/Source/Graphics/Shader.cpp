@@ -7,7 +7,6 @@
 
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 namespace EE{
 #if DEBUG
    #define FORCE_TEX    0
@@ -550,6 +549,8 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is calle
    }
 }
 /******************************************************************************/
+ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Vec4)); // can write small types without checking for 'canFit', because all 'ShaderBuffer's for 'ShaderParam' data are allocated with MIN_SHADER_PARAM_DATA_SIZE=SIZE(Vec4) padding
+
 void ShaderParamBool::set           (Bool b) {                                         setChanged(); *(U32*)_data=b; }
 void ShaderParamBool::setConditional(Bool b) {U32 &dest=*(U32*)_data; if(dest!=(U32)b){setChanged();         dest=b;}}
 
@@ -568,8 +569,6 @@ void ShaderParam::set(C VecD4 &v    ) {setChanged(); *(Vec4*)_data=v;}
 void ShaderParam::set(C VecI4 &v    ) {setChanged(); *(Vec4*)_data=v;}
 void ShaderParam::set(C Rect  &rect ) {setChanged(); *(Rect*)_data=rect;}
 void ShaderParam::set(C Color &color) {setChanged(); *(Vec4*)_data=SRGBToDisplay(color);}
-
-ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Vec4)); // can write small types without checking for 'canFit', because all 'ShaderBuffer's for 'ShaderParam' data are allocated with MIN_SHADER_PARAM_DATA_SIZE=SIZE(Vec4) padding
 
 void ShaderParam::set(C Vec *v, Int elms)
 {
@@ -1625,16 +1624,16 @@ static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASS
 /******************************************************************************/
 Int ExpectedBufferSlot(C Str8 &name)
 {
-   if(name=="Frame"    )return SBI_FRAME;
-   if(name=="Camera"   )return SBI_CAMERA;
-   if(name=="ObjMatrix")return SBI_OBJ_MATRIX;
-   if(name=="ObjVel"   )return SBI_OBJ_VEL;
-   if(name=="Mesh"     )return SBI_MESH;
-   if(name=="Material" )return SBI_MATERIAL;
-   if(name=="Viewport" )return SBI_VIEWPORT;
-   if(name=="Color"    )return SBI_COLOR;
-                        ASSERT(SBI_NUM==8);
-                        return -1;
+   if(name=="Frame"        )return SBI_FRAME;
+   if(name=="Camera"       )return SBI_CAMERA;
+   if(name=="ObjMatrix"    )return SBI_OBJ_MATRIX;
+   if(name=="ObjMatrixPrev")return SBI_OBJ_MATRIX_PREV;
+   if(name=="Mesh"         )return SBI_MESH;
+   if(name=="Material"     )return SBI_MATERIAL;
+   if(name=="Viewport"     )return SBI_VIEWPORT;
+   if(name=="Color"        )return SBI_COLOR;
+                            ASSERT(SBI_NUM==8);
+                            return -1;
 }
 static void TestBuffer(C Str8 &name, Int bind_slot)
 {
@@ -1949,31 +1948,28 @@ Shader* FRST::getShader()
 static Int  MatrixesPart, FurVelPart;
 static Byte BoneNumToPart[256+1];
 #endif
-static ShaderBuffer *SBObjMatrix, *SBObjVel, *SBFurVel;
+static ShaderBuffer *SBObjMatrix, *SBObjMatrixPrev, *SBFurVel;
 void SetMatrixCount(Int num)
 {
    if(Matrixes!=num)
    {
       Matrixes=num;
-      // !! Warning: for performance reasons this doesn't adjust 'ShaderParam.translation', so using 'ShaderParam.set*' based on translation will use full size, so make sure that method isn't called for 'ObjMatrix' and 'ObjVel' !!
+      // !! Warning: for performance reasons this doesn't adjust 'ShaderParam.translation', so using 'ShaderParam.set*' based on translation will use full size, so make sure that method isn't called for 'ObjMatrix' and 'ObjMatrixPrev' !!
    #if DX11
    #if ALLOW_PARTIAL_BUFFERS
       if(D3DC1)
       {
-         SBObjMatrix->buffer.size= SIZE(GpuMatrix)   *Matrixes;
-         SBObjVel   ->buffer.size=(SIZE(Vec4     )*2)*Matrixes; // #VelAngVel
+         SBObjMatrix    ->buffer.size=SIZE(GpuMatrix)*Matrixes;
+         SBObjMatrixPrev->buffer.size=SIZE(GpuMatrix)*Matrixes;
          Int m16=Ceil16(Matrixes*3);
-      #if DEBUG
-         static Int old_vel_count; Int vel_count=Matrixes*2; if(MatrixesPart!=m16)old_vel_count=Ceil16(vel_count);else if(vel_count>old_vel_count)Exit("Need to test vel count separately"); // check if when not making a change below, we need more constants for vel buffer than what was set last time #VelAngVel
-      #endif
          if(MatrixesPart!=m16)
          {
             MatrixesPart=m16;
             // Warning: code below does not set the cached buffers as 'bind' does, as it's not needed, because those buffers have constant bind index
-            ASSERT(SBI_OBJ_VEL==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
+            ASSERT(SBI_OBJ_MATRIX_PREV==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
             UInt        first[]={0, 0}, // must be provided or DX will fail
-                          num[]={Ceil16(Matrixes*3), Ceil16(Matrixes*2)}; // #VelAngVel
-            ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjVel->buffer.buffer};
+                          num[]={Ceil16(Matrixes*3), Ceil16(Matrixes*3)};
+            ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjMatrixPrev->buffer.buffer};
             D3DC1->VSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
             D3DC1->HSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
             D3DC1->DSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
@@ -1985,15 +1981,15 @@ void SetMatrixCount(Int num)
          Int part=BoneNumToPart[num]; if(MatrixesPart!=part)
          {
             MatrixesPart=part;
-            SBObjMatrix->setPart(part);
-            SBObjVel   ->setPart(part);
+            SBObjMatrix    ->setPart(part);
+            SBObjMatrixPrev->setPart(part);
          #if 0
-            SBObjMatrix->bind(SBI_OBJ_MATRIX);
-            SBObjVel   ->bind(SBI_OBJ_VEL   );
+            SBObjMatrix    ->bind(SBI_OBJ_MATRIX     );
+            SBObjMatrixPrev->bind(SBI_OBJ_MATRIX_PREV);
          #else // bind 2 at the same time
-            ASSERT(SBI_OBJ_VEL==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
             // Warning: code below does not set the cached buffers as 'bind' does, as it's not needed, because those buffers have constant bind index
-            ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjVel->buffer.buffer};
+            ASSERT(SBI_OBJ_MATRIX_PREV==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
+            ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjMatrixPrev->buffer.buffer};
             D3DC->VSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
             D3DC->HSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
             D3DC->DSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
@@ -2003,8 +1999,8 @@ void SetMatrixCount(Int num)
       }
    #elif GL
       // will affect 'ShaderBuffer::update()'
-      SBObjMatrix->buffer.size= SIZE(GpuMatrix)   *Matrixes;
-      SBObjVel   ->buffer.size=(SIZE(Vec4     )*2)*Matrixes; // #VelAngVel
+      SBObjMatrix    ->buffer.size=SIZE(GpuMatrix)*Matrixes;
+      SBObjMatrixPrev->buffer.size=SIZE(GpuMatrix)*Matrixes;
    #endif
    }
 }
@@ -2024,24 +2020,24 @@ void SetFurVelCount(Int num) // !! unlike 'SetMatrixCount' this needs to be call
 /******************************************************************************/
 void InitMatrix()
 {
-   ViewMatrix=Sh.ViewMatrix->asGpuMatrix  ();
-   ViewVel   =Sh.ObjVel    ->asGpuVelocity();
+   ViewMatrix    =Sh.ViewMatrix    ->asGpuMatrix();
+   ViewMatrixPrev=Sh.ViewMatrixPrev->asGpuMatrix();
 
-   DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*  MAX_MATRIX, "Unexpected size of ViewMatrix");
-   DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*2*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
-   DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*  MAX_MATRIX, "Unexpected size of FurVel");
+   DYNAMIC_ASSERT(Sh.ViewMatrix    ->_cpu_data_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of 'ViewMatrix'");
+   DYNAMIC_ASSERT(Sh.ViewMatrixPrev->_cpu_data_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of 'ViewMatrixPrev'");
+   DYNAMIC_ASSERT(Sh.FurVel        ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of 'FurVel'");
 
-   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->full_size==SIZE(GpuMatrix)*  MAX_MATRIX, "Unexpected size of ObjMatrix");
-   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->full_size==SIZE(Vec4     )*2*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
-   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->full_size==SIZE(Vec4     )*  MAX_MATRIX, "Unexpected size of FurVel"   );
+   SBObjMatrix    =GetShaderBuffer("ObjMatrix"    ); DYNAMIC_ASSERT(SBObjMatrix    ->full_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of 'ObjMatrix'");
+   SBObjMatrixPrev=GetShaderBuffer("ObjMatrixPrev"); DYNAMIC_ASSERT(SBObjMatrixPrev->full_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of 'ObjMatrixPrev'");
+   SBFurVel       =GetShaderBuffer("FurVel"       ); DYNAMIC_ASSERT(SBFurVel       ->full_size==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of 'FurVel'"   );
 
 #if DX11
    const Int parts[]={MAX_MATRIX, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
    if(!ALLOW_PARTIAL_BUFFERS || !D3DC1) // have to create parts only if we won't use partial buffers
    {
-      SBObjMatrix->createParts(parts, Elms(parts));
-      SBObjVel   ->createParts(parts, Elms(parts));
-   }  SBFurVel   ->createParts(parts, Elms(parts));
+      SBObjMatrix    ->createParts(parts, Elms(parts));
+      SBObjMatrixPrev->createParts(parts, Elms(parts));
+   }  SBFurVel       ->createParts(parts, Elms(parts));
    Int end=Elms(BoneNumToPart); for(Int i=0; i<Elms(parts)-1; i++){Int start=parts[i+1]+1; SetMem(&BoneNumToPart[start], i, end-start); end=start;} REP(end)BoneNumToPart[i]=Elms(parts)-1;
 #endif
 }

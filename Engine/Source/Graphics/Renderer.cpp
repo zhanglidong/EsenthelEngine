@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 namespace EE{
 // #RTOutput
 #define SVEL_CLEAR Vec4Zero
@@ -41,6 +40,13 @@ static void ShutMshr()
    MshrBox .del();
    MshrBoxR.del();
    MshrBall.del();
+}
+/******************************************************************************/
+void RendererClass::Context::clear()
+{
+   frame=0;
+   taa_col   .clear();
+   taa_weight.clear();
 }
 /******************************************************************************/
 RendererClass::RendererClass() : highlight(null), material_color_l(null)
@@ -335,7 +341,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    Shader     *shader;
    if(camera_object)shader=Mtn.Convert[true ][!D._view_main.full];else
    {                shader=Mtn.Convert[false][!D._view_main.full];
-                    SetFastVel();
+      SetViewToViewPrev();
    }
    set(converted, null, false);
    Rect ext_rect, *rect=null;
@@ -361,7 +367,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 
    if(camera_object) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
    {
-      rt_desc.rt_type=(D.signedMtnRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
+      rt_desc.type(D.signedMtnRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
       // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
       // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
       // remember that it doesn't make sense to perform depth based tests on not first steps "dilated!=converted",
@@ -388,8 +394,8 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    // check how far can we go (remove leaks)
    Sh.ImgXY ->set(converted);
    Sh.Img[0]->set(dilated  );
-   rt_desc.rt_type=(MOTION_BLUR_PREDICTIVE ? D.signedMtnRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
-                                           : D.signedMtnRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
+   rt_desc.type(MOTION_BLUR_PREDICTIVE ? D.signedMtnRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
+                                       : D.signedMtnRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect);
    if(stage==RS_VEL_LEAK && show(helper, false, D.signedMtnRT()))return true;
@@ -411,7 +417,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool combine)
                rt1(rt_desc), blur_smooth[2];
    if(combine)
    {
-      rt_desc.rt_type=IMAGERT_ONE_S;
+      rt_desc.type(IMAGERT_ONE_S);
       blur_smooth[0].get(rt_desc);
       blur_smooth[1].get(rt_desc);
    }
@@ -555,6 +561,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                     clear_vel=(!VEL_CLEAR_START && _vel);
          if(clear_nrm || clear_ext || clear_vel)
          {
+            if(clear_vel)SetViewToViewPrev();
             D.alpha    (ALPHA_NONE);
             D.depth2DOn(FUNC_BACKGROUND);
             set(null, clear_nrm ? _nrm() : null, clear_ext ? _ext() : null, clear_vel ? _vel() : null, _ds, true); // use DS because we use it for 'D.depth2D' optimization #RTOutput
@@ -665,7 +672,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             D.clearCol(); // normally after rendering has finished we expect to draw on top of the result, however for stereoscopic, we've rendered to a separate render target, that won't be used for 2D drawing now, instead we're now back to '_cur_main' which is not yet initialized, so we need to clear it here
             // restore settings to centered (not one of the eyes)
             D._view_main.setShader().setProjMatrix(); // viewport
-            SetCam(ActiveCam.matrix); // camera, 'Frustum' remains the same
+            SetCam(ActiveCam.matrix, ActiveCam._matrix_prev); // camera, 'Frustum' remains the same
          }
       }
    }
@@ -758,7 +765,7 @@ Bool RendererClass::reflection()
 /******************************************************************************/
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
 Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA
-                                    && D._view_main.full;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render _col_taa would get updated, however it has to be updated only once per-frame
+                                    && D._view_main.full;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
                                                            // !! also if this would get disabled, then we have to scale ProjMatrix based on viewport size and NOT RT size (be careful with _view_active here not available, and _view_main does not take into account D.density
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
@@ -931,7 +938,7 @@ start:
    D.alpha(ALPHA_NONE);
 
    mode(RM_PREPARE); AstroPrepare(); // !! call after obtaining '_col', '_ds' and '_ds_1s' because we rely on having them, and after RM_PREPARE because we may add lights !!
-  _eye=0; if(_stereo)SetCam(EyeMatrix[_eye]); // start with the first eye and set camera so we can calculate view_matrix for instances, this is important, because precalculated view_matrix is assumed to be for the first eye, so when rendering instances we need to adjust the projection matrix for next eye, this affects 'BeginPrecomputedViewMatrix', 'Frustum' remains the same
+  _eye=0; if(_stereo)SetCam(EyeMatrix[_eye], EyeMatrixPrev[_eye]); // start with the first eye and set camera so we can calculate view_matrix for instances, this is important, because precalculated view_matrix is assumed to be for the first eye, so when rendering instances we need to adjust the projection matrix for next eye, this affects 'BeginPrecomputedViewMatrix', 'Frustum' remains the same
   _render(); // we can call '_render' only once for RM_PREPARE
    Bool clear_ds=true; // if need to clear depth
 
@@ -957,12 +964,14 @@ start:
    {
       case RT_DEFERRED:
       {
+         ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA, _col->samples());
+
          // #RTOutput
          if(D._max_rt>=4)
          {
                _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
             if(_has_vel)
-               _vel.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO_H, _col->samples()));
+               _vel.get(rt_desc.type(IMAGERT_TWO_H));
          }
 
          const Bool merged_clear=D.mergedClear(),
@@ -971,8 +980,8 @@ start:
                      clear_vel  =(VEL_CLEAR_START && _vel);
                      ASSERT(!VEL_CLEAR_START); // some of codes below clear velocity to constant value, however we always need to use "ClearDeferred" because of camera angular velocities
 
-        _ext.get(ImageRTDesc(_col->w(), _col->h(),                     IMAGERT_TWO                                                             , _col->samples()));
-        _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_A1_H : (D.signedNrmRT() ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1), _col->samples())); // here Alpha is unused
+        _ext.get(rt_desc.type(                    IMAGERT_TWO                                                             ));
+        _nrm.get(rt_desc.type(D.highPrecNrmRT() ? IMAGERT_RGB_A1_H : (D.signedNrmRT() ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1))); // here Alpha is unused
 
          if(!merged_clear)
          { // clear from last to first to minimize RT changes
@@ -1207,11 +1216,12 @@ void RendererClass::ao()
 {
    D.alpha(ALPHA_NONE);
    Shader *ao=AO.get(D.ambientMode()-1, D.ambientJitter(), D.ambientNormal() && _nrm);
-   VecI2 res=ByteScaleRes(fx(), D._amb_res); _ao.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
+   VecI2 res=ByteScaleRes(fx(), D._amb_res);
+   ImageRTDesc rt_desc(res.x, res.y, IMAGERT_ONE); _ao.get(rt_desc);
 
    // always downsample and linearize at the same time
    ImageRTPtr ao_depth;
-   ao_depth.get(ImageRTDesc(_ao->w(), _ao->h(), IMAGERT_F32)); // don't try to reduce to IMAGERT_F16 because it can create artifacts on big view ranges under certain angles (especially when we don't use normal maps, like in forward renderer)
+   ao_depth.get(rt_desc.type(IMAGERT_F32)); // don't try to reduce to IMAGERT_F16 because it can create artifacts on big view ranges under certain angles (especially when we don't use normal maps, like in forward renderer)
    linearizeDepth(*ao_depth, *_ds_1s);
 
  //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -1235,7 +1245,7 @@ void RendererClass::ao()
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    #endif
-      ImageRTDesc rt_desc(_ao->w(), _ao->h(), IMAGERT_ONE);
+      rt_desc.type(IMAGERT_ONE);
     //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.ambientSoft()>=5)
       {
@@ -1347,7 +1357,7 @@ void RendererClass::light()
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
            use_last_frag_color=(has_last_frag_color && (D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8)==D.litColRTPrecision());
-      if(!use_last_frag_color)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(D.glowAllow(), D.litColRTPrecision()), _col->samples())); // glow requires alpha
+      if( !use_last_frag_color)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(D.glowAllow(), D.litColRTPrecision()), _col->samples())); // glow requires alpha
 
       Sh.Img  [0]->set(_nrm                );
       Sh.Img  [1]->set( src                );
@@ -1738,7 +1748,8 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          set(_col, null, false); // need full viewport
          D.viewRect().drawBorder(TRANSPARENT, Renderer.pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       }
-      ImageRTPtr dest(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision())));
+      ImageRTDesc rt_desc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision()));
+      ImageRTPtr  dest(rt_desc);
       // D.depth2DOn/depth2DOff can't be applied here, this was tested and resulted in loss of softening at object/sky edges
     //Sh.imgSize(*_col); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       switch(D.edgeSoften())
@@ -1755,9 +1766,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          {
            _col->copyHw(*dest, false, D.viewRect());
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.MLAAEdge ->draw(_col ()); Sh.Img[1]->set(_mlaa_area); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.MLAABlend->draw( edge()); Sh.Img[1]->set( blend  ()); edge.clear();
-                                                                               set(dest (), _ds_1s(), true);               Sh.MLAA     ->draw(_col ());                             D.stencil(STENCIL_NONE          );
+            ImageRTPtr edge (rt_desc.type(IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.MLAAEdge ->draw(_col ()); Sh.Img[1]->set(_mlaa_area); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(rt_desc.type(IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.MLAABlend->draw( edge()); Sh.Img[1]->set( blend  ()); edge.clear();
+                                                          set(dest (), _ds_1s(), true);               Sh.MLAA     ->draw(_col ());                             D.stencil(STENCIL_NONE          );
          }break;
       #endif
 
@@ -1771,10 +1782,10 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
+            ImageRTPtr blend(rt_desc.type(IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
             set(blend, _ds_1s, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); Sh.Img[2]->_sampler=null; D.stencil(STENCIL_NONE);
 
             swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
@@ -1853,11 +1864,11 @@ void RendererClass::postProcess()
    }
    if(eye_adapt)
    {
-      if(!--fxs)dest=_final;else{rt_desc.rt_type=GetImageRTType(_has_glow, rt_prec); dest.get(rt_desc);} // can't read and write to the same RT, glow requires Alpha channel
+      if(!--fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, rt_prec))); // can't read and write to the same RT, glow requires Alpha channel
       T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
 
-   rt_desc.rt_type=GetImageRTType(combine, rt_prec); // we need alpha channel after bloom only if we use combining
+   rt_desc.type(GetImageRTType(combine, rt_prec)); // we need alpha channel after bloom only if we use combining
 
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
    {

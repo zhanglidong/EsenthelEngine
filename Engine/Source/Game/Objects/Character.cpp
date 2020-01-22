@@ -109,6 +109,8 @@ void Chr::memoryAddressChanged()
 /******************************************************************************/
 Bool Chr::update()
 {
+   skel.updateBegin(); // begin skeleton update
+
    if(ragdoll_mode==RAGDOLL_FULL) // the character has ragdoll fully enabled, which most likely means that the character is dead, so update only skeleton basing on the ragdoll pose
    {
       ragdoll.toSkel(skel);
@@ -119,7 +121,7 @@ Bool Chr::update()
       updateController(); // update character controller
    }
 
-   skel.updateVelocities(); // update skeleton velocities
+   skel.updateEnd(); // end skeleton update
 
    return true;
 }

@@ -13,12 +13,13 @@ flt GetDist(C Box &box)
 }
 void SetCam(Camera &cam, C Box &box, flt yaw, flt pitch, flt zoom) // require custom 'cam' to calculate correct velocities
 {
+   cam.updateBegin();
    cam.yaw=yaw;
    cam.pitch=pitch;
    cam.roll=0;
    cam.dist=GetDist(box)*zoom;
    cam.at=box.center();
-   cam.setSpherical().updateVelocities().set();
+   cam.setSpherical().updateEnd().set();
 }
 /******************************************************************************/
 PreviewClass Preview;
@@ -64,7 +65,7 @@ PreviewClass Preview;
             // particle
          }break;
       }
-      if(Renderer()==RM_BLEND && elm_type==ELM_OBJ   && body)body->drawBlend(MatrixIdentity, VecZero, VecZero, &Vec4(1, 1, 1, 0.32f));
+      if(Renderer()==RM_BLEND && elm_type==ELM_OBJ   && body)body->drawBlend(MatrixMIdentity, &Vec4(1, 1, 1, 0.32f));
       if(Renderer()==RM_CLOUD && elm_type==ELM_IMAGE && image && image->mode()==IMAGE_3D)
       {
          image->drawVolume(WHITE, TRANSPARENT, OBox(Box(1)), 0.05f);
@@ -183,10 +184,10 @@ PreviewClass Preview;
                   if(anim_skel.skeleton()!=skel || anim_skel.bones.elms()!=skel->bones.elms() || anim_skel.slots.elms()!=skel->slots.elms())anim_skel.create(skel);
                   skel_anim.create(*skel, *anim);
                   flt time=(anim->length() ? Frac(Time.appTime(), (dbl)anim->length()) : 0);
-                  anim_skel.clear().animate(skel_anim, time).animateRoot(*anim, time).updateMatrix().updateVelocities();
+                  anim_skel.updateBegin().clear().animate(skel_anim, time).animateRoot(*anim, time).updateMatrix().updateEnd();
                }else
                {
-                  anim_skel.del().updateMatrix().updateVelocities();
+                  anim_skel.del().updateBegin().updateMatrix().updateEnd();
                }
 
                D.viewRect(rect).viewFov(PreviewFOV);

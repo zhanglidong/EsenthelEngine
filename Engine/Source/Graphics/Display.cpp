@@ -1575,7 +1575,7 @@ if(LogInit)LogN("Display.create");
    DisplayState::create();
               Sh.create();
 _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
-             InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
+             InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjMatrixPrev" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
            viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
@@ -2688,6 +2688,7 @@ Display& Display::eyeDistance(Flt dist)
      _eye_dist=dist; _eye_dist_2=_eye_dist/2;
       SetEyeMatrix();
       Frustum.set();
+      tAAReset();
    }
    return T;
 }
@@ -2752,6 +2753,7 @@ Display& Display::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
+Display& Display::tAAReset() {Renderer._ctx.clear(); return T;}
 Display& Display::tAA(Bool on)
 {
    if(tAA()!=on)
@@ -2760,12 +2762,6 @@ Display& Display::tAA(Bool on)
       if(created())Sh.TAA=Sh.find("TAA");
       tAAReset();
    }
-   return T;
-}
-Display& Display::tAAReset()
-{
-   Renderer._col_taa      .clear();
-   Renderer._col_taa_alpha.clear();
    return T;
 }
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
@@ -3171,7 +3167,8 @@ Display& Display::grassUpdate()
    bf.z=AngleFull(bf.z);
    bf.w=AngleFull(bf.w);
 #endif
-   Sh.BendFactor->set(bf);
+   Sh.BendFactorPrev->set(Sh.BendFactor->getVec4());
+   Sh.BendFactor    ->set(bf);
    return T;
 }
 /******************************************************************************/

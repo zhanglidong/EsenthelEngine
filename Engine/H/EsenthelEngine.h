@@ -397,6 +397,9 @@ namespace EE // Esenthel Engine namespace
    #include "Graphics/Renderer Instancing.h"
    #include "Input/Touch.h"
    #include "_/inline.h"
+   #if EE_PRIVATE
+      #include "../Source/Shaders/!Header CPU.h"
+   #endif
    /******************************************************************************/
    #pragma pack(pop)
    /******************************************************************************/

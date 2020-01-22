@@ -112,7 +112,7 @@ UInt Door::drawPrepare()
       Matrix matrix=actor.matrix().scaleOrn(scale);
       if(Frustum(*mesh, matrix))
       {
-         SetVariation(mesh_variation); mesh->draw(matrix, actor.vel(), actor.angVel());
+         SetVariation(mesh_variation); mesh->draw(matrix);
          SetVariation();
       }
    }

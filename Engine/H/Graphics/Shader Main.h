@@ -51,20 +51,24 @@ struct MainShaderClass
 
    ShaderParam
        Dummy,
+
       *ImgSize ,
       *ImgClamp,
       *RTSize  ,
-      *Coords  =&Dummy,
-      *Viewport=&Dummy,
+      *Coords   =&Dummy,
+      *Viewport =&Dummy,
+      *TAAOffset=&Dummy,
       *DepthWeightScale=&Dummy,
 
-      *CamAngVel =&Dummy,
-      *ObjVel    =&Dummy,
-      *ViewMatrix=&Dummy,
-      *CamMatrix =&Dummy,
-      *ProjMatrix=&Dummy,
-      *FurVel    ,
-      *ClipPlane ,
+      *ViewMatrix    =&Dummy,
+      *ViewMatrixPrev=&Dummy,
+      *CamMatrix     =&Dummy,
+      *CamMatrixPrev =&Dummy,
+      *ProjMatrix    =&Dummy,
+      *ProjMatrixPrev=&Dummy,
+      *ViewToViewPrev=&Dummy,
+      *FurVel   ,
+      *ClipPlane,
 
       *Material        ,
       *MultiMaterial[4],
@@ -74,7 +78,7 @@ struct MainShaderClass
       *LightLinear,
       *LightCone  ,
 
-      *Step         ,
+      *Step,
       *Color[2]  ={&Dummy, &Dummy},
       *BehindBias= &Dummy,
 
@@ -90,6 +94,7 @@ struct MainShaderClass
 
       *GrassRangeMulAdd=&Dummy,
       *BendFactor      =&Dummy,
+      *BendFactorPrev  =&Dummy,
 
       *Volume,
 

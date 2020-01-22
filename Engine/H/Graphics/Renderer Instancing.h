@@ -7,6 +7,16 @@
 /******************************************************************************/
 extern Memc<Material::MaterialShader> MaterialShaders;
 
+struct MatrixPair
+{
+   Matrix cur, prev; // matrixes for current and previous frame
+
+   void set(C Matrix &cur, C Matrix &prev) {T.cur=cur; T.prev=prev;}
+
+   MatrixPair() {}
+   MatrixPair(C Matrix &matrix) {cur=prev=matrix;}
+};
+
 struct EarlyZInstance
 {
  C MeshRender *mesh;
@@ -64,14 +74,12 @@ extern Memc<ShaderMaterialMesh> ShaderMaterialMeshes;
 struct SolidShaderMaterialMeshInstance
 {
    Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'SolidShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
-   Vec                      pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
-   Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
+   MatrixPair               view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
    Color                    highlight;
    Byte                     stencil_value;
 
    SolidShaderMaterialMeshInstance& set();
-   SolidShaderMaterialMeshInstance& set(C Vec &pos_delta, C Vec &ang_delta_shader);
 };
 extern Memc<SolidShaderMaterialMeshInstance> SolidShaderMaterialMeshInstances;
 
@@ -264,8 +272,7 @@ struct BlendInstance
     C MeshPart::Variation     *variation;
    #endif
     C MeshPart                *mesh;
-      Vec                      pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
-      Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
+      MatrixPair               view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
     C Memc<ShaderParamChange> *shader_param_changes;
       Color                    highlight;
       STENCIL_MODE             stencil_mode;
@@ -283,8 +290,10 @@ struct BlendInstance
    void setViewZ(Flt z) {T.z=z;}
    void setZ    (C VecD &pos);
 
-   void setViewMatrix(C Matrix  &view_matrix) {T.s.view_matrix=view_matrix; setViewZ(view_matrix.pos.z);}
+   void setViewMatrix(C Matrix  &view_matrix                             ) {T.s.view_matrix.cur=view_matrix;                                        setViewZ(view_matrix.pos.z);} // here 'view_matrix_prev' is ignored because it's assumed to be unused
+   void setViewMatrix(C Matrix  &view_matrix, C Matrix  &view_matrix_prev) {T.s.view_matrix.cur=view_matrix; T.s.view_matrix.prev=view_matrix_prev; setViewZ(view_matrix.pos.z);}
    void setMatrix    (C MatrixM &     matrix);
+   void setMatrix    (C MatrixM &     matrix, C MatrixM &matrix_prev);
 
    void unlink();
 
@@ -294,8 +303,8 @@ struct BlendInstance
 struct BlendInstancesClass : Memc<BlendInstance>
 {
    BlendInstance& add   (Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation);
-   BlendInstance& add   (BLST   &blst  , C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &pos_delta, C Vec &ang_delta_shader);
-   BlendInstance& addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &pos_delta);
+   BlendInstance& add   (BLST   &blst  , C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation);
+   BlendInstance& addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation);
 
    void add(BlendObject        &blend_obj, C VecD &pos);
    void add(  Game::Obj        & game_obj );
@@ -311,7 +320,6 @@ struct ClothInstance
  C Cloth      *cloth;
    ShaderBase *shader;
  C Material   *material;
-   Vec         pos_delta, ang_delta_shader; // store as 'ang_delta_shader' instead of 'ang_delta' because 'SetAngDeltaShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
    Color       highlight;
 
 #if COUNT_MATERIAL_USAGE
@@ -320,9 +328,9 @@ struct ClothInstance
 };
 struct ClothInstances : Memc<ClothInstance>
 {
-   void add(C Cloth &cloth, Shader &shader, C Material &material);
-   void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &pos_delta, C Vec &ang_delta_shader);
-   void add(C Cloth &cloth, FRST   &frst  , C Material &material);
+   void addShadow(C Cloth &cloth, Shader &shader, C Material &material);
+   void add      (C Cloth &cloth, Shader &shader, C Material &material);
+   void add      (C Cloth &cloth, FRST   &frst  , C Material &material);
 };
 /******************************************************************************/
 // MISC

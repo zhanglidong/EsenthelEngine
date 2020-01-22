@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 namespace EE{
 /******************************************************************************/
 #define LIGHT_DENSITY_FACTOR 0.5f // 0..1, 0.5 gives good results, should be 1 however because volume rendering is not perfect (when iterating samples, voxel texture coordinates may be chosen between between voxels, which may make them look blurry, darker, or brighter)

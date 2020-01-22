@@ -262,6 +262,13 @@ struct RendererClass // handles rendering
 #if !EE_PRIVATE
 private:
 #endif
+   struct Context
+   {
+      Byte frame=0;
+      ImageRTPtr taa_col, taa_weight;
+
+      void clear();
+   };
    RENDER_TYPE   _type, _cur_type;
    RENDER_MODE   _mode;
    ALPHA_MODE    _mesh_blend_alpha;
@@ -291,11 +298,12 @@ private:
                 *_ui, *_ui_ds,
                 *_final;
    ImageRTPtr    _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
-                 _col, _ds, _ds_1s, _nrm, _ext, _vel, _alpha, _col_taa, _col_taa_alpha,
+                 _col, _ds, _ds_1s, _nrm, _ext, _vel, _alpha,
                  _lum, _lum_1s, _spec, _spec_1s, _shd_1s, _shd_ms,
                  _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
                  _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
    Memx<ImageRT> _rts;
+   Context       _ctx;
 #if EE_PRIVATE
    GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
    GPU_API(ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});

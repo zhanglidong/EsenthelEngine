@@ -3,23 +3,24 @@
 namespace EE{
 /******************************************************************************
 
-   ObjMatrix is combined with CamMatrix to:
-      -be able to support large distances (because matrix calculations can be done in Dbl precision on the Cpu side, and stored as Flt precision in view space)
+   'ObjMatrix' is combined with 'CamMatrix' as 'ViewMatrix' to:
+      -support large distances (because matrix calculations can be done in Dbl precision on the CPU side, and stored as Flt precision in view space)
       -reduce number of matrix operations in shaders
 
 /******************************************************************************/
       MatrixM ObjMatrix(1),
               CamMatrix,
               CamMatrixInv,
-              EyeMatrix[2];
+              CamMatrixInvPrev,
+              EyeMatrix[2],
+              EyeMatrixPrev[2];
       Matrix4 ProjMatrix;
       Flt     ProjMatrixEyeOffset[2];
 
 const Matrix  MatrixIdentity (1);
 const MatrixM MatrixMIdentity(1);
 
-GpuMatrix   *ViewMatrix;
-GpuVelocity *ViewVel;
+GpuMatrix *ViewMatrix, *ViewMatrixPrev;
 /******************************************************************************/
 Matrix3& Matrix3::operator*=(Flt f)
 {
@@ -3407,21 +3408,18 @@ void AnimatedSkeleton::setMatrix()C
    ObjMatrix=matrix(); // 'Mesh.drawBlend' makes use of the 'ObjMatrix' so it must be set
    if(Renderer._mesh_shader_vel) // we need to process velocities (this is disabled in 'Renderer.del' to prevent using shader handles after deletion)
    {
-      Vec ang_delta_shader;
       if(VIRTUAL_ROOT_BONE)
       {
-         ViewMatrix[0].fromMul(matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
-         SetAngDeltaShader(ang_delta_shader, root._ang_delta, matrix());
-         SetFastVelUncondNoChanged(root._pos_delta, ang_delta_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
+         ViewMatrix    [0].fromMul(root._matrix     , CamMatrixInv    ); // Warning: this does not call 'setChanged'
+         ViewMatrixPrev[0].fromMul(root._matrix_prev, CamMatrixInvPrev); // Warning: this does not call 'setChanged'
       }
       REP(matrixes)
       {
        C AnimSkelBone &bone=bones[i];
-         ViewMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone.matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
-         SetAngDeltaShader(ang_delta_shader, bone._ang_delta, bone.matrix());
-         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone._pos_delta, ang_delta_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
+         ViewMatrix    [VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix     , CamMatrixInv    ); // Warning: this does not call 'setChanged'
+         ViewMatrixPrev[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix_prev, CamMatrixInvPrev); // Warning: this does not call 'setChanged'
       }
-      Sh.ObjVel->setChanged(); // call 'setChanged' only once, instead of for each bone
+      Sh.ViewMatrixPrev->setChanged(); // call 'setChanged' only once, instead of for each bone
       /* Bone Splits old code
       if(VIRTUAL_ROOT_BONE)
       {
@@ -3462,26 +3460,13 @@ void AnimatedSkeleton::setFurVel()C
 {
    Int matrixes=Min(bones.elms(), MAX_MATRIX-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
    SetFurVelCount(VIRTUAL_ROOT_BONE+matrixes); // root + bones
-   if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(FurVelShader(    root._fur_vel,           matrix()));
-           REP(matrixes)Sh.FurVel->set(FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);
+   if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(FurVelShader(VecZero/*    root._fur_vel*/,           matrix()));
+           REP(matrixes)Sh.FurVel->set(FurVelShader(VecZero/*bones[i]._fur_vel*/, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);
    /* Bone Splits
    if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(GFurVel[0                  ]=FurVelShader(    root._fur_vel,           matrix()));
    REP(matrixes)Sh.FurVel->set(GFurVel[VIRTUAL_ROOT_BONE+i]=FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);*/
 }
 /******************************************************************************/
-void SetFastViewMatrix(C Matrix  &view_matrix) {Sh.ViewMatrix->set    (view_matrix         );}
-void SetFastMatrix    (                      ) {Sh.ViewMatrix->set    (        CamMatrixInv);}
-void SetFastMatrix    (C Matrix  &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
-void SetFastMatrix    (C MatrixM &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
-
-void SetFastVel(                                                 ) {Sh.ObjVel->setConditional       ((         -ActiveCam.pos_delta)*=CamMatrixInv.orn(), VecZero            );}
-void SetFastVel(        C Vec &pos_delta, C Vec &ang_delta_shader) {Sh.ObjVel->setConditional       ((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader   );} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader' !!
-void SetFastVel(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader) {Sh.ObjVel->setInRangeConditional((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader, i);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader', 'i' must be 'InRange' !!
-
-void SetFastVelUncondNoChanged(        C Vec &pos_delta, C Vec &ang_delta_shader) {ViewVel[0].set((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader' !!
-void SetFastVelUncondNoChanged(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader) {ViewVel[i].set((pos_delta-ActiveCam.pos_delta)*=CamMatrixInv.orn(), ang_delta_shader);} // !! 'ang_delta_shader' must come from 'SetAngDeltaShader', 'i' must be 'InRange' !!
-/******************************************************************************/
-// To be used for drawing without any velocities
 void SetOneMatrix()
 {
    SetMatrixCount();
@@ -3497,37 +3482,60 @@ void SetOneMatrix(C MatrixM &matrix)
    SetMatrixCount();
    SetFastMatrix (matrix);
 }
+void SetOneMatrix(C Matrix &matrix, C Matrix &matrix_prev)
+{
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix_prev);
+}
+void SetOneMatrix(C MatrixM &matrix, C MatrixM &matrix_prev)
+{
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix_prev);
+}
+void SetOneMatrixAndPrev()
+{
+   SetMatrixCount   ();
+   SetFastMatrix    ();
+   SetFastMatrixPrev();
+}
 /******************************************************************************/
-// To be used by the user
+// To be used by the user, these must always set both 'cur' and 'prev' matrix
+void SetMatrix()
+{
+   ObjMatrix.identity();
+   SetMatrixCount   ();
+   SetFastMatrix    ();
+   SetFastMatrixPrev();
+}
 void SetMatrix(C Matrix &matrix)
 {
    ObjMatrix=matrix;
-   SetMatrixCount();
-   SetFastMatrix (matrix);
-   SetFastVel    ();
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix);
 }
 void SetMatrix(C MatrixM &matrix)
 {
    ObjMatrix=matrix;
-   SetMatrixCount();
-   SetFastMatrix (matrix);
-   SetFastVel    ();
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix);
 }
-void SetMatrix(C Matrix &matrix, C Vec &pos_delta, C Vec &ang_delta)
+void SetMatrix(C Matrix &matrix, C Matrix &matrix_prev)
 {
-   Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, matrix);
    ObjMatrix=matrix;
-   SetMatrixCount();
-   SetFastMatrix (matrix);
-   SetFastVel    (pos_delta, ang_delta_shader);
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix_prev);
 }
-void SetMatrix(C MatrixM &matrix, C Vec &pos_delta, C Vec &ang_delta)
+void SetMatrix(C MatrixM &matrix, C MatrixM &matrix_prev)
 {
-   Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, matrix);
    ObjMatrix=matrix;
-   SetMatrixCount();
-   SetFastMatrix (matrix);
-   SetFastVel    (pos_delta, ang_delta_shader);
+   SetMatrixCount   ();
+   SetFastMatrix    (matrix);
+   SetFastMatrixPrev(matrix_prev);
 }
 /******************************************************************************/
 INLINE void TestProjMatrix(Matrix4 &m)

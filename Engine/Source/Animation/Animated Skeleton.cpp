@@ -1,6 +1,8 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
+#define WORLD_POS 0
+#define FUR       0
 /******************************************************************************/
 // ANIM SKEL BONE
 /******************************************************************************/
@@ -33,10 +35,20 @@ void AnimatedSkeletonBone::clear(Flt blend)
       }
    }
 }
+/*
+   Flt                     fur_stiffness, // determines the speed of                fur velocities changes,    0..1  , default= 0.0001
+                           fur_gravity  , // gravity which affects                  fur velocities        , -Inf..Inf, default=-1
+                           fur_vel_scale; // how much does skeleton movement affect fur velocities        , -Inf..Inf, default=-0.75
+
+ C Vec    &         vel  (     )C {return root.    _vel                      ;} // get root         velocity
+ C Vec    &      angVel  (     )C {return root._ang_vel                      ;} // get root angular velocity
+
+// the following parameters are valid only after calling 'updateVelocities'
+   Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space, it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
 Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
 {
    return _vel + Cross(_ang_vel, local_pos*matrix().orn());
-}
+}*/
 void AnimatedSkeletonBone::forceMatrix(C MatrixM &matrix)
 {
   _force_matrix=true;
@@ -47,9 +59,11 @@ void AnimatedSkeletonBone::forceMatrix(C MatrixM &matrix)
 /******************************************************************************/
 void AnimatedSkeleton::zero()
 {
+#if FUR
    fur_stiffness=0;
    fur_gravity  =0;
    fur_vel_scale=0;
+#endif
    root.zero();
 
   _skeleton=null;
@@ -72,9 +86,10 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C MatrixM &init
       {
            C SkelBone &sbon=skeleton->bones[i];
          AnimSkelBone &bone=bones[i]; bone.zero();
-         bone._matrix=temp;
-         bone._matrix_prev.orn()=         bone.matrix();
-         bone._matrix_prev.pos  =sbon.pos*bone.matrix(); // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! this is needed for calculating velocities and 'worldPos' #AnimSkelBoneMatrixPrevPos
+         bone._matrix_prev=bone._matrix=temp;
+      #if WORLD_POS
+         bone._world_pos  =sbon.pos*bone.matrix();
+      #endif
       }
    }else
    {
@@ -82,12 +97,17 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C MatrixM &init
       slots.clear();
    }
 
+#if FUR
    fur_stiffness= 0.0001f;
    fur_gravity  =-1;
    fur_vel_scale=-0.75f;
+#endif
 
    root.zero();
-   root._matrix_prev=root._matrix=temp; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
+   root._matrix_prev=root._matrix=temp;
+#if WORLD_POS
+   root._world_pos=temp.pos;
+#endif
 
    return T;
 }
@@ -101,9 +121,11 @@ AnimatedSkeleton& AnimatedSkeleton::create(AnimatedSkeleton &src)
 
       root=src.root;
 
+   #if FUR
       fur_gravity  =src.fur_gravity  ;
       fur_stiffness=src.fur_stiffness;
       fur_vel_scale=src.fur_vel_scale;
+   #endif
    }
    return T;
 }
@@ -588,13 +610,13 @@ AnimatedSkeleton& AnimatedSkeleton::transformInWorldSpace(Int bone, C MatrixM &m
    }
    return T;
 }
-/******************************************************************************/
+/******************************************************************************
 static Vec FurVel(C Vec &vel, Flt fur_vel_scale, Flt fur_gravity)
 {
    Vec    fur_vel=vel*fur_vel_scale; fur_vel.y+=fur_gravity; fur_vel.clipLength(0.92f);
    return fur_vel;
 }
-/*   AnimatedSkeleton& vel(C Vec &vel, C Vec &ang_vel=VecZero); // force custom velocity to root and all bones
+   AnimatedSkeleton& vel(C Vec &vel, C Vec &ang_vel=VecZero); // force custom velocity to root and all bones
 AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
 {
    Vec fur_vel=FurVel(vel, fur_vel_scale, fur_gravity);
@@ -610,13 +632,22 @@ AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
    }
    return T;
 }*/
-void AnimatedSkeleton::updateVelocities()
+AnimatedSkeleton& AnimatedSkeleton::updateBegin()
 {
-   Bool physics_relative=false, ragdoll_bones_only=false;
+   Bool physics_relative=false;
+   if(  physics_relative && !Physics.updated())return T;
+
+                                            root._matrix_prev=root._matrix;
+   REPA(bones){AnimSkelBone &bone=bones[i]; bone._matrix_prev=bone._matrix;}
+   return T;
+}
+void AnimatedSkeleton::updateEnd()
+{
+   /*Bool physics_relative=false, ragdoll_bones_only=false;
    
    Flt time_mul;
 
-   if(physics_relative && Physics.created())
+   if(physics_relative)
    {
       if(!       Physics.updated    ())return;
       time_mul=1/Physics.updatedTime();
@@ -625,11 +656,19 @@ void AnimatedSkeleton::updateVelocities()
       time_mul=((Time.d()>EPS) ? 1/Time.d() : 1);
    }
 
+   Vec pos_delta, ang_delta;
+
    // root
-   GetDelta(root._pos_delta, root._ang_delta, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
-   root.    _vel=root._pos_delta*time_mul;
-   root._ang_vel=root._ang_delta*time_mul;
+   GetDelta(pos_delta, ang_delta, root._matrix_prev, root._matrix);
+   root.    _vel=pos_delta*time_mul;
+   root._ang_vel=ang_delta*time_mul;
+#if WORLD_POS
+   root._world_pos=root._matrix.pos;
+#endif
+
+#if FUR
    AdjustValTime(root._fur_vel, FurVel(vel(), fur_vel_scale, fur_gravity), fur_stiffness);
+#endif
 
    // bones
    if(skeleton())
@@ -640,31 +679,37 @@ void AnimatedSkeleton::updateVelocities()
          AnimSkelBone &bone=            bones[i];
          if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
          {
-            GetDelta(bone._ang_delta, bone._matrix_prev, bone._matrix);
+            GetDelta(ang_delta, bone._matrix_prev, bone._matrix);
 
             Vec     rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); // no need for VecD
             auto  trans_pos=rot_pos+bone.matrix().pos; // trans_pos=sbon.pos*bone.matrix(), use 'auto' depending on vector type
-            Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement, no need for VecD
-            bone._pos_delta=world_delta
-                           -Cross(bone._ang_delta, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
+         #if WORLD_POS
+          C auto &prev_world_pos=bone._world_pos; // use 'auto' depending on vector type
+         #else
+            auto  prev_world_pos=sbon.pos*bone._matrix_prev; // use 'auto' depending on vector type
+         #endif
+            Vec world_delta=trans_pos-prev_world_pos; // world pos movement, no need for VecD
+            pos_delta=world_delta
+                     -Cross(ang_delta, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
 
-            bone._matrix_prev.orn()=bone.matrix();
-            bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! this is needed for calculating velocities and 'worldPos' #AnimSkelBoneMatrixPrevPos
-
-            bone.    _vel=bone._pos_delta*time_mul;
-            bone._ang_vel=bone._ang_delta*time_mul;
+         #if WORLD_POS
+            bone._world_pos=trans_pos;
+         #endif
+            bone.    _vel=pos_delta*time_mul;
+            bone._ang_vel=ang_delta*time_mul;
             AdjustValTime(bone._fur_vel, FurVel(world_delta*time_mul, fur_vel_scale, fur_gravity), fur_stiffness); // set based only on linear movement
          }else // inherit values from the parent
          {
             AnimSkelBone &parent=boneRoot(sbon.parent);
-            bone._pos_delta=parent._pos_delta;
-            bone._ang_delta=parent._ang_delta;
             bone.      _vel=parent.      _vel;
             bone.  _ang_vel=parent.  _ang_vel;
             bone.  _fur_vel=parent.  _fur_vel;
+         #if WORLD_POS
+            bone._world_pos=parent._world_pos; or calculate manually
+         #endif
          }
       }
-   }
+   }*/
 }
 /******************************************************************************/
 void AnimatedSkeleton::move(C VecD &d)
@@ -701,7 +746,9 @@ Bool AnimatedSkeleton::save(File &f)C
 {
    f.putMulti(Byte(0), matrix()); // version
    f.putAsset(Skeletons.id(skeleton()));
+#if FUR
    f.putMulti(fur_stiffness, fur_gravity, fur_vel_scale);
+#endif
    return f.ok();
 }
 Bool AnimatedSkeleton::load(File &f)
@@ -711,7 +758,9 @@ Bool AnimatedSkeleton::load(File &f)
       case 0:
       {
          f.getMulti(root._matrix); create(Skeletons(f.getAssetID()), root._matrix);
+      #if FUR
          f.getMulti(fur_stiffness, fur_gravity, fur_vel_scale);
+      #endif
          if(f.ok())return true;
       }break;
    }

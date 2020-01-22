@@ -16,10 +16,8 @@ Camera::Camera()
    dist =1;
    at     .zero();
    matrix .setPos(0, 0, -1);
-   pos_delta.zero();
-   ang_delta.zero();
-         vel.zero();
-     ang_vel.zero();
+       vel.zero();
+   ang_vel.zero();
 
   _matrix_prev=matrix;
   _pos_prev1  =matrix.pos;
@@ -93,17 +91,28 @@ Camera& Camera::teleported()
   _matrix_prev=matrix; _pos_prev1=matrix.pos; // prevents velocity jump
    return T;
 }
-Camera& Camera::updateVelocities()
+/******************************************************************************/
+Camera& Camera::updateBegin()
+{
+   Bool physics_relative=false;
+   if(  physics_relative && !Physics.updated())return T;
+
+     _pos_prev1=_matrix_prev.pos;
+  _matrix_prev = matrix;
+   return T;
+}
+Camera& Camera::updateEnd()
 {
    Bool physics_relative=false;
 
    Flt dt=Time.d();
-   if(physics_relative && Physics.created())
+   if(physics_relative)
    {
       if(!Physics.updated())return T;
       dt=Physics.updatedTime();
    }
 
+   Vec pos_delta, ang_delta;
    GetDelta(pos_delta, ang_delta, _pos_prev1, _matrix_prev, matrix);
    if(dt)
    {
@@ -114,54 +123,70 @@ Camera& Camera::updateVelocities()
           vel.zero();
       ang_vel.zero();
    }
-     _pos_prev1=_matrix_prev.pos;
-  _matrix_prev = matrix;
    return T;
 }
 /******************************************************************************/
 void SetCam(C MatrixM &matrix)
 {
-   CamMatrix=matrix;
-   CamMatrix.inverse(CamMatrixInv, true);
+   CamMatrix=matrix; matrix.inverse(CamMatrixInv, true);
    Sh.CamMatrix->set(CamMatrix);
+}
+void SetCam(C MatrixM &matrix, C MatrixM &matrix_prev)
+{
+   SetCam(matrix);
+   matrix_prev.inverse(CamMatrixInvPrev, true);
+   Sh.CamMatrixPrev->set(matrix_prev);
 }
 void SetEyeMatrix()
 {
    Vec  eye_ofs=ActiveCam.matrix.x*D.eyeDistance_2();
    EyeMatrix[0]=ActiveCam.matrix; EyeMatrix[0].pos-=eye_ofs;
    EyeMatrix[1]=ActiveCam.matrix; EyeMatrix[1].pos+=eye_ofs;
-}
-static void SetCamAngVel()
-{
-   Sh.CamAngVel->setConditional(ActiveCam.ang_delta*CamMatrixInv.orn());
+
+            eye_ofs=ActiveCam._matrix_prev.x*D.eyeDistance_2();
+   EyeMatrixPrev[0]=ActiveCam._matrix_prev; EyeMatrixPrev[0].pos-=eye_ofs;
+   EyeMatrixPrev[1]=ActiveCam._matrix_prev; EyeMatrixPrev[1].pos+=eye_ofs;
 }
 void ActiveCamChanged()
 {
-   SetEyeMatrix(); SetCam(ActiveCam.matrix); Frustum.set();
    ActiveCamZ=Dot(ActiveCam.matrix.pos, ActiveCam.matrix.z);
-   SetCamAngVel();
+   SetEyeMatrix(); SetCam(ActiveCam.matrix, ActiveCam._matrix_prev); Frustum.set();
 }
 void Camera::set()C // this should be called only outside of 'Renderer' rendering
 {
-   Bool changed_matrix=(matrix!=ActiveCam.matrix);
+   Bool changed_matrix=(matrix!=ActiveCam.matrix || _matrix_prev!=ActiveCam._matrix_prev);
    ConstCast(ActiveCam)=T; // always backup to 'ActiveCam' even if display not yet created, so we can activate it later
    if(changed_matrix)ActiveCamChanged();
-   else              SetCamAngVel    (); // if haven't changed matrix, then just update velocity, don't do it conditionally, because we would have to make additional "if" before "ConstCast(ActiveCam)=T" to check for vel changes, which would be a slow down
+}
+void SetViewToViewPrev()
+{
+   Matrix m; ActiveCam.matrix.divNormalized(ActiveCam._matrix_prev, m); // m=ActiveCam.matrix/ActiveCam._matrix_prev; first convert from view space to world space (by multiplying by 'ActiveCam.matrix') and then convert from world space to previous view space (by dividing by 'ActiveCam._matrix_prev')
+   Sh.ViewToViewPrev->set(m);
 }
 /******************************************************************************/
+#define CAM_SAVE_EXTRA 0
 Bool Camera::save(File &f)C
 {
-   f.putMulti(Byte(0), yaw, pitch, roll, dist, at, matrix, pos_delta, ang_delta, vel, ang_vel); // version
+   f.putMulti(Byte(0), // version
+      yaw, pitch, roll, dist, at, matrix, vel, ang_vel
+   #if CAM_SAVE_EXTRA
+   , _matrix_prev, _pos_prev1
+   #endif
+   );
    return f.ok();
 }
 Bool Camera::load(File &f)
 {
-   switch(f.decUIntV())
+   switch(f.decUIntV()) // version
    {
       case 0:
       {
-         f.getMulti(yaw, pitch, roll, dist, at, matrix, pos_delta, ang_delta, vel, ang_vel); // version
-        _matrix_prev=matrix; _pos_prev1=matrix.pos;
+         f.getMulti(yaw, pitch, roll, dist, at, matrix, vel, ang_vel
+                #if CAM_SAVE_EXTRA
+                , _matrix_prev, _pos_prev1);
+                #else
+                ); _matrix_prev=matrix; _pos_prev1=matrix.pos;
+                #endif
          if(f.ok())return true;
       }break;
    }
@@ -182,6 +207,7 @@ static Vec ScreenToPosD(C Vec2 &screen_d, Flt z, C Matrix3 &cam_matrix)
 }
 Camera& Camera::transformByMouse(Flt dist_min, Flt dist_max, UInt flag)
 {
+   if(!(flag&CAMH_NO_BEGIN))updateBegin();
    if(flag&CAMH_ZOOM   )Clamp(dist*=ScaleFactor(Ms.wheel()*-0.3f), dist_min, dist_max);
    if(flag&CAMH_ROT_X  )yaw  -=Ms.d().x;
    if(flag&CAMH_ROT_Y  )pitch+=Ms.d().y;
@@ -196,8 +222,8 @@ Camera& Camera::transformByMouse(Flt dist_min, Flt dist_max, UInt flag)
          +z*(Ms.d().y*mul.y);
    }
    setSpherical();
-   if(!(flag&CAMH_NO_VEL_UPDATE))updateVelocities();
-   if(!(flag&CAMH_NO_SET       ))set();
+   if(!(flag&CAMH_NO_END))updateEnd();
+   if(!(flag&CAMH_NO_SET))set();
    return T;
 }
 /******************************************************************************/

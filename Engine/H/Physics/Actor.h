@@ -174,8 +174,6 @@ struct Actor // Physical Object
    Vec       angVel   (                )C;   Actor& angVel     (C Vec     &vel    ); // get/set angular velocity
    Vec     pointVelL  (C Vec &local_pos)C;                                           // get     point   velocity, 'local_pos' is in actor local space, returned velocity is in world space
    Vec     pointVelW  (C Vec &world_pos)C;                                           // get     point   velocity, 'world_pos' is in world       space, returned velocity is in world space
-   Vec     posDelta   (                )C;                                           // get     position delta from last to current simulation step
-   Vec     angDelta   (                )C;                                           // get     angle    delta from last to current simulation step
    Box     box        (                )C;                                           // get     bounding box in world space
    Shape   shape      (Bool local      )C;                                           // get     shape, 'local'=if in actor local space or world space !! only first actor's shape is used !!
 

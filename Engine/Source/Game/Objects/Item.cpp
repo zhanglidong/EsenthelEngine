@@ -11,16 +11,16 @@ Item::Item()
 {
    scale=0;
    mesh_variation=0;
-  _pos_delta.zero();
-  _ang_delta.zero();
   _grabber=null;
+  _matrix     .identity();
+  _matrix_prev.identity();
 }
 /******************************************************************************/
 // MANAGE
 /******************************************************************************/
 void Item::setUnsavedParams()
 {
-   mesh=(base ? base->mesh() : MeshPtr());
+   mesh=(base ? base->mesh() : null);
    if(base && base->phys())actor.create(*base->phys(), 1, scale).obj(this);
 }
 void Item::create(Object &obj)
@@ -37,17 +37,11 @@ void Item::create(Object &obj)
 /******************************************************************************/
 // GET / SET
 /******************************************************************************/
-Vec    Item::pos         (                ) {return actor.pos   (      );                }
-void   Item::pos         (C Vec    &pos   ) {       actor.pos   (pos   );                }
-Matrix Item::matrix      (                ) {return actor.matrix(      );                }
-Matrix Item::matrixScaled(                ) {return actor.matrix(      ).scaleOrn(scale);}
-void   Item::matrix      (C Matrix &matrix) {       actor.matrix(matrix);                }
-/******************************************************************************/
-void Item::setDrawingVelocities(C Vec &pos_delta, C Vec &ang_delta)
-{
-   T._pos_delta=pos_delta;
-   T._ang_delta=ang_delta;
-}
+Vec    Item::pos         (                ) {return actor.pos   (      );                 }
+void   Item::pos         (C Vec    &pos   ) {       actor.pos   (pos   ); _matrix.pos=pos;}
+Matrix Item::matrix      (                ) {return actor.matrix(      );                 }
+Matrix Item::matrixScaled(                ) {return actor.matrix(      ).scaleOrn(scale); }
+void   Item::matrix      (C Matrix &matrix) {       actor.matrix(matrix); _matrix=matrix; }
 /******************************************************************************/
 // CALLBACKS
 /******************************************************************************/
@@ -60,7 +54,8 @@ void Item::memoryAddressChanged()
 /******************************************************************************/
 Bool Item::update()
 {
-   setDrawingVelocities(actor.posDelta(), actor.angDelta());
+  _matrix_prev=_matrix;
+  _matrix     = matrixScaled();
    return true;
 }
 /******************************************************************************/
@@ -70,10 +65,9 @@ UInt Item::drawPrepare()
 {
    if(mesh && actor.is())
    {
-      Matrix matrix=matrixScaled();
-      if(Frustum(*mesh, matrix))
+      if(Frustum(*mesh, _matrix))
       {
-         SetVariation(mesh_variation); mesh->draw(matrix, _pos_delta, _ang_delta);
+         SetVariation(mesh_variation); mesh->draw(_matrix, _matrix_prev);
          SetVariation();
       }
    }
@@ -84,10 +78,9 @@ void Item::drawShadow()
 {
    if(mesh && actor.is())
    {
-      Matrix matrix=matrixScaled();
-      if(Frustum(*mesh, matrix))
+      if(Frustum(*mesh, _matrix))
       {
-         SetVariation(mesh_variation); mesh->drawShadow(matrix);
+         SetVariation(mesh_variation); mesh->drawShadow(_matrix);
          SetVariation();
       }
    }

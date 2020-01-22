@@ -1593,14 +1593,14 @@ AnimEditor AnimEdit;
          {
             if(anim_skel.skeleton()!=skel || anim_skel.bones.elms()!=skel->bones.elms() || anim_skel.slots.elms()!=skel->slots.elms())anim_skel.create(skel);
             skel_anim.create(*skel, *anim);
-            flt time=animTime(), time_prev=time-Time.ad(); // always set previous frame to setup correct motion blur velocities when manually changing anim time
+            flt time=animTime(), time_prev=time-1.0f/60/*Time.ad()*/; // always set previous frame to setup correct motion blur velocities when manually changing anim time (use 1/60 to have a constant blur as if for 60 fps)
             // instead of animating root directly, use 'getRootMatrixCumulative' to support correct motion blur when time is at the start to avoid time wrapping/clamping
-            Matrix matrix_prev; anim->getRootMatrixCumulative(matrix_prev, time_prev); anim_skel.clear().animateEx(skel_anim, time_prev, true, false, true).updateMatrix(matrix_prev).updateVelocities(); // use 'animateEx' to allow editing/previewing exact last keyframes without wrapping to beginning with Frac
-            Matrix matrix     ; anim->getRootMatrixCumulative(matrix     , time     ); anim_skel.clear().animateEx(skel_anim, time     , true, false, true).updateMatrix(matrix     ).updateVelocities();
+            Matrix matrix_prev; anim->getRootMatrixCumulative(matrix_prev, time_prev); anim_skel.updateBegin().clear().animateEx(skel_anim, time_prev, true, false, true).updateMatrix(matrix_prev).updateEnd(); // use 'animateEx' to allow editing/previewing exact last keyframes without wrapping to beginning with Frac
+            Matrix matrix     ; anim->getRootMatrixCumulative(matrix     , time     ); anim_skel.updateBegin().clear().animateEx(skel_anim, time     , true, false, true).updateMatrix(matrix     ).updateEnd();
             anim_skel.root.orn=anim_skel.matrix(); anim_skel.root.orn.fix(); anim_skel.root.pos=anim_skel.pos(); anim_skel.root.scale=ScaleFactorR(anim_skel.matrix().scale()); // because we don't animate 'root' but the main matrix, we need to setup root based on obtained matrix, this is needed in case we want to access root data (for example adding new keyframes for root positions needs current position)
          }else
          {
-            anim_skel.del().updateMatrix().updateVelocities();
+            anim_skel.del().updateBegin().updateMatrix().updateEnd();
          }
          return;
       }

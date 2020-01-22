@@ -492,12 +492,13 @@ struct GpuVelocity
    void set(C Vec &lin, C Vec &ang) {T.lin=lin; T.ang=ang;}
 };
 
-extern    MatrixM   ObjMatrix   , // object matrix
-                    CamMatrix   , // camera, this is always set, even when drawing shadows
-                    CamMatrixInv, // camera inversed = ~CamMatrix
-                    EyeMatrix[2]; // 'ActiveCam.matrix' adjusted for both eyes 0=left, 1=right
-extern GpuMatrix   *ViewMatrix  ;
-extern GpuVelocity *ViewVel     ;
+extern    MatrixM ObjMatrix       , // object matrix
+                  CamMatrix       , // camera, this is always set, even when drawing shadows
+                  CamMatrixInv    , // camera inversed = ~CamMatrix
+                  CamMatrixInvPrev, // camera inversed = ~CamMatrix (from previous frame)
+                  EyeMatrix    [2], // 'ActiveCam. matrix     ' adjusted for both eyes 0=left, 1=right
+                  EyeMatrixPrev[2]; // 'ActiveCam._matrix_prev' adjusted for both eyes 0=left, 1=right
+extern GpuMatrix *ViewMatrix, *ViewMatrixPrev;
 #endif
 /******************************************************************************/
 struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed precision, uses Flt for orientation+scale and Dbl for position)
@@ -910,32 +911,31 @@ void InitMatrix();
 void SetMatrixCount(Int num=1); // set number of used matrixes and velocities
 void SetFurVelCount(Int num=1); // set number of used fur velocities
 
-void SetFastViewMatrix(C Matrix  &view_matrix); // set view   matrix
-void SetFastMatrix    (                      ); // set object matrix to 'MatrixIdentity'
-void SetFastMatrix    (C Matrix  &matrix     ); // set object matrix
-void SetFastMatrix    (C MatrixM &matrix     ); // set object matrix
+void SetFastMatrix(                 ); // set object matrix to 'MatrixIdentity'
+void SetFastMatrix(C Matrix  &matrix); // set object matrix
+void SetFastMatrix(C MatrixM &matrix); // set object matrix
 
-void SetFastVel(                                                 ); // set      object velocity to 'VecZero'
-void SetFastVel(        C Vec &pos_delta, C Vec &ang_delta_shader); // set      object velocity
-void SetFastVel(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader); // set i-th object velocity assumes that index is 'InRange'
+void SetFastMatrixPrev(                 ); // set object matrix to 'MatrixIdentity'
+void SetFastMatrixPrev(C Matrix  &matrix); // set object matrix
+void SetFastMatrixPrev(C MatrixM &matrix); // set object matrix
 
-void SetFastVelUncondNoChanged(        C Vec &pos_delta, C Vec &ang_delta_shader); // set      object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later)
-void SetFastVelUncondNoChanged(Byte i, C Vec &pos_delta, C Vec &ang_delta_shader); // set i-th object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later) assumes that index is 'InRange'
+void SetOneMatrix(                                         ); // set object matrix to 'MatrixIdentity' and number of used matrixes to 1
+void SetOneMatrix(C Matrix  &matrix                        ); // set object matrix                     and number of used matrixes to 1
+void SetOneMatrix(C MatrixM &matrix                        ); // set object matrix                     and number of used matrixes to 1
+void SetOneMatrix(C Matrix  &matrix, C Matrix  &matrix_prev); // set object matrix                     and number of used matrixes to 1
+void SetOneMatrix(C MatrixM &matrix, C MatrixM &matrix_prev); // set object matrix                     and number of used matrixes to 1
 
-void SetOneMatrix(                 ); // set object matrix to 'MatrixIdentity' and number of used matrixes to 1
-void SetOneMatrix(C Matrix  &matrix); // set object matrix                     and number of used matrixes to 1
-void SetOneMatrix(C MatrixM &matrix); // set object matrix                     and number of used matrixes to 1
+void SetOneMatrixAndPrev(); // set object matrix and matrix_prev to 'MatrixIdentity', and number of used matrixes to 1
 
 void SetVelFur(C Matrix3 &view_matrix, C Vec &vel); // set velocity for fur effect
 
 void SetProjMatrix();
 void SetProjMatrix(Flt proj_offset);
-
-void SetAngDeltaShader(Vec &ang_delta_shader, C Vec &ang_delta, C Matrix3 &obj_matrix); // 'obj_matrix'=object matrix (not view matrix)
 #endif
 
-void SetMatrix(C Matrix  &matrix=MatrixIdentity                             ); // set active object rendering matrix and clear velocities to zero
-void SetMatrix(C MatrixM &matrix                                            ); // set active object rendering matrix and clear velocities to zero
-void SetMatrix(C Matrix  &matrix, C Vec &pos_delta, C Vec &ang_delta=VecZero); // set active object rendering matrix and       velocities from deltas
-void SetMatrix(C MatrixM &matrix, C Vec &pos_delta, C Vec &ang_delta=VecZero); // set active object rendering matrix and       velocities from deltas
+void SetMatrix(                                         ); // set active object rendering matrix to 'MatrixIdentity'
+void SetMatrix(C Matrix  &matrix                        ); // set active object rendering matrix
+void SetMatrix(C MatrixM &matrix                        ); // set active object rendering matrix
+void SetMatrix(C Matrix  &matrix, C Matrix  &matrix_prev); // set active object rendering matrix for current frame and that was used in previous frame
+void SetMatrix(C MatrixM &matrix, C MatrixM &matrix_prev); // set active object rendering matrix for current frame and that was used in previous frame
 /******************************************************************************/

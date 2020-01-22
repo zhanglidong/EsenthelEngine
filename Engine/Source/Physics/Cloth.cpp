@@ -190,7 +190,7 @@ ClothMesh& ClothMesh::skeleton(Skeleton *skeleton)
 //Bool boneRename(C Str8 &src, C Str8 &dest                             ); // rename 'src' bone to 'dest' bone, returns true if a bone was renamed
 //Bool ClothMesh::boneRename(C Str8 &src, C Str8 &dest) {return _bone_map.rename(src, dest);}
 
-void ClothMesh::boneRemap (C MemPtr<Byte, 256> &old_to_new, Bool remap_names)
+void ClothMesh::boneRemap(C MemPtr<Byte, 256> &old_to_new, Bool remap_names)
 {
                                        _phys.boneRemap(old_to_new);
    if(_skin.is()){MeshBase temp(_skin); temp.boneRemap(old_to_new); _skin.create(temp);}
@@ -535,6 +535,7 @@ void Cloth::_drawPhysical()C
 /******************************************************************************/
 void Cloth::drawSkinnedOutline(C AnimatedSkeleton &anim_skel, C Color &color)C
 {
+   DEBUG_ASSERT(Renderer()==RM_OUTLINE, "'Cloth.drawSkinnedOutline' called outside of RM_OUTLINE");
    if(_cloth_mesh)if(Shader *shader=_cloth_mesh->_skin_shader[RM_OUTLINE])
    {
       anim_skel.setMatrix();
@@ -545,21 +546,19 @@ void Cloth::drawSkinnedOutline(C AnimatedSkeleton &anim_skel, C Color &color)C
       shader->begin(); _cloth_mesh->_skin.set().draw();
    }
 }
-INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material)
+INLINE void ClothInstances::addShadow(C Cloth &cloth, Shader &shader, C Material &material)
 {
    ClothInstance &ci=New();
    ci.cloth    =&cloth;
    ci.shader   =&shader;
    ci.material =&material; material.incUsage();
 }
-INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &pos_delta, C Vec &ang_delta_shader)
+INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material)
 {
    ClothInstance &ci=New();
    ci.cloth           =&cloth;
    ci.shader          =&shader;
    ci.material        =&material; material.incUsage();
-   ci.pos_delta       = pos_delta;
-   ci.ang_delta_shader= ang_delta_shader;
    ci.highlight       = Renderer._mesh_highlight;
 }
 INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material)
@@ -570,8 +569,9 @@ INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material
    ci.material =&material; material.incUsage();
    ci.highlight= Renderer._mesh_highlight;
 }
-void Cloth::drawPhysical(C Vec &pos_delta, C Vec &ang_delta)C
+void Cloth::drawPhysical()C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'Cloth.drawPhysical' called outside of RM_PREPARE");
    if(_cloth && Frustum(box()))
    {
       ConstCast(T).update();
@@ -580,8 +580,7 @@ void Cloth::drawPhysical(C Vec &pos_delta, C Vec &ang_delta)C
       {
          case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
          {
-            Vec ang_delta_shader; SetAngDeltaShader(ang_delta_shader, ang_delta, MatrixIdentity);
-            SolidClothInstances.add(T, *shader, material, pos_delta, ang_delta_shader);
+            SolidClothInstances.add(T, *shader, material);
          }break;
 
          case RT_FORWARD: if(FRST *frst=_cloth_mesh->_phys_frst)if(Renderer.firstPass() || frst->all_passes)//if(Shader *shader=frst->getShader())
@@ -593,22 +592,24 @@ void Cloth::drawPhysical(C Vec &pos_delta, C Vec &ang_delta)C
 }
 void Cloth::drawPhysicalShadow()C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'Cloth.drawPhysicalShadow' called outside of RM_SHADOW");
    if(_cloth && Frustum(box()))
       if(Shader *shader=_cloth_mesh->_phys_shader[RM_SHADOW])
    {
       ConstCast(T).update();
-      ShadowClothInstances.add(T, *shader, GetMaterial(_cloth_mesh->material()()));
+      ShadowClothInstances.addShadow(T, *shader, GetMaterial(_cloth_mesh->material()()));
    }
 }
 void Cloth::drawPhysicalOutline(C Color &color)C
 {
+   DEBUG_ASSERT(Renderer()==RM_OUTLINE, "'Cloth.drawPhysicalOutline' called outside of RM_OUTLINE");
    if(_cloth && Frustum(box()))
       if(Shader *shader=_cloth_mesh->_phys_shader[RM_OUTLINE])
    {
       ConstCast(T).update();
     C Material &mtrl=GetMaterial(_cloth_mesh->material()());
       Renderer.setOutline(color);
-      SetOneMatrix();
+      SetOneMatrixAndPrev(); // current cloth shaders might use velocity
       D.depth(true);
       SetDefaultVAO(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
       D.cull (mtrl.cull); mtrl.setOutline();

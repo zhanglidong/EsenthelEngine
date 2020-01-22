@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 namespace EE{
 /******************************************************************************/
 #if WINDOWS
@@ -129,7 +128,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
       src.New("DrawTexNrm"   , "Draw2DTex_VS", "DrawTexNrm_PS");
       src.New("DrawTexDetNrm", "Draw2DTex_VS", "DrawTexDetNrm_PS");
-      src.New("Draw"         ,      "Draw_VS",  "Draw2DTex_PS");
+      src.New("Draw"         ,      "Draw_VS", "Draw2DTex_PS");
       src.New("DrawC"        ,      "Draw_VS", "Draw2DTexC_PS");
       src.New("DrawCG"       ,      "Draw_VS", "DrawTexCG_PS");
       src.New("DrawG"        ,      "Draw_VS", "DrawTexG_PS");

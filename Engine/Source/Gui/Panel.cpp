@@ -175,8 +175,9 @@ void Panel::draw(C Rect &rect)C
    {
       const Bool    hi   =true;
       const Int     shift=(hi ? 1 : 2);
-      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
-      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
+      ImageRTDesc   rt_desc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB);
+      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(rt_desc);
+      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(rt_desc);
       ImageRT      *cur      =Renderer._cur[0], *ds=Renderer._cur_ds;
       Rect          re       =r; re.extend(D.pixelToScreenSize(SHADER_BLUR_RANGE<<shift));
       Bool          secondary=(Renderer._ui!=cur); // required when "window.fade && blur" is used
@@ -325,8 +326,9 @@ void Panel::draw(C Color &color, C Rect &rect)C
    {
       const Bool    hi   =true;
       const Int     shift=(hi ? 1 : 2);
-      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
-      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
+      ImageRTDesc   rt_desc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB);
+      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(rt_desc);
+      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(rt_desc);
       ImageRT      *cur      =Renderer._cur[0], *ds=Renderer._cur_ds;
       Rect          re       =r; re.extend(D.pixelToScreenSize(SHADER_BLUR_RANGE<<shift));
       Bool          secondary=(Renderer._ui!=cur); // required when "window.fade && blur" is used

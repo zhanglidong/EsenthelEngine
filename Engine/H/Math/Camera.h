@@ -9,14 +9,16 @@
 /******************************************************************************/
 enum CAMH_FLAG // Camera Handle flags
 {
-   CAMH_ZOOM         =0x01, // zoom   with mouse wheel
-   CAMH_ROT_X        =0x02, // rotate.x on mouse move (yaw)
-   CAMH_ROT_Y        =0x04, // rotate.y on mouse move (pitch)
-   CAMH_MOVE         =0x08, // move     on mouse move
-   CAMH_MOVE_XZ      =0x10, // move.xz  on mouse move
-   CAMH_NO_VEL_UPDATE=0x20, // don't automatically update   the velocities
-   CAMH_NO_SET       =0x40, // don't automatically activate the camera
-   CAMH_ROT          =CAMH_ROT_X|CAMH_ROT_Y, // rotate  on mouse move
+   CAMH_ZOOM        =1<<0, // zoom   with mouse wheel
+   CAMH_ROT_X       =1<<1, // rotate.x on mouse move (yaw)
+   CAMH_ROT_Y       =1<<2, // rotate.y on mouse move (pitch)
+   CAMH_MOVE        =1<<3, // move     on mouse move
+   CAMH_MOVE_XZ     =1<<4, // move.xz  on mouse move
+   CAMH_NO_BEGIN    =1<<5, // don't automatically call 'updateBegin'
+   CAMH_NO_END      =1<<6, // don't automatically call 'updateEnd'
+   CAMH_NO_SET      =1<<7, // don't automatically call 'set' to activate the camera
+   CAMH_ROT         =CAMH_ROT_X|CAMH_ROT_Y    , // rotate on mouse move
+   CAMH_NO_BEGIN_END=CAMH_NO_BEGIN|CAMH_NO_END, // don't automatically call 'updateBegin, updateEnd'
 };
 /******************************************************************************/
 struct Camera
@@ -28,28 +30,32 @@ struct Camera
    VecD    at    ; // point where camera is looking at               , default=VecD(0,0,0)
    MatrixM matrix; // camera object matrix                           , default=MatrixIdentity-Vec(0,0,1)
 
-   Vec  pos_delta, // camera position delta   (this gets modified when calling 'updateVelocities')
-        ang_delta, // camera angle    delta   (this gets modified when calling 'updateVelocities')
-              vel, // camera         velocity (this gets modified when calling 'updateVelocities')
+   Vec        vel, // camera         velocity (this gets modified when calling 'updateVelocities')
           ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
 
    Camera& operator+=(C VecD &offset) {at+=offset; matrix.pos+=offset; return T;} // move camera by 'offset'
    Camera& operator-=(C VecD &offset) {at-=offset; matrix.pos-=offset; return T;} // move camera by 'offset'
 
-   // set
-   Camera& set         (C MatrixM &matrix                                            ); // set from matrix
-   Camera& setAngle    (C VecD    &pos , Flt yaw, Flt pitch, Flt roll=0              ); // set from position and angles
-   Camera& setSpherical(C VecD    &at  , Flt yaw, Flt pitch, Flt roll, Flt dist      ); // set spherical from 'look at' position, angles and distance
-   Camera& setSpherical(                                                             ); // set 'matrix' member as a spherical camera from current 'at dist yaw pitch roll' member values
-   Camera& setFromAt   (C VecD    &from, C VecD &at            ,   Flt roll=0        ); // set from "look from" position, "look at" position and 'roll' angle
-   Camera& setPosDir   (C VecD    &pos , C Vec  &dir=Vec(0,0,1), C Vec &up=Vec(0,1,0)); // set from look directions
+   // update
+      // begin
+      Camera& updateBegin(); // call this once per frame, before changing camera matrix
+
+      // set
+      Camera& set         (C MatrixM &matrix                                            ); // set from matrix
+      Camera& setAngle    (C VecD    &pos , Flt yaw, Flt pitch, Flt roll=0              ); // set from position and angles
+      Camera& setSpherical(C VecD    &at  , Flt yaw, Flt pitch, Flt roll, Flt dist      ); // set spherical from 'look at' position, angles and distance
+      Camera& setSpherical(                                                             ); // set 'matrix' member as a spherical camera from current 'at dist yaw pitch roll' member values
+      Camera& setFromAt   (C VecD    &from, C VecD &at            ,   Flt roll=0        ); // set from "look from" position, "look at" position and 'roll' angle
+      Camera& setPosDir   (C VecD    &pos , C Vec  &dir=Vec(0,0,1), C Vec &up=Vec(0,1,0)); // set from look directions
+
+      // end
+      Camera& updateEnd(); // call this once per frame, after changing camera matrix
 
    // operations
 #if EE_PRIVATE
    Camera& teleported();
 #endif
-   Camera& updateVelocities() ; // update camera velocities 'pos_delta ang_delta vel ang_vel' according to current 'matrix' and the one from previous frame, this needs to be called exactly once per frame
-   void    set             ()C; // set as active camera - sets rendering matrixes, sets frustum, copies self to 'ActiveCam'
+   void set()C; // set as active camera - sets rendering matrixes, sets frustum, copies self to 'ActiveCam'
 
    Camera& transformByMouse(Flt dist_min, Flt dist_max, UInt flag); // this is a helper method that transforms the camera basing on mouse input, 'dist_min'=minimum zoom distance, 'dist_max'=maximum zoom distance, 'flag'=CAMH_FLAG
 
@@ -122,10 +128,14 @@ Bool ToFullScreenRect(C PyramidM &pyramid, Rect &rect); // project 3D pyramid to
 /******************************************************************************/
 #if EE_PRIVATE
 void InitCamera   ();
-void  SetCam      (C MatrixM &matrix); // 'Frustum' may have to be reset after calling this method
+void  SetCam      (C MatrixM &matrix                        ); // 'Frustum' may have to be reset after calling this method
+void  SetCam      (C MatrixM &matrix, C MatrixM &matrix_prev); // 'Frustum' may have to be reset after calling this method
 void  SetEyeMatrix();
 void  ActiveCamChanged();
+void  SetViewToViewPrev();
 
 extern Dbl ActiveCamZ;
+
+inline Dbl DistPointActiveCamPlaneZ(C VecD &point) {return Dot(point, ActiveCam.matrix.z)-ActiveCamZ;}
 #endif
 /******************************************************************************/

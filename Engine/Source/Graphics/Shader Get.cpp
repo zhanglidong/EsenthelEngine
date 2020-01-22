@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-#include "../Shaders/!Header CPU.h"
 ASSERT(DIFFUSE_LAMBERT   ==SDIFFUSE_LAMBERT
     && DIFFUSE_OREN_NAYAR==SDIFFUSE_OREN_NAYAR
     && DIFFUSE_BURLEY    ==SDIFFUSE_BURLEY

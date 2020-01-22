@@ -103,7 +103,7 @@ void Viewport4::Cube::update(C GuiPC &gpc)
          {
             Ms.freeze();
             Camera &cam=view->camera;
-            VecD at=cam.at   ; cam.transformByMouse(0, 0, ((v4->horizontal()^rot) ? CAMH_MOVE_XZ : CAMH_MOVE) | CAMH_NO_VEL_UPDATE | CAMH_NO_SET);
+            VecD at=cam.at   ; cam.transformByMouse(0, 0, ((v4->horizontal()^rot) ? CAMH_MOVE_XZ : CAMH_MOVE) | CAMH_NO_BEGIN_END | CAMH_NO_SET);
             VecD d =cam.at-at;
             if(v4->lock())REPA(v4->view)if(&v4->view[i]!=view)v4->view[i].camera+=d;
          }
@@ -858,6 +858,8 @@ Viewport4& Viewport4::setViewportCamera()
 /******************************************************************************/
 void Viewport4::update()
 {
+   REPAO(view).camera.updateBegin();
+   
    // detect highlight
    if(_focus=getView(Gui.ms()))_last=_focus;
 
@@ -898,7 +900,7 @@ void Viewport4::update()
          Flt f=ScaleFactor(-Ms.d().sum());
          if(perspective())Clamp(cam.dist*=f, minDist(), maxDist());else REPAO(view).viewport.fov*=f;
       }
-      UInt flag=CAMH_NO_VEL_UPDATE|CAMH_NO_SET;
+      UInt flag=CAMH_NO_BEGIN_END|CAMH_NO_SET;
       if(rotate)
       {
          if(rotate_ex)
@@ -966,7 +968,7 @@ void Viewport4::update()
       if(move || rotate_move)
       {
          if(!horizontal())Swap(move, rotate_move);
-         Flt temp; if(fpp()){temp=cam.dist; cam.dist=fppSpeed()*0.5f;} cam.transformByMouse(minDist(), maxDist(), (move?CAMH_MOVE_XZ:0) | (rotate_move?CAMH_MOVE:0) | CAMH_NO_VEL_UPDATE | CAMH_NO_SET);
+         Flt temp; if(fpp()){temp=cam.dist; cam.dist=fppSpeed()*0.5f;} cam.transformByMouse(minDist(), maxDist(), (move?CAMH_MOVE_XZ:0) | (rotate_move?CAMH_MOVE:0) | CAMH_NO_BEGIN_END | CAMH_NO_SET);
                    if(fpp())      cam.dist=temp;
       }
 
@@ -975,7 +977,7 @@ void Viewport4::update()
    }
 
    // finalize cameras
-   REPAO(view).camera.setSpherical().updateVelocities();
+   REPAO(view).camera.setSpherical().updateEnd();
 
    // set main view
    setViewportCamera();

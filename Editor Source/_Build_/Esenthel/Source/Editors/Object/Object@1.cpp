@@ -104,7 +104,7 @@ ObjView ObjEdit;
       }
       void ObjView::BackMesh::drawBlend()
       {
-         if(mesh)mesh->drawBlend(matrix, VecZero, VecZero, &Vec4(1, 1, 1, ObjEdit.background_alpha()));
+         if(mesh)mesh->drawBlend(matrix, &Vec4(1, 1, 1, ObjEdit.background_alpha()));
       }
       void ObjView::SlotMesh::set(C MeshPtr &mesh, C Str &name) {T.mesh=mesh; T.name=name;}
       void ObjView::SlotMesh::draw(Skeleton &skel)
@@ -404,7 +404,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             if(ListElm *list_elm=Proj.list.visToData(Proj.list.lit))
                if(Elm *obj=list_elm->elm)if(ElmObj *obj_data=obj->objData())if(obj_data->mesh_id.valid())
                   if(C MeshPtr &mesh=Proj.gamePath(obj_data->mesh_id))
-                     mesh->drawBlend(MatrixIdentity, VecZero, VecZero, &Vec4(1, 1, 1, 0.5f));
+                     mesh->drawBlend(MatrixIdentity, &Vec4(1, 1, 1, 0.5f));
 
             if(background_alpha()<1)REPAO(back_meshes).drawBlend();
          }break;
