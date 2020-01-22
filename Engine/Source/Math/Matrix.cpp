@@ -3547,12 +3547,16 @@ INLINE void TestProjMatrix(Matrix4 &m)
    || Any(m.pos.x, m.pos.y              ))Exit("Shader 'Project' needs to be adjusted"); // 'm.pos.x' could be adjusted, however it's possible only for orthogonal mode, which is not used in VR (shadows are not stereo, and main view is always perspective based on VR FOV)
 #endif
 }
+inline void FlipY(Matrix4 &m)
+{
+   CHS(m.x.y); CHS(m.y.y); CHS(m.z.y); CHS(m.pos.y);
+}
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
 #if GL
    if(D.mainFBO())Sh.ProjMatrix->set(ProjMatrix);else
    {
-      Matrix4 m=ProjMatrix; CHS(m.y.y); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
+      Matrix4 m=ProjMatrix; FlipY(m); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the Y must be flipped
    }
 #else
    Sh.ProjMatrix->set(ProjMatrix); TestProjMatrix(ProjMatrix);
@@ -3570,7 +3574,7 @@ void SetProjMatrix(Flt proj_offset)
  //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 
 #if GL
-   if(!D.mainFBO())CHS(m.y.y); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
+   if(!D.mainFBO())FlipY(m); // in OpenGL when drawing to a RenderTarget the Y must be flipped
 #endif
 
    Sh.ProjMatrix->set(m); TestProjMatrix(m);
