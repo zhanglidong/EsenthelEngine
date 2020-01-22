@@ -33,6 +33,7 @@ enum BIAS_MODE : Byte
    BIAS_ZERO   ,
    BIAS_SHADOW ,
    BIAS_OVERLAY,
+   BIAS_EARLY_Z,
    BIAS_NUM    ,
 };
 enum STENCIL_MODE : Byte
@@ -109,6 +110,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void depthAllow   (Bool      on    );
    static void depthClip    (Bool      on    ); // !! not available on GL ES !!
    static void depthFunc    (UInt      func  );
+   static void depthBias    (BIAS_MODE bias  );
    static void    frontFace (Bool      ccw   );
    static void setFrontFace (                );
    static void wire         (Bool      on    );
@@ -130,7 +132,6 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void texClear     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texClearAll  (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texBind      (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
-   static void bias         (BIAS_MODE    bias);
    static void stencil      (STENCIL_MODE mode);
    static void stencilRef   (Byte         ref );
    static void stencil      (STENCIL_MODE mode, Byte ref);
@@ -156,7 +157,7 @@ private:
 #endif
    ALPHA_MODE _alpha;
    Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _sampler2D, _linear_gamma;
-   Byte       _col_write[4], _stencil, _stencil_ref, _bias;
+   Byte       _depth_bias, _stencil, _stencil_ref, _col_write[4];
    UInt       _depth_func, _sampler_filter[3], _sampler_address, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;
    Rect       _clip_rect;

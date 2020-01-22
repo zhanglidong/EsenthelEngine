@@ -947,7 +947,7 @@ start:
    {
       set(null, _ds, true);
       D.clearDS(); clear_ds=false; // already cleared so no need anymore
-      D.set3D();
+      D.set3D(); D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
       setEyeViewportCam();
@@ -955,7 +955,7 @@ start:
       if(++_eye<_eye_num)goto early_z;
 
       ClearEarlyZInstances();
-      D.set2D();
+      D.set2D(); D.depthBias(BIAS_ZERO);
    }
 #endif
 
@@ -1184,13 +1184,13 @@ void RendererClass::overlay()
    set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); D.bias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
+   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
       setEyeViewportCam();
       DrawOverlayObjects(); _render();
    }
-   D.set2D(); D.depthWrite(true); D.bias(BIAS_ZERO); D.depthFunc(FUNC_LESS);
+   D.set2D(); D.depthWrite(true); D.depthBias(BIAS_ZERO); D.depthFunc(FUNC_LESS);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
    OverlayObjects.clear();

@@ -10,16 +10,13 @@ namespace EE{
 
 // #ShadowBias
 
-#if GL
-   #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0.0f)
-   #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f)
-#elif DX11
-   #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0)
-   #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1)
-#endif
+#define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0)
+#define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1)
+#define DEPTH_BIAS_EARLY_Z DEPTH_VALUE( 1)
 
 #define SLOPE_SCALED_DEPTH_BIAS_SHADOW  DEPTH_VALUE( 2.0f)
 #define SLOPE_SCALED_DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f)
+#define SLOPE_SCALED_DEPTH_BIAS_EARLY_Z DEPTH_VALUE( 0.0f)
 /******************************************************************************/
 #if DX11
 struct BlendState
@@ -148,10 +145,10 @@ DisplayState::DisplayState()
   _sampler2D       =true;
   _depth_write     =true;
   _depth_clip      =true;
+  _depth_bias      =BIAS_ZERO;
   _depth_func      =FUNC_LESS;
   _alpha           =ALPHA_BLEND;
   _stencil         =STENCIL_NONE;
-  _bias            =BIAS_ZERO;
   _col_write[0]    =COL_WRITE_RGBA;
   _col_write[1]    =COL_WRITE_RGBA;
   _col_write[2]    =COL_WRITE_RGBA;
@@ -317,11 +314,11 @@ void DisplayState::stencil(STENCIL_MODE stencil)
 // RASTERIZER
 /******************************************************************************/
 #if DX11
-static void SetRS() {RasterStates[D._bias][D._cull][D._line_smooth][D._wire][D._clip_real][D._depth_clip][D._front_face].set();}
+static void SetRS() {RasterStates[D._depth_bias][D._cull][D._line_smooth][D._wire][D._clip_real][D._depth_clip][D._front_face].set();}
 Bool DisplayState::lineSmooth(Bool      on  ) {Bool old=D._line_smooth; if(D._line_smooth!=on){D._line_smooth=on; if(D3DC)SetRS();} return old;}
 void DisplayState::wire      (Bool      on  ) {if(D._wire      !=on  ){D._wire      =on  ; SetRS();}}
 void DisplayState::cull      (Bool      on  ) {if(D._cull      !=on  ){D._cull      =on  ; SetRS();}}
-void DisplayState::bias      (BIAS_MODE bias) {if(D._bias      !=bias){D._bias      =bias; SetRS();}}
+void DisplayState::depthBias (BIAS_MODE bias) {if(D._depth_bias!=bias){D._depth_bias=bias; SetRS();}}
 void DisplayState::depthClip (Bool      on  ) {if(D._depth_clip!=on  ){D._depth_clip=on  ; SetRS();}}
 void DisplayState::frontFace (Bool      ccw ) {if(D._front_face!=ccw ){D._front_face=ccw ; SetRS();}}
 #elif GL
@@ -344,9 +341,9 @@ void DisplayState::wire(Bool on)
 #endif
 }
 void DisplayState::cull(Bool on) {if(D._cull!=on)if(D._cull=on)glEnable(GL_CULL_FACE);else glDisable(GL_CULL_FACE);}
-void DisplayState::bias(BIAS_MODE bias)
+void DisplayState::depthBias(BIAS_MODE bias)
 {
-   if(D._bias!=bias)switch(D._bias=bias)
+   if(D._depth_bias!=bias)switch(D._depth_bias=bias)
    {
       case BIAS_ZERO:
       {
@@ -364,6 +361,12 @@ void DisplayState::bias(BIAS_MODE bias)
       {
          glEnable       (GL_POLYGON_OFFSET_FILL);
          glPolygonOffset(SLOPE_SCALED_DEPTH_BIAS_OVERLAY, DEPTH_BIAS_OVERLAY);
+      }break;
+
+      case BIAS_EARLY_Z:
+      {
+         glEnable       (GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(SLOPE_SCALED_DEPTH_BIAS_EARLY_Z, DEPTH_BIAS_EARLY_Z);
       }break;
    }
 }
@@ -803,11 +806,11 @@ void DisplayState::setDeviceSettings()
                    stencil   ((STENCIL_MODE)old._stencil    );
   _stencil_ref^=1; stencilRef(              old._stencil_ref);
 
-  _line_smooth^=1; lineSmooth(!_line_smooth       );
-  _wire       ^=1; wire      (!_wire              );
-  _cull       ^=1; cull      (!_cull              );
-  _front_face ^=1; frontFace (!_front_face        );
-  _bias       ^=1; bias      ((BIAS_MODE)old._bias);
+  _line_smooth^=1; lineSmooth(!_line_smooth             );
+  _wire       ^=1; wire      (!_wire                    );
+  _cull       ^=1; cull      (!_cull                    );
+  _front_face ^=1; frontFace (!_front_face              );
+  _depth_bias ^=1; depthBias ((BIAS_MODE)old._depth_bias);
 
   _alpha          =ALPHA_MODE(_alpha^1); alpha      (old._alpha       );
   _alpha_factor.r^=                  1 ; alphaFactor(old._alpha_factor);
@@ -1250,6 +1253,7 @@ void DisplayState::create()
          case BIAS_ZERO   : desc.DepthBias=                 0; desc.SlopeScaledDepthBias=                              0; break;
          case BIAS_SHADOW : desc.DepthBias=DEPTH_BIAS_SHADOW ; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_SHADOW ; break;
          case BIAS_OVERLAY: desc.DepthBias=DEPTH_BIAS_OVERLAY; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_OVERLAY; break;
+         case BIAS_EARLY_Z: desc.DepthBias=DEPTH_BIAS_EARLY_Z; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_EARLY_Z; break;
       }
       RasterStates[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
    }

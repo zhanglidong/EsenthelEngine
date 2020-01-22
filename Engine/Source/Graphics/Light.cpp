@@ -462,8 +462,8 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
       Matrix temp; cam_matrix.divNormalized(ActiveCam.matrix, temp); // temp = cam_matrix/ActiveCam.matrix
       Sh.ShdMatrix->set(temp);
 
-      D.samplerShadow(); D.bias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
-      D.sampler2D    (); D.bias(BIAS_ZERO);
+      D.samplerShadow(); D.depthBias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
+      D.sampler2D    (); D.depthBias(BIAS_ZERO);
 
       if((flag&SM_CLOUDS) && Renderer._cld_map.is()) // clouds are only for directional lights
       {
@@ -488,8 +488,8 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
       Sh.clear     (Vec4(D._view_active.range*2));
       D .clearDepth();
 
-      D.sampler3D(); D.bias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
-      D.sampler2D(); D.bias(BIAS_ZERO);
+      D.sampler3D(); D.depthBias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
+      D.sampler2D(); D.depthBias(BIAS_ZERO);
 
       if((flag&SM_CLOUDS) && Renderer._cld_map.is())
       {
