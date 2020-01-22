@@ -1,9 +1,8 @@
 /******************************************************************************/
 class Obj
 {
-   Matrix matrix; // matrix
-   Vec    pos_delta, // 'pos_delta' position delta (from previous to current frame)
-          ang_delta; // 'ang_delta' angle    delta (from previous to current frame)
+   Matrix matrix     , // matrix in current  frame
+          matrix_prev; // matrix in previous frame
 }
 
 Obj  object[12];
@@ -57,12 +56,12 @@ bool Update()
    flt speed=4;
    REPA(object)
    {
+      // remember current matrix as previous matrix
+      object[i].matrix_prev=object[i].matrix;
+
       // calculate new matrix
       Vec2   v; CosSin(v.x, v.y, i*PI2/Elms(object) + Time.time()*speed); // calculate sine and cosine of angle
       Matrix new_matrix(Vec(v.x, 0, v.y));                                // create 'new_matrix' with initial position
-
-      // calculate position/angle changes according to old and new matrix
-      GetDelta(object[i].pos_delta, object[i].ang_delta, object[i].matrix, new_matrix);
 
       // store new matrix
       object[i].matrix=new_matrix;
@@ -77,8 +76,8 @@ void Render() // rendering method
    {
       case RM_PREPARE:
       {
-         box.draw(MatrixIdentity, Vec(0, 0, 0));                                            // box is rendered with identity matrix and (0,0,0) velocity
-         REPA(object)ball.draw(object[i].matrix, object[i].pos_delta, object[i].ang_delta); // draw ball objects with their matrix and deltas
+         box.draw(MatrixIdentity);                                       // box is rendered with identity matrix and no velocities
+         REPA(object)ball.draw(object[i].matrix, object[i].matrix_prev); // draw ball objects with their matrixes
 
          LightPoint(25, Vec(0, 3, 0)).add();
       }break;
