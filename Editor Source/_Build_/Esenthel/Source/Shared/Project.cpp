@@ -633,6 +633,8 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(p->value=="avg" || p->value=="average"                          )mode=APPLY_AVG;else
             if(p->value=="min"                                                )mode=APPLY_MIN;else
             if(p->value=="max"                                                )mode=APPLY_MAX;else
+            if(p->value=="maskMul"                                            )mode=APPLY_MASK_MUL;else
+            if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
             if(p->value=="metal"                                              )mode=APPLY_METAL;else
             if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
          }
@@ -641,6 +643,18 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          if(i==0 && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
          if(mode!=APPLY_SKIP)
          {
+            Vec mask[4];
+            switch(mode)
+            {
+               case APPLY_MASK_MUL:
+               case APPLY_MASK_ADD:
+               {
+                  if(C TextParam *p=file.findParam("maskRed"  ))mask[0]=TextVecEx(p->asText());else mask[0]=1;
+                  if(C TextParam *p=file.findParam("maskGreen"))mask[1]=TextVecEx(p->asText());else mask[1]=1;
+                  if(C TextParam *p=file.findParam("maskBlue" ))mask[2]=TextVecEx(p->asText());else mask[2]=1;
+                  if(C TextParam *p=file.findParam("maskAlpha"))mask[3]=TextVecEx(p->asText());else mask[3]=1;
+               }break;
+            }
             VecI2 size=layer.size()+pos;
             if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
             {
@@ -681,6 +695,24 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                         case APPLY_MIN         : c=Min(base, l); break;
                         case APPLY_MAX         : c=Max(base, l); break;
                         case APPLY_METAL       : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+
+                        case APPLY_MASK_ADD:
+                        {
+                           c=base;
+                           c.xyz+=mask[0]*l.x;
+                           c.xyz+=mask[1]*l.y;
+                           c.xyz+=mask[2]*l.z;
+                           c.xyz+=mask[3]*l.w;
+                        }break;
+
+                        case APPLY_MASK_MUL:
+                        {
+                           c=base;
+                           c.xyz*=Lerp(VecOne, mask[0], l.x);
+                           c.xyz*=Lerp(VecOne, mask[1], l.y);
+                           c.xyz*=Lerp(VecOne, mask[2], l.z);
+                           c.xyz*=Lerp(VecOne, mask[3], l.w);
+                        }break;
                      }
                      image.colorF(x+pos.x, y+pos.y, alpha_1 ? c : Lerp(base, c, alpha));
                   }

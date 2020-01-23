@@ -180,6 +180,8 @@ class Project
       APPLY_AVG,
       APPLY_MIN,
       APPLY_MAX,
+      APPLY_MASK_MUL,
+      APPLY_MASK_ADD,
       APPLY_METAL,
       APPLY_SKIP,
    };
