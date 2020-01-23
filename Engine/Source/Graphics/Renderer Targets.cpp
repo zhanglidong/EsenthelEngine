@@ -609,10 +609,10 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
       D.validateCoords(); // viewport was changed, also for OpenGL (flip Y 2D coords when Rendering To Texture)
    }else // render targets weren't changed, so set viewport only
    {
-      RectI rect(custom_viewport ? screenToPixelI(D.viewRect()) : RectI(0, 0, resW(), resH()));
-      if(   rect!=D._view_active.recti) // over here we can do a quick != check first, because the Render Targets haven't changed (Renderer.resW(), resH() is the same, and that affects 'setRect')
+      RectI recti(custom_viewport ? screenToPixelI(D.viewRect()) : RectI(0, 0, resW(), resH()));
+      if(   recti!=D._view_active.recti) // over here we can do a quick != check first, because the Render Targets haven't changed (Renderer.resW(), resH() is the same, and that affects 'setRect')
       {
-         D._view_active.setRect(rect).setViewport();
+         D._view_active.setRect(recti).setViewport();
          D.validateCoords(); // viewport was changed, also for OpenGL (flip Y 2D coords when Rendering To Texture)
       }
    }
@@ -644,8 +644,8 @@ Rect* RendererClass::setEyeParams()
 {
    if(_stereo)
    {
-      RectI rect=D._view_active.recti;
-      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setShader(&ProjMatrixEyeOffset[_eye]).setRect(rect); // set rect temporarily to set shader params and restore it afterwards
+      RectI recti=D._view_active.recti;
+      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setShader(&ProjMatrixEyeOffset[_eye]).setRect(recti); // set rect temporarily to set shader params and restore it afterwards
       return &D._view_eye_rect[_eye];
    }
    return &D._view_rect;
