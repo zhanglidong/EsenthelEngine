@@ -3226,7 +3226,7 @@ void Display::setViewFovTan()
    && !(Renderer.inside() && !Renderer._stereo) // if we're inside rendering, and stereo is disabled, then we need to process this normally, this is so that we can do mono rendering in Gui, and use correct '_view_fov_tan' (PosToScreen,ScreenToPos) in that space
    )
    {
-      Flt scale=VR.guiSize()*0.5f, aspect=Flt(VR.guiRes().x)/VR.guiRes().y;
+      Flt scale=VR.guiSize()*0.5f, aspect=VR.guiRes().divF();
      _view_fov_tan_gui.x=scale*aspect;
      _view_fov_tan_gui.y=scale;
       if(Renderer.inside() && Renderer._stereo)_view_fov_tan_gui.x*=0.5f;

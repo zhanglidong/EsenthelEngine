@@ -1661,6 +1661,8 @@ struct VecI2 // Vector 2D (integer)
    Flt    avgF        (         )C {return AvgF(x, y);}         // components average
    Int    sum         (         )C {return      x+ y ;}         // components sum
    Int    mul         (         )C {return      x* y ;}         // components multiplication
+   Int    div         (         )C {return      x/ y ;}         // components division
+   Flt    divF        (         )C {return Flt(x)/ y ;}         // components division
    Flt    length      (         )C;                             // get         length
    Int    length2     (         )C {return  x*x + y*y;}         // get squared length
    Int    find        (Int value)C;                             // get index of first component that equals 'value' (-1 if none)
