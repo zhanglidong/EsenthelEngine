@@ -351,7 +351,7 @@ static void                  Build(VolumetricCloud &vc, Ptr user, Int thread_ind
 
    Flt top=LerpR(PI_4, 0.0f, Acos(_build.light_pos.y)); // same as LerpR(PI_4, PI_2, Asin(light_pos.y));
   _srcs=0;
-   if(_build.light_power>EPS_COL)
+   if(_build.light_power>EPS_COL8)
    {
       if(top>0)
       {
