@@ -531,7 +531,8 @@ private:
                      _shd_jitter, _shd_reduce,
                      _grass_shadow, _grass_mirror,
                      _vol_light, _vol_add,
-                     _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _taa, _taa_enable,
+                     _taa, _taa_use,
+                     _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo,
                      _initialized, _resetting, _no_gpu, _can_draw;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
