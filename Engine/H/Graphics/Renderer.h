@@ -277,7 +277,6 @@ private:
    Int           _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
    UInt          _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
    Color         _mesh_highlight;
-   Flt           _shd_range;
    VecI2         _res;
    Rect          _clip;
    PlaneM        _mirror_plane;

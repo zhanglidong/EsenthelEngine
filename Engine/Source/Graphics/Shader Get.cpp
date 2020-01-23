@@ -71,16 +71,16 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
             if(D.bumpMode()==BUMP_RELIEF)return SBUMP_RELIEF;
             return Mid(Ceil(material.bump/0.0075f)+SBUMP_PARALLAX0, SBUMP_PARALLAX_MIN, SBUMP_PARALLAX_MAX);
          }
-         if(material.normal>EPS_COL)return SBUMP_NORMAL;
+         if(material.normal>EPS_COL8)return SBUMP_NORMAL;
       }
       return SBUMP_FLAT;
    }
    return SBUMP_ZERO;
 }
-static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL;}
+static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL;}
-static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL) ? material.light_map ? 2 : 1 : 0;}
+static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL8;}
+static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
 {

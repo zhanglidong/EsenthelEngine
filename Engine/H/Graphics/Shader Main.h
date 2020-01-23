@@ -137,8 +137,8 @@ struct MainShaderClass
       *LocalFogInside ,
 
       *ShdJitter     =&Dummy,
-      *ShdRange      ,
-      *ShdRangeMulAdd,
+      *ShdRange      =&Dummy,
+      *ShdRangeMulAdd=&Dummy,
       *ShdOpacity    ,
       *ShdStep[6]    ,
       *ShdMatrix     ,

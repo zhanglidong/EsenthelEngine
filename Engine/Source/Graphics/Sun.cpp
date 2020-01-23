@@ -80,7 +80,7 @@ SunClass::SunClass()
   _rays_res     =FltToByteScale(0.25f);
   _rays_mask_res=FltToByteScale(1.0f ); // we can use full res because it makes a small performance difference
 }
-Bool SunClass::wantRays()C {return is() && rays_mode && rays_color.max()>EPS_COL;}
+Bool SunClass::wantRays()C {return is() && rays_mode && rays_color.max()>EPS_COL8_NATIVE;}
 
 Flt       SunClass::raysRes(         )C {return   ByteScaleToFlt(_rays_res);}
 SunClass& SunClass::raysRes(Flt scale)  {Byte res=FltToByteScale(scale); if(res!=_rays_res){_rays_res=res; Renderer.rtClean();} return T;}
@@ -152,7 +152,7 @@ void AstroPrepare()
       if(Sun.wantRays()
       && Renderer.canReadDepth() && !Renderer.mirror()
       && PosToFullScreen(CamMatrix.pos+Sun.pos*D.viewRange(), Sun._pos2) && FovPerspective(D.viewFovMode())
-      && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL) // if fog is too dense then don't draw sun rays
+      && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL8_NATIVE) // if fog is too dense then don't draw sun rays
       )
       {
          if(Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=2)

@@ -320,6 +320,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& cloudsMapSize      (Int         map_size);   Int         cloudsMapSize      ()C {return _cld_map_size  ;} // set/get Clouds Shadow Map Size                       (  1..Inf            , default=       128                         ), the change is NOT instant, avoid calling real-time
 #if EE_PRIVATE
    void     shadowJitterSet    ();
+   void     shadowRangeSet     ();
    Int      shadowMapNumActual ()C;
    Int      shadowMapSizeActual()C {return _shd_map_size_actual;}
    Bool     shadowSupported    ()C;
@@ -546,7 +547,7 @@ private:
                      _amb_range, _amb_contrast, _amb_min,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
-                     _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,
+                     _shd_frac, _shd_fade, _shd_range, _shd_map_size_l, _shd_map_size_c,
                      _bloom_original, _bloom_scale, _bloom_cut,
                      _mtn_scale,
                      _dof_focus, _dof_range, _dof_intensity,

@@ -61,11 +61,15 @@
 #define EPSD_COS          0.999999999999999 // Cos Dbl            Epsilon (Smallest Dot product of the same normalized directional VecD vector)
 
 #if EE_PRIVATE
-#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS) // GPU             Epsilon (Mobile GPU's may have only half precision)
-#define EPS_ANIM_BLEND         (1.0f/4096)                   // Animation Blend Epsilon (default value used for ignoring animations)
-#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                      // 12.5 cm
-#define EPS_SKY_MIN_VIEW_RANGE 0.999f                        // 0.999f was the biggest value that caused holes to disappear
-#define EPS_TAN_COS            SQRT2_2                       // Tangent Cos Epsilon = Cos(PI_4) 45 deg, used for Dot product of 2 directional vectors
+#define EPS_COL8_LINEAR        (EPS_COL8/12.92f)                           // EPS_COL8 in linear Gamma, Warning: "/12.92f" is valid only for small values
+#define EPS_COL_LINEAR         (EPS_COL /12.92f)                           // EPS_COL  in linear Gamma, Warning: "/12.92f" is valid only for small values
+#define EPS_COL8_NATIVE        (LINEAR_GAMMA ? EPS_COL8_LINEAR : EPS_COL8)
+#define EPS_COL_NATIVE         (LINEAR_GAMMA ? EPS_COL_LINEAR  : EPS_COL )
+#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS)               // GPU             Epsilon (Mobile GPU's may have only half precision)
+#define EPS_ANIM_BLEND         (1.0f/4096)                                 // Animation Blend Epsilon (default value used for ignoring animations)
+#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                    // 12.5 cm
+#define EPS_SKY_MIN_VIEW_RANGE 0.999f                                      // 0.999f was the biggest value that caused holes to disappear
+#define EPS_TAN_COS            SQRT2_2                                     // Tangent Cos Epsilon = Cos(PI_4) 45 deg, used for Dot product of 2 directional vectors
 #endif
 /******************************************************************************/
 enum AXIS_TYPE

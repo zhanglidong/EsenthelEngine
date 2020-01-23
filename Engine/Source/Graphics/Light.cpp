@@ -312,10 +312,10 @@ Flt LightPoint::range()C
    return Sqrt(power/(LINEAR_GAMMA ? 1.0f/512 : 1.0f/256));
 }
 /******************************************************************************/
-void LightDir   ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
-void LightPoint ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightLinear::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightCone  ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color_l.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
+void LightDir   ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()>EPS_COL8_LINEAR                                        && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
+void LightPoint ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()>EPS_COL8_LINEAR && power    >EPS && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightLinear::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()>EPS_COL8_LINEAR && range    >EPS && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightCone  ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color_l.max()>EPS_COL8_LINEAR && pyramid.h>EPS && toScreenRect(rect) && Renderer.firstPass())
    {
       Light &l=Lights.New();
       l.set(T, rect, shadow_opacity, light_src);
@@ -524,7 +524,7 @@ static void StartVol()
 }
 static void ApplyVolumetric(LightDir &light, Int shd_map_num, Bool cloud_vol)
 {
-   if(Renderer.hasVolLight() && light.vol>EPS_COL && shd_map_num>0)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+   if(Renderer.hasVolLight() && light.vol>EPS_COL8_NATIVE && shd_map_num>0)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
       VL.VolDir[shd_map_num-1][cloud_vol]->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
@@ -532,7 +532,7 @@ static void ApplyVolumetric(LightDir &light, Int shd_map_num, Bool cloud_vol)
 }
 static void ApplyVolumetric(LightPoint &light)
 {
-   if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+   if(Renderer.hasVolLight() && light.vol>EPS_COL8_NATIVE)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
       VL.VolPoint->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
@@ -540,7 +540,7 @@ static void ApplyVolumetric(LightPoint &light)
 }
 static void ApplyVolumetric(LightLinear &light)
 {
-   if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+   if(Renderer.hasVolLight() && light.vol>EPS_COL8_NATIVE)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
       VL.VolLinear->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
@@ -548,7 +548,7 @@ static void ApplyVolumetric(LightLinear &light)
 }
 static void ApplyVolumetric(LightCone &light)
 {
-   if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+   if(Renderer.hasVolLight() && light.vol>EPS_COL8_NATIVE)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
       VL.VolCone->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
@@ -638,8 +638,8 @@ static Bool ShadowMap(LightDir &light)
         cloud_vol=false;
    if(Clouds.draw && Clouds.volumetric.drawable() && Renderer._cld_map.is())
    {
-      if(Clouds.volumetric.shadow>EPS_COL)cloud_shd=true;
-      if(Renderer.hasVolLight() && CurrentLight.vol()>EPS_COL)cloud_vol=true;
+      if(Clouds.volumetric.shadow>EPS_COL8)cloud_shd=true;
+      if(Renderer.hasVolLight() && CurrentLight.vol()>EPS_COL8_NATIVE)cloud_vol=true;
    }
 
    // set light direction orientation
@@ -653,9 +653,9 @@ static Bool ShadowMap(LightDir &light)
    VecD point[8], point_temp[8*3], *point_ptr=(point_clip ? point_temp : point);
    UInt flag         =((cloud_shd || cloud_vol) ? SM_CLOUDS : 0);
    Flt  bias         =GetBias(),
-        range        =Renderer._shd_range*SHADOW_MAP_DIR_RANGE_MUL, // view range of the shadow map render target (this needs to be increased in case there are shadow occluders located distant from the camera), TODO: make SHADOW_MAP_DIR_RANGE_MUL configurable?
-        shd_from     =D.viewFromActual(),                       // where does the shadow start in the main render target
-        shd_to       =Max(Renderer._shd_range, shd_from+0.01f), // where does the shadow end   in the main render target (must be slightly larger than starting point)
+        range        =D._shd_range*SHADOW_MAP_DIR_RANGE_MUL, // view range of the shadow map render target (this needs to be increased in case there are shadow occluders located distant from the camera), TODO: make SHADOW_MAP_DIR_RANGE_MUL configurable?
+        shd_from     =D.viewFromActual(),                    // where does the shadow start in the main render target
+        shd_to       =Max(D._shd_range, shd_from+0.01f),     // where does the shadow end   in the main render target (must be slightly larger than starting point)
         shd_from_frac=shd_from/D.viewRange(),
         shd_to_frac  =shd_to  /D.viewRange();
 
@@ -1102,10 +1102,10 @@ static Bool CanDoShadow()
 {
    return D.shadowMode() && D.shadowSupported() && FovPerspective(D.viewFovMode());
 }
-void Light::set(LightDir    &light,               Bool shadow        , CPtr light_src) {Zero(T); type=LIGHT_DIR   ; dir   =light; T.rect=D.viewRect(); T.shadow=(shadow                 && CanDoShadow()); T.shadow_opacity=(T.shadow                          ); T.src=light_src;}
-void Light::set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_POINT ; point =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
-void Light::set(LightLinear &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_LINEAR; linear=light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
-void Light::set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_CONE  ; cone  =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightDir    &light,               Bool shadow        , CPtr light_src) {Zero(T); type=LIGHT_DIR   ; dir   =light; T.rect=D.viewRect(); T.shadow=(shadow                  && CanDoShadow()); T.shadow_opacity=(T.shadow                          ); T.src=light_src;}
+void Light::set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_POINT ; point =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL8 && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightLinear &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_LINEAR; linear=light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL8 && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_CONE  ; cone  =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL8 && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
 /******************************************************************************/
 INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
 INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}

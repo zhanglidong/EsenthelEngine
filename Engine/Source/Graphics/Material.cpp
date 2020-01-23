@@ -274,9 +274,9 @@ Bool Material::hasLeaf3D()C
 Bool Material::wantTanBin()C
 {
    // #MaterialTextureLayout
-   return (base_1     && normal   >EPS_COL          )  // normal        is in base_1
+   return (base_1     && normal   >EPS_COL8         )  // normal        is in base_1
        || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in base_2
-       || (detail_map && det_power>EPS_COL          ); // normal detail is in DetailMap
+       || (detail_map && det_power>EPS_COL8         ); // normal detail is in DetailMap
 }
 /******************************************************************************/
 Material& Material::reset   () {T=MaterialDefault; return validate();}

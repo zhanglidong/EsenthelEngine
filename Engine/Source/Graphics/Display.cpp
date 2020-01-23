@@ -1596,6 +1596,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
+   shadowRangeSet ();
    SetMatrix      ();
 
   _initialized=true;
@@ -3036,16 +3037,16 @@ Display& Display::volLight(Bool on ) {_vol_light=    on     ; return T;}
 Display& Display::volAdd  (Bool add) {_vol_add  =    add    ; return T;}
 Display& Display::volMax  (Flt  max) {_vol_max  =Max(max, 0); return T;}
 /******************************************************************************/
-Display& Display::shadowMode         (SHADOW_MODE mode) {Clamp(mode, SHADOW_NONE, SHADOW_MODE(SHADOW_NUM-1)); _shd_mode=mode; return T;}
-Display& Display::shadowJitter       (Bool     on     ) {if(_shd_jitter!=on){_shd_jitter^=1; shadowJitterSet();} return T;}
-Display& Display::shadowReduceFlicker(Bool     reduce ) {_shd_reduce    =    reduce                     ; return T;}
-Display& Display::shadowFrac         (Flt      frac   ) {_shd_frac      =Sat(frac                      ); return T;}
-Display& Display::shadowFade         (Flt      fade   ) {_shd_fade      =Sat(fade                      ); return T;}
-Display& Display::shadowSoft         (Byte     soft   ) {_shd_soft      =Min(soft   , SHADOW_SOFT_NUM-1); return T;}
-Display& Display::shadowMapNum       (Byte     map_num) {_shd_map_num   =Mid(map_num,    1,    6       ); return T;}
-Display& Display::shadowMapSizeLocal (Flt      frac   ) {_shd_map_size_l=Sat(frac                      ); return T;}
-Display& Display::shadowMapSizeCone  (Flt      factor ) {_shd_map_size_c=Mid(factor , 0.0f, 2.0f       ); return T;}
-Display& Display::shadowMapSplit     (C Vec2  &factor ) {_shd_map_split .set(Max(2, factor.x), Max(0, factor.y)); return T;}
+Display& Display::shadowMode         (SHADOW_MODE mode) {Clamp(mode, SHADOW_NONE, SHADOW_MODE(SHADOW_NUM-1)); _shd_mode=mode;             return T;}
+Display& Display::shadowJitter       (Bool     on     ) {           if(_shd_jitter!=on){_shd_jitter   ^=1;   shadowJitterSet();         } return T;}
+Display& Display::shadowReduceFlicker(Bool     reduce ) {                               _shd_reduce    =reduce;                           return T;}
+Display& Display::shadowFrac         (Flt      frac   ) {SAT(frac); if(_shd_frac!=frac){_shd_frac      =frac; shadowRangeSet();         } return T;}
+Display& Display::shadowFade         (Flt      fade   ) {SAT(fade); if(_shd_fade!=fade){_shd_fade      =fade; shadowRangeSet();         } return T;}
+Display& Display::shadowSoft         (Byte     soft   ) {                               _shd_soft      =Min(soft   , SHADOW_SOFT_NUM-1);  return T;}
+Display& Display::shadowMapNum       (Byte     map_num) {                               _shd_map_num   =Mid(map_num,    1,    6       );  return T;}
+Display& Display::shadowMapSizeLocal (Flt      frac   ) {                               _shd_map_size_l=Sat(frac                      );  return T;}
+Display& Display::shadowMapSizeCone  (Flt      factor ) {                               _shd_map_size_c=Mid(factor , 0.0f, 2.0f       );  return T;}
+Display& Display::shadowMapSplit     (C Vec2  &factor ) {                               _shd_map_split .set(Max(2, factor.x), Max(0, factor.y)); return T;}
 
 Display& Display::shadowMapSize(Int map_size)
 {
@@ -3068,15 +3069,35 @@ Bool Display::shadowSupported()C
 }
 void Display::shadowJitterSet()
 {
-   Vec2 j=Flt(shadowJitter())/Renderer._shd_map.hwSize();
-   Sh.ShdJitter->set(Vec4(j, j*-0.5f));
+   Vec4 j;
+   j.xy=Flt(shadowJitter())/Renderer._shd_map.hwSize(); // mul
+   j.zw=j.xy*-0.5f; // add
+   Sh.ShdJitter->set(j);
+}
+void Display::shadowRangeSet()
+{
+   Sh.ShdRange->setConditional(_shd_range=D.shadowFrac()*D.viewRange());
+   {
+      Flt from=_shd_range*D.shadowFade(),
+          to  =_shd_range;
+      if(from>=D.viewRange()-EPSL) // disabled
+      {
+         Sh.ShdRangeMulAdd->setConditional(Vec2Zero);
+      }else
+      {
+         MAX(to, from+0.01f);
+         from*=from; to*=to;
+         Flt mul=1/(to-from), add=-from*mul;
+         Sh.ShdRangeMulAdd->setConditional(Vec2(mul, add));
+      }
+   }
 }
 /******************************************************************************/
 Bool Display::aoWant()C
 {
    return ambientMode    ()!=AMBIENT_FLAT
-      &&  ambientContrast()> EPS_COL
-      && (aoAll() || (ambientColorS()+nightShadeColorS()).max()>EPS_COL); // no need to calculate AO if it's too small
+      &&  ambientContrast()> EPS_COL8
+      && (aoAll() || (ambientColorD()+nightShadeColorD()).max()>EPS_COL8_NATIVE); // no need to calculate AO if it's too small
 }
 Flt Display::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt Display::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
@@ -3244,7 +3265,7 @@ void Display::viewUpdate()
    if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
   _view_active.setShader().setProjMatrix(); Frustum.set();
 
-  _view_from  =(FovPerspective(viewFovMode()) ? viewFrom() : 0);
+  _view_from  =(FovPerspective(viewFovMode()) ? viewFrom() : 0         );
   _view_fov   =(FovHorizontal (viewFovMode()) ? viewFovX() : viewFovY());
   _view_rect  =Renderer.pixelToScreen(viewRectI());
   _view_center=_view_rect.center();
@@ -3255,6 +3276,7 @@ void Display::viewUpdate()
    setViewFovTan   ();
    validateCoords  ();
    lodUpdateFactors();
+   shadowRangeSet  ();
 }
 void Display::viewReset()
 {

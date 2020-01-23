@@ -66,7 +66,6 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
-  _shd_range=0;
   _res.zero();
   _clip.zero();
   _mirror_plane.zero();
@@ -499,23 +498,6 @@ RendererClass& RendererClass::operator()(void (&render)())
    if(Kb.br(KB_NP0) || Kb.br(KB_NP1) || Kb.br(KB_NP2) || Kb.br(KB_NP3) || Kb.br(KB_NP4) || Kb.br(KB_NP5) || Kb.br(KB_NP6) || Kb.br(KB_NP7) || Kb.br(KB_NP8) || Kb.br(KB_NP9)
    || Kb.br(KB_NPDIV) || Kb.br(KB_NPMUL) || Kb.br(KB_NPSUB) || Kb.br(KB_NPADD) || Kb.br(KB_NPDEL))stage=RS_DEFAULT;
 #endif
-
-   // Shadow Settings
-   Sh.ShdRange->setConditional(T._shd_range=D._shd_frac*D.viewRange());
-   {
-      Flt from=T._shd_range*D._shd_fade,
-          to  =T._shd_range;
-      if(from>=D.viewRange()-EPSL) // disabled
-      {
-         Sh.ShdRangeMulAdd->setConditional(Vec2Zero);
-      }else
-      {
-         MAX(to, from+0.01f);
-         from*=from; to*=to;
-         Flt mul=1/(to-from), add=-from*mul;
-         Sh.ShdRangeMulAdd->setConditional(Vec2(mul, add));
-      }
-   }
 
    // prepare
   _render     =render;
@@ -1353,7 +1335,7 @@ void RendererClass::light()
       D.set2D(); D.depthFunc(FUNC_LESS);
 
       // light buffer is ready so we can combine it with color
-      Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL), glow=(_has_glow && _col->hwTypeInfo().a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
+      Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorD().max()>EPS_COL8_NATIVE), glow=(_has_glow && _col->hwTypeInfo().a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
            use_last_frag_color=(has_last_frag_color && (D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8)==D.litColRTPrecision());
