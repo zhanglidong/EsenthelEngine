@@ -1594,7 +1594,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
    {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
    {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
-   lod               (_lod_factor, _lod_factor_mirror);
+   lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    SetMatrix      ();
 
@@ -2532,8 +2532,12 @@ Display& Display::colorSpace(COLOR_SPACE color_space)
 /******************************************************************************/
 void Display::validateCoords(Int eye)
 {
-   Vec2 coords_mul(1/w(), 1/h()),
-        coords_add=0;  // or coords_mul*_draw_offset;
+   Vec4  coords;
+   Vec2 &coords_mul=coords.xy,
+        &coords_add=coords.zw;
+
+   coords_mul.set(1/w(), 1/h());
+   coords_add=0; // or coords_mul*_draw_offset;
    if(InRange(eye, 2)) // stereo
    {
       coords_add.x+=ProjMatrixEyeOffset[eye];
@@ -2557,7 +2561,7 @@ void Display::validateCoords(Int eye)
    }
 #endif
 
-   Sh.Coords->setConditional(Vec4(coords_mul, coords_add));
+   Sh.Coords->setConditional(coords);
 }
 /******************************************************************************/
 void Display::sizeChanged()
