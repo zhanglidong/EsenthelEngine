@@ -264,10 +264,12 @@ private:
 #endif
    struct Context
    {
-      Byte frame=0;
+      Byte       frame;
+      Matrix4    proj_matrix_prev;
       ImageRTPtr taa_col, taa_weight;
 
       void clear();
+      Context() {clear();}
    };
    RENDER_TYPE   _type, _cur_type;
    RENDER_MODE   _mode;

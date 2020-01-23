@@ -45,6 +45,7 @@ static void ShutMshr()
 void RendererClass::Context::clear()
 {
    frame=0;
+   proj_matrix_prev.x.x=0; // this will force copy from latest 'ProjMatrix'
    taa_col   .clear();
    taa_weight.clear();
 }
