@@ -97,7 +97,7 @@ static inline Flt GetBias() {return (D.shadowJitter() ? 4.0f : 2.0f)/D.shadowMap
 static void ApplyViewSpaceBias(Flt &mp_z_z)
 {
    if(FovPerspective(D.viewFovMode())) // needed only for perspective because it can produce big errors
-   {
+   { // 'ProjMatrix' here is from main view
       mp_z_z=ProjMatrix.z.z;
       // #ShadowBias
       ProjMatrix.z.z+=(REVERSE_DEPTH ? -1.0 : 1.0)/(1ull<<Renderer._ds->hwTypeInfo().d); // this adjusts the value that is responsible for 'LinearizeDepth' by moving everything back by 1 value (in depth buffer bit precision)
