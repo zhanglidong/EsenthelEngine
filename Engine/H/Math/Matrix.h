@@ -4,6 +4,8 @@
 
    Use 'Matrix' to represent objects orientation, scale and position.
 
+   Use 'MatrixM' to represent objects orientation, scale and position (with double precision for position).
+
    Use 'GetVel' to calculate objects velocities according to its previous and current matrix.
 
    Use 'SetMatrix' to set mesh rendering matrix (use before manual drawing only).
