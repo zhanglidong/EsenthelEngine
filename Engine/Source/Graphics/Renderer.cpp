@@ -1539,33 +1539,30 @@ void RendererClass::tAA()
    {
       ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
       Sh.imgSize(*_col);
-      if(_ctx.taa_col) // has previous frame
+      if(!_ctx.taa_col) // doesn't have a previous frame yet
       {
-         ImageRTPtr temp_weight(rt_desc);
-         ImageRTPtr temp       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
-         set(temp, temp_weight, null, null, null, true);
-         D.alpha(ALPHA_NONE);
-
-         Sh.Img [0] ->set(_ctx.taa_col   ); // old
-         Sh.Img [1] ->set(_col           ); // new
-      #if   VEL_RT_MODE==VEL_RT_VECH2
-         Sh.ImgXY   ->set(_vel           ); // velocity
-      #elif VEL_RT_MODE==VEL_RT_VEC2
-         Sh.ImgXYF  ->set(_vel           ); // velocity
-      #endif
-         Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
-         Sh.ImgClamp->setConditional(imgClamp(rt_desc.size));
-         Sh.TAA->draw();
-         Swap(temp       , _ctx.taa_col   );
-         Swap(temp_weight, _ctx.taa_weight);
-        _ctx.taa_col->copyHw(*_col, false);
-      }else
-      {
-        _ctx.taa_weight.get(rt_desc); _ctx.taa_weight->clearFull(TAA_WEIGHT);
-        _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
-        _col->copyHw(*_ctx.taa_col, false);
-         Swap(_col, _ctx.taa_col); // swap because for 'copyHw' we've just set '_ctx.taa_col' as RT, so make '_col' to be the RT that is now set so next rendering will reuse this RT to minimize RT changes
+        _ctx.taa_weight.get(rt_desc.type(IMAGERT_ONE                                         )); _ctx.taa_weight->clearFull();
+        _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); _ctx.taa_col   ->clearFull(); // #RTOutput
       }
+      ImageRTPtr temp_weight(rt_desc.type(IMAGERT_ONE));
+      ImageRTPtr temp       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
+      set(temp, temp_weight, null, null, null, true);
+      D.alpha(ALPHA_NONE);
+
+      Sh.Img [0] ->set(_ctx.taa_col   ); // old
+      Sh.Img [1] ->set(_col           ); // new
+   #if   VEL_RT_MODE==VEL_RT_VECH2
+      Sh.ImgXY   ->set(_vel           ); // velocity
+   #elif VEL_RT_MODE==VEL_RT_VEC2
+      Sh.ImgXYF  ->set(_vel           ); // velocity
+   #endif
+      Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
+      Sh.ImgClamp->setConditional(imgClamp(rt_desc.size));
+      Sh.TAA->draw();
+      Swap(temp       , _ctx.taa_col   );
+      Swap(temp_weight, _ctx.taa_weight);
+     _ctx.taa_col->copyHw(*_col, false);
+
       D._taa_use=false; D._view_active.setShader();
       SetProjMatrix(); // D._view_active.setProjMatrix(); // FIXME 
    }

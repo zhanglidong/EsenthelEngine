@@ -1,6 +1,8 @@
 /******************************************************************************/
 #include "!Header.h"
 
+#define TAA_WEIGHT (1.0/8)
+
 #define CUBIC 1
 #if     CUBIC
 #include "Cubic.h"
