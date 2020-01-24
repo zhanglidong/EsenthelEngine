@@ -311,15 +311,6 @@ Rect RendererClass::imgClamp(C VecI2 &size)
    r.max=(ri.max-0.5f)/size; // yes -0.5 is needed
    return r;
 }
-Rect RendererClass::screenToPixel(C Rect &screen)
-{
-   return Rect((screen.min.x+D.w())*Renderer.resW()/D.w2(), (D.h()-screen.max.y)*Renderer.resH()/D.h2(),
-               (screen.max.x+D.w())*Renderer.resW()/D.w2(), (D.h()-screen.min.y)*Renderer.resH()/D.h2());
-}
-RectI RendererClass::screenToPixelI(C Rect &screen)
-{
-   return RoundGPU(screenToPixel(screen));
-}
 
 Rect RendererClass::pixelToScreen(C RectI &pixel)
 {

@@ -201,6 +201,14 @@ Display::Viewport& Display::Viewport::setShader(Flt *offset)
     //v.ProjectedPosToUV   [1].x this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur)
    }
 
+   if(D._taa_use && Renderer()!=RM_SHADOW) // FIXME TAA
+   {
+      Vec2 offset=Sh.TAAOffset->getVec2()*v.UVToPosXY[0];
+      v.        FracToPosXY[1]-=offset;
+      v.          UVToPosXY[1]-=offset;
+    //v.ProjectedPosToUV   [1] this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur)
+   }
+
    Sh.Viewport->set(v);
    return T;
 }

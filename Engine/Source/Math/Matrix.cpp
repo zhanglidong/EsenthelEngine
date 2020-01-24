@@ -3551,33 +3551,58 @@ inline void FlipY(Matrix4 &m)
 {
    CHS(m.x.y); CHS(m.y.y); CHS(m.z.y); CHS(m.pos.y);
 }
+inline void OffsetX(Matrix4 &m, Flt x)
+{
+   m.x  .x+=m.x  .w*x;
+   m.y  .x+=m.y  .w*x;
+   m.z  .x+=m.z  .w*x;
+   m.pos.x+=m.pos.w*x;
+}
+inline void OffsetY(Matrix4 &m, Flt y)
+{
+   m.x  .y+=m.x  .w*y;
+   m.y  .y+=m.y  .w*y;
+   m.z  .y+=m.z  .w*y;
+   m.pos.y+=m.pos.w*y;
+}
+//Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
-#if GL
-   if(D.mainFBO())Sh.ProjMatrix->set(ProjMatrix);else
+   if(D._taa_use && Renderer()!=RM_SHADOW) // FIXME TAA
    {
-      Matrix4 m=ProjMatrix; FlipY(m); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the Y must be flipped
+      Matrix4 m=ProjMatrix                    ; OffsetX(m, D._taa_offset.x); OffsetY(m, D._taa_offset.y);
+      Matrix4 p=Renderer._ctx.proj_matrix_prev; OffsetX(p, D._taa_offset.x); OffsetY(p, D._taa_offset.y);
+
+      if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
+      Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
+      Sh.ProjMatrixPrev->set(p); TestProjMatrix(p);
+   }else
+   if(GL && !D.mainFBO()) // in OpenGL when drawing to a RenderTarget the Y must be flipped
+   {
+      Matrix4 m=ProjMatrix                    ; FlipY(m); Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
+              m=Renderer._ctx.proj_matrix_prev; FlipY(m); Sh.ProjMatrixPrev->set(m); TestProjMatrix(m);
+   }else
+   {
+      Sh.ProjMatrix    ->set(ProjMatrix                    ); TestProjMatrix(ProjMatrix                    );
+      Sh.ProjMatrixPrev->set(Renderer._ctx.proj_matrix_prev); TestProjMatrix(Renderer._ctx.proj_matrix_prev);
    }
-#else
-   Sh.ProjMatrix->set(ProjMatrix); TestProjMatrix(ProjMatrix);
-#endif
 }
 void SetProjMatrix(Flt proj_offset)
 {
    Matrix4 m=ProjMatrix;
+   Matrix4 p=Renderer._ctx.proj_matrix_prev;
+   if(D._taa_use && Renderer()!=RM_SHADOW)
+   {
+      proj_offset+=D._taa_offset.x;
+      OffsetY(m, D._taa_offset.y);
+      OffsetY(p, D._taa_offset.y);
+   }
+   OffsetX(m, proj_offset);
+   OffsetX(p, proj_offset);
 
-   m.x  .x+=m.x  .w*proj_offset;
-   m.y  .x+=m.y  .w*proj_offset;
-   m.z  .x+=m.z  .w*proj_offset;
-   m.pos.x+=m.pos.w*proj_offset;
-
- //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
-
-#if GL
-   if(!D.mainFBO())FlipY(m); // in OpenGL when drawing to a RenderTarget the Y must be flipped
-#endif
-
-   Sh.ProjMatrix->set(m); TestProjMatrix(m);
+   if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
+   Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
+   Sh.ProjMatrixPrev->set(p); TestProjMatrix(p);
 }
 /******************************************************************************/
 // LOD

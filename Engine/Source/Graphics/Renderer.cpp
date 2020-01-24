@@ -12,6 +12,52 @@ namespace EE{
 // if there's no sky but we use an environment map, currently PBR formulas can generate specular/reflection even if smooth and reflectivity are zero, so for that case we also need to clear normals as it depends on eye_dir, view_nrm, smooth and reflectivity #SpecularReflectionFromZeroSmoothReflectivity
 static inline Bool NeedBackgroundNrm() {return (!Sky.isActual() && D.envMap()) || D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 static inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) || Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT || Renderer.stage==RS_LIT_COLOR;}
+/******************************************************************************/
+static const Vec2 TAAOffsets[]=
+{
+#if 1 // 8 samples (good enough quality and smaller flickering)
+   #if 1 // Halton (smaller flickering), REPAO(TAAOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
+      #define TAA_MUL 1.1f // this makes AA more smooth
+      { 0.000f*TAA_MUL, -0.333333313f*TAA_MUL},
+      {-0.500f*TAA_MUL,  0.333333373f*TAA_MUL},
+      { 0.500f*TAA_MUL, -0.777777791f*TAA_MUL},
+      {-0.750f*TAA_MUL, -0.111111045f*TAA_MUL},
+      { 0.250f*TAA_MUL,  0.555555582f*TAA_MUL},
+      {-0.250f*TAA_MUL, -0.555555522f*TAA_MUL},
+      { 0.750f*TAA_MUL,  0.111111164f*TAA_MUL},
+      {-0.875f*TAA_MUL,  0.777777910f*TAA_MUL},
+   #else // ARM sorted
+      #define TAA_MUL (1.0f/8.0f)
+      {-1*TAA_MUL, -3*TAA_MUL},
+      { 1*TAA_MUL,  3*TAA_MUL},
+      { 5*TAA_MUL, -1*TAA_MUL},
+      {-3*TAA_MUL,  5*TAA_MUL},
+      {-7*TAA_MUL,  1*TAA_MUL},
+      {-5*TAA_MUL, -5*TAA_MUL},
+      { 3*TAA_MUL, -7*TAA_MUL},
+      { 7*TAA_MUL,  7*TAA_MUL},
+   #endif
+#else // 16 samples ARM (better quality however much bigger flickering)
+   #define TAA_MUL (1.0f/8.0f)
+	{-8*TAA_MUL,  0*TAA_MUL},
+	{-6*TAA_MUL, -4*TAA_MUL},
+	{-3*TAA_MUL, -2*TAA_MUL},
+	{-2*TAA_MUL, -6*TAA_MUL},
+	{ 1*TAA_MUL, -1*TAA_MUL},
+	{ 2*TAA_MUL, -5*TAA_MUL},
+	{ 6*TAA_MUL, -7*TAA_MUL},
+	{ 5*TAA_MUL, -3*TAA_MUL},
+	{ 4*TAA_MUL,  1*TAA_MUL},
+	{ 7*TAA_MUL,  4*TAA_MUL},
+	{ 3*TAA_MUL,  5*TAA_MUL},
+	{ 0*TAA_MUL,  7*TAA_MUL},
+	{-1*TAA_MUL,  3*TAA_MUL},
+	{-4*TAA_MUL,  6*TAA_MUL},
+	{-7*TAA_MUL,  8*TAA_MUL},
+   {-5*TAA_MUL,  2*TAA_MUL},
+#endif
+};
+#undef TAA_MUL
 /******************************************************************************
 
    Graphics API differences:
@@ -509,6 +555,8 @@ RendererClass& RendererClass::operator()(void (&render)())
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
+   if(!_ctx.proj_matrix_prev.x.x)_ctx.proj_matrix_prev=ProjMatrix; // if not yet initialized then copy from current (needed for MotionBlur and TAA)
+
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 
    // !! it is important to call this as the first thing during rendering, because 'Game.WorldManager.draw' assumes so, if this needs to be changed then rework 'Game.WorldManager.draw' !!
@@ -639,6 +687,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
    // cleanup
    {
+     _ctx.proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
      _render=null; // this specifies that we're outside of Rendering
      _final =null;
       D.alpha(ALPHA_BLEND); mode(RM_SOLID);
@@ -748,8 +797,8 @@ Bool RendererClass::reflection()
 /******************************************************************************/
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
 Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA
-                                    && D._view_main.full;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
-                                                           // !! also if this would get disabled, then we have to scale ProjMatrix based on viewport size and NOT RT size (be careful with _view_active here not available, and _view_main does not take into account D.density
+                                    //FIXME TAA && D._view_main.full
+                                    ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
 Bool RendererClass::wantEdgeSoften()C
@@ -917,6 +966,21 @@ start:
    Sh.DepthMS->set(_ds   );
 
   _set_depth_needed=(_ds!=_cur_main_ds && _ds_1s!=_cur_main_ds && canReadDepth()); // if we're not rendering to currently main depth buffer and we have depth access
+
+   // now 'col' and 'ds' are known, including their sizes
+
+   // FIXME TAA
+   if(hasTAA()) // needs to be called after we have '_col'
+   {
+    C VecI2 &size    =_col->size();
+    C Vec2  &offset  =TAAOffsets[(_ctx.frame++)%Elms(TAAOffsets)];
+      RectI  viewport=ScreenToPixelI(D.viewRect(), size);
+      D._taa_use   =true;
+      D._taa_offset=    offset/viewport.size();
+      Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes
+      D._view_active.setShader();
+   }
+   SetProjMatrix(); // D._view_active.setProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
 
    D.alpha(ALPHA_NONE);
 
@@ -1475,6 +1539,41 @@ void RendererClass::sky()
 }
 void RendererClass::tAA()
 {
+// FIXME TAA somewhere should be '_vel' checks, either always force VEL usage for TAA (in that case allow not using motion blurring if not enabled), or allow only if motion blur enabled
+   if(D._taa_use) // hasTAA()
+   {
+      ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
+      Sh.imgSize(*_col);
+      if(_ctx.taa_col) // has previous frame
+      {
+         ImageRTPtr temp_weight(rt_desc);
+         ImageRTPtr temp       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
+         set(temp, temp_weight, null, null, null, true);
+         D.alpha(ALPHA_NONE);
+
+         Sh.Img [0] ->set(_ctx.taa_col   ); // old
+         Sh.Img [1] ->set(_col           ); // new
+      #if   VEL_RT_MODE==VEL_RT_VECH2
+         Sh.ImgXY   ->set(_vel           ); // velocity
+      #elif VEL_RT_MODE==VEL_RT_VEC2
+         Sh.ImgXYF  ->set(_vel           ); // velocity
+      #endif
+         Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
+         Sh.ImgClamp->setConditional(imgClamp(rt_desc.size));
+         Sh.TAA->draw();
+         Swap(temp       , _ctx.taa_col   );
+         Swap(temp_weight, _ctx.taa_weight);
+        _ctx.taa_col->copyHw(*_col, false);
+      }else
+      {
+        _ctx.taa_weight.get(rt_desc); _ctx.taa_weight->clearFull(TAA_WEIGHT);
+        _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
+        _col->copyHw(*_ctx.taa_col, false);
+         Swap(_col, _ctx.taa_col); // swap because for 'copyHw' we've just set '_ctx.taa_col' as RT, so make '_col' to be the RT that is now set so next rendering will reuse this RT to minimize RT changes
+      }
+      D._taa_use=false; D._view_active.setShader();
+      SetProjMatrix(); // D._view_active.setProjMatrix(); // FIXME 
+   }
 }
 void RendererClass::edgeDetect()
 {

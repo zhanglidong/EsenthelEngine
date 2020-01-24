@@ -826,7 +826,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-  _taa             =_taa_enable=false;
+  _taa             =_taa_use=false;
 
   _initialized=false;
   _resetting  =false;
@@ -3374,6 +3374,12 @@ Vec2 Display::UVToScreen(C Vec2 &uv)
    return Vec2(uv.x*D.w2()-D.w(),
                D.h()-uv.y*D.h2());
 }
+
+Rect ScreenToPixel(C Rect &screen, C VecI2 &res)
+{
+   return Rect((screen.min.x+D.w())*res.x/D.w2(), (D.h()-screen.max.y)*res.y/D.h2(),
+               (screen.max.x+D.w())*res.x/D.w2(), (D.h()-screen.min.y)*res.y/D.h2());
+}
 Vec2 Display::screenToPixel(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())*D._pixel_size_inv.x,
@@ -3386,8 +3392,9 @@ Rect Display::screenToPixel(C Rect &screen)
 }
 
 // use 'Round' instead of 'Floor' to match GPU vertex rounding, so that all 3 ways of rect drawing will be identical: Rect r; 1) r.draw 2) D.clip(r) full_rect.draw() 3) D.viewRect(r) full_rect.draw()
-VecI2 Display::screenToPixelI(C Vec2 &screen) {return RoundGPU(screenToPixel(screen));}
-RectI Display::screenToPixelI(C Rect &screen) {return RoundGPU(screenToPixel(screen));}
+RectI          ScreenToPixelI(C Rect &screen, C VecI2 &res) {return RoundGPU(ScreenToPixel(screen, res));}
+VecI2 Display::screenToPixelI(C Vec2 &screen              ) {return RoundGPU(screenToPixel(screen));}
+RectI Display::screenToPixelI(C Rect &screen              ) {return RoundGPU(screenToPixel(screen));}
 
 Vec2 Display::pixelToScreen(C Vec2 &pixel)
 {

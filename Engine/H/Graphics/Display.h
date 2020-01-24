@@ -562,7 +562,7 @@ private:
                      _smaa_threshold;
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
-                     _shd_map_split;
+                     _shd_map_split, _taa_offset;
    Vec               _amb_color_l, _ns_color_l, _env_color, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
    Rect              _view_rect, _view_eye_rect[2];
@@ -693,6 +693,9 @@ private:
 
    Bool     SetDisplayMode(Int mode=1); // 0=always off (use at shutdown), 1=if want full and app is active, 2=if want full (use at init)
    void RequestDisplayMode(Int w, Int h, Int full);
+
+   Rect  ScreenToPixel (C Rect &screen, C VecI2 &res);
+   RectI ScreenToPixelI(C Rect &screen, C VecI2 &res);
 
 #if WINDOWS_NEW
    extern Flt ScreenScale;
