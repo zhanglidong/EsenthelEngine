@@ -873,7 +873,7 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                if(skel_shader->type==BlendInstance::SOLID_FUR && !fur_set)
                {
                   fur_set=true; skel.anim_skel->setFurVel(); // !! needs to be called before 'shader.start' !!
-                  fur_scale=skel.anim_skel->matrix().x.length()/D._view_active.fov_tan.y; if(FovPerspective(D.viewFovMode()))fur_scale/=DistPointPlane(skel.anim_skel->pos(), CamMatrix.pos, CamMatrix.z);
+                  fur_scale=skel.anim_skel->matrix().x.length()/D._view_active.fov_tan.y; if(FovPerspective(D.viewFovMode()))fur_scale/=DistPointActiveCamPlaneZ(skel.anim_skel->pos());
                }
                Shader &shader=skel_shader->shader->getBlendShader(skel_shader->type==BlendInstance::SOLID_BLST); shader.start();
                for(SkeletonShaderMaterial *skel_shader_material=&skel_shader->material; ; )
