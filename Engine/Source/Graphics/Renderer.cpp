@@ -109,7 +109,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
-  _has_glow=_has_vel=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
+  _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
   _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
@@ -216,7 +216,7 @@ void RendererClass::mode(RENDER_MODE mode)
 {
    T._mode            =mode;
    T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
-   T._mesh_shader_vel =(_has_vel && (mode==RM_SOLID || mode==RM_SOLID_M || mode==RM_BLEND)); // only these modes use velocity
+   T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_SOLID_M || mode==RM_BLEND)); // only these modes use velocity
    T._solid_mode_index=(mirror() ? RM_SOLID_M : RM_SOLID);
    D.setFrontFace();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
@@ -352,8 +352,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 {
-   const Bool camera_object=_has_vel; // remember motion blur mode (keep as bool in case codes operate on "Bool _has_vel" for case when '_vel' RT alpha channel is used for something, or if just '_vel' is used, however since it's cleared below, then we must remember it before clearing)
-   if(stage==RS_VEL && camera_object && show(_vel, false, D.signedVelRT()))return true;
+   const Bool camera_object=(D.motionMode()==MOTION_CAMERA_OBJECT); // set what mode we want to use (remember that '_vel' gets cleared below and it can also be requested for TAA instead of motion blur)
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return true;
 
    Mtn.load();
    D.alpha(ALPHA_NONE);
@@ -497,7 +497,7 @@ INLINE Shader* GetReplaceAlpha             () {Shader* &s=Sh.ReplaceAlpha       
 void RendererClass::cleanup1() {_ds_1s.clear();} // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
 void RendererClass::cleanup ()
 {
-  _has_vel=_has_fur=false; // do not clear '_has_glow' because this is called also for reflections, but if reflections have glow, then it means final result should have glow too
+  _has_fur=false; // do not clear '_has_glow' because this is called also for reflections, but if reflections have glow, then it means final result should have glow too
 //_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
@@ -550,7 +550,7 @@ RendererClass& RendererClass::operator()(void (&render)())
   _render     =render;
   _stereo     =(VR.active() && D._view_main.full && !combine && !target && !_get_target && D._allow_stereo); // use stereo only for full viewport, if we're not combining (games may use combining to display 3D items/characters in Gui)
   _eye_num    =_stereo+1; // _stereo ? 2 : 1
-  _has_glow   =_has_vel=_has_fur=false;
+  _has_glow   =_has_fur=false;
   _mirror_want=false;
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
@@ -795,10 +795,10 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
-Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA
+Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
                                     //FIXME TAA && D._view_main.full
                                     ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
+Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
 Bool RendererClass::wantEdgeSoften()C
@@ -813,7 +813,7 @@ Bool RendererClass::wantEdgeSoften()C
    }
    return false;
 }
-Bool RendererClass::wantDepth         ()C {return wantMotion() || wantDof() || D.aoWant() || D.edgeDetect() || D.particlesSoft() || D.volLight() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Sun.wantDepth() || !Water.max1Light();} // TODO: even though we check all known things here, there are still some things about we don't know up-front (like local fog, decals, Image.drawVolume, ..)
+Bool RendererClass::wantDepth         ()C {return wantTAA() || wantMotion() || wantDof() || D.aoWant() || D.edgeDetect() || D.particlesSoft() || D.volLight() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Sun.wantDepth() || !Water.max1Light();} // TODO: even though we check all known things here, there are still some things about we don't know up-front (like local fog, decals, Image.drawVolume, ..)
 Bool RendererClass::canReadDepth      ()C {return        _ds->depthTexture();} // have to check '_ds' because this is the original source depth, it can be multi-sampled (in that case it's possible depth reading won't be available), but '_ds_1s' is 1-sampled (and could have depth-reads even if '_ds' doesn't)
 Bool RendererClass::safeCanReadDepth  ()C {return _ds && _ds->depthTexture();}
 Bool RendererClass::hasStencilAttached()C {return hasDepthAttached() && _cur_ds->hwTypeInfo().s;}
@@ -840,7 +840,7 @@ Bool RendererClass::wantBloom   ()C {return D.bloomUsed();}
 Bool RendererClass:: hasBloom   ()C {return wantBloom() && !fastCombine();}
 Bool RendererClass::wantEyeAdapt()C {return D.eyeAdaptation() && _eye_adapt_scale[0].is();}
 Bool RendererClass:: hasEyeAdapt()C {return wantEyeAdapt() && !fastCombine();}
-Bool RendererClass::wantMotion  ()C {return D.motionMode() && FovPerspective(D.viewFovMode());}
+Bool RendererClass::wantMotion  ()C {return D.motionMode() && D.motionScale()>EPS_COL8 && (D.motionMode()==MOTION_CAMERA || (Renderer._cur_type==RT_DEFERRED && D._max_rt>=4));} // MOTION_CAMERA_OBJECT requires Vel RT which is only in Deferred and has slot #3 #RTOutput
 Bool RendererClass:: hasMotion  ()C {return wantMotion() && canReadDepth() && !fastCombine();}
 Bool RendererClass::wantDof     ()C {return D.dofWant();}
 Bool RendererClass:: hasDof     ()C {return wantDof() && canReadDepth() && !fastCombine();}
@@ -1013,13 +1013,9 @@ start:
       {
          ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA, _col->samples());
 
-         // #RTOutput
-         if(D._max_rt>=4)
-         {
-               _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
-            if(_has_vel)
-               _vel.get(rt_desc.type(IMAGERT_TWO_H));
-         }
+         if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() // motion blur
+         || hasTAA())                                           // TAA
+            _vel.get(rt_desc.type(IMAGERT_TWO_H));
 
          const Bool merged_clear=D.mergedClear(),
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
@@ -1539,7 +1535,6 @@ void RendererClass::sky()
 }
 void RendererClass::tAA()
 {
-// FIXME TAA somewhere should be '_vel' checks, either always force VEL usage for TAA (in that case allow not using motion blurring if not enabled), or allow only if motion blur enabled
    if(D._taa_use) // hasTAA()
    {
       ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
@@ -1986,7 +1981,7 @@ void RendererClass::postProcess()
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
-   }
+   }else _vel.clear(); // velocity could've been used for TAA, but after this stage we no longer need it
    if(dof) // after Motion Blur
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
