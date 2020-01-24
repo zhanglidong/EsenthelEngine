@@ -1451,7 +1451,7 @@ void Vec2::draw(C Color &color, Flt r)C
    VI.end();
 }
 void Vec::draw (C Color &color, Flt r)C {Vec2 screen; if(PosToScreenM(T, screen))screen.draw(color, r);}
-void Vec::drawP(C Color &color, Flt r)C {Vec2 screen; if(PosToScreenM(T, screen))screen.draw(color, r/((T*ObjMatrix)*CamMatrixInv).z);}
+void Vec::drawP(C Color &color, Flt r)C {Vec2 screen; if(PosToScreenM(T, screen))screen.draw(color, r/DistPointActiveCamPlaneZ(T*ObjMatrix));}
 
 void VecD2::draw (C Color &color, Flt r)C {return Vec2(T).draw (color, r);}
 void VecD ::draw (C Color &color, Flt r)C {return Vec (T).draw (color, r);}
