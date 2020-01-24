@@ -31,7 +31,7 @@ Bool Param::asBool()C
       case PARAM_VEC4    : return value.v4.any();
       case PARAM_COLOR   : return value.c .any();
       case PARAM_STR     : return TextBool(value.s);
-      case PARAM_ENUM    : return value.id.valid() || value.s.is();
+      case PARAM_ENUM    : return asEnum()!=0;
       case PARAM_ID      : return value.id.valid();
       case PARAM_ID_ARRAY: return arrayIDs()>0;
       default            : return false;
