@@ -326,7 +326,6 @@ struct Spectrometer : SoundDataCallback
 
   ~Spectrometer() {del();}
    Spectrometer();
-   Spectrometer(Int resolution);
 
    virtual void data(Ptr data, Int size, C SoundStream &stream, Long raw_pos)override;
 

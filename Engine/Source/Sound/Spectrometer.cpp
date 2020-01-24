@@ -41,7 +41,6 @@ struct Complex
 #endif
 /******************************************************************************/
 Spectrometer::Spectrometer() {zero();}
-Spectrometer::Spectrometer(Int resolution) : Spectrometer() {create(resolution);}
 
 void Spectrometer::zero()
 {
