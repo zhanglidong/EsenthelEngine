@@ -390,7 +390,8 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
       SetViewToViewPrev();
    }
    set(converted, null, false);
-   Rect ext_rect, *rect=null;
+   Rect dilate_rect, *dilate_rect_ptr=null,
+               rect, *       rect_ptr=null;
 #if   VEL_RT_MODE==VEL_RT_VECH2
    Sh.ImgXY ->set(_vel);
 #elif VEL_RT_MODE==VEL_RT_VEC2
@@ -400,10 +401,16 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    {
       Rect *eye_rect=setEyeParams();
       shader->draw(eye_rect);
-   }else
+   }else // when not rendering entire viewport
    {
-      ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(total_pixels+1)); // when not rendering entire viewport, then extend the rectangle because of 'Dilate' and 'SetDirs' checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
-      shader->draw(rect);
+      Vec2  pixel_size=Renderer.pixelToScreenSize(1);
+      Vec2 dilate_size=pixel_size*(dilate_round_pixels+(diagonal ? dilate_ortho_pixels*2 : dilate_ortho_pixels)+1); // extend the rectangle because of 'Dilate' and 'SetDirs' checking neighbors, for diagonal have to double ortho because both steps (X and Y) check diagonally, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+      
+      dilate_rect_ptr=&(dilate_rect=D.viewRect()).extend(dilate_size);
+             rect_ptr=&(       rect=D.viewRect()).extend( pixel_size); // just 1 pixel because of texture filtering
+
+                    D.viewRect().drawBorder(D.signedMtnRT() ? Vec4Zero : Vec4(0.5f, 0.5f, 0, 0), -dilate_size); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+      shader->draw(&D.viewRect());
    }
   _vel.clear();
 
@@ -426,13 +433,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(ortho) // do orthogonal first (this will result in slightly less artifacts when the camera is moving)
       {
-         helper .get(rt_desc); set(helper , null, false); ortho->DilateX[diagonal]->draw(dilated, rect);
-         dilated.get(rt_desc); set(dilated, null, false); ortho->DilateY[diagonal]->draw(helper , rect);
+         helper .get(rt_desc); set(helper , null, false); ortho->DilateX[diagonal]->draw(dilated, dilate_rect_ptr);
+         dilated.get(rt_desc); set(dilated, null, false); ortho->DilateY[diagonal]->draw(helper , dilate_rect_ptr);
       }
       REP(dilate_round_steps)
       {
          if(!helper || helper==converted)helper.get(rt_desc);else helper->discard(); // don't write to original 'converted' in the next step, because we need it later
-         set(helper, null, false); Mtn.Dilate->draw(dilated, rect); Swap(dilated, helper);
+         set(helper, null, false); Mtn.Dilate->draw(dilated, dilate_rect_ptr); Swap(dilated, helper);
       }
    }
    if(stage==RS_VEL_DILATED && show(dilated, false, D.signedMtnRT()))return true;
@@ -443,7 +450,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    rt_desc.type(MOTION_BLUR_PREDICTIVE ? D.signedMtnRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
                                        : D.signedMtnRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
-   set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect);
+   set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect_ptr);
    if(stage==RS_VEL_LEAK && show(helper, false, D.signedMtnRT()))return true;
 
    (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY)->set(helper);
@@ -1820,7 +1827,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          const Int pixel_range=6; // currently FXAA/SMAA shaders use this range
          set(_col, null, false); // need full viewport
-         D.viewRect().drawBorder(TRANSPARENT, Renderer.pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+         D.viewRect().drawBorder(Vec4Zero, Renderer.pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       }
       ImageRTDesc rt_desc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision()));
       ImageRTPtr  dest(rt_desc);
@@ -2044,7 +2051,7 @@ void RendererClass::postProcess()
             if(!D._view_main.full)
             {
                set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
-               D.viewRect().drawBorder(TRANSPARENT, Renderer.pixelToScreenSize(-pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+               D.viewRect().drawBorder(Vec4Zero, Renderer.pixelToScreenSize(-pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
             }
             set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
             shader->draw(_col); alpha_set=true;

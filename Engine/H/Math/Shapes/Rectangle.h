@@ -145,6 +145,9 @@ struct Rect // Rectangle Shape
    void draw            (C Color &color , Bool fill=true                 )C; // draw
    void drawBorder      (C Color &color ,                    Flt   border)C; // draw border
    void drawBorder      (C Color &color ,                  C Vec2 &border)C; // draw border
+#if EE_PRIVATE
+   void drawBorder      (C Vec4  &color ,                  C Vec2 &border)C; // draw border
+#endif
    void drawShadedX     (C Color &color0, C Color &color1                )C; // draw        shaded horizontally
    void drawShadedY     (C Color &color0, C Color &color1                )C; // draw        shaded   vertically
    void drawShaded      (C Color &color0, C Color &color1,   Flt   border)C; // draw        shaded inside<->outside

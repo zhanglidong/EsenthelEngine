@@ -298,6 +298,27 @@ void Rect::drawBorder(C Color &color, C Vec2 &border)C
    }
    VI.clear();
 }
+void Rect::drawBorder(C Vec4 &color, C Vec2 &border)C
+{
+   VI.color  (color);
+   VI.setType(VI_2D_FLAT);
+   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
+   {
+      Flt x0=min.x, y0=min.y, x1=x0+border.x, y1=y0+border.y,
+          x3=max.x, y3=max.y, x2=x3-border.x, y2=y3-border.y;
+      v[0].pos.set(x0, y0);
+      v[1].pos.set(x0, y3);
+      v[2].pos.set(x3, y3);
+      v[3].pos.set(x3, y0);
+      v[4].pos.set(x1, y1);
+      v[5].pos.set(x1, y2);
+      v[6].pos.set(x2, y2);
+      v[7].pos.set(x2, y1);
+
+      VI.flushIndexed(IndBufRectBorder, 4*2*3);
+   }
+   VI.clear();
+}
 void Rect::drawShadedX(C Color &c0, C Color &c1)C
 {
    VI.setType(VI_2D_COL, VI_STRIP);
