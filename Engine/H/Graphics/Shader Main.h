@@ -274,7 +274,7 @@ struct MainShaderClass
       *SMAAEdge[2], // [Gamma]
       *SMAABlend  ,
       *SMAA       ,
-      *TAA        ,
+      *TAA[2]     , // [Dual]
 
       // PARTICLE
       *Bilb                ,

@@ -93,6 +93,7 @@ void RendererClass::Context::clear()
    frame=0;
    proj_matrix_prev.x.x=0; // this will force copy from latest 'ProjMatrix'
    taa_col   .clear();
+   taa_col1  .clear();
    taa_weight.clear();
 }
 /******************************************************************************/
@@ -802,7 +803,7 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA[D.tAADualHistory()] && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
                                     //FIXME TAA && D._view_main.full
                                     ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
@@ -1545,30 +1546,33 @@ void RendererClass::tAA()
    if(D._taa_use) // hasTAA()
    {
       ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
-      Sh.imgSize(*_col);
       if(!_ctx.taa_col) // doesn't have a previous frame yet
       {
-        _ctx.taa_weight.get(rt_desc.type(IMAGERT_ONE                                         )); _ctx.taa_weight->clearFull();
-        _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); _ctx.taa_col   ->clearFull(); // #RTOutput
+                              _ctx.taa_weight.get(rt_desc.type(IMAGERT_ONE                                         ))->clearFull();
+                              _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision())))->clearFull(); // #RTOutput
+        if(D.tAADualHistory())_ctx.taa_col1  .get(rt_desc                                                           )->clearFull();
       }
       ImageRTPtr temp_weight(rt_desc.type(IMAGERT_ONE));
-      ImageRTPtr temp       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
-      set(temp, temp_weight, null, null, null, true);
+      ImageRTPtr next       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))), old(rt_desc), old1; if(D.tAADualHistory())old1.get(rt_desc); // #RTOutput
+      set(temp_weight, next, old, old1, null, true);
       D.alpha(ALPHA_NONE);
 
-      Sh.Img [0] ->set(_ctx.taa_col   ); // old
-      Sh.Img [1] ->set(_col           ); // new
+      Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
+      Sh.Img [0] ->set(_col           ); // new
+      Sh.Img [1] ->set(_ctx.taa_col   ); // old
+      Sh.Img [2] ->set(_ctx.taa_col1  ); // old1
    #if   VEL_RT_MODE==VEL_RT_VECH2
       Sh.ImgXY   ->set(_vel           ); // velocity
    #elif VEL_RT_MODE==VEL_RT_VEC2
       Sh.ImgXYF  ->set(_vel           ); // velocity
    #endif
-      Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
       Sh.ImgClamp->setConditional(imgClamp(rt_desc.size));
-      Sh.TAA->draw();
-      Swap(temp       , _ctx.taa_col   );
+      Sh.imgSize(*_col);
+      Sh.TAA[D.tAADualHistory()]->draw();
       Swap(temp_weight, _ctx.taa_weight);
-     _ctx.taa_col->copyHw(*_col, false);
+      Swap(next       , _col           );
+      Swap(old        , _ctx.taa_col   );
+      Swap(old1       , _ctx.taa_col1  );
 
       D._taa_use=false; D._view_active.setShader();
       SetProjMatrix(); // D._view_active.setProjMatrix(); // FIXME 

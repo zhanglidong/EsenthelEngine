@@ -826,7 +826,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-  _taa             =_taa_use=false;
+  _taa             =_taa_dual=_taa_use=false;
 
   _initialized=false;
   _resetting  =false;
@@ -2764,11 +2764,15 @@ Display& Display::tAA(Bool on)
    if(tAA()!=on)
    {
      _taa=on;
-      if(on && created())Sh.TAA=Sh.find("TAA");
+      if(on && created())
+         REPD(dual, 2)
+            Sh.TAA[dual]=Sh.find(S+"TAA"+dual);
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;
 }
+Display& Display::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index
+
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 Display& Display::secondaryOpenGLContexts(Byte contexts)
 {

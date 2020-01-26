@@ -266,7 +266,7 @@ private:
    {
       Byte       frame;
       Matrix4    proj_matrix_prev;
-      ImageRTPtr taa_col, taa_weight;
+      ImageRTPtr taa_col, taa_col1, taa_weight;
 
       void clear();
       Context() {clear();}
