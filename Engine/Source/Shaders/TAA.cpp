@@ -7,6 +7,8 @@
 #if     CUBIC
 #include "Cubic.h"
 #endif
+
+#define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
 /******************************************************************************/
 // ImgX=Weight, Img=Cur, Img1=Old, Img2=Old1, ImgXY=Vel
 BUFFER(TAA)
@@ -73,11 +75,16 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }else // fill 2nd history RT
    {
       outWeight=old_weight+cur_weight;
-      outOld=old;
+      if(DUAL_ADJUST_OLD)
+      {
+            Half ow=1, cw=TAA_WEIGHT, tw=ow+cw;
+            outOld=old*(ow/tw) + cur*(cw/tw);
+      }else outOld=old;
+
       Half old_weight1=old_weight-0.5, total=old_weight1+cur_weight;
       outOld1=old1*(old_weight1/total) + cur*(cur_weight/total);
 
-      outNext=Lerp(outOld, outOld1, total*2);
+      outNext=Lerp(outOld, outOld1, DUAL_ADJUST_OLD ? Sqr(total*2) : total*2);
 
       if(total>=0.5 - cur_weight/2) // filled all RT's
       {
