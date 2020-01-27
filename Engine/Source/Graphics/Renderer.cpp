@@ -1974,7 +1974,7 @@ void RendererClass::postProcess()
    }else
    if(combine) // merge '_col' with '_alpha' (only if no bloom, because bloom already merged)
    {
-      // TODO: when using multi-sampling and D.particlesSoft then there can be outlines around objects touching particles, this is because Particle soft shader uses TexDepthPoint
+      // TODO: when using multi-sampling and 'D.particlesSoft' then there can be outlines around objects touching particles, this is because Particle soft shader uses TexDepthPoint
       Sh.Img [0]->set(_col  );
       Sh.ImgX[0]->set(_alpha);
       if(!--fxs)

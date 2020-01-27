@@ -70,6 +70,10 @@
 #define TARGET1  SV_Target1
 #define TARGET2  SV_Target2
 #define TARGET3  SV_Target3
+#define TARGET4  SV_Target4
+#define TARGET5  SV_Target5
+#define TARGET6  SV_Target6
+#define TARGET7  SV_Target7
 
 #define NOPERSP noperspective // will disable perspective interpolation
 
