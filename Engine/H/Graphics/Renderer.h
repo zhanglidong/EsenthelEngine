@@ -194,6 +194,7 @@ struct RendererClass // handles rendering
    void sky               ();
    void edgeDetect        ();
    void tAA               ();
+   void tAAFinish         ();
    void blend             ();
    void palette           (Int index);
    void behind            ();

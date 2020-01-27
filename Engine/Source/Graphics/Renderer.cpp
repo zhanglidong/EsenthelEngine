@@ -695,6 +695,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
    // cleanup
    {
+      tAAFinish();
      _ctx.proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
      _render=null; // this specifies that we're outside of Rendering
      _final =null;
@@ -748,7 +749,6 @@ Bool RendererClass::reflection()
       Byte             shd_soft       =D.shadowSoft       ();                     D.shadowSoft      (0                );
       Bool             shd_jitter     =D.shadowJitter     ();                     D.shadowJitter    (false            );
       EDGE_SOFTEN_MODE edge_soft      =D.edgeSoften       ();                     D._edge_soften    =EDGE_SOFTEN_NONE  ;
-      Bool             taa            =D.tAA              ();                     D._taa            =false             ;
       Bool             tesselation    =D.tesselationAllow ();                     D.tesselationAllow(false            );
       Byte             density        =D.densityByte      ();                     D.densityFast     (Mid(((D.densityByte()+1)>>_mirror_resolution)-1, 0, 255));
 
@@ -788,7 +788,6 @@ Bool RendererClass::reflection()
       D.shadowSoft      (shd_soft      );
       D.shadowJitter    (shd_jitter    );
       D._edge_soften    =edge_soft      ;
-      D._taa            =taa            ;
       D.tesselationAllow(tesselation   );
       D.densityFast     (density       );
 
@@ -981,7 +980,7 @@ start:
    if(hasTAA()) // needs to be called after we have '_col'
    {
     C VecI2 &size    =_col->size();
-    C Vec2  &offset  =TAAOffsets[(_ctx.frame++)%Elms(TAAOffsets)];
+    C Vec2  &offset  =TAAOffsets[_ctx.frame%Elms(TAAOffsets)];
       RectI  viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[0] : D.viewRect(), size);
       D._taa_use   =true;
       D._taa_offset=    offset/viewport.size();
@@ -1578,8 +1577,15 @@ void RendererClass::tAA()
       Swap(old        , _ctx.taa_col   );
       Swap(old1       , _ctx.taa_col1  );
 
-      D._taa_use=false; D._view_active.setShader();
-      SetProjMatrix();
+      tAAFinish();
+   }
+}
+void RendererClass::tAAFinish()
+{
+   if(D._taa_use) // hasTAA()
+   {
+     _ctx.frame++;
+      D._taa_use=false; D._view_active.setShader(); SetProjMatrix();
    }
 }
 void RendererClass::edgeDetect()
