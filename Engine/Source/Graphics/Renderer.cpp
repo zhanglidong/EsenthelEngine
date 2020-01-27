@@ -802,7 +802,7 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return D.tAA() && !D.multiSample() && Sh.TAA[D.tAADualHistory()] && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass::wantTAA()C {return D.tAA() && Sh.TAA[D.tAADualHistory()] && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
                                     //FIXME TAA && D._view_main.full
                                     ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
@@ -1544,6 +1544,8 @@ void RendererClass::tAA()
 {
    if(D._taa_use) // hasTAA()
    {
+      resolveMultiSample();
+
       ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
       if(!_ctx.taa_col) // doesn't have a previous frame yet
       {
