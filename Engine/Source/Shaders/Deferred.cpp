@@ -827,11 +827,6 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if USE_VEL
-   // FIXME this should be tesselated
-   O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y;
-#endif
-
 #if SET_TEX
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
@@ -853,6 +848,16 @@ void DS
 #endif
 
    O_vtx=Project(O.pos);
+
+#if USE_VEL
+   #if TESSELATE_VEL
+      FIXME
+   #else // this is just an approximation
+      Vec interpolated_pos    =I[0].pos                   *B.z + I[1].pos                   *B.x + I[2].pos                   *B.y;
+      O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y
+                              +O_vtx.xyw-ProjectXYW(interpolated_pos); // + delta (tesselated pos - interpolated pos)
+   #endif
+#endif
 }
 #endif
 /******************************************************************************/
