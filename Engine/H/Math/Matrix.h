@@ -827,6 +827,11 @@ struct Matrix4 // Matrix 4x4
    void     mul(C Matrix4 &matrix, Matrix4 &dest)C;                           // multiply self by 'matrix' and store result in 'dest' 
    Matrix4& mul(C Matrix4 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
 
+#if EE_PRIVATE
+   void offsetX(Flt dx);
+   void offsetY(Flt dy);
+#endif
+
    // set (set methods reset the full matrix)
    Matrix4& identity(); // set as identity
    Matrix4& zero    (); // set all vectors to zero

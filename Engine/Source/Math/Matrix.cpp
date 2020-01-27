@@ -2807,6 +2807,22 @@ MatrixD& MatrixD::setTransformAtPos(C VecD &pos, C MatrixD  &matrix) {orn()=matr
 MatrixD& MatrixD::   transformAtPos(C VecD &pos, C MatrixD3 &matrix) {return moveBack(pos).mul(matrix).move(pos);}
 MatrixD& MatrixD::   transformAtPos(C VecD &pos, C MatrixD  &matrix) {return moveBack(pos).mul(matrix).move(pos);}
 /******************************************************************************/
+// this adjusts projection matrix so that final 2D position on the screen is moved by delta
+void Matrix4::offsetX(Flt dx)
+{
+   x  .x+=x  .w*dx;
+   y  .x+=y  .w*dx;
+   z  .x+=z  .w*dx;
+   pos.x+=pos.w*dx;
+}
+void Matrix4::offsetY(Flt dy)
+{
+   x  .y+=x  .w*dy;
+   y  .y+=y  .w*dy;
+   z  .y+=z  .w*dy;
+   pos.y+=pos.w*dy;
+}
+/******************************************************************************/
 Matrix3::Matrix3(C Matrix &matrix)
 {
    x=matrix.x;
@@ -3551,27 +3567,13 @@ inline void FlipY(Matrix4 &m)
 {
    CHS(m.x.y); CHS(m.y.y); CHS(m.z.y); CHS(m.pos.y);
 }
-inline void OffsetX(Matrix4 &m, Flt x)
-{
-   m.x  .x+=m.x  .w*x;
-   m.y  .x+=m.y  .w*x;
-   m.z  .x+=m.z  .w*x;
-   m.pos.x+=m.pos.w*x;
-}
-inline void OffsetY(Matrix4 &m, Flt y)
-{
-   m.x  .y+=m.x  .w*y;
-   m.y  .y+=m.y  .w*y;
-   m.z  .y+=m.z  .w*y;
-   m.pos.y+=m.pos.w*y;
-}
 //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
    if(D._taa_use && Renderer()!=RM_SHADOW) // FIXME TAA
    {
-      Matrix4 m=ProjMatrix                    ; OffsetX(m, D._taa_offset.x); OffsetY(m, D._taa_offset.y);
-      Matrix4 p=Renderer._ctx.proj_matrix_prev; OffsetX(p, D._taa_offset.x); OffsetY(p, D._taa_offset.y);
+      Matrix4 m=ProjMatrix                    ; m.offsetX(D._taa_offset.x); m.offsetY(D._taa_offset.y);
+      Matrix4 p=Renderer._ctx.proj_matrix_prev; p.offsetX(D._taa_offset.x); p.offsetY(D._taa_offset.y);
 
       if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
       Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
@@ -3594,11 +3596,11 @@ void SetProjMatrix(Flt proj_offset)
    if(D._taa_use && Renderer()!=RM_SHADOW)
    {
       proj_offset+=D._taa_offset.x;
-      OffsetY(m, D._taa_offset.y);
-      OffsetY(p, D._taa_offset.y);
+      m.offsetY(D._taa_offset.y);
+      p.offsetY(D._taa_offset.y);
    }
-   OffsetX(m, proj_offset);
-   OffsetX(p, proj_offset);
+   m.offsetX(proj_offset);
+   p.offsetX(proj_offset);
 
    if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
    Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
