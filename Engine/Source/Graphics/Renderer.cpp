@@ -988,7 +988,7 @@ start:
       Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes
       D._view_active.setShader();
    }
-   SetProjMatrix(); // D._view_active.setProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
+   SetProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
 
    D.alpha(ALPHA_NONE);
 
@@ -1579,7 +1579,7 @@ void RendererClass::tAA()
       Swap(old1       , _ctx.taa_col1  );
 
       D._taa_use=false; D._view_active.setShader();
-      SetProjMatrix(); // D._view_active.setProjMatrix(); // FIXME 
+      SetProjMatrix();
    }
 }
 void RendererClass::edgeDetect()
