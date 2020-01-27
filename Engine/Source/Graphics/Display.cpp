@@ -2586,7 +2586,6 @@ void Display::sizeChanged()
    }
 
    viewReset();
-   tAAReset ();
 }
 Display& Display::scale(Flt scale)
 {
@@ -3363,6 +3362,16 @@ void Display::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisab
 /******************************************************************************/
 // CONVERT COORDINATES
 /******************************************************************************/
+Rect ImgClamp(C Rect &screen, C VecI2 &size)
+{
+   Rect r((screen.min.x+D.w())*size.x/D.w2(), (D.h()-screen.max.y)*size.y/D.h2(),
+          (screen.max.x+D.w())*size.x/D.w2(), (D.h()-screen.min.y)*size.y/D.h2());
+   RectI ri=RoundGPU(r);
+   r.min=(ri.min+0.5f)/size; // yes +0.5 is needed
+   r.max=(ri.max-0.5f)/size; // yes -0.5 is needed
+   return r;
+}
+
 Vec2 Display::screenToUV(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())/D.w2(),

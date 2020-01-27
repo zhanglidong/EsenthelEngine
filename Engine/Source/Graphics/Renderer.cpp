@@ -982,7 +982,7 @@ start:
    {
     C VecI2 &size    =_col->size();
     C Vec2  &offset  =TAAOffsets[(_ctx.frame++)%Elms(TAAOffsets)];
-      RectI  viewport=ScreenToPixelI(D.viewRect(), size);
+      RectI  viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[0] : D.viewRect(), size);
       D._taa_use   =true;
       D._taa_offset=    offset/viewport.size();
       Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes
@@ -1566,9 +1566,13 @@ void RendererClass::tAA()
    #elif VEL_RT_MODE==VEL_RT_VEC2
       Sh.ImgXYF  ->set(_vel           ); // velocity
    #endif
-      Sh.ImgClamp->setConditional(imgClamp(rt_desc.size));
       Sh.imgSize(*_col);
-      Sh.TAA[D.tAADualHistory()]->draw();
+      Shader *shader=Sh.TAA[D.tAADualHistory()];
+      REPS(_eye, _eye_num)
+      {
+         Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
+         shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+      }
       Swap(temp_weight, _ctx.taa_weight);
       Swap(next       , _col           );
       Swap(old        , _ctx.taa_col   );
@@ -1938,7 +1942,7 @@ void RendererClass::postProcess()
    if(combine && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
 
    Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|combine)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'combine'
-   if(!D._view_main.full)Sh.ImgClamp->setConditional(imgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
+   if(!D._view_main.full)Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
    if(!_get_target) // if we're going to output to '_final'

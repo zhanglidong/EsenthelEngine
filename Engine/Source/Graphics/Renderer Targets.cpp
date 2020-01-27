@@ -302,16 +302,6 @@ void RendererClass::unmapMain()
   _cur_id[0]=NULL;
 }
 /******************************************************************************/
-Rect RendererClass::imgClamp(C VecI2 &size)
-{
-   Rect r((D.viewRect().min.x+D.w())*size.x/D.w2(), (D.h()-D.viewRect().max.y)*size.y/D.h2(),
-          (D.viewRect().max.x+D.w())*size.x/D.w2(), (D.h()-D.viewRect().min.y)*size.y/D.h2());
-   RectI ri=RoundGPU(r);
-   r.min=(ri.min+0.5f)/size; // yes +0.5 is needed
-   r.max=(ri.max-0.5f)/size; // yes -0.5 is needed
-   return r;
-}
-
 Rect RendererClass::pixelToScreen(C RectI &pixel)
 {
    return Rect(pixel.min.x*D.w2()/Renderer.resW()-D.w(), D.h()-pixel.max.y*D.h2()/Renderer.resH(),

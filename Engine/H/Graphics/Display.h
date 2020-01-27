@@ -700,6 +700,9 @@ private:
    Rect  ScreenToPixel (C Rect &screen, C VecI2 &res);
    RectI ScreenToPixelI(C Rect &screen, C VecI2 &res);
 
+          Rect ImgClamp(C Rect &screen, C VecI2 &size);
+   inline Rect ImgClamp(                C VecI2 &size) {return ImgClamp(D.viewRect(), size);}
+
 #if WINDOWS_NEW
    extern Flt ScreenScale;
 
