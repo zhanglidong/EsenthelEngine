@@ -164,9 +164,9 @@ static Bool SetLum()
    Renderer.set(Renderer._lum_1s, Renderer._spec_1s, null, null, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
    if(clear && merged_clear)ClearLumMerged(lum_color);
    D.alpha(ALPHA_ADD);
-   Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
-   Sh.Img[1]->set(Renderer._col); Sh.ImgMS[1]->set(Renderer._col);
-   Sh.ImgXY ->set(Renderer._ext); Sh.ImgXYMS ->set(Renderer._ext);
+   Sh.Img  [0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
+   Sh.Img  [1]->set(Renderer._col); Sh.ImgMS[1]->set(Renderer._col);
+   Sh.ImgXY[0]->set(Renderer._ext); Sh.ImgXYMS ->set(Renderer._ext);
    return clear;
 }
 static void SetLumMS(Bool clear)
@@ -223,9 +223,9 @@ static void SetWaterLum()
    Renderer.set(Renderer._water_lum, Renderer._water_spec, null, null, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
    if(clear && merged_clear)ClearLumMerged(lum_color);
    D.alpha(ALPHA_ADD);
-   Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
- //Sh.Img[1]->set(Renderer._water_col); Sh.ImgMS[1]->set(Renderer._water_col); ignored for water and copied from water reflectivity #WaterExt
- //Sh.ImgXY ->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext); Water doesn't have EXT #WaterExt
+   Sh.Img  [0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
+ //Sh.Img  [1]->set(Renderer._water_col); Sh.ImgMS[1]->set(Renderer._water_col); ignored for water and copied from water reflectivity #WaterExt
+ //Sh.ImgXY[0]->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext); Water doesn't have EXT #WaterExt
 }
 void RendererClass::getWaterLumRT()
 {

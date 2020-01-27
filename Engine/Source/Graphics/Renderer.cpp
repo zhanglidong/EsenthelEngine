@@ -394,9 +394,9 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    Rect dilate_rect, *dilate_rect_ptr=null,
                rect, *       rect_ptr=null;
 #if   VEL_RT_MODE==VEL_RT_VECH2
-   Sh.ImgXY ->set(_vel);
+   Sh.ImgXY[0]->set(_vel);
 #elif VEL_RT_MODE==VEL_RT_VEC2
-   Sh.ImgXYF->set(_vel);
+   Sh.ImgXYF  ->set(_vel);
 #endif
    if(D._view_main.full)REPS(_eye, _eye_num)
    {
@@ -446,15 +446,15 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    if(stage==RS_VEL_DILATED && show(dilated, false, D.signedMtnRT()))return true;
 
    // check how far can we go (remove leaks)
-   Sh.ImgXY ->set(converted);
-   Sh.Img[0]->set(dilated  );
+   Sh.ImgXY[0]->set(converted);
+   Sh.Img  [0]->set(dilated  );
    rt_desc.type(MOTION_BLUR_PREDICTIVE ? D.signedMtnRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA  // XY=Dir#0, ZW=Dir#1
                                        : D.signedMtnRT() ? IMAGERT_TWO_S  : IMAGERT_TWO); // XY=Dir#0
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect_ptr);
    if(stage==RS_VEL_LEAK && show(helper, false, D.signedMtnRT()))return true;
 
-   (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY)->set(helper);
+   (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY[0])->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), combine)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution
 
@@ -802,7 +802,7 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return D.tAA() && Sh.TAA[D.tAADualHistory()] && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass::wantTAA()C {return D.tAA() && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
                                     //FIXME TAA && D._view_main.full
                                     ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
@@ -1415,7 +1415,7 @@ void RendererClass::light()
       Sh.Img  [3]->set(_spec_1s            );
       Sh.Img  [4]->set( cel_shade_palette());
       Sh.ImgX [0]->set(_ao                 );
-      Sh.ImgXY   ->set(_ext                );
+      Sh.ImgXY[0]->set(_ext                );
 
       D.alpha(ALPHA_NONE);
       set(_col, _ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
@@ -1544,31 +1544,46 @@ void RendererClass::tAA()
 {
    if(D._taa_use) // hasTAA()
    {
-      resolveMultiSample();
+      resolveMultiSample(); // process MSAA but not 'downSample' Super-Sampling because quality will suffer
 
-      ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
-      if(!_ctx.taa_col) // doesn't have a previous frame yet
+      ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
+      Bool         alpha=slowCombine(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
+      IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE); // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
+      if(!_ctx.taa_weight) // doesn't have a previous frame yet
       {
-                              _ctx.taa_weight.get(rt_desc.type(IMAGERT_ONE                                         ))->clearFull();
-                              _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision())))->clearFull(); // #RTOutput
-        if(D.tAADualHistory())_ctx.taa_col1  .get(rt_desc                                                           )->clearFull();
+                _ctx.taa_weight.get(rt_desc.type(weight_type                                         ))->clearFull();
+                _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision())))->clearFull(); // #RTOutput
+        if(dual)_ctx.taa_col1  .get(rt_desc                                                           )->clearFull();
+      }else
+      if((_ctx.taa_weight->typeChannels()>=2)!=alpha) // format doesn't match
+      {
+        _ctx.taa_weight.get(rt_desc.type(weight_type))->clearFull();
       }
-      ImageRTPtr temp_weight(rt_desc.type(IMAGERT_ONE));
-      ImageRTPtr next       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))), old(rt_desc), old1; if(D.tAADualHistory())old1.get(rt_desc); // #RTOutput
-      set(temp_weight, next, old, old1, null, true);
+      ImageRTPtr temp_weight(rt_desc.type(weight_type));
+      ImageRTPtr next       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))), old(rt_desc), old1; if(dual)old1.get(rt_desc); // #RTOutput
+      ImageRTPtr next_alpha; if(TAA_SEPARATE_ALPHA && alpha)next_alpha.get(rt_desc.type(IMAGERT_ONE));
+      set(temp_weight, next, old, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : old1, null, true); // #TAADualAlpha
       D.alpha(ALPHA_NONE);
 
-      Sh.ImgX[0] ->set(_ctx.taa_weight); // weight
-      Sh.Img [0] ->set(_col           ); // new
-      Sh.Img [1] ->set(_ctx.taa_col   ); // old
-      Sh.Img [2] ->set(_ctx.taa_col1  ); // old1
-   #if   VEL_RT_MODE==VEL_RT_VECH2
-      Sh.ImgXY   ->set(_vel           ); // velocity
-   #elif VEL_RT_MODE==VEL_RT_VEC2
-      Sh.ImgXYF  ->set(_vel           ); // velocity
-   #endif
+      if(alpha)
+      {
+         Sh.ImgXY[1]->set(_ctx.taa_weight); // old alpha weight
+         Sh.ImgX [0]->set(_alpha         ); // cur alpha
+      }else
+      {
+         Sh.ImgX [0]->set(_ctx.taa_weight); // old weight
+      }
+         Sh.Img  [0]->set(_col           ); // cur
+         Sh.Img  [1]->set(_ctx.taa_col   ); // old
+         Sh.Img  [2]->set(_ctx.taa_col1  ); // old1
+      #if   VEL_RT_MODE==VEL_RT_VECH2
+         Sh.ImgXY[0]->set(_vel           ); // velocity
+      #elif VEL_RT_MODE==VEL_RT_VEC2
+         Sh.ImgXYF  ->set(_vel           ); // velocity
+      #endif
+
       Sh.imgSize(*_col);
-      Shader *shader=Sh.TAA[D.tAADualHistory()];
+      Shader *shader=Sh.TAA[alpha][dual];
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
@@ -1578,6 +1593,7 @@ void RendererClass::tAA()
       Swap(next       , _col           );
       Swap(old        , _ctx.taa_col   );
       Swap(old1       , _ctx.taa_col1  );
+      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx.taa_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       tAAFinish();
    }

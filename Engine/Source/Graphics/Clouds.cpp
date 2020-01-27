@@ -660,7 +660,7 @@ void VolumetricClouds::draw()
       Sh.SkyFracMulAdd->set(mul_add);
 
       Sh.Color[0]->set(color_s);
-      Sh.ImgXY   ->set(dest);
+      Sh.ImgXY[0]->set(dest);
       VolCloud.CloudsDraw[gamma]->draw();
       if(swap)Renderer._col->swapRTV(); // restore
    }

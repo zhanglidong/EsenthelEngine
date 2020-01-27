@@ -2763,9 +2763,10 @@ Display& Display::tAA(Bool on)
    if(tAA()!=on)
    {
      _taa=on;
-      if(on && created())
-         REPD(dual, 2)
-            Sh.TAA[dual]=Sh.find(S+"TAA"+dual);
+      if(!Sh.TAA[0][0] && on && created())
+         REPD(alpha, 2)
+         REPD(dual , 2)
+            Sh.TAA[alpha][dual]=Sh.get(S+"TAA"+alpha+dual);
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;

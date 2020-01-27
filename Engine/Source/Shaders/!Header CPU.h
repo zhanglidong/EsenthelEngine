@@ -52,6 +52,9 @@
    #define VEL_RT_TYPE_FULL Vec4 // need alpha for blending
 #endif
 
+// Temporal Anti-Aliasing
+#define TAA_SEPARATE_ALPHA 0 // 0=is faster and uses less memory however 'Renderer._alpha' may point to 'taa_weight' (X=alpha, Y=weight), 1=will create a separate Alpha RT just for '_alpha'
+
 // Buffer Indexes
 #define SBI_FRAME           0
 #define SBI_CAMERA          1

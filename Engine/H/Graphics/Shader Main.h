@@ -33,7 +33,7 @@ struct MainShaderClass
       *Img  [6], *ImgMS[4],
       *ImgX [4], *ImgXMS,
       *ImgXF[2],
-      *ImgXY, *ImgXYMS,
+      *ImgXY[2], *ImgXYMS,
       *ImgXYF,
       *Env=&DummyImage,
       *Cub[2],
@@ -274,7 +274,7 @@ struct MainShaderClass
       *SMAAEdge[2], // [Gamma]
       *SMAABlend  ,
       *SMAA       ,
-      *TAA[2]     , // [Dual]
+      *TAA[2][2]  , // [Alpha][Dual]
 
       // PARTICLE
       *Bilb                ,

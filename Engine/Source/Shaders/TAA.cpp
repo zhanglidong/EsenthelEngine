@@ -8,21 +8,40 @@
 #include "Cubic.h"
 #endif
 
+#if ALPHA
+   #undef DUAL_HISTORY // #TAADualAlpha
+#endif
+
 #define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
-/******************************************************************************/
-// ImgX=Weight, Img=Cur, Img1=Old, Img2=Old1, ImgXY=Vel
+/******************************************************************************
+ALPHA=0
+   ImgX=Weight
+ALPHA=1
+   ImgXY1=AlphaWeight, ImgX=CurAlpha
+   
+DUAL_HISTORY=1
+   Img2=Old1
+
+Img=Cur, Img1=Old, ImgXY=Vel */
 BUFFER(TAA)
    Vec2 TAAOffset;
 BUFFER_END
 /******************************************************************************/
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-           //NOPERSP Vec2 inPosXY:TEXCOORD1,
-           //NOPERSP PIXEL                 ,
-                 out Half  outWeight:TARGET0,
-                 out VecH4 outNext  :TARGET1,
-                 out VecH4 outOld   :TARGET2
+          //NOPERSP Vec2 inPosXY:TEXCOORD1,
+          //NOPERSP PIXEL                 ,
+               #if !ALPHA
+                 out Half  outWeight     :TARGET0,
+               #else
+                 out VecH2 outAlphaWeight:TARGET0,
+               #endif
+                 out VecH4 outNext       :TARGET1,
+                 out VecH4 outOld        :TARGET2
+               #if ALPHA && TAA_SEPARATE_ALPHA
+               , out Half  outNextAlpha  :TARGET3 // #TAADualAlpha
+               #endif
                #if DUAL_HISTORY
-               , out VecH4 outOld1  :TARGET3
+               , out VecH4 outOld1       :TARGET3
                #endif
             )
 {
@@ -38,24 +57,38 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    vel=vel*2-1;
 #endif
 
-   Vec2 old_tex=inTex+vel;
+   Vec2 cur_tex=inTex+TAAOffset,
+        old_tex=inTex+vel;
 
 #if CUBIC
-      CubicFastSampler cs; cs.set(old_tex);
-      VecH4 cur =Max(VecH4(0,0,0,0), TexCubicFast(Img , inTex+TAAOffset)); // use Max(0) because of cubic sharpening potentially giving negative values
-      VecH4 old =Max(VecH4(0,0,0,0),       cs.tex(Img1)                 ); // use Max(0) because of cubic sharpening potentially giving negative values
+      CubicFastSampler cs;
+      cs.set(cur_tex);
+      VecH4 cur      =Max(VecH4(0,0,0,0), cs.tex (Img )); // use Max(0) because of cubic sharpening potentially giving negative values
+   #if ALPHA
+      Half  cur_alpha=Sat(                cs.texX(ImgX)); // use Sat    because of cubic sharpening potentially giving negative values
+   #endif
+      cs.set(old_tex);
+      VecH4 old      =Max(VecH4(0,0,0,0), cs.tex (Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
-      VecH4 old1=Max(VecH4(0,0,0,0),       cs.tex(Img2)                 ); // use Max(0) because of cubic sharpening potentially giving negative values
+      VecH4 old1     =Max(VecH4(0,0,0,0), cs.tex (Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
    #endif
 #else
-      VecH4 cur =TexLod(Img , inTex+TAAOffset);
-      VecH4 old =TexLod(Img1, old_tex        );
+      VecH4 cur      =TexLod(Img , cur_tex);
+   #if ALPHA
+      Half  cur_alpha=TexLod(ImgX, cur_tex);
+   #endif
+      VecH4 old      =TexLod(Img1, old_tex);
    #if DUAL_HISTORY
-      VecH4 old1=TexLod(Img2, old_tex        );
+      VecH4 old1     =TexLod(Img2, old_tex);
    #endif
 #endif
 
+#if !ALPHA
    Half old_weight=TexLod(ImgX, old_tex).x;
+#else
+   VecH2 tex=TexLod(ImgXY1, old_tex).xy;
+   Half  old_alpha=tex.x, old_weight=tex.y;
+#endif
 
    // if 'old_tex' is outside viewport then ignore it
    if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
@@ -63,10 +96,20 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    //if(any(vel))old_weight=0; // FIXME TAA improve
 
 #if !DUAL_HISTORY
-   Half cur_weight=TAA_WEIGHT;
-   outWeight=old_weight+cur_weight;
-   outOld=outNext=old*(old_weight/outWeight) + cur*(cur_weight/outWeight);
+      Half cur_weight=TAA_WEIGHT, total_weight=old_weight+cur_weight;
+      old_weight/=total_weight;
+      cur_weight/=total_weight;
+      outOld=outNext=old*old_weight + cur*cur_weight;
+   #if !ALPHA
+      outWeight=total_weight;
+   #else
+      outAlphaWeight=VecH2(old_alpha*old_weight + cur_alpha*cur_weight, total_weight); // !! store alpha in X so it can be used for '_alpha' RT !!
+      #if TAA_SEPARATE_ALPHA
+         outNextAlpha=outAlphaWeight.x;
+      #endif
+   #endif
 #else
+   // #TAADualAlpha
    Half cur_weight=TAA_WEIGHT/2;
    if(old_weight<0.5 - cur_weight/2) // fill 1st history RT
    {

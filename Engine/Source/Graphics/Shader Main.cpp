@@ -275,7 +275,8 @@ void MainShaderClass::getTechniques()
    ImgXMS  =ShaderImages("ImgXMS" );
    ImgXF[0]=ShaderImages("ImgXF"  );
    ImgXF[1]=ShaderImages("ImgXF1" );
-   ImgXY   =ShaderImages("ImgXY"  );
+   ImgXY[0]=ShaderImages("ImgXY"  );
+   ImgXY[1]=ShaderImages("ImgXY1" );
    ImgXYMS =ShaderImages("ImgXYMS");
    ImgXYF  =ShaderImages("ImgXYF" );
 
