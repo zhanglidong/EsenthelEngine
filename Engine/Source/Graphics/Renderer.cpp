@@ -919,6 +919,20 @@ void RendererClass::setDS()
    if(_col== _cur_main)_ds= _cur_main_ds;else // reuse '_cur_main_ds' if we're rendering to '_cur_main'
                        _ds.getDS(_col->w(), _col->h(), _col->samples()); // create a new one
 }
+static void CheckTAA() // needs to be called after RT and viewport were set
+{
+   if(Renderer.hasTAA())
+   {
+    C VecI2 &size    =Renderer.res();
+    C Vec2  &offset  =TAAOffsets[Renderer._ctx.frame%Elms(TAAOffsets)];
+      RectI  viewport=(Renderer._stereo ? Renderer.screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
+      D._taa_use   =true;
+      D._taa_offset=    offset/viewport.size();
+      Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
+      D._view_active.setShader();
+   }
+   SetProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
+}
 void RendererClass::prepare()
 {
    Byte  samples=(mirror() ? 1 : D.samples()); // disable multi-sampling for reflection
@@ -975,19 +989,6 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   // FIXME TAA
-   if(hasTAA()) // needs to be called after we have '_col'
-   {
-    C VecI2 &size    =_col->size();
-    C Vec2  &offset  =TAAOffsets[_ctx.frame%Elms(TAAOffsets)];
-      RectI  viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[0] : D.viewRect(), size);
-      D._taa_use   =true;
-      D._taa_offset=    offset/viewport.size();
-      Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes
-      D._view_active.setShader();
-   }
-   SetProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
-
    D.alpha(ALPHA_NONE);
 
    mode(RM_PREPARE); AstroPrepare(); // !! call after obtaining '_col', '_ds' and '_ds_1s' because we rely on having them, and after RM_PREPARE because we may add lights !!
@@ -999,7 +1000,7 @@ start:
    if(HasEarlyZInstances())
    {
       set(null, _ds, true);
-      D.clearDS(); clear_ds=false; // already cleared so no need anymore
+      CheckTAA(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'CheckTAA' and 'D.clearDS' are paired
       D.set3D(); D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
@@ -1053,7 +1054,7 @@ start:
             }else
             if(clear_col || clear_nrm || clear_ext || clear_vel)Sh.ClearDeferred->draw();
          }
-         if(clear_ds)D.clearDS();
+         if(clear_ds){CheckTAA(); D.clearDS();} // 'CheckTAA' and 'D.clearDS' are paired
       }break;
 
       case RT_FORWARD:
@@ -1068,8 +1069,8 @@ void RendererClass::setForwardCol()
    set(_col, _ds, true);
    if(_clear) // need to clear something
    {
-      if(_clear&1)D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
-      if(_clear&2)D.clearDS ();
+      if(_clear&1) D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
+      if(_clear&2){D.clearDS (); CheckTAA();} // 'CheckTAA' and 'D.clearDS' are paired
      _clear=0; // cleared
    }
 }
