@@ -354,7 +354,6 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 {
    const Bool camera_object=(D.motionMode()==MOTION_CAMERA_OBJECT); // set what mode we want to use (remember that '_vel' gets cleared below and it can also be requested for TAA instead of motion blur)
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return true;
 
    Mtn.load();
    D.alpha(ALPHA_NONE);
@@ -2013,11 +2012,13 @@ void RendererClass::postProcess()
      _alpha.clear(); alpha_set=true; // Combine sets Alpha
    }
 
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }else _vel.clear(); // velocity could've been used for TAA, but after this stage we no longer need it
+
    if(dof) // after Motion Blur
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT

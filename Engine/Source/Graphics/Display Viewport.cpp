@@ -168,7 +168,7 @@ Display::Viewport& Display::Viewport::setShader(Flt *offset)
 {
    // helpers
    Vec2 size =Renderer.res(),
-        v_min=Vec2(recti.min)/size,
+        v_min=recti.min/size,
         v_ft =fov_tan/Vec2(0.5f, -0.5f);
 
    GpuViewport v;
