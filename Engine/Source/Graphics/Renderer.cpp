@@ -1000,7 +1000,7 @@ start:
    if(HasEarlyZInstances())
    {
       set(null, _ds, true);
-      CheckTAA(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'CheckTAA' and 'D.clearDS' are paired
+      CheckTAA(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
       D.set3D(); D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
@@ -1054,7 +1054,7 @@ start:
             }else
             if(clear_col || clear_nrm || clear_ext || clear_vel)Sh.ClearDeferred->draw();
          }
-         if(clear_ds){CheckTAA(); D.clearDS();} // 'CheckTAA' and 'D.clearDS' are paired
+         if(clear_ds){CheckTAA(); D.clearDS();} // 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
       }break;
 
       case RT_FORWARD:
@@ -1070,7 +1070,7 @@ void RendererClass::setForwardCol()
    if(_clear) // need to clear something
    {
       if(_clear&1) D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
-      if(_clear&2){D.clearDS (); CheckTAA();} // 'CheckTAA' and 'D.clearDS' are paired
+      if(_clear&2){D.clearDS (); CheckTAA();} // 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
      _clear=0; // cleared
    }
 }
