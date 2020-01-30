@@ -2773,8 +2773,8 @@ Display& Display::tAA(Bool on)
 }
 Display& Display::tAAReset()
 {
-   Renderer._ctx_sub=&Renderer._ctx_sub_dummy;
-   DYNAMIC_ASSERT(Renderer._ctx==null, "Renderer._ctx!=null"); // check in case this is called during rendering
+   DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
+     DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
    Renderer._ctxs.clear();
    return T;
 }
