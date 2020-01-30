@@ -289,6 +289,7 @@ AnimEditor AnimEdit;
             bool         astros   =AstrosDraw       ; AstrosDraw     =false;
             bool         ocean    =Water.draw       ; Water.draw     =false;
             flt fov=D.viewFov(), from=D.viewFrom(), range=D.viewRange();
+            Renderer.allow_taa=false; // disable TAA because previous bone matrixes are incorrect ('prepMeshSkel' called a lot of times)
 
             // render
             Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(skel)box=*skel;}
@@ -312,6 +313,7 @@ AnimEditor AnimEdit;
             D.lineSmooth(line_smooth);
 
             // restore settings
+            Renderer.allow_taa=true;
             D.viewFov(fov).viewFrom(from).viewRange(range);
             D.      dofMode(dof      );
             D.  ambientMode(ambient  );
@@ -508,9 +510,11 @@ AnimEditor AnimEdit;
       bool astros=AstrosDraw; AstrosDraw=false;
       bool ocean =Water.draw; Water.draw=false;
       Renderer.wire=wire();
+      Renderer.allow_taa=false; // disable TAA because previous bone matrixes are incorrect ('prepMeshSkel' called a lot of times)
 
       Renderer(AnimEditor::Render);
 
+      Renderer.allow_taa=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;

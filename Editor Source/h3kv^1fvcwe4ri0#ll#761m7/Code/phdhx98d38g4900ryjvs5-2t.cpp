@@ -67,7 +67,6 @@ class MiniMapEditor : PropWin
          AMBIENT_MODE     ambient    =D.  ambientMode(); D.ambientMode  (AMBIENT_ULTRA   );
          int              ambient_res=D.   ambientRes(); D.ambientRes   (0               );
          bool             bloom_half =D.    bloomHalf(); D.bloomHalf    (true            );
-         bool             taa        =D.          tAA(); D.tAA          (false           );
          EDGE_SOFTEN_MODE edge       =D.   edgeSoften(); D.edgeSoften   (EDGE_SOFTEN_SMAA);
          DOF_MODE         dof        =D.      dofMode(); D.    dofMode  (DOF_NONE        );
          flt              lod_fac    =D.    lodFactor(); D.  lodFactor  (0               );
@@ -109,7 +108,9 @@ class MiniMapEditor : PropWin
          D.viewFrom (ActiveCam.dist*0.01)  // set high 'from' to reduce depth buffer precision issues
           .viewRange(ActiveCam.dist*2   ); // set viewport range to cover the range from sky to ground and ground to underground
 
+         Renderer.allow_taa=false;
          Renderer(MiniMapEditor.Render);
+         Renderer.allow_taa=true;
 
          if(!final)D.pixelToScreen(RectI(viewport.centerI()).extend(res/2)).draw(RED, false);
 
@@ -119,7 +120,6 @@ class MiniMapEditor : PropWin
          D.ambientMode  (ambient).ambientRes(ambient_res);
          D.bloomHalf    (bloom_half);
          D.shadowSoft   (shd_soft).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
-         D.tAA          (taa    );
          D.edgeSoften   (edge   );
          D.eyeAdaptation(eye_adapt);
          D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);

@@ -126,6 +126,9 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _solid_mode_index=RM_SOLID;
 
+   allow_taa=true;
+  _ctx_sub=&_ctx_sub_dummy;
+
    lowest_visible_point=-DBL_MAX;
 
   _first_pass=true;
@@ -143,8 +146,6 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _ui   =_cur_main   =_ptr_main   =&_main;
   _ui_ds=_cur_main_ds=_ptr_main_ds=&_main_ds;
-
-  _ctx_sub=&_ctx_sub_dummy;
 }
 void RendererClass::del()
 {
@@ -824,7 +825,7 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return D.tAA() && _cur_type==RT_DEFERRED && D._max_rt>=4;} // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass::wantTAA()C {return allow_taa && D.tAA() && _cur_type==RT_DEFERRED && D._max_rt>=4;} // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
