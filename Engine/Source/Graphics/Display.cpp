@@ -826,7 +826,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-  _taa             =_taa_dual=_taa_use=false;
+  _taa             =_taa_dual=false;
 
   _initialized=false;
   _resetting  =false;
@@ -2763,10 +2763,11 @@ Display& Display::tAA(Bool on)
    if(tAA()!=on)
    {
      _taa=on;
-      if(!Sh.TAA[0][0] && on && created())
+      if(!Sh.TAA[0][0][0] && on && created())
+         REPD(clamp, 2)
          REPD(alpha, 2)
          REPD(dual , 2)
-            Sh.TAA[alpha][dual]=Sh.get(S+"TAA"+alpha+dual);
+            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual);
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;

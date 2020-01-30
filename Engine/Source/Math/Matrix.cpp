@@ -3570,10 +3570,10 @@ inline void FlipY(Matrix4 &m)
 //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
-   if(D._taa_use && Renderer()!=RM_SHADOW) // FIXME TAA
+   if(Renderer._taa_use && Renderer()!=RM_SHADOW)
    {
-      Matrix4 m=ProjMatrix                    ; m.offsetX(D._taa_offset.x); m.offsetY(D._taa_offset.y);
-      Matrix4 p=Renderer._ctx.proj_matrix_prev; p.offsetX(D._taa_offset.x); p.offsetY(D._taa_offset.y);
+      Matrix4 m=ProjMatrix                         ; m.offsetX(Renderer._taa_offset.x); m.offsetY(Renderer._taa_offset.y);
+      Matrix4 p=Renderer._ctx_sub->proj_matrix_prev; p.offsetX(Renderer._taa_offset.x); p.offsetY(Renderer._taa_offset.y);
 
       if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
       Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
@@ -3581,23 +3581,23 @@ void SetProjMatrix() // this needs to be additionally called when switching betw
    }else
    if(GL && !D.mainFBO()) // in OpenGL when drawing to a RenderTarget the Y must be flipped
    {
-      Matrix4 m=ProjMatrix                    ; FlipY(m); Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
-              m=Renderer._ctx.proj_matrix_prev; FlipY(m); Sh.ProjMatrixPrev->set(m); TestProjMatrix(m);
+      Matrix4 m=ProjMatrix                         ; FlipY(m); Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
+              m=Renderer._ctx_sub->proj_matrix_prev; FlipY(m); Sh.ProjMatrixPrev->set(m); TestProjMatrix(m);
    }else
    {
-      Sh.ProjMatrix    ->set(ProjMatrix                    ); TestProjMatrix(ProjMatrix                    );
-      Sh.ProjMatrixPrev->set(Renderer._ctx.proj_matrix_prev); TestProjMatrix(Renderer._ctx.proj_matrix_prev);
+      Sh.ProjMatrix    ->set(ProjMatrix                         ); TestProjMatrix(ProjMatrix                         );
+      Sh.ProjMatrixPrev->set(Renderer._ctx_sub->proj_matrix_prev); TestProjMatrix(Renderer._ctx_sub->proj_matrix_prev);
    }
 }
 void SetProjMatrix(Flt proj_offset)
 {
    Matrix4 m=ProjMatrix;
-   Matrix4 p=Renderer._ctx.proj_matrix_prev;
-   if(D._taa_use && Renderer()!=RM_SHADOW)
+   Matrix4 p=Renderer._ctx_sub->proj_matrix_prev;
+   if(Renderer._taa_use && Renderer()!=RM_SHADOW)
    {
-      proj_offset+=D._taa_offset.x;
-      m.offsetY(D._taa_offset.y);
-      p.offsetY(D._taa_offset.y);
+      proj_offset+=Renderer._taa_offset.x;
+      m.offsetY(Renderer._taa_offset.y);
+      p.offsetY(Renderer._taa_offset.y);
    }
    m.offsetX(proj_offset);
    p.offsetX(proj_offset);

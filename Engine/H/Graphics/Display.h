@@ -534,7 +534,7 @@ private:
                      _shd_jitter, _shd_reduce,
                      _grass_shadow, _grass_mirror,
                      _vol_light, _vol_add,
-                     _taa, _taa_dual, _taa_use,
+                     _taa, _taa_dual,
                      _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo,
                      _initialized, _resetting, _no_gpu, _can_draw;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
@@ -565,7 +565,7 @@ private:
                      _smaa_threshold;
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
-                     _shd_map_split, _taa_offset;
+                     _shd_map_split;
    Vec               _amb_color_l, _ns_color_l, _env_color, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
    Rect              _view_rect, _view_eye_rect[2];

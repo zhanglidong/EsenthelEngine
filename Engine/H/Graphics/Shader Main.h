@@ -271,10 +271,10 @@ struct MainShaderClass
       *MLAABlend,
       *MLAA     ,
    #endif
-      *SMAAEdge[2], // [Gamma]
-      *SMAABlend  ,
-      *SMAA       ,
-      *TAA[2][2]  , // [Alpha][Dual]
+      *SMAAEdge[2] , // [Gamma]
+      *SMAABlend   ,
+      *SMAA        ,
+      *TAA[2][2][2], // [UVClamp][Alpha][Dual]
 
       // PARTICLE
       *Bilb                ,

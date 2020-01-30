@@ -193,6 +193,7 @@ struct RendererClass // handles rendering
    Bool waterPostLight    ();
    void sky               ();
    void edgeDetect        ();
+   void tAACheck          ();
    void tAA               ();
    void tAAFinish         ();
    void blend             ();
@@ -264,9 +265,17 @@ private:
 #endif
    struct Context
    {
-      Byte       frame;
-      Matrix4    proj_matrix_prev;
-      ImageRTPtr taa_col, taa_col1, taa_weight;
+      struct Sub
+      {
+         Bool    used;
+         Matrix4 proj_matrix_prev;
+
+         Sub();
+      };
+      ImageRTPtr taa_old_weight, taa_old_col, taa_old_col1,
+                 taa_new_weight, taa_new_col, taa_new_col1;
+
+      Map<RectI, Sub> subs;
 
       void clear();
       Context() {clear();}
@@ -274,12 +283,13 @@ private:
    RENDER_TYPE   _type, _cur_type;
    RENDER_MODE   _mode;
    ALPHA_MODE    _mesh_blend_alpha;
-   Bool          _has_glow, _has_fur, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel;
+   Bool          _has_glow, _has_fur, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel, _taa_use, _taa_reset;
    Byte          _solid_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline, _clear;
    Int           _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
    UInt          _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
    Color         _mesh_highlight;
    VecI2         _res;
+   Vec2          _taa_offset;
    Rect          _clip;
    PlaneM        _mirror_plane;
    Shader       *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;
@@ -305,6 +315,7 @@ private:
                  _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
    Memx<ImageRT> _rts;
    Context       _ctx;
+   Context::Sub  _ctx_sub_dummy, *_ctx_sub;
 #if EE_PRIVATE
    GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
    GPU_API(ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});

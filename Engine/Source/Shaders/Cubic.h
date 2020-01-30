@@ -96,6 +96,14 @@ struct CubicFastSampler
       wu/=sum; u=Vec2(  c.x, tc0.y);
       wd/=sum; d=Vec2(  c.x, tc3.y);
    }
+   void UVClamp(Vec2 min, Vec2 max)
+   {
+      c=Mid(c, min, max);
+      l=Mid(l, min, max);
+      r=Mid(r, min, max);
+      u=Mid(u, min, max);
+      d=Mid(d, min, max);
+   }
    VecH4 tex(Image img)
    {
       return TexLod(img, u)*wu  // sample upper edge (2 texels), both weights are negative

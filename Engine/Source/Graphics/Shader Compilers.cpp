@@ -369,9 +369,10 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    }
    { // TAA
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
+      REPD(clamp, 2)
       REPD(alpha, 2)
       REPD(dual , 2)
-         src.New("TAA", "Draw_VS", "TAA_PS")("ALPHA", alpha, "DUAL_HISTORY", dual);
+         src.New("TAA", "Draw_VS", "TAA_PS")("CLAMP", clamp, "ALPHA", alpha, "DUAL_HISTORY", dual);
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");

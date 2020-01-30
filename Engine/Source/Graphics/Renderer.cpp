@@ -88,13 +88,21 @@ static void ShutMshr()
    MshrBall.del();
 }
 /******************************************************************************/
+// FIXME perhaps this can be removed? and just clear Renderer._ctxs
 void RendererClass::Context::clear()
 {
-   frame=0;
-   proj_matrix_prev.x.x=0; // this will force copy from latest 'ProjMatrix'
-   taa_col   .clear();
-   taa_col1  .clear();
-   taa_weight.clear();
+   subs.clear();
+   taa_old_col   .clear();
+   taa_old_col1  .clear();
+   taa_old_weight.clear();
+   taa_new_col   .clear();
+   taa_new_col1  .clear();
+   taa_new_weight.clear();
+}
+RendererClass::Context::Sub::Sub()
+{
+ //used=true; not needed since we always set 'used=true' when accessing/creating new subs
+   proj_matrix_prev=ProjMatrix; // copy from current (needed for MotionBlur and TAA)
 }
 /******************************************************************************/
 RendererClass::RendererClass() : highlight(null), material_color_l(null)
@@ -110,11 +118,12 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
-  _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
+  _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=_taa_use=_taa_reset=false;
   _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
   _res.zero();
+  _taa_offset.zero();
   _clip.zero();
   _mirror_plane.zero();
   _shader_early_z=_shader_shd_map=_shader_shd_map_skin=null;
@@ -123,6 +132,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
    REPAO(_t_measures)=0;
   _t_last_measure=0;
    REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
+  _ctx=null;
 #endif
 
   _solid_mode_index=RM_SOLID;
@@ -144,6 +154,8 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _ui   =_cur_main   =_ptr_main   =&_main;
   _ui_ds=_cur_main_ds=_ptr_main_ds=&_main_ds;
+
+  _ctx_sub=&_ctx_sub_dummy;
 }
 void RendererClass::del()
 {
@@ -317,7 +329,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
       set(rt0, null, false);
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
-      if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+      if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       const Bool gamma_per_pixel=false, // !! must be the same as in shader !!
                  half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
@@ -341,7 +353,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
       }
    }else
    {
-      rt0->clearFull();
+      rt0->clearViewport();
    }
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
@@ -403,7 +415,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
       shader->draw(eye_rect);
    }else // when not rendering entire viewport
    {
-      Vec2  pixel_size=Renderer.pixelToScreenSize(1);
+      Vec2  pixel_size=pixelToScreenSize(1);
       Vec2 dilate_size=pixel_size*(dilate_round_pixels+(diagonal ? dilate_ortho_pixels*2 : dilate_ortho_pixels)+1); // extend the rectangle because of 'Dilate' and 'SetDirs' checking neighbors, for diagonal have to double ortho because both steps (X and Y) check diagonally, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
       
       dilate_rect_ptr=&(dilate_rect=D.viewRect()).extend(dilate_size);
@@ -483,7 +495,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool combine)
    Flt range_inv=1.0f/Max(D.dofRange(), EPS);
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
-   set(rt0, blur_smooth[0], null, null, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
+   set(rt0, blur_smooth[0], null, null, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
    Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), combine, half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
                    set(rt1, blur_smooth[1], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[0]); pixel.BlurX[combine]->draw(rt0, rect);
@@ -501,8 +513,7 @@ INLINE Shader* GetSetAlphaFromDepthAndColMS() {Shader* &s=Sh.SetAlphaFromDepthAn
 INLINE Shader* GetCombineAlpha             () {Shader* &s=Sh.CombineAlpha             ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"             ); return s;}
 INLINE Shader* GetReplaceAlpha             () {Shader* &s=Sh.ReplaceAlpha             ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"             ); return s;}
 /******************************************************************************/
-void RendererClass::cleanup1() {_ds_1s.clear();} // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
-void RendererClass::cleanup ()
+void RendererClass::cleanup()
 {
   _has_fur=false; // do not clear '_has_glow' because this is called also for reflections, but if reflections have glow, then it means final result should have glow too
 //_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
@@ -531,6 +542,21 @@ void RendererClass::cleanup ()
   _sky_coverage.clear();
    Lights.clear();
    ClearInstances();
+}
+void RendererClass::cleanup1()
+{
+  _ds_1s.clear(); // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
+   {
+      // FIXME if(!_ctx.taa_new_weight)remove it;else:
+     _ctx.taa_old_weight=_ctx.taa_new_weight; _ctx.taa_new_weight.clear();
+     _ctx.taa_old_col   =_ctx.taa_new_col   ; _ctx.taa_new_col   .clear();
+     _ctx.taa_old_col1  =_ctx.taa_new_col1  ; _ctx.taa_new_col1  .clear();
+      REPA(_ctx.subs)
+      {
+         Context::Sub &sub=_ctx.subs[i];
+         if(!sub.used)_ctx.subs.remove(i);else sub.used=false; // remove unused sub-contexts
+      }
+   }
 }
 RendererClass& RendererClass::operator()(void (&render)())
 {
@@ -562,7 +588,9 @@ RendererClass& RendererClass::operator()(void (&render)())
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
-   if(!_ctx.proj_matrix_prev.x.x)_ctx.proj_matrix_prev=ProjMatrix; // if not yet initialized then copy from current (needed for MotionBlur and TAA)
+   Int subs_elms=_ctx.subs.elms();
+  _ctx_sub=_ctx.subs(D._view_main.recti); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, mark that it was used in this frame
+  _taa_reset=(subs_elms!=_ctx.subs.elms()); // if just added then force reset tAA
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 
@@ -695,9 +723,10 @@ RendererClass& RendererClass::operator()(void (&render)())
    // cleanup
    {
       tAAFinish();
-     _ctx.proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
-     _render=null; // this specifies that we're outside of Rendering
-     _final =null;
+     _ctx_sub->proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
+     _ctx_sub=&_ctx_sub_dummy;
+     _render =null; // this specifies that we're outside of Rendering
+     _final  =null;
       D.alpha(ALPHA_BLEND); mode(RM_SOLID);
       set(_cur_main, _cur_main_ds, true);
 
@@ -741,7 +770,7 @@ Bool RendererClass::reflection()
       Bool             hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
       IMAGE_PRECISION  lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
       Bool             eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
-      Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing 'Renderer._vol_is'
+      Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing '_vol_is'
       AMBIENT_MODE     amb_mode       =D.ambientMode      ();                     D.ambientMode     (AMBIENT_FLAT     );
       MOTION_MODE      mtn_mode       =D.motionMode       ();                     D.motionMode      (MOTION_NONE      );
       SHADOW_MODE      shd_mode       =D.shadowMode       (); if(!_mirror_shadows)D.shadowMode      (SHADOW_NONE      );
@@ -801,9 +830,7 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return D.tAA() && Renderer._cur_type==RT_DEFERRED && D._max_rt>=4 // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
-                                    //FIXME TAA && D._view_main.full
-                                    ;} // !! this is enabled because rendering to full viewport is considered to always use TAA, if we would render for example to 4xQuarter viewports then in each render 'taa_col' would get updated, however it has to be updated only once per-frame
+Bool RendererClass::wantTAA()C {return D.tAA() && _cur_type==RT_DEFERRED && D._max_rt>=4;} // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
 Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
@@ -846,7 +873,7 @@ Bool RendererClass::wantBloom   ()C {return D.bloomUsed();}
 Bool RendererClass:: hasBloom   ()C {return wantBloom() && !fastCombine();}
 Bool RendererClass::wantEyeAdapt()C {return D.eyeAdaptation() && _eye_adapt_scale[0].is();}
 Bool RendererClass:: hasEyeAdapt()C {return wantEyeAdapt() && !fastCombine();}
-Bool RendererClass::wantMotion  ()C {return D.motionMode() && D.motionScale()>EPS_COL8 && (D.motionMode()==MOTION_CAMERA || (Renderer._cur_type==RT_DEFERRED && D._max_rt>=4));} // MOTION_CAMERA_OBJECT requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass::wantMotion  ()C {return D.motionMode() && D.motionScale()>EPS_COL8 && (D.motionMode()==MOTION_CAMERA || (_cur_type==RT_DEFERRED && D._max_rt>=4));} // MOTION_CAMERA_OBJECT requires Vel RT which is only in Deferred and has slot #3 #RTOutput
 Bool RendererClass:: hasMotion  ()C {return wantMotion() && canReadDepth() && !fastCombine();}
 Bool RendererClass::wantDof     ()C {return D.dofWant();}
 Bool RendererClass:: hasDof     ()C {return wantDof() && canReadDepth() && !fastCombine();}
@@ -919,15 +946,15 @@ void RendererClass::setDS()
    if(_col== _cur_main)_ds= _cur_main_ds;else // reuse '_cur_main_ds' if we're rendering to '_cur_main'
                        _ds.getDS(_col->w(), _col->h(), _col->samples()); // create a new one
 }
-static void CheckTAA() // needs to be called after RT and viewport were set
+void RendererClass::tAACheck() // needs to be called after RT and viewport were set
 {
-   if(Renderer.hasTAA())
+   if(hasTAA())
    {
-    C VecI2 &size    =Renderer.res();
-    C Vec2  &offset  =TAAOffsets[Renderer._ctx.frame%Elms(TAAOffsets)];
-      RectI  viewport=(Renderer._stereo ? Renderer.screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
-      D._taa_use   =true;
-      D._taa_offset=    offset/viewport.size();
+    C VecI2 &size    =res();
+    C Vec2  &offset  =TAAOffsets[Time.frame()%Elms(TAAOffsets)];
+      RectI  viewport=(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
+     _taa_use   =true;
+     _taa_offset=    offset/viewport.size();
       Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
       D._view_active.setShader();
    }
@@ -1000,7 +1027,7 @@ start:
    if(HasEarlyZInstances())
    {
       set(null, _ds, true);
-      CheckTAA(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
+      tAACheck(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
       D.set3D(); D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
@@ -1054,7 +1081,7 @@ start:
             }else
             if(clear_col || clear_nrm || clear_ext || clear_vel)Sh.ClearDeferred->draw();
          }
-         if(clear_ds){CheckTAA(); D.clearDS();} // 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
+         if(clear_ds){tAACheck(); D.clearDS();} // 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
       }break;
 
       case RT_FORWARD:
@@ -1070,7 +1097,7 @@ void RendererClass::setForwardCol()
    if(_clear) // need to clear something
    {
       if(_clear&1) D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
-      if(_clear&2){D.clearDS (); CheckTAA();} // 'CheckTAA' and 'D.clearDS' are paired to make sure 'CheckTAA' is called only once
+      if(_clear&2){D.clearDS (); tAACheck();} // 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
      _clear=0; // cleared
    }
 }
@@ -1308,7 +1335,7 @@ void RendererClass::ao()
          set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[0][D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    #if GL && !GL_ES
-      D.texBind(GL_TEXTURE_2D, Renderer._ds_1s->_txtr);
+      D.texBind(GL_TEXTURE_2D, _ds_1s->_txtr);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    #endif
@@ -1542,68 +1569,78 @@ void RendererClass::sky()
 }
 void RendererClass::tAA()
 {
-   if(D._taa_use) // hasTAA()
+   if(_taa_use) // hasTAA()
    {
-      resolveMultiSample(); // process MSAA but not 'downSample' Super-Sampling because quality will suffer
+      resolveMultiSample(); // process MSAA but not 'downSample' (Super-Sampling) because quality will suffer
 
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
       Bool         alpha=slowCombine(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
-      IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE); // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
-      if(!_ctx.taa_weight) // doesn't have a previous frame yet
+      IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE), // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
+                      col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
+      if(!_ctx.taa_new_weight) // doesn't have new RT's yet
       {
-                _ctx.taa_weight.get(rt_desc.type(weight_type                                         ))->clearFull();
-                _ctx.taa_col   .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision())))->clearFull(); // #RTOutput
-        if(dual)_ctx.taa_col1  .get(rt_desc                                                           )->clearFull();
+         if(!_ctx.taa_old_weight) // doesn't have a previous frame yet
+         {
+                   _ctx.taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
+                   _ctx.taa_old_col   .get(rt_desc.type(   col_type))->clearViewport();
+           if(dual)_ctx.taa_old_col1  .get(rt_desc                  )->clearViewport();
+         }else
+         if((_ctx.taa_old_weight->typeChannels()>=2)!=alpha) // format doesn't match
+         {
+           _ctx.taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
+         }else
+         if(_taa_reset) // want to reset
+         {
+           _ctx.taa_old_weight->clearViewport(); // here clear only for current viewport
+         }
+                 _ctx.taa_new_weight.get(rt_desc.type(weight_type));
+                 _ctx.taa_new_col   .get(rt_desc.type(   col_type));
+         if(dual)_ctx.taa_new_col1  .get(rt_desc                  );
       }else
-      if((_ctx.taa_weight->typeChannels()>=2)!=alpha) // format doesn't match
+      if(_taa_reset)
       {
-        _ctx.taa_weight.get(rt_desc.type(weight_type))->clearFull();
+        _ctx.taa_old_weight->clearViewport();
       }
-      ImageRTPtr temp_weight(rt_desc.type(weight_type));
-      ImageRTPtr next       (rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))), old(rt_desc), old1; if(dual)old1.get(rt_desc); // #RTOutput
+      ImageRTPtr next(rt_desc.type(col_type));
       ImageRTPtr next_alpha; if(TAA_SEPARATE_ALPHA && alpha)next_alpha.get(rt_desc.type(IMAGERT_ONE));
-      set(temp_weight, next, old, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : old1, null, true); // #TAADualAlpha
+      set(_ctx.taa_new_weight, next, _ctx.taa_new_col, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : _ctx.taa_new_col1, null, true); // #TAADualAlpha
       D.alpha(ALPHA_NONE);
 
       if(alpha)
       {
-         Sh.ImgXY[1]->set(_ctx.taa_weight); // old alpha weight
-         Sh.ImgX [0]->set(_alpha         ); // cur alpha
+         Sh.ImgXY[1]->set(_ctx.taa_old_weight); // old alpha weight
+         Sh.ImgX [0]->set(_alpha             ); // cur alpha
       }else
       {
-         Sh.ImgX [0]->set(_ctx.taa_weight); // old weight
+         Sh.ImgX [0]->set(_ctx.taa_old_weight); // old weight
       }
-         Sh.Img  [0]->set(_col           ); // cur
-         Sh.Img  [1]->set(_ctx.taa_col   ); // old
-         Sh.Img  [2]->set(_ctx.taa_col1  ); // old1
+         Sh.Img  [0]->set(_col               ); // cur
+         Sh.Img  [1]->set(_ctx.taa_old_col   ); // old
+         Sh.Img  [2]->set(_ctx.taa_old_col1  ); // old1
       #if   VEL_RT_MODE==VEL_RT_VECH2
-         Sh.ImgXY[0]->set(_vel           ); // velocity
+         Sh.ImgXY[0]->set(_vel               ); // velocity
       #elif VEL_RT_MODE==VEL_RT_VEC2
-         Sh.ImgXYF  ->set(_vel           ); // velocity
+         Sh.ImgXYF  ->set(_vel               ); // velocity
       #endif
 
       Sh.imgSize(*_col);
-      Shader *shader=Sh.TAA[alpha][dual];
+      Shader *shader=Sh.TAA[!D._view_main.full][alpha][dual];
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
-      Swap(temp_weight, _ctx.taa_weight);
-      Swap(next       , _col           );
-      Swap(old        , _ctx.taa_col   );
-      Swap(old1       , _ctx.taa_col1  );
-      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx.taa_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+      Swap(next, _col);
+      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx.taa_new_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       tAAFinish();
    }
 }
 void RendererClass::tAAFinish()
 {
-   if(D._taa_use) // hasTAA()
+   if(_taa_use) // hasTAA()
    {
-     _ctx.frame++;
-      D._taa_use=false; D._view_active.setShader(); SetProjMatrix();
+     _taa_use=false; D._view_active.setShader(); SetProjMatrix();
    }
 }
 void RendererClass::edgeDetect()
@@ -1859,7 +1896,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          const Int pixel_range=6; // currently FXAA/SMAA shaders use this range
          set(_col, null, false); // need full viewport
-         D.viewRect().drawBorder(Vec4Zero, Renderer.pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+         D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       }
       ImageRTDesc rt_desc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision()));
       ImageRTPtr  dest(rt_desc);
@@ -2085,7 +2122,7 @@ void RendererClass::postProcess()
             if(!D._view_main.full)
             {
                set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
-               D.viewRect().drawBorder(Vec4Zero, Renderer.pixelToScreenSize(-pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+               D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(-pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
             }
             set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
             shader->draw(_col); alpha_set=true;

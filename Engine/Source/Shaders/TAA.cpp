@@ -1,5 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
+// CLAMP, ALPHA, DUAL_HISTORY
 
 #define TAA_WEIGHT (1.0/8) // FIXME should this be converted to INT? because it introduces some error due to values being 1.0/255
 
@@ -62,12 +63,12 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
 #if CUBIC
       CubicFastSampler cs;
-      cs.set(cur_tex);
+      cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
       VecH4 cur      =Max(VecH4(0,0,0,0), cs.tex (Img )); // use Max(0) because of cubic sharpening potentially giving negative values
    #if ALPHA
       Half  cur_alpha=Sat(                cs.texX(ImgX)); // use Sat    because of cubic sharpening potentially giving negative values
    #endif
-      cs.set(old_tex);
+      cs.set(old_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
       VecH4 old      =Max(VecH4(0,0,0,0), cs.tex (Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
       VecH4 old1     =Max(VecH4(0,0,0,0), cs.tex (Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
