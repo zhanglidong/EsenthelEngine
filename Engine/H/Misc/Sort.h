@@ -46,6 +46,8 @@ Int Compare(C Color  &a, C Color  &b);
 Int Compare(C VecH2  &a, C VecH2  &b);
 Int Compare(C VecH   &a, C VecH   &b);
 Int Compare(C VecH4  &a, C VecH4  &b);
+Int Compare(C Rect   &a, C Rect   &b);
+Int Compare(C RectI  &a, C RectI  &b);
 /******************************************************************************/
 // Sort Data
          void Sort(Int  *data, Int elms                                           ); // sort Int    array

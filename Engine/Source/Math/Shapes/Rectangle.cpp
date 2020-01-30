@@ -708,6 +708,23 @@ Bool SweepPointRect(C Vec2 &point, C Vec2 &move, C Rect &rect, Flt *hit_frac, Ve
    return false;
 }
 /******************************************************************************/
+Int Compare(C Rect &a, C Rect &b)
+{
+   if(Int c=Compare(a.min.x, b.min.x))return c;
+   if(Int c=Compare(a.min.y, b.min.y))return c;
+   if(Int c=Compare(a.max.x, b.max.x))return c;
+   if(Int c=Compare(a.max.y, b.max.y))return c;
+   return 0;
+}
+Int Compare(C RectI &a, C RectI &b)
+{
+   if(Int c=Compare(a.min.x, b.min.x))return c;
+   if(Int c=Compare(a.min.y, b.min.y))return c;
+   if(Int c=Compare(a.max.x, b.max.x))return c;
+   if(Int c=Compare(a.max.y, b.max.y))return c;
+   return 0;
+}
+/******************************************************************************/
 namespace RP
 {
    #include "Rect Packer/Rect.cpp"

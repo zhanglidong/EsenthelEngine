@@ -464,6 +464,10 @@ Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit=FIT_FULL); // get a rec
 // sweep
 Bool SweepPointRect(C Vec2 &point, C Vec2 &move, C Rect &rect, Flt *hit_frac=null, Vec2 *hit_normal=null, Vec2 *hit_pos=null); // if moving point cuts through a static rectangle
 
+// compare
+Int Compare(C Rect  &a, C Rect  &b);
+Int Compare(C RectI &a, C RectI &b);
+
 // pack rectangles
 struct RectSizeAnchor
 {
