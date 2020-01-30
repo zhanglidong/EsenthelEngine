@@ -272,13 +272,9 @@ private:
 
          Sub();
       };
-      ImageRTPtr taa_old_weight, taa_old_col, taa_old_col1,
-                 taa_new_weight, taa_new_col, taa_new_col1;
-
+      ImageRTPtr      taa_old_weight, taa_old_col, taa_old_col1,
+                      taa_new_weight, taa_new_col, taa_new_col1;
       Map<RectI, Sub> subs;
-
-      void clear();
-      Context() {clear();}
    };
    RENDER_TYPE           _type, _cur_type;
    RENDER_MODE           _mode;

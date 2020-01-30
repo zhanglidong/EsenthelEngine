@@ -88,17 +88,6 @@ static void ShutMshr()
    MshrBall.del();
 }
 /******************************************************************************/
-// FIXME perhaps this can be removed? and just clear Renderer._ctxs
-void RendererClass::Context::clear()
-{
-   subs.clear();
-   taa_old_col   .clear();
-   taa_old_col1  .clear();
-   taa_old_weight.clear();
-   taa_new_col   .clear();
-   taa_new_col1  .clear();
-   taa_new_weight.clear();
-}
 RendererClass::Context::Sub::Sub()
 {
  //used=true; not needed since we always set 'used=true' when accessing/creating new subs
