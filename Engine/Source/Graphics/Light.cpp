@@ -24,7 +24,7 @@
 
 namespace EE{
 /******************************************************************************/
-static inline Bool NeedBackgroundLum() {return !Sky.isActual() || Renderer.stage==RS_LIGHT || Renderer.stage==RS_LIGHT_AO;}
+static inline Bool NeedBackgroundLum() {return !Sky.isActual() || Renderer.stage==RS_LIGHT || Renderer.stage==RS_LIGHT_AO || Renderer.stage==RS_LIT_COLOR;}
 /******************************************************************************
 
    Hardware Shadow Map RT is created with resolution:
