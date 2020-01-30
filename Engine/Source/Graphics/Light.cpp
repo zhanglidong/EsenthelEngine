@@ -182,6 +182,7 @@ static void SetLumMS(Bool clear)
    }
    Renderer.set(Renderer._lum, Renderer._spec, null, null, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
    if(clear && merged_clear)ClearLumMerged(lum_color);
+   D.alpha(ALPHA_ADD);
 }
 void RendererClass::getLumRT() // this is called after drawing all lights, in order to make sure we have some RT's (in case there are no lights), after this ambient meshes will be drawn
 {
