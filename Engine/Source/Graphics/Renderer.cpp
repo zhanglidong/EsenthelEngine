@@ -537,17 +537,17 @@ void RendererClass::cleanup1()
   _ds_1s.clear(); // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
    REPA(_ctxs)
    {
-      Context &ctx=_ctxs[i]; if(!ctx.taa_new_weight)_ctxs.remove(i);else // if was unused then remove it
-      { // update
-         ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
-         ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
-         ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
-         REPA(ctx.subs)
-         {
-            Context::Sub &sub=ctx.subs[i];
-            if(!sub.used)ctx.subs.remove(i);else sub.used=false; // remove unused sub-contexts
-         }
+      Context &ctx=_ctxs[i];
+      ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
+      ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
+      ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
+      REPA(ctx.subs)
+      {
+         Context::Sub &sub=ctx.subs[i];
+         if(!sub.used)ctx.subs.remove(i);else sub.used=false; // remove unused sub-contexts
       }
+      if(!ctx.subs.elms())_ctxs.remove(i); // if was unused then remove it
+      // !! here can't access 'ctx' anymore !!
    }
 }
 RendererClass& RendererClass::operator()(void (&render)())
@@ -948,11 +948,11 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
     C Vec2  &offset  =TAAOffsets[Time.frame()%Elms(TAAOffsets)];
       RectI  viewport=(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
      _taa_use   =true;
-     _taa_offset=    offset/viewport.size();
+     _taa_offset=       offset/viewport.size();
       Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
       D._view_active.setShader();
    }
-   SetProjMatrix(); // call after setting 'D._taa_offset', always call because needed for MotionBlur and TAA
+   SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA
 }
 void RendererClass::prepare()
 {

@@ -147,6 +147,8 @@ public:
    static void Sync       (  VideoOptions &vo, C Str &t);
    static Str  Render     (C VideoOptions &vo          );
    static void Render     (  VideoOptions &vo, C Str &t);
+   static Str  TAA        (C VideoOptions &vo          );
+   static void TAA        (  VideoOptions &vo, C Str &t);
    static Str  EdgeSoft   (C VideoOptions &vo          );
    static void EdgeSoft   (  VideoOptions &vo, C Str &t);
    static Str  Shadow     (C VideoOptions &vo          );

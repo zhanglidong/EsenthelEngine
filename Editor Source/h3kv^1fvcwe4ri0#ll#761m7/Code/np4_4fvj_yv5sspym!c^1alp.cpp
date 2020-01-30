@@ -329,6 +329,8 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    static void Sync       (  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
    static Str  Render     (C VideoOptions &vo          ) {return Renderer.type();}
    static void Render     (  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
+   static Str  TAA        (C VideoOptions &vo          ) {return D.tAA();}
+   static void TAA        (  VideoOptions &vo, C Str &t) {       D.tAA(TextBool(t));}
    static Str  EdgeSoft   (C VideoOptions &vo          ) {return D.edgeSoften();}
    static void EdgeSoft   (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    static Str  Shadow     (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -398,6 +400,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
                props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync      , Sync      ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
    #endif
                props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render    , Render    )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
+               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA       , TAA       ))                                          .desc("Enable Temporal Anti-Aliasing");
                props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft  , EdgeSoft  )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
                props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
       shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize, ShadowSize)).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");

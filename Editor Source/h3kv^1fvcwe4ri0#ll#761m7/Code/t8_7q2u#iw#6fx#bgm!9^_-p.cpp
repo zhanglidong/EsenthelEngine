@@ -81,6 +81,7 @@ bool SaveSettings(C Str &name="Settings.txt")
       video.nodes.New().set("ColorSpace"              , D.colorSpace());
       video.nodes.New().set("Synchronization"         , D.sync());
       video.nodes.New().set("Renderer"                , Renderer.type());
+      video.nodes.New().set("TemporalAntiAliasing"    , D.tAA());
       video.nodes.New().set("EdgeSoftening"           , D.edgeSoften());
       video.nodes.New().set("Shadows"                 , D.shadowMode()==SHADOW_MAP);
       video.nodes.New().set("ShadowMapSize"           , D.shadowMapSize());
@@ -149,6 +150,7 @@ void ApplyVideoSettings(C TextData &data=Settings)
       if(C TextParam *p=video.findNode("ColorSpace"              ))D.colorSpace((COLOR_SPACE)p.asInt());
       if(C TextParam *p=video.findNode("Synchronization"         ))D.sync(p.asBool());
       if(C TextParam *p=video.findNode("Renderer"                ))Renderer.type(RENDER_TYPE(p.asInt()));
+      if(C TextParam *p=video.findNode("TemporalAntiAliasing"    ))D.tAA(p.asBool());
       if(C TextParam *p=video.findNode("EdgeSoftening"           ))D.edgeSoften(EDGE_SOFTEN_MODE(p.asInt()));
       if(C TextParam *p=video.findNode("Shadows"                 ))D.shadowMode(p.asBool() ? SHADOW_MAP : SHADOW_NONE);
       if(C TextParam *p=video.findNode("ShadowMapSize"           ))D.shadowMapSize(p.asInt());
