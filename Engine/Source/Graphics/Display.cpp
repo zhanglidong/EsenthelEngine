@@ -2757,7 +2757,6 @@ Display& Display::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-Display& Display::tAAReset() {Renderer._ctx.clear(); return T;}
 Display& Display::tAA(Bool on)
 {
    if(tAA()!=on)
@@ -2770,6 +2769,13 @@ Display& Display::tAA(Bool on)
             Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual);
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
+   return T;
+}
+Display& Display::tAAReset()
+{
+   Renderer._ctx_sub=&Renderer._ctx_sub_dummy;
+   DYNAMIC_ASSERT(Renderer._ctx==null, "Renderer._ctx!=null"); // check in case this is called during rendering
+   Renderer._ctxs.clear();
    return T;
 }
 Display& Display::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index

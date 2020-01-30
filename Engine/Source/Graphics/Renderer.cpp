@@ -546,15 +546,18 @@ void RendererClass::cleanup()
 void RendererClass::cleanup1()
 {
   _ds_1s.clear(); // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
+   REPA(_ctxs)
    {
-      // FIXME if(!_ctx.taa_new_weight)remove it;else:
-     _ctx.taa_old_weight=_ctx.taa_new_weight; _ctx.taa_new_weight.clear();
-     _ctx.taa_old_col   =_ctx.taa_new_col   ; _ctx.taa_new_col   .clear();
-     _ctx.taa_old_col1  =_ctx.taa_new_col1  ; _ctx.taa_new_col1  .clear();
-      REPA(_ctx.subs)
-      {
-         Context::Sub &sub=_ctx.subs[i];
-         if(!sub.used)_ctx.subs.remove(i);else sub.used=false; // remove unused sub-contexts
+      Context &ctx=_ctxs[i]; if(!ctx.taa_new_weight)_ctxs.remove(i);else // if was unused then remove it
+      { // update
+         ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
+         ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
+         ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
+         REPA(ctx.subs)
+         {
+            Context::Sub &sub=ctx.subs[i];
+            if(!sub.used)ctx.subs.remove(i);else sub.used=false; // remove unused sub-contexts
+         }
       }
    }
 }
@@ -588,9 +591,10 @@ RendererClass& RendererClass::operator()(void (&render)())
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
-   Int subs_elms=_ctx.subs.elms();
-  _ctx_sub=_ctx.subs(D._view_main.recti); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, mark that it was used in this frame
-  _taa_reset=(subs_elms!=_ctx.subs.elms()); // if just added then force reset tAA
+  _ctx=_ctxs(0); // 0=some unique ID for a context
+   Int subs_elms=_ctx->subs.elms();
+  _ctx_sub=_ctx->subs(D._view_main.recti); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, mark that it was used in this frame
+  _taa_reset=(subs_elms!=_ctx->subs.elms()); // if just added then force reset tAA
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 
@@ -725,6 +729,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       tAAFinish();
      _ctx_sub->proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
      _ctx_sub=&_ctx_sub_dummy;
+     _ctx    =null;
      _render =null; // this specifies that we're outside of Rendering
      _final  =null;
       D.alpha(ALPHA_BLEND); mode(RM_SOLID);
@@ -1577,50 +1582,50 @@ void RendererClass::tAA()
       Bool         alpha=slowCombine(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
       IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE), // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
                       col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
-      if(!_ctx.taa_new_weight) // doesn't have new RT's yet
+      if(!_ctx->taa_new_weight) // doesn't have new RT's yet
       {
-         if(!_ctx.taa_old_weight) // doesn't have a previous frame yet
+         if(!_ctx->taa_old_weight) // doesn't have a previous frame yet
          {
-                   _ctx.taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
-                   _ctx.taa_old_col   .get(rt_desc.type(   col_type))->clearViewport();
-           if(dual)_ctx.taa_old_col1  .get(rt_desc                  )->clearViewport();
+                   _ctx->taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
+                   _ctx->taa_old_col   .get(rt_desc.type(   col_type))->clearViewport();
+           if(dual)_ctx->taa_old_col1  .get(rt_desc                  )->clearViewport();
          }else
-         if((_ctx.taa_old_weight->typeChannels()>=2)!=alpha) // format doesn't match
+         if((_ctx->taa_old_weight->typeChannels()>=2)!=alpha) // format doesn't match
          {
-           _ctx.taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
+           _ctx->taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
          }else
          if(_taa_reset) // want to reset
          {
-           _ctx.taa_old_weight->clearViewport(); // here clear only for current viewport
+           _ctx->taa_old_weight->clearViewport(); // here clear only for current viewport
          }
-                 _ctx.taa_new_weight.get(rt_desc.type(weight_type));
-                 _ctx.taa_new_col   .get(rt_desc.type(   col_type));
-         if(dual)_ctx.taa_new_col1  .get(rt_desc                  );
+                 _ctx->taa_new_weight.get(rt_desc.type(weight_type));
+                 _ctx->taa_new_col   .get(rt_desc.type(   col_type));
+         if(dual)_ctx->taa_new_col1  .get(rt_desc                  );
       }else
       if(_taa_reset)
       {
-        _ctx.taa_old_weight->clearViewport();
+        _ctx->taa_old_weight->clearViewport();
       }
       ImageRTPtr next(rt_desc.type(col_type));
       ImageRTPtr next_alpha; if(TAA_SEPARATE_ALPHA && alpha)next_alpha.get(rt_desc.type(IMAGERT_ONE));
-      set(_ctx.taa_new_weight, next, _ctx.taa_new_col, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : _ctx.taa_new_col1, null, true); // #TAADualAlpha
+      set(_ctx->taa_new_weight, next, _ctx->taa_new_col, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : _ctx->taa_new_col1, null, true); // #TAADualAlpha
       D.alpha(ALPHA_NONE);
 
       if(alpha)
       {
-         Sh.ImgXY[1]->set(_ctx.taa_old_weight); // old alpha weight
-         Sh.ImgX [0]->set(_alpha             ); // cur alpha
+         Sh.ImgXY[1]->set(_ctx->taa_old_weight); // old alpha weight
+         Sh.ImgX [0]->set(_alpha              ); // cur alpha
       }else
       {
-         Sh.ImgX [0]->set(_ctx.taa_old_weight); // old weight
+         Sh.ImgX [0]->set(_ctx->taa_old_weight); // old weight
       }
-         Sh.Img  [0]->set(_col               ); // cur
-         Sh.Img  [1]->set(_ctx.taa_old_col   ); // old
-         Sh.Img  [2]->set(_ctx.taa_old_col1  ); // old1
+         Sh.Img  [0]->set(_col                ); // cur
+         Sh.Img  [1]->set(_ctx->taa_old_col   ); // old
+         Sh.Img  [2]->set(_ctx->taa_old_col1  ); // old1
       #if   VEL_RT_MODE==VEL_RT_VECH2
-         Sh.ImgXY[0]->set(_vel               ); // velocity
+         Sh.ImgXY[0]->set(_vel                ); // velocity
       #elif VEL_RT_MODE==VEL_RT_VEC2
-         Sh.ImgXYF  ->set(_vel               ); // velocity
+         Sh.ImgXYF  ->set(_vel                ); // velocity
       #endif
 
       Sh.imgSize(*_col);
@@ -1631,7 +1636,7 @@ void RendererClass::tAA()
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
       Swap(next, _col);
-      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx.taa_new_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx->taa_new_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       tAAFinish();
    }

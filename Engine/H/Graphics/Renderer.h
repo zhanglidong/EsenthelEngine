@@ -280,53 +280,54 @@ private:
       void clear();
       Context() {clear();}
    };
-   RENDER_TYPE   _type, _cur_type;
-   RENDER_MODE   _mode;
-   ALPHA_MODE    _mesh_blend_alpha;
-   Bool          _has_glow, _has_fur, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel, _taa_use, _taa_reset;
-   Byte          _solid_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline, _clear;
-   Int           _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
-   UInt          _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
-   Color         _mesh_highlight;
-   VecI2         _res;
-   Vec2          _taa_offset;
-   Rect          _clip;
-   PlaneM        _mirror_plane;
-   Shader       *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;
+   RENDER_TYPE           _type, _cur_type;
+   RENDER_MODE           _mode;
+   ALPHA_MODE            _mesh_blend_alpha;
+   Bool                  _has_glow, _has_fur, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel, _taa_use, _taa_reset;
+   Byte                  _solid_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline, _clear;
+   Int                   _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
+   UInt                  _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
+   Color                 _mesh_highlight;
+   VecI2                 _res;
+   Vec2                  _taa_offset;
+   Rect                  _clip;
+   PlaneM                _mirror_plane;
+   Shader               *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;
 #if SUPPORT_MLAA
-   Image         _mlaa_area;
+   Image                 _mlaa_area;
 #endif
-   Image         _smaa_area, _smaa_search, _env_dfg;
-   void        (*_render)();
+   Image                 _smaa_area, _smaa_search, _env_dfg;
+   void                (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
-   ImageRT       _main, _main_ds,
-                 _main_temp, _main_temp_ds,
-                 _shd_map, _cld_map,
-                 _eye_adapt_scale[2],
-                *_ptr_main, *_ptr_main_ds, // need if have to perform color management
-                *_cur_main, *_cur_main_ds,
-                *_cur[4], *_cur_ds,
-                *_ui, *_ui_ds,
-                *_final;
-   ImageRTPtr    _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
-                 _col, _ds, _ds_1s, _nrm, _ext, _vel, _alpha,
-                 _lum, _lum_1s, _spec, _spec_1s, _shd_1s, _shd_ms,
-                 _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
-                 _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
-   Memx<ImageRT> _rts;
-   Context       _ctx;
-   Context::Sub  _ctx_sub_dummy, *_ctx_sub;
+   ImageRT               _main, _main_ds,
+                         _main_temp, _main_temp_ds,
+                         _shd_map, _cld_map,
+                         _eye_adapt_scale[2],
+                        *_ptr_main, *_ptr_main_ds, // need if have to perform color management
+                        *_cur_main, *_cur_main_ds,
+                        *_cur[4], *_cur_ds,
+                        *_ui, *_ui_ds,
+                        *_final;
+   ImageRTPtr            _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
+                         _col, _ds, _ds_1s, _nrm, _ext, _vel, _alpha,
+                         _lum, _lum_1s, _spec, _spec_1s, _shd_1s, _shd_ms,
+                         _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
+                         _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
+   Memx<ImageRT>         _rts;
+   Map<UIntPtr, Context> _ctxs;
+   Context              *_ctx;
+   Context::Sub          _ctx_sub_dummy, *_ctx_sub;
 #if EE_PRIVATE
    GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
    GPU_API(ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});
    GPU_API(ID3D11DepthStencilView *_cur_ds_ids[3], union{UInt _cur_ds_ids[3]; Ptr _cur_ds_ids_ptr[3];}); ASSERT(DEPTH_READ_NUM==3); // [DEPTH_READ_NUM]
 #else
-   Ptr           _cur_id[4], _cur_ds_id, _cur_ds_ids[3];
+   Ptr                   _cur_id[4], _cur_ds_id, _cur_ds_ids[3];
 #endif
 
-   Int           _t_measures[2];
-   Dbl           _t_last_measure;
-   Flt           _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
+   Int                   _t_measures[2];
+   Dbl                   _t_last_measure;
+   Flt                   _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
 
    RendererClass();
 }extern

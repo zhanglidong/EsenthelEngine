@@ -106,8 +106,8 @@ void RendererClass::rtClear()
   _mirror_rt   .clear();
   _outline_rt  .clear();
   _sky_coverage.clear();
-  _ctx         .clear();
   _final       =null;
+   D.tAAReset();
    // don't clear '_back' and '_back_ds' here in case they are used
 }
 void RendererClass::rtClean()
