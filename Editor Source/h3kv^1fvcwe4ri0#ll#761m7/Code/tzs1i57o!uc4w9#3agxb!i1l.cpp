@@ -212,6 +212,7 @@ class NewLodClass : ClosableWindow
             Swap(mesh.newLod(), nl.simplified);
             ObjEdit.setChangedMesh(true);
             ObjEdit.lod.toGui();
+            ObjEdit.selLod(mesh.lods()-1);
          }
       }
    }
