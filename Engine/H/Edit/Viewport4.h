@@ -107,9 +107,11 @@ const_mem_addr struct Viewport4
      MOVE_MODE   moveMode ()C {return _move_mode  ;}   Viewport4&   moveMode (  MOVE_MODE mode ); // get/set camera movement    mode
    View       *last       ()C {return _last       ;}                                              // get     view that was last active, null if none
    View       *focus      ()C {return _focus      ;}                                              // get     view with mouse focus    , null if none
-   View       *getView    (GuiObj *go);                                                           // get     view from gui object     , null if none, this method tests if 'go' belongs to any of the views, if so then it returns view associated with that object
+   Int         getViewType(View *view)C;                                                          // get     VIEW_TYPE from view object, -1   if none, this method tests if 'view' belongs to this object     , and returns VIEW_TYPE associated with that view
+   Int         getViewType(GuiObj *go)C;                                                          // get     VIEW_TYPE from gui  object, -1   if none, this method tests if   'go' belongs to any of the views, and returns VIEW_TYPE associated with that object
+   View       *getView    (GuiObj *go);                                                           // get     view      from gui  object, null if none, this method tests if   'go' belongs to any of the views, and returns view      associated with that object
 #if EE_PRIVATE
-   View       *getViewCtrl(GuiObj *go);                                                           // get     view from gui object     , null if none, this method tests if 'go' belongs to any of the views, if so then it returns view associated with that object
+   View       *getViewCtrl(GuiObj *go);                                                           // get     view      from gui  object, null if none, this method tests if   'go' belongs to any of the views, and returns view      associated with that object
    Flt         moveScale  (View &view, Bool time=true)C; // get keyboard movement scale for 'view'
    void        setRect    ();
    void        setCubeRect();

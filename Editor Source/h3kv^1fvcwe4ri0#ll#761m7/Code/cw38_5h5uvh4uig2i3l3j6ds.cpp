@@ -286,6 +286,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    Box             mesh_box(0); // mesh box after transformation
    Matrix          mesh_matrix(1); // mesh transformation matrix
    Matrix          phys_part_matrix; // used for axis drawing
+   Matrix          mesh_matrix_prev[Edit.Viewport4.VIEW_NUM], *mesh_matrix_prev_ptr=null;
    PhysBodyPtr     phys; // phys body (in 'mesh_matrix')
    Skeleton       *mesh_skel=null, mesh_skel_temp, // skeleton of the mesh (in 'mesh_matrix'), if exists points to 'mesh_skel_temp' (otherwise null), it is important to operate on a temporary skeleton, so that modifying skeleton will not affect the existing animations, until it's flushed
                   *body_skel=null, // skeleton of the body mesh
@@ -335,6 +336,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    Memc<UID>       menu_ids;
    Edit.Undo<MeshChange> mesh_undos(true);   bool mesh_undos_undo;
    Edit.Undo<PhysChange> phys_undos(true);   void undoVis() {SetUndo(mesh_undos, mesh_undo, mesh_redo); SetUndo(phys_undos, phys_undo, phys_redo);}
+
+   ObjView() {REPAO(mesh_matrix_prev).identity();}
 
    // get
    bool selected()C {return Mode()==MODE_OBJ;}
@@ -434,7 +437,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   MeshLod &a=mesh.lod(lod-1),
                           &b=mesh.lod(lod  ), &draw_lod=(interval ? a : b);
                   Matrix matrix; setMatrixAtDist(matrix, absLodDist(b));
-                  FREPA(draw_lod)if(!(draw_lod.parts[i].part_flag&MSHP_HIDDEN))draw_lod.parts[i].draw(matrix);
+                  FREPA(draw_lod)if(!(draw_lod.parts[i].part_flag&MSHP_HIDDEN))draw_lod.parts[i].draw(matrix, mesh_matrix_prev_ptr ? *mesh_matrix_prev_ptr : matrix);
+                  if(mesh_matrix_prev_ptr)*mesh_matrix_prev_ptr=matrix;
                }
             }else // default
             if(!showChangeSkin())
@@ -464,11 +468,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      if(       lit)SetHighlight(Color( 0, 85, 85, 0));
 
                      if(!custom_matrix)matrix=transformMatrix(partOp(i));
-                     part.draw(matrix);
+                     part.draw(matrix, (custom_matrix && mesh_matrix_prev_ptr) ? *mesh_matrix_prev_ptr : matrix);
 
                      SetHighlight(TRANSPARENT);
                   }
                }
+               if(custom_matrix && mesh_matrix_prev_ptr)*mesh_matrix_prev_ptr=matrix;
                SetDrawMask();
                SetVariation();
 
@@ -511,6 +516,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void Draw(Viewport &viewport) {if(Edit.Viewport4.View *view=ObjEdit.v4.getView(&viewport))ObjEdit.draw(*view);}
           void draw(Edit.Viewport4.View &view)
    {
+      int view_type=v4.getViewType(&view);
+      mesh_matrix_prev_ptr=(InRange(view_type, mesh_matrix_prev) ? &mesh_matrix_prev[view_type] : null);
       view.camera.set();
       if(mode()==BODY)
       {
@@ -522,9 +529,17 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       bool astros=AstrosDraw; AstrosDraw=false;
       bool ocean =Water.draw; Water.draw=false;
       Renderer.wire=wire();
+      MOTION_MODE motion=D.motionMode();
+      if(lodEditDist())
+      {
+         //D.motionMode(MOTION_NONE);
+         Renderer.allow_taa=false;
+      }
 
       Renderer(ObjView.Render);
 
+      D.motionMode(motion);
+      Renderer.allow_taa=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;

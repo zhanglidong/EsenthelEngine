@@ -581,6 +581,16 @@ Viewport4& Viewport4::create(void (*draw)(Viewport&), Flt default_pitch, Flt def
 /******************************************************************************/
 // GET / SET
 /******************************************************************************/
+Int Viewport4::getViewType(View *view)C
+{
+   IntPtr i=view-T.view;
+   return InRange(i, VIEW_NUM) ? i : -1;
+}
+Int Viewport4::getViewType(GuiObj *go)C
+{
+   if(go)REPA(view)if(go==&view[i].viewport)return i;
+   return -1;
+}
 Viewport4::View* Viewport4::getView(GuiObj *go)
 {
    if(go)REPA(view)if(go==&view[i].viewport)return &view[i];

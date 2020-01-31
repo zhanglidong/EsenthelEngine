@@ -144,6 +144,7 @@ public:
    Box             mesh_box; // mesh box after transformation
    Matrix          mesh_matrix; // mesh transformation matrix
    Matrix          phys_part_matrix; // used for axis drawing
+   Matrix          mesh_matrix_prev[Edit::Viewport4::VIEW_NUM], *mesh_matrix_prev_ptr;
    PhysBodyPtr     phys; // phys body (in 'mesh_matrix')
    Skeleton       *mesh_skel, mesh_skel_temp, // skeleton of the mesh (in 'mesh_matrix'), if exists points to 'mesh_skel_temp' (otherwise null), it is important to operate on a temporary skeleton, so that modifying skeleton will not affect the existing animations, until it's flushed
                   *body_skel, // skeleton of the body mesh
@@ -193,6 +194,8 @@ public:
    Memc<UID>       menu_ids;
    Edit::Undo<MeshChange> mesh_undos;   bool mesh_undos_undo;
    Edit::Undo<PhysChange> phys_undos;   void undoVis();      
+
+   ObjView();
 
    // get
    bool selected()C;                          
@@ -607,9 +610,6 @@ public:
 ;
    void createRagdoll();
    void updateRagdoll();
-
-public:
-   ObjView();
 };
 /******************************************************************************/
 /******************************************************************************/

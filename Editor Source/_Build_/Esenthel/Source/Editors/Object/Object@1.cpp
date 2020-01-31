@@ -243,6 +243,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       }
       bool ObjView::SkinBrush::hasMsWheelFocus()C {return ObjEdit.v4.getView(Gui.ms())!=null;}
    void ObjView::undoVis() {SetUndo(mesh_undos, mesh_undo, mesh_redo); SetUndo(phys_undos, phys_undo, phys_redo);}
+   ObjView::ObjView() : mesh_box(0), mesh_matrix(1), mesh_matrix_prev_ptr(null), mesh_skel(null), body_skel(null), obj_id(UIDZero), obj_elm(null), mesh_elm(null), skel_elm(null), phys_elm(null), has_cur_pos(false), cur_pos(0), axis_vec(0), lit_lod(-1), sel_lod(0), sel_variation(0), lit_part(-1), lit_vf_part(-1), lit_vtx(-1), lit_face(-1), trans_axis(-1), lit_bone(-1), lit_bone_vis(-1), lit_slot(-1), sel_bone(-1), sel_bone_vis(-1), sel_slot(-1), slot_axis(-1), bone_axis(-1), lit_phys(-1), sel_phys(-1), phys_axis(-1), vtx_dup_mode(-1), vtx_sel_r(0.06f), edit_time(0), changed_obj(false), changed_mesh(false), changed_skel(false), changed_phys(false), mesh_undos(true), phys_undos(true) {REPAO(mesh_matrix_prev).identity();}
    bool ObjView::selected()C {return Mode()==MODE_OBJ;}
    bool ObjView::lodEditDist()C {return mode()==LOD && lod.edit_dist.visible() && lod.edit_dist()==0;}
    bool ObjView::lodDrawAtDist()C {return mode()==LOD && NewLod.visible() && NewLod.draw_at_distance;}
@@ -338,7 +339,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   MeshLod &a=mesh.lod(lod-1),
                           &b=mesh.lod(lod  ), &draw_lod=(interval ? a : b);
                   Matrix matrix; setMatrixAtDist(matrix, absLodDist(b));
-                  FREPA(draw_lod)if(!(draw_lod.parts[i].part_flag&MSHP_HIDDEN))draw_lod.parts[i].draw(matrix);
+                  FREPA(draw_lod)if(!(draw_lod.parts[i].part_flag&MSHP_HIDDEN))draw_lod.parts[i].draw(matrix, mesh_matrix_prev_ptr ? *mesh_matrix_prev_ptr : matrix);
+                  if(mesh_matrix_prev_ptr)*mesh_matrix_prev_ptr=matrix;
                }
             }else // default
             if(!showChangeSkin())
@@ -368,11 +370,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      if(       lit)SetHighlight(Color( 0, 85, 85, 0));
 
                      if(!custom_matrix)matrix=transformMatrix(partOp(i));
-                     part.draw(matrix);
+                     part.draw(matrix, (custom_matrix && mesh_matrix_prev_ptr) ? *mesh_matrix_prev_ptr : matrix);
 
                      SetHighlight(TRANSPARENT);
                   }
                }
+               if(custom_matrix && mesh_matrix_prev_ptr)*mesh_matrix_prev_ptr=matrix;
                SetDrawMask();
                SetVariation();
 
@@ -414,6 +417,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::Draw(Viewport &viewport) {if(Edit::Viewport4::View *view=ObjEdit.v4.getView(&viewport))ObjEdit.draw(*view);}
           void ObjView::draw(Edit::Viewport4::View &view)
    {
+      int view_type=v4.getViewType(&view);
+      mesh_matrix_prev_ptr=(InRange(view_type, mesh_matrix_prev) ? &mesh_matrix_prev[view_type] : null);
       view.camera.set();
       if(mode()==BODY)
       {
@@ -425,9 +430,17 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       bool astros=AstrosDraw; AstrosDraw=false;
       bool ocean =Water.draw; Water.draw=false;
       Renderer.wire=wire();
+      MOTION_MODE motion=D.motionMode();
+      if(lodEditDist())
+      {
+         //D.motionMode(MOTION_NONE);
+         Renderer.allow_taa=false;
+      }
 
       Renderer(ObjView::Render);
 
+      D.motionMode(motion);
+      Renderer.allow_taa=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;
@@ -3664,8 +3677,6 @@ cur_skel_to_saved_skel.renameBone(old_name, new_name);
          }
       }
    }
-ObjView::ObjView() : mesh_box(0), mesh_matrix(1), mesh_skel(null), body_skel(null), obj_id(UIDZero), obj_elm(null), mesh_elm(null), skel_elm(null), phys_elm(null), has_cur_pos(false), cur_pos(0), axis_vec(0), lit_lod(-1), sel_lod(0), sel_variation(0), lit_part(-1), lit_vf_part(-1), lit_vtx(-1), lit_face(-1), trans_axis(-1), lit_bone(-1), lit_bone_vis(-1), lit_slot(-1), sel_bone(-1), sel_bone_vis(-1), sel_slot(-1), slot_axis(-1), bone_axis(-1), lit_phys(-1), sel_phys(-1), phys_axis(-1), vtx_dup_mode(-1), vtx_sel_r(0.06f), edit_time(0), changed_obj(false), changed_mesh(false), changed_skel(false), changed_phys(false), mesh_undos(true), phys_undos(true) {}
-
 ObjView::BackMesh::BackMesh() : matrix(1) {}
 
 ObjView::SlotMesh::SlotMesh() : scale(1) {}
