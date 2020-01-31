@@ -917,6 +917,17 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                   }
                #endif
 
+               #if DEBUG && 0
+                  {
+                     #pragma message("!! Warning: Use this only for debugging !!")
+                     ID3DBlob *disassembly=null; D3DDisassemble(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, null, &disassembly); if(disassembly)
+                     {
+                        Exit((CChar8*)disassembly->GetBufferPointer());
+                        disassembly->Release();
+                     }
+                  }
+               #endif
+
                   if(compiler->api==API_DX) // strip
                   {
                      ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
