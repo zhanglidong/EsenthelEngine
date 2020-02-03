@@ -4,6 +4,8 @@
 
 #define TAA_WEIGHT (1.0/8) // FIXME should this be converted to INT? because it introduces some error due to values being 1.0/255
 
+#define VEL_EPS 0.0006
+
 #define CUBIC 1
 #if     CUBIC
 #include "Cubic.h"
@@ -18,36 +20,38 @@
 ALPHA=0
    ImgX=Weight
 ALPHA=1
-   ImgXY1=AlphaWeight, ImgX=CurAlpha
+   ImgXY2=AlphaWeight, ImgX=CurAlpha
    
 DUAL_HISTORY=1
    Img2=Old1
 
-Img=Cur, Img1=Old, ImgXY=Vel */
+Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel */
 BUFFER(TAA)
-   Vec2 TAAOffset;
+   Vec2 TAAOffset,
+        TAAOffsetPrev;
+   Half TAAAspectRatio;
 BUFFER_END
 /******************************************************************************/
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
           //NOPERSP PIXEL                 ,
-               #if !ALPHA
-                 out Half  outWeight     :TARGET0,
-               #else
-                 out VecH2 outAlphaWeight:TARGET0,
-               #endif
-                 out VecH4 outNext       :TARGET1,
-                 out VecH4 outOld        :TARGET2
-               #if ALPHA && TAA_SEPARATE_ALPHA
-               , out Half  outNextAlpha  :TARGET3 // #TAADualAlpha
-               #endif
-               #if DUAL_HISTORY
-               , out VecH4 outOld1       :TARGET3
-               #endif
+             #if ALPHA
+                out VecH2 outWeight   :TARGET0,
+             #else
+                out Half  outWeight   :TARGET0,
+             #endif
+                out VecH4 outNext     :TARGET1,
+                out VecH4 outOld      :TARGET2
+             #if ALPHA && TAA_SEPARATE_ALPHA
+              , out Half  outNextAlpha:TARGET3 // #TAADualAlpha
+             #endif
+             #if DUAL_HISTORY
+              , out VecH4 outOld1     :TARGET3
+             #endif
             )
 {
 #if   VEL_RT_MODE==VEL_RT_VECH2
-   VEL_RT_TYPE vel=TexPoint(ImgXY, inTex).xy; //FIXME TAA
+   VEL_RT_TYPE vel=TexPoint(ImgXY, inTex).xy; //FIXME TAA, offset or gather?
  //VEL_RT_TYPE vel=TexLod  (ImgXY, inTex+TAAOffset).xy;
 #elif VEL_RT_MODE==VEL_RT_VEC2
    VEL_RT_TYPE vel=TexPoint(ImgXYF, inTex).xy; //FIXME TAA
@@ -84,17 +88,36 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
 #endif
 
-#if !ALPHA
-   Half old_weight=TexLod(ImgX, old_tex).x;
+#if ALPHA
+   VecH2 tex=TexLod(ImgXY2, old_tex).xy;
 #else
-   VecH2 tex=TexLod(ImgXY1, old_tex).xy;
-   Half  old_alpha=tex.x, old_weight=tex.y;
+   Half  tex=TexLod(ImgX  , old_tex).x;
+#endif
+
+#if !ALPHA
+   Half old_weight=tex.x;
+#else
+   Half old_weight=tex.y, old_alpha=tex.x;
 #endif
 
    // if 'old_tex' is outside viewport then ignore it
    if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
 
-   //if(any(vel))old_weight=0; // FIXME TAA improve
+   // FIXME
+#if 1
+   {
+      Vec2 old_tex_vel=old_tex;
+      // FIXME use GATHER
+      UNROLL for(Int x=-1; x<=1; x++)
+      UNROLL for(Int y=-1; y<=1; y++)
+      {
+         VecH2 test_vel=TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy,
+              delta_vel=vel-test_vel;
+         delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
+         if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
+      }
+   }
+#endif
 
 #if !DUAL_HISTORY
       Half cur_weight=TAA_WEIGHT, total_weight=old_weight+cur_weight;
@@ -104,21 +127,22 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if !ALPHA
       outWeight=total_weight;
    #else
-      outAlphaWeight=VecH2(old_alpha*old_weight + cur_alpha*cur_weight, total_weight); // !! store alpha in X so it can be used for '_alpha' RT !!
+      outWeight.y=total_weight;
+      outWeight.x=old_alpha*old_weight + cur_alpha*cur_weight; // !! store alpha in X so it can be used for '_alpha' RT !!
       #if TAA_SEPARATE_ALPHA
-         outNextAlpha=outAlphaWeight.x;
+         outNextAlpha=outWeight.x;
       #endif
    #endif
 #else
    // #TAADualAlpha
-   Half cur_weight=TAA_WEIGHT/2;
+   Half cur_weight=TAA_WEIGHT/2, total_weight=old_weight+cur_weight;
    if(old_weight<0.5 - cur_weight/2) // fill 1st history RT
    {
-      outWeight=old_weight+cur_weight;
-      outOld1=outOld=outNext=old*(old_weight/outWeight) + cur*(cur_weight/outWeight);
+      outWeight=total_weight;
+      outOld1=outOld=outNext=old*(old_weight/total_weight) + cur*(cur_weight/total_weight);
    }else // fill 2nd history RT
    {
-      outWeight=old_weight+cur_weight;
+      outWeight=total_weight;
       if(DUAL_ADJUST_OLD)
       {
             Half ow=1, cw=TAA_WEIGHT, tw=ow+cw;

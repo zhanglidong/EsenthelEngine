@@ -835,7 +835,8 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _density=127;
   _samples=1;
   _scale=1;
-  _aspect_ratio=_aspect_ratio_want=0;
+  _disp_aspect_ratio=_disp_aspect_ratio_want=0;
+  _app_aspect_ratio=1;
   _pixel_aspect=1;
   _pixel_size=_pixel_size_2=_pixel_size_inv=0;
   _window_pixel_to_screen_mul=1; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
@@ -2809,7 +2810,7 @@ Display& Display::aspectMode(ASPECT_MODE mode)
 }
 void Display::aspectRatioEx(Bool force, Bool quiet)
 {
-   Flt aspect_ratio=_aspect_ratio_want;
+   Flt aspect_ratio=_disp_aspect_ratio_want;
 #if DESKTOP || WEB
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size); // calculate based on current monitor, as connected monitors may have different aspects
@@ -2821,9 +2822,9 @@ void Display::aspectRatioEx(Bool force, Bool quiet)
         aspect_ratio =Renderer._main.aspect();
 #endif
 
-   if(T._aspect_ratio!=aspect_ratio || force)
+   if(T._disp_aspect_ratio!=aspect_ratio || force)
    {
-      T._aspect_ratio=aspect_ratio;
+      T._disp_aspect_ratio=aspect_ratio;
       if(created())
       {
          Bool vr=(VR.active() && _allow_stereo);
@@ -2833,15 +2834,15 @@ void Display::aspectRatioEx(Bool force, Bool quiet)
          Flt window_aspect=Renderer._main.aspect(),
       #endif
                  vr_aspect=Flt(VR.guiRes().x)/VR.guiRes().y,
-               mono_aspect=(D.full() ? aspect_ratio : aspect_ratio*window_aspect/desktop_aspect),
-                    aspect=(vr ? vr_aspect : mono_aspect);
+               mono_aspect=(D.full() ? aspect_ratio : aspect_ratio*window_aspect/desktop_aspect);
          Vec2     old_size=D.size();
 
+         T._app_aspect_ratio=(vr ? vr_aspect : mono_aspect);
          switch(aspectMode())
          {
-            default            : aspect_y: _unscaled_size.y=1; _unscaled_size.x=_unscaled_size.y*aspect; break; // ASPECT_Y
-            case ASPECT_X      : aspect_x: _unscaled_size.x=1; _unscaled_size.y=_unscaled_size.x/aspect; break;
-            case ASPECT_SMALLER: if(aspect>=1)goto aspect_y; goto aspect_x;
+            default            : aspect_y: _unscaled_size.y=1; _unscaled_size.x=_unscaled_size.y*_app_aspect_ratio; break; // ASPECT_Y
+            case ASPECT_X      : aspect_x: _unscaled_size.x=1; _unscaled_size.y=_unscaled_size.x/_app_aspect_ratio; break;
+            case ASPECT_SMALLER: if(_app_aspect_ratio>=1)goto aspect_y; goto aspect_x;
          }
          T._pixel_aspect=(vr ? 1 : D.full() ? aspect_ratio/window_aspect : aspect_ratio/desktop_aspect);
 
@@ -2865,7 +2866,7 @@ void Display::aspectRatioEx(Bool force, Bool quiet)
 }
 Display& Display::aspectRatio(Flt aspect_ratio)
 {
-   T._aspect_ratio_want=Max(0, aspect_ratio);
+   T._disp_aspect_ratio_want=Max(0, aspect_ratio);
    aspectRatioEx(false);
    return T;
 }

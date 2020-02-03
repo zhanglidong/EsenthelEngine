@@ -445,8 +445,8 @@ Image     Ext, Ext1, Ext2, Ext3,
 Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
-ImageH2   ImgXY, ImgXY1, EnvDFG;
-ImageF2   ImgXYF;
+ImageH2   ImgXY, ImgXY1, ImgXY2, EnvDFG;
+//ImageF2   ImgXYF;
 ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;

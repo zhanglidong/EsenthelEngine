@@ -624,7 +624,7 @@ void VolumetricClouds::draw()
 
       VecI2 res;
       res.y=Max(1, Min(Renderer.fxH(), res_h)); // do Min first and Max last
-      res.x=Max(1, Round(res.y*D._unscaled_size.div())); // calculate proportionally to 'res.y' and current mode aspect (do not use 'D.aspectRatio' because that's the entire monitor screen aspect, and not application window), all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
+      res.x=Max(1, Round(res.y*D._app_aspect_ratio)); // calculate proportionally to 'res.y' and current mode aspect, all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
       ImageRTPtr dest(ImageRTDesc(res.x, res.y, IMAGERT_TWO)); // here Red is for brightness, Green is used for density/opacity
 
       Renderer.set(dest, null, false); D.alpha(ALPHA_NONE);

@@ -362,7 +362,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 
    VecI2 res;
    res.y=Min(ByteScaleRes(fxH(), D._mtn_res), 2160); // only up to 2160 is supported, because shaders support only up to MAX_MOTION_BLUR_PIXEL_RANGE pixels, but if we enable higher resolution then it would require more pixels
-   res.x=Max(1, Round(res.y*D._unscaled_size.div())); // calculate proportionally to 'res.y' and current mode aspect (do not use 'D.aspectRatio' because that's the entire monitor screen aspect, and not application window), all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
+   res.x=Max(1, Round(res.y*D._app_aspect_ratio)); // calculate proportionally to 'res.y' and current mode aspect, all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
    const Flt max_blur_pixel_range=res.y*(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/2160); // max blur pixel range for motion blur RT's resolution
    const Int dilate_round_range=1; // this value should be the same as "Int range" in "Dilate_PS" Motion Blur shader
          Int dilate_round_steps;
@@ -542,6 +542,7 @@ void RendererClass::cleanup1()
       ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
       ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
       ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
+      ctx.taa_old_vel   =ctx.taa_new_vel   ; ctx.taa_new_vel   .clear();
       REPA(ctx.subs)
       {
          Context::Sub &sub=ctx.subs[i];
@@ -943,12 +944,15 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
 {
    if(hasTAA())
    {
-    C VecI2 &size    =res();
-    C Vec2  &offset  =TAAOffsets[Time.frame()%Elms(TAAOffsets)];
-      RectI  viewport=(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
+    C VecI2 &size       =res();
+    C Vec2  &offset     =TAAOffsets[         Time.frame()   %Elms(TAAOffsets)];
+    C Vec2  &offset_prev=TAAOffsets[Unsigned(Time.frame()-1)%Elms(TAAOffsets)];
+      RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
      _taa_use   =true;
-     _taa_offset=       offset/viewport.size();
-      Sh.TAAOffset->set(offset/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
+     _taa_offset=            offset     /viewport.size();
+      Sh.TAAOffset     ->set(offset     /         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
+      Sh.TAAOffsetPrev ->set(offset_prev/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
+      Sh.TAAAspectRatio->set(D._app_aspect_ratio);
       D._view_active.setShader();
    }
    SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA
@@ -1042,7 +1046,14 @@ start:
 
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() // motion blur
          || hasTAA())                                           // TAA
-            _vel.get(rt_desc.type(IMAGERT_TWO_H));
+         {
+         #if 1
+            if(!_ctx->taa_new_vel)_ctx->taa_new_vel.get(rt_desc.type(IMAGERT_TWO_H));
+           _vel=_ctx->taa_new_vel;
+         #else
+           _vel.get(rt_desc.type(IMAGERT_TWO_H));
+         #endif
+         }
 
          const Bool merged_clear=D.mergedClear(),
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
@@ -1601,7 +1612,7 @@ void RendererClass::tAA()
 
       if(alpha)
       {
-         Sh.ImgXY[1]->set(_ctx->taa_old_weight); // old alpha weight
+         Sh.ImgXY[2]->set(_ctx->taa_old_weight); // old alpha weight
          Sh.ImgX [0]->set(_alpha              ); // cur alpha
       }else
       {
@@ -1615,6 +1626,7 @@ void RendererClass::tAA()
       #elif VEL_RT_MODE==VEL_RT_VEC2
          Sh.ImgXYF  ->set(_vel                ); // velocity
       #endif
+         Sh.ImgXY[1]->set(_ctx->taa_old_vel   ); // old velocity
 
       Sh.imgSize(*_col);
       Shader *shader=Sh.TAA[!D._view_main.full][alpha][dual];

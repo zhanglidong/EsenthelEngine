@@ -277,8 +277,9 @@ void MainShaderClass::getTechniques()
    ImgXF[1]=ShaderImages("ImgXF1" );
    ImgXY[0]=ShaderImages("ImgXY"  );
    ImgXY[1]=ShaderImages("ImgXY1" );
+   ImgXY[2]=ShaderImages("ImgXY2" );
    ImgXYMS =ShaderImages("ImgXYMS");
-   ImgXYF  =ShaderImages("ImgXYF" );
+ //ImgXYF  =ShaderImages("ImgXYF" );
 
    Env   =ShaderImages("Env"); Env->set(D.envMap()());
    Cub[0]=ShaderImages("Cub");
@@ -322,6 +323,8 @@ void MainShaderClass::getTechniques()
    Coords          =GetShaderParam("Coords"  );
    Viewport        =GetShaderParam("Viewport");
    TAAOffset       =GetShaderParam("TAAOffset");
+   TAAOffsetPrev   =GetShaderParam("TAAOffsetPrev");
+   TAAAspectRatio  =GetShaderParam("TAAAspectRatio");
    DepthWeightScale=GetShaderParam("DepthWeightScale");
 
    ViewMatrix    =GetShaderParam("ViewMatrix"    );
