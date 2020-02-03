@@ -1,10 +1,21 @@
 /******************************************************************************/
 #include "!Header.h"
-// CLAMP, ALPHA, DUAL_HISTORY
+/******************************************************************************
+CLAMP, ALPHA, DUAL_HISTORY, GATHER
 
+ALPHA=0
+   ImgX=Weight
+ALPHA=1
+   ImgXY2=AlphaWeight, ImgX=CurAlpha
+   
+DUAL_HISTORY=1
+   Img2=Old1
+
+Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
+/******************************************************************************/
 #define TAA_WEIGHT (1.0/8) // FIXME should this be converted to INT? because it introduces some error due to values being 1.0/255
 
-#define VEL_EPS 0.0006
+#define VEL_EPS 0.0006h
 
 #define CUBIC 1
 #if     CUBIC
@@ -16,22 +27,19 @@
 #endif
 
 #define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
-/******************************************************************************
-ALPHA=0
-   ImgX=Weight
-ALPHA=1
-   ImgXY2=AlphaWeight, ImgX=CurAlpha
-   
-DUAL_HISTORY=1
-   Img2=Old1
-
-Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel */
+/******************************************************************************/
 BUFFER(TAA)
    Vec2 TAAOffset,
         TAAOffsetPrev;
    Half TAAAspectRatio;
 BUFFER_END
 /******************************************************************************/
+void Test(VecH2 vel, VecH2 test_vel, in out Half old_weight)
+{
+   VecH2 delta_vel=vel-test_vel;
+   delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
+   if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
+}
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
           //NOPERSP PIXEL                 ,
@@ -103,20 +111,27 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // if 'old_tex' is outside viewport then ignore it
    if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
 
-   // FIXME
+   // if old velocity is different then ignore old
 #if 1
    Vec2 old_tex_vel=old_tex
                    +TAAOffsetPrev  // we're using 'old_tex_vel' to access texture from a previous frame that was not offseted
                    -TAAOffset    ; // we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset"
-   // FIXME use GATHER
-   UNROLL for(Int x=-1; x<=1; x++)
-   UNROLL for(Int y=-1; y<=1; y++)
-   {
-      VecH2 test_vel=TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy,
-           delta_vel=vel-test_vel;
-      delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
-      if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
-   }
+   #if GATHER
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+         if(x>0 || y>0)Test(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
+      old_tex_vel-=ImgSize.xy*0.5;
+      VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel);
+      VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel);
+      Test(vel, VecH2(r.x, g.x), old_weight);
+      Test(vel, VecH2(r.y, g.y), old_weight);
+      Test(vel, VecH2(r.z, g.z), old_weight);
+      Test(vel, VecH2(r.w, g.w), old_weight);
+   #else
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+         Test(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
+   #endif
 #endif
 
 #if !DUAL_HISTORY

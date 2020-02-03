@@ -2777,7 +2777,7 @@ Display& Display::tAA(Bool on)
          REPD(clamp, 2)
          REPD(alpha, 2)
          REPD(dual , 2)
-            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual);
+            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual+D.gatherChannelAvailable());
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;
