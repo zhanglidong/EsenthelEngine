@@ -105,17 +105,17 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // FIXME
 #if 1
+   Vec2 old_tex_vel=old_tex
+                   +TAAOffsetPrev  // we're using 'old_tex_vel' to access texture from a previous frame that was not offseted
+                   -TAAOffset    ; // we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset"
+   // FIXME use GATHER
+   UNROLL for(Int x=-1; x<=1; x++)
+   UNROLL for(Int y=-1; y<=1; y++)
    {
-      Vec2 old_tex_vel=old_tex;
-      // FIXME use GATHER
-      UNROLL for(Int x=-1; x<=1; x++)
-      UNROLL for(Int y=-1; y<=1; y++)
-      {
-         VecH2 test_vel=TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy,
-              delta_vel=vel-test_vel;
-         delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
-         if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
-      }
+      VecH2 test_vel=TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy,
+           delta_vel=vel-test_vel;
+      delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
+      if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
    }
 #endif
 
