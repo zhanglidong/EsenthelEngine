@@ -565,6 +565,16 @@ Bool Display::gatherAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
+Bool Display::gatherChannelAvailable()C
+{
+#if DX11
+   return shaderModel()>=SM_5;
+#elif GL_ES
+   return shaderModel()>=SM_GL_ES_3_1; // 3.1+ GLES required
+#elif GL
+   return shaderModel()>=SM_GL_4; // 4.0+ GL required
+#endif
+}
 Bool Display::independentBlendAvailable()C
 {
 #if DX11

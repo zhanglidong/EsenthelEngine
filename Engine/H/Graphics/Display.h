@@ -622,6 +622,7 @@ private:
    static Ptr   glGetProcAddress(CChar8 *name);
 #endif
    Bool gatherAvailable          ()C;
+   Bool gatherChannelAvailable   ()C;
    Bool independentBlendAvailable()C;
    Bool deferredUnavailable      ()C;
    Bool deferredMSUnavailable    ()C;
