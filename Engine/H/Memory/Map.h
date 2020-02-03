@@ -44,6 +44,9 @@ T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created eleme
    DATA* get       (C KEY &key); // get     element,       create if not found, null on fail
    DATA* operator()(C KEY &key); // require element,       create if not found, Exit on fail (unless different MAP_MODE selected)
 
+   DATA* get       (C KEY &key, Bool &just_created); // get     element, create if not found, 'just_created'=will be set to true if just created new element, null on fail
+   DATA* operator()(C KEY &key, Bool &just_created); // require element, create if not found, 'just_created'=will be set to true if just created new element, Exit on fail (unless different MAP_MODE selected)
+
    Int findValidIndex(C KEY &key)C; // find element valid index, don't create if not found, -1 on fail
 
    Int    findAbsIndex(C KEY &key)C; // find    element absolute index, don't create if not found,   -1 on fail

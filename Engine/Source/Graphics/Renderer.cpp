@@ -582,9 +582,7 @@ RendererClass& RendererClass::operator()(void (&render)())
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
   _ctx=_ctxs(0); // 0=some unique ID for a context
-   Int subs_elms=_ctx->subs.elms();
-  _ctx_sub=_ctx->subs(D._view_main.recti); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, mark that it was used in this frame
-  _taa_reset=(subs_elms!=_ctx->subs.elms()); // if just added then force reset tAA
+  _ctx_sub=_ctx->subs(D._view_main.recti, _taa_reset); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, set '_taa_reset' as 'just_created' to force reset TAA when creating new sub, mark that it was used in this frame
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 

@@ -227,6 +227,9 @@ Ptr _MapTS::operator()       (CPtr key) {if(Ptr        data=get          (key)  
 Int _Map  ::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 Int _MapTS::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 /******************************************************************************/
+Ptr _Map::get       (CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=get(key); just_created=(elms!=T.elms()); return data;}
+Ptr _Map::operator()(CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=T  (key); just_created=(elms!=T.elms()); return data;}
+/******************************************************************************/
 Bool _Map  ::containsKey(CPtr key)C {return find(key)!=null;}
 Bool _MapTS::containsKey(CPtr key)C {return find(key)!=null;}
 /******************************************************************************/

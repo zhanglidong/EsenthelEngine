@@ -1740,6 +1740,9 @@ T2(KEY, DATA)  DATA*  Map<KEY, DATA>::find      (C KEY &key) {return (DATA*)_Map
 T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key) {return (DATA*)_Map::get       (&key);}
 T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key) {return (DATA*)_Map::operator()(&key);}
 
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key, Bool &just_created) {return (DATA*)_Map::get       (&key, just_created);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key, Bool &just_created) {return (DATA*)_Map::operator()(&key, just_created);}
+
 T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::find      (C KEY &key) {return (DATA*)_MapTS::find      (&key);}
 T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (DATA*)_MapTS::get       (&key);}
 T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)_MapTS::operator()(&key);}
@@ -1822,7 +1825,8 @@ T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::operator=(C 
 T2(KEY, DATA)            Map<KEY, DATA>::          Map(Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _Map  (block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
 T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>::ThreadSafeMap(Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _MapTS(block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
 
-inline Int Elms(C _Map &map) {return map.elms();}
+inline Int Elms(C _Map   &map) {return map.elms();}
+inline Int Elms(C _MapTS &map) {return map.elms();}
 /******************************************************************************/
 // GRID
 /******************************************************************************/

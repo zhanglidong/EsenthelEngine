@@ -64,6 +64,9 @@ private:
    Ptr get       (CPtr key);
    Ptr operator()(CPtr key);
 
+   Ptr get       (CPtr key, Bool &just_created);
+   Ptr operator()(CPtr key, Bool &just_created);
+
    Int    findValidIndex(CPtr key)C;
  //Int     getValidIndex(CPtr key);
  //Int requireValidIndex(CPtr key);
@@ -95,8 +98,10 @@ private:
    T2(KEY,DATA) friend struct  ThreadSafeMap;
 };
 /******************************************************************************/
-struct _MapTS : _Map // Map Thread Safe (base) - Do not use this class, use 'ThreadSafeMap' instead
+struct _MapTS : private _Map // Map Thread Safe (base) - Do not use this class, use 'ThreadSafeMap' instead
 {
+   Int elms()C {return super::elms();}
+
    void   lock()C;
    void unlock()C;
 
