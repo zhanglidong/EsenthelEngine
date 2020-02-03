@@ -151,10 +151,10 @@ Half AO_PS
    #else // NORMALS
    {
       // !! for AO shader depth is already linearized !!
-      Flt zl=TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
-          zr=TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
-          zd=TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
-          zu=TexDepthRawPoint(inTex+Vec2(0, RTSize.y)),
+      Flt zl=TexDepthRawPointOfs(inTex, VecI2(-1,  0)), // TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
+          zr=TexDepthRawPointOfs(inTex, VecI2( 1,  0)), // TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
+          zd=TexDepthRawPointOfs(inTex, VecI2( 0, -1)), // TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
+          zu=TexDepthRawPointOfs(inTex, VecI2( 0,  1)), // TexDepthRawPoint(inTex+Vec2(0, RTSize.y)),
           dl=pos.z-zl, dr=zr-pos.z,
           dd=pos.z-zd, du=zu-pos.z;
 

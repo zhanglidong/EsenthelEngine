@@ -274,11 +274,11 @@ VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
 VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET // use VecH4 because we may want to apply this directly onto RGBA destination
 {
-   Flt z =TexDepthPoint(inTex),
-       zl=TexDepthPoint(inTex+ImgSize.xy*Vec2(-1, 0)),
-       zr=TexDepthPoint(inTex+ImgSize.xy*Vec2( 1, 0)),
-       zd=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,-1)),
-       zu=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, 1)), soft=0.1+z/50;
+   Flt z =TexDepthPoint   (inTex),
+       zl=TexDepthPointOfs(inTex, VecI2(-1, 0)),
+       zr=TexDepthPointOfs(inTex, VecI2( 1, 0)),
+       zd=TexDepthPointOfs(inTex, VecI2( 0,-1)),
+       zu=TexDepthPointOfs(inTex, VecI2( 0, 1)), soft=0.1+z/50;
 
    Vec pos=GetPos(Min(z, Min(zl, zr, zd, zu)), inPosXY);
 
