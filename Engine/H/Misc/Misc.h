@@ -107,23 +107,25 @@ inline Int     Mod(Int  x, Int  y          ) {if(!y)return 0; Int  z=x%y; return
 inline Long    Mod(Long x, Long y          ) {if(!y)return 0; Long z=x%y; return (z>=0) ? z : z+y;} // safe modulo "x%y" , returns always a positive number between   "0..y-1"
        Int  MidMod(Int  x, Int min, Int max);                                                       // safe middle modulo, returns always a          number between "min..max"
 
-UInt Ceil2      (UInt  x); // rounds 'x' to the nearest multiple of 2  , which is equal or greater than 'x'
-UInt Ceil4      (UInt  x); // rounds 'x' to the nearest multiple of 4  , which is equal or greater than 'x'
-UInt Ceil8      (UInt  x); // rounds 'x' to the nearest multiple of 8  , which is equal or greater than 'x'
-UInt Ceil16     (UInt  x); // rounds 'x' to the nearest multiple of 16 , which is equal or greater than 'x'
-UInt Ceil32     (UInt  x); // rounds 'x' to the nearest multiple of 32 , which is equal or greater than 'x'
-UInt Ceil64     (UInt  x); // rounds 'x' to the nearest multiple of 64 , which is equal or greater than 'x'
-UInt Ceil128    (UInt  x); // rounds 'x' to the nearest multiple of 128, which is equal or greater than 'x'
-UInt CeilPow2   (UInt  x); // rounds 'x' to the nearest power    of 2  , which is equal or greater than 'x'
-UInt FloorPow2  (UInt  x); // rounds 'x' to the nearest power    of 2  , which is equal or smaller than 'x'
-UInt NearestPow2(UInt  x); // rounds 'x' to the nearest power    of 2
-Bool IsPow2     (UInt  x); // if     'x' is     a       power    of 2
-Int  BitLo      (UInt  x); // get index of lowest  non-zero bit  in 'x' (31 if none)
-Int  BitLo      (ULong x); // get index of lowest  non-zero bit  in 'x' (63 if none)
-Int  BitHi      (UInt  x); // get index of highest non-zero bit  in 'x' ( 0 if none)
-Int  BitHi      (ULong x); // get index of highest non-zero bit  in 'x' ( 0 if none)
-Int  ByteHi     (UInt  x); // get index of highest non-zero byte in 'x' ( 0 if none)
-Int  ByteHi     (ULong x); // get index of highest non-zero byte in 'x' ( 0 if none)
+UInt Ceil2      (UInt   x); // rounds 'x' to the nearest multiple of 2  , which is equal or greater than 'x'
+UInt Ceil4      (UInt   x); // rounds 'x' to the nearest multiple of 4  , which is equal or greater than 'x'
+UInt Ceil8      (UInt   x); // rounds 'x' to the nearest multiple of 8  , which is equal or greater than 'x'
+UInt Ceil16     (UInt   x); // rounds 'x' to the nearest multiple of 16 , which is equal or greater than 'x'
+UInt Ceil32     (UInt   x); // rounds 'x' to the nearest multiple of 32 , which is equal or greater than 'x'
+UInt Ceil64     (UInt   x); // rounds 'x' to the nearest multiple of 64 , which is equal or greater than 'x'
+UInt Ceil128    (UInt   x); // rounds 'x' to the nearest multiple of 128, which is equal or greater than 'x'
+UInt CeilPow2   (UInt   x); // rounds 'x' to the nearest power    of 2  , which is equal or greater than 'x'
+UInt FloorPow2  (UInt   x); // rounds 'x' to the nearest power    of 2  , which is equal or smaller than 'x'
+UInt NearestPow2(UInt   x); // rounds 'x' to the nearest power    of 2
+Bool IsPow2     (UInt   x); // if     'x' is     a       power    of 2
+Int  BitLo      (UShort x); // get index of lowest  non-zero bit  in 'x' (15 if none)
+Int  BitLo      (UInt   x); // get index of lowest  non-zero bit  in 'x' (31 if none)
+Int  BitLo      (ULong  x); // get index of lowest  non-zero bit  in 'x' (63 if none)
+Int  BitHi      (UShort x); // get index of highest non-zero bit  in 'x' ( 0 if none)
+Int  BitHi      (UInt   x); // get index of highest non-zero bit  in 'x' ( 0 if none)
+Int  BitHi      (ULong  x); // get index of highest non-zero bit  in 'x' ( 0 if none)
+Int  ByteHi     (UInt   x); // get index of highest non-zero byte in 'x' ( 0 if none)
+Int  ByteHi     (ULong  x); // get index of highest non-zero byte in 'x' ( 0 if none)
 #if EE_PRIVATE
        Int Log2Ceil(UInt  x); // returns Ceil(Log2(x))
        Int Log2Ceil(ULong x); // returns Ceil(Log2(x))
@@ -133,17 +135,25 @@ inline Int DivCeil8(UInt  x) {return DivCeil(x, 8u);}
 
 inline UInt CeilGL(UInt x) {return Ceil128(x);} // use 'Ceil128' because of crash when setting/getting data due to internal system memmove which reads ahead
 
+constexpr SByte Signed(SByte  x) {return x;}
 constexpr SByte Signed(Byte   x) {return x;}
+constexpr Short Signed(Short  x) {return x;}
 constexpr Short Signed(UShort x) {return x;}
+constexpr Int   Signed(Int    x) {return x;}
 constexpr Int   Signed(UInt   x) {return x;}
+constexpr Long  Signed(Long   x) {return x;}
 constexpr Long  Signed(ULong  x) {return x;}
 
-constexpr Byte   Unsigned(Char8 x) {return x;}
-constexpr UShort Unsigned(Char  x) {return x;}
-constexpr Byte   Unsigned(SByte x) {return x;}
-constexpr UShort Unsigned(Short x) {return x;}
-constexpr UInt   Unsigned(Int   x) {return x;}
-constexpr ULong  Unsigned(Long  x) {return x;}
+constexpr Byte   Unsigned(Char8  x) {return x;}
+constexpr UShort Unsigned(Char   x) {return x;}
+constexpr Byte   Unsigned(SByte  x) {return x;}
+constexpr Byte   Unsigned(Byte   x) {return x;}
+constexpr UShort Unsigned(Short  x) {return x;}
+constexpr UShort Unsigned(UShort x) {return x;}
+constexpr UInt   Unsigned(Int    x) {return x;}
+constexpr UInt   Unsigned(UInt   x) {return x;}
+constexpr ULong  Unsigned(Long   x) {return x;}
+constexpr ULong  Unsigned(ULong  x) {return x;}
 
 Byte FltToByteScale (Flt  x);
 Byte FltToByteScale2(Flt  x);

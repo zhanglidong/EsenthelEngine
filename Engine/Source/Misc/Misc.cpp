@@ -809,6 +809,16 @@ UInt Shr        (UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32)
 UInt Rol        (UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
 UInt Ror        (UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
 
+Int BitHi(UShort x)
+{
+#if WINDOWS
+   if(!x)return 0; DWORD i; _BitScanReverse(&i, x); return i;
+#elif 1
+   return x ? 31^__builtin_clz(x) : 0; // 31^__builtin_clz(x)==31-__builtin_clz(x), 31 because '__builtin_clz' operates on 'UInt'
+#else
+   Int i=0; for(UInt bit=8; bit; bit>>=1)if(x>=(1<<bit)){i|=bit; x>>=bit;} return i;
+#endif
+}
 Int BitHi(UInt x)
 {
 #if WINDOWS
@@ -830,6 +840,16 @@ Int BitHi(ULong x)
 #endif
 }
 
+Int BitLo(UShort x)
+{
+#if WINDOWS
+   if(!x)return 15; DWORD i; _BitScanForward(&i, x); return i;
+#elif 1
+   return x ? __builtin_ctz(x) : 15;
+#else
+   Int i=0; for(UInt bit=8; bit; bit>>=1)if(!(x&((1<<bit)-1))){i|=bit; x>>=bit;} return i;
+#endif
+}
 Int BitLo(UInt x)
 {
 #if WINDOWS
