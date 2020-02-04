@@ -36,7 +36,7 @@ enum RENDER_MODE // Rendering Mode, rendering phase of the rendering process
 };
 enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rendering stages
 {
-   RS_DEFAULT     , // default, rendering is performed normally (full scene is rendered)
+   RS_DEFAULT     , // default, rendering is performed normally
    RS_DEPTH       , // display Depth
    RS_COLOR       , // display Unlit Color        (available only in RT_DEFERRED)
    RS_NORMAL      , // display Normals            (available only in RT_DEFERRED)
@@ -72,7 +72,7 @@ enum DEPTH_READ_MODE
 struct RendererClass // handles rendering
 {
    RENDER_STAGE stage               ; // display desired rendering stage, default=RS_DEFAULT
-   Bool         combine             , // if enabled this will apply the final rendered image onto the previous background instead of overwriting it, default=false
+   Bool         combine             , // if enabled this will blend the final rendered image onto the previous background instead of fully overwriting it, default=false
                 wire                , // if use wireframe during rendering (not available under OpenGL ES), default=false
                 indoor              , // if current rendering is in-door (has a lot of overlapping occluders), this affects how non-directional lights are rendered, this is only a performance hint (it does not affect rendering result, but only affects performance), default=false
                 allow_taa           ; // if allow Temporary Anti-Aliasing, default=true
