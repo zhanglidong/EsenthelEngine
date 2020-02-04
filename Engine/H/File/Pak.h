@@ -13,7 +13,7 @@ enum PAK_FILE_FLAG
 };
 struct PakFile // Single File stored in Pak
 {
-   CChar        *name                ; // file name  (this does not include the path, to get the full name please use 'Pak.fullName')
+   CChar        *name                ; // file name  (this does not include the path, if you want the full name you need to use 'Pak.fullName')
    Byte          flag                ; // file flags (PAK_FILE_FLAG)
    COMPRESS_TYPE compression         ; // file compression algorithm
    Int           parent              , // parent index            in 'Pak.file', -1=none
