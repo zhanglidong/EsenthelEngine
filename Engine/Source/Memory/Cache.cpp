@@ -37,6 +37,12 @@ static Flt      DelayRemoveWaited;
          but that would increase memory usage (all elements would need it, while now only those need it in the removal queue).
 
 /******************************************************************************/
+static inline void IncPtrNum(UInt &ptr_num)
+{
+   DEBUG_ASSERT(ptr_num<UINT_MAX, "'ptr_num' too big");
+   ptr_num++;
+}
+/******************************************************************************/
 C _Cache::Desc& _Cache::lockedDesc(Int i)C {return elmDesc(*_order[i]);}
    CPtr         _Cache::lockedData(Int i)C {return elmData(*_order[i]);}
 
@@ -177,7 +183,7 @@ Ptr _Cache::validElmData(Elm &elm, Bool counted)
    Desc &desc=elmDesc(elm);
    if( !(desc.flag&CACHE_ELM_LOADING))
    {
-      if(counted)desc.ptr_num++;else FlagEnable(desc.flag, CACHE_ELM_STD_PTR);
+      if(counted)IncPtrNum(desc.ptr_num);else FlagEnable(desc.flag, CACHE_ELM_STD_PTR);
       return elmData(elm);
    }
    return null;
@@ -417,7 +423,7 @@ void _Cache::_incRef(CPtr data)
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))elmDesc(*elm).ptr_num++;
+      if(contains(elm))IncPtrNum(elmDesc(*elm).ptr_num);
    }
 }
 void _Cache::_decRef(CPtr data)
