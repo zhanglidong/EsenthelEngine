@@ -52,7 +52,7 @@ struct Heightmap
    // operations
    void resize(Int resolution); // resize heightmap to a custom resolution, final resolution of the heightmap may be different than 'resolution', and can be obtained using 'resolution' method
 
-   void clearMaterials(); // clear internal MaterialPalette, this method is faster than 'cleanMaterials' because it completely resets the material palette, without checking/adjusting per-pixel material indexes, it's important to completely reset materials for every pixel after calling this method
+   void clearMaterials(); // clear internal 'MaterialPalette', this method is faster than 'cleanMaterials' because it completely resets the material palette, without checking/adjusting per-pixel material indexes, it's important to completely reset materials for every pixel after calling this method
    void cleanMaterials(); // cleanup heightmap by removing unused materials
    void cleanColor    (); // cleanup heightmap by removing color map if it's not needed
    void clean         (); // cleanup heightmap, this calls 'cleanMaterials' and 'cleanColor'
