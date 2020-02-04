@@ -21,15 +21,13 @@ that you make from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
 You can make changes to Esenthel Engine source code.
-You don't have to make changes code public, but it would be cool if you could.
+You don't have to make code changes public, but it would be cool if you could.
 
 ATTRIBUTION
 You don't have to show Esenthel Logo or mention the Engine anywhere in your game/app,
 but it would be cool if you could.
 
 LIMITATIONS
-Esenthel Engine code/algorithms/designs may NOT be used for development/improvement of other Game Engines.
-
 Esenthel Engine may NOT be used for - the purpose of/promoting/advertising/selling/assisting in/research/
 development/production/improvement of: terrorism, illegal drugs, smoking, stealing, piracy, gambling, extortion,
 fraud, spam, bullying, harming life (people and animals), polluting environment.
@@ -37,6 +35,7 @@ fraud, spam, bullying, harming life (people and animals), polluting environment.
 You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
 You may NOT remove or change any copyright messages or this License text from the source code.
+You may NOT copy the source code, change its name, and sell it as your own.
 Esenthel source code is not given to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
 
 If you submit any code to Esenthel Engine developers (for example bug fixes or improvements to the Engine) then
@@ -48,7 +47,7 @@ do not owe you any payment for usage of that code.
 
 Esenthel Engine authors are allowed to publicly share that you are using Esenthel Engine,
 include your organization's logo in the information, and share your application's screenshots and videos
-(including trailers, teasers, and gameplay).
+(including trailers, teasers, cinematics and gameplay).
 
 TERMINATION
 If you violate any terms of this agreement, or you are rude to/insult/harass Esenthel Engine authors or their
