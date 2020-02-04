@@ -62,9 +62,6 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
    MeshLod& delBase  (                                        ); // delete all software meshes (MeshBase  ) in this mesh
    MeshLod& delRender(                                        ); // delete all hardware meshes (MeshRender) in this mesh
-#if EE_PRIVATE
-   MeshLod& setRenderSS(                                      ); // set rendering version of stencil shadow
-#endif
    MeshLod& setBase  (Bool only_if_empty=true                 ); // set software  version, convert 'MeshRender' to 'MeshBase', 'only_if_empty'=perform conversion only if the MeshBase is empty (if set to false then conversion is always performed)
    MeshLod& setRender(Bool optimize     =true, Int lod_index=0); // set rendering version, convert 'MeshBase'   to 'MeshRender', 'optimize'=if optimize the mesh by re-ordering the vertexes/triangles for optimal processing on the GPU, 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader)
    MeshLod& setShader(                         Int lod_index=0); // reset shader, 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader)

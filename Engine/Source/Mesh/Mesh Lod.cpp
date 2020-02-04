@@ -169,11 +169,10 @@ MeshLod& MeshLod::setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges)
    return T;
 }
 /******************************************************************************/
-MeshLod& MeshLod::setRenderSS(                                      ) {REPAO(parts).setRenderEx(false   , false, 0 ); return T;}
-MeshLod& MeshLod::setBase    (Bool only_if_empty                    ) {REPAO(parts).setBase    (only_if_empty      ); return T;}
-MeshLod& MeshLod::setRender  (Bool optimize          , Int lod_index) {REPAO(parts).setRender  (optimize, lod_index); return T;}
-MeshLod& MeshLod::setShader  (                         Int lod_index) {REPAO(parts).setShader  (          lod_index); return T;}
-MeshLod& MeshLod::material   (C MaterialPtr &material, Int lod_index) {REPAO(parts).material   (material, lod_index); return T;}
+MeshLod& MeshLod::setBase  (Bool only_if_empty                    ) {REPAO(parts).setBase  (only_if_empty      ); return T;}
+MeshLod& MeshLod::setRender(Bool optimize          , Int lod_index) {REPAO(parts).setRender(optimize, lod_index); return T;}
+MeshLod& MeshLod::setShader(                         Int lod_index) {REPAO(parts).setShader(          lod_index); return T;}
+MeshLod& MeshLod::material (C MaterialPtr &material, Int lod_index) {REPAO(parts).material (material, lod_index); return T;}
 /******************************************************************************/
 // JOIN
 /******************************************************************************/
