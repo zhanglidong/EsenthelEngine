@@ -83,7 +83,7 @@ Color ColorBA          (                Flt brightness, Flt alpha   ); // get co
 Color ColorBA          (C Color &color, Flt brightness, Flt alpha   ); // get color modified by brightness and opacity 0..1  , (r*brightness, g*brightness, b*brightness, a*alpha )
 Color ColorMul         (                Flt mul                     ); // get                                                , (  mul       ,   mul       ,   mul       ,   mul   )
 Color ColorMul         (C Color &color, Flt mul                     ); // get                                                , (r*mul       , g*mul       , b*mul       , a*mul   )
-Color ColorMulZeroAlpha(C Color &color,   Flt    mul                ); // get                                                  (r*mul       , g*mul       , b*mul       , 0       )
+Color ColorMulZeroAlpha(C Color &color, Flt mul                     ); // get                                                  (r*mul       , g*mul       , b*mul       , 0       )
 Color ColorMul         (C Color &col0 , C Color &col1               ); // get                                                , (r0*r1       , g0*g1       , b0*b1       , a0*a1   )
 Color ColorMulZeroAlpha(C Color &col0 , C Color &col1               ); // get                                                  (r0*r1       , g0*g1       , b0*b1       , 0       )
 Color ColorMul         (C Color &col0 , C Color &col1, C Color &col2); // get                                                , (r0*r1*r2    , g0*g1*g2    , b0*b1*b2    , a0*a1*a2)
