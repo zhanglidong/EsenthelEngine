@@ -588,15 +588,17 @@ T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedLast (     )C {return ConstCast(T
 T1(TYPE)  Int   MemcThreadSafe<TYPE>::index   (C TYPE *elm)C {return _MemcThreadSafe::index   (elm);}
 T1(TYPE)  Bool  MemcThreadSafe<TYPE>::contains(C TYPE *elm)C {return _MemcThreadSafe::contains(elm);}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::removeLast(                            ) {_MemcThreadSafe::removeLast(               ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::remove    (  Int   i  , Bool keep_order) {_MemcThreadSafe::remove    (i  , keep_order); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::removeData(C TYPE *elm, Bool keep_order) {_MemcThreadSafe::removeData(elm, keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeLast(                            ) {_MemcThreadSafe::      removeLast(               ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      remove    (  Int   i  , Bool keep_order) {_MemcThreadSafe::      remove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemove    (  Int   i  , Bool keep_order) {_MemcThreadSafe::lockedRemove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeData(C TYPE *elm, Bool keep_order) {_MemcThreadSafe::      removeData(elm, keep_order); return T;}
 
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNum    (Int num) {       _MemcThreadSafe::setNum    (num); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNumZero(Int num) {       _MemcThreadSafe::setNumZero(num); return T;}
 T1(TYPE)  Int                    MemcThreadSafe<TYPE>::addNum    (Int num) {return _MemcThreadSafe::addNum    (num);          }
 
-T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _MemcThreadSafe::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::      binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _MemcThreadSafe::      binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::lockedBinarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _MemcThreadSafe::lockedBinarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {_MemcThreadSafe::          sort((Int(*)(CPtr, CPtr))compare); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                                 ) {_MemcThreadSafe::  reverseOrder(                           ); return T;}
