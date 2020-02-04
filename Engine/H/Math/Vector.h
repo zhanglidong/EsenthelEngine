@@ -49,7 +49,7 @@
 #define EPS  0.000030517578125f          // Flt           Epsilon (difference between 0x0000100 (     256) and the nearest bigger 32-bit float value)
 #define EPSL 0.0078125f                  // Low Precision Epsilon (difference between 0x0010000 (   65536) and the nearest bigger 32-bit float value)
 
-#define EPS_MATERIAL_BUMP (1.0f/8192)       // Material  Bump     Epsilon (default value used for ignoring Material.bump effect)
+#define EPS_MATERIAL_BUMP (1.0f/8192)       // Material  Bump     Epsilon (default value used for ignoring 'Material.bump' effect)
 #define EPS_ANIM_POS      0.0002f           // Animation Position Epsilon (default value used for optimizing animation positions)
 #define EPS_ANIM_SCALE    0.0002f           // Animation Scale    Epsilon (default value used for optimizing animation scales)
 #define EPS_ANIM_ANGLE    0.0002f           // Animation Angle    Epsilon (default value used for optimizing animation rotation angles)
