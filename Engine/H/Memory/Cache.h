@@ -55,7 +55,7 @@ T1(TYPE) struct Cache : _Cache // Cache - container for dynamically loaded data,
    CACHE_MODE mode          (CACHE_MODE mode); // set cache mode, returns previous mode
    Cache&     caseSensitive (Bool  sensitive); // set if cache should use case sensitive paths for accessing resources, default=false
    Cache&     delayRemove   (Flt   time     ); // set amount of time (in seconds) after which unused elements are removed from cache (<=0 value specifies immediate unloading), default=0
-   Cache&     delayRemoveNow(               ); // immediately remove all elements marked for delay removal at a later time to free as much memory as possible
+   Cache&     delayRemoveNow(               ); // immediately remove all elements that were marked for delay removal at a later time to free as much memory as possible
    Cache&     delayRemoveInc(               ); // increase the cache "delay remove" counter thanks to which elements will not be immediately removed when they're no longer referenced, 'delayRemoveDec' should be called after this method
    Cache&     delayRemoveDec(               ); // decrease the cache "delay remove" counter thanks to which elements will not be immediately removed when they're no longer referenced, this should be called after 'delayRemoveInc', once the counter goes back to zero then all non referenced elements will be removed
    Cache&     reserve       (Int   num      ); // pre-allocate memory for storage of 'num' total elements

@@ -52,7 +52,7 @@ private:
 };
 /******************************************************************************/
 void DelayRemoveTime(Flt time); // set amount of time (in seconds) after which unused elements are removed (<=0 value specifies immediate unloading), default=0
-void DelayRemoveNow (        ); // immediately remove all elements marked for delay removal at a later time to free as much memory as possible
+void DelayRemoveNow (        ); // immediately remove all elements that were marked for delay removal at a later time to free as much memory as possible
 #if EE_PRIVATE
 void DelayRemoveUpdate();
 #endif
