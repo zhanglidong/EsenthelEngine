@@ -164,7 +164,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Long         deviceMemory   ()C {return _device_mem    ;} // get GPU memory (-1 if unknown)
    Bool         canDraw        ()C {return _can_draw      ;} // if  drawing graphics is available (this can be false when APP_ALLOW_NO_GPU was enabled and GPU was not found)
    Bool         smallSize      ()C;                          // if  display device is of a small size (phone size)
-   Flt          browserZoom    ()C;                          // get current browser zoom level (1.0=100%, 2.0=200%, etc), this is valid only for the WEB platform (others return 1.0)
+   Flt          browserZoom    ()C;                          // get current browser zoom level (1.0=100%, 2.0=200%, etc), this is valid only for the WEB platform (other platforms always return 1.0)
 
    // settings
    Display& mode  (Int w=-1, Int h=-1, Int full=-1  );                 // set    Display Resolution  Mode, -1=keep original value, if the method fails then previous mode is restored, if previous mode can't be restored then Exit is called
