@@ -335,9 +335,6 @@ void Chr::updateAnimation()
              .   rotateX( anim.lean*(  anim.straight_strafe)*(anim.left_right*2-1) + anim.fly*(anim.fly_z - anim.fly_full_body*angle.y) + body_pitch_rest*-body_sign)
              .   rotateY(-angle.x);
 
-      // scale
-      m.scaleOrn(scale);
-
       // position
       m.pos =ctrl.actor.pos()                               ; // set initial position from the controller actor
       m.pos+=ctrl.shapeOffset() - ctrl.shapeOffset()*m.orn(); // this operation forces the custom 'm.orn' rotations to be done relative to the center of character controller
@@ -371,6 +368,9 @@ void Chr::updateAnimation()
          }
       }
    }
+
+   // scale
+   m.scaleOrn(scale);
 
    // set the skeleton according to the matrix
    animateUpdateMatrix(m);
