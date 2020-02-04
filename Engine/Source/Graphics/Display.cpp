@@ -829,7 +829,8 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _tex_mip_filter  =true;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
-  _tex_lod         =0;
+  _tex_mip_min     =0;
+  _tex_mip_bias    =0;
   _tex_macro       =true;
   _tex_detail_lod  =false;
   _font_sharpness  =0.75f;
@@ -2916,12 +2917,26 @@ Display& Display::texMipFilter(Bool on)
    }
    return T;
 }
-Display& Display::texLod(Byte lod)
+Display& Display::texMipMin(Byte min)
 {
-   Clamp(lod, 0, 16);
-   if(T._tex_lod!=lod)
+   Clamp(min, 0, 16);
+   if(T._tex_mip_min!=min)
    {
-      T._tex_lod=lod;
+      T._tex_mip_min=min;
+      if(created())
+      {
+      #if DX11
+         CreateAnisotropicSampler();
+      #endif
+      }
+   }
+   return T;
+}
+Display& Display::texMipBias(Flt bias)
+{
+   if(T._tex_mip_bias!=bias)
+   {
+      T._tex_mip_bias=bias;
       if(created())
       {
       #if DX11

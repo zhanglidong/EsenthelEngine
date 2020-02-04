@@ -234,8 +234,8 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::ForwardPrec(  Advanced &adv, C Str &text) {       Renderer.forwardPrecision(TextBool(text));}
       Str  VideoOptions::Advanced::MaterialBlend(C Advanced &adv             ) {return D.materialBlend();}
       void VideoOptions::Advanced::MaterialBlend(  Advanced &adv, C Str &text) {       D.materialBlend(TextBool(text));}
-      Str  VideoOptions::Advanced::TexLod(C Advanced &adv             ) {return D.texLod();}
-      void VideoOptions::Advanced::TexLod(  Advanced &adv, C Str &text) {       D.texLod(TextInt(text));}
+      Str  VideoOptions::Advanced::TexMipMin(C Advanced &adv             ) {return D.texMipMin();}
+      void VideoOptions::Advanced::TexMipMin(  Advanced &adv, C Str &text) {       D.texMipMin(TextInt(text));}
       void VideoOptions::Advanced::setFov(flt fov)
       {
          Clamp(fov, DegToRad(0.001f), DegToRad(120));
@@ -295,7 +295,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Material Blend Per Pixel"   , MemberDesc(DATA_BOOL).setFunc(MaterialBlend, MaterialBlend)).desc("If Multiple Materials should be blended with per-pixel precision.\nFor this effect to work, your Materials should have a bump map.");
          props.New().create("Forward Renderer Per Pixel" , MemberDesc(DATA_BOOL).setFunc(ForwardPrec  , ForwardPrec  )).desc("If Forward renderer should use per-pixel precision,\nper-vertex precision is used otherwise.");
       #if WINDOWS
-         props.New().create("Tex Lod"                    , MemberDesc(DATA_INT ).setFunc(TexLod       , TexLod       )).desc("Minimum Texture LOD usage").range(0, 14).mouseEditSpeed(1);
+         props.New().create("Min Tex Mip"                , MemberDesc(DATA_INT ).setFunc(TexMipMin    , TexMipMin    )).desc("Minimum Texture Mip usage").range(0, 14).mouseEditSpeed(1);
       #endif
 
          super::create("Advanced Video Options"); autoData(this); button[2].show();

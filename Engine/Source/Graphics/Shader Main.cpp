@@ -26,9 +26,9 @@ void CreateAnisotropicSampler()
    sd.AddressU=D3D11_TEXTURE_ADDRESS_WRAP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_WRAP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
-   sd.MipLODBias    =0;
-   sd.MaxAnisotropy =Mid(D.texFilter(), 1, 16);
-   sd.MinLOD        =Max(D.texLod   (), 0    );
+   sd.MipLODBias    =    D.texMipBias();
+   sd.MaxAnisotropy =Mid(D.texFilter (), 1, 16);
+   sd.MinLOD        =Max(D.texMipMin (), 0    );
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerAnisotropic.create(sd);

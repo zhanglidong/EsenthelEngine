@@ -100,8 +100,8 @@ class VideoOptions : PropWin
       static void ForwardPrec  (  Advanced &adv, C Str &text);
       static Str  MaterialBlend(C Advanced &adv             );
       static void MaterialBlend(  Advanced &adv, C Str &text);
-      static Str  TexLod       (C Advanced &adv             );
-      static void TexLod       (  Advanced &adv, C Str &text);
+      static Str  TexMipMin    (C Advanced &adv             );
+      static void TexMipMin    (  Advanced &adv, C Str &text);
 
       flt fov;
       Property *diffuse;
