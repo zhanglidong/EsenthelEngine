@@ -35,7 +35,7 @@ struct Touch // Single Touch on a Touch-Screen
    GuiObj* guiObj(           )C {return _gui_obj;} // get gui object at touch position when the touch was started
    void    guiObj(GuiObj *obj)  {   _gui_obj=obj;} // manually change the gui object for this touch
 
-   UInt id()C {return _id;} // get unique id which was initialized at the start of the touch
+   UInt id()C {return _id;} // get unique ID which was initialized at the start of the touch
 
    Bool stylus()C {return _stylus;} // if this touch is generated with a stylus
 
@@ -106,7 +106,7 @@ struct MouseTouch // Mouse and Touch input combined into one class
 
    static Bool   mouse    (Int i) {return InRange(i, Touches) ?  false               : true;} // if  input is from a mouse
    static Touch* touch    (Int i) {return InRange(i, Touches) ? &Touches[i]          : null;} // get touch linked with i-th input
-   static UInt   id       (Int i) {return InRange(i, Touches) ?  Touches[i].id    () : 0   ;} // get unique id which was initialized at the start of the touch
+   static UInt   id       (Int i) {return InRange(i, Touches) ?  Touches[i].id    () : 0   ;} // get unique ID which was initialized at the start of the touch
    static Bool   hoverable(Int i) {return InRange(i, Touches) ?  Touches[i].stylus() : true;} // if  input is hoverable (it's a stylus or a mouse)
 
    static GuiObj* guiObj(Int i             ) {return InRange(i, Touches) ? Touches[i].guiObj() : Gui.ms();} // get gui object focus of i-th touch or mouse
