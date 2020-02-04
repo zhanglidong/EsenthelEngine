@@ -3,7 +3,7 @@
    Use 'Orient' to handle objects orientation.
 
    This is similar to 'Matrix', except the 'Orient' stores only 2 vectors of the orientation:
-      'z-forward' and 'y-up' (the 'x-right' can always be computed from 'z' and 'y')
+      'z-forward' and 'y-up' (the 'x-right' can be computed from 'z' and 'y')
 
 /******************************************************************************/
 struct Orient // Orientation
