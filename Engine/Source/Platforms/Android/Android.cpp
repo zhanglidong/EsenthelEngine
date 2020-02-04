@@ -149,10 +149,6 @@ static Int            KeyboardDeviceID;
 static Dbl            PossibleTapTime;
 static VecI2          LastMousePos;
 static Thread         BackgroundThread;
-#if __ANDROID_API__<14
-static JClass         MotionEventClass;
-static JMethodID      getButtonState, getRawAxisValue;
-#endif
 /******************************************************************************/
 static Bool BackgroundFunc(Thread &thread)
 {
@@ -286,91 +282,31 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
          Bool stylus      =FlagTest(source, AINPUT_SOURCE_STYLUS);
          if(source&AINPUT_SOURCE_JOYSTICK)
          {
-            if(action_type==AMOTION_EVENT_ACTION_MOVE
-         #if __ANDROID_API__<14
-            && getRawAxisValue
-         #endif
-            )
+            if(action_type==AMOTION_EVENT_ACTION_MOVE)
             {
                Joypad &joy=Joypads(action_index); if(!joy._name.is()){joy._name=JavaInputDeviceName(device); if(!joy._name.is())joy._name="JoyPad";}
-            #if __ANDROID_API__>=14
                joy.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
                                -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
                joy.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),
                                -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y    , action_index));
                joy.dir_a[1].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX   , action_index),
                                -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY   , action_index));
-            #elif X64
-               joy.dir     .set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_HAT_X), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_HAT_Y), jint(action_index), jint(HISTORY_CURRENT)));
-               joy.dir_a[0].set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_X    ), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_Y    ), jint(action_index), jint(HISTORY_CURRENT)));
-               joy.dir_a[1].set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_RX   ), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_RY   ), jint(action_index), jint(HISTORY_CURRENT)));
-            #else
-               joy.dir     .set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_HAT_X), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_HAT_Y), jint(action_index), jint(HISTORY_CURRENT)));
-               joy.dir_a[0].set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_X    ), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_Y    ), jint(action_index), jint(HISTORY_CURRENT)));
-               joy.dir_a[1].set(Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_RX   ), jint(action_index), jint(HISTORY_CURRENT)),
-                               -Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_RY   ), jint(action_index), jint(HISTORY_CURRENT)));
-            #endif
             }
          }else
          if((source&AINPUT_SOURCE_MOUSE) && !stylus)  // check for stylus because on "Samsung Galaxy Note 2" stylus input generates both "AINPUT_SOURCE_STYLUS|AINPUT_SOURCE_MOUSE" at the same time
          {
-            if(action_type==AMOTION_EVENT_ACTION_SCROLL
-         #if __ANDROID_API__<14
-            && getRawAxisValue
-         #endif
-            )
+            if(action_type==AMOTION_EVENT_ACTION_SCROLL)
             {
-            #if __ANDROID_API__>=14
                Ms._wheel.x+=AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HSCROLL, action_index);
                Ms._wheel.y+=AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_VSCROLL, action_index);
-            #elif X64
-               Ms._wheel.x+=Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_HSCROLL), jint(action_index), jint(HISTORY_CURRENT));
-               Ms._wheel.y+=Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jlong(event), jint(AMOTION_EVENT_AXIS_VSCROLL), jint(action_index), jint(HISTORY_CURRENT));
-            #else
-               Ms._wheel.x+=Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_HSCROLL), jint(action_index), jint(HISTORY_CURRENT));
-               Ms._wheel.y+=Jni->CallStaticFloatMethod(MotionEventClass, getRawAxisValue, jint (event), jint(AMOTION_EVENT_AXIS_VSCROLL), jint(action_index), jint(HISTORY_CURRENT));
-            #endif
             }
 
             // get button states
-            Int button_state=0;
-            if( // if we have access to button states
-            #if __ANDROID_API__>=14
-               true
-            #else
-               getButtonState
-            #endif
-            )
-            {
-            #if __ANDROID_API__>=14
-               button_state=AMotionEvent_getButtonState(event);
-            #elif X64
-               button_state=Jni->CallStaticIntMethod(MotionEventClass, getButtonState, jlong(event));
-            #else
-               button_state=Jni->CallStaticIntMethod(MotionEventClass, getButtonState, jint (event));
-            #endif
-
-               if(action_type==AMOTION_EVENT_ACTION_DOWN && !button_state){PossibleTap=true; PossibleTapTime=Time.appTime();}else // 'getButtonState' does not detect tapping on the touchpad, so we need to detect it according to 'AMOTION_EVENT_ACTION_DOWN', also proceed only if no buttons are pressed in case this event is triggered by secondary mouse button
-               if(PossibleTap && (button_state || (LastMousePos-Ms.desktopPos()).abs().max()>=6))PossibleTap=false; // if we've pressed a button or moved away too much then it's definitely not a tap
-               if(action_type==AMOTION_EVENT_ACTION_UP   &&  PossibleTap ){PossibleTap=false; if(Time.appTime()<=PossibleTapTime+0.33f+Time.ad())Ms.push(0, 0.33f);} // this is a tap so push the button and it will be released line below because 'button_state' is 0, use 0.33f time limit because on Asus Transformer Prime tapping can result in times as long as 0.318s
-               REPA(Ms._button)if(FlagTest(button_state, 1<<i)!=Ms.b(i))if(Ms.b(i))Ms.release(i);else Ms.push(i);
-            }else // if not then rely on actions
-            switch(action_type)
-            {
-               case AMOTION_EVENT_ACTION_DOWN: Ms.push(0); break;
-
-               case AMOTION_EVENT_ACTION_UP    :
-               case AMOTION_EVENT_ACTION_CANCEL: Ms.release(0); break;
-
-               case AMOTION_EVENT_ACTION_POINTER_DOWN: Ms.push(0); break;
-
-               case AMOTION_EVENT_ACTION_POINTER_UP: Ms.release(0); break;
-            }
+            Int button_state=AMotionEvent_getButtonState(event);
+            if(action_type==AMOTION_EVENT_ACTION_DOWN && !button_state){PossibleTap=true; PossibleTapTime=Time.appTime();}else // 'getButtonState' does not detect tapping on the touchpad, so we need to detect it according to 'AMOTION_EVENT_ACTION_DOWN', also proceed only if no buttons are pressed in case this event is triggered by secondary mouse button
+            if(PossibleTap && (button_state || (LastMousePos-Ms.desktopPos()).abs().max()>=6))PossibleTap=false; // if we've pressed a button or moved away too much then it's definitely not a tap
+            if(action_type==AMOTION_EVENT_ACTION_UP   &&  PossibleTap ){PossibleTap=false; if(Time.appTime()<=PossibleTapTime+0.33f+Time.ad())Ms.push(0, 0.33f);} // this is a tap so push the button and it will be released line below because 'button_state' is 0, use 0.33f time limit because on Asus Transformer Prime tapping can result in times as long as 0.318s
+            REPA(Ms._button)if(FlagTest(button_state, 1<<i)!=Ms.b(i))if(Ms.b(i))Ms.release(i);else Ms.push(i);
 
             // get scrolling and cursor position
             if(action_type!=AMOTION_EVENT_ACTION_UP // this can happen on release of TouchPad scroll, where the position is still at the dragged position
@@ -379,12 +315,6 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                VecI2 pos(Round(AMotionEvent_getRawX(event, 0)),
                          Round(AMotionEvent_getRawY(event, 0)));
                if(action_type==AMOTION_EVENT_ACTION_MOVE // if we're dragging
-
-               // we have access to button states
-            #if __ANDROID_API__<14
-               && getButtonState
-            #endif
-
                && !button_state) // none of them are pressed
                { // this is TouchPad scroll (with 2 fingers on the TouchPad)
                   const Flt mul=16.0f/D.screen().min(); // trigger 16 full mouse wheel events when moving mouse from one side to another (this value was set to match results on a Windows laptop, use 'min' or 'max' to get the same results even when device got rotated and that would cause resolution to change)
@@ -759,11 +689,6 @@ static void JavaShut()
    getLastKnownLocation=getLatitude=getLongitude=getAltitude=getAccuracy=getSpeed=getTime=requestLocationUpdates=removeUpdates=null;
 #endif
 
-#if __ANDROID_API__<14
-   getButtonState=getRawAxisValue=null;
-   MotionEventClass.del();
-#endif
-
    Jni.del();
 }
 static void JavaGetAppPackage()
@@ -869,16 +794,6 @@ static void JavaLooper()
 static void JavaGetInput()
 {
    LOG("JavaGetInput");
-
-#if __ANDROID_API__<14
-   if(!MotionEventClass)
-      if(Jni)
-      if(MotionEventClass="android/view/MotionEvent")
-      {
-         getButtonState =Jni.staticFunc(MotionEventClass, "nativeGetButtonState" , X64 ? "(J)I"    : "(I)I"   );
-         getRawAxisValue=Jni.staticFunc(MotionEventClass, "nativeGetRawAxisValue", X64 ? "(JIII)F" : "(IIII)F");
-      }
-#endif
 
    if(!InputDeviceClass)
       if(Jni)

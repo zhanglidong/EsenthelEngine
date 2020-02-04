@@ -233,15 +233,10 @@ inline Dbl Pow(Int x, Dbl y) {return pow (x, y);} // raise 'x' to the power 'y'
 inline Dbl Pow(Dbl x, Int y) {return pow (x, y);} // raise 'x' to the power 'y'
 inline Dbl Pow(Dbl x, Dbl y) {return pow (x, y);} // raise 'x' to the power 'y'
 
-inline Flt Ln  (Flt x) {return logf(x);}  // e-base logarithm
-inline Dbl Ln  (Dbl x) {return log (x);}  // e-base logarithm
-#if (!ANDROID || __ANDROID_API__>=18) // Android below API 18 doesn't have log2f/log2
+inline Flt Ln  (Flt x) {return logf (x);} // e-base logarithm
+inline Dbl Ln  (Dbl x) {return log  (x);} // e-base logarithm
 inline Flt Log2(Flt x) {return log2f(x);} // 2-base logarithm
 inline Dbl Log2(Dbl x) {return log2 (x);} // 2-base logarithm
-#else
-inline Flt Log2(Flt x) {return logf(x)*1.4426950408889634073599246810019f;} // 2-base logarithm = Ln(x)/Ln(2)
-inline Dbl Log2(Dbl x) {return log (x)*1.4426950408889634073599246810019 ;} // 2-base logarithm = Ln(x)/Ln(2)
-#endif
        Flt Log (Flt x, Flt base);         //        logarithm
        Dbl Log (Dbl x, Dbl base);         //        logarithm
 

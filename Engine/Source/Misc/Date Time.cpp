@@ -253,19 +253,6 @@ DateTime& DateTime::decSecond()
    if(second>0)second--;else{second=59; decMinute();}
    return T;
 }
-#if ANDROID && __ANDROID_API__<12 // Android below API 12 doesn't have 'timegm'
-static SyncLock mktime_lock;
-time_t timegm(struct tm *tm)
-{
-   SyncLocker locker(mktime_lock);
-   char *tz=getenv("TZ"); setenv("TZ", "", 1);
-   tzset();
-   time_t ret=mktime(tm);
-   if(tz)setenv("TZ", tz, 1);else unsetenv("TZ");
-   tzset();
-   return ret;
-}
-#endif
 DateTime& DateTime::toUTC()
 {
    if(valid())
@@ -302,9 +289,6 @@ DateTime& DateTime::toUTC()
       t.tm_isdst=-1; // -1 means data is unavailable
 
       {
-      #if ANDROID && __ANDROID_API__<12 // since Android (<12) doesn't have built-in 'timegm' function, we had to write one which modifies time zones, because of that, calls to 'mktime' must be surrounded by locks
-         SafeSyncLocker locker(mktime_lock);
-      #endif
          time_t sec=mktime(&t); gmtime_r(&sec, &t);
       }
 

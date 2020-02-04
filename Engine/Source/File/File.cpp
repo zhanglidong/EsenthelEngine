@@ -370,11 +370,7 @@ Bool File::  readStdTryEx(C Str &name, Cipher *cipher, UInt max_buf_size, Bool *
          if(AAsset *asset=AAssetManager_open(AssetManager, UnixPathUTF8(name), AASSET_MODE_RANDOM))
       {
          Bool ok=false;
-      #if __ANDROID_API__>=13
          off64_t size=AAsset_getLength64(asset);
-      #else
-         off_t   size=AAsset_getLength  (asset);
-      #endif
          if( size<0)ok=false;else
          if(!size  ) // no need for opening the file using Android API when it has no size
          {
@@ -385,11 +381,7 @@ Bool File::  readStdTryEx(C Str &name, Cipher *cipher, UInt max_buf_size, Bool *
             ok=true;
          }else // size>0
          {
-         #if __ANDROID_API__>=13
             off64_t offset, length; int fd=AAsset_openFileDescriptor64(asset, &offset, &length);
-         #else
-            off_t   offset, length; int fd=AAsset_openFileDescriptor  (asset, &offset, &length);
-         #endif
             if(fd>=0)
             {
               _size=length;
@@ -1129,7 +1121,7 @@ Bool File::size(Long size)
       {
       #if WINDOWS
          if(!_chsize_s  (_handle, size))
-      #elif APPLE || (ANDROID && __ANDROID_API__<12) // on Apple 'ftruncate' is already 64-bit, while Android has 'ftruncate64' only on API 12 and above
+      #elif APPLE // on Apple 'ftruncate' is already 64-bit
          if(!ftruncate  (_handle, size))
       #else
          if(!ftruncate64(_handle, size))
