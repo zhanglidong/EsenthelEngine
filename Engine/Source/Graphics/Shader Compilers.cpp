@@ -8,10 +8,10 @@ namespace EE{
    #define COMPILE_GL 0
 #endif
 
-/**
+/**/
 #define MAIN
 
-#define DEFERRED
+/*#define DEFERRED
 #define BLEND_LIGHT
 #define FORWARD
 

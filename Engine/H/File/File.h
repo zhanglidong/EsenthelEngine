@@ -76,7 +76,7 @@ struct File
 #if EE_PRIVATE
    Long posFile  ()C;                              // get actual   position in file (takes into account buffering)
    Long posAbs   ()C {return _pos+       _offset;} // get absolute position in file
-   Int  posCipher()C {return _pos+_cipher_offset;} // get offset to be used in cipher, can be Int (and not Long) because Cipher operates on Int offset only
+   Int  posCipher()C {return _pos+_cipher_offset;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
    Ptr  memFast  ()  {return (Byte*)_mem+posAbs();}
    Ptr  mem      () ; // get raw memory pointer for FILE_MEM
    UInt memUsage ()C; // get memory usage
@@ -116,18 +116,18 @@ struct File
             File& operator>>(  Str8 &s       ) {return getStr(s);            } // read  string
             File& operator>>(  Str  &s       ) {return getStr(s);            } // read  string
 
-   File& putBool  (  Bool  b) {T<<b; return T;}   Bool  getBool  () {Bool   b; T>>b; return b;} // write/read  Bool
-   File& putSByte ( SByte  b) {T<<b; return T;}  SByte  getSByte () {SByte  b; T>>b; return b;} // write/read SByte
-   File& putByte  (  Byte  b) {T<<b; return T;}   Byte  getByte  () {Byte   b; T>>b; return b;} // write/read  Byte
-   File& putShort (  Short i) {T<<i; return T;}   Short getShort () {Short  i; T>>i; return i;} // write/read  Short
-   File& putUShort( UShort u) {T<<u; return T;}  UShort getUShort() {UShort u; T>>u; return u;} // write/read UShort
-   File& putInt   (  Int   i) {T<<i; return T;}   Int   getInt   () {Int    i; T>>i; return i;} // write/read  Int
-   File& putUInt  ( UInt   u) {T<<u; return T;}  UInt   getUInt  () {UInt   u; T>>u; return u;} // write/read UInt
-   File& putLong  (  Long  i) {T<<i; return T;}   Long  getLong  () {Long   i; T>>i; return i;} // write/read  Long
-   File& putULong ( ULong  u) {T<<u; return T;}  ULong  getULong () {ULong  u; T>>u; return u;} // write/read ULong
-   File& putFlt   (  Flt   f) {T<<f; return T;}   Flt   getFlt   () {Flt    f; T>>f; return f;} // write/read  Float
-   File& putDbl   (  Dbl   d) {T<<d; return T;}   Dbl   getDbl   () {Dbl    d; T>>d; return d;} // write/read  Double
-   File& putUID   (C UID  &i) {T<<i; return T;}   UID   getUID   () {UID    i; T>>i; return i;} // write/read  UID
+   File& putBool  (  Bool  b) {T<<b; return T;}    Bool  getBool  () {Bool   b; T>>b; return b;} // write/read  Bool
+   File& putSByte ( SByte  b) {T<<b; return T;}   SByte  getSByte () {SByte  b; T>>b; return b;} // write/read SByte
+   File& putByte  (  Byte  b) {T<<b; return T;}    Byte  getByte  () {Byte   b; T>>b; return b;} // write/read  Byte
+   File& putShort (  Short i) {T<<i; return T;}    Short getShort () {Short  i; T>>i; return i;} // write/read  Short
+   File& putUShort( UShort u) {T<<u; return T;}   UShort getUShort() {UShort u; T>>u; return u;} // write/read UShort
+   File& putInt   (  Int   i) {T<<i; return T;}    Int   getInt   () {Int    i; T>>i; return i;} // write/read  Int
+   File& putUInt  ( UInt   u) {T<<u; return T;}   UInt   getUInt  () {UInt   u; T>>u; return u;} // write/read UInt
+   File& putLong  (  Long  i) {T<<i; return T;}    Long  getLong  () {Long   i; T>>i; return i;} // write/read  Long
+   File& putULong ( ULong  u) {T<<u; return T;}   ULong  getULong () {ULong  u; T>>u; return u;} // write/read ULong
+   File& putFlt   (  Flt   f) {T<<f; return T;}    Flt   getFlt   () {Flt    f; T>>f; return f;} // write/read  Float
+   File& putDbl   (  Dbl   d) {T<<d; return T;}    Dbl   getDbl   () {Dbl    d; T>>d; return d;} // write/read  Double
+   File& putUID   (C UID  &i) {T<<i; return T;}    UID   getUID   () {UID    i; T>>i; return i;} // write/read  UID
 #if EE_PRIVATE
     Short getBEShort (); // read BigEndian  Short
    UShort getBEUShort(); // read BigEndian UShort
