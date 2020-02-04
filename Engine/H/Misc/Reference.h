@@ -6,7 +6,7 @@ T1(TYPE) struct Reference // Reference, this is a pointer to an object which may
    Bool  is        ()C {return        _object_id.valid();            } // check if the reference is not empty (        want to point to some object       )
    Bool  empty     ()C {return       !_object_id.valid();            } // check if the reference is     empty (doesn't want to point to any  object at all)
    Bool  valid     ()C {return  _object && _object->id()==_object_id;} // check if the reference is     valid (points to an existing object with matching ID)
-   TYPE* validPtr  ()C {return   valid() ? _object : null           ;} // return a pointer   to object that is valid
+   TYPE* validPtr  ()C {return   valid() ? _object : null           ;} // return a pointer   to object that is valid, and null if invalid
  C UID & objectID  ()C {return  _object_id                          ;} // return                object ID
    TYPE& operator()()C {return *_object                             ;} // return a reference to object, usage of this method must be preceded by performing a reference validation using 'valid' method
    TYPE* operator->()C {return  _object                             ;} // return a reference to object, usage of this method must be preceded by performing a reference validation using 'valid' method
