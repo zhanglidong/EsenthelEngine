@@ -317,15 +317,15 @@ void MainShaderClass::getTechniques()
    Mac[3]=ShaderImages("Mac3");
    Lum   =ShaderImages("Lum" );
 
-   ImgSize         =GetShaderParam("ImgSize" );
-   ImgClamp        =GetShaderParam("ImgClamp");
-   RTSize          =GetShaderParam("RTSize"  );
-   Coords          =GetShaderParam("Coords"  );
-   Viewport        =GetShaderParam("Viewport");
-   TAAOffset       =GetShaderParam("TAAOffset");
-   TAAOffsetPrev   =GetShaderParam("TAAOffsetPrev");
-   TAAAspectRatio  =GetShaderParam("TAAAspectRatio");
-   DepthWeightScale=GetShaderParam("DepthWeightScale");
+   ImgSize           =GetShaderParam("ImgSize" );
+   ImgClamp          =GetShaderParam("ImgClamp");
+   RTSize            =GetShaderParam("RTSize"  );
+   Coords            =GetShaderParam("Coords"  );
+   Viewport          =GetShaderParam("Viewport");
+   TAAOffset         =GetShaderParam("TAAOffset");
+   TAAOffsetCurToPrev=GetShaderParam("TAAOffsetCurToPrev");
+   TAAAspectRatio    =GetShaderParam("TAAAspectRatio");
+   DepthWeightScale  =GetShaderParam("DepthWeightScale");
 
    ViewMatrix    =GetShaderParam("ViewMatrix"    );
    ViewMatrixPrev=GetShaderParam("ViewMatrixPrev");

@@ -30,7 +30,7 @@ Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
 /******************************************************************************/
 BUFFER(TAA)
    Vec2 TAAOffset,
-        TAAOffsetPrev;
+        TAAOffsetCurToPrev;
    Half TAAAspectRatio;
 BUFFER_END
 /******************************************************************************/
@@ -113,9 +113,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // if old velocity is different then ignore old
 #if 1
-   Vec2 old_tex_vel=old_tex
-                   +TAAOffsetPrev  // we're using 'old_tex_vel' to access texture from a previous frame that was not offseted
-                   -TAAOffset    ; // we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset"
+   Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
    #if GATHER
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)

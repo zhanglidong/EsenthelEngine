@@ -948,11 +948,12 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
     C Vec2  &offset     =TAAOffsets[         Time.frame()   %Elms(TAAOffsets)];
     C Vec2  &offset_prev=TAAOffsets[Unsigned(Time.frame()-1)%Elms(TAAOffsets)];
       RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
+      Vec2   mul        =Vec2(0.5f, -0.5f)/size;
      _taa_use   =true;
-     _taa_offset=            offset     /viewport.size();
-      Sh.TAAOffset     ->set(offset     /         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
-      Sh.TAAOffsetPrev ->set(offset_prev/         size*Vec2(0.5f, -0.5f)); // this always changes so don't use 'setConditional'
-      Sh.TAAAspectRatio->set(D._app_aspect_ratio);
+     _taa_offset=                 offset             /viewport.size();
+      Sh.TAAOffset         ->set( offset             *mul); // this always changes so don't use 'setConditional'
+      Sh.TAAOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset". We should be accessing "vel inTex+TAAOffset" and "old_vel inTex+TAAOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TAAOffsetPrev-TAAOffset"
+      Sh.TAAAspectRatio    ->set(D._app_aspect_ratio);
       D._view_active.setShader();
    }
    SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA

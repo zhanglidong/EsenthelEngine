@@ -56,8 +56,8 @@ struct MainShaderClass
       *RTSize  ,
       *Coords  =&Dummy,
       *Viewport=&Dummy,
-      *TAAOffset    =&Dummy,
-      *TAAOffsetPrev=&Dummy,
+      *TAAOffset         =&Dummy,
+      *TAAOffsetCurToPrev=&Dummy,
       *TAAAspectRatio,
       *DepthWeightScale=&Dummy,
 
