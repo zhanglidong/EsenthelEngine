@@ -240,6 +240,7 @@ Ragdoll& Ragdoll::toSkel(AnimatedSkeleton &anim_skel)
          else                   asbon.orn=GetAnimOrient(skel_bone, rbon.actor.orn()*ibody);
       }
 
+      body.scaleOrn(_scale);
       anim_skel.updateMatrix(body);
    }
    return T;

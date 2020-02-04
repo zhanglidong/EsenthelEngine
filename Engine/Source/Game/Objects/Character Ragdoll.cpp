@@ -7,9 +7,9 @@ void Chr::ragdollValidate()
 {
    if(!ragdoll.is()) // if ragdoll hasn't yet been created
    {
-      ragdoll.create(skel      )  // create from 'AnimatedSkeleton'
-             .obj   (this      )  // set Game.Chr object
-             .ignore(ctrl.actor); // ignore collisions with the character controller
+      ragdoll.create(skel, scale)  // create from 'AnimatedSkeleton'
+             .obj   (this       )  // set Game.Chr object
+             .ignore(ctrl.actor ); // ignore collisions with the character controller
    }
 }
 /******************************************************************************/

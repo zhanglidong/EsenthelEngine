@@ -28,8 +28,6 @@ struct Orient // Orientation
    Orient& zero    (          ); // set all vectors to zero
    Orient& identity(          ); // set identity
    Orient& setDir  (C Vec &dir); // set from 'dir' and calculate correct 'perp' to match it, 'dir' must be normalized
-   Orient& fixPerp (          ); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
-   Bool    fix     (          ); // normalize and fix perpendicular, false on fail
 
    // transform
    Orient& mirrorX(); // mirror in X axis
@@ -60,6 +58,10 @@ struct Orient // Orientation
    void    inverse(Orient   &dest)C; // inverse orientation and store it in 'dest'
    void    inverse(Matrix3  &dest)C; // inverse orientation and store it in 'dest' matrix
    void    inverse(MatrixD3 &dest)C; // inverse orientation and store it in 'dest' matrix
+
+   Orient& normalize(); // normalize vectors
+   Orient& fixPerp  (); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
+   Bool    fix      (); // normalize and fix perpendicular, false on fail
 
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text
@@ -93,8 +95,6 @@ struct OrientD // Orientation (double precision)
    OrientD& zero    (           ); // set all vectors to zero
    OrientD& identity(           ); // set identity
    OrientD& setDir  (C VecD &dir); // set from 'dir' and calculate correct 'perp' to match it, 'dir' must be normalized
-   OrientD& fixPerp (           ); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
-   Bool     fix     (           ); // normalize and fix perpendicular, false on fail
 
    // transform
    OrientD& mirrorX(); // mirror in X axis
@@ -111,6 +111,10 @@ struct OrientD // Orientation (double precision)
    OrientD& inverse(              ) ; // inverse orientation
    void     inverse(OrientD  &dest)C; // inverse orientation and store it in 'dest'
    void     inverse(MatrixD3 &dest)C; // inverse orientation and store it in 'dest' matrix
+
+   OrientD& normalize(); // normalize vectors
+   OrientD& fixPerp  (); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
+   Bool     fix      (); // normalize and fix perpendicular, false on fail
 
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text

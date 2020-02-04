@@ -204,6 +204,19 @@ OrientD& OrientD::setDir(C VecD &dir) {T.dir=dir; T.perp=PerpN(dir); return T;}
 OrientP& OrientP::setPosDir(C Vec  &pos, C Vec &dir) {T.pos=pos; T.dir=dir; T.perp=PerpN(dir); return T;}
 OrientM& OrientM::setPosDir(C VecD &pos, C Vec &dir) {T.pos=pos; T.dir=dir; T.perp=PerpN(dir); return T;}
 /******************************************************************************/
+Orient& Orient::normalize()
+{
+   dir .normalize();
+   perp.normalize();
+   return T;
+}
+OrientD& OrientD::normalize()
+{
+   dir .normalize();
+   perp.normalize();
+   return T;
+}
+/******************************************************************************/
 Orient& Orient::fixPerp()
 {
       perp=PointOnPlane(perp, dir);

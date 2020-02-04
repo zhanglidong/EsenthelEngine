@@ -65,12 +65,18 @@ class Inventory
 
       // set matrixes for items in hands
       if(slot[SLOT_ARM_L].valid())
-         if(C OrientM *hand=owner.skel.findSlot("HandL"))
-            slot[SLOT_ARM_L]().matrix(Matrix().setPosDir(hand.pos, hand.perp, hand.dir));
+         if(OrientM *hand=owner.skel.findSlot("HandL"))
+      {
+         hand.normalize();
+         slot[SLOT_ARM_L]().matrix(Matrix().setPosDir(hand.pos, hand.perp, hand.dir));
+      }
 
       if(slot[SLOT_ARM_R].valid())
-         if(C OrientM *hand=owner.skel.findSlot("HandR"))
-            slot[SLOT_ARM_R]().matrix(Matrix().setPosDir(hand.pos, hand.perp, hand.dir));
+         if(OrientM *hand=owner.skel.findSlot("HandR"))
+      {
+         hand.normalize();
+         slot[SLOT_ARM_R]().matrix(Matrix().setPosDir(hand.pos, hand.perp, hand.dir));
+      }
    }
 
    // draw
