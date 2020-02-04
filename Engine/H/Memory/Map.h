@@ -23,7 +23,7 @@ enum MAP_ELM_FLAG // Map Element Flag
 };
 #endif
 /******************************************************************************/
-T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created elements, consisting of unique keys and their corresponding data, Map is multi-threaded safe
+T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created elements, consisting of unique keys and their corresponding data
 {
    struct Elm : _Map::Elm
    {

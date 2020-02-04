@@ -1,6 +1,8 @@
 ﻿/******************************************************************************/
 #include "stdafx.h"
 /******************************************************************************/
+DEFINE_CACHE(ElmMatrix, ElmMatrixes, ElmMatrixPtr, "ElmMatrixes");
+/******************************************************************************/
 TheaterClass Theater;
 /******************************************************************************/
 
@@ -22,6 +24,7 @@ TheaterClass Theater;
       "Scale",
    };
 /******************************************************************************/
+   bool ElmMatrix::load(C Str &name) {return true;}
       void TheaterClass::Options::Horizontal(  Options &options, C Str &text) {                               options.horizontal=     TextBool(text) ; Theater.refreshSize();}
       void TheaterClass::Options::Rows(  Options &options, C Str &text) {Theater.old_rows=options.rows; options.rows      =     TextInt (text) ; Theater.refreshSize();}
       void TheaterClass::Options::Size(  Options &options, C Str &text) {                               options.item_size =     TextFlt (text) ; Theater.refreshSize();}
@@ -145,7 +148,11 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    }
    void TheaterClass::draw(C UID &elm_id, C Mesh &mesh, C Rect &rect)
    {
-      mesh.MeshLod::draw(getMatrix(elm_id, mesh.ext, rect)); // use best LOD
+      Matrix matrix=getMatrix(elm_id, mesh.ext, rect);
+      int elms=ElmMatrixes.elms(); ElmMatrixPtr elm_matrix=Proj.gamePath(elm_id);
+      if(elms!=ElmMatrixes.elms())elm_matrix->matrix=matrix; // if just added then copy matrix
+      mesh.MeshLod::draw(matrix, elm_matrix->matrix); // use best LOD
+      elm_matrix->matrix=matrix; // remember matrix
    }
    bool TheaterClass::litSel()C {return obj_mode.visible() && obj_mode()>=0;}
    bool TheaterClass::highlighted(int i)C {return list.lit==i;}
@@ -222,7 +229,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       bool         eye_adapt=D.eyeAdaptation(); D.eyeAdaptation(       false);
       bool         astros   =AstrosDraw       ; AstrosDraw     =false;
       bool         ocean    =Water.draw       ; Water.draw     =false;
-      Camera       temp     =ActiveCam,    cam; cam  .set(MatrixIdentity).set();
+      Camera       temp     =ActiveCam,    cam; cam  .updateBegin().set(MatrixIdentity).updateEnd().updateBegin().updateEnd().set();
 
       Renderer(Render); cleanMeshMaterial(); // clean after rendering finished
 
@@ -319,6 +326,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       Gui+=T.menu.create(menu);
 
       setVisibility(false);
+      ElmMatrixes.delayRemove(1);
    }
    void TheaterClass::moveAbove(GuiObj &go)
    {
@@ -427,6 +435,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       }
 
       super::update(gpc);
+      ElmMatrixes.update();
 
       if(visible() && gpc.visible)
       {

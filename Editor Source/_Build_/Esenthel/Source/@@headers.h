@@ -104,6 +104,7 @@ class ElmIconSetts;
 class ElmImage;
 class ElmImageAtlas;
 class ElmMaterial;
+class ElmMatrix;
 class ElmMesh;
 class ElmMiniMap;
 class ElmName;
@@ -269,6 +270,7 @@ class WorldView;
 // CACHES
 /******************************************************************************/
 extern Cache<EditObject> EditObjects;
+extern Cache<ElmMatrix>ElmMatrixes;
 /******************************************************************************/
 // ENUMS
 /******************************************************************************/
@@ -648,6 +650,7 @@ const int           ServerNetworkCompressionLevel=9           , ClientNetworkCom
 // TYPEDEFS
 /******************************************************************************/
 typedef CacheElmPtr<EditObject, EditObjects> EditObjectPtr;
+typedef CacheElmPtr<ElmMatrix,ElmMatrixes>ElmMatrixPtr;
 ASSERT(MTECH_DEFAULT==0 && MTECH_ALPHA_TEST==1 && MTECH_FUR==2 && MTECH_GRASS==3 && MTECH_LEAF==4 && MTECH_BLEND==5 && MTECH_BLEND_LIGHT==6 && MTECH_BLEND_LIGHT_GRASS==7 && MTECH_BLEND_LIGHT_LEAF==8 && MTECH_TEST_BLEND_LIGHT==9 && MTECH_TEST_BLEND_LIGHT_GRASS==10 && MTECH_TEST_BLEND_LIGHT_LEAF==11 && MTECH_GRASS_3D==12 && MTECH_LEAF_2D==13 && MTECH_NUM==14);
 ASSERT(CIPHER_NONE==0 && CIPHER_1==1 && CIPHER_2==2 && CIPHER_3==3 && CIPHER_NUM==4);
 ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && OBJ_ACCESS_OVERLAY==3);
@@ -733,6 +736,7 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@ElmTypeNameNoSpace.h"
 #include "@ElmNode.h"
 #include "@ElmName.h"
+#include "@ElmMatrix.h"
 #include "@ElmData.h"
 #include "@ElmCodeBase.h"
 #include "@ElmCode.h"
@@ -832,57 +836,57 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@TheaterClass.h"
 #include "@ProjectSettings.h"
 #include "@Projects.h"
-#include "@BrushClass.h"
 #include "@SizeStatistics.h"
+#include "@BrushClass.h"
 #include "@ImageEditor.h"
 #include "@ProjectHierarchy.h"
 #include "@ImageAtlasEditor.h"
+#include "@ProjectEx.h"
 #include "@Area.h"
 #include "@AppPropsEditor.h"
 #include "@AnimEditor.h"
 #include "@AdjustBoneOrns.h"
-#include "@EnumEditor.h"
-#include "@VideoOptions.h"
 #include "@MulSoundVolumeClass.h"
 #include "@VideoEditor.h"
-#include "@PhysMtrlEditor.h"
-#include "@SetMtrlColorClass.h"
+#include "@TextStyleEditor.h"
+#include "@GuiView.h"
 #include "@RemoveProjWin.h"
 #include "@MiniMapEditor.h"
-#include "@ProjectEx.h"
-#include "@GuiView.h"
-#include "@MergeSimilarMaterials.h"
 #include "@GuiSkinEditor.h"
+#include "@IconSettings.h"
+#include "@MergeSimilarMaterials.h"
 #include "@ParamEditor.h"
-#include "@SoundEditor.h"
 #include "@PanelImageEditor.h"
+#include "@SoundEditor.h"
+#include "@GroupRegion.h"
+#include "@GridPlaneLevel.h"
 #include "@DetectSimilarTextures.h"
+#include "@IconEditor.h"
 #include "@CreateMaterials.h"
 #include "@CopyElements.h"
 #include "@ConvertToDeAtlasClass.h"
 #include "@ConvertToAtlasClass.h"
 #include "@CompareProjects.h"
-#include "@GroupRegion.h"
-#include "@GridPlaneLevel.h"
 #include "@ElmProperties.h"
-#include "@IconSettings.h"
-#include "@TextStyleEditor.h"
 #include "@FontEditor.h"
-#include "@ObjScale.h"
-#include "@ObjRot.h"
 #include "@WaterMtrlRegion.h"
+#include "@ObjScale.h"
+#include "@TextureDownsize.h"
+#include "@ObjRot.h"
+#include "@SetMtrlColorClass.h"
 #include "@ObjPos.h"
 #include "@ObjPaintClass.h"
 #include "@ObjListClass.h"
-#include "@TextureDownsize.h"
-#include "@IconEditor.h"
-#include "@ObjClassEditor.h"
 #include "@EnvEditor.h"
+#include "@EnumEditor.h"
+#include "@ObjClassEditor.h"
 #include "@PanelEditor.h"
+#include "@ObjView.h"
 #include "@RenameProjWin.h"
+#include "@PhysMtrlEditor.h"
+#include "@VideoOptions.h"
 #include "@IconSettsEditor.h"
 #include "@WorldView.h"
-#include "@ObjView.h"
 #include "@WorldBrushClass.h"
 /******************************************************************************/
 // CPP
