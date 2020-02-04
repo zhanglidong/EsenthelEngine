@@ -23,7 +23,7 @@ enum SOUND_CODEC : Byte
 };
 CChar8* CodecName(SOUND_CODEC codec); // get codec name
 #if EE_PRIVATE
-enum SND_CODEC : Byte
+enum SND_CODEC : Byte // !! These enums are saved !!
 {
    SND_RAW_16, // Raw 16-bit
    SND_VORBIS,
