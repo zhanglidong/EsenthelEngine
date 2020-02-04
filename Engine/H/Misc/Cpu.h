@@ -22,7 +22,7 @@ struct CPU // Central Processing Unit
    // get
    Int   threads()C {return _threads;} // number of hardware threads
    UInt  flag   ()C {return _flag   ;} // get CPU_FLAG
- C Str8& name   ()C {return _name   ;} // get cpu name
+ C Str8& name   ()C {return _name   ;} // get CPU name
 
 #if EE_PRIVATE
    static void set();

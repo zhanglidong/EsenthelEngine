@@ -8,7 +8,7 @@ struct Enum // Enum helper class !! Enum doesn't support manual value assigning,
    struct Elm // Enum Element
    {
       Char8 name[64]; // element name
-      UID   id      ; // element unique id
+      UID   id      ; // element unique ID
 
       Elm& set(C Str8 &name, C UID &id) {Set(T.name, name); T.id=id; return T;}
    };
