@@ -1305,9 +1305,10 @@ bool Update()
    }*/
 
    // setup camera
+   Cam.updateBegin();
    Cam.at =vehicle.pos();
    Cam.yaw=Angle(vehicle.matrix().z.xz())-PI_2;
-   Cam.setSpherical().updateVelocities(CAM_ATTACH_ACTOR).set();
+   Cam.setSpherical().updateEnd().set();
 
    return true;
 }

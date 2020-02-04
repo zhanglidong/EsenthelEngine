@@ -30,8 +30,8 @@ struct Camera
    VecD    at    ; // point where camera is looking at               , default=VecD(0,0,0)
    MatrixM matrix; // camera object matrix                           , default=MatrixIdentity-Vec(0,0,1)
 
-   Vec        vel, // camera         velocity (this gets modified when calling 'updateVelocities')
-          ang_vel; // camera angular velocity (this gets modified when calling 'updateVelocities')
+   Vec        vel, // camera         velocity (this gets modified when calling 'updateEnd')
+          ang_vel; // camera angular velocity (this gets modified when calling 'updateEnd')
 
    Camera& operator+=(C VecD &offset) {at+=offset; matrix.pos+=offset; return T;} // move camera by 'offset'
    Camera& operator-=(C VecD &offset) {at-=offset; matrix.pos-=offset; return T;} // move camera by 'offset'

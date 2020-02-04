@@ -43,8 +43,8 @@ void AnimatedSkeletonBone::clear(Flt blend)
  C Vec    &         vel  (     )C {return root.    _vel                      ;} // get root         velocity
  C Vec    &      angVel  (     )C {return root._ang_vel                      ;} // get root angular velocity
 
-// the following parameters are valid only after calling 'updateVelocities'
-   Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space, it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
+// the following parameters are valid only after calling 'updateEnd'
+   Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space, it's valid after animation, matrix and velocity updates (using 'updateEnd' method)
 Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
 {
    return _vel + Cross(_ang_vel, local_pos*matrix().orn());
