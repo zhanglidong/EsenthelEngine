@@ -2,7 +2,6 @@
 extern const bool EE_PUBLISH          ;
 extern const bool EE_ENGINE_EMBED     ;
 extern const bool EE_ANDROID_EXPANSION;
-extern cchar *C   EE_PHYSX_DLL_PATH   ;
 extern cchar *C   EE_ENGINE_PATH      ;
 extern cchar *C   EE_PROJECT_PATH     ;
 extern cchar *C   EE_PROJECT_NAME     ;

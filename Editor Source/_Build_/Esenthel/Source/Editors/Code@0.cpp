@@ -299,7 +299,7 @@ AppPropsEditor AppPropsEdit;
          data+=S+"const bool EE_ENGINE_EMBED     =("+TextBool(appEmbedEngineData()!=0)+" && !WINDOWS_NEW && !MOBILE && !WEB); // this is set to true when \"Embed Engine Data\" was enabled in application settings, this is always disabled for WindowsNew, Mobile and Web builds\n";
          data+=S+"const bool EE_ANDROID_EXPANSION=" +TextBool(appAndroidExpansion())+"; // this is set to true when auto-download of Android Expansion Files is enabled\n";
        //data+=S+"cchar *C   EE_SDK_PATH         =                                     \""+Replace(SDKPath()                             , '\\', '/').tailSlash(false)+"\";\n";
-         data+=S+"cchar *C   EE_PHYSX_DLL_PATH   =((WINDOWS_NEW || MOBILE || WEB) ? null           : EE_PUBLISH ? u\"Bin\"             : u\""+Replace(BinPath()                             , '\\', '/').tailSlash(false)+"\");\n";
+       //data+=S+"cchar *C   EE_PHYSX_DLL_PATH   =((WINDOWS_NEW || MOBILE || WEB) ? null           : EE_PUBLISH ? u\"Bin\"             : u\""+Replace(BinPath()                             , '\\', '/').tailSlash(false)+"\");\n";
          data+=S+"cchar *C   EE_ENGINE_PATH      =((WINDOWS_NEW || MOBILE || WEB) ? u\"Engine.pak\"  : EE_PUBLISH ? u\"Bin/Engine.pak\"  : u\""+Replace(BinPath().tailSlash(true)+"Engine.pak", '\\', '/').tailSlash(false)+"\");\n";
          data+=S+"cchar *C   EE_PROJECT_PATH     =((WINDOWS_NEW || MOBILE || WEB) ? u\"Project.pak\" : EE_PUBLISH ? u\"Bin/Project.pak\" : u\""+Replace(Proj.game_path                        , '\\', '/').tailSlash(false)+"\");\n";
          data+=S+"cchar *C   EE_PROJECT_NAME     =u\""+CString(Proj.name)+"\";\n";

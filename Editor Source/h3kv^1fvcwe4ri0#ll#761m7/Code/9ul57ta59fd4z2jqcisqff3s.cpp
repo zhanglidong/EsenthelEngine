@@ -189,7 +189,7 @@ bool Init()
    {
       Updater.create();
 
-      if(!Physics.created())Physics.create(EE_PHYSX_DLL_PATH).timestep(PHYS_TIMESTEP_VARIABLE);
+      if(!Physics.created())Physics.create().timestep(PHYS_TIMESTEP_VARIABLE);
 
       const flt delay_remove=10;
       Meshes      .delayRemove(delay_remove);

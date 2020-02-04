@@ -1254,7 +1254,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH).wheelFriction(WheelFriction); // create physics and set custom friction calculation callback
+   Physics.create().wheelFriction(WheelFriction); // create physics and set custom friction calculation callback
    actors.New().create(Plane(Vec(0, -1, 0), Vec(0, 1, 0))); // create ground
    PhysXVehicle.Params params; // setup vehicle params
    flt x=0.9, y=-0.5, z=1.8;

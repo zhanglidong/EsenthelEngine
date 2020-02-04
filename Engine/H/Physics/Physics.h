@@ -120,8 +120,8 @@ struct PhysicsClass
    void (*simulation_step_completed)(); // pointer to a custom callback (can be null) called each time a single simulation step has completed, this can be called 0, 1 or multiple times between a call to 'startSimulation' and 'stopSimulation', each call will be made on the main thread, amount of calls depends on 'dt' parameter used in 'startSimulation', 'precision' and 'timestep'.
 
    // manage
-   PhysicsClass& create   (C Str &physx_dll_path=S, CONTROLLER_SLOPE_SLIDING_MODE css=CSS_MATERIALS, Bool hardware=false); // create, 'physx_dll_path'=path to look for physx DLL files (if empty then DLL's will be searched in 'CurDir', this parameter is needed only for Windows platform, on Linux platform Physx Shared Libraries are always expected to be in the "Bin" folder relative to app file, on other platforms it's ignored), 'hardware'=if use hardware physics simulations (on GPU), if it's not available or 'hardware' is set to false then CPU will be used, Exit  on fail
-   Bool          createTry(C Str &physx_dll_path=S, CONTROLLER_SLOPE_SLIDING_MODE css=CSS_MATERIALS, Bool hardware=false); // create, 'physx_dll_path'=path to look for physx DLL files (if empty then DLL's will be searched in 'CurDir', this parameter is needed only for Windows platform, on Linux platform Physx Shared Libraries are always expected to be in the "Bin" folder relative to app file, on other platforms it's ignored), 'hardware'=if use hardware physics simulations (on GPU), if it's not available or 'hardware' is set to false then CPU will be used, false on fail
+   PhysicsClass& create   (CONTROLLER_SLOPE_SLIDING_MODE css=CSS_MATERIALS, Bool hardware=false); // create, 'hardware'=if use hardware physics simulations (on GPU), if it's not available or 'hardware' is set to false then CPU will be used, Exit  on fail
+   Bool          createTry(CONTROLLER_SLOPE_SLIDING_MODE css=CSS_MATERIALS, Bool hardware=false); // create, 'hardware'=if use hardware physics simulations (on GPU), if it's not available or 'hardware' is set to false then CPU will be used, false on fail
 
    // get / set
                                                            Bool               created        ()C;                        // if      physics has been created
@@ -211,7 +211,7 @@ struct PhysicsClass
           void stepCompleted  ();
 #endif
 
-   void del(); // manually release physics and its DLL file usage, normally you don't need to call this as the engine will call this automatically
+   void del(); // manually release physics, normally you don't need to call this as the engine will call this automatically
 
 #if !EE_PRIVATE
 private:
@@ -257,7 +257,7 @@ struct PhysxClass
    static PxQuat      orn   (C Matrix3     &matrix);
 
    void del   ();
-   Bool create(Str dll_path, Bool hardware);
+   Bool create(Bool hardware);
 
    void updateVehicles();
 

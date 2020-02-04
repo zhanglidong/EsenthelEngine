@@ -598,7 +598,7 @@ void PhysicsClass::del    ()
   _gravity .zero();
   _vehicles.del();
 }
-Bool PhysicsClass::createTry(C Str &physx_dll_path, CONTROLLER_SLOPE_SLIDING_MODE css, Bool hardware)
+Bool PhysicsClass::createTry(CONTROLLER_SLOPE_SLIDING_MODE css, Bool hardware)
 {
    if(created())return true;
 
@@ -616,7 +616,7 @@ Bool PhysicsClass::createTry(C Str &physx_dll_path, CONTROLLER_SLOPE_SLIDING_MOD
    T.ctrl_ground_slope          = 0.65f;
 
 #if PHYSX
-   if(Physx.create(physx_dll_path, hardware))
+   if(Physx.create(hardware))
 #else
    if(Bullet.create())
 #endif
@@ -631,15 +631,15 @@ Bool PhysicsClass::createTry(C Str &physx_dll_path, CONTROLLER_SLOPE_SLIDING_MOD
    }
    del(); return false;
 }
-PhysicsClass& PhysicsClass::create(C Str &physx_dll_path, CONTROLLER_SLOPE_SLIDING_MODE css, Bool hardware)
+PhysicsClass& PhysicsClass::create(CONTROLLER_SLOPE_SLIDING_MODE css, Bool hardware)
 {
-   if(!createTry(physx_dll_path, css, hardware))
+   if(!createTry(css, hardware))
       Exit("Can't initialize physics."
-         #if WINDOWS
+         /*#if WINDOWS
            "\nPlease make sure you have PhysX DLL files in the path specified in 'Physics.create' method."
          #elif LINUX
            "\nPlease make sure you have PhysX SO files in the application's \"Bin\" folder."
-         #endif
+         #endif*/
           );
    return T;
 }
@@ -673,7 +673,7 @@ void PhysxClass::del()
    PhysXFoundation.del();
 #endif
 }
-Bool PhysxClass::create(Str dll_path, Bool hardware)
+Bool PhysxClass::create(Bool hardware)
 {
    Bool ok=false;
 #if PHYSX_DLL_ACTUAL
