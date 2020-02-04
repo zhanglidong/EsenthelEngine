@@ -1,3 +1,11 @@
+/******************************************************************************
+
+   Create classes based on 'PtrCounter' that will hold information about how many pointers are accessing class objects.
+
+   Access existing objects with 'CountedPtr' pointers.
+      When pointing to the object for the first time, its   'load' method will be called.
+      When there are no more pointers to this object, its 'unload' method will be called.
+
 /******************************************************************************/
 struct PtrCounter
 {
