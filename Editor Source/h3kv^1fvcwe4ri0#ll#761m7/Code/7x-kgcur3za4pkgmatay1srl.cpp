@@ -33,7 +33,7 @@ class EditMaterial
    bool usesTexNormal()C {return  normal   >EPS_COL                 && hasNormalMap();}
    bool usesTexGlow  ()C {return  glow     >EPS_COL                 && glow_map.is ();}
    bool usesTexDetail()C {return  det_power>EPS_COL                 && hasDetailMap();}
-   bool wantTanBin   ()C
+   bool needTanBin   ()C
    {
       return usesTexBump  ()
           || usesTexNormal()

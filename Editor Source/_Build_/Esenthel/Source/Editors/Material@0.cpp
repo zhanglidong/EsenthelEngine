@@ -1036,7 +1036,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    {
       if(elm && game)
       {
-         bool want_tan_bin=game->wantTanBin();
+         bool want_tan_bin=game->needTanBin();
 
          uint new_base_tex;
          if(auto_reload || always)
@@ -1051,14 +1051,14 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          D.setShader(game());
          toGui();
 
-         if(want_tan_bin!=game->wantTanBin())Proj.mtrlSetAutoTanBin(elm->id);
+         if(want_tan_bin!=game->needTanBin())Proj.mtrlSetAutoTanBin(elm->id);
       }
    }
    void MaterialRegion::rebuildDetail()
    {
       if(elm && game)
       {
-         bool want_tan_bin=game->wantTanBin();
+         bool want_tan_bin=game->needTanBin();
 
          Proj.mtrlCreateDetailTexture(edit);
          setChanged();
@@ -1068,7 +1068,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          D.setShader(game());
          toGui();
 
-         if(want_tan_bin!=game->wantTanBin())Proj.mtrlSetAutoTanBin(elm->id);
+         if(want_tan_bin!=game->needTanBin())Proj.mtrlSetAutoTanBin(elm->id);
       }
    }
    void MaterialRegion::rebuildMacro()

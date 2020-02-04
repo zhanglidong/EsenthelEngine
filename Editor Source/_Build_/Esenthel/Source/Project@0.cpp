@@ -1811,7 +1811,7 @@ void DrawProject()
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
-                  bool        want_tan_bin=game->wantTanBin();
+                  bool        want_tan_bin=game->needTanBin();
                   uint        new_base_tex=edit.baseTex(); // use estimated base tex
 
                   if(reload_textures)
@@ -1832,7 +1832,7 @@ void DrawProject()
                   Server.setElmLong(elm_id);
 
                   // process dependencies
-                  if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+                  if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
                   if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_LIGHT))mtrlTexChanged();
                   D.setShader(game());
                }
@@ -1846,7 +1846,7 @@ void DrawProject()
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
-                //bool         want_tan_bin=game->wantTanBin();
+                //bool         want_tan_bin=game->needTanBin();
                   uint         new_base_tex=edit.baseTex(); // use estimated base tex
 
                   if(reload_textures)
@@ -1867,7 +1867,7 @@ void DrawProject()
                   Server.setElmLong(elm_id);
 
                   // process dependencies
-                //if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+                //if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
                   if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_LIGHT))mtrlTexChanged();
                 //D.setShader(game());
                }
@@ -1910,7 +1910,7 @@ void DrawProject()
          if(uint changed=edit.sync(mtrl)) // if changed anything
          {
             WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
-          //bool         want_tan_bin=game->wantTanBin();
+          //bool         want_tan_bin=game->needTanBin();
             uint         new_base_tex=edit.baseTex(); // use estimated base tex
 
             if(reload_textures)
@@ -1931,7 +1931,7 @@ void DrawProject()
             Server.setElmLong(elm_id);
 
             // process dependencies
-          //if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+          //if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
             if(changed&(EditWaterMtrl::CHANGED_BASE|EditWaterMtrl::CHANGED_DET|EditWaterMtrl::CHANGED_MACRO|EditWaterMtrl::CHANGED_LIGHT))mtrlTexChanged();
           //D.setShader(game());
          }
@@ -1974,7 +1974,7 @@ void DrawProject()
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
-                  bool        want_tan_bin=game->wantTanBin();
+                  bool        want_tan_bin=game->needTanBin();
                   uint        new_base_tex=edit.baseTex(); // use estimated base tex
 
                   if(reload_textures)
@@ -1995,7 +1995,7 @@ void DrawProject()
                   Server.setElmLong(elm_id);
 
                   // process dependencies
-                  if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+                  if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
                   D.setShader(game());
                }
             }return true;
@@ -2206,7 +2206,7 @@ void DrawProject()
                // load
                EditMaterial edit; if(!mtrlGet(elm_id, edit))return false;
                MaterialPtr  game=gamePath(elm_id); if(!game)return false;
-               bool         want_tan_bin=game->wantTanBin();
+               bool         want_tan_bin=game->needTanBin();
 
                // reload
                if(base  )mtrlCreateBaseTextures (edit);
@@ -2221,7 +2221,7 @@ void DrawProject()
                Server.setElmLong(elm_id);
 
                // process dependencies
-               if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
+               if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
                D.setShader(game());
             }return true;
 

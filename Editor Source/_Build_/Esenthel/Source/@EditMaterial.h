@@ -34,7 +34,7 @@ class EditMaterial
    bool usesTexNormal()C;
    bool usesTexGlow  ()C;
    bool usesTexDetail()C;
-   bool wantTanBin   ()C;
+   bool needTanBin   ()C;
 
    bool equal(C EditMaterial &src)C;
    bool newer(C EditMaterial &src)C;

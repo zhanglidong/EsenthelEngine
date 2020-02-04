@@ -15,7 +15,7 @@
    bool EditMaterial::usesTexNormal()C {return  normal   >EPS_COL                 && hasNormalMap();}
    bool EditMaterial::usesTexGlow()C {return  glow     >EPS_COL                 && glow_map.is ();}
    bool EditMaterial::usesTexDetail()C {return  det_power>EPS_COL                 && hasDetailMap();}
-   bool EditMaterial::wantTanBin()C
+   bool EditMaterial::needTanBin()C
    {
       return usesTexBump  ()
           || usesTexNormal()

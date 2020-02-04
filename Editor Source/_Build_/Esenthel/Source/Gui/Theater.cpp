@@ -149,8 +149,8 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    void TheaterClass::draw(C UID &elm_id, C Mesh &mesh, C Rect &rect)
    {
       Matrix matrix=getMatrix(elm_id, mesh.ext, rect);
-      int elms=ElmMatrixes.elms(); ElmMatrixPtr elm_matrix=Proj.gamePath(elm_id);
-      if(elms!=ElmMatrixes.elms())elm_matrix->matrix=matrix; // if just added then copy matrix
+      int elms =ElmMatrixes.elms(); ElmMatrixPtr elm_matrix=Proj.gamePath(elm_id);
+      if( elms!=ElmMatrixes.elms())elm_matrix->matrix=matrix; // if just added then copy matrix
       mesh.MeshLod::draw(matrix, elm_matrix->matrix); // use best LOD
       elm_matrix->matrix=matrix; // remember matrix
    }
