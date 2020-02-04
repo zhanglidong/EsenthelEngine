@@ -15,14 +15,14 @@
 struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
 {
    Extent ext       ; // bounding box
-   Vec    lod_center; // mesh center position used for calculating lod level, usually equal to "ext.pos"
+   Vec    lod_center; // mesh center position used for calculating LOD level, usually equal to "ext.pos"
 
    Int      lods(     )C {return     _lods.elms()+1                  ;} // get number of Level of Details including self
    MeshLod& lod (Int i)  {return i ? _lods[i-1] :                  T ;} // return  i-th  Level of Detail
  C MeshLod& lod (Int i)C {return i ? _lods[i-1] : SCAST(C MeshLod, T);} // return  i-th  Level of Detail
 
    Skeleton*  skeleton(                                      )C {return _skeleton;} // get Skeleton linked with this Mesh
-   Mesh&      skeleton(Skeleton *skeleton, Bool by_name=false);                     // link Mesh with specified Skeleton file, avoid calling this realtime as it requires adjusting the vertex skinning information (bone indexes) and re-creating the hardware mesh version, 'by_name'=if remap by bone name only and ignore type/indexes
+   Mesh&      skeleton(Skeleton *skeleton, Bool by_name=false);                     // link  Mesh with specified Skeleton file, avoid calling this realtime as it requires adjusting the vertex skinning information (bone indexes) and re-creating the hardware mesh version, 'by_name'=if remap by bone name only and ignore type/indexes
    Mesh& clearSkeleton(                                      );                     // clear Mesh link to skeleton and remove all information related to vertex bone mapping
 
    Enum*   drawGroupEnum(                                       )C {return _draw_group_enum;} // get enum used for specifying draw groups in all parts for this Mesh, you should pass this value to 'MeshPart.drawGroup' method
@@ -171,9 +171,9 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    Mesh& remove(Int i, Bool set_box=true); // remove i-th MeshPart, 'set_box'=if recalculate bounding box
 
    MeshLod&    newLod(     ); // add empty   MeshLod
-   MeshLod&    newLod(Int i); // add empty   MeshLod at i lod index
+   MeshLod&    newLod(Int i); // add empty   MeshLod at 'i' LOD index
    Mesh   & removeLod(Int i); // remove i-th MeshLod
-   Mesh   &   setLods(Int n); // set n levels of MeshLod's, new lods will be empty
+   Mesh   &   setLods(Int n); // set n levels of MeshLod's, new LODs will be empty
 
    // optimize
 #if EE_PRIVATE

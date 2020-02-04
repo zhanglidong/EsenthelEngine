@@ -88,9 +88,9 @@ enum MESH_SIMPLIFY : Byte
 enum MESH_AO_FUNC : Byte
 {
    MAF_FULL      , // 0
-   MAF_QUARTIC   , // Sqr(Sqr(x))
-   MAF_SQUARE    , //     Sqr(x)
-   MAF_LINEAR    , //         x
+   MAF_QUARTIC   , // Quart(x)
+   MAF_SQUARE    , //   Sqr(x)
+   MAF_LINEAR    , //       x
    MAF_LINEAR_REV, // 2-2/(x+1)
    MAF_SQUARE_REV, // 1-Sqr(1-x)
 };
