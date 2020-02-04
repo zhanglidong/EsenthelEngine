@@ -34,9 +34,9 @@ bool Init()
       m.ambient=1;
       switch(i)
       {
-         case 0: m.color.xyz.set(1  , 1, 0.5); break;
-         case 1: m.color.xyz.set(0.5, 1, 1  ); break;
-         case 2: m.color.xyz.set(0.5, 1, 0.5); break;
+         case 0: m.colorS(Vec4(1  , 1, 0.5, 1)); break;
+         case 1: m.colorS(Vec4(0.5, 1, 1  , 1)); break;
+         case 2: m.colorS(Vec4(0.5, 1, 0.5, 1)); break;
       }
       m.validate();
    }
@@ -80,14 +80,14 @@ bool Update()
    }
 
    // change settings
-   if(Kb.c('1'))lights=1;
-   if(Kb.c('2'))lights=2;
-   if(Kb.c('3'))lights=3;
+   if(Kb.k('1'))lights=1;
+   if(Kb.k('2'))lights=2;
+   if(Kb.k('3'))lights=3;
 
-   if(Kb.c('q'))D.bumpMode(BUMP_FLAT    );
-   if(Kb.c('w'))D.bumpMode(BUMP_NORMAL  );
-   if(Kb.c('e'))D.bumpMode(BUMP_PARALLAX);
-   if(Kb.c('r'))D.bumpMode(BUMP_RELIEF  );
+   if(Kb.k('q'))D.bumpMode(BUMP_FLAT    );
+   if(Kb.k('w'))D.bumpMode(BUMP_NORMAL  );
+   if(Kb.k('e'))D.bumpMode(BUMP_PARALLAX);
+   if(Kb.k('r'))D.bumpMode(BUMP_RELIEF  );
 
    return true;
 }

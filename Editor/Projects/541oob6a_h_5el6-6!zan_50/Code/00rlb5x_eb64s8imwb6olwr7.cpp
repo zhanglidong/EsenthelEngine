@@ -14,7 +14,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    decal.terrain_only=true;
    decal.color.set(1, 1, 0, 1);
@@ -53,13 +53,15 @@ bool Update()
       }
    }
 
-   // rotate camera
+   // update camera
+   Cam.updateBegin();
    if(Ms.b(1))
    {
       Cam.yaw  -=Ms.d().x;
       Cam.pitch+=Ms.d().y;
    }
-   if(Chrs.elms())Cam.setSpherical(Chrs[0].pos(), Cam.yaw, Cam.pitch, 0, Cam.dist*ScaleFactor(Ms.wheel()*-0.2)).updateVelocities().set();
+   if(Chrs.elms())Cam.setSpherical(Chrs[0].pos(), Cam.yaw, Cam.pitch, 0, Cam.dist*ScaleFactor(Ms.wheel()*-0.2));
+   Cam.updateEnd().set();
 
    // rotate decal around its z axis
    decal.matrix.rotateZL(Time.d());

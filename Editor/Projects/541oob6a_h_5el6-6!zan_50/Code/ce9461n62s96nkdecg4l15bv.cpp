@@ -1,8 +1,8 @@
 /******************************************************************************/
 // defined play lists
-Playlist Battle , // this is battle playlist used for playing when battles
-         Explore, // exploring playlist
-         Calm   ; // calm playlist
+Playlist Battle   , // this is battle playlist used for playing when battles
+         Exploring, // exploring playlist
+         Calm     ; // calm playlist
 /******************************************************************************/
 void InitPre()
 {
@@ -16,9 +16,9 @@ bool Init()
       Battle+=UID(179898080, 1327326228, 2705071249, 4171399536); // add "battle0" track to 'Battle' playlist
       Battle+=UID(746976398, 1110313615, 3079654847, 358289912);  // add "battle1" track to 'Battle' playlist
    }
-   if(!Explore.songs()) // create 'Explore' playlist if not yet created
+   if(!Exploring.songs()) // create 'Exploring' playlist if not yet created
    {
-      Explore+=UID(2222101198, 1138675473, 1518921890, 1804050639); // add "explore" track to 'Explore' playlist
+      Exploring+=UID(2222101198, 1138675473, 1518921890, 1804050639); // add "explore" track to 'Exploring' playlist
    }
    if(!Calm.songs()) // create 'Calm' playlist if not yet created
    {
@@ -34,10 +34,10 @@ void Shut()
 bool Update()
 {
    if(Kb.bp(KB_ESC))return false;
-   if(Kb.c('1'))Music.play(Battle );
-   if(Kb.c('2'))Music.play(Explore);
-   if(Kb.c('3'))Music.play(Calm   );
-   if(Kb.c('4'))Music.play(null      );
+   if(Kb.k('1'))Music.play(Battle   );
+   if(Kb.k('2'))Music.play(Exploring);
+   if(Kb.k('3'))Music.play(Calm     );
+   if(Kb.k('4'))Music.play(null     );
    return true;
 }
 /******************************************************************************/

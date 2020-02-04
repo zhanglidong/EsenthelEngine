@@ -23,7 +23,7 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
 
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Cam.dist =10;
    Cam.yaw  =-PI_4;

@@ -16,7 +16,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    // set world active range to match the view range
    Game.World.activeRange(D.viewRange());

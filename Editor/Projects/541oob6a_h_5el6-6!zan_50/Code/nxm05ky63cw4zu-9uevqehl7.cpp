@@ -11,10 +11,10 @@
 /******************************************************************************/
 class GuiCircle : GuiCustom // Create a new class extending the default Gui Button
 {
-   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel) // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and NULL in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or NULL
+   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel) // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and 'null' in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or NULL
    {
       Circle circle(rect().size().min()*0.5, rect().center()+gpc.offset); // specify screen space circle
-      return Cuts(pos, circle) ? super.test(gpc, pos, mouse_wheel) : null; // proceed with testing only if the position intersects with the circle, in other case return NULL to specify that the position does not intersect with any object
+      return Cuts(pos, circle) ? super.test(gpc, pos, mouse_wheel) : null; // proceed with testing only if the position intersects with the circle, in other case return 'null' to specify that the position does not intersect with any object
    }
    virtual void draw(C GuiPC &gpc) // extend drawing
    {

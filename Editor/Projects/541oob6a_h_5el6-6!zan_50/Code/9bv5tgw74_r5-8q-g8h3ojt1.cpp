@@ -13,15 +13,16 @@ class Player
    void update()
    {
       // set skeleton animation
-      skel.clear()
+      skel.updateBegin()
+          .clear()
           .animate(UID(3342756396, 1285211226, 524185523, 499551746)  , Time.time()) // animate with "left fist" animation
           .animate(UID(2565101787, 1333856922, 4140992683, 1310585985), Time.time()) // animate with "right fist" animation
           .animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()) // animate with "walk" animation
-          .updateMatrix(MatrixIdentity)
-          .updateVelocities();
+          .updateMatrix()
+          .updateEnd();
 
       // set bounding ball
-      if(body)bounding_ball.setAnimated(body->box, skel);else bounding_ball.set(2, skel.pos());
+      if(body)bounding_ball.setAnimated(body->ext, skel);else bounding_ball.set(2, skel.pos());
    }
 
    // draw
@@ -90,7 +91,7 @@ bool Init()
    // setup player data
    player.createDefault();
 
-   if(player.body)Cam.at=player.body->box.center(); // adjust camera to mesh center
+   if(player.body)Cam.at=player.body->ext.center; // adjust camera to mesh center
 
    return true;
 }

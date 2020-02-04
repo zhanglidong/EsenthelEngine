@@ -56,7 +56,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
    ground .create(Box(15, 1, 15, Vec(0, -2, 0)), 0);
 
    player.create(*ObjectPtr(UID(2919624831, 1261075521, 753053852, 3651670215))); // create player from object parameters
@@ -76,7 +76,7 @@ bool Update()
 
    player.update(); // update player
 
-   Cam.setSpherical(player.ctrl.actor.pos()+Vec(0, 1, 0), player.angle.x, player.angle.y, 0, Cam.dist*ScaleFactor(Ms.wheel()*-0.2)).updateVelocities().set(); // update camera according to player angles and mouse wheel
+   Cam.updateBegin().setSpherical(player.ctrl.actor.pos()+Vec(0, 1, 0), player.angle.x, player.angle.y, 0, Cam.dist*ScaleFactor(Ms.wheel()*-0.2)).updateEnd().set(); // update camera according to player angles and mouse wheel
 
    return true;
 }

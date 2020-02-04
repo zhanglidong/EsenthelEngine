@@ -46,7 +46,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType (Players, OBJ_CHR)
@@ -88,11 +88,12 @@ bool Update()
 
       // now the ball.pos is located at either maximum movement distance or at nearest collision point
       // having ball's position we can now set the final camera position
+      Cam.updateBegin();
+
       Cam.setPosDir(ball.pos, desired_camera.matrix.z, desired_camera.matrix.y); // we'll use 'desired_camera.matrix' directions which were set in 'setSpherical' camera method
 
-      Cam.updateVelocities().set(); // update camera velocities and activate it
-   }
-   else // when no player on the scene
+      Cam.updateEnd().set(); // update camera velocities and activate it
+   }else // when no player on the scene
    {
       Cam.transformByMouse(0.1, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT)); // default camera handling actions
    }

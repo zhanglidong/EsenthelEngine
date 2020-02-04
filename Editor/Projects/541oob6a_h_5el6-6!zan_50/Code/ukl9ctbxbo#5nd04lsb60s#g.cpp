@@ -17,7 +17,7 @@ bool Init()
    Cam.dist =4;
    Cam.pitch=-0.2;
 
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
    ground .create(Box_U(15, 1, 15, Vec(0,0,0)), 0);
    ball   .create(Ball (0.3, Vec(-1, 0.3, 0))).vel(Vec(5, 0, 0)); // create a ball on ground and set its initial velocity to right
 

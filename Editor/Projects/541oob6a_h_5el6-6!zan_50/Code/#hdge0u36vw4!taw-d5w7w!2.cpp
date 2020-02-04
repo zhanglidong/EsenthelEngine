@@ -11,7 +11,7 @@ bool Init()
 {
    Cam.setSpherical(Vec(0, 0, -2), 0, -0.7, 0, 6).set(); // set camera position and activate it
 
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    ground.create(Box(15, 1, 15, Vec(0, -2, 0)), 0); // create ground
    obj   .create(Box(0.3                     )   ); // create object

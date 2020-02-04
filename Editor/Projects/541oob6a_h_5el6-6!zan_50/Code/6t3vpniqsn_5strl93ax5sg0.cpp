@@ -13,7 +13,7 @@ bool Init()
 {
    Cam.dist=4;
 
-   Physics.create(EE_PHYSX_DLL_PATH); // create physics by specifying the path to physx dll's
+   Physics.create();
    ground .create(Box (15, 1, 15, Vec(0, -2, 0)), 0);
    ball   .create(Ball(0.3, Vec(0, 1.3, 0)));
 

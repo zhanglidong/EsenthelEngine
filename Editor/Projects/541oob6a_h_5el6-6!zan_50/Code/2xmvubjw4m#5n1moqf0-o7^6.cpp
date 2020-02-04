@@ -35,7 +35,7 @@ bool Update()
 
    // set animations
    {   
-      skel.clear(); // clear skeleton animation
+      skel.updateBegin().clear(); // clear skeleton animation
 
       // move forward
       if(Kb.b(KB_W))
@@ -63,7 +63,7 @@ bool Update()
       Matrix m; m.setRotateY(angle).move(pos);
 
       // finalize
-      skel.updateMatrix(m).updateVelocities();
+      skel.updateMatrix(m).updateEnd();
    }
 
    return true;

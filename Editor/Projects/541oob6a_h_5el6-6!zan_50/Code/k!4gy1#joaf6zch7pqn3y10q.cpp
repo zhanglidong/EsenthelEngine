@@ -33,13 +33,12 @@ bool Update()
 
    // set animations
    {   
-      skel.clear().animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()); // set default walking animation
+      skel.updateBegin().clear().animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()); // set default walking animation
 
       Orient &head=skel.getBone("head").orn;            // get head bone orientation
       head*=Matrix3().setRotateZ(Sin(Time.time()*1.2)); // rotate head orientation according to time
 
-      skel.updateMatrix(MatrixIdentity) // update all matrixes
-          .updateVelocities();          // update all bone velocities
+      skel.updateMatrix().updateEnd(); // update all matrixes
    }
 
    return true;

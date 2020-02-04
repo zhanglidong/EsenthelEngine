@@ -16,7 +16,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType (Chrs, OBJ_CHR)
@@ -48,7 +48,7 @@ bool Update()
       if(Kb.bp(KB_E))if(chr.ragdollBlend())if(Ragdoll.Bone *bone=chr.ragdoll.findBone("FootR"))bone.actor.addVel(Vec(0, 0, 4));
       if(Kb.bp(KB_R))if(chr.ragdollBlend())if(Ragdoll.Bone *bone=chr.ragdoll.findBone("HandR"))bone.actor.addVel(Vec(0, 0, 4));
 
-      Cam.setSpherical(Cam.at, Cam.yaw-Ms.d().x, Cam.pitch+Ms.d().y, 0, Max(0.1, Cam.dist*ScaleFactor(Ms.wheel()*-0.2))).updateVelocities().set();
+      Cam.updateBegin().setSpherical(Cam.at, Cam.yaw-Ms.d().x, Cam.pitch+Ms.d().y, 0, Max(0.1, Cam.dist*ScaleFactor(Ms.wheel()*-0.2))).updateEnd().set();
    }
 
    return true;

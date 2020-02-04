@@ -20,6 +20,8 @@ bool Update()
 {
    if(Kb.bp(KB_ESC))return false;
 
+   Cam.updateBegin(); // begin update
+
    // settings
    Cam.yaw  -=Ms.d().x;                         // modify yaw      according to mouse delta x
    Cam.pitch+=Ms.d().y;                         // modify pitch    according to mouse delta y
@@ -33,9 +35,9 @@ bool Update()
    if(Kb.b(KB_DOWN ))Cam.at-=Cam.matrix.y*Time.d(); // move camera down  on down  arrow key
 
    // camera
-   Cam.setSpherical    (Cam.at, Cam.yaw, Cam.pitch, Cam.roll, Cam.dist); // set spherical camera with 'look at' position, angles and distance
-   Cam.updateVelocities(                                              ); // after camera settings are up, we need to update camera velocities in order to achieve correct motion blur when enabled
-   Cam.set             (                                              ); // set as active camera
+   Cam.setSpherical(Cam.at, Cam.yaw, Cam.pitch, Cam.roll, Cam.dist); // set spherical camera with 'look at' position, angles and distance
+   Cam.updateEnd   (                                              ); // end update
+   Cam.set         (                                              ); // set as active camera
 
    return true;
 }

@@ -13,7 +13,7 @@
       using "Uploader" tool with following options:
          Http Directory: "http://www.esenthel.com/download/Patcher"
          Upload Name   : "Test"
-         Secure        :  NULL
+         Secure        :  null
 
 /******************************************************************************/
 const_mem_addr class PakFileDataEx : PakFileData

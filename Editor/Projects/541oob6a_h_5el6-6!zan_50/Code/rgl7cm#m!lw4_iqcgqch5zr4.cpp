@@ -57,6 +57,7 @@ bool Update()
    if(Kb.bp(KB_R))VR.recenter();
 
    // set camera based on VR input
+   Cam.updateBegin();
    mouse_yaw-=Ms.d().x;
    Vec angles=VR.matrix().angles();
    Cam.at   = VR.matrix().pos*Matrix3().setRotateY(-mouse_yaw);
@@ -64,7 +65,7 @@ bool Update()
    Cam.pitch=-angles.x;
    Cam.roll =-angles.z;
    Cam.dist =0;
-   Cam.setSpherical().updateVelocities().set();
+   Cam.setSpherical().updateEnd().set();
 
    return true;
 }

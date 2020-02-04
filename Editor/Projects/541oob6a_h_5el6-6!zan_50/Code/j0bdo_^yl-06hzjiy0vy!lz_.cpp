@@ -32,14 +32,15 @@ bool Update()
    Cam.transformByMouse(0.1, 10, CAMH_ROT|CAMH_ZOOM);
 
    // set animations
-   {   
-      skel.clear();      // clear skeleton animation
-      if(Kb.b(KB_SPACE)) // when space pressed
+   {
+      skel.updateBegin(); // begin update
+      skel.clear();       // clear skeleton animation
+      if(Kb.b(KB_SPACE))  // when space pressed
       {
          skel.animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()); // animate with "walk" animation and current time position
       }
-      skel.updateMatrix    (MatrixIdentity); // update skeleton animation matrixes
-      skel.updateVelocities(              ); // update skeleton bone velocities (this is needed for Motion Blur effect)
+      skel.updateMatrix(); // update skeleton animation matrixes
+      skel.updateEnd   (); // end update
    }
 
    return true;

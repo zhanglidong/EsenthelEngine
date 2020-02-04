@@ -7,7 +7,7 @@ Ragdoll          ragdoll; // ragdoll
 /******************************************************************************/
 void SetPose()
 {
-   skel.clear().updateMatrix(Matrix().setRotateX(0.45).move(Vec(0, 3, 0))).updateVelocities(); // set skeleton animation to default pose and custom matrix
+   skel.updateBegin().clear().updateMatrix(Matrix().setRotateX(0.45).move(Vec(0, 3, 0))).updateEnd(); // set skeleton animation to default pose and custom matrix
 
    ragdoll.fromSkel(skel); // setup ragdoll from skeleton animation
 }
@@ -24,7 +24,7 @@ void InitPre()
 }
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    ground.create(Box_U(15, 1, 15, Vec(0, -1, 0)), 0);
    REPA(box)box[i].create(Box(1, Vec(0, i*0.5-0.5, i*-0.4-0.3)), 0);

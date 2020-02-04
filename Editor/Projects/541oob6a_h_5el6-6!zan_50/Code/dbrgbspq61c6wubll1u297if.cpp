@@ -16,7 +16,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    actors.New().create(Plane(Vec(0, -1, 0), Vec(0, 1, 0))); // create ground
 
@@ -60,9 +60,10 @@ bool Update()
    vehicle.angle(angle).accel(accel).brake(brake);
 
    // setup camera
+   Cam.updateBegin();
    Cam.at =vehicle.pos();
    Cam.yaw=Angle(vehicle.matrix().z.xz())-PI_2;
-   Cam.setSpherical().updateVelocities(CAM_ATTACH_ACTOR).set();
+   Cam.setSpherical().updateEnd().set();
 
    return true;
 }

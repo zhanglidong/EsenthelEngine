@@ -16,7 +16,7 @@ void ViewportDraw(Viewport &viewport) // function wich will be called when drawi
 
    // simple rendering
    D.clear(BLACK);
-   SetMatrix(MatrixIdentity);
+   SetMatrix();
    Box(1, Vec(0,0,0)).draw(WHITE);
 }
 /******************************************************************************/
@@ -46,10 +46,12 @@ bool Update()
    if(Kb.bp(KB_ESC))return false;
    Gui.update();
    
+   REPAO(camera).updateBegin();
+   
    // now we'll modify camera angles and distance
    // first we'll detect which camera to update
    {
-      Camera *cam=NULL; // start with none
+      Camera *cam=null; // start with none
 
       // 'Gui.viewport' specifies current Viewport under mouse cursor
       if(Gui.ms()==&viewport[0])cam=&camera[0];else
@@ -73,7 +75,7 @@ bool Update()
    }
 
    // update all camera velocities, this is needed when using Motion Blur effect
-   REPA(camera)camera[i].updateVelocities();
+   REPAO(camera).updateEnd();
 
    return true;
 }

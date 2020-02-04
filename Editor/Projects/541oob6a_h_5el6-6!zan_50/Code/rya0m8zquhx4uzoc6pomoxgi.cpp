@@ -13,7 +13,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .New(UID(3692432343, 1256681024, 2863582642, 4182715660));

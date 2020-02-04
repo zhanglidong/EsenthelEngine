@@ -39,7 +39,7 @@ class Player : Game.Chr
    virtual void drawOverlay() // extend drawing to include rendering shadow
    {
       blob_shadow.matrix.setPosDir(ctrl.center()-Vec(0, ctrl.height()/2, 0), Vec(0, 1, 0)).scaleOrn(0.9);
-      blob_shadow.drawStatic(0.4);
+      blob_shadow.drawStatic();
    }
 }
 /******************************************************************************/
@@ -53,9 +53,9 @@ class Item : Game.Item
    {
       if(mesh)
       {
-         Box box=mesh->box*matrix();
+         Box box=mesh->ext*matrix();
          blob_shadow.matrix.setPosDir(box.down(), Vec(0, 1, 0)).scaleOrn(Avg(box.w(), box.d())*0.7);
-         blob_shadow.drawStatic(0.4);
+         blob_shadow.drawStatic();
       }
    }
 }
@@ -76,7 +76,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType(Players, OBJ_CHR)
@@ -86,6 +86,7 @@ bool Init()
 
    // setup blob shadow decal
    blob_shadow.terrain_only=true;
+   blob_shadow.color.w=0.7;
    blob_shadow.material(UID(2583141124, 1087004963, 3177178549, 2752130458));
 
    return true;
@@ -100,9 +101,10 @@ void SetCamera()
 {
    if(Players.elms())
    {
+      Cam.updateBegin();
       Cam.dist=Max(1.0, Cam.dist*ScaleFactor(Ms.wheel()*-0.1));
       Cam.setSpherical(Players[0].pos()+Vec(0, 0.5, 0), Players[0].angle.x, Players[0].angle.y, 0, Cam.dist);
-      Cam.updateVelocities().set();
+      Cam.updateEnd().set();
    }else
    {
       Cam.transformByMouse(0.1, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT));

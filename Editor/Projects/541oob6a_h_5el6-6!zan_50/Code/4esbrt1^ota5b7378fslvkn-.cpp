@@ -15,7 +15,7 @@ bool Init()
 {
    Cam.dist=4;
 
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
    ground .create(Box(15, 1, 15, Vec(0, -2, 0)), 0);
 
    Box_D b(2, 2, 0.2);

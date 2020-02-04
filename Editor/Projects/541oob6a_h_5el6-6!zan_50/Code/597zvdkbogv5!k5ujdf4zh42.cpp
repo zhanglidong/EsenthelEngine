@@ -45,7 +45,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    heightmap.create(32, 0, grass_id, false, null, null, null, null, null, null, null, null); // create heightmap
 

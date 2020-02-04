@@ -14,7 +14,7 @@ bool Init()
    Cam.dist=4;
 
    // create physics
-   Physics.create(EE_PHYSX_DLL_PATH); // create physics by specifying the path to physx dll's
+   Physics.create();
 
    // create actors
    ground.create(Box (15, 1, 15, Vec(0.0, -2, 0)), 0); // create ground actor from Box and density=0 (which means it's a static actor - will not move)

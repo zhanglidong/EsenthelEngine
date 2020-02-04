@@ -13,7 +13,6 @@ void InitPre()
    EE_INIT();
    D.ambientPowerS(0.25);
    D.screen_changed=Resize;
-   D.highPrecNrmCalc(true);
    Cam.dist =5;
    Cam.yaw  = LocationLongitude();
    Cam.pitch=-LocationLatitude ();
@@ -40,6 +39,8 @@ void Shut()
 bool Update()
 {
    if(Kb.bp(KB_ESC))return false;
+
+   Cam.updateBegin();
 
    // rotate and zoom with mouse and touch
    Touch *t[2]={null, null}; int num=0; FREPA(Touches)if(Touches[i].on() && OnWorld(Touches[i].guiObj()) && (Touches[i].stylus() ? Touches[i].life()>0.05 || Touches[i].selecting() : true)){t[num]=&Touches[i]; num++; if(!InRange(num, t))break;} // get first two touches on the screen (for styluses require also minimum time to avoid single tap jitter)
@@ -73,7 +74,7 @@ bool Update()
       Cam.yaw  =-angles.y;
       Cam.pitch=-angles.x;
    }
-   Cam.setSpherical().updateVelocities().set();
+   Cam.setSpherical().updateEnd().set();
 
    DateTime dt; dt.getLocal(); // get local time
    flt hour     =dt.hour+(dt.minute+dt.second/60.0)/60.0; // convert that to hour [0..24)

@@ -9,7 +9,7 @@ class Chr : Game.Chr
    {
       if(mesh)if(Frustum(Ball().setAnimated(mesh->ext, skel)))
       {
-         SetBehindBias(mesh->ext.h()*skel.scale());
+         SetBehindBias(mesh->ext.h());
          mesh->drawBehind(Color(64, 128, 255, 255), Color(255, 255, 255, 0), skel);
       }
    }
@@ -29,7 +29,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType (Items, OBJ_ITEM)
@@ -49,9 +49,8 @@ void SetCamera()
 {
    if(Chrs.elms())
    {
-      Cam.setSpherical(Chrs[0].ctrl.center(), Time.time(), 0, 0, 17).updateVelocities().set();
-   }
-   else
+      Cam.updateBegin().setSpherical(Chrs[0].ctrl.center(), Time.time(), 0, 0, 17).updateEnd().set();
+   }else
    {
       Cam.transformByMouse(0.1, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT));
    }

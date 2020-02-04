@@ -19,7 +19,7 @@ void InitPre()
 bool Init()
 {
    Cam.dist=4;
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    bouncy.create().bounciness(1).bouncinessMode(PhysMtrl.MODE_MAX).damping(0);
 

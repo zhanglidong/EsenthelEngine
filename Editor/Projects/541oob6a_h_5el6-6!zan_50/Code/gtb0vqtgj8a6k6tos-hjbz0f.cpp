@@ -80,7 +80,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType (Players, OBJ_CHR)
@@ -112,12 +112,14 @@ void UpdateCamera()
    // setup the camera
    if(Players.elms()) // if we have at least one player
    {
+      Cam.updateBegin();
+      
       // set camera depending on current view mode
       switch(View)
       {
          case VIEW_FPP:
          {
-          C OrientP *head=Players[0].skel.getSlot("head"); // obtain player "head" skeleton slot (this was created in Object Editor)
+          C OrientM *head=Players[0].skel.getSlot("head"); // obtain player "head" skeleton slot (this was created in Object Editor)
             Cam.setPosDir(head.pos, head.dir, head.perp); // set camera from 'head' position, direction and perpendicular to direction
          }break;
 
@@ -138,7 +140,7 @@ void UpdateCamera()
       }
 
       // after setting camera position and angles:
-      Cam.updateVelocities().set(); // update camera velocities and activate it
+      Cam.updateEnd().set(); // update camera velocities and activate it
    }else // when no player on the scene
    {
       Cam.transformByMouse(0.1, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT)); // default camera handling actions

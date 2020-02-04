@@ -11,7 +11,7 @@ void InitPre()
 bool Init()
 {
    Cam.dist=8;
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    ground.create(Box (8, 1, 8, Vec(0, -2, 0)), 0);
    object.create(Ball(1, Vec(0, 1, 0)));

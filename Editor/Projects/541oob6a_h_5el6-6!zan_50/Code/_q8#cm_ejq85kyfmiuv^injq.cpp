@@ -14,7 +14,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .setObjType (Items  , OBJ_ITEM)
@@ -34,11 +34,11 @@ void UpdateCamera()
 {
    if(Players.elms())
    {
+      Cam.updateBegin();
       Cam.dist=Max(1.0, Cam.dist*ScaleFactor(Ms.wheel()*-0.1));
       Cam.setSpherical(Players[0].ctrl.center()+Vec(0, 0.5, 0), Players[0].angle.x, Players[0].angle.y, 0, Cam.dist);
-      Cam.updateVelocities().set();
-   }
-   else // when no player on the scene
+      Cam.updateEnd().set();
+   }else // when no player on the scene
    {
       Cam.transformByMouse(0.1, 100, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT)); // default camera handling actions
    }

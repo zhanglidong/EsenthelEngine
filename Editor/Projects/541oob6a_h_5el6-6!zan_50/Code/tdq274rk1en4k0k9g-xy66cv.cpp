@@ -15,7 +15,7 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   Physics.create(EE_PHYSX_DLL_PATH);
+   Physics.create();
 
    Game.World.activeRange(D.viewRange())
              .New(UID(4053788456, 1284500709, 3533893555, 3086486877));
@@ -60,12 +60,12 @@ bool Update()
 
    // set sky color
    flt sky=Lerp(0.13, 1.0, Cbrt(Max(0, Sun.pos.y)));
-   Sky.atmosphericHorizonColor(Vec4(Vec(0.32, 0.46, 0.58)*sky, 1.0));
-   Sky.atmosphericSkyColor    (Vec4(Vec(0.16, 0.36, 0.54)*sky, 1.0));
+   Sky.atmosphericHorizonColorS(Vec4(Vec(0.32, 0.46, 0.58)*sky, 1.0));
+   Sky.atmosphericSkyColorS    (Vec4(Vec(0.16, 0.36, 0.54)*sky, 1.0));
 
    // update clouds
    Clouds.layered.update();
-   REP(Clouds.layered.layers())Clouds.layered.layer[i].color=ColorBrightness(sky);
+   REP(Clouds.layered.layers())Clouds.layered.layer[i].colorS(ColorBrightness(sky));
 
    return true;
 }

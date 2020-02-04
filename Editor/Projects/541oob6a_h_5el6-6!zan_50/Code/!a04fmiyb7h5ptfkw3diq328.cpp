@@ -5,7 +5,7 @@
    They can be used to render items in correct places.
 
    Skeleton slots can be accessed after animating skeleton through 'AnimatedSkeleton.getSlot' method,
-   which returns reference to OrientP class which is an orientation and position.
+   which returns reference to 'OrientM' class which is an orientation and position.
 
 /******************************************************************************/
 ObjectPtr        chr, item;
@@ -43,7 +43,7 @@ bool Update()
    Cam.transformByMouse(0.1, 10, CAMH_ROT|CAMH_ZOOM);
 
    // set animations
-   skel.clear().animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()).updateMatrix(MatrixIdentity).updateVelocities();
+   skel.updateBegin().clear().animate(UID(1746491013, 1251372253, 3930150308, 1129258799), Time.time()).updateMatrix().updateEnd();
 
    return true;
 }
@@ -61,7 +61,7 @@ void Render()
 
          // draw item in right hand
          {
-          C OrientP *hand_r=skel.getSlot("HandR");
+          C OrientM *hand_r=skel.getSlot("HandR");
             Matrix   m;
             m.setPosDir(hand_r.pos, hand_r.perp, hand_r.dir) // set position and directions according to skeleton slot
              .scaleOrn(0.35f);                               // scale down the matrix orientation a little, making the item smaller
