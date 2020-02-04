@@ -43,6 +43,9 @@ struct MaterialParams // Material Parameters
 };
 struct Material : MaterialParams // Mesh Rendering Material - contains render parameters and textures
 {
+#if EE_PRIVATE
+   // #MaterialTextureLayout
+#endif
    ImagePtr            base_0  , // base      texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha/Glow
                        base_1  , // base      texture #1, default=null, this texture contains data packed in following channel order: NormalX, NormalY
                        base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Smooth, Reflect, Bump, Alpha
@@ -53,7 +56,7 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
    MATERIAL_TECHNIQUE technique; // material technique  , default=MTECH_DEFAULT
 
    // get
-   Bool wantTanBin()C; // if this Material needs tangent/binormals
+   Bool needTanBin()C; // if this Material needs tangent/binormals
 
    // operations
    Material& validate(); // this needs to be called after manually changing the parameters/textures

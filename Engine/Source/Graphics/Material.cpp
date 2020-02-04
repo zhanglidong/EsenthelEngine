@@ -271,7 +271,7 @@ Bool Material::hasLeaf3D()C
    }
 }
 /******************************************************************************/
-Bool Material::wantTanBin()C
+Bool Material::needTanBin()C
 {
    // #MaterialTextureLayout
    return (base_1     && normal   >EPS_COL8         )  // normal        is in base_1

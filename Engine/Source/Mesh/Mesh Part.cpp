@@ -553,7 +553,7 @@ MeshPart& MeshPart::setAutoTanBin()
    if(!heightmap()) // heightmaps generate tan/bin from normal in the shader
    REP(variations())
       if(C MaterialPtr &material=variation(i)) // if any of the variation materials need tan/bin
-         if(material->wantTanBin())
+         if(material->needTanBin())
    {
       Bool base_is=base.is();
       if( !base_is)base.create(render);
