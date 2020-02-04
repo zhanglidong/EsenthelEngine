@@ -1047,6 +1047,7 @@ start:
 
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() // motion blur
          || hasTAA())                                           // TAA
+            if(!_mirror) // not for reflections (there motion is disabled, and TAA may be enabled so we can apply offsets, however we don't want velocity RT, also it would be set to 'taa_new_vel' which we don't want)
          {
          #if 1
             if(!_ctx->taa_new_vel)_ctx->taa_new_vel.get(rt_desc.type(IMAGERT_TWO_H));
