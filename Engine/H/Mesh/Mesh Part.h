@@ -49,7 +49,6 @@ struct MeshPart // Mesh Base + Mesh Render
 #if EE_PRIVATE
    MeshPart& remapMaterials(Byte new_index[4]);
    MeshPart& setUMM        ();
-   MeshPart& setRenderEx   (Bool optimize, Bool compress, Int lod_index);
 #endif
    MeshPart& delBase      (                                                 ); // delete software mesh (MeshBase  )
    MeshPart& delRender    (                                                 ); // delete hardware mesh (MeshRender)

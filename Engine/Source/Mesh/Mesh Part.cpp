@@ -455,17 +455,15 @@ MeshPart& MeshPart::setUMM()
   _umm=(multiMaterial(1) ? UniqueMultiMaterialMap(UniqueMultiMaterialKey(multiMaterial(0)(), multiMaterial(1)(), multiMaterial(2)(), multiMaterial(3)())) : null);
    return T;
 }
-MeshPart& MeshPart::setRenderEx(Bool optimize, Bool compress, Int lod_index)
-{
-   render.create(base, ~0, optimize, compress);
-   setShader(lod_index);
-   return T;
-}
 MeshPart& MeshPart::delBase  (                            ) {base  .del(); return T;}
 MeshPart& MeshPart::delRender(                            ) {render.del(); return T;}
 MeshPart& MeshPart::setBase  (Bool only_if_empty          ) {if(only_if_empty ? !base.is() : true)base.create(render); return T;}
-MeshPart& MeshPart::setRender(Bool optimize, Int lod_index) {return setRenderEx(optimize, true, lod_index);}
-
+MeshPart& MeshPart::setRender(Bool optimize, Int lod_index)
+{
+   render.create(base, ~0, optimize, true);
+   setShader(lod_index);
+   return T;
+}
 void MeshPart::setShaderMulti(Int lod_index)
 {
  C Material *m[]=
