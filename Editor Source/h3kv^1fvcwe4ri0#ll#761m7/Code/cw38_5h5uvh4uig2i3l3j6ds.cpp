@@ -516,6 +516,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void Draw(Viewport &viewport) {if(Edit.Viewport4.View *view=ObjEdit.v4.getView(&viewport))ObjEdit.draw(*view);}
           void draw(Edit.Viewport4.View &view)
    {
+      if(BigVisible())return;
+
       int view_type=v4.getViewType(&view);
       mesh_matrix_prev_ptr=(InRange(view_type, mesh_matrix_prev) ? &mesh_matrix_prev[view_type] : null);
       view.camera.set();
