@@ -237,11 +237,11 @@ void PS
    IS_FRONT,
 #endif
 
-  out VecH4            outCol  :TARGET0
+  out VecH4 outCol  :TARGET0
 #if USE_VEL
-, out VEL_RT_TYPE_FULL outVel  :TARGET1
+, out VecH4 outVel  :TARGET1
 #endif
-, out Half             outAlpha:TARGET2 // #RTOutput.Blend
+, out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
    Half smooth, reflectivity;

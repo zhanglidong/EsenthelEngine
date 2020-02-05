@@ -184,7 +184,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Bool             multiSample       ()C {return _samples>1        ;} // get if Multi Sampling is used
                                                                 void             aspectRatioEx     (Bool force=true, Bool quiet=false);
                                                       constexpr Bool             signedNrmRT       ()C {return false             ;} // if Normal     Render Target  is  signed #SIGNED_NRM_RT
-                                                      constexpr Bool             signedVelRT       ()C {return true              ;} // if Velocity   Render Target  is  signed #SIGNED_VEL_RT
+                                                      constexpr Bool             signedVelRT       ()C {return true              ;} // if Velocity   Render Target  is  signed
                                                       constexpr Bool             signedMtnRT       ()C {return false             ;} // if MotionBlur Render Targets are signed #SIGNED_MTN_RT
                                                                 Flt              eyeDistance_2     ()C {return _eye_dist_2       ;}
                                                                 Bool             exclusiveFull     ()C;                             // if actually in exclusive full-screen mode

@@ -64,16 +64,13 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
 {
    need to update
    inVel/=inPos.z;
-#if !SIGNED_VEL_RT
-   inVel=inVel*0.5+0.5;
-#endif
    outVel=inVel;
 }
 /******************************************************************************/
-VEL_RT_TYPE GetVelocitiesCameraOnly(Vec view_pos, Vec2 uv)
+VecH2 GetVelocitiesCameraOnly(Vec view_pos, Vec2 uv)
 {
    Vec view_pos_prev=Transform(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev
-   VEL_RT_TYPE vel=PosToUV(view_pos_prev) - uv;
+   VecH2 vel=PosToUV(view_pos_prev) - uv;
    return vel; // this function always returns signed -1..1 version
 }
 /******************************************************************************/
@@ -96,29 +93,21 @@ VecH Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0
              #endif
                ):TARGET
 {
-   VEL_RT_TYPE blur;
+   VecH2 blur;
 #if MODE==0
    Vec pos=(CLAMP ? GetPosLinear(UVClamp(inTex, CLAMP)) : GetPosLinear(inTex, inPosXY));
    blur=GetVelocitiesCameraOnly(pos, inTex);
 #else
-   #if   VEL_RT_MODE==VEL_RT_VECH2
-      blur=TexLod(ImgXY , UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
-   #elif VEL_RT_MODE==VEL_RT_VEC2
-      blur=TexLod(ImgXYF, UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
-   #endif
-
-   #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1)
-      blur=blur*2-1;
-   #endif
+   blur=TexLod(ImgXY, UVClamp(inTex, CLAMP)).xy; // have to use linear filtering because we may draw to smaller RT
 #endif
 
    blur*=MotionScaleLimit.xy; // scale by adjusted 'D.motionScale'
-   VEL_RT_TYPE_LEN len=Length(blur);
+   Half len=Length(blur);
    if(ROUND)
    {
       if(len>0.5/MAX_MOTION_BLUR_PIXEL_RANGE) // only if has some length already to avoid triggering blur processing for most of the screen with tiny movement
       {
-         VEL_RT_TYPE_LEN desired_len=Min(len, MotionScaleLimit.z);
+         Half desired_len=Min(len, MotionScaleLimit.z);
          blur*=(desired_len + 0.5/MAX_MOTION_BLUR_PIXEL_RANGE)/len; // add half pixel length which will trigger rounding effect
          len=desired_len;
       }

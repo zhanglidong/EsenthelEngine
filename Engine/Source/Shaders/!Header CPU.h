@@ -38,20 +38,6 @@
 #define MAX_MOTION_BLUR_PIXEL_RANGE 48 // max range of pixels to blur for 2160p resolution, Warning: increasing this value will slow down performance because we need to do more dilation steps, also it would decrease precision for blur direction coordinates because currently 10-bit are used per channel
 #define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too, enable because even though this mode is not correct (it blurs both ways, including the future) it helps prevent "leaking" when rotating camera around an object, where one side doesn't get blurred because it wants to get samples behind the object however they're not avaialble since the object covers them, so when blurring in both ways, we can just use samples from the other side
 
-#define VEL_RT_VECH2 0
-#define VEL_RT_VEC2  1
-#define VEL_RT_MODE  VEL_RT_VECH2
-
-#if   VEL_RT_MODE==VEL_RT_VECH2
-   #define VEL_RT_TYPE_LEN  Half
-   #define VEL_RT_TYPE      VecH2
-   #define VEL_RT_TYPE_FULL VecH4 // need alpha for blending
-#elif VEL_RT_MODE==VEL_RT_VEC2
-   #define VEL_RT_TYPE_LEN  Flt
-   #define VEL_RT_TYPE      Vec2
-   #define VEL_RT_TYPE_FULL Vec4 // need alpha for blending
-#endif
-
 // Temporal Anti-Aliasing
 #define TAA_SEPARATE_ALPHA 0 // 0=is faster and uses less memory however 'Renderer._alpha' may point to 'taa_new_weight' (X=alpha, Y=weight), 1=will create a separate Alpha RT just for '_alpha'
 #define TAA_OLD_VEL        1

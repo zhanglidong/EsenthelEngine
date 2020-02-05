@@ -145,7 +145,6 @@
 
 // signed formats in GL depend on "GL_EXT_render_snorm"
 #define SIGNED_NRM_RT 0 // if Normal     Render Target  is  signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_VEL_RT 1 // if Velocity   Render Target  is  signed, always because we use IMAGE_F16_2       which is   signed
 #define SIGNED_MTN_RT 0 // if MotionBlur Render Targets are signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
@@ -450,7 +449,6 @@ Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY, ImgXY1, ImgXY2, EnvDFG;
-//ImageF2   ImgXYF;
 ImageCube Env, Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
@@ -1030,16 +1028,13 @@ Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need 
           +GetCamAngVel( view_pos);
 }
 /******************************************************************************/
-VEL_RT_TYPE GetVelocityUV(Vec projected_prev_pos_xyw, Vec2 uv)
+VecH2 GetVelocityUV(Vec projected_prev_pos_xyw, Vec2 uv)
 {
    projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
-   VEL_RT_TYPE vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
-#if !SIGNED_VEL_RT
-   vel=vel*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
-#endif
+   VecH2 vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
    return vel;
 }
-VEL_RT_TYPE GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityUV(projected_prev_pos_xyw, PixelToUV(pixel));}
+VecH2 GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityUV(projected_prev_pos_xyw, PixelToUV(pixel));}
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
@@ -2034,10 +2029,10 @@ Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
 {
    // #RTOutput
-   VecH4       out0:TARGET0; // Col, Glow
-   VecH4       out1:TARGET1; // Nrm XYZ, Translucent
-   VecH2       out2:TARGET2; // Smooth, Reflect
-   VEL_RT_TYPE out3:TARGET3; // Velocity (TEXCOORD delta)
+   VecH4 out0:TARGET0; // Col, Glow
+   VecH4 out1:TARGET1; // Nrm XYZ, Translucent
+   VecH2 out2:TARGET2; // Smooth, Reflect
+   VecH2 out3:TARGET3; // Velocity (TEXCOORD delta)
 
    // set components
    void color (VecH color ) {out0.rgb=color;}
@@ -2057,7 +2052,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
 
    void velocity    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetVelocityPixel(projected_prev_pos_xyw, pixel);}
    void velocityUV  (Vec projected_prev_pos_xyw, Vec2 uv   ) {out3.xy=GetVelocityUV   (projected_prev_pos_xyw, uv   );}
-   void velocityZero(                                      ) {out3.xy=(SIGNED_VEL_RT ? 0 : 0.5);}
+   void velocityZero(                                      ) {out3.xy=0;}
 };
 /******************************************************************************/
 // TESSELATION

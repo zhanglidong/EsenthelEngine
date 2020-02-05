@@ -394,11 +394,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
    set(converted, null, false);
    Rect dilate_rect, *dilate_rect_ptr=null,
                rect, *       rect_ptr=null;
-#if   VEL_RT_MODE==VEL_RT_VECH2
    Sh.ImgXY[0]->set(_vel);
-#elif VEL_RT_MODE==VEL_RT_VEC2
-   Sh.ImgXYF  ->set(_vel);
-#endif
    if(D._view_main.full)REPS(_eye, _eye_num)
    {
       Rect *eye_rect=setEyeParams();
@@ -1627,11 +1623,7 @@ void RendererClass::tAA()
          Sh.Img  [0]->set(_col                ); // cur
          Sh.Img  [1]->set(_ctx->taa_old_col   ); // old
          Sh.Img  [2]->set(_ctx->taa_old_col1  ); // old1
-      #if   VEL_RT_MODE==VEL_RT_VECH2
          Sh.ImgXY[0]->set(_vel                ); // velocity
-      #elif VEL_RT_MODE==VEL_RT_VEC2
-         Sh.ImgXYF  ->set(_vel                ); // velocity
-      #endif
       #if TAA_OLD_VEL
          Sh.ImgXY[1]->set(_ctx->taa_old_vel   ); // old velocity
       #endif

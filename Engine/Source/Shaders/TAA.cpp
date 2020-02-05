@@ -186,15 +186,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
    }
 
-#if   VEL_RT_MODE==VEL_RT_VECH2
-   VEL_RT_TYPE vel=TexPoint(ImgXY, inTex+ofs*ImgSize.xy).xy;
-#elif VEL_RT_MODE==VEL_RT_VEC2
-   VEL_RT_TYPE vel=TexPoint(ImgXYF, inTex+ofs*ImgSize.xy).xy;
-#endif
-
-#if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1)
-   vel=vel*2-1;
-#endif
+   VecH2 vel=TexPoint(ImgXY, inTex+ofs*ImgSize.xy).xy;
 
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
@@ -240,16 +232,21 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #if TAA_OLD_VEL // if old velocity is different then ignore old
    Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
    #if GATHER
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)
-         if(x>0 || y>0)TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
-      old_tex_vel-=ImgSize.xy*0.5;
-      VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel);
-      VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel);
+      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, old_weight); // -1,  1,  left-top
+      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, old_weight); //  1, -1, right-bottom
+      old_tex_vel-=ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
+      VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
       TestVel(vel, VecH2(r.x, g.x), old_weight);
       TestVel(vel, VecH2(r.y, g.y), old_weight);
       TestVel(vel, VecH2(r.z, g.z), old_weight);
       TestVel(vel, VecH2(r.w, g.w), old_weight);
+      r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      TestVel(vel, VecH2(r.x, g.x), old_weight);
+      TestVel(vel, VecH2(r.y, g.y), old_weight);
+      TestVel(vel, VecH2(r.z, g.z), old_weight);
+    //TestVel(vel, VecH2(r.w, g.w), old_weight); already processed
    #else
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
