@@ -54,6 +54,7 @@
 
 // Temporal Anti-Aliasing
 #define TAA_SEPARATE_ALPHA 0 // 0=is faster and uses less memory however 'Renderer._alpha' may point to 'taa_new_weight' (X=alpha, Y=weight), 1=will create a separate Alpha RT just for '_alpha'
+#define TAA_OLD_VEL        1
 
 // Buffer Indexes
 #define SBI_FRAME           0

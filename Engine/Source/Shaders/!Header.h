@@ -169,7 +169,10 @@
    #define DEPTH_DEC(x, y)     ((x)-=(y))
 #endif
 /******************************************************************************/
-// TEXTURE ACCESSING
+// TEXTURE ACCESSING                 (Y^)
+// GATHER returns in following order: V1 X  Y
+//                                    V0 W  Z
+//                                     + U0 U1 (X>)
 /******************************************************************************/
 #define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
 #define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
@@ -181,11 +184,11 @@
 #define TexCubeLod( image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access Cube texture's   0-th MipMap (LOD level=  0)
 #define TexCubeLodI(image, uvw, lod)   image.SampleLevel(SamplerDefault, uvw, lod) // access Cube texture's lod-th MipMap (LOD level=lod)
 
-#define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
-
+#define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
 #define TexPointOfs(image, uv, ofs)   image.SampleLevel(SamplerPoint, uv, 0, ofs)
 
-#define TexGather(image, uv)   image.Gather(SamplerPoint, uv) // gather available since SM_4_1, GL 4.0, GL ES 3.1
+#define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
+#define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
 #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
 #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
@@ -193,15 +196,16 @@
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
-#define TexDepthRawPoint(   uv)                       TexPoint   (Depth  , uv     ).x
-#define TexDepthRawPointOfs(uv, ofs)                  TexPointOfs(Depth  , uv, ofs).x
-#define TexDepthRawLinear(  uv)                       TexLod     (Depth  , uv     ).x
-#define TexDepthPoint(      uv)        LinearizeDepth(TexPoint   (Depth  , uv     ).x)
-#define TexDepthPointOfs(   uv, ofs)   LinearizeDepth(TexPointOfs(Depth  , uv, ofs).x)
-#define TexDepthLinear(     uv)        LinearizeDepth(TexLod     (Depth  , uv     ).x)
-#define TexDepthGather(     uv)                       TexGather  (Depth  , uv     )
-#define TexDepthMSRaw(pixel, sample)                TexSample  (DepthMS, pixel, sample).x
-#define TexDepthMS(   pixel, sample) LinearizeDepth(TexSample  (DepthMS, pixel, sample).x)
+#define TexDepthRawPoint(   uv)                       TexPoint    (Depth  , uv     ).x
+#define TexDepthRawPointOfs(uv, ofs)                  TexPointOfs (Depth  , uv, ofs).x
+#define TexDepthRawLinear(  uv)                       TexLod      (Depth  , uv     ).x
+#define TexDepthPoint(      uv)        LinearizeDepth(TexPoint    (Depth  , uv     ).x)
+#define TexDepthPointOfs(   uv, ofs)   LinearizeDepth(TexPointOfs (Depth  , uv, ofs).x)
+#define TexDepthLinear(     uv)        LinearizeDepth(TexLod      (Depth  , uv     ).x)
+#define TexDepthGather(     uv)                       TexGather   (Depth  , uv     )
+#define TexDepthGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
+#define TexDepthMSRaw(pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
+#define TexDepthMS(   pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
 
 #if !GL
 #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)

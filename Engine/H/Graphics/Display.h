@@ -245,7 +245,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& particlesSmoothAnim(Bool on);   Bool particlesSmoothAnim()C {return _particles_smooth;} // set/get Particles Smooth Animation (true/false, default=true (false for Mobile)), if enabled then particles with animated images will be displayed with better quality by smooth blending between animation frames, the change is instant, you can call it real-time
 
    // Temporal Anti-Aliasing
-   Display& tAA           (Bool on);   Bool tAA           ()C {return _taa     ;} // set/get Temporal Anti-Aliasing              (true/false, default=false), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time, Warning: this feature is experimental, it may produce artifacts/ghosting/smearing
+   Display& tAA           (Bool on);   Bool tAA           ()C {return _taa     ;} // set/get Temporal Anti-Aliasing              (true/false, default=false), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
    Display& tAADualHistory(Bool on);   Bool tAADualHistory()C {return _taa_dual;} // set/get Temporal Anti-Aliasing dual history (true/false, default=false), enabling dual history reduces performance, increases memory usage, however minimizes ghosting
    Display& tAAReset      (       );                                              // reset   Temporal Anti-Aliasing history                                 , call this method if you want to clear the history of previous rendering results
 

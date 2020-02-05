@@ -13,9 +13,13 @@ DUAL_HISTORY=1
 
 Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
 /******************************************************************************/
-#define TAA_WEIGHT (1.0/8) // FIXME should this be converted to INT? because it introduces some error due to values being 1.0/255
+#define CUR_WEIGHT (1.0/8)
 
-#define VEL_EPS 0.0006h
+#define YCOCG 0 // didn't improve quality much
+
+#define NEAREST_DEPTH_VEL 1
+
+#define VEL_EPS 0.003h
 
 #define CUBIC 1
 #if     CUBIC
@@ -34,11 +38,109 @@ BUFFER(TAA)
    Half TAAAspectRatio;
 BUFFER_END
 /******************************************************************************/
-void Test(VecH2 vel, VecH2 test_vel, in out Half old_weight)
+VecH RGBToYCoCg(VecH col)
+{
+   return VecH(Dot(col, VecH( 0.25, 0.50,  0.25)),
+	            Dot(col, VecH( 0.50, 0.00, -0.50)),
+	            Dot(col, VecH(-0.25, 0.50, -0.25)));
+}
+VecH4 RGBToYCoCg(VecH4 col)
+{
+   return VecH4(Dot(col.rgb, VecH( 0.25, 0.50,  0.25)),
+	             Dot(col.rgb, VecH( 0.50, 0.00, -0.50)),
+	             Dot(col.rgb, VecH(-0.25, 0.50, -0.25)),
+                    col.a                            );
+}
+VecH RGBToYCoCg4(VecH col) // faster but scales *4
+{
+#if 0
+   return VecH(Dot(col, VecH( 1, 2,  1)),
+	            Dot(col, VecH( 2, 0, -2)),
+	            Dot(col, VecH(-1, 2, -1)));
+#else
+   return VecH(col.r   + col.g*2 + col.b  ,
+	            col.r*2           - col.b*2,
+	           -col.r   + col.g*2 - col.b );
+#endif
+}
+VecH4 RGBToYCoCg4(VecH4 col) // faster but scales *4
+{
+#if 0
+   return VecH4(Dot(col.rgb, VecH( 1, 2,  1)),
+	             Dot(col.rgb, VecH( 2, 0, -2)),
+	             Dot(col.rgb, VecH(-1, 2, -1)),
+                    col.a);
+#else
+   return VecH4(col.r   + col.g*2 + col.b  ,
+	             col.r*2           - col.b*2,
+	            -col.r   + col.g*2 - col.b  ,
+                col.a                     );
+#endif
+}
+/******************************************************************************/
+VecH YCoCgToRGB(VecH YCoCg)
+{
+	Half Y =YCoCg.x,
+	     Co=YCoCg.y,
+	     Cg=YCoCg.z;
+
+	return VecH(Y+Co-Cg ,
+	            Y+Cg    ,
+	            Y-Co-Cg);
+}
+VecH4 YCoCgToRGB(VecH4 YCoCg)
+{
+	Half Y =YCoCg.x,
+	     Co=YCoCg.y,
+	     Cg=YCoCg.z,
+        A =YCoCg.a;
+
+	return VecH4(Y+Co-Cg,
+	             Y+Cg   ,
+	             Y-Co-Cg,
+                A     );
+}
+VecH YCoCg4ToRGB(VecH YCoCg4)
+{
+	Half Y =YCoCg4.x*0.25,
+	     Co=YCoCg4.y*0.25,
+	     Cg=YCoCg4.z*0.25;
+
+	return VecH(Y+Co-Cg ,
+	            Y+Cg    ,
+	            Y-Co-Cg);
+}
+VecH4 YCoCg4ToRGB(VecH4 YCoCg4)
+{
+	Half Y =YCoCg4.x*0.25,
+	     Co=YCoCg4.y*0.25,
+	     Cg=YCoCg4.z*0.25,
+        A =YCoCg4.a     ;
+
+	return VecH4(Y+Co-Cg,
+	             Y+Cg   ,
+	             Y-Co-Cg,
+                A     );
+}
+/******************************************************************************/
+Half GetBlend(VecH old, VecH cur, VecH col_min, VecH col_max)
+{
+	VecH dir=cur-old,
+    inv_dir=rcp(dir),
+	min_step=(col_min-old)*inv_dir,
+	max_step=(col_max-old)*inv_dir;
+	return Sat(Max(Min(min_step, max_step)));
+}
+/******************************************************************************/
+void TestVel(VecH2 vel, VecH2 test_vel, in out Half old_weight)
 {
    VecH2 delta_vel=vel-test_vel;
    delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
    if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
+}
+void TestDepth(in out Flt depth, Flt d, in out VecI2 ofs, Int x, Int y)
+{
+   if(DEPTH_SMALLER(d, depth)){depth=d; ofs.x=x; ofs.y=y;}
 }
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -58,12 +160,36 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
              #endif
             )
 {
+   VecI2 ofs=0;
+
+   // get velocity for depth nearest to camera
+   if(NEAREST_DEPTH_VEL)
+   {
+   #if GATHER
+      ofs=VecI2(-1, 1); Flt depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
+                 TestDepth(depth, TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
+      Vec2 tex=inTex-ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      Vec4 d=TexDepthGather(tex); // get -1,-1 to 0,0 texels
+      TestDepth(depth, d.x, ofs, -1,  0);
+      TestDepth(depth, d.y, ofs,  0,  0);
+      TestDepth(depth, d.z, ofs,  0, -1);
+      TestDepth(depth, d.w, ofs, -1, -1);
+      d=TexDepthGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      TestDepth(depth, d.x, ofs,  0,  1);
+      TestDepth(depth, d.y, ofs,  1,  1);
+      TestDepth(depth, d.z, ofs,  1,  0);
+    //TestDepth(depth, d.w, ofs,  0,  0); already processed
+   #else
+      Flt depth=TexDepthRawPoint(inTex);
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(inTex, VecI2(x, y)), ofs, x, y);
+   #endif
+   }
+
 #if   VEL_RT_MODE==VEL_RT_VECH2
-   VEL_RT_TYPE vel=TexPoint(ImgXY, inTex).xy; //FIXME TAA, offset or gather?
- //VEL_RT_TYPE vel=TexLod  (ImgXY, inTex+TAAOffset).xy;
+   VEL_RT_TYPE vel=TexPoint(ImgXY, inTex+ofs*ImgSize.xy).xy;
 #elif VEL_RT_MODE==VEL_RT_VEC2
-   VEL_RT_TYPE vel=TexPoint(ImgXYF, inTex).xy; //FIXME TAA
- //VEL_RT_TYPE vel=TexLod  (ImgXYF, inTex+TAAOffset).xy;
+   VEL_RT_TYPE vel=TexPoint(ImgXYF, inTex+ofs*ImgSize.xy).xy;
 #endif
 
 #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1)
@@ -111,29 +237,84 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // if 'old_tex' is outside viewport then ignore it
    if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
 
-   // if old velocity is different then ignore old
-#if 1
+#if TAA_OLD_VEL // if old velocity is different then ignore old
    Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
    #if GATHER
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
-         if(x>0 || y>0)Test(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
+         if(x>0 || y>0)TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
       old_tex_vel-=ImgSize.xy*0.5;
       VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel);
       VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel);
-      Test(vel, VecH2(r.x, g.x), old_weight);
-      Test(vel, VecH2(r.y, g.y), old_weight);
-      Test(vel, VecH2(r.z, g.z), old_weight);
-      Test(vel, VecH2(r.w, g.w), old_weight);
+      TestVel(vel, VecH2(r.x, g.x), old_weight);
+      TestVel(vel, VecH2(r.y, g.y), old_weight);
+      TestVel(vel, VecH2(r.z, g.z), old_weight);
+      TestVel(vel, VecH2(r.w, g.w), old_weight);
    #else
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
-         Test(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
+         TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
    #endif
 #endif
 
+ /* test current velocities, skip because didn't help
+   UNROLL for(Int y=-1; y<=1; y++)
+   UNROLL for(Int x=-1; x<=1; x++)if(x || y)
+      TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, old_weight);*/
+
+   // neighbor clamp
+   {
+      // FIXME reuse for Cubic?
+      // FIXME UV clamp?
+      VecH4 col_min, col_max;
+      VecH  ycocg_min, ycocg_max;
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+      {
+         VecH4 col=TexPointOfs(Img, inTex, VecI2(x, y));
+         VecH  ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
+         if(y==-1 && x==-1)
+         {
+                       col_min=  col_max=col;
+            if(YCOCG)ycocg_min=ycocg_max=ycocg;
+         }else
+         {
+            col_min=Min(col_min, col);
+            col_max=Max(col_max, col);
+            if(YCOCG)
+            {
+               ycocg_min=Min(ycocg_min, ycocg);
+               ycocg_max=Max(ycocg_max, ycocg);
+            }
+         }
+      }
+      if(YCOCG)
+      {
+                     old.rgb=RGBToYCoCg4(old.rgb);
+         VecH4 ycocg_cur    =RGBToYCoCg4(cur);
+         old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
+         old.rgb=YCoCg4ToRGB(old.rgb);
+      }
+      Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
+   #if 1
+      old=Lerp(old, cur, blend);
+      #if ALPHA
+         old_alpha=Lerp(old_alpha, cur_alpha, blend);
+      #endif
+   #else // this increases flickering, since 'old_weight' gets smaller
+      /* instead of adjusting 'old', adjust 'old_weight'
+         (old*old_weight + cur*cur_weight)/total_weight
+         (Lerp(old, cur, blend)*old_weight + cur*cur_weight)/total_weight
+         ((old*(1-blend) + cur*blend)*old_weight + cur*cur_weight)/total_weight
+         (old*(1-blend)*old_weight + cur*blend*old_weight + cur*cur_weight)/total_weight
+         (old*(1-blend)*old_weight + cur*(blend*old_weight + cur_weight))/total_weight */
+      old_weight*=(1-blend) // 'old_weight' gets smaller, multiplied by "1-blend"
+                *CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight); // 'cur_weight' gets bigger, starting from 'CUR_WEIGHT' adding "blend*old_weight" = "CUR_WEIGHT+blend*old_weight". However we want 'cur_weight' below to be always CUR_WEIGHT, so scale down both 'old_weight' and 'cur_weight' so that 'cur_weight' gets to be CUR_WEIGHT. scaling factor is just "CUR_WEIGHT/cur_weight" which is "CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight)"
+   #endif
+   }
+
 #if !DUAL_HISTORY
-      Half cur_weight=TAA_WEIGHT, total_weight=old_weight+cur_weight;
+      Half cur_weight=CUR_WEIGHT, total_weight=old_weight+cur_weight;
       old_weight/=total_weight;
       cur_weight/=total_weight;
       outOld=outNext=old*old_weight + cur*cur_weight;
@@ -148,7 +329,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
 #else
    // #TAADualAlpha
-   Half cur_weight=TAA_WEIGHT/2, total_weight=old_weight+cur_weight;
+   Half cur_weight=CUR_WEIGHT/2, total_weight=old_weight+cur_weight;
    if(old_weight<0.5 - cur_weight/2) // fill 1st history RT
    {
       outWeight=total_weight;
@@ -158,7 +339,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       outWeight=total_weight;
       if(DUAL_ADJUST_OLD)
       {
-            Half ow=1, cw=TAA_WEIGHT, tw=ow+cw;
+            Half ow=1, cw=CUR_WEIGHT, tw=ow+cw;
             outOld=old*(ow/tw) + cur*(cw/tw);
       }else outOld=old;
 

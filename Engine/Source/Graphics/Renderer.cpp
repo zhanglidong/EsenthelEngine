@@ -542,7 +542,9 @@ void RendererClass::cleanup1()
       ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
       ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
       ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
+   #if TAA_OLD_VEL
       ctx.taa_old_vel   =ctx.taa_new_vel   ; ctx.taa_new_vel   .clear();
+   #endif
       REPA(ctx.subs)
       {
          Context::Sub &sub=ctx.subs[i];
@@ -952,8 +954,10 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
      _taa_use   =true;
      _taa_offset=                 offset             /viewport.size();
       Sh.TAAOffset         ->set( offset             *mul); // this always changes so don't use 'setConditional'
+   #if TAA_OLD_VEL
       Sh.TAAOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset". We should be accessing "vel inTex+TAAOffset" and "old_vel inTex+TAAOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TAAOffsetPrev-TAAOffset"
       Sh.TAAAspectRatio    ->set(D._app_aspect_ratio);
+   #endif
       D._view_active.setShader();
    }
    SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA
@@ -1049,7 +1053,7 @@ start:
          || hasTAA())                                           // TAA
             if(!mirror()) // not for reflections (there motion is disabled, and TAA may be enabled so we can apply offsets, however we don't want velocity RT, also it would be set to 'taa_new_vel' which we don't want)
          {
-         #if 1
+         #if TAA_OLD_VEL
             if(!_ctx->taa_new_vel)_ctx->taa_new_vel.get(rt_desc.type(IMAGERT_TWO_H));
            _vel=_ctx->taa_new_vel;
          #else
@@ -1628,7 +1632,9 @@ void RendererClass::tAA()
       #elif VEL_RT_MODE==VEL_RT_VEC2
          Sh.ImgXYF  ->set(_vel                ); // velocity
       #endif
+      #if TAA_OLD_VEL
          Sh.ImgXY[1]->set(_ctx->taa_old_vel   ); // old velocity
+      #endif
 
       Sh.imgSize(*_col);
       Shader *shader=Sh.TAA[!D._view_main.full][alpha][dual];
