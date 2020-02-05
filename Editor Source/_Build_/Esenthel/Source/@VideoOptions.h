@@ -184,11 +184,14 @@ public:
    static void ShowAdvanced(VideoOptions &vo);
 
    void setScale();
-   void setScale   (flt  scale);
-   void setScaleWin(bool scale);
+   void setScale   (flt  scale); 
+   void setScaleWin(bool scale); 
+   void tAA        (bool on   )C; // use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+
    UID  skinID   (C Str &name)C;
    int  skinIndex(C UID &id  )C;
    Str  skinName (           )C;
+
    void resize();
    void ctor();
    void create();

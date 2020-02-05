@@ -314,7 +314,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    Str  VideoOptions::Render(C VideoOptions &vo          ) {return Renderer.type();}
    void VideoOptions::Render(  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
    Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D.tAA();}
-   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       D.tAA(TextBool(t));}
+   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       vo.tAA(TextBool(t));}
    Str  VideoOptions::EdgeSoft(C VideoOptions &vo          ) {return D.edgeSoften();}
    void VideoOptions::EdgeSoft(  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    Str  VideoOptions::Shadow(C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -345,8 +345,9 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(950.f/1080) : scale);
    }
-   void VideoOptions::setScale(flt  scale) {T.scale    =scale; setScale();}
-   void VideoOptions::setScaleWin(bool scale) {T.scale_win=scale; setScale();}
+   void VideoOptions::setScale(flt  scale)  {T.scale    =scale; setScale();}
+   void VideoOptions::setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
+   void VideoOptions::tAA(bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5f : 0);}
    UID  VideoOptions::skinID(C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  VideoOptions::skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
    Str  VideoOptions::skinName(           )C {return skin ? skin->combobox.text : S;}

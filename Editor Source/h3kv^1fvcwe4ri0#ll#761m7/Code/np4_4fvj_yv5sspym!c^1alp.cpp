@@ -330,7 +330,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    static Str  Render     (C VideoOptions &vo          ) {return Renderer.type();}
    static void Render     (  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
    static Str  TAA        (C VideoOptions &vo          ) {return D.tAA();}
-   static void TAA        (  VideoOptions &vo, C Str &t) {       D.tAA(TextBool(t));}
+   static void TAA        (  VideoOptions &vo, C Str &t) {       vo.tAA(TextBool(t));}
    static Str  EdgeSoft   (C VideoOptions &vo          ) {return D.edgeSoften();}
    static void EdgeSoft   (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    static Str  Shadow     (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -369,11 +369,14 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(950./1080) : scale);
    }
-   void setScale   (flt  scale) {T.scale    =scale; setScale();}
-   void setScaleWin(bool scale) {T.scale_win=scale; setScale();}
+   void setScale   (flt  scale)  {T.scale    =scale; setScale();}
+   void setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
+   void tAA        (bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5 : 0);} // use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+
    UID  skinID   (C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
    Str  skinName (           )C {return skin ? skin.combobox.text : S;}
+
    void resize()
    {
       if(mode)mode.combobox.setText(VecI2(D.resW(), D.resH()), true, QUIET);
