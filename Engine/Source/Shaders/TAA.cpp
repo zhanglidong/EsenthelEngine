@@ -282,6 +282,11 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       // Warning: this processes 3x3 (9 samples) from CUR COLOR, similar samples are already read in CUBIC above (5 of them, however they're different), we could potentially process CUBIC as 4x4 samples (16, skip 4 corners, get 12) separately and process them for both CUBIC and MIN/MAX together
       VecH4 col_min, col_max;
       VecH  ycocg_min, ycocg_max;
+   #if CLAMP
+      Vec2 tex_clamp[3];
+      tex_clamp[0]=Vec2(Max(inTex.x-ImgSize.x, ImgClamp.x), Max(inTex.y-ImgSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
+      tex_clamp[2]=Vec2(Min(inTex.x+ImgSize.x, ImgClamp.z), Min(inTex.y+ImgSize.y, ImgClamp.w)); 
+   #endif
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
       {
@@ -289,9 +294,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       #if !CLAMP
          col=TexPointOfs(Img, inTex, VecI2(x, y));
       #else
-         Vec2 tex=inTex+VecI2(x, y)*ImgSize.xy;
-         col=TexPoint(Img, Vec2((x<0) ? Max(tex.x, ImgClamp.x) : (x==0) ? tex.x : Min(tex.x, ImgClamp.z),
-                                (y<0) ? Max(tex.y, ImgClamp.y) : (y==0) ? tex.y : Min(tex.y, ImgClamp.w)));
+         col=TexPoint(Img, Vec2(tex_clamp[x+1].x, tex_clamp[y+1].y));
       #endif
          VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
          if(y==-1 && x==-1)

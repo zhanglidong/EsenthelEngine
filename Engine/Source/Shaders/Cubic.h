@@ -70,34 +70,41 @@ struct CubicFastSampler
 #endif
 #endif*/
 
+   Vec2 tc[4];
+   VecH2 w[4];
    Vec2  c,  l,  r,  u,  d;
    Half wc, wl, wr, wu, wd;
 
    void set(Vec2 uv)
    {
       uv*=ImgSize.zw;
-      Vec2 tc=Floor(uv-0.5)+0.5;
-      VecH2 f=uv-tc, f2=f*f, f3=f2*f,
-           w0=f2-0.5*(f3+f), w1=1.5*f3-2.5*f2+1.0,
-      #if 0
-           w2=-1.5*f3+2*f2+0.5*f, w3=0.5*(f3-f2);
-      #else
-           w3=0.5*(f3-f2), w2=1-w0-w1-w3;
-      #endif
+      Vec2 uvc=Floor(uv-0.5)+0.5;
+      VecH2 f=uv-uvc, f2=f*f, f3=f2*f;
 
-      tc*=ImgSize.xy;
-      Vec2 tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2;
-      VecH2 w12=w1+w2; c=tc+(w2/w12)*ImgSize.xy;
-      wu=w12.x*w0.y; wd=w12.x*w3.y; wl=w12.y*w0.x; wr=w12.y*w3.x; wc=w12.x*w12.y;
+      w[0]=f2-0.5*(f3+f); w[1]=1.5*f3-2.5*f2+1;
+   #if 0
+      w[2]=-1.5*f3+2*f2+0.5*f; w[3]=0.5*(f3-f2);
+   #else
+      w[3]=0.5*(f3-f2); w[2]=1-w[0]-w[1]-w[3];
+   #endif
+
+      tc[1]=uvc  *ImgSize.xy;
+      tc[0]=tc[1]-ImgSize.xy;
+      tc[2]=tc[1]+ImgSize.xy;
+      tc[3]=tc[1]+ImgSize.xy*2;
+
+      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*ImgSize.xy;
+      wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
       Half sum=wc+wl+wr+wu+wd;
       wc/=sum;
-      wl/=sum; l=Vec2(tc0.x,   c.y);
-      wr/=sum; r=Vec2(tc3.x,   c.y);
-      wu/=sum; u=Vec2(  c.x, tc0.y);
-      wd/=sum; d=Vec2(  c.x, tc3.y);
+      wl/=sum; l=Vec2(tc[0].x,     c.y);
+      wr/=sum; r=Vec2(tc[3].x,     c.y);
+      wu/=sum; u=Vec2(    c.x, tc[0].y);
+      wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
    void UVClamp(Vec2 min, Vec2 max)
    {
+      UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
       c=Mid(c, min, max);
       l=Mid(l, min, max);
       r=Mid(r, min, max);
