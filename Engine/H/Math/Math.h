@@ -495,7 +495,7 @@ inline Dbl LerpRS(C VecD4 &from, C VecD4 &to, C VecD4 &value) {return Sat(LerpR(
 
 Flt LerpAngle(Flt from, Flt to, Flt step); // angle based interpolation, 'step'=0..1
 
-void Lerp4Weights(Vec4 &weights, Flt step); // get weights used for 'Lerp4' function, 'step'=0..1
+void Lerp4Weights(Vec4 &weights, Flt step); // get weights used for 'Lerp4' function, 'step'=0..1, sum of weights is always equal to 1
 
 Flt  Lerp4(  Flt   v0,   Flt   v1,   Flt   v2,   Flt   v3, Flt step); // 4 values based interpolation (hermite spline), smoothly interpolate between v1..v2, 'step'=0..1
 Vec2 Lerp4(C Vec2 &v0, C Vec2 &v1, C Vec2 &v2, C Vec2 &v3, Flt step); // 4 values based interpolation (hermite spline), smoothly interpolate between v1..v2, 'step'=0..1

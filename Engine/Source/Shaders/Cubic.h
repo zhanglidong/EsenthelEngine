@@ -75,6 +75,8 @@ struct CubicFastSampler
    Vec2  c,  l,  r,  u,  d;
    Half wc, wl, wr, wu, wd;
 
+   Vec2 uv    (Int x, Int y) {return Vec2(tc[x].x, tc[y].y);}
+   Half weight(Int x, Int y) {return w[x].x*w[y].y;}
    void set(Vec2 uv)
    {
       uv*=ImgSize.zw;
@@ -83,7 +85,7 @@ struct CubicFastSampler
 
       w[0]=f2-0.5*(f3+f); w[1]=1.5*f3-2.5*f2+1;
    #if 0
-      w[2]=-1.5*f3+2*f2+0.5*f; w[3]=0.5*(f3-f2);
+      w[2]=-1.5*f3+2*f2+0.5*f; w[3]=0.5*(f3-f2); // don't calculate it manually, use the fact that the sum is always equal to 1, using [2] component was the fastest version tested
    #else
       w[3]=0.5*(f3-f2); w[2]=1-w[0]-w[1]-w[3];
    #endif
