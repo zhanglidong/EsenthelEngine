@@ -279,7 +279,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // neighbor clamp
    {
-      // FIXME reuse for Cubic?
+      // Warning: this processes 3x3 (9 samples) from CUR COLOR, similar samples are already read in CUBIC above (5 of them, however they're different), we could potentially process CUBIC as 4x4 samples (16, skip 4 corners, get 12) separately and process them for both CUBIC and MIN/MAX together
       VecH4 col_min, col_max;
       VecH  ycocg_min, ycocg_max;
       UNROLL for(Int y=-1; y<=1; y++)
@@ -316,11 +316,13 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
          old.rgb=YCoCg4ToRGB(old.rgb);
       }
-   #if 1
+
+   #if 1 // alpha used for glow #RTOutput
       Half blend=GetBlend(old, cur, col_min, col_max);
    #else
       Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
    #endif
+
    #if 1
       old=Lerp(old, cur, blend);
       #if ALPHA

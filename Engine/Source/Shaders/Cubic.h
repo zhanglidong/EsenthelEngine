@@ -26,7 +26,7 @@ struct CubicFastSampler
    #if 0
         w2=-1.5*f3+2*f2+0.5*f, w3=0.5*(f3-f2);
    #else
-        w3=0.5*(f3-f2), w2=1.0-w0-w1-w3;
+        w3=0.5*(f3-f2), w2=1-w0-w1-w3;
    #endif
 
    tc*=ImgSize.xy;
@@ -82,7 +82,7 @@ struct CubicFastSampler
       #if 0
            w2=-1.5*f3+2*f2+0.5*f, w3=0.5*(f3-f2);
       #else
-           w3=0.5*(f3-f2), w2=1.0-w0-w1-w3;
+           w3=0.5*(f3-f2), w2=1-w0-w1-w3;
       #endif
 
       tc*=ImgSize.xy;
