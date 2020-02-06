@@ -30,6 +30,8 @@ Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
    #undef DUAL_HISTORY // #TAADualAlpha
 #endif
 
+#define MERGE_CUBIC_MIN_MAX 1 // enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
+
 #define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
 /******************************************************************************/
 BUFFER(TAA)
@@ -263,25 +265,74 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
 #endif
 
+   VecH4 col_min, col_max, cur;
+   VecH  ycocg_min, ycocg_max;
+
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-      cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
-      VecH4 cur      =Max(VecH4(0,0,0,0), cs.tex (Img )); // use Max(0) because of cubic sharpening potentially giving negative values
+   cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
-      Half  cur_alpha=Sat(                cs.texX(ImgX)); // use Sat    because of cubic sharpening potentially giving negative values
+      Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
-      VecH4 cur      =TexLod(Img , cur_tex);
    #if ALPHA
-      Half  cur_alpha=TexLod(ImgX, cur_tex);
+      Half cur_alpha=TexLod(ImgX, cur_tex);
    #endif
 #endif
 
-   // neighbor clamp
+#if CUBIC && MERGE_CUBIC_MIN_MAX // merged CUBIC with MIN MAX
+   UNROLL for(Int y=0; y<4; y++)
+   UNROLL for(Int x=0; x<4; x++)
+      if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
-      // Warning: this processes 3x3 (9 samples) from CUR COLOR, similar samples are already read in CUBIC above (5 of them, however they're different), we could potentially process CUBIC as 4x4 samples (16, skip 4 corners, get 12) separately and process them for both CUBIC and MIN/MAX together
-      VecH4 col_min, col_max;
-      VecH  ycocg_min, ycocg_max;
+   #if !CLAMP
+      VecH4 col=TexPointOfs(Img, cs.tc[0], VecI2(x, y));
+   #else
+      VecH4 col=TexPoint(Img, cs.uv(x, y));
+   #endif
+      VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
+      Half weight=cs.weight(x, y);
+      if(x==1 && y==0) // first is (1,0) because corners are skipped
+      {
+         cur=col*weight;
+                    col_min=  col_max=col;
+         if(YCOCG)ycocg_min=ycocg_max=ycocg;
+      }else
+      {
+         cur+=col*weight;
+         col_min=Min(col_min, col);
+         col_max=Max(col_max, col);
+         if(YCOCG)
+         {
+            ycocg_min=Min(ycocg_min, ycocg);
+            ycocg_max=Max(ycocg_max, ycocg);
+         }
+      }
+   }
+   cur/=1-cs.weight(0,0)-cs.weight(3,0)-cs.weight(0,3)-cs.weight(3,3); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
+   /* Adjust because based on following code, max weight for corners can be "corners=0.015625"
+   Flt corners=0; Vec4 wy, wx;
+   for(Flt y=0; y<=1; y+=0.01f)
+   {
+      Lerp4Weights(wy, y);
+      for(Flt x=0; x<=1; x+=0.01f)
+      {
+         Lerp4Weights(wx, x);
+         Flt weight=0;
+         for(Int y=0; y<4; y++)
+         for(Int x=0; x<4; x++)weight+=wy.c[y]*wx.c[x];
+         Flt c=wy.c[0]*wx.c[0] + wy.c[3]*wx.c[0] + wy.c[0]*wx.c[3] + wy.c[3]*wx.c[3]; MAX(corners, c); if(!Equal(weight, 1))Exit("weight should be 1");
+      }
+   }*/
+   cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
+#else // this version uses 5 tex reads for CUBIC and 9 tex reads for MIN MAX (14 total), because it has only 9 samples for MIN MAX the flickering is a bit stronger
+   #if CUBIC
+      cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
+   #else
+      cur=TexLod(Img, cur_tex);
+   #endif
+
+   // MIN MAX
    #if CLAMP
       Vec2 tex_clamp[3];
       tex_clamp[0]=Vec2(Max(inTex.x-ImgSize.x, ImgClamp.x), Max(inTex.y-ImgSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
@@ -312,36 +363,38 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             }
          }
       }
-      if(YCOCG)
-      {
-                     old.rgb=RGBToYCoCg4(old.rgb);
-         VecH4 ycocg_cur    =RGBToYCoCg4(cur);
-         old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
-         old.rgb=YCoCg4ToRGB(old.rgb);
-      }
+#endif
 
-   #if 1 // alpha used for glow #RTOutput
-      Half blend=GetBlend(old, cur, col_min, col_max);
-   #else
-      Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
-   #endif
-
-   #if 1
-      old=Lerp(old, cur, blend);
-      #if ALPHA
-         old_alpha=Lerp(old_alpha, cur_alpha, blend);
-      #endif
-   #else // this increases flickering, since 'old_weight' gets smaller
-      /* instead of adjusting 'old', adjust 'old_weight'
-         (old*old_weight + cur*cur_weight)/total_weight
-         (Lerp(old, cur, blend)*old_weight + cur*cur_weight)/total_weight
-         ((old*(1-blend) + cur*blend)*old_weight + cur*cur_weight)/total_weight
-         (old*(1-blend)*old_weight + cur*blend*old_weight + cur*cur_weight)/total_weight
-         (old*(1-blend)*old_weight + cur*(blend*old_weight + cur_weight))/total_weight */
-      old_weight*=(1-blend) // 'old_weight' gets smaller, multiplied by "1-blend"
-                *CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight); // 'cur_weight' gets bigger, starting from 'CUR_WEIGHT' adding "blend*old_weight" = "CUR_WEIGHT+blend*old_weight". However we want 'cur_weight' below to be always CUR_WEIGHT, so scale down both 'old_weight' and 'cur_weight' so that 'cur_weight' gets to be CUR_WEIGHT. scaling factor is just "CUR_WEIGHT/cur_weight" which is "CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight)"
-   #endif
+   // NEIGHBOR CLAMP
+   if(YCOCG)
+   {
+                  old.rgb=RGBToYCoCg4(old.rgb);
+      VecH4 ycocg_cur    =RGBToYCoCg4(cur);
+      old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
+      old.rgb=YCoCg4ToRGB(old.rgb);
    }
+
+#if 1 // alpha used for glow #RTOutput
+   Half blend=GetBlend(old, cur, col_min, col_max);
+#else
+   Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
+#endif
+
+#if 1
+   old=Lerp(old, cur, blend);
+   #if ALPHA
+      old_alpha=Lerp(old_alpha, cur_alpha, blend);
+   #endif
+#else // this increases flickering, since 'old_weight' gets smaller
+   /* instead of adjusting 'old', adjust 'old_weight'
+      (old*old_weight + cur*cur_weight)/total_weight
+      (Lerp(old, cur, blend)*old_weight + cur*cur_weight)/total_weight
+      ((old*(1-blend) + cur*blend)*old_weight + cur*cur_weight)/total_weight
+      (old*(1-blend)*old_weight + cur*blend*old_weight + cur*cur_weight)/total_weight
+      (old*(1-blend)*old_weight + cur*(blend*old_weight + cur_weight))/total_weight */
+   old_weight*=(1-blend) // 'old_weight' gets smaller, multiplied by "1-blend"
+              *CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight); // 'cur_weight' gets bigger, starting from 'CUR_WEIGHT' adding "blend*old_weight" = "CUR_WEIGHT+blend*old_weight". However we want 'cur_weight' below to be always CUR_WEIGHT, so scale down both 'old_weight' and 'cur_weight' so that 'cur_weight' gets to be CUR_WEIGHT. scaling factor is just "CUR_WEIGHT/cur_weight" which is "CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight)"
+#endif
 
 #if !DUAL_HISTORY
       Half cur_weight=CUR_WEIGHT, total_weight=old_weight+cur_weight;
