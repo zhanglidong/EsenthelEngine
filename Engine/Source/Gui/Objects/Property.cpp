@@ -46,7 +46,7 @@ Property& Property::create(C Str &name, C MemberDesc &md)
       case DATA_BOOL:
       {
         _value_type=GO_CHECKBOX;
-         checkbox.create().func(Changed, T, true);
+         checkbox.create().func(Changed, T);
       }break;
 
       case DATA_INT  :
@@ -56,8 +56,8 @@ Property& Property::create(C Str &name, C MemberDesc &md)
       case DATA_VECI2:
       {
         _value_type=GO_TEXTLINE;
-         textline.create().func(Changed  , T, true);
-         button  .create().func(MouseEdit, T, true)._sub_type=BUTTON_TYPE_PROPERTY_VALUE;
+         textline.create().func(Changed  , T);
+         button  .create().func(MouseEdit, T)._sub_type=BUTTON_TYPE_PROPERTY_VALUE;
          button  . mode     =BUTTON_CONTINUOUS;
          button  ._focusable=false;
       }break;
@@ -71,7 +71,7 @@ Property& Property::create(C Str &name, C MemberDesc &md)
       default:
       {
         _value_type=GO_TEXTLINE;
-         textline.create().func(Changed, T, true);
+         textline.create().func(Changed, T);
       }break;
    }
 
@@ -143,7 +143,7 @@ Property& Property::setColor()
      _value_type=GO_CUSTOM;
 
      _color    .create(this).desc(desc()); // try re-using existing description before deleting objects
-      New(_cp)->create(name()).func(Changed, T, true).hide();
+      New(_cp)->create(name()).func(Changed, T).hide();
 
       Delete(_win_io);
       checkbox .del();
@@ -161,7 +161,7 @@ Property& Property::setFile(C Str &ext, C Str &desc)
    {
      _value_type=GO_TEXTLINE;
 
-      textline.create(     ).func(Changed   , T, true).desc(desc()); // try re-using existing description before deleting objects
+      textline.create(     ).func(Changed   , T).desc(desc()); // try re-using existing description before deleting objects
       button  .create("...").func(SelectFile, T).focusable(false).image=null;
 
       Delete(_cp);
@@ -180,7 +180,7 @@ Property& Property::setEnum()
    if(!md.type)md.type=DATA_INT; // when using 'MemberDesc' then members of 'enum' type aren't detected but set to DATA_NONE
   _value_type=GO_COMBOBOX;
 
-   combobox.create().func(Changed, T, true).desc(desc()); // try re-using existing description before deleting objects
+   combobox.create().func(Changed, T).desc(desc()); // try re-using existing description before deleting objects
 
    Delete(_cp    );
    Delete(_win_io);
@@ -208,7 +208,7 @@ Property& Property::setSlider()
 {
   _value_type=GO_SLIDER;
 
-   slider.create().func(Changed, T, true).desc(desc()); // try re-using existing description before deleting objects
+   slider.create().func(Changed, T).desc(desc()); // try re-using existing description before deleting objects
 
    Delete(_cp    );
    Delete(_win_io);
