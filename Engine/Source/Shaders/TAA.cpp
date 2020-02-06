@@ -289,8 +289,9 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       #if !CLAMP
          col=TexPointOfs(Img, inTex, VecI2(x, y));
       #else
-         col=TexPoint(Img, Vec2((x<0) ? Max(inTex.x, ImgClamp.x) : (x==0) ? inTex.x : Min(inTex.x, ImgClamp.z),
-                                (y<0) ? Max(inTex.y, ImgClamp.y) : (y==0) ? inTex.y : Min(inTex.y, ImgClamp.w)));
+         Vec2 tex=inTex+VecI2(x, y)*ImgSize.xy;
+         col=TexPoint(Img, Vec2((x<0) ? Max(tex.x, ImgClamp.x) : (x==0) ? tex.x : Min(tex.x, ImgClamp.z),
+                                (y<0) ? Max(tex.y, ImgClamp.y) : (y==0) ? tex.y : Min(tex.y, ImgClamp.w)));
       #endif
          VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
          if(y==-1 && x==-1)
