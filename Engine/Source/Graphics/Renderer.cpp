@@ -1057,7 +1057,7 @@ start:
          #endif
          }
 
-         const Bool merged_clear=D.mergedClear(),
+         const Bool merged_clear=true, // D.mergedClear() FIXME: TODO: workaround for Nvidia GeForce flickering bug - https://devtalk.nvidia.com/default/topic/1068770/directx-and-direct-compute/dx11-driver-bug-significant-flickering-on-geforce/
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
                      clear_ext  =(EXT_CLEAR_START && NeedBackgroundExt()),
                      clear_vel  =(VEL_CLEAR_START && _vel);
