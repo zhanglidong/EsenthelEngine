@@ -30,7 +30,7 @@ Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
    #undef DUAL_HISTORY // #TAADualAlpha
 #endif
 
-#define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
+#define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
 #define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
 /******************************************************************************/
