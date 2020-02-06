@@ -131,6 +131,14 @@ Half GetBlend(VecH old, VecH cur, VecH col_min, VecH col_max)
 	max_step=(col_max-old)*inv_dir;
 	return Sat(Max(Min(min_step, max_step)));
 }
+Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
+{
+	VecH4 dir=cur-old,
+     inv_dir=rcp(dir),
+	 min_step=(col_min-old)*inv_dir,
+	 max_step=(col_max-old)*inv_dir;
+	return Sat(Max(Min(min_step, max_step)));
+}
 /******************************************************************************/
 void TestVel(VecH2 vel, VecH2 test_vel, in out Half old_weight)
 {
@@ -162,8 +170,8 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    VecI2 ofs=0;
 
-   // get velocity for depth nearest to camera
-   if(NEAREST_DEPTH_VEL)
+   // NEAREST_DEPTH_VEL - get velocity for depth nearest to camera
+   if(NEAREST_DEPTH_VEL) // !! TODO: Warning: this ignores CLAMP, if this is fixed then 'UVClamp' below for 'vel' can be removed !!
    {
    #if GATHER
       ofs=VecI2(-1, 1); Flt depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
@@ -186,34 +194,13 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
    }
 
-   VecH2 vel=TexPoint(ImgXY, inTex+ofs*ImgSize.xy).xy;
+   // GET VEL
+   VecH2 vel=TexPoint(ImgXY, UVClamp(inTex+ofs*ImgSize.xy, CLAMP)).xy;
 
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
 
-#if CUBIC
-      CubicFastSampler cs;
-      cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
-      VecH4 cur      =Max(VecH4(0,0,0,0), cs.tex (Img )); // use Max(0) because of cubic sharpening potentially giving negative values
-   #if ALPHA
-      Half  cur_alpha=Sat(                cs.texX(ImgX)); // use Sat    because of cubic sharpening potentially giving negative values
-   #endif
-      cs.set(old_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
-      VecH4 old      =Max(VecH4(0,0,0,0), cs.tex (Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
-   #if DUAL_HISTORY
-      VecH4 old1     =Max(VecH4(0,0,0,0), cs.tex (Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
-   #endif
-#else
-      VecH4 cur      =TexLod(Img , cur_tex);
-   #if ALPHA
-      Half  cur_alpha=TexLod(ImgX, cur_tex);
-   #endif
-      VecH4 old      =TexLod(Img1, old_tex);
-   #if DUAL_HISTORY
-      VecH4 old1     =TexLod(Img2, old_tex);
-   #endif
-#endif
-
+   // OLD WEIGHT + OLD ALPHA
 #if ALPHA
    VecH2 tex=TexLod(ImgXY2, old_tex).xy;
 #else
@@ -226,10 +213,11 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half old_weight=tex.y, old_alpha=tex.x;
 #endif
 
-   // if 'old_tex' is outside viewport then ignore it
+   // VIEWPORT TEST - if 'old_tex' is outside viewport then ignore it
    if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
 
-#if TAA_OLD_VEL // if old velocity is different then ignore old
+   // OLD VEL TEST
+#if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores CLAMP !!
    Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
    #if GATHER
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, old_weight); // -1,  1,  left-top
@@ -259,17 +247,52 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    UNROLL for(Int x=-1; x<=1; x++)if(x || y)
       TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, old_weight);*/
 
+   // OLD COLOR
+#if CUBIC
+      CubicFastSampler cs;
+      cs.set(old_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      VecH4 old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
+   #if DUAL_HISTORY
+      VecH4 old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
+   #endif
+#else
+   // clamping 'old_tex' shouldn't be done, because we already detect if 'old_tex' is outside viewport and zero 'old_weight'
+      VecH4 old =TexLod(Img1, old_tex);
+   #if DUAL_HISTORY
+      VecH4 old1=TexLod(Img2, old_tex);
+   #endif
+#endif
+
+   // CUR COLOR + CUR ALPHA
+#if CUBIC
+      cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
+      VecH4 cur      =Max(VecH4(0,0,0,0), cs.tex (Img )); // use Max(0) because of cubic sharpening potentially giving negative values
+   #if ALPHA
+      Half  cur_alpha=Sat(                cs.texX(ImgX)); // use Sat    because of cubic sharpening potentially giving negative values
+   #endif
+#else
+      VecH4 cur      =TexLod(Img , cur_tex);
+   #if ALPHA
+      Half  cur_alpha=TexLod(ImgX, cur_tex);
+   #endif
+#endif
+
    // neighbor clamp
    {
       // FIXME reuse for Cubic?
-      // FIXME UV clamp?
       VecH4 col_min, col_max;
       VecH  ycocg_min, ycocg_max;
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
       {
-         VecH4 col=TexPointOfs(Img, inTex, VecI2(x, y));
-         VecH  ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
+         VecH4 col;
+      #if !CLAMP
+         col=TexPointOfs(Img, inTex, VecI2(x, y));
+      #else
+         col=TexPoint(Img, Vec2((x<0) ? Max(inTex.x, ImgClamp.x) : (x==0) ? inTex.x : Min(inTex.x, ImgClamp.z),
+                                (y<0) ? Max(inTex.y, ImgClamp.y) : (y==0) ? inTex.y : Min(inTex.y, ImgClamp.w)));
+      #endif
+         VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
          if(y==-1 && x==-1)
          {
                        col_min=  col_max=col;
@@ -292,7 +315,11 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
          old.rgb=YCoCg4ToRGB(old.rgb);
       }
+   #if 1
+      Half blend=GetBlend(old, cur, col_min, col_max);
+   #else
       Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
+   #endif
    #if 1
       old=Lerp(old, cur, blend);
       #if ALPHA
