@@ -997,7 +997,7 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
       }else
       if(normal_src->is())
       {
-         MAX(w, ImgW(normal, normal_src)),
+         MAX(w, ImgW(normal, normal_src));
          MAX(h, ImgH(normal, normal_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
       }
 

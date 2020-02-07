@@ -331,8 +331,8 @@ Font& Font::replace(Char src, Char dest, Bool permanent)
 /******************************************************************************/
 void Font::setRemap()
 {
-   SetMem(_char_to_font, 0xFF, SIZE(_char_to_font));
-   SetMem(_wide_to_font, 0xFF, SIZE(_wide_to_font));
+   SetMem(_char_to_font, 0xFF, SIZEU(_char_to_font));
+   SetMem(_wide_to_font, 0xFF, SIZEU(_wide_to_font));
    Int invalid[5]={-1, -1, -1, -1, -1}, space=-1;
    REPA(_chrs)if(Char w=_chrs[i].chr)
    {
