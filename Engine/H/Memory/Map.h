@@ -18,8 +18,9 @@ enum MAP_MODE : Byte // Map Mode
 #if EE_PRIVATE
 enum MAP_ELM_FLAG // Map Element Flag
 {
-   MAP_ELM_DUMMY  =0x1,
-   MAP_ELM_LOADING=0x2,
+   MAP_ELM_DUMMY       =1<<0, // if element was not found but created anyway
+   MAP_ELM_LOADING     =1<<1, // if element is still being loaded (for example, during loading of element A, it loads element B, which tries to access A which didn't finish loading yet)
+   MAP_ELM_DELAY_REMOVE=1<<2, // if element reached zero references and was added to the '_delay_remove'
 };
 #endif
 /******************************************************************************/

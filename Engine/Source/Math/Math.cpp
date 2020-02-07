@@ -839,7 +839,7 @@ Half::Half(Flt f)
    }else
    {
       U32 mantissa_odd=(u>>13)&1; // resulting mantissa is odd
-      u  +=((15-127)<<23)+0xFFF; // update exponent, rounding bias part 1
+      u  +=0xC8000FFF; // update exponent, rounding bias part 1 "((15-127)<<23)+0xFFF"
       u  +=mantissa_odd; // rounding bias part 2
       data=(u>>13); // take the bits!
    }
