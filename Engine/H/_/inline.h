@@ -427,23 +427,23 @@ T1(TYPE)  Mems<TYPE>:: Mems(  Mems &&src) : Mems() {Swap(T, src);}
 /******************************************************************************/
 // MEMC
 /******************************************************************************/
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::clear() {_Memc::clear(); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::del  () {_Memc::del  (); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      Memc<TYPE>::elms    ()C {return _Memc::elms    ();}
-T1(TYPE)  UInt     Memc<TYPE>::elmSize ()C {return _Memc::elmSize ();}
-T1(TYPE)  UIntPtr  Memc<TYPE>::memUsage()C {return _Memc::memUsage();}
+T1(TYPE)  Int      Memc<TYPE>::elms    ()C {return super::elms    ();}
+T1(TYPE)  UInt     Memc<TYPE>::elmSize ()C {return super::elmSize ();}
+T1(TYPE)  UIntPtr  Memc<TYPE>::memUsage()C {return super::memUsage();}
 
-T1(TYPE)  TYPE*  Memc<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'Memc.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)_Memc::data();}
-T1(TYPE)  TYPE*  Memc<TYPE>::addr      (Int i) {return  (TYPE*)_Memc::addr      (i);}
-T1(TYPE)  TYPE*  Memc<TYPE>::addrFirst (     ) {return  (TYPE*)_Memc::addrFirst ( );}
-T1(TYPE)  TYPE*  Memc<TYPE>::addrLast  (     ) {return  (TYPE*)_Memc::addrLast  ( );}
-T1(TYPE)  TYPE&  Memc<TYPE>::operator[](Int i) {return *(TYPE*)_Memc::operator[](i);}
-T1(TYPE)  TYPE&  Memc<TYPE>::operator()(Int i) {return *(TYPE*)_Memc::operator()(i);}
-T1(TYPE)  TYPE&  Memc<TYPE>::first     (     ) {return *(TYPE*)_Memc::first     ( );}
-T1(TYPE)  TYPE&  Memc<TYPE>::last      (     ) {return *(TYPE*)_Memc::last      ( );}
-T1(TYPE)  TYPE&  Memc<TYPE>::New       (     ) {return *(TYPE*)_Memc::New       ( );}
-T1(TYPE)  TYPE&  Memc<TYPE>::NewAt     (Int i) {return *(TYPE*)_Memc::NewAt     (i);}
+T1(TYPE)  TYPE*  Memc<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'Memc.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
+T1(TYPE)  TYPE*  Memc<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
+T1(TYPE)  TYPE*  Memc<TYPE>::addrFirst (     ) {return  (TYPE*)super::addrFirst ( );}
+T1(TYPE)  TYPE*  Memc<TYPE>::addrLast  (     ) {return  (TYPE*)super::addrLast  ( );}
+T1(TYPE)  TYPE&  Memc<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  Memc<TYPE>::operator()(Int i) {return *(TYPE*)super::operator()(i);}
+T1(TYPE)  TYPE&  Memc<TYPE>::first     (     ) {return *(TYPE*)super::first     ( );}
+T1(TYPE)  TYPE&  Memc<TYPE>::last      (     ) {return *(TYPE*)super::last      ( );}
+T1(TYPE)  TYPE&  Memc<TYPE>::New       (     ) {return *(TYPE*)super::New       ( );}
+T1(TYPE)  TYPE&  Memc<TYPE>::NewAt     (Int i) {return *(TYPE*)super::NewAt     (i);}
 
 T1(TYPE)  TYPE  Memc<TYPE>::popFirst(       Bool keep_order) {TYPE temp=first(); remove    (0, keep_order); return temp;}
 T1(TYPE)  TYPE  Memc<TYPE>::pop     (Int i, Bool keep_order) {TYPE temp=   T[i]; remove    (i, keep_order); return temp;}
@@ -457,28 +457,28 @@ T1(TYPE)  C TYPE&  Memc<TYPE>::operator[](Int i)C {return ConstCast(T)          
 T1(TYPE)  C TYPE&  Memc<TYPE>::first     (     )C {return ConstCast(T).first    ( );}
 T1(TYPE)  C TYPE&  Memc<TYPE>::last      (     )C {return ConstCast(T).last     ( );}
 
-T1(TYPE)  Int   Memc<TYPE>::index   (C TYPE *elm)C {return _Memc::index   (elm);}
-T1(TYPE)  Bool  Memc<TYPE>::contains(C TYPE *elm)C {return _Memc::contains(elm);}
+T1(TYPE)  Int   Memc<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  Memc<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeLast(                                   ) {_Memc::removeLast(                ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::remove    (  Int   i  ,        Bool keep_order) {_Memc::remove    (i,    keep_order); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeNum (  Int   i  , Int n, Bool keep_order) {_Memc::removeNum (i, n, keep_order); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeData(C TYPE *elm,        Bool keep_order) {_Memc::removeData(elm,  keep_order); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeLast(                                   ) {super::removeLast(                ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::remove    (  Int   i  ,        Bool keep_order) {super::remove    (i,    keep_order); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeNum (  Int   i  , Int n, Bool keep_order) {super::removeNum (i, n, keep_order); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeData(C TYPE *elm,        Bool keep_order) {super::removeData(elm,  keep_order); return T;}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num          ) {       _Memc::setNum    (num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num, Int keep) {       _Memc::setNum    (num, keep); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num          ) {       _Memc::setNumZero(num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num, Int keep) {       _Memc::setNumZero(num, keep); return T;}
-T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return _Memc::addNum    (num      );          }
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num          ) {       super::setNum    (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num, Int keep) {       super::setNum    (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num          ) {       super::setNumZero(num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num, Int keep) {       super::setNumZero(num, keep); return T;}
+T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return super::addNum    (num      );          }
 
-T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _Memc::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {_Memc::          sort((Int(*)(CPtr, CPtr))compare); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::  reverseOrder(                                 ) {_Memc::  reverseOrder(                           ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::randomizeOrder(                                 ) {_Memc::randomizeOrder(                           ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::   rotateOrder(Int offset                       ) {_Memc::   rotateOrder(offset                     ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     swapOrder(Int i  , Int j                   ) {_Memc::     swapOrder(i, j                       ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     moveElm  (Int elm, Int new_index           ) {_Memc::     moveElm  (elm, new_index             ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {super::          sort((Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::  reverseOrder(                                 ) {super::  reverseOrder(                           ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::randomizeOrder(                                 ) {super::randomizeOrder(                           ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::   rotateOrder(Int offset                       ) {super::   rotateOrder(offset                     ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     swapOrder(Int i  , Int j                   ) {super::     swapOrder(i, j                       ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     moveElm  (Int elm, Int new_index           ) {super::     moveElm  (elm, new_index             ); return T;}
 
 T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(C Mems  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(C Memc  <TYPE      >  &src) {if(this!=&src     ){setNum(src.elms()); FREPAO(T)=src[i];} return T;}
@@ -489,7 +489,7 @@ T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(C Meml  <TYPE   
 T1(TYPE) template<Int size>  Memc<TYPE>&  Memc<TYPE>::operator=(C MemPtr<TYPE, size>  &src) {if(this!=src._memc){setNum(src.elms()); FREPAO(T)=src[i];} return T;}
 T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(  Memc  <TYPE      > &&src) {Swap(T, src); return T;}
 
-T1(TYPE) T1(EXTENDED)  Memc<TYPE>&  Memc<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memc::_reset(SIZE(EXTENDED), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  Memc<TYPE>&  Memc<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )               Memc<TYPE>::operator   Memc<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memc<BASE>*)this;}
 T1(TYPE) T1(BASE    )               Memc<TYPE>::operator C Memc<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memc<BASE>*)this;}
 
@@ -503,12 +503,12 @@ T1(TYPE) T1(USER)  Bool  Memc<TYPE>::load(File &f, C USER &user)  {setNum(f.decU
 T1(TYPE) T2(USER, USER1)  Bool  Memc<TYPE>::save(File &f, C USER &user, C USER1 &user1)C {       f.cmpUIntV(elms()) ; FREPA(T)if(!T[i].save(f, user, user1))return false; return f.ok();}
 T1(TYPE) T2(USER, USER1)  Bool  Memc<TYPE>::load(File &f, C USER &user, C USER1 &user1)  {setNum(f.decUIntV(      )); FREPA(T)if(!T[i].load(f, user, user1))goto   error;     if(f.ok())return true; error: clear(); return false;}
 
-T1(TYPE)  Bool  Memc<TYPE>::saveRaw(File &f)C {return _Memc::saveRaw(f);}
-T1(TYPE)  Bool  Memc<TYPE>::loadRaw(File &f)  {return _Memc::loadRaw(f);}
+T1(TYPE)  Bool  Memc<TYPE>::saveRaw(File &f)C {return super::saveRaw(f);}
+T1(TYPE)  Bool  Memc<TYPE>::loadRaw(File &f)  {return super::loadRaw(f);}
 
 #if EE_PRIVATE
-T1(TYPE)  Bool  Memc<TYPE>::_saveRaw(File &f)C {return _Memc::_saveRaw(f);}
-T1(TYPE)  Bool  Memc<TYPE>::_loadRaw(File &f)  {return _Memc::_loadRaw(f);}
+T1(TYPE)  Bool  Memc<TYPE>::_saveRaw(File &f)C {return super::_saveRaw(f);}
+T1(TYPE)  Bool  Memc<TYPE>::_loadRaw(File &f)  {return super::_loadRaw(f);}
 T1(TYPE)  Bool  Memc<TYPE>::_save   (File &f)C {       f.putInt(elms()) ; FREPA(T)if(!T[i].save(f))return false; return f.ok();}
 T1(TYPE)  Bool  Memc<TYPE>::_load   (File &f)  {setNum(f.getInt(      )); FREPA(T)if(!T[i].load(f))goto   error;     if(f.ok())return true; error: clear(); return false;}
 #endif
@@ -519,21 +519,21 @@ T1(TYPE)  Memc<TYPE>::Memc(  Memc &&src) : _Memc(            0,                 
 /******************************************************************************/
 // MEMC ABSTRACT
 /******************************************************************************/
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::clear() {_Memc::clear(); return T;}
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::del  () {_Memc::del  (); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      MemcAbstract<TYPE>::elms    ()C {return _Memc::elms    ();}
-T1(TYPE)  UInt     MemcAbstract<TYPE>::elmSize ()C {return _Memc::elmSize ();}
-T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::memUsage()C {return _Memc::memUsage();}
+T1(TYPE)  Int      MemcAbstract<TYPE>::elms    ()C {return super::elms    ();}
+T1(TYPE)  UInt     MemcAbstract<TYPE>::elmSize ()C {return super::elmSize ();}
+T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::memUsage()C {return super::memUsage();}
 
-T1(TYPE)  TYPE*  MemcAbstract<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcAbstract.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)_Memc::data();}
-T1(TYPE)  TYPE*  MemcAbstract<TYPE>::addr      (Int i) {return  (TYPE*)_Memc::addr      (i);}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::operator[](Int i) {return *(TYPE*)_Memc::operator[](i);}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::operator()(Int i) {return *(TYPE*)_Memc::operator()(i);}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::first     (     ) {return *(TYPE*)_Memc::first     ( );}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::last      (     ) {return *(TYPE*)_Memc::last      ( );}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::New       (     ) {return *(TYPE*)_Memc::New       ( );}
-T1(TYPE)  TYPE&  MemcAbstract<TYPE>::NewAt     (Int i) {return *(TYPE*)_Memc::NewAt     (i);}
+T1(TYPE)  TYPE*  MemcAbstract<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcAbstract.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
+T1(TYPE)  TYPE*  MemcAbstract<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::operator()(Int i) {return *(TYPE*)super::operator()(i);}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::first     (     ) {return *(TYPE*)super::first     ( );}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::last      (     ) {return *(TYPE*)super::last      ( );}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::New       (     ) {return *(TYPE*)super::New       ( );}
+T1(TYPE)  TYPE&  MemcAbstract<TYPE>::NewAt     (Int i) {return *(TYPE*)super::NewAt     (i);}
 
 T1(TYPE)  C TYPE*  MemcAbstract<TYPE>::data      (     )C {return ConstCast(T).data ( );}
 T1(TYPE)  C TYPE*  MemcAbstract<TYPE>::addr      (Int i)C {return ConstCast(T).addr (i);}
@@ -541,18 +541,18 @@ T1(TYPE)  C TYPE&  MemcAbstract<TYPE>::operator[](Int i)C {return ConstCast(T)  
 T1(TYPE)  C TYPE&  MemcAbstract<TYPE>::first     (     )C {return ConstCast(T).first( );}
 T1(TYPE)  C TYPE&  MemcAbstract<TYPE>::last      (     )C {return ConstCast(T).last ( );}
 
-T1(TYPE)  Int   MemcAbstract<TYPE>::index   (C TYPE *elm)C {return _Memc::index   (elm);}
-T1(TYPE)  Bool  MemcAbstract<TYPE>::contains(C TYPE *elm)C {return _Memc::contains(elm);}
+T1(TYPE)  Int   MemcAbstract<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  MemcAbstract<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::removeLast(                            ) {_Memc::removeLast(               ); return T;}
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::remove    (  Int   i  , Bool keep_order) {_Memc::remove    (i  , keep_order); return T;}
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::removeData(C TYPE *elm, Bool keep_order) {_Memc::removeData(elm, keep_order); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::removeLast(                            ) {super::removeLast(               ); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::remove    (  Int   i  , Bool keep_order) {super::remove    (i  , keep_order); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::removeData(C TYPE *elm, Bool keep_order) {super::removeData(elm, keep_order); return T;}
 
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::setNum    (Int num) {       _Memc::setNum    (num); return T;}
-T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::setNumZero(Int num) {       _Memc::setNumZero(num); return T;}
-T1(TYPE)  Int                  MemcAbstract<TYPE>::addNum    (Int num) {return _Memc::addNum    (num);          }
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::setNum    (Int num) {       super::setNum    (num); return T;}
+T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
+T1(TYPE)  Int                  MemcAbstract<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
-T1(TYPE) T1(EXTENDED)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memc::_reset(SIZE(EXTENDED), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )                       MemcAbstract<TYPE>::operator   Memc<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memc<BASE>*)this;}
 T1(TYPE) T1(BASE    )                       MemcAbstract<TYPE>::operator C Memc<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memc<BASE>*)this;}
 
@@ -560,20 +560,20 @@ T1(TYPE)  MemcAbstract<TYPE>::MemcAbstract() : _Memc(0, null, null) {}
 /******************************************************************************/
 // MEMC THREAD SAFE
 /******************************************************************************/
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::clear() {_MemcThreadSafe::clear(); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::del  () {_MemcThreadSafe::del  (); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      MemcThreadSafe<TYPE>::elms    ()C {return _MemcThreadSafe::elms    ();}
-T1(TYPE)  UInt     MemcThreadSafe<TYPE>::elmSize ()C {return _MemcThreadSafe::elmSize ();}
-T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::memUsage()C {return _MemcThreadSafe::memUsage();}
+T1(TYPE)  Int      MemcThreadSafe<TYPE>::elms    ()C {return super::elms    ();}
+T1(TYPE)  UInt     MemcThreadSafe<TYPE>::elmSize ()C {return super::elmSize ();}
+T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::memUsage()C {return super::memUsage();}
 
-T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedData (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcThreadSafe.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)_MemcThreadSafe::lockedData();}
-T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedAddr (Int i) {return  (TYPE*)_MemcThreadSafe::lockedAddr (i);}
-T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedElm  (Int i) {return *(TYPE*)_MemcThreadSafe::lockedElm  (i);}
-T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedFirst(     ) {return *(TYPE*)_MemcThreadSafe::lockedFirst( );}
-T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedLast (     ) {return *(TYPE*)_MemcThreadSafe::lockedLast ( );}
-T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNew  (     ) {return *(TYPE*)_MemcThreadSafe::lockedNew  ( );}
-T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNewAt(Int i) {return *(TYPE*)_MemcThreadSafe::lockedNewAt(i);}
+T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedData (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcThreadSafe.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::lockedData();}
+T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedAddr (Int i) {return  (TYPE*)super::lockedAddr (i);}
+T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedElm  (Int i) {return *(TYPE*)super::lockedElm  (i);}
+T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedFirst(     ) {return *(TYPE*)super::lockedFirst( );}
+T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedLast (     ) {return *(TYPE*)super::lockedLast ( );}
+T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNew  (     ) {return *(TYPE*)super::lockedNew  ( );}
+T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNewAt(Int i) {return *(TYPE*)super::lockedNewAt(i);}
 
 T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::popFirst(       Bool keep_order) {lock(); TYPE temp=lockedFirst( ); remove    (0, keep_order); unlock(); return temp;}
 T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::pop     (Int i, Bool keep_order) {lock(); TYPE temp=lockedElm  (i); remove    (i, keep_order); unlock(); return temp;}
@@ -585,30 +585,30 @@ T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedElm  (Int i)C {return ConstCast(T
 T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedFirst(     )C {return ConstCast(T).lockedFirst( );}
 T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedLast (     )C {return ConstCast(T).lockedLast ( );}
 
-T1(TYPE)  Int   MemcThreadSafe<TYPE>::index   (C TYPE *elm)C {return _MemcThreadSafe::index   (elm);}
-T1(TYPE)  Bool  MemcThreadSafe<TYPE>::contains(C TYPE *elm)C {return _MemcThreadSafe::contains(elm);}
+T1(TYPE)  Int   MemcThreadSafe<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeLast(                            ) {_MemcThreadSafe::      removeLast(               ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      remove    (  Int   i  , Bool keep_order) {_MemcThreadSafe::      remove    (i  , keep_order); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemove    (  Int   i  , Bool keep_order) {_MemcThreadSafe::lockedRemove    (i  , keep_order); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeData(C TYPE *elm, Bool keep_order) {_MemcThreadSafe::      removeData(elm, keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeLast(                            ) {super::      removeLast(               ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      remove    (  Int   i  , Bool keep_order) {super::      remove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemove    (  Int   i  , Bool keep_order) {super::lockedRemove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeData(C TYPE *elm, Bool keep_order) {super::      removeData(elm, keep_order); return T;}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNum    (Int num) {       _MemcThreadSafe::setNum    (num); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNumZero(Int num) {       _MemcThreadSafe::setNumZero(num); return T;}
-T1(TYPE)  Int                    MemcThreadSafe<TYPE>::addNum    (Int num) {return _MemcThreadSafe::addNum    (num);          }
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNum    (Int num) {       super::setNum    (num); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
+T1(TYPE)  Int                    MemcThreadSafe<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
-T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::      binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _MemcThreadSafe::      binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
-T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::lockedBinarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _MemcThreadSafe::lockedBinarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::      binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::      binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::lockedBinarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::lockedBinarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {_MemcThreadSafe::          sort((Int(*)(CPtr, CPtr))compare); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                                 ) {_MemcThreadSafe::  reverseOrder(                           ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::randomizeOrder(                                 ) {_MemcThreadSafe::randomizeOrder(                           ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   rotateOrder(Int offset                       ) {_MemcThreadSafe::   rotateOrder(offset                     ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     swapOrder(Int i  , Int j                   ) {_MemcThreadSafe::     swapOrder(i, j                       ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     moveElm  (Int elm, Int new_index           ) {_MemcThreadSafe::     moveElm  (elm, new_index             ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {super::          sort((Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                                 ) {super::  reverseOrder(                           ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::randomizeOrder(                                 ) {super::randomizeOrder(                           ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   rotateOrder(Int offset                       ) {super::   rotateOrder(offset                     ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     swapOrder(Int i  , Int j                   ) {super::     swapOrder(i, j                       ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     moveElm  (Int elm, Int new_index           ) {super::     moveElm  (elm, new_index             ); return T;}
 
-T1(TYPE)  void  MemcThreadSafe<TYPE>::  lock()C {_MemcThreadSafe::  lock();}
-T1(TYPE)  void  MemcThreadSafe<TYPE>::unlock()C {_MemcThreadSafe::unlock();}
+T1(TYPE)  void  MemcThreadSafe<TYPE>::  lock()C {super::  lock();}
+T1(TYPE)  void  MemcThreadSafe<TYPE>::unlock()C {super::unlock();}
 
 T1(TYPE)  MemcThreadSafe<TYPE>::MemcThreadSafe() : _MemcThreadSafe(SIZE(TYPE), ClassFunc<TYPE>::GetNew(), ClassFunc<TYPE>::GetDel()) {}
 /******************************************************************************/
@@ -875,21 +875,21 @@ template<typename TYPE, Int size>  Memt<TYPE, size>:: Memt(C Memt &src) : Memt()
 /******************************************************************************/
 // MEMB
 /******************************************************************************/
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::clear() {_Memb::clear(); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::del  () {_Memb::del  (); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      Memb<TYPE>::  elms    ()C {return _Memb::  elms    ();}
-T1(TYPE)  UInt     Memb<TYPE>::  elmSize ()C {return _Memb::  elmSize ();}
-T1(TYPE)  UInt     Memb<TYPE>::blockElms ()C {return _Memb::blockElms ();}
-T1(TYPE)  UIntPtr  Memb<TYPE>::  memUsage()C {return _Memb::  memUsage();}
+T1(TYPE)  Int      Memb<TYPE>::  elms    ()C {return super::  elms    ();}
+T1(TYPE)  UInt     Memb<TYPE>::  elmSize ()C {return super::  elmSize ();}
+T1(TYPE)  UInt     Memb<TYPE>::blockElms ()C {return super::blockElms ();}
+T1(TYPE)  UIntPtr  Memb<TYPE>::  memUsage()C {return super::  memUsage();}
 
-T1(TYPE)  TYPE*  Memb<TYPE>::addr      (Int i) {return  (TYPE*)_Memb::addr      (i);}
-T1(TYPE)  TYPE&  Memb<TYPE>::operator[](Int i) {return *(TYPE*)_Memb::operator[](i);}
-T1(TYPE)  TYPE&  Memb<TYPE>::operator()(Int i) {return *(TYPE*)_Memb::operator()(i);}
-T1(TYPE)  TYPE&  Memb<TYPE>::first     (     ) {return *(TYPE*)_Memb::first     ( );}
-T1(TYPE)  TYPE&  Memb<TYPE>::last      (     ) {return *(TYPE*)_Memb::last      ( );}
-T1(TYPE)  TYPE&  Memb<TYPE>::New       (     ) {return *(TYPE*)_Memb::New       ( );}
-T1(TYPE)  TYPE&  Memb<TYPE>::NewAt     (Int i) {return *(TYPE*)_Memb::NewAt     (i);}
+T1(TYPE)  TYPE*  Memb<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
+T1(TYPE)  TYPE&  Memb<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  Memb<TYPE>::operator()(Int i) {return *(TYPE*)super::operator()(i);}
+T1(TYPE)  TYPE&  Memb<TYPE>::first     (     ) {return *(TYPE*)super::first     ( );}
+T1(TYPE)  TYPE&  Memb<TYPE>::last      (     ) {return *(TYPE*)super::last      ( );}
+T1(TYPE)  TYPE&  Memb<TYPE>::New       (     ) {return *(TYPE*)super::New       ( );}
+T1(TYPE)  TYPE&  Memb<TYPE>::NewAt     (Int i) {return *(TYPE*)super::NewAt     (i);}
 
 T1(TYPE)  TYPE  Memb<TYPE>::popFirst(       Bool keep_order) {TYPE temp=first(); remove    (0, keep_order); return temp;}
 T1(TYPE)  TYPE  Memb<TYPE>::pop     (Int i, Bool keep_order) {TYPE temp=   T[i]; remove    (i, keep_order); return temp;}
@@ -900,24 +900,24 @@ T1(TYPE)  C TYPE&  Memb<TYPE>::operator[](Int i)C {return ConstCast(T)      [i];
 T1(TYPE)  C TYPE&  Memb<TYPE>::first     (     )C {return ConstCast(T).first( );}
 T1(TYPE)  C TYPE&  Memb<TYPE>::last      (     )C {return ConstCast(T).last ( );}
 
-T1(TYPE)  Int   Memb<TYPE>::index   (C TYPE *elm)C {return _Memb::index   (elm);}
-T1(TYPE)  Bool  Memb<TYPE>::contains(C TYPE *elm)C {return _Memb::contains(elm);}
+T1(TYPE)  Int   Memb<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  Memb<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::removeLast(                            ) {_Memb::removeLast(               ); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::remove    (  Int   i  , Bool keep_order) {_Memb::remove    (i  , keep_order); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::removeData(C TYPE *elm, Bool keep_order) {_Memb::removeData(elm, keep_order); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::removeLast(                            ) {super::removeLast(               ); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::remove    (  Int   i  , Bool keep_order) {super::remove    (i  , keep_order); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::removeData(C TYPE *elm, Bool keep_order) {super::removeData(elm, keep_order); return T;}
 
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNum    (Int num) {       _Memb::setNum    (num); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNumZero(Int num) {       _Memb::setNumZero(num); return T;}
-T1(TYPE)  Int          Memb<TYPE>::addNum    (Int num) {return _Memb::addNum    (num);          }
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNum    (Int num) {       super::setNum    (num); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
+T1(TYPE)  Int          Memb<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
 T1(TYPE) T1(VALUE)  Bool  Memb<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
 
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::reverseOrder(                      ) {_Memb::reverseOrder(              ); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::   swapOrder(Int i  , Int j        ) {_Memb::   swapOrder(i  , j        ); return T;}
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::     moveElm(Int elm, Int new_index) {_Memb::     moveElm(elm, new_index); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::reverseOrder(                      ) {super::reverseOrder(              ); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::   swapOrder(Int i  , Int j        ) {super::   swapOrder(i  , j        ); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::     moveElm(Int elm, Int new_index) {super::     moveElm(elm, new_index); return T;}
 
 T1(TYPE)                     Memb<TYPE>&  Memb<TYPE>::operator=(C Mems  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 T1(TYPE)                     Memb<TYPE>&  Memb<TYPE>::operator=(C Memc  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
@@ -928,7 +928,7 @@ T1(TYPE)                     Memb<TYPE>&  Memb<TYPE>::operator=(C Meml  <TYPE   
 T1(TYPE) template<Int size>  Memb<TYPE>&  Memb<TYPE>::operator=(C MemPtr<TYPE, size>  &src) {if(this!=src._memb){setNum(src.elms()); FREPAO(T)=src[i];} return T;}
 T1(TYPE)                     Memb<TYPE>&  Memb<TYPE>::operator=(  Memb  <TYPE      > &&src) {Swap(T, src); return T;}
 
-T1(TYPE) T1(EXTENDED)  Memb<TYPE>&  Memb<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memb::_reset(SIZE(EXTENDED), _block_elms, ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  Memb<TYPE>&  Memb<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), _block_elms, ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )               Memb<TYPE>::operator   Memb<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memb<BASE>*)this;}
 T1(TYPE) T1(BASE    )               Memb<TYPE>::operator C Memb<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memb<BASE>*)this;}
 
@@ -936,8 +936,8 @@ T1(TYPE)  Bool  Memb<TYPE>::save(File &f)C {       f.cmpUIntV(elms()) ; FREPA(T)
 T1(TYPE)  Bool  Memb<TYPE>::save(File &f)  {       f.cmpUIntV(elms()) ; FREPA(T)if(!T[i].save(f))return false; return f.ok();}
 T1(TYPE)  Bool  Memb<TYPE>::load(File &f)  {setNum(f.decUIntV(      )); FREPA(T)if(!T[i].load(f))goto   error;     if(f.ok())return true; error: clear(); return false;}
 
-T1(TYPE)  Bool  Memb<TYPE>::saveRaw(File &f)C {return _Memb::saveRaw(f);}
-T1(TYPE)  Bool  Memb<TYPE>::loadRaw(File &f)  {return _Memb::loadRaw(f);}
+T1(TYPE)  Bool  Memb<TYPE>::saveRaw(File &f)C {return super::saveRaw(f);}
+T1(TYPE)  Bool  Memb<TYPE>::loadRaw(File &f)  {return super::loadRaw(f);}
 
 T1(TYPE)  Memb<TYPE>::Memb(Int block_elms) : _Memb(SIZE(TYPE)   ,     block_elms , ClassFunc<TYPE>::GetNew(), ClassFunc<TYPE>::GetDel()) {}
 T1(TYPE)  Memb<TYPE>::Memb(C Memb  &src  ) : _Memb(src.elmSize(), src.blockElms(),                src._new  ,                src._del  ) {T=src;}
@@ -945,38 +945,38 @@ T1(TYPE)  Memb<TYPE>::Memb(  Memb &&src  ) : _Memb(            0,               
 /******************************************************************************/
 // MEMB ABSTRACT
 /******************************************************************************/
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::clear() {_Memb::clear(); return T;}
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::del  () {_Memb::del  (); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int   MembAbstract<TYPE>::  elms   ()C {return _Memb::  elms   ();}
-T1(TYPE)  UInt  MembAbstract<TYPE>::  elmSize()C {return _Memb::  elmSize();}
-T1(TYPE)  UInt  MembAbstract<TYPE>::blockElms()C {return _Memb::blockElms();}
+T1(TYPE)  Int   MembAbstract<TYPE>::  elms   ()C {return super::  elms   ();}
+T1(TYPE)  UInt  MembAbstract<TYPE>::  elmSize()C {return super::  elmSize();}
+T1(TYPE)  UInt  MembAbstract<TYPE>::blockElms()C {return super::blockElms();}
 
-T1(TYPE)  TYPE*  MembAbstract<TYPE>::addr      (Int i) {return  (TYPE*)_Memb::addr      (i);}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::operator[](Int i) {return *(TYPE*)_Memb::operator[](i);}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::operator()(Int i) {return *(TYPE*)_Memb::operator()(i);}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::first     (     ) {return *(TYPE*)_Memb::first     ( );}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::last      (     ) {return *(TYPE*)_Memb::last      ( );}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::New       (     ) {return *(TYPE*)_Memb::New       ( );}
-T1(TYPE)  TYPE&  MembAbstract<TYPE>::NewAt     (Int i) {return *(TYPE*)_Memb::NewAt     (i);}
+T1(TYPE)  TYPE*  MembAbstract<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::operator()(Int i) {return *(TYPE*)super::operator()(i);}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::first     (     ) {return *(TYPE*)super::first     ( );}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::last      (     ) {return *(TYPE*)super::last      ( );}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::New       (     ) {return *(TYPE*)super::New       ( );}
+T1(TYPE)  TYPE&  MembAbstract<TYPE>::NewAt     (Int i) {return *(TYPE*)super::NewAt     (i);}
 
 T1(TYPE)  C TYPE*  MembAbstract<TYPE>::addr      (Int i)C {return ConstCast(T).addr (i);}
 T1(TYPE)  C TYPE&  MembAbstract<TYPE>::operator[](Int i)C {return ConstCast(T)      [i];}
 T1(TYPE)  C TYPE&  MembAbstract<TYPE>::first     (     )C {return ConstCast(T).first( );}
 T1(TYPE)  C TYPE&  MembAbstract<TYPE>::last      (     )C {return ConstCast(T).last ( );}
 
-T1(TYPE)  Int   MembAbstract<TYPE>::index   (C TYPE *elm)C {return _Memb::index   (elm);}
-T1(TYPE)  Bool  MembAbstract<TYPE>::contains(C TYPE *elm)C {return _Memb::contains(elm);}
+T1(TYPE)  Int   MembAbstract<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  MembAbstract<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::removeLast(                            ) {_Memb::removeLast(               ); return T;}
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::remove    (  Int   i  , Bool keep_order) {_Memb::remove    (i  , keep_order); return T;}
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::removeData(C TYPE *elm, Bool keep_order) {_Memb::removeData(elm, keep_order); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::removeLast(                            ) {super::removeLast(               ); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::remove    (  Int   i  , Bool keep_order) {super::remove    (i  , keep_order); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::removeData(C TYPE *elm, Bool keep_order) {super::removeData(elm, keep_order); return T;}
 
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::setNum    (Int num) {       _Memb::setNum    (num); return T;}
-T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::setNumZero(Int num) {       _Memb::setNumZero(num); return T;}
-T1(TYPE)  Int                  MembAbstract<TYPE>::addNum    (Int num) {return _Memb::addNum    (num);          }
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::setNum    (Int num) {       super::setNum    (num); return T;}
+T1(TYPE)  MembAbstract<TYPE>&  MembAbstract<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
+T1(TYPE)  Int                  MembAbstract<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
-T1(TYPE) T1(EXTENDED)  MembAbstract<TYPE>&  MembAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memb::_reset(SIZE(EXTENDED), _block_elms, ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  MembAbstract<TYPE>&  MembAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), _block_elms, ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )                       MembAbstract<TYPE>::operator   Memb<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memb<BASE>*)this;}
 T1(TYPE) T1(BASE    )                       MembAbstract<TYPE>::operator C Memb<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memb<BASE>*)this;}
 
@@ -994,23 +994,23 @@ T1(TYPE) T1(BASE)  MembConst<TYPE>::operator C MembConst<BASE>&()C {ASSERT_BASE_
 /******************************************************************************/
 // MEMX
 /******************************************************************************/
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::clear() {_Memx::clear(); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::del  () {_Memx::del  (); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      Memx<TYPE>::  absElms ()C {return _Memx::  absElms ();}
-T1(TYPE)  Int      Memx<TYPE>::validElms ()C {return _Memx::validElms ();}
-T1(TYPE)  Int      Memx<TYPE>::     elms ()C {return _Memx::     elms ();}
-T1(TYPE)  UInt     Memx<TYPE>::  elmSize ()C {return _Memx::  elmSize ();}
-T1(TYPE)  UIntPtr  Memx<TYPE>::  memUsage()C {return _Memx::  memUsage();}
+T1(TYPE)  Int      Memx<TYPE>::  absElms ()C {return super::  absElms ();}
+T1(TYPE)  Int      Memx<TYPE>::validElms ()C {return super::validElms ();}
+T1(TYPE)  Int      Memx<TYPE>::     elms ()C {return super::     elms ();}
+T1(TYPE)  UInt     Memx<TYPE>::  elmSize ()C {return super::  elmSize ();}
+T1(TYPE)  UIntPtr  Memx<TYPE>::  memUsage()C {return super::  memUsage();}
 
-T1(TYPE)  TYPE&  Memx<TYPE>::    absElm(Int i) {return *(TYPE*)_Memx::    absElm(i);}
-T1(TYPE)  TYPE&  Memx<TYPE>::  validElm(Int i) {return *(TYPE*)_Memx::  validElm(i);}
-T1(TYPE)  TYPE*  Memx<TYPE>::      addr(Int i) {return  (TYPE*)_Memx::      addr(i);}
-T1(TYPE)  TYPE&  Memx<TYPE>::operator[](Int i) {return *(TYPE*)_Memx::operator[](i);}
-T1(TYPE)  TYPE&  Memx<TYPE>::     first(     ) {return *(TYPE*)_Memx::     first( );}
-T1(TYPE)  TYPE&  Memx<TYPE>::      last(     ) {return *(TYPE*)_Memx::      last( );}
-T1(TYPE)  TYPE&  Memx<TYPE>::     New  (     ) {return *(TYPE*)_Memx::     New  ( );}
-T1(TYPE)  TYPE&  Memx<TYPE>::     NewAt(Int i) {return *(TYPE*)_Memx::     NewAt(i);}
+T1(TYPE)  TYPE&  Memx<TYPE>::    absElm(Int i) {return *(TYPE*)super::    absElm(i);}
+T1(TYPE)  TYPE&  Memx<TYPE>::  validElm(Int i) {return *(TYPE*)super::  validElm(i);}
+T1(TYPE)  TYPE*  Memx<TYPE>::      addr(Int i) {return  (TYPE*)super::      addr(i);}
+T1(TYPE)  TYPE&  Memx<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  Memx<TYPE>::     first(     ) {return *(TYPE*)super::     first( );}
+T1(TYPE)  TYPE&  Memx<TYPE>::      last(     ) {return *(TYPE*)super::      last( );}
+T1(TYPE)  TYPE&  Memx<TYPE>::     New  (     ) {return *(TYPE*)super::     New  ( );}
+T1(TYPE)  TYPE&  Memx<TYPE>::     NewAt(Int i) {return *(TYPE*)super::     NewAt(i);}
 
 T1(TYPE)  C TYPE&  Memx<TYPE>::    absElm(Int i)C {return ConstCast(T).  absElm(i);}
 T1(TYPE)  C TYPE&  Memx<TYPE>::  validElm(Int i)C {return ConstCast(T).validElm(i);}
@@ -1019,26 +1019,26 @@ T1(TYPE)  C TYPE&  Memx<TYPE>::operator[](Int i)C {return ConstCast(T)         [
 T1(TYPE)  C TYPE&  Memx<TYPE>::     first(     )C {return ConstCast(T).   first( );}
 T1(TYPE)  C TYPE&  Memx<TYPE>::      last(     )C {return ConstCast(T).    last( );}
 
-T1(TYPE)  Int   Memx<TYPE>::validToAbsIndex(  Int valid)C {return _Memx::validToAbsIndex(valid);}
-T1(TYPE)  Int   Memx<TYPE>::absToValidIndex(  Int   abs)C {return _Memx::absToValidIndex(abs  );}
-T1(TYPE)  Int   Memx<TYPE>::validIndex     (C TYPE *elm)C {return _Memx::validIndex     (elm  );}
-T1(TYPE)  Int   Memx<TYPE>::  absIndex     (C TYPE *elm)C {return _Memx::  absIndex     (elm  );}
-T1(TYPE)  Bool  Memx<TYPE>::  contains     (C TYPE *elm)C {return _Memx::  contains     (elm  );}
+T1(TYPE)  Int   Memx<TYPE>::validToAbsIndex(  Int valid)C {return super::validToAbsIndex(valid);}
+T1(TYPE)  Int   Memx<TYPE>::absToValidIndex(  Int   abs)C {return super::absToValidIndex(abs  );}
+T1(TYPE)  Int   Memx<TYPE>::validIndex     (C TYPE *elm)C {return super::validIndex     (elm  );}
+T1(TYPE)  Int   Memx<TYPE>::  absIndex     (C TYPE *elm)C {return super::  absIndex     (elm  );}
+T1(TYPE)  Bool  Memx<TYPE>::  contains     (C TYPE *elm)C {return super::  contains     (elm  );}
 
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeAbs  (  Int   i  , Bool keep_order) {_Memx::removeAbs  (i  , keep_order); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeValid(  Int   i  , Bool keep_order) {_Memx::removeValid(i  , keep_order); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeData (C TYPE *elm, Bool keep_order) {_Memx::removeData (elm, keep_order); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeLast (                            ) {_Memx::removeLast (               ); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeAbs  (  Int   i  , Bool keep_order) {super::removeAbs  (i  , keep_order); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeValid(  Int   i  , Bool keep_order) {super::removeValid(i  , keep_order); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeData (C TYPE *elm, Bool keep_order) {super::removeData (elm, keep_order); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeLast (                            ) {super::removeLast (               ); return T;}
 
 T1(TYPE) T1(VALUE)  Bool  Memx<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
 
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::reverseOrder(                      ) {_Memx::reverseOrder(              ); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::   swapOrder(Int i  , Int j        ) {_Memx::   swapOrder(i  , j        ); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveElm     (Int elm, Int new_index) {_Memx::moveElm     (elm, new_index); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveToStart (Int elm               ) {_Memx::moveToStart (elm           ); return T;}
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveToEnd   (Int elm               ) {_Memx::moveToEnd   (elm           ); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::reverseOrder(                      ) {super::reverseOrder(              ); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::   swapOrder(Int i  , Int j        ) {super::   swapOrder(i  , j        ); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveElm     (Int elm, Int new_index) {super::moveElm     (elm, new_index); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveToStart (Int elm               ) {super::moveToStart (elm           ); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::moveToEnd   (Int elm               ) {super::moveToEnd   (elm           ); return T;}
 
 T1(TYPE)                     Memx<TYPE>&  Memx<TYPE>::operator=(C Mems  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 T1(TYPE)                     Memx<TYPE>&  Memx<TYPE>::operator=(C Memc  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
@@ -1049,7 +1049,7 @@ T1(TYPE)                     Memx<TYPE>&  Memx<TYPE>::operator=(C Meml  <TYPE   
 T1(TYPE) template<Int size>  Memx<TYPE>&  Memx<TYPE>::operator=(C MemPtr<TYPE, size>  &src) {if(this!=src._memx){setNum(src.elms()); FREPAO(T)=src[i];} return T;}
 T1(TYPE)                     Memx<TYPE>&  Memx<TYPE>::operator=(  Memx  <TYPE      > &&src) {Swap(T, src); return T;}
 
-T1(TYPE) T1(EXTENDED)  Memx<TYPE>&  Memx<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memx::_reset(SIZE(EXTENDED), _abs.blockElms(), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  Memx<TYPE>&  Memx<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), _abs.blockElms(), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )               Memx<TYPE>::operator   Memx<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memx<BASE>*)this;}
 T1(TYPE) T1(BASE    )               Memx<TYPE>::operator C Memx<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memx<BASE>*)this;}
 
@@ -1063,23 +1063,23 @@ T1(TYPE)  Memx<TYPE>::Memx(  Memx &&src  ) : _Memx(            0,               
 /******************************************************************************/
 // MEMX ABSTRACT
 /******************************************************************************/
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::clear() {_Memx::clear(); return T;}
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::del  () {_Memx::del  (); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::clear() {super::clear(); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::del  () {super::del  (); return T;}
 
-T1(TYPE)  Int      MemxAbstract<TYPE>::  absElms ()C {return _Memx::  absElms ();}
-T1(TYPE)  Int      MemxAbstract<TYPE>::validElms ()C {return _Memx::validElms ();}
-T1(TYPE)  Int      MemxAbstract<TYPE>::     elms ()C {return _Memx::     elms ();}
-T1(TYPE)  UInt     MemxAbstract<TYPE>::  elmSize ()C {return _Memx::  elmSize ();}
-T1(TYPE)  UIntPtr  MemxAbstract<TYPE>::  memUsage()C {return _Memx::  memUsage();}
+T1(TYPE)  Int      MemxAbstract<TYPE>::  absElms ()C {return super::  absElms ();}
+T1(TYPE)  Int      MemxAbstract<TYPE>::validElms ()C {return super::validElms ();}
+T1(TYPE)  Int      MemxAbstract<TYPE>::     elms ()C {return super::     elms ();}
+T1(TYPE)  UInt     MemxAbstract<TYPE>::  elmSize ()C {return super::  elmSize ();}
+T1(TYPE)  UIntPtr  MemxAbstract<TYPE>::  memUsage()C {return super::  memUsage();}
 
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::    absElm(Int i) {return *(TYPE*)_Memx::    absElm(i);}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::  validElm(Int i) {return *(TYPE*)_Memx::  validElm(i);}
-T1(TYPE)  TYPE*  MemxAbstract<TYPE>::      addr(Int i) {return  (TYPE*)_Memx::      addr(i);}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::operator[](Int i) {return *(TYPE*)_Memx::operator[](i);}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     first(     ) {return *(TYPE*)_Memx::     first( );}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::      last(     ) {return *(TYPE*)_Memx::      last( );}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     New  (     ) {return *(TYPE*)_Memx::     New  ( );}
-T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     NewAt(Int i) {return *(TYPE*)_Memx::     NewAt(i);}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::    absElm(Int i) {return *(TYPE*)super::    absElm(i);}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::  validElm(Int i) {return *(TYPE*)super::  validElm(i);}
+T1(TYPE)  TYPE*  MemxAbstract<TYPE>::      addr(Int i) {return  (TYPE*)super::      addr(i);}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::operator[](Int i) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     first(     ) {return *(TYPE*)super::     first( );}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::      last(     ) {return *(TYPE*)super::      last( );}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     New  (     ) {return *(TYPE*)super::     New  ( );}
+T1(TYPE)  TYPE&  MemxAbstract<TYPE>::     NewAt(Int i) {return *(TYPE*)super::     NewAt(i);}
 
 T1(TYPE)  C TYPE&  MemxAbstract<TYPE>::    absElm(Int i)C {return ConstCast(T).  absElm(i);}
 T1(TYPE)  C TYPE&  MemxAbstract<TYPE>::  validElm(Int i)C {return ConstCast(T).validElm(i);}
@@ -1088,18 +1088,18 @@ T1(TYPE)  C TYPE&  MemxAbstract<TYPE>::operator[](Int i)C {return ConstCast(T)  
 T1(TYPE)  C TYPE&  MemxAbstract<TYPE>::     first(     )C {return ConstCast(T).   first( );}
 T1(TYPE)  C TYPE&  MemxAbstract<TYPE>::      last(     )C {return ConstCast(T).    last( );}
 
-T1(TYPE)  Int   MemxAbstract<TYPE>::validToAbsIndex(  Int valid)C {return _Memx::validToAbsIndex(valid);}
-T1(TYPE)  Int   MemxAbstract<TYPE>::absToValidIndex(  Int   abs)C {return _Memx::absToValidIndex(abs  );}
-T1(TYPE)  Int   MemxAbstract<TYPE>::validIndex     (C TYPE *elm)C {return _Memx::validIndex     (elm  );}
-T1(TYPE)  Int   MemxAbstract<TYPE>::  absIndex     (C TYPE *elm)C {return _Memx::  absIndex     (elm  );}
-T1(TYPE)  Bool  MemxAbstract<TYPE>::  contains     (C TYPE *elm)C {return _Memx::  contains     (elm  );}
+T1(TYPE)  Int   MemxAbstract<TYPE>::validToAbsIndex(  Int valid)C {return super::validToAbsIndex(valid);}
+T1(TYPE)  Int   MemxAbstract<TYPE>::absToValidIndex(  Int   abs)C {return super::absToValidIndex(abs  );}
+T1(TYPE)  Int   MemxAbstract<TYPE>::validIndex     (C TYPE *elm)C {return super::validIndex     (elm  );}
+T1(TYPE)  Int   MemxAbstract<TYPE>::  absIndex     (C TYPE *elm)C {return super::  absIndex     (elm  );}
+T1(TYPE)  Bool  MemxAbstract<TYPE>::  contains     (C TYPE *elm)C {return super::  contains     (elm  );}
 
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeAbs  (  Int   i  , Bool keep_order) {_Memx::removeAbs  (i  , keep_order); return T;}
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeValid(  Int   i  , Bool keep_order) {_Memx::removeValid(i  , keep_order); return T;}
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeData (C TYPE *elm, Bool keep_order) {_Memx::removeData (elm, keep_order); return T;}
-T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeLast (                            ) {_Memx::removeLast (               ); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeAbs  (  Int   i  , Bool keep_order) {super::removeAbs  (i  , keep_order); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeValid(  Int   i  , Bool keep_order) {super::removeValid(i  , keep_order); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeData (C TYPE *elm, Bool keep_order) {super::removeData (elm, keep_order); return T;}
+T1(TYPE)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::removeLast (                            ) {super::removeLast (               ); return T;}
 
-T1(TYPE) T1(EXTENDED)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>();           _Memx::_reset(SIZE(EXTENDED), _abs.blockElms(), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
+T1(TYPE) T1(EXTENDED)  MemxAbstract<TYPE>&  MemxAbstract<TYPE>::replaceClass          ()  {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); super::_reset(SIZE(EXTENDED), _abs.blockElms(), ClassFunc<EXTENDED>::GetNew(), ClassFunc<EXTENDED>::GetDel()); return T;}
 T1(TYPE) T1(BASE    )                       MemxAbstract<TYPE>::operator   Memx<BASE>&()  {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(  Memx<BASE>*)this;}
 T1(TYPE) T1(BASE    )                       MemxAbstract<TYPE>::operator C Memx<BASE>&()C {ASSERT_BASE_EXTENDED<BASE, TYPE    >(); return *(C Memx<BASE>*)this;}
 
@@ -1107,49 +1107,49 @@ T1(TYPE)  MemxAbstract<TYPE>::MemxAbstract(Int block_elms) : _Memx(0, block_elms
 /******************************************************************************/
 // MEML
 /******************************************************************************/
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::del  () {_Meml::del  (); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::clear() {_Meml::clear(); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::del  () {super::del  (); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::clear() {super::clear(); return T;}
 
-T1(TYPE)  Int      Meml<TYPE>::elms    ()C {return _Meml::elms    ();}
-T1(TYPE)  UInt     Meml<TYPE>::elmSize ()C {return _Meml::elmSize ();}
-T1(TYPE)  UIntPtr  Meml<TYPE>::memUsage()C {return _Meml::memUsage();}
+T1(TYPE)  Int      Meml<TYPE>::elms    ()C {return super::elms    ();}
+T1(TYPE)  UInt     Meml<TYPE>::elmSize ()C {return super::elmSize ();}
+T1(TYPE)  UIntPtr  Meml<TYPE>::memUsage()C {return super::memUsage();}
 
-T1(TYPE)  TYPE*  Meml<TYPE>::addr      (Int       i   ) {return  (TYPE*)_Meml::addr      (i);}
-T1(TYPE)  TYPE&  Meml<TYPE>::operator[](Int       i   ) {return *(TYPE*)_Meml::operator[](i);}
-T1(TYPE)  TYPE&  Meml<TYPE>::operator()(Int       i   ) {return *(TYPE*)_Meml::operator()(i);}
+T1(TYPE)  TYPE*  Meml<TYPE>::addr      (Int       i   ) {return  (TYPE*)super::addr      (i);}
+T1(TYPE)  TYPE&  Meml<TYPE>::operator[](Int       i   ) {return *(TYPE*)super::operator[](i);}
+T1(TYPE)  TYPE&  Meml<TYPE>::operator()(Int       i   ) {return *(TYPE*)super::operator()(i);}
 T1(TYPE)  TYPE&  Meml<TYPE>::operator[](MemlNode *node) {return *(TYPE*) node->data      ( );}
-T1(TYPE)  TYPE&  Meml<TYPE>::New       (              ) {return *(TYPE*)_Meml::New       ( );}
-T1(TYPE)  TYPE&  Meml<TYPE>::NewAt     (Int       i   ) {return *(TYPE*)_Meml::NewAt     (i);}
+T1(TYPE)  TYPE&  Meml<TYPE>::New       (              ) {return *(TYPE*)super::New       ( );}
+T1(TYPE)  TYPE&  Meml<TYPE>::NewAt     (Int       i   ) {return *(TYPE*)super::NewAt     (i);}
 
 T1(TYPE)  C TYPE*  Meml<TYPE>::addr      (Int       i   )C {return ConstCast(T).addr(i   );}
 T1(TYPE)  C TYPE&  Meml<TYPE>::operator[](Int       i   )C {return ConstCast(T)     [i   ];}
 T1(TYPE)  C TYPE&  Meml<TYPE>::operator[](MemlNode *node)C {return ConstCast(T)     [node];}
 
-T1(TYPE)  MemlNode*  Meml<TYPE>::add      (              ) {return _Meml::add      (    );}
-T1(TYPE)  MemlNode*  Meml<TYPE>::addBefore(MemlNode *node) {return _Meml::addBefore(node);}
-T1(TYPE)  MemlNode*  Meml<TYPE>::addAfter (MemlNode *node) {return _Meml::addAfter (node);}
+T1(TYPE)  MemlNode*  Meml<TYPE>::add      (              ) {return super::add      (    );}
+T1(TYPE)  MemlNode*  Meml<TYPE>::addBefore(MemlNode *node) {return super::addBefore(node);}
+T1(TYPE)  MemlNode*  Meml<TYPE>::addAfter (MemlNode *node) {return super::addAfter (node);}
 
-T1(TYPE)  MemlNode*  Meml<TYPE>::first()C {return _Meml::first();}
-T1(TYPE)  MemlNode*  Meml<TYPE>::last ()C {return _Meml::last ();}
+T1(TYPE)  MemlNode*  Meml<TYPE>::first()C {return super::first();}
+T1(TYPE)  MemlNode*  Meml<TYPE>::last ()C {return super::last ();}
 
-T1(TYPE)  Int   Meml<TYPE>::index   (C TYPE *elm)C {return _Meml::index   (elm);}
-T1(TYPE)  Bool  Meml<TYPE>::contains(C TYPE *elm)C {return _Meml::contains(elm);}
+T1(TYPE)  Int   Meml<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
+T1(TYPE)  Bool  Meml<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
 
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeFirst(                Bool keep_order) {_Meml::removeFirst(      keep_order); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeLast (                               ) {_Meml::removeLast (                ); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::remove     (MemlNode *node, Bool keep_order) {_Meml::remove     (node, keep_order); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeData (C TYPE   *elm , Bool keep_order) {_Meml::removeData (elm , keep_order); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeIndex(Int       i   , Bool keep_order) {_Meml::removeIndex(i   , keep_order); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeFirst(                Bool keep_order) {super::removeFirst(      keep_order); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeLast (                               ) {super::removeLast (                ); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::remove     (MemlNode *node, Bool keep_order) {super::remove     (node, keep_order); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeData (C TYPE   *elm , Bool keep_order) {super::removeData (elm , keep_order); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeIndex(Int       i   , Bool keep_order) {super::removeIndex(i   , keep_order); return T;}
 
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNum    (Int num) {_Meml::setNum    (num); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNumZero(Int num) {_Meml::setNumZero(num); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNum    (Int num) {super::setNum    (num); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNumZero(Int num) {super::setNumZero(num); return T;}
 
 T1(TYPE) T1(VALUE)  Bool  Meml<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
 
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::reverseOrder(            ) {_Meml::reverseOrder(    ); return T;}
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::   swapOrder(Int i, Int j) {_Meml::   swapOrder(i, j); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::reverseOrder(            ) {super::reverseOrder(    ); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::   swapOrder(Int i, Int j) {super::   swapOrder(i, j); return T;}
 
 T1(TYPE)                     Meml<TYPE>&  Meml<TYPE>::operator=(C Mems  <TYPE      >  &src) {                     setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 T1(TYPE)                     Meml<TYPE>&  Meml<TYPE>::operator=(C Memc  <TYPE      >  &src) {                     setNum(src.elms()); FREPAO(T)=src[i];  return T;}
@@ -1504,16 +1504,16 @@ template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt
 template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::operator=(C MemPtr<TYPE, Memt_size> &src           ) {                     setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 template<typename TYPE, Int Memt_size> template<Int src_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::operator=(C MemPtr<TYPE,  src_size> &src           ) {                     setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C TYPE                     &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms> template<Int src_elms>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C TYPE                    (&src)[src_elms]) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Mems   <TYPE           > &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memc   <TYPE           > &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms> template<Int src_size>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memt   <TYPE,  src_size> &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memb   <TYPE           > &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memx   <TYPE           > &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Meml   <TYPE           > &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms> template<Int src_size>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C MemPtr <TYPE,  src_size> &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
-template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C MemPtrN<TYPE, Memt_elms> &src           ) {MemPtr<TYPE, SIZE(TYPE)*Memt_elms>::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C TYPE                     &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms> template<Int src_elms>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C TYPE                    (&src)[src_elms]) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Mems   <TYPE           > &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memc   <TYPE           > &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms> template<Int src_size>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memt   <TYPE,  src_size> &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memb   <TYPE           > &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Memx   <TYPE           > &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C Meml   <TYPE           > &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms> template<Int src_size>  MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C MemPtr <TYPE,  src_size> &src           ) {super::operator=(src); return T;}
+template<typename TYPE, Int Memt_elms>                         MemPtrN<TYPE, Memt_elms>&  MemPtrN<TYPE, Memt_elms>::operator=(C MemPtrN<TYPE, Memt_elms> &src           ) {super::operator=(src); return T;}
 
 #if EE_PRIVATE
 template<typename TYPE, Int Memt_size>  void  MemPtr<TYPE, Memt_size>::copyTo(TYPE *dest)C
@@ -1634,41 +1634,41 @@ T1(TYPE)  CountedPtr<TYPE>::~CountedPtr(                   ) {clear();}
 /******************************************************************************/
 // CACHE
 /******************************************************************************/
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::clear         (               ) {                   _Cache::clear         (         ); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::del           (               ) {                   _Cache::del           (         ); return T;}
-T1(TYPE)  CACHE_MODE    Cache<TYPE>::mode          (CACHE_MODE mode) {return (CACHE_MODE)_Cache::mode          (mode     );          }
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::caseSensitive (Bool  sensitive) {                   _Cache::caseSensitive (sensitive); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemove   (Flt   time     ) {                   _Cache::delayRemove   (time     ); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveNow(               ) {                   _Cache::delayRemoveNow(         ); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveInc(               ) {                   _Cache::delayRemoveInc(         ); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveDec(               ) {                   _Cache::delayRemoveDec(         ); return T;}
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::reserve       (Int   num      ) {                   _Cache::reserve       (num      ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::clear         (               ) {                   super::clear         (         ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::del           (               ) {                   super::del           (         ); return T;}
+T1(TYPE)  CACHE_MODE    Cache<TYPE>::mode          (CACHE_MODE mode) {return (CACHE_MODE)super::mode          (mode     );          }
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::caseSensitive (Bool  sensitive) {                   super::caseSensitive (sensitive); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemove   (Flt   time     ) {                   super::delayRemove   (time     ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveNow(               ) {                   super::delayRemoveNow(         ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveInc(               ) {                   super::delayRemoveInc(         ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::delayRemoveDec(               ) {                   super::delayRemoveDec(         ); return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::reserve       (Int   num      ) {                   super::reserve       (num      ); return T;}
 
-T1(TYPE)  TYPE*  Cache<TYPE>::find      (C Str &file, CChar *path) {return (TYPE*)_Cache::_find   (file, path, false);}
-T1(TYPE)  TYPE*  Cache<TYPE>::find      (C UID &id  , CChar *path) {return (TYPE*)_Cache::_find   (id  , path, false);}
-T1(TYPE)  TYPE*  Cache<TYPE>::get       (C Str &file, CChar *path) {return (TYPE*)_Cache::_get    (file, path, false);}
-T1(TYPE)  TYPE*  Cache<TYPE>::get       (C UID &id  , CChar *path) {return (TYPE*)_Cache::_get    (id  , path, false);}
-T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C Str &file, CChar *path) {return (TYPE*)_Cache::_require(file, path, false);}
-T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C UID &id  , CChar *path) {return (TYPE*)_Cache::_require(id  , path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::find      (C Str &file, CChar *path) {return (TYPE*)super::_find   (file, path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::find      (C UID &id  , CChar *path) {return (TYPE*)super::_find   (id  , path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::get       (C Str &file, CChar *path) {return (TYPE*)super::_get    (file, path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::get       (C UID &id  , CChar *path) {return (TYPE*)super::_get    (id  , path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C Str &file, CChar *path) {return (TYPE*)super::_require(file, path, false);}
+T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C UID &id  , CChar *path) {return (TYPE*)super::_require(id  , path, false);}
 
-T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return _Cache::_name    (data,  path);}
-T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return _Cache::_id      (data       );}
-T1(TYPE)  Bool    Cache<TYPE>::contains(C TYPE *data             )C {return _Cache::_contains(data       );}
-T1(TYPE)  Bool    Cache<TYPE>::dummy   (C TYPE *data             )C {return _Cache::_dummy   (data       );}
-T1(TYPE)  void    Cache<TYPE>::dummy   (C TYPE *data, Bool  dummy)  {       _Cache::_dummy   (data, dummy);}
+T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return super::_name    (data,  path);}
+T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return super::_id      (data       );}
+T1(TYPE)  Bool    Cache<TYPE>::contains(C TYPE *data             )C {return super::_contains(data       );}
+T1(TYPE)  Bool    Cache<TYPE>::dummy   (C TYPE *data             )C {return super::_dummy   (data       );}
+T1(TYPE)  void    Cache<TYPE>::dummy   (C TYPE *data, Bool  dummy)  {       super::_dummy   (data, dummy);}
 
-T1(TYPE)    Int           Cache<TYPE>::  elms      (     )C {return         _Cache::  elms      ( );}
-T1(TYPE)    void          Cache<TYPE>::  lock      (     )C {               _Cache::  lock      ( );}
-T1(TYPE) C _Cache::Desc&  Cache<TYPE>::  lockedDesc(Int i)C {return         _Cache::  lockedDesc(i);}
-T1(TYPE)    TYPE       &  Cache<TYPE>::  lockedData(Int i)  {return *(TYPE*)_Cache::  lockedData(i);}
-T1(TYPE) C  TYPE       &  Cache<TYPE>::  lockedData(Int i)C {return *(TYPE*)_Cache::  lockedData(i);}
-T1(TYPE)    void          Cache<TYPE>::unlock      (     )C {               _Cache::unlock      ( );}
+T1(TYPE)    Int           Cache<TYPE>::  elms      (     )C {return         super::  elms      ( );}
+T1(TYPE)    void          Cache<TYPE>::  lock      (     )C {               super::  lock      ( );}
+T1(TYPE) C _Cache::Desc&  Cache<TYPE>::  lockedDesc(Int i)C {return         super::  lockedDesc(i);}
+T1(TYPE)    TYPE       &  Cache<TYPE>::  lockedData(Int i)  {return *(TYPE*)super::  lockedData(i);}
+T1(TYPE) C  TYPE       &  Cache<TYPE>::  lockedData(Int i)C {return *(TYPE*)super::  lockedData(i);}
+T1(TYPE)    void          Cache<TYPE>::unlock      (     )C {               super::unlock      ( );}
 
-T1(TYPE)  void  Cache<TYPE>::removeData(C TYPE *data) {return _Cache::_removeData(data);}
+T1(TYPE)  void  Cache<TYPE>::removeData(C TYPE *data) {return super::_removeData(data);}
 
-T1(TYPE)  void  Cache<TYPE>::update() {return _Cache::update();}
+T1(TYPE)  void  Cache<TYPE>::update() {return super::update();}
 
-T1(TYPE)  void  Cache<TYPE>::setLoadUser(Ptr user) {_Cache::setLoadUser(ClassFunc<TYPE>::LoadUser, user);}
+T1(TYPE)  void  Cache<TYPE>::setLoadUser(Ptr user) {super::setLoadUser(ClassFunc<TYPE>::LoadUser, user);}
 
 T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); unlock(); return T;}
 
@@ -1726,97 +1726,97 @@ template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>::~CacheElmP
 /******************************************************************************/
 // MAP
 /******************************************************************************/
-T2(KEY, DATA)  Map<KEY, DATA>&  Map<KEY, DATA>::del  () {_Map::del  (); return T;}
-T2(KEY, DATA)  Map<KEY, DATA>&  Map<KEY, DATA>::clear() {_Map::clear(); return T;}
+T2(KEY, DATA)  Map<KEY, DATA>&  Map<KEY, DATA>::del  () {super::del  (); return T;}
+T2(KEY, DATA)  Map<KEY, DATA>&  Map<KEY, DATA>::clear() {super::clear(); return T;}
 
-T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::del  () {_MapTS::del  (); return T;}
-T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::clear() {_MapTS::clear(); return T;}
+T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::del  () {super::del  (); return T;}
+T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::clear() {super::clear(); return T;}
 
-T2(KEY, DATA)  Int  Map<KEY, DATA>::elms    ()C {return _Map::elms    ();}
-T2(KEY, DATA)  Int  Map<KEY, DATA>::dataSize()C {return _Map::dataSize();}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::elms    ()C {return super::elms    ();}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::dataSize()C {return super::dataSize();}
 
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::elms    ()C {return _MapTS::elms    ();}
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::dataSize()C {return _MapTS::dataSize();}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::elms    ()C {return super::elms    ();}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::dataSize()C {return super::dataSize();}
 
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::find      (C KEY &key) {return (DATA*)_Map::find      (&key);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key) {return (DATA*)_Map::get       (&key);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key) {return (DATA*)_Map::operator()(&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find      (&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get       (&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::operator()(&key);}
 
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key, Bool &just_created) {return (DATA*)_Map::get       (&key, just_created);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key, Bool &just_created) {return (DATA*)_Map::operator()(&key, just_created);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key, Bool &just_created) {return (DATA*)super::get       (&key, just_created);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key, Bool &just_created) {return (DATA*)super::operator()(&key, just_created);}
 
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::find      (C KEY &key) {return (DATA*)_MapTS::find      (&key);}
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (DATA*)_MapTS::get       (&key);}
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)_MapTS::operator()(&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find      (&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get       (&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::operator()(&key);}
 
-T2(KEY, DATA)  Int  Map<KEY, DATA>::   findValidIndex(C KEY &key)C {return _Map::   findValidIndex(&key);}
-//T2(KEY, DATA)  Int  Map<KEY, DATA>::    getValidIndex(C KEY &key)  {return _Map::    getValidIndex(&key);}
-//T2(KEY, DATA)  Int  Map<KEY, DATA>::requireValidIndex(C KEY &key)  {return _Map::requireValidIndex(&key);}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::   findValidIndex(C KEY &key)C {return super::   findValidIndex(&key);}
+//T2(KEY, DATA)  Int  Map<KEY, DATA>::    getValidIndex(C KEY &key)  {return super::    getValidIndex(&key);}
+//T2(KEY, DATA)  Int  Map<KEY, DATA>::requireValidIndex(C KEY &key)  {return super::requireValidIndex(&key);}
 
-T2(KEY, DATA)  Int  Map<KEY, DATA>::   findAbsIndex(C KEY &key)C {return _Map::   findAbsIndex(&key);}
-T2(KEY, DATA)  Int  Map<KEY, DATA>::    getAbsIndex(C KEY &key)  {return _Map::    getAbsIndex(&key);}
-T2(KEY, DATA)  Int  Map<KEY, DATA>::requireAbsIndex(C KEY &key)  {return _Map::requireAbsIndex(&key);}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::   findAbsIndex(C KEY &key)C {return super::   findAbsIndex(&key);}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::    getAbsIndex(C KEY &key)  {return super::    getAbsIndex(&key);}
+T2(KEY, DATA)  Int  Map<KEY, DATA>::requireAbsIndex(C KEY &key)  {return super::requireAbsIndex(&key);}
 
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findValidIndex(C KEY &key)C {return _MapTS::   findValidIndex(&key);}
-//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getValidIndex(C KEY &key)  {return _MapTS::    getValidIndex(&key);}
-//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireValidIndex(C KEY &key)  {return _MapTS::requireValidIndex(&key);}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findValidIndex(C KEY &key)C {return super::   findValidIndex(&key);}
+//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getValidIndex(C KEY &key)  {return super::    getValidIndex(&key);}
+//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireValidIndex(C KEY &key)  {return super::requireValidIndex(&key);}
 
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findAbsIndex(C KEY &key)C {return _MapTS::   findAbsIndex(&key);}
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getAbsIndex(C KEY &key)  {return _MapTS::    getAbsIndex(&key);}
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireAbsIndex(C KEY &key)  {return _MapTS::requireAbsIndex(&key);}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findAbsIndex(C KEY &key)C {return super::   findAbsIndex(&key);}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getAbsIndex(C KEY &key)  {return super::    getAbsIndex(&key);}
+T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireAbsIndex(C KEY &key)  {return super::requireAbsIndex(&key);}
 
-T2(KEY, DATA)    Bool  Map<KEY, DATA>::containsKey   (C KEY  &key )C {return        _Map::containsKey      (&key );}
-T2(KEY, DATA)    Bool  Map<KEY, DATA>::containsData  (C DATA *data)C {return        _Map::containsData     ( data);}
-T2(KEY, DATA)  C KEY*  Map<KEY, DATA>::dataToKey     (C DATA *data)C {return  (KEY*)_Map::dataToKey        ( data);}
-T2(KEY, DATA)  C KEY*  Map<KEY, DATA>::dataInMapToKey(C DATA *data)C {return  (KEY*)_Map::dataInMapToKeyPtr( data);}
-T2(KEY, DATA)  C KEY&  Map<KEY, DATA>::dataInMapToKey(C DATA &data)C {return *(KEY*)_Map::dataInMapToKeyRef(&data);}
-T2(KEY, DATA)    Int   Map<KEY, DATA>::dataToIndex   (C DATA *data)C {return        _Map::dataToIndex      ( data);}
+T2(KEY, DATA)    Bool  Map<KEY, DATA>::containsKey   (C KEY  &key )C {return        super::containsKey      (&key );}
+T2(KEY, DATA)    Bool  Map<KEY, DATA>::containsData  (C DATA *data)C {return        super::containsData     ( data);}
+T2(KEY, DATA)  C KEY*  Map<KEY, DATA>::dataToKey     (C DATA *data)C {return  (KEY*)super::dataToKey        ( data);}
+T2(KEY, DATA)  C KEY*  Map<KEY, DATA>::dataInMapToKey(C DATA *data)C {return  (KEY*)super::dataInMapToKeyPtr( data);}
+T2(KEY, DATA)  C KEY&  Map<KEY, DATA>::dataInMapToKey(C DATA &data)C {return *(KEY*)super::dataInMapToKeyRef(&data);}
+T2(KEY, DATA)    Int   Map<KEY, DATA>::dataToIndex   (C DATA *data)C {return        super::dataToIndex      ( data);}
 
-T2(KEY, DATA)    Bool  ThreadSafeMap<KEY, DATA>::containsKey   (C KEY  &key )C {return        _MapTS::containsKey      (&key );}
-T2(KEY, DATA)    Bool  ThreadSafeMap<KEY, DATA>::containsData  (C DATA *data)C {return        _MapTS::containsData     ( data);}
-T2(KEY, DATA)  C KEY*  ThreadSafeMap<KEY, DATA>::dataToKey     (C DATA *data)C {return  (KEY*)_MapTS::dataToKey        ( data);}
-T2(KEY, DATA)  C KEY*  ThreadSafeMap<KEY, DATA>::dataInMapToKey(C DATA *data)C {return  (KEY*)_MapTS::dataInMapToKeyPtr( data);}
-T2(KEY, DATA)  C KEY&  ThreadSafeMap<KEY, DATA>::dataInMapToKey(C DATA &data)C {return *(KEY*)_MapTS::dataInMapToKeyRef(&data);}
-T2(KEY, DATA)    Int   ThreadSafeMap<KEY, DATA>::dataToIndex   (C DATA *data)C {return        _MapTS::dataToIndex      ( data);}
+T2(KEY, DATA)    Bool  ThreadSafeMap<KEY, DATA>::containsKey   (C KEY  &key )C {return        super::containsKey      (&key );}
+T2(KEY, DATA)    Bool  ThreadSafeMap<KEY, DATA>::containsData  (C DATA *data)C {return        super::containsData     ( data);}
+T2(KEY, DATA)  C KEY*  ThreadSafeMap<KEY, DATA>::dataToKey     (C DATA *data)C {return  (KEY*)super::dataToKey        ( data);}
+T2(KEY, DATA)  C KEY*  ThreadSafeMap<KEY, DATA>::dataInMapToKey(C DATA *data)C {return  (KEY*)super::dataInMapToKeyPtr( data);}
+T2(KEY, DATA)  C KEY&  ThreadSafeMap<KEY, DATA>::dataInMapToKey(C DATA &data)C {return *(KEY*)super::dataInMapToKeyRef(&data);}
+T2(KEY, DATA)    Int   ThreadSafeMap<KEY, DATA>::dataToIndex   (C DATA *data)C {return        super::dataToIndex      ( data);}
 
-T2(KEY, DATA)  C KEY &  Map<KEY, DATA>::key       (Int i)C {return *(KEY *)_Map::key       (i);}
-T2(KEY, DATA)    DATA&  Map<KEY, DATA>::operator[](Int i)  {return *(DATA*)_Map::operator[](i);}
-T2(KEY, DATA)  C DATA&  Map<KEY, DATA>::operator[](Int i)C {return *(DATA*)_Map::operator[](i);}
+T2(KEY, DATA)  C KEY &  Map<KEY, DATA>::key       (Int i)C {return *(KEY *)super::key       (i);}
+T2(KEY, DATA)    DATA&  Map<KEY, DATA>::operator[](Int i)  {return *(DATA*)super::operator[](i);}
+T2(KEY, DATA)  C DATA&  Map<KEY, DATA>::operator[](Int i)C {return *(DATA*)super::operator[](i);}
 
-T2(KEY, DATA)  C KEY &  Map<KEY, DATA>::absKey (Int abs_i)C {return *(KEY *)_Map::absKey (abs_i);}
-T2(KEY, DATA)    DATA&  Map<KEY, DATA>::absData(Int abs_i)  {return *(DATA*)_Map::absData(abs_i);}
-T2(KEY, DATA)  C DATA&  Map<KEY, DATA>::absData(Int abs_i)C {return *(DATA*)_Map::absData(abs_i);}
+T2(KEY, DATA)  C KEY &  Map<KEY, DATA>::absKey (Int abs_i)C {return *(KEY *)super::absKey (abs_i);}
+T2(KEY, DATA)    DATA&  Map<KEY, DATA>::absData(Int abs_i)  {return *(DATA*)super::absData(abs_i);}
+T2(KEY, DATA)  C DATA&  Map<KEY, DATA>::absData(Int abs_i)C {return *(DATA*)super::absData(abs_i);}
 
-T2(KEY, DATA)  C KEY &  ThreadSafeMap<KEY, DATA>::lockedKey (Int i)C {return *(KEY *)_MapTS::key       (i);}
-T2(KEY, DATA)    DATA&  ThreadSafeMap<KEY, DATA>::lockedData(Int i)  {return *(DATA*)_MapTS::operator[](i);}
-T2(KEY, DATA)  C DATA&  ThreadSafeMap<KEY, DATA>::lockedData(Int i)C {return *(DATA*)_MapTS::operator[](i);}
+T2(KEY, DATA)  C KEY &  ThreadSafeMap<KEY, DATA>::lockedKey (Int i)C {return *(KEY *)super::key       (i);}
+T2(KEY, DATA)    DATA&  ThreadSafeMap<KEY, DATA>::lockedData(Int i)  {return *(DATA*)super::operator[](i);}
+T2(KEY, DATA)  C DATA&  ThreadSafeMap<KEY, DATA>::lockedData(Int i)C {return *(DATA*)super::operator[](i);}
 
-T2(KEY, DATA)  C KEY &  ThreadSafeMap<KEY, DATA>::lockedAbsKey (Int abs_i)C {return *(KEY *)_MapTS::absKey (abs_i);}
-T2(KEY, DATA)    DATA&  ThreadSafeMap<KEY, DATA>::lockedAbsData(Int abs_i)  {return *(DATA*)_MapTS::absData(abs_i);}
-T2(KEY, DATA)  C DATA&  ThreadSafeMap<KEY, DATA>::lockedAbsData(Int abs_i)C {return *(DATA*)_MapTS::absData(abs_i);}
+T2(KEY, DATA)  C KEY &  ThreadSafeMap<KEY, DATA>::lockedAbsKey (Int abs_i)C {return *(KEY *)super::absKey (abs_i);}
+T2(KEY, DATA)    DATA&  ThreadSafeMap<KEY, DATA>::lockedAbsData(Int abs_i)  {return *(DATA*)super::absData(abs_i);}
+T2(KEY, DATA)  C DATA&  ThreadSafeMap<KEY, DATA>::lockedAbsData(Int abs_i)C {return *(DATA*)super::absData(abs_i);}
 
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::  lock()C {_MapTS::  lock();}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::unlock()C {_MapTS::unlock();}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::  lock()C {super::  lock();}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::unlock()C {super::unlock();}
 
-T2(KEY, DATA)  MAP_MODE            Map<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)_Map  ::mode(mode);}
-T2(KEY, DATA)  MAP_MODE  ThreadSafeMap<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)_MapTS::mode(mode);}
+T2(KEY, DATA)  MAP_MODE            Map<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
+T2(KEY, DATA)  MAP_MODE  ThreadSafeMap<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
 
-T2(KEY, DATA)  void  Map<KEY, DATA>::remove    (  Int   i               ) {       _Map::remove    ( i   );}
-T2(KEY, DATA)  void  Map<KEY, DATA>::removeKey (C KEY  &key             ) {       _Map::removeKey (&key );}
-T2(KEY, DATA)  void  Map<KEY, DATA>::removeData(C DATA *data            ) {       _Map::removeData( data);}
-T2(KEY, DATA)  Bool  Map<KEY, DATA>::replaceKey(C KEY  &src, C KEY &dest) {return _Map::replaceKey(&src, &dest);}
+T2(KEY, DATA)  void  Map<KEY, DATA>::remove    (  Int   i               ) {       super::remove    ( i   );}
+T2(KEY, DATA)  void  Map<KEY, DATA>::removeKey (C KEY  &key             ) {       super::removeKey (&key );}
+T2(KEY, DATA)  void  Map<KEY, DATA>::removeData(C DATA *data            ) {       super::removeData( data);}
+T2(KEY, DATA)  Bool  Map<KEY, DATA>::replaceKey(C KEY  &src, C KEY &dest) {return super::replaceKey(&src, &dest);}
 
-T2(KEY, DATA)  void            Map<KEY, DATA>::reserve(Int num) {_Map  ::reserve(num);}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::reserve(Int num) {_MapTS::reserve(num);}
+T2(KEY, DATA)  void            Map<KEY, DATA>::reserve(Int num) {super::reserve(num);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::reserve(Int num) {super::reserve(num);}
 
-T2(KEY, DATA)  void            Map<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_Map  ::compare((Int(*)(CPtr, CPtr))compare);}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_MapTS::compare((Int(*)(CPtr, CPtr))compare);}
+T2(KEY, DATA)  void            Map<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {super::compare((Int(*)(CPtr, CPtr))compare);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {super::compare((Int(*)(CPtr, CPtr))compare);}
 
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::lockedRemove    (  Int   i               ) {       _Map  ::remove    ( i   );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      remove    (  Int   i               ) {       _MapTS::remove    ( i   );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeKey (C KEY  &key             ) {       _MapTS::removeKey (&key );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeData(C DATA *data            ) {       _MapTS::removeData( data);}
-T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::      replaceKey(C KEY  &src, C KEY &dest) {return _MapTS::replaceKey(&src, &dest);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::lockedRemove    (  Int   i               ) {       super::remove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      remove    (  Int   i               ) {       super::remove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeKey (C KEY  &key             ) {       super::removeKey (&key );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeData(C DATA *data            ) {       super::removeData( data);}
+T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::      replaceKey(C KEY  &src, C KEY &dest) {return super::replaceKey(&src, &dest);}
 
 T2(KEY, DATA) T1(EXTENDED)            Map<KEY, DATA>&            Map<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>();         del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>();           return T;}
 T2(KEY, DATA) T1(EXTENDED)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>(); lock(); del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>(); unlock(); return T;}
@@ -1832,33 +1832,33 @@ inline Int Elms(C _MapTS &map) {return map.elms();}
 /******************************************************************************/
 // GRID
 /******************************************************************************/
-T1(TYPE)  void         Grid<TYPE>:: del(                )  {                    _Grid::del (            );} // delete all      cells
-T1(TYPE)  void         Grid<TYPE>:: del(Cell<TYPE> *cell)  {                    _Grid::del ((_Cell*)cell);} // delete selected cell
-T1(TYPE)  Cell<TYPE>&  Grid<TYPE>:: get(C VecI2 &xy     )  {return (Cell<TYPE>&)_Grid::get (xy          );} // get 'xy' cell, create it   if not found
-T1(TYPE)  Cell<TYPE>*  Grid<TYPE>::find(C VecI2 &xy     )C {return (Cell<TYPE>*)_Grid::find(xy          );} // get 'xy' cell, return null if not found
-T1(TYPE)  Bool         Grid<TYPE>::size(  RectI &rect   )C {return              _Grid::size(rect        );} // get rectangle covering all grid cells, false on fail (if no grid cells are present)
+T1(TYPE)  void         Grid<TYPE>:: del(                )  {                    super::del (            );} // delete all      cells
+T1(TYPE)  void         Grid<TYPE>:: del(Cell<TYPE> *cell)  {                    super::del ((_Cell*)cell);} // delete selected cell
+T1(TYPE)  Cell<TYPE>&  Grid<TYPE>:: get(C VecI2 &xy     )  {return (Cell<TYPE>&)super::get (xy          );} // get 'xy' cell, create it   if not found
+T1(TYPE)  Cell<TYPE>*  Grid<TYPE>::find(C VecI2 &xy     )C {return (Cell<TYPE>*)super::find(xy          );} // get 'xy' cell, return null if not found
+T1(TYPE)  Bool         Grid<TYPE>::size(  RectI &rect   )C {return              super::size(rect        );} // get rectangle covering all grid cells, false on fail (if no grid cells are present)
 
-T1(TYPE)               Grid<TYPE>&  Grid<TYPE>::fastAccess  (C RectI *rect) {_Grid::fastAccess                  (rect); return T;} // optimize accessing cells (via 'find/get' methods) within 'rect' rectangle, normally cells are accessed recursively, however after calling this method all cells within the rectangle will be available instantly, if null is provided then the optimization is disabled
+T1(TYPE)               Grid<TYPE>&  Grid<TYPE>::fastAccess  (C RectI *rect) {super::fastAccess                  (rect); return T;} // optimize accessing cells (via 'find/get' methods) within 'rect' rectangle, normally cells are accessed recursively, however after calling this method all cells within the rectangle will be available instantly, if null is provided then the optimization is disabled
 T1(TYPE) T1(EXTENDED)  Grid<TYPE>&  Grid<TYPE>::replaceClass(             ) {_Grid::replaceClass<TYPE, EXTENDED>(    ); return T;} // replace the type of class stored in the grid, all grid cells are automatically removed before changing the type of the class, the new type must be extended from the base 'TYPE' (if you're receiving a compilation error pointing to this method this means that the new class isn't extended from the base class)
 
 // call custom function on grid cells
-T1(TYPE)                void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, Ptr        user)                 ) {_Grid::func      (      (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all existing grid cells
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {_Grid::func      (      (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all existing grid cells
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {_Grid::func      (      (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all existing grid cells
-T1(TYPE)                void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user)                 ) {_Grid::func      (rect, (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all existing grid cells in specified rectangle
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {_Grid::func      (rect, (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all existing grid cells in specified rectangle
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {_Grid::func      (rect, (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all existing grid cells in specified rectangle
-T1(TYPE)                void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user)                 ) {_Grid::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {_Grid::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {_Grid::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
+T1(TYPE)                void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, Ptr        user)                 ) {super::func      (      (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all existing grid cells
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {super::func      (      (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all existing grid cells
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (               void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {super::func      (      (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all existing grid cells
+T1(TYPE)                void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user)                 ) {super::func      (rect, (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {super::func      (rect, (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::func      (C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {super::func      (rect, (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE)                void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user)                 ) {super::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func,  null);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user), USER_DATA *user) {super::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func,  user);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::funcCreate(C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user), USER_DATA &user) {super::funcCreate(rect, (void (*)(_Cell &cell, Ptr user))func, &user);} // call 'func' on all          grid cells in specified rectangle (this method creates grid cells if they don't exist yet)
 
 // call custom function on grid cells (multi-threaded version)
-T1(TYPE)                void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, Ptr        user, Int thread_index)                 ) {_Grid::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  null);} // call 'func' on all existing grid cells
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, USER_DATA *user, Int thread_index), USER_DATA *user) {_Grid::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  user);} // call 'func' on all existing grid cells
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, USER_DATA &user, Int thread_index), USER_DATA &user) {_Grid::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func, &user);} // call 'func' on all existing grid cells
-T1(TYPE)                void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user, Int thread_index)                 ) {_Grid::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  null);} // call 'func' on all existing grid cells in specified rectangle
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user, Int thread_index), USER_DATA *user) {_Grid::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  user);} // call 'func' on all existing grid cells in specified rectangle
-T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user, Int thread_index), USER_DATA &user) {_Grid::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func, &user);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE)                void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, Ptr        user, Int thread_index)                 ) {super::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  null);} // call 'func' on all existing grid cells
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, USER_DATA *user, Int thread_index), USER_DATA *user) {super::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  user);} // call 'func' on all existing grid cells
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads,                void func(Cell<TYPE> &cell, USER_DATA &user, Int thread_index), USER_DATA &user) {super::mtFunc(threads,       (void (*)(_Cell &cell, Ptr user, Int thread_index))func, &user);} // call 'func' on all existing grid cells
+T1(TYPE)                void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, Ptr        user, Int thread_index)                 ) {super::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  null);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA *user, Int thread_index), USER_DATA *user) {super::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func,  user);} // call 'func' on all existing grid cells in specified rectangle
+T1(TYPE) T1(USER_DATA)  void  Grid<TYPE>::mtFunc(Threads &threads, C RectI &rect, void func(Cell<TYPE> &cell, USER_DATA &user, Int thread_index), USER_DATA &user) {super::mtFunc(threads, rect, (void (*)(_Cell &cell, Ptr user, Int thread_index))func, &user);} // call 'func' on all existing grid cells in specified rectangle
 /******************************************************************************/
 // GAME::OBJ_MEMX
 /******************************************************************************/
@@ -1982,14 +1982,14 @@ namespace Edit
 
    T1(TYPE)  Undo<TYPE>::Undo(Bool full, Ptr user, Flt time) : _Undo(full, user, time) {replaceClass<TYPE>();}
 
-   T1(TYPE)  TYPE*  Undo<TYPE>::getNextUndo() {return (TYPE*)_Undo::getNextUndo();}
-   T1(TYPE)  TYPE*  Undo<TYPE>::getNextRedo() {return (TYPE*)_Undo::getNextRedo();}
+   T1(TYPE)  TYPE*  Undo<TYPE>::getNextUndo() {return (TYPE*)super::getNextUndo();}
+   T1(TYPE)  TYPE*  Undo<TYPE>::getNextRedo() {return (TYPE*)super::getNextRedo();}
 
-   T1(TYPE)  TYPE&  Undo<TYPE>::operator[](Int i) {return (TYPE&)_Undo::operator[](i);}
-   T1(TYPE)  TYPE*  Undo<TYPE>::addr      (Int i) {return (TYPE*)_Undo::addr      (i);}
+   T1(TYPE)  TYPE&  Undo<TYPE>::operator[](Int i) {return (TYPE&)super::operator[](i);}
+   T1(TYPE)  TYPE*  Undo<TYPE>::addr      (Int i) {return (TYPE*)super::addr      (i);}
 
-   T1(TYPE)  TYPE*  Undo<TYPE>::set(CPtr change_type, Bool force_create, Flt extra_time) {return (TYPE*)_Undo::set(change_type, force_create, extra_time);}
-   T1(TYPE)  TYPE*  Undo<TYPE>::set( Int change_type, Bool force_create, Flt extra_time) {return (TYPE*)_Undo::set(change_type, force_create, extra_time);}
+   T1(TYPE)  TYPE*  Undo<TYPE>::set(CPtr change_type, Bool force_create, Flt extra_time) {return (TYPE*)super::set(change_type, force_create, extra_time);}
+   T1(TYPE)  TYPE*  Undo<TYPE>::set( Int change_type, Bool force_create, Flt extra_time) {return (TYPE*)super::set(change_type, force_create, extra_time);}
 
    T1(TYPE) T1(CHANGE)  Undo<TYPE>&  Undo<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, CHANGE>(); _changes.replaceClass<CHANGE>(); return T;}
 }
