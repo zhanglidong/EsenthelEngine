@@ -17,8 +17,8 @@ bool Update()
 {
    if(Kb.bp(KB_ESC))return false;
 
-   if(Kb.bp(KB_1))Ms.cursor(Images(UID(3426621239, 1107103567, 1263682957, 922386037))); // if '1' pressed change cursor to "Mouse 0"
-   if(Kb.bp(KB_2))Ms.cursor(Images(UID(561441504, 1150689700, 611491479, 3042465348)));  // if '2' pressed change cursor to "Mouse 1"
+   if(Kb.bp(KB_1))Ms.cursor(UID(3426621239, 1107103567, 1263682957, 922386037)); // if '1' pressed change cursor to "Mouse 0"
+   if(Kb.bp(KB_2))Ms.cursor(UID(561441504, 1150689700, 611491479, 3042465348));  // if '2' pressed change cursor to "Mouse 1"
 
    return true;
 }
