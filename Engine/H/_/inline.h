@@ -182,7 +182,7 @@ T1(TYPE) void    RotateOrder(TYPE *data, Int elms, Int offset            ) {   _
 T1(TYPE) void RandomizeOrder(TYPE *data, Int elms, Randomizer &random    ) {_RandomizeOrder(data, elms, SIZE(TYPE), random        );}
 T1(TYPE) void      MoveElm  (TYPE *data, Int elms, Int elm, Int new_index) {     _MoveElm  (data, elms, SIZE(TYPE), elm, new_index);}
 
-#if !WINDOWS
+#if APPLE || WEB // for Apple and Web 'size_t' is not 'UIntPtr'
 inline Ptr  Alloc    (                      size_t size) {return Alloc    (             (UIntPtr)size);}
 inline Ptr  AllocZero(                      size_t size) {return AllocZero(             (UIntPtr)size);}
 inline void Zero     (Ptr data,             size_t size) {       Zero     (data,        (UIntPtr)size);}
