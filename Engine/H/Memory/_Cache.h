@@ -103,3 +103,11 @@ mutable Byte         _d_lock;
    template<typename TYPE, Cache<TYPE> &CACHE> friend struct CacheElmPtr;
 };
 /******************************************************************************/
+#if EE_PRIVATE
+inline void IncPtrNum(UInt &ptr_num)
+{
+   DEBUG_ASSERT(ptr_num<UINT_MAX, "'ptr_num' too big");
+   ptr_num++;
+}
+#endif
+/******************************************************************************/

@@ -31,6 +31,10 @@ _Map::_Map(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr 
   _create  =create;
   _copy_key=copy_key;
 }
+_MapEx::_MapEx(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src)) : _Map(block_elms, compare, create, user, copy_key)
+{
+  _delay_remove_time=0; _delay_remove_check=0;
+}
 _MapTS::_MapTS(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src)) : _Map(block_elms, compare, create, user, copy_key)
 {
   _d_lock=0;
@@ -220,15 +224,15 @@ void _Map::getFailed()C
 {
    if(_mode==MAP_EXIT)Exit("Can't create object in 'Map' from key");
 }
-Ptr _Map  ::operator()       (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
-Ptr _MapTS::operator()       (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
+Ptr _Map  ::require          (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
+Ptr _MapTS::require          (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
 //Int _Map  ::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
 //Int _MapTS::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
 Int _Map  ::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 Int _MapTS::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 /******************************************************************************/
-Ptr _Map::get       (CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=get(key); just_created=(elms!=T.elms()); return data;}
-Ptr _Map::operator()(CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=T  (key); just_created=(elms!=T.elms()); return data;}
+Ptr _Map::get    (CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=get    (key); just_created=(elms!=T.elms()); return data;}
+Ptr _Map::require(CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=require(key); just_created=(elms!=T.elms()); return data;}
 /******************************************************************************/
 Bool _Map  ::containsKey(CPtr key)C {return find(key)!=null;}
 Bool _MapTS::containsKey(CPtr key)C {return find(key)!=null;}

@@ -57,15 +57,16 @@ private:
    CPtr absData(Int abs_i)C;
 
    void from(C _Map &src);
+
    void clear();
    void del  ();
 
-   Ptr find      (CPtr key)C;
-   Ptr get       (CPtr key);
-   Ptr operator()(CPtr key);
+   Ptr find   (CPtr key)C;
+   Ptr get    (CPtr key);
+   Ptr require(CPtr key);
 
-   Ptr get       (CPtr key, Bool &just_created);
-   Ptr operator()(CPtr key, Bool &just_created);
+   Ptr get    (CPtr key, Bool &just_created);
+   Ptr require(CPtr key, Bool &just_created);
 
    Int    findValidIndex(CPtr key)C;
  //Int     getValidIndex(CPtr key);
@@ -94,8 +95,54 @@ private:
    NO_COPY_CONSTRUCTOR(_Map);
 
                 friend struct _MapTS;
+                friend struct _MapEx;
    T2(KEY,DATA) friend struct  Map;
+   T2(KEY,DATA) friend struct  MapEx;
    T2(KEY,DATA) friend struct  ThreadSafeMap;
+};
+/******************************************************************************/
+struct _MapEx : private _Map // Map Extended (base) - Do not use this class, use 'MapEx' instead
+{
+   struct DescPtrNum : Desc
+   {
+      UInt ptr_num=0;
+   };
+
+   Int elms()C {return super::elms();}
+
+private:
+   struct DelayRemove
+   {
+      Flt  time;
+      Elm *elm;
+   };
+   Flt _delay_remove_time;
+   Dbl _delay_remove_check;
+   Memc<DelayRemove> _delay_remove;
+
+   void delayRemove   (Flt time);
+   void delayRemoveNow();
+   void update();
+
+#if EE_PRIVATE
+   DescPtrNum& elmDesc(  Elm &elm)C {return *(DescPtrNum*)((Byte*)&elm+_desc_offset);}
+ C DescPtrNum& elmDesc(C Elm &elm)C {return *(DescPtrNum*)((Byte*)&elm+_desc_offset);}
+
+   void processDelayRemove(Bool always);
+   Int  findDelayRemove(Elm &elm);
+#endif
+
+   Ptr _find   (CPtr key);
+   Ptr _get    (CPtr key);
+   Ptr _require(CPtr key);
+
+   void _incRef(CPtr data);
+   void _decRef(CPtr data);
+
+   explicit _MapEx(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src));
+
+   T2(KEY, DATA)                                               friend struct MapEx;
+   template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP> friend struct MapElmPtr;
 };
 /******************************************************************************/
 struct _MapTS : private _Map // Map Thread Safe (base) - Do not use this class, use 'ThreadSafeMap' instead
@@ -114,9 +161,9 @@ private:
    void clear();
    void del  ();
 
-   Ptr find      (CPtr key)C;
-   Ptr get       (CPtr key);
-   Ptr operator()(CPtr key);
+   Ptr find   (CPtr key)C;
+   Ptr get    (CPtr key);
+   Ptr require(CPtr key);
 
    Int    findValidIndex(CPtr key)C;
  //Int     getValidIndex(CPtr key);
@@ -130,11 +177,12 @@ private:
    Bool containsData(CPtr data)C;
    CPtr dataToKey   (CPtr data)C;
    Int  dataToIndex (CPtr data)C;
-   
-   void remove    (Int  i   );
-   void removeKey (CPtr key );
-   void removeData(CPtr data);
-   Bool replaceKey(CPtr src, CPtr dest);
+
+   void lockedRemove    (Int  i   ) {super::remove(i);}
+   void       remove    (Int  i   );
+   void       removeKey (CPtr key );
+   void       removeData(CPtr data);
+   Bool       replaceKey(CPtr src, CPtr dest);
 
    void reserve(Int num);
 

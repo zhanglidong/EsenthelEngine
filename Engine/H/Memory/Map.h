@@ -88,6 +88,28 @@ T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created eleme
    explicit Map(Int compare(C KEY &a, C KEY &b)=Compare, Bool create(DATA &data, C KEY &key, Ptr user)=null, Ptr user=null, Int block_elms=64); // 'compare'=function which compares two keys, 'create'=function that creates 'data' on the base of the constant 'key'
 };
 /******************************************************************************/
+T2(KEY, DATA) struct MapEx : _MapEx // Map with reference count for elements
+{
+   struct Elm : _Map::Elm
+   {
+      DATA       data;
+      KEY        key ;
+      DescPtrNum desc;
+   };
+
+   // get
+   Int elms()C; // get number of elements in container
+
+   MAP_MODE mode(MAP_MODE mode); // set map mode, returns previous mode
+
+   void reserve(Int num); // pre-allocate memory for storage of 'num' total elements
+
+   explicit MapEx(Int compare(C KEY &a, C KEY &b)=Compare, Bool create(DATA &data, C KEY &key, Ptr user)=null, Ptr user=null, Int block_elms=64); // 'compare'=function which compares two keys, 'create'=function that creates 'data' on the base of the constant 'key'
+
+private:
+   T1(EXTENDED) MapEx& replaceClass(); // replace the type of class stored in the container, all elements are automatically removed before changing the type of the class, the new type must be extended from the base 'DATA' (if you're receiving a compilation error pointing to this method this means that the new class isn't extended from the base class)
+};
+/******************************************************************************/
 T2(KEY, DATA) struct ThreadSafeMap : _MapTS // Thread Safe Map
 {
    // manage
@@ -144,6 +166,51 @@ T2(KEY, DATA) struct ThreadSafeMap : _MapTS // Thread Safe Map
    ThreadSafeMap& operator=(C ThreadSafeMap &src); // create from 'src'
 
    explicit ThreadSafeMap(Int compare(C KEY &a, C KEY &b)=Compare, Bool create(DATA &data, C KEY &key, Ptr user)=null, Ptr user=null, Int block_elms=64); // 'compare'=function which compares two keys, 'create'=function that creates 'data' on the base of the constant 'key'
+};
+/******************************************************************************/
+// MAP ELEMENT POINTER
+/******************************************************************************/
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>   struct MapElmPtr // Map Element Pointer - can hold a reference to a DATA based object in the MAP map, number of active references for a given object is stored in the map
+{
+   // operators
+   DATA* operator ()  (                 )C {return  T._data            ;} // access the data, you can use the returned pointer   as long as this 'MapElmPtr' object exists and not modified
+   DATA* operator ->  (                 )C {return  T._data            ;} // access the data, you can use the returned pointer   as long as this 'MapElmPtr' object exists and not modified
+   DATA& operator *   (                 )C {return *T._data            ;} // access the data, you can use the returned reference as long as this 'MapElmPtr' object exists and not modified
+   Bool  operator ==  (  null_t         )C {return  T._data==null      ;} // if pointers are equal
+   Bool  operator !=  (  null_t         )C {return  T._data!=null      ;} // if pointers are different
+   Bool  operator ==  (C DATA      *data)C {return  T._data==data      ;} // if pointers are equal
+   Bool  operator !=  (C DATA      *data)C {return  T._data!=data      ;} // if pointers are different
+   Bool  operator ==  (C MapElmPtr &eptr)C {return  T._data==eptr._data;} // if pointers are equal
+   Bool  operator !=  (C MapElmPtr &eptr)C {return  T._data!=eptr._data;} // if pointers are different
+         operator Bool(                 )C {return  T._data!=null      ;} // if pointer  is  valid
+
+   // get
+   Bool dummy(          )C; // check if this object is a dummy (it was not loaded but created as empty)
+   void dummy(Bool dummy) ; // set dummy state for this object (this can be used for example if object was first loaded as a dummy, but then you've downloaded/generated/saved its data, and now need to update the dummy state)
+
+   // operations
+   MapElmPtr& clear    (                  ); // clear the pointer to  null , this automatically decreases the reference count of current data
+   MapElmPtr& operator=(  null_t          ); // clear the pointer to  null , this automatically decreases the reference count of current data
+   MapElmPtr& operator=(  DATA      * data); // set       pointer to 'data', this automatically decreases the reference count of current data and increases the reference count of the new data
+   MapElmPtr& operator=(C MapElmPtr & eptr); // set       pointer to 'eptr', this automatically decreases the reference count of current data and increases the reference count of the new data
+   MapElmPtr& operator=(  MapElmPtr &&eptr); // set       pointer to 'eptr', this automatically decreases the reference count of current data and increases the reference count of the new data
+
+   // get object and store it temporarily (as long as it is referenced by at least one 'MapElmPtr')
+   MapElmPtr& find     (C KEY &key); // find    object by its file name ID, don't load if not found, null on fail
+   MapElmPtr& get      (C KEY &key); // get     object by its file name ID,       load if not found, null on fail
+   MapElmPtr& require  (C KEY &key); // require object by its file name ID,       load if not found, Exit on fail (unless different MAP_MODE selected)
+   MapElmPtr& operator=(C KEY &key); // require object by its file name ID,       load if not found, Exit on fail (unless different MAP_MODE selected)
+
+   // constructors / destructors
+   MapElmPtr(  null_t=null     ); // initialize the pointer with  null
+   MapElmPtr(  DATA      * data); // initialize the pointer with 'data', this automatically increases the reference count of the    'data'
+   MapElmPtr(C MapElmPtr & eptr); // initialize the pointer with 'eptr', this automatically increases the reference count of the    'eptr'
+   MapElmPtr(  MapElmPtr &&eptr); // initialize the pointer with 'eptr', this automatically increases the reference count of the    'eptr'
+   MapElmPtr(C KEY       & key ); // initialize the pointer with 'key' , this automatically increases the reference count of the    'file', works exactly the same as 'operator=(C KEY &key)', require object, load if not found, Exit on fail (unless different MAP_MODE selected)
+  ~MapElmPtr(                  ); // release    the pointer            , this automatically decreases the reference count of current data
+
+private:
+   DATA *_data;
 };
 /******************************************************************************/
 struct MapLock // Map Lock (automatically locks and unlocks the map at object creation and destruction)

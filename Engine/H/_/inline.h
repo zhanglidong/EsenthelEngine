@@ -1735,19 +1735,21 @@ T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::clear() {sup
 T2(KEY, DATA)  Int  Map<KEY, DATA>::elms    ()C {return super::elms    ();}
 T2(KEY, DATA)  Int  Map<KEY, DATA>::dataSize()C {return super::dataSize();}
 
+T2(KEY, DATA)  Int  MapEx<KEY, DATA>::elms()C {return super::elms();}
+
 T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::elms    ()C {return super::elms    ();}
 T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::dataSize()C {return super::dataSize();}
 
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find      (&key);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get       (&key);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::operator()(&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find   (&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get    (&key);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::require(&key);}
 
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key, Bool &just_created) {return (DATA*)super::get       (&key, just_created);}
-T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key, Bool &just_created) {return (DATA*)super::operator()(&key, just_created);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::get       (C KEY &key, Bool &just_created) {return (DATA*)super::get    (&key, just_created);}
+T2(KEY, DATA)  DATA*  Map<KEY, DATA>::operator()(C KEY &key, Bool &just_created) {return (DATA*)super::require(&key, just_created);}
 
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find      (&key);}
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get       (&key);}
-T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::operator()(&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::find      (C KEY &key) {return (DATA*)super::find   (&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (DATA*)super::get    (&key);}
+T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)super::require(&key);}
 
 T2(KEY, DATA)  Int  Map<KEY, DATA>::   findValidIndex(C KEY &key)C {return super::   findValidIndex(&key);}
 //T2(KEY, DATA)  Int  Map<KEY, DATA>::    getValidIndex(C KEY &key)  {return super::    getValidIndex(&key);}
@@ -1798,37 +1800,65 @@ T2(KEY, DATA)  C DATA&  ThreadSafeMap<KEY, DATA>::lockedAbsData(Int abs_i)C {ret
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::  lock()C {super::  lock();}
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::unlock()C {super::unlock();}
 
-T2(KEY, DATA)  MAP_MODE            Map<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
-T2(KEY, DATA)  MAP_MODE  ThreadSafeMap<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
+T2(KEY, DATA)  MAP_MODE            Map  <KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
+T2(KEY, DATA)  MAP_MODE            MapEx<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
+T2(KEY, DATA)  MAP_MODE  ThreadSafeMap  <KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
 
 T2(KEY, DATA)  void  Map<KEY, DATA>::remove    (  Int   i               ) {       super::remove    ( i   );}
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeKey (C KEY  &key             ) {       super::removeKey (&key );}
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeData(C DATA *data            ) {       super::removeData( data);}
 T2(KEY, DATA)  Bool  Map<KEY, DATA>::replaceKey(C KEY  &src, C KEY &dest) {return super::replaceKey(&src, &dest);}
 
-T2(KEY, DATA)  void            Map<KEY, DATA>::reserve(Int num) {super::reserve(num);}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::reserve(Int num) {super::reserve(num);}
+T2(KEY, DATA)  void            Map  <KEY, DATA>::reserve(Int num) {super::reserve(num);}
+T2(KEY, DATA)  void            MapEx<KEY, DATA>::reserve(Int num) {super::reserve(num);}
+T2(KEY, DATA)  void  ThreadSafeMap  <KEY, DATA>::reserve(Int num) {super::reserve(num);}
 
 T2(KEY, DATA)  void            Map<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {super::compare((Int(*)(CPtr, CPtr))compare);}
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {super::compare((Int(*)(CPtr, CPtr))compare);}
 
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::lockedRemove    (  Int   i               ) {       super::remove    ( i   );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      remove    (  Int   i               ) {       super::remove    ( i   );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeKey (C KEY  &key             ) {       super::removeKey (&key );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeData(C DATA *data            ) {       super::removeData( data);}
-T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::      replaceKey(C KEY  &src, C KEY &dest) {return super::replaceKey(&src, &dest);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::lockedRemove    (  Int   i               ) {       super::lockedRemove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      remove    (  Int   i               ) {       super::      remove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeKey (C KEY  &key             ) {       super::      removeKey (&key );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeData(C DATA *data            ) {       super::      removeData( data);}
+T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::      replaceKey(C KEY  &src, C KEY &dest) {return super::      replaceKey(&src, &dest);}
 
-T2(KEY, DATA) T1(EXTENDED)            Map<KEY, DATA>&            Map<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>();         del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>();           return T;}
-T2(KEY, DATA) T1(EXTENDED)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>(); lock(); del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>(); unlock(); return T;}
+T2(KEY, DATA) T1(EXTENDED)            Map  <KEY, DATA>&            Map  <KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>();         del(); _key_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map  <KEY, EXTENDED>::Elm>();           return T;}
+T2(KEY, DATA) T1(EXTENDED)            MapEx<KEY, DATA>&            MapEx<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>();         del(); _key_offset=UIntPtr(&((typename MapEx<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename MapEx<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename MapEx<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename MapEx<KEY, EXTENDED>::Elm>();           return T;}
+T2(KEY, DATA) T1(EXTENDED)  ThreadSafeMap  <KEY, DATA>&  ThreadSafeMap  <KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>(); lock(); del(); _key_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map  <KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map  <KEY, EXTENDED>::Elm>(); unlock(); return T;}
 
 T2(KEY, DATA)            Map<KEY, DATA>&            Map<KEY, DATA>::operator=(C           Map<KEY, DATA> &src) {if(this!=&src){                    from(src); FREPA(T)         T[i]=src           [i];                        } return T;}
 T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::operator=(C ThreadSafeMap<KEY, DATA> &src) {if(this!=&src){lock(); src.lock(); from(src); FREPA(T)lockedData(i)=src.lockedData(i); src.unlock(); unlock();} return T;}
 
-T2(KEY, DATA)            Map<KEY, DATA>::          Map(Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _Map  (block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
-T2(KEY, DATA)  ThreadSafeMap<KEY, DATA>::ThreadSafeMap(Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _MapTS(block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
+T2(KEY, DATA)            Map  <KEY, DATA>::          Map  (Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _Map  (block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
+T2(KEY, DATA)            MapEx<KEY, DATA>::          MapEx(Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _MapEx(block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
+T2(KEY, DATA)  ThreadSafeMap  <KEY, DATA>::ThreadSafeMap  (Int compare(C KEY &a, C KEY &b), Bool create(DATA &data, C KEY &key, Ptr user), Ptr user, Int block_elms) : _MapTS(block_elms, (Int(*)(CPtr, CPtr))compare, (Bool(*)(Ptr, CPtr, Ptr))create, user, ClassFunc<KEY>::Copy) {replaceClass<DATA>();}
 
 inline Int Elms(C _Map   &map) {return map.elms();}
+inline Int Elms(C _MapEx &map) {return map.elms();}
 inline Int Elms(C _MapTS &map) {return map.elms();}
+/******************************************************************************/
+// MAP ELEMENT POINTER
+/******************************************************************************/
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  Bool    MapElmPtr<KEY,DATA,MAP>::dummy(          )C {return MAP._dummy(_data       );}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  void    MapElmPtr<KEY,DATA,MAP>::dummy(Bool dummy)  {       MAP._dummy(_data, dummy);}
+
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::clear    (                  ) {            MAP._decRef(T._data);             T._data=      null ;  return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  DATA      * data) {if(T!=data){MAP._decRef(T._data); MAP._incRef(T._data=      data);} return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C MapElmPtr & eptr) {if(T!=eptr){MAP._decRef(T._data); MAP._incRef(T._data=eptr._data);} return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  MapElmPtr &&eptr) {Swap(_data, eptr._data);                                            return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  null_t          ) {clear();                                                            return T;}
+
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::find     (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._find   (&key); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::get      (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._get    (&key); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::require  (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key); MAP._decRef(old); return T;}
+
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  null_t          ) {            T._data=      null ;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  DATA      * data) {MAP._incRef(T._data=      data);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C MapElmPtr & eptr) {MAP._incRef(T._data=eptr._data);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  MapElmPtr &&eptr) {            T._data=eptr._data ; eptr._data=null;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C KEY       & key ) {            T._data=(DATA*)MAP._require(&key);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>::~MapElmPtr(                  ) {clear();}
 /******************************************************************************/
 // GRID
 /******************************************************************************/

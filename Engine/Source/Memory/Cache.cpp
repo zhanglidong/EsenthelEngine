@@ -37,12 +37,6 @@ static Flt      DelayRemoveWaited;
          but that would increase memory usage (all elements would need it, while now only those need it in the removal queue).
 
 /******************************************************************************/
-static inline void IncPtrNum(UInt &ptr_num)
-{
-   DEBUG_ASSERT(ptr_num<UINT_MAX, "'ptr_num' too big");
-   ptr_num++;
-}
-/******************************************************************************/
 C _Cache::Desc& _Cache::lockedDesc(Int i)C {return elmDesc(*_order[i]);}
    CPtr         _Cache::lockedData(Int i)C {return elmData(*_order[i]);}
 
