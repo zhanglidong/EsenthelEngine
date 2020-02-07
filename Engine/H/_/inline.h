@@ -1804,6 +1804,11 @@ T2(KEY, DATA)  MAP_MODE            Map  <KEY, DATA>::mode(MAP_MODE mode) {return
 T2(KEY, DATA)  MAP_MODE            MapEx<KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
 T2(KEY, DATA)  MAP_MODE  ThreadSafeMap  <KEY, DATA>::mode(MAP_MODE mode) {return (MAP_MODE)super::mode(mode);}
 
+T2(KEY, DATA)  MapEx<KEY,DATA>&  MapEx<KEY,DATA>::delayRemove   (Flt time) {super::delayRemove   (time); return T;}
+T2(KEY, DATA)  MapEx<KEY,DATA>&  MapEx<KEY,DATA>::delayRemoveNow(        ) {super::delayRemoveNow(    ); return T;}
+
+T2(KEY, DATA)  void  MapEx<KEY,DATA>::update() {super::update();}
+
 T2(KEY, DATA)  void  Map<KEY, DATA>::remove    (  Int   i               ) {       super::remove    ( i   );}
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeKey (C KEY  &key             ) {       super::removeKey (&key );}
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeData(C DATA *data            ) {       super::removeData( data);}
@@ -1848,16 +1853,16 @@ template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  MapElmPtr &&eptr) {Swap(_data, eptr._data);                                            return T;}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  null_t          ) {clear();                                                            return T;}
 
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::find     (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._find   (&key); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::get      (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._get    (&key); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::require  (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::find     (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._find   (&key, true); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::get      (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._get    (&key, true); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::require  (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP._decRef(old); return T;}
 
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  null_t          ) {            T._data=      null ;}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  DATA      * data) {MAP._incRef(T._data=      data);}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C MapElmPtr & eptr) {MAP._incRef(T._data=eptr._data);}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  MapElmPtr &&eptr) {            T._data=eptr._data ; eptr._data=null;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C KEY       & key ) {            T._data=(DATA*)MAP._require(&key);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C KEY       & key ) {            T._data=(DATA*)MAP._require(&key, true);}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>::~MapElmPtr(                  ) {clear();}
 /******************************************************************************/
 // GRID

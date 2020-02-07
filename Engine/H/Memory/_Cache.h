@@ -109,5 +109,6 @@ inline void IncPtrNum(UInt &ptr_num)
    DEBUG_ASSERT(ptr_num<UINT_MAX, "'ptr_num' too big");
    ptr_num++;
 }
+#define DELAY_REMOVE_STEP (1.0f/8) // number of steps per 'delay_remove' time to check for element removal
 #endif
 /******************************************************************************/

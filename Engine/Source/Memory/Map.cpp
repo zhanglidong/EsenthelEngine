@@ -121,12 +121,12 @@ void _Map::removeFromOrder(Int index)
 Int _Map::findAbsIndex(CPtr key)C {return dataInMapToAbsIndex(find(key));}
 Ptr _Map::find        (CPtr key)C
 {
-   Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return elmData(*elm);
+   Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&CACHE_ELM_LOADING))return elmData(*elm);
    return null;
 }
 Int _Map::findValidIndex(CPtr key)C
 {
-   Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return i;
+   Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&CACHE_ELM_LOADING))return i;
    return -1;
 }
 Ptr _MapTS::find(CPtr key)C
@@ -155,7 +155,7 @@ Ptr _Map::get          (CPtr key)
    Int stop;
 
    // find existing
-   if(Elm *elm=findElm(key, stop))return (elmDesc(*elm).flag&MAP_ELM_LOADING) ? null : elmData(*elm);
+   if(Elm *elm=findElm(key, stop))return (elmDesc(*elm).flag&CACHE_ELM_LOADING) ? null : elmData(*elm);
 
    // always null
    if(_mode==MAP_ALL_NULL)return null;
@@ -168,7 +168,7 @@ Ptr _Map::get          (CPtr key)
    if(_mode==MAP_ALL_DUMMY)
    {
    dummy:
-      desc.flag|=MAP_ELM_DUMMY;
+      desc.flag|=CACHE_ELM_DUMMY;
      _copy_key(elm_key, key);
       addToOrder(elm, stop);
       return data;
@@ -176,21 +176,21 @@ Ptr _Map::get          (CPtr key)
 
    // create
    {
-      desc.flag|=MAP_ELM_LOADING;
+      desc.flag|=CACHE_ELM_LOADING;
      _copy_key(elm_key, key); // copy key before creating
       addToOrder(elm, stop);
 
       // try to load
       if(_create ? _create(data, elm_key, _user) : true)
       {
-         FlagDisable(desc.flag, MAP_ELM_LOADING);
+         FlagDisable(desc.flag, CACHE_ELM_LOADING);
          return data;
       }
 
       if(findElm(key, stop))
       {
          removeFromOrder(stop); // don't try to optimize by using the same 'stop' calculated from 'addToOrder' as it may have changed, because inside 'create' there could be other objects created
-         FlagDisable(desc.flag, MAP_ELM_LOADING);
+         FlagDisable(desc.flag, CACHE_ELM_LOADING);
       }
    }
 
@@ -239,7 +239,7 @@ Bool _MapTS::containsKey(CPtr key)C {return find(key)!=null;}
 /******************************************************************************/
 Bool _Map::containsData(CPtr data)C
 {
- C Elm *elm=dataElm(data); if(containsElm(elm))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return true;
+ C Elm *elm=dataElm(data); if(containsElm(elm))if(!(elmDesc(*elm).flag&CACHE_ELM_LOADING))return true;
    return false;
 }
 Bool _MapTS::containsData(CPtr data)C
@@ -261,7 +261,7 @@ Int       validIndex( CPtr  data)C {return       validIndex(dataElm(data));} // 
 INLINE Int _Map::absIndex(CPtr data)C // this function assumes that 'data' is not null
 {
 #if 1 // fast, this can work because '_data_offset' is now zero
-   DEBUG_ASSERT(_data_offset==0, "Cache data offset should be zero but it isn't");
+   DEBUG_ASSERT(_data_offset==0, "Map data offset should be zero but it isn't");
    return _memx.absIndex(dataElm(data));
 #else
    #if WINDOWS
@@ -275,7 +275,7 @@ INLINE Int _Map::absIndex(CPtr data)C // this function assumes that 'data' is no
 /******************************************************************************/
 CPtr _Map::dataToKey(CPtr data)C
 {
- C Elm *elm=dataElm(data); if(containsElm(elm))return elmKey(*elm); // key does not change while loading, so ignore MAP_ELM_LOADING
+ C Elm *elm=dataElm(data); if(containsElm(elm))return elmKey(*elm); // key does not change while loading, so ignore CACHE_ELM_LOADING
    return null;
 }
 CPtr _MapTS::dataToKey(CPtr data)C
@@ -471,6 +471,144 @@ void _Map::from(C _Map &src)
      _copy_key(elmKey(dest_elm), src.elmKey(src_elm)); // copy key
    }
 }
+/******************************************************************************/
+// MAP EX
+/******************************************************************************/
+void _MapEx::delayRemove(Flt time)
+{
+   Bool adjust_existing=true;
+   MAX(time, 0);
+   if( time!=_delay_remove_time)
+   {
+    /*SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+      SyncLocker     locker(  _lock);*/
+
+      Flt delta=time-_delay_remove_time; // how much are we increasing the delay
+     _delay_remove_time  =time; // set new value
+     _delay_remove_check+=delta*DELAY_REMOVE_STEP; // adjust check time
+      if(adjust_existing)REPAO(_delay_remove).time+=delta; // adjust element removal times
+      update();
+   }
+}
+/******************************************************************************/
+Int _MapEx::findDelayRemove(Elm &elm)
+{
+   REPA(_delay_remove)if(_delay_remove[i].elm==&elm)return i;
+   return -1;
+}
+/******************************************************************************/
+Ptr _MapEx::_find(CPtr key, Bool counted)
+{
+   Int i; if(Elm *elm=findElm(key, i))
+   {
+      DescPtrNum &desc=elmDesc(*elm); if(!(desc.flag&CACHE_ELM_LOADING))
+      {
+         if(counted)IncPtrNum(desc.ptr_num);else FlagEnable(desc.flag, CACHE_ELM_STD_PTR);
+         return elmData(*elm);
+      }
+   }
+   return null;
+}
+Ptr _MapEx::_get(CPtr key, Bool counted)
+{
+   Ptr data=get(key); if(Elm *elm=dataElm(data))
+   {
+      DescPtrNum &desc=elmDesc(*elm);
+      if(counted)IncPtrNum(desc.ptr_num);else FlagEnable(desc.flag, CACHE_ELM_STD_PTR);
+   }
+   return data;
+}
+Ptr _MapEx::_require(CPtr key, Bool counted)
+{
+   if(Ptr data=_get(key, counted))return data; getFailed(); return null;
+}
+/******************************************************************************/
+void _MapEx::_incRef(CPtr data)
+{
+   if(Elm *elm=dataElm(data))
+ /*#if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means map was already initialized)
+      if(_elms)
+   #endif*/
+   {
+    /*SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+      SyncLocker     locker(  _lock);*/
+      if(containsElm(elm))IncPtrNum(elmDesc(*elm).ptr_num);
+   }
+}
+void _MapEx::_decRef(CPtr data)
+{
+   if(Elm *elm=dataElm(data))
+ /*#if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means map was already initialized)
+      if(_elms)
+   #endif*/
+   {
+    /*SyncUnlocker unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
+      SyncLocker     locker(  _lock);*/
+      if(containsElm(elm))
+      {
+         DescPtrNum &desc=elmDesc(*elm); DEBUG_ASSERT(desc.ptr_num>0, "'_MapEx.decRef' Decreasing 'ptr_num' when it's already zero");
+         if(!--desc.ptr_num && !(desc.flag&CACHE_ELM_STD_PTR)) // if there are no more pointers accessing this element
+         {
+            Flt delay_remove_time=_delay_remove_time;
+          //if( delay_remove_time   >0 && GetThreadId()==DelayRemoveThreadID)delay_remove_time-=DelayRemoveWaited; // if want to use delayed remove by time and we're unloading because of parent getting delay unloaded, then decrease the time which the parent already waited
+            if( delay_remove_time   >0 // if want to use delayed remove by time
+          //|| _delay_remove_counter>0 // if want to use delayed remove temporarily
+          //|| (_can_be_removed && !_can_be_removed(data)) // or it can't be removed right now
+            )
+            {
+               Flt time=Time.appTime()+delay_remove_time; // set removal time
+               if(desc.flag&CACHE_ELM_DELAY_REMOVE) // if already listed
+               {
+                  Int i=findDelayRemove(*elm); DEBUG_ASSERT(i>=0, "'_MapEx.decRef' Element has CACHE_ELM_DELAY_REMOVE but isn't listed in '_delay_remove'");
+                 _delay_remove[i].time=time; // adjust time
+               }else // not yet listed
+               {
+                  FlagEnable(desc.flag, CACHE_ELM_DELAY_REMOVE);
+                  DelayRemove &remove=_delay_remove.New();
+                  remove.elm =elm;
+                  remove.time=time;
+               }
+            }else // remove now
+            {
+               if(desc.flag&CACHE_ELM_DELAY_REMOVE)_delay_remove.remove(findDelayRemove(*elm)); // if was listed in the 'delay_remove' then remove it from it
+               removeKey(elmKey(*elm)); // 'removeKey' faster than 'removeData'
+            }
+         }
+      }
+   }
+}
+/******************************************************************************/
+void _MapEx::processDelayRemove(Bool always)
+{
+   if(_delay_remove.elms())
+   {
+    /*SyncUnlocker   unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
+      SyncLocker delay_locker(DelayRemoveLock); DelayRemoveThreadID=GetThreadId(); // support only one 'processDelayRemove' at a time, because we use only one global 'DelayRemoveWaited' based on 'DelayRemoveThreadID' for all maps/threads
+      SyncLocker       locker(  _lock);*/
+     _delay_remove_check=Time.appTime()+_delay_remove_time*DELAY_REMOVE_STEP; // perform next check at this time
+      REPA(_delay_remove)
+      {
+         DelayRemove &remove=_delay_remove[i];
+         if(always || Time.appTime()>=remove.time) // if always remove or enough time has passed (use >= so when having zero delay time then it will be processed immediately)
+         {
+            Elm &elm=*remove.elm; DescPtrNum &desc=elmDesc(elm); _delay_remove.remove(i); // access before removal and remove afterwards
+            if(desc.ptr_num || (desc.flag&CACHE_ELM_STD_PTR)) // if there is something accessing this element now
+            {
+               FlagDisable(desc.flag, CACHE_ELM_DELAY_REMOVE); // keep the element but disable the 'CACHE_ELM_DELAY_REMOVE' flag since we've removed it from the '_delay_remove' container
+            }else // nothing accessing this element
+            {
+               // remove element from map
+             //DelayRemoveWaited=Max(0, Time.appTime()-remove.time+_delay_remove_time); // get how much time this element was waiting to be removed, set this before removing this element, so its children will be able to access it in the destructor
+               removeKey(elmKey(elm)); // 'removeKey' faster than 'removeData'
+            }
+         }
+      }
+    //DelayRemoveWaited  =0; // clear back to zero before clearing 'DelayRemoveThreadID', in case some other thread has ID=0, and thus would use 'DelayRemoveWaited' from this thread
+    //DelayRemoveThreadID=0;
+   }
+}
+void _MapEx::delayRemoveNow() {                                                                                               processDelayRemove(true );}
+void _MapEx::update        () {if(_delay_remove.elms() && /*_delay_remove_counter==0 &&*/ Time.appTime()>=_delay_remove_check)processDelayRemove(false);}
 /******************************************************************************/
 }
 /******************************************************************************/

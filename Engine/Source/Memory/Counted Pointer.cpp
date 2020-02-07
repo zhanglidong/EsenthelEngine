@@ -9,8 +9,6 @@ namespace EE{
      >=1 =loaded and not listed in delay remove
 
 /******************************************************************************/
-#define DELAY_REMOVE_STEP (1.0f/8) // number of steps per 'delay_remove' time to check for element removal
-
 struct DelayRemove
 {
    PtrCounter *data;

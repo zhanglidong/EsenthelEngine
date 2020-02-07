@@ -1,7 +1,6 @@
 ﻿/******************************************************************************/
 #include "stdafx.h"
 namespace EE{
-#define DELAY_REMOVE_STEP (1.0f/8) // number of steps per 'delay_remove' time to check for element removal
 ASSERT(OFFSET(Cache<Image>::Elm, data)==0); // '_data_offset' is not used because it's assumed to be always 0
 static SyncLock DelayRemoveLock;
 static UIntPtr  DelayRemoveThreadID;
@@ -444,7 +443,7 @@ void _Cache::_decRef(CPtr data)
                if(desc.flag&CACHE_ELM_DELAY_REMOVE) // if already listed
                {
                   Int i=findDelayRemove(*elm); DEBUG_ASSERT(i>=0, "'_Cache.decRef' Element has CACHE_ELM_DELAY_REMOVE but isn't listed in '_delay_remove'");
-                 _delay_remove[i].time=time;
+                 _delay_remove[i].time=time; // adjust time
                }else // not yet listed
                {
                   FlagEnable(desc.flag, CACHE_ELM_DELAY_REMOVE);
@@ -468,7 +467,7 @@ void _Cache::processDelayRemove(Bool always)
    if(_delay_remove.elms())
    {
       SyncUnlocker   unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
-      SyncLocker delay_locker(DelayRemoveLock); DelayRemoveThreadID=GetThreadId(); // support only one 'processDelayRemove' at a time, because we use only one global 'DelayRemoveWaited' base on 'DelayRemoveThreadID' for all caches/threads
+      SyncLocker delay_locker(DelayRemoveLock); DelayRemoveThreadID=GetThreadId(); // support only one 'processDelayRemove' at a time, because we use only one global 'DelayRemoveWaited' based on 'DelayRemoveThreadID' for all caches/threads
       SyncLocker       locker(  _lock);
      _delay_remove_check=Time.appTime()+_delay_remove_time*DELAY_REMOVE_STEP; // perform next check at this time
       REPA(_delay_remove)

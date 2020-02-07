@@ -15,14 +15,6 @@ enum MAP_MODE : Byte // Map Mode
    MAP_ALL_NULL , // don't load data, always return null
    MAP_ALL_DUMMY, // don't load data, always return dummy (pointer to empty data, initialized with constructor but without the 'load' method)
 };
-#if EE_PRIVATE
-enum MAP_ELM_FLAG // Map Element Flag
-{
-   MAP_ELM_DUMMY       =1<<0, // if element was not found but created anyway
-   MAP_ELM_LOADING     =1<<1, // if element is still being loaded (for example, during loading of element A, it loads element B, which tries to access A which didn't finish loading yet)
-   MAP_ELM_DELAY_REMOVE=1<<2, // if element reached zero references and was added to the '_delay_remove'
-};
-#endif
 /******************************************************************************/
 T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created elements, consisting of unique keys and their corresponding data
 {
@@ -100,9 +92,13 @@ T2(KEY, DATA) struct MapEx : _MapEx // Map with reference count for elements
    // get
    Int elms()C; // get number of elements in container
 
-   MAP_MODE mode(MAP_MODE mode); // set map mode, returns previous mode
+   MAP_MODE mode          (MAP_MODE mode); // set map mode, returns previous mode
+   MapEx&   delayRemove   (Flt      time); // set amount of time (in seconds) after which unused elements are removed from map (<=0 value specifies immediate unloading), default=0
+   MapEx&   delayRemoveNow(             ); // immediately remove all elements that were marked for delay removal at a later time to free as much memory as possible
 
    void reserve(Int num); // pre-allocate memory for storage of 'num' total elements
+
+   void update(); // update map to process all delay removed elements
 
    explicit MapEx(Int compare(C KEY &a, C KEY &b)=Compare, Bool create(DATA &data, C KEY &key, Ptr user)=null, Ptr user=null, Int block_elms=64); // 'compare'=function which compares two keys, 'create'=function that creates 'data' on the base of the constant 'key'
 
