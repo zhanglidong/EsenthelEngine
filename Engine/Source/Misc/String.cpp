@@ -3746,7 +3746,7 @@ void StrLibrary::del()
 }
 void StrLibrary::alloc()
 {
-  _index=(UInt*)Alloc(SIZE(*_index)*_elms + SIZE(*_data)*_size);
+  _index=(UInt*)Alloc(SIZEU(*_index)*_elms + SIZEU(*_data)*_size);
   _data =(Byte*)(_index+_elms);
 }
 static inline Int CompareSCI(C Str &a, C Str &b) {return Compare(a(), b(), false);}
@@ -3984,7 +3984,7 @@ static void InitStr()
 
    // Char 8<->16 conversions
    {
-      SetMem(_Char16To8, '?', SIZE(_Char16To8));
+      SetMem(_Char16To8, '?', SIZEU(_Char16To8));
       REP(256)
       {
          Char8 c=i;
