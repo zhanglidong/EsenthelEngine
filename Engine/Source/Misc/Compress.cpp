@@ -105,8 +105,8 @@ static void MemFinished(File &f, Ptr mem, Long wrote, Int cipher_offset)
 {
    if(f._cipher)f._cipher->encrypt(mem, mem, wrote, cipher_offset);
 }
-static Ptr  CompressAlloc(Ptr p, size_t size) {return Alloc((UIntPtr)size);}
-static void CompressFree (Ptr p, Ptr    data) {       Free (         data);}
+static Ptr  CompressAlloc(Ptr p, size_t size) {return Alloc(size);}
+static void CompressFree (Ptr p, Ptr    data) {       Free (data);}
 /******************************************************************************/
 // ZLIB
 /******************************************************************************/

@@ -5,7 +5,6 @@ namespace EE{
 /******************************************************************************/
 #if WINDOWS_NEW
 using namespace concurrency;
-using namespace Platform;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::Core;
 using namespace Windows::ApplicationModel::Activation;
@@ -167,7 +166,7 @@ ref struct FrameworkView sealed : IFrameworkView
       setOrientation(display_info->CurrentOrientation, display_info->NativeOrientation); // !! call this before 'setMode' !!
       setMode();
    }
-   virtual void Load(String^ entryPoint) // called after 'SetWindow'
+   virtual void Load(Platform::String^ entryPoint) // called after 'SetWindow'
    {
    }
    virtual void Run() // changing full screen mode 'TryEnterFullScreenMode' will work only here
@@ -648,7 +647,7 @@ INT WINAPI wWinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
    return 0;
 }
 #elif WINDOWS_NEW
-[MTAThread] int main(Array<String^> ^args)
+[Platform::MTAThread] int main(Platform::Array<Platform::String^> ^args)
 {
 /* TODO: WINDOWS_NEW setting initial window size and fullscreen mode - check in the future
    changing these didn't make any difference at this launch, only next launch got affected
