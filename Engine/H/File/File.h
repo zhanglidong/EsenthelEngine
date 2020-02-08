@@ -109,8 +109,8 @@ struct File
    T1(TYPE) Bool  get       (  TYPE &t       ) {return get(&t, SIZE(TYPE)  );} // read  raw memory              to 't' object
    T1(TYPE) Bool  putN      (C TYPE *t, Int n) {return put( t, SIZE(TYPE)*n);} // write raw array of 'n' number of 't' objects
    T1(TYPE) Bool  getN      (  TYPE *t, Int n) {return get( t, SIZE(TYPE)*n);} // read  raw array to 'n' number of 't' objects
-   T1(TYPE) File& operator<<(C TYPE &t       ) {       put(t);      return T;} // write raw memory              of 't' object
-   T1(TYPE) File& operator>>(  TYPE &t       ) {       get(t);      return T;} // read  raw memory              to 't' object
+   T1(TYPE) File& operator<<(C TYPE &t       ) {       put( t);     return T;} // write raw memory              of 't' object
+   T1(TYPE) File& operator>>(  TYPE &t       ) {       get( t);     return T;} // read  raw memory              to 't' object
             File& operator<<(C Str8 &s       ) {return putStr(s);            } // write string
             File& operator<<(C Str  &s       ) {return putStr(s);            } // write string
             File& operator>>(  Str8 &s       ) {return getStr(s);            } // read  string
