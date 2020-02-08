@@ -1320,10 +1320,11 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                   KB_KEY key;
                   switch(raw.data.keyboard.VKey)
                   {
-                     case VK_CONTROL: if(raw.data.keyboard.Flags&RI_KEY_E0)goto def; key=KB_LCTRL; break; // skip RI_KEY_E0 right control (it's already handled in WM_KEYDOWN)
-                     case VK_SHIFT  : key=((raw.data.keyboard.MakeCode==42) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
-                     case 255       : if(raw.data.keyboard.MakeCode==42 && (raw.data.keyboard.Flags&(RI_KEY_E0|RI_KEY_E1))==RI_KEY_E0){key=KB_PRINT; break;} goto def; // detect KB_PRINT because in 'Kb.exclusive', WM_HOTKEY isn't called
-                     default: goto def;
+                     case VK_CONTROL : if(raw.data.keyboard.Flags&RI_KEY_E0)goto def; key=KB_LCTRL; break; // skip RI_KEY_E0 right control (it's already handled in WM_KEYDOWN)
+                     case VK_SHIFT   : key=((raw.data.keyboard.MakeCode==42) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
+                     case VK_SNAPSHOT: key=KB_PRINT; break; // needed for exclusive mode
+                   //case 255        : if(raw.data.keyboard.MakeCode==42 && (raw.data.keyboard.Flags&(RI_KEY_E0|RI_KEY_E1))==RI_KEY_E0){key=KB_PRINT; break;} goto def; detect KB_PRINT because in 'Kb.exclusive', WM_HOTKEY isn't called, however this is also called when pressing "Insert" when NumLock is off so it can't be used
+                     default         : goto def;
                   }
                   if(raw.data.keyboard.Flags&RI_KEY_BREAK)Kb.release(key);else Kb.push(key, raw.data.keyboard.MakeCode);
                   return 0;
@@ -1416,9 +1417,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
       case WM_HOTKEY:
       {
-      #if !KB_RAW_INPUT
-         if((lParam>>16)==VK_SNAPSHOT)Kb.push(KB_PRINT, -1); // this is needed only for DirectInput non-exclusive mode
-      #endif
+         if((lParam>>16)==VK_SNAPSHOT)Kb.push(KB_PRINT, -1); // this is needed only for non-exclusive mode (both DirectInput and RawInput)
       }break;
 
       // IME
