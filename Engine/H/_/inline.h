@@ -1690,10 +1690,10 @@ T1(TYPE) inline Int Elms(C  Cache<TYPE> &cache) {return cache.elms();}
 /******************************************************************************/
 // CACHE ELEMENT POINTER
 /******************************************************************************/
-template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE. name (_data, path );}
-template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE. id   (_data       );}
-template<typename TYPE, Cache<TYPE> &CACHE>  Bool    CacheElmPtr<TYPE,CACHE>::dummy(            )C {return CACHE._dummy(_data       );}
-template<typename TYPE, Cache<TYPE> &CACHE>  void    CacheElmPtr<TYPE,CACHE>::dummy(Bool   dummy)  {       CACHE._dummy(_data, dummy);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE.name (_data, path );}
+template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE.id   (_data       );}
+template<typename TYPE, Cache<TYPE> &CACHE>  Bool    CacheElmPtr<TYPE,CACHE>::dummy(            )C {return CACHE.dummy(_data       );}
+template<typename TYPE, Cache<TYPE> &CACHE>  void    CacheElmPtr<TYPE,CACHE>::dummy(Bool   dummy)  {       CACHE.dummy(_data, dummy);}
 
 template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::clear    (                    ) {            CACHE.decRef(T._data);              T._data=      null ;  return T;}
 template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  TYPE        * data) {if(T!=data){CACHE.decRef(T._data); CACHE.incRef(T._data=      data);} return T;}
