@@ -73,19 +73,19 @@ mutable Byte         _d_lock;
    Int         absIndex( CPtr  data)C {return         absIndex(dataElm(data));} // this is NOT thread-safe, assumes that '_data_offset' is zero
    Int       validIndex( CPtr  data)C {return       validIndex(dataElm(data));} // this is NOT thread-safe, assumes that '_data_offset' is zero
 #endif
-   Ptr    _find      (CChar *file, CChar *path, Bool counted);
-   Ptr    _find      (C UID &id  , CChar *path, Bool counted);
-   Ptr    _get       (CChar *file, CChar *path, Bool counted);
-   Ptr    _get       (C UID &id  , CChar *path, Bool counted);
-   Ptr    _require   (CChar *file, CChar *path, Bool counted);
-   Ptr    _require   (C UID &id  , CChar *path, Bool counted);
-   Bool    contains  (CPtr   data                           )C;
-   Int     ptrCount  (CPtr   data                           )C;
-   Bool    dummy     (CPtr   data                           )C;
-   void    dummy     (CPtr   data, Bool   dummy             );
-   CChar*  name      (CPtr   data, CChar *path              )C;
-   UID     id        (CPtr   data                           )C;
-   void    removeData(CPtr   data                           );
+   Ptr    find      (CChar *file, CChar *path, Bool counted);
+   Ptr    find      (C UID &id  , CChar *path, Bool counted);
+   Ptr    get       (CChar *file, CChar *path, Bool counted);
+   Ptr    get       (C UID &id  , CChar *path, Bool counted);
+   Ptr    require   (CChar *file, CChar *path, Bool counted);
+   Ptr    require   (C UID &id  , CChar *path, Bool counted);
+   Bool   contains  (CPtr   data                           )C;
+   Int    ptrCount  (CPtr   data                           )C;
+   Bool   dummy     (CPtr   data                           )C;
+   void   dummy     (CPtr   data, Bool   dummy             );
+   CChar* name      (CPtr   data, CChar *path              )C;
+   UID    id        (CPtr   data                           )C;
+   void   removeData(CPtr   data                           );
 
    void incRef(CPtr data);
    void decRef(CPtr data);

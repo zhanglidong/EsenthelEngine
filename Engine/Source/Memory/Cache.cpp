@@ -182,7 +182,7 @@ Ptr _Cache::validElmData(Elm &elm, Bool counted)
    return null;
 }
 /******************************************************************************/
-Ptr _Cache::_find(CChar *file, CChar *path, Bool counted)
+Ptr _Cache::find(CChar *file, CChar *path, Bool counted)
 {
    if(Is(file)) // valid file name
    {
@@ -201,7 +201,7 @@ inline static CChar* HelperPath(CChar *file, CChar *path, Char (&dest)[MAX_LONG_
    return    dest;
 }
 
-Ptr _Cache::_get(CChar *file, CChar *path, Bool counted)
+Ptr _Cache::get(CChar *file, CChar *path, Bool counted)
 {
    if(Is(file)) // valid file name
    {
@@ -288,9 +288,9 @@ Ptr _Cache::_get(CChar *file, CChar *path, Bool counted)
    return null;
 }
 /******************************************************************************/
-Ptr _Cache::_require(CChar *file, CChar *path, Bool counted)
+Ptr _Cache::require(CChar *file, CChar *path, Bool counted)
 {
-   if(Ptr data=_get(file, path, counted))return data;
+   if(Ptr data=get(file, path, counted))return data;
    if(Is(file) && _mode==CACHE_EXIT)
    {
               Str error =MLT(S+"Can't load "+_debug_name+" \""+file+'"', PL,S+u"Nie można wczytać \""  +file+'"');
@@ -300,9 +300,9 @@ Ptr _Cache::_require(CChar *file, CChar *path, Bool counted)
    return null;
 }
 /******************************************************************************/
-Ptr _Cache::_find   (C UID &id, CChar *path, Bool counted) {return id.valid() ? _find   (_EncodeFileName(id), path, counted) : null;}
-Ptr _Cache::_get    (C UID &id, CChar *path, Bool counted) {return id.valid() ? _get    (_EncodeFileName(id), path, counted) : null;}
-Ptr _Cache::_require(C UID &id, CChar *path, Bool counted) {return id.valid() ? _require(_EncodeFileName(id), path, counted) : null;}
+Ptr _Cache::find   (C UID &id, CChar *path, Bool counted) {return id.valid() ? find   (_EncodeFileName(id), path, counted) : null;}
+Ptr _Cache::get    (C UID &id, CChar *path, Bool counted) {return id.valid() ? get    (_EncodeFileName(id), path, counted) : null;}
+Ptr _Cache::require(C UID &id, CChar *path, Bool counted) {return id.valid() ? require(_EncodeFileName(id), path, counted) : null;}
 /******************************************************************************
 INLINE Int _Cache::absIndex(CPtr data)C // this function assumes that 'data' is not null
 {
