@@ -225,7 +225,6 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       bool       line_smooth=D.lineSmooth(true); // this can be very slow, so don't use it everywhere
       AMBIENT_MODE ambient  =D.  ambientMode(); D.  ambientMode(AMBIENT_FLAT);
       DOF_MODE     dof      =D.      dofMode(); D.      dofMode(    DOF_NONE);
-      MOTION_MODE  motion   =D.   motionMode(); D.   motionMode( MOTION_NONE);
       bool         eye_adapt=D.eyeAdaptation(); D.eyeAdaptation(       false);
       bool         astros   =AstrosDraw       ; AstrosDraw     =false;
       bool         ocean    =Water.draw       ; Water.draw     =false;
@@ -274,7 +273,6 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
 
       temp.set();
       D.      dofMode(dof        );
-      D.   motionMode(motion     );
       D.  ambientMode(ambient    );
       D.eyeAdaptation(eye_adapt  );
       D.lineSmooth   (line_smooth);
