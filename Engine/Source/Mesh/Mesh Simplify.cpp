@@ -69,7 +69,7 @@ void ProfileEnd()
 /******************************************************************************
 
    Part of the algorithm is based on "Quadric Mesh Simplification" by Sven Forstmann:
-      http://voxels.blogspot.com.au/2014/05/quadric-mesh-simplification-with-source.html
+      http://voxels.blogspot.com/2014/05/quadric-mesh-simplification-with-source.html
       https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
       Available under MIT license
 
@@ -310,8 +310,9 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
               vtx_new; // weighted average 'vtx_mid' for all tris, this is done per-component only if in 2 tris the shared vertexes data is the same
       Int     part, // MeshPart index
               mtrl_group;
-      UInt    flag; // MSHB_FLAG, this is obtained from the MeshPart.base of that triangle
-      Bool    middle;
+      UInt    flag; // MSHB_FLAG, this is obtained from the 'MeshPart.base' of that triangle
+      Bool    middle,
+              visible; // this is obtained from 'MeshPart.part_flag' of that triangle (alternatively instead of having this value, we could keep an array for all mesh part properties and reuse 'part' to access that array, however that would be slower)
    #if !ADJUST_REFS
       Bool    exists; // if references are not adjusted, then we need to keep information about which triangle exists and which got removed
       Triangle() {exists=true ;}
@@ -424,7 +425,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
    Bool               keep_border;
    MESH_SIMPLIFY      mode;
-   Int                processed_tris, max_skin;
+   Int                processed_tris, max_skin, visible_tris=0;
    UInt               test_flag; // this is set based on the max tolerance parameters to the simplify function
    Flt                max_uv2, max_color, max_material, max_normal;
    Box                box;
@@ -1118,6 +1119,10 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    {
       UInt mesh_flag=mesh.flag();
 
+      // check visibility add tri count
+      Bool visible=(!mesh_part || !(mesh_part->part_flag&MSHP_HIDDEN));
+      if(  visible)visible_tris+=mesh_part->trisTotal();
+
       // set material group
       MtrlGroup mtrl_group(mesh_flag, mesh_part);
       Int mtrl_group_i=-1; REPA(mtrl_groups)if(mtrl_groups[i].testAndMerge(mtrl_group)){mtrl_group_i=i; break;} // find existing one
@@ -1140,6 +1145,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          tri.part      =part;
          tri.mtrl_group=mtrl_group_i;
        //tri.flag      =mesh_flag; this will be set in 'init'
+         tri.visible   =visible;
          tri.ind       =src+vtx_ofs;
          REPAO(tri.vtxs).from(mesh, src.c[i]);
       }
@@ -1153,6 +1159,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             tri.part      =part;
             tri.mtrl_group=mtrl_group_i;
           //tri.flag      =mesh_flag; this will be set in 'init'
+            tri.visible   =visible;
             tri.ind       =t0+vtx_ofs;
             REPAO(tri.vtxs).from(mesh, t0.c[i]);
          }
@@ -1161,6 +1168,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             tri.part      =part;
             tri.mtrl_group=mtrl_group_i;
           //tri.flag      =mesh_flag; this will be set in 'init'
+            tri.visible   =visible;
             tri.ind       =t1+vtx_ofs;
             REPAO(tri.vtxs).from(mesh, t1.c[i]);
          }
@@ -1306,14 +1314,14 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       T.keep_border =keep_border;
       T.test_flag   =((T.max_uv2<1-EPS) ? VTX_TEX_ALL : 0)|((T.max_color<1-EPS) ? VTX_COLOR : 0)|((T.max_material<1-EPS) ? VTX_MATERIAL : 0)|((T.max_skin<255) ? VTX_SKIN : 0)|((T.max_normal>-1+EPS) ? VTX_NRM : 0);
       Real max_error  =Max(0.0f, max_distance);
-      Int  target_tris=Mid(tris.elms()-RoundPos(tris.elms()*intensity), 0, tris.elms());
+      Int  target_tris=Mid(visible_tris-RoundPos(visible_tris*intensity), 0, visible_tris);
       if(mode==SIMPLIFY_QUADRIC) // quadric method operates on squared errors
       {
          max_error*=max_error;
       }
 
       init(pos_eps);
-      if(tris.elms()<=target_tris)return; // must be checked after 'init'
+      if(visible_tris<=target_tris)return; // must be checked after 'init'
 
       // main iteration loop
       Vec mid_pos;
@@ -1375,7 +1383,12 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             REPA(middle_tris)adjustRefs(*middle_tris[i]->tri, edge_vtx0i, edge_vtx1i);
          #endif
          
-            REPA(middle_tris)tris.removeData(middle_tris[i]->tri, true);
+            REPA(middle_tris)
+            {
+               Triangle *tri=middle_tris[i]->tri;
+               visible_tris-=tri->visible;
+               tris.removeData(tri, true);
+            }
             edge_vtx0.pos=mid_pos;
             edge_vtx0.eat(edge_vtx1);
             Int ref_start=refs.elms(); // remember current number of references
@@ -1383,7 +1396,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             updateTriangles(edge_vtx0i, edge_vtx0);
             updateTriangles(edge_vtx0i, edge_vtx1);
 
-            if(tris.elms()<=target_tris)break; // if reached the limit
+            if(visible_tris<=target_tris)break; // if reached the limit
 
             Int tri_num =refs.elms()-ref_start; // get how many references were added
             if( tri_num<=edge_vtx0.tri_num) // if the new number fits in the previous range, then just replace it, to reduce memory usage
