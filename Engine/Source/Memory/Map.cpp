@@ -236,12 +236,12 @@ Ptr _Map::require(CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=req
 /******************************************************************************/
 Bool _Map::dummy(CPtr data)C
 {
-   if(C Elm *elm=dataElm(data))if(containsElm(elm))if(elmDesc(*elm).flag&CACHE_ELM_DUMMY)return true;
+ C Elm *elm=dataElm(data); if(containsElm(elm))if(elmDesc(*elm).flag&CACHE_ELM_DUMMY)return true;
    return false;
 }
 void _Map::dummy(CPtr data, Bool dummy)
 {
-   if(Elm *elm=dataElm(data))if(containsElm(elm))FlagSet(elmDesc(*elm).flag, CACHE_ELM_DUMMY, dummy);
+   Elm *elm=dataElm(data); if(containsElm(elm))FlagSet(elmDesc(*elm).flag, CACHE_ELM_DUMMY, dummy);
 }
 /******************************************************************************/
 Bool _Map  ::containsKey(CPtr key)C {return find(key)!=null;}
@@ -507,7 +507,7 @@ Int _MapEx::findDelayRemove(Elm &elm)
    return -1;
 }
 /******************************************************************************/
-Ptr _MapEx::_find(CPtr key, Bool counted)
+Ptr _MapEx::find(CPtr key, Bool counted)
 {
    Int i; if(Elm *elm=findElm(key, i))
    {
@@ -519,18 +519,18 @@ Ptr _MapEx::_find(CPtr key, Bool counted)
    }
    return null;
 }
-Ptr _MapEx::_get(CPtr key, Bool counted)
+Ptr _MapEx::get(CPtr key, Bool counted)
 {
-   Ptr data=get(key); if(Elm *elm=dataElm(data))
+   Ptr data=super::get(key); if(Elm *elm=dataElm(data))
    {
       DescPtrNum &desc=elmDesc(*elm);
       if(counted)IncPtrNum(desc.ptr_num);else FlagEnable(desc.flag, CACHE_ELM_STD_PTR);
    }
    return data;
 }
-Ptr _MapEx::_require(CPtr key, Bool counted)
+Ptr _MapEx::require(CPtr key, Bool counted)
 {
-   if(Ptr data=_get(key, counted))return data; getFailed(); return null;
+   if(Ptr data=get(key, counted))return data; getFailed(); return null;
 }
 /******************************************************************************/
 void _MapEx::incRef(CPtr data)

@@ -136,9 +136,9 @@ private:
    Int  findDelayRemove(Elm &elm);
 #endif
 
-   Ptr _find   (CPtr key, Bool counted);
-   Ptr _get    (CPtr key, Bool counted);
-   Ptr _require(CPtr key, Bool counted);
+   Ptr find   (CPtr key, Bool counted);
+   Ptr get    (CPtr key, Bool counted);
+   Ptr require(CPtr key, Bool counted);
 
    void incRef(CPtr data);
    void decRef(CPtr data);
