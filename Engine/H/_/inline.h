@@ -1659,11 +1659,12 @@ T1(TYPE)  TYPE*  Cache<TYPE>::get       (C UID &id  , CChar *path) {return (TYPE
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C Str &file, CChar *path) {return (TYPE*)super::_require(file, path, false);}
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C UID &id  , CChar *path) {return (TYPE*)super::_require(id  , path, false);}
 
-T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return super::_name    (data,  path);}
-T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return super::_id      (data       );}
-T1(TYPE)  Bool    Cache<TYPE>::contains(C TYPE *data             )C {return super::_contains(data       );}
-T1(TYPE)  Bool    Cache<TYPE>::dummy   (C TYPE *data             )C {return super::_dummy   (data       );}
-T1(TYPE)  void    Cache<TYPE>::dummy   (C TYPE *data, Bool  dummy)  {       super::_dummy   (data, dummy);}
+T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return super::name    (data,  path);}
+T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return super::id      (data       );}
+T1(TYPE)  Int     Cache<TYPE>::ptrCount(C TYPE *data             )C {return super::ptrCount(data       );}
+T1(TYPE)  Bool    Cache<TYPE>::contains(C TYPE *data             )C {return super::contains(data       );}
+T1(TYPE)  Bool    Cache<TYPE>::dummy   (C TYPE *data             )C {return super::dummy   (data       );}
+T1(TYPE)  void    Cache<TYPE>::dummy   (C TYPE *data, Bool  dummy)  {       super::dummy   (data, dummy);}
 
 T1(TYPE)    Int           Cache<TYPE>::  elms      (     )C {return         super::  elms      ( );}
 T1(TYPE)    void          Cache<TYPE>::  lock      (     )C {               super::  lock      ( );}
@@ -1672,7 +1673,7 @@ T1(TYPE)    TYPE       &  Cache<TYPE>::  lockedData(Int i)  {return *(TYPE*)supe
 T1(TYPE) C  TYPE       &  Cache<TYPE>::  lockedData(Int i)C {return *(TYPE*)super::  lockedData(i);}
 T1(TYPE)    void          Cache<TYPE>::unlock      (     )C {               super::unlock      ( );}
 
-T1(TYPE)  void  Cache<TYPE>::removeData(C TYPE *data) {return super::_removeData(data);}
+T1(TYPE)  void  Cache<TYPE>::removeData(C TYPE *data) {return super::removeData(data);}
 
 T1(TYPE)  void  Cache<TYPE>::update() {return super::update();}
 
@@ -1680,7 +1681,7 @@ T1(TYPE)  void  Cache<TYPE>::setLoadUser(Ptr user) {super::setLoadUser(ClassFunc
 
 T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); unlock(); return T;}
 
-T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::operator=(C Cache<TYPE> &src) {if(this!=&src){lock(); src.lock(); _lockedFrom(src); FREPA(T)lockedData(i)=src.lockedData(i); src.unlock(); unlock();} return T;}
+T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::operator=(C Cache<TYPE> &src) {if(this!=&src){lock(); src.lock(); lockedFrom(src); FREPA(T)lockedData(i)=src.lockedData(i); src.unlock(); unlock();} return T;}
 
 T1(TYPE)  Cache<TYPE>::Cache(CChar8 *name, Int block_elms) : _Cache(name, block_elms, ClassFunc<TYPE>::Load) {replaceClass<TYPE>();}
 
@@ -1689,47 +1690,47 @@ T1(TYPE) inline Int Elms(C  Cache<TYPE> &cache) {return cache.elms();}
 /******************************************************************************/
 // CACHE ELEMENT POINTER
 /******************************************************************************/
-template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE._name (_data, path );}
-template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE._id   (_data       );}
+template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE. name (_data, path );}
+template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE. id   (_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  Bool    CacheElmPtr<TYPE,CACHE>::dummy(            )C {return CACHE._dummy(_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  void    CacheElmPtr<TYPE,CACHE>::dummy(Bool   dummy)  {       CACHE._dummy(_data, dummy);}
 
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::clear    (                    ) {            CACHE._decRef(T._data);               T._data=      null ;  return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  TYPE        * data) {if(T!=data){CACHE._decRef(T._data); CACHE._incRef(T._data=      data);} return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C CacheElmPtr & eptr) {if(T!=eptr){CACHE._decRef(T._data); CACHE._incRef(T._data=eptr._data);} return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  CacheElmPtr &&eptr) {Swap(_data, eptr._data);                                                return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  null_t            ) {clear();                                                                return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::clear    (                    ) {            CACHE.decRef(T._data);              T._data=      null ;  return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  TYPE        * data) {if(T!=data){CACHE.decRef(T._data); CACHE.incRef(T._data=      data);} return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C CacheElmPtr & eptr) {if(T!=eptr){CACHE.decRef(T._data); CACHE.incRef(T._data=eptr._data);} return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  CacheElmPtr &&eptr) {Swap(_data, eptr._data);                                              return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(  null_t            ) {clear();                                                              return T;}
 
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    id   , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    id   , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    id   , path, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(CChar  *file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , null, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(CChar8 *file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), null, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C Str  &file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , null, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C Str8 &file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), null, true); CACHE._decRef(old); return T;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C UID  &id               ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    id   , null, true); CACHE._decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::find     (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._find   (    id   , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::get      (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._get    (    id   , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (CChar  *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (CChar8 *file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C Str  &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C Str8 &file, CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::require  (C UID  &id  , CChar *path) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    id   , path, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(CChar  *file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , null, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(CChar8 *file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), null, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C Str  &file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    file , null, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C Str8 &file             ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(Str(file), null, true); CACHE.decRef(old); return T;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>&  CacheElmPtr<TYPE,CACHE>::operator=(C UID  &id               ) {TYPE *old=T._data; T._data=(TYPE*)CACHE._require(    id   , null, true); CACHE.decRef(old); return T;}
 
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  null_t            ) {              T._data=      null ;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  TYPE        * data) {CACHE._incRef(T._data=      data);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C CacheElmPtr & eptr) {CACHE._incRef(T._data=eptr._data);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CacheElmPtr &&eptr) {              T._data=eptr._data ; eptr._data=null;}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CChar       * file) {              T._data=(TYPE*)CACHE._require(    file , null, true);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CChar8      * file) {              T._data=(TYPE*)CACHE._require(Str(file), null, true);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C Str         & file) {              T._data=(TYPE*)CACHE._require(    file , null, true);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C Str8        & file) {              T._data=(TYPE*)CACHE._require(Str(file), null, true);}
-template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C UID         & id  ) {              T._data=(TYPE*)CACHE._require(    id   , null, true);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  null_t            ) {             T._data=      null ;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  TYPE        * data) {CACHE.incRef(T._data=      data);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C CacheElmPtr & eptr) {CACHE.incRef(T._data=eptr._data);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CacheElmPtr &&eptr) {             T._data=eptr._data ; eptr._data=null;}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CChar       * file) {             T._data=(TYPE*)CACHE._require(    file , null, true);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(  CChar8      * file) {             T._data=(TYPE*)CACHE._require(Str(file), null, true);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C Str         & file) {             T._data=(TYPE*)CACHE._require(    file , null, true);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C Str8        & file) {             T._data=(TYPE*)CACHE._require(Str(file), null, true);}
+template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C UID         & id  ) {             T._data=(TYPE*)CACHE._require(    id   , null, true);}
 template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>::~CacheElmPtr(                    ) {clear();}
 /******************************************************************************/
 // MAP
@@ -1852,25 +1853,25 @@ inline Int Elms(C _MapTS &map) {return map.elms();}
 /******************************************************************************/
 // MAP ELEMENT POINTER
 /******************************************************************************/
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  Bool    MapElmPtr<KEY,DATA,MAP>::dummy(          )C {return MAP._dummy(_data       );}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  void    MapElmPtr<KEY,DATA,MAP>::dummy(Bool dummy)  {       MAP._dummy(_data, dummy);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  Bool    MapElmPtr<KEY,DATA,MAP>::dummy(          )C {return MAP.dummy(_data       );}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  void    MapElmPtr<KEY,DATA,MAP>::dummy(Bool dummy)  {       MAP.dummy(_data, dummy);}
 
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::clear    (                  ) {            MAP._decRef(T._data);             T._data=      null ;  return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  DATA      * data) {if(T!=data){MAP._decRef(T._data); MAP._incRef(T._data=      data);} return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C MapElmPtr & eptr) {if(T!=eptr){MAP._decRef(T._data); MAP._incRef(T._data=eptr._data);} return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  MapElmPtr &&eptr) {Swap(_data, eptr._data);                                            return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  null_t          ) {clear();                                                            return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::clear    (                  ) {            MAP.decRef(T._data);            T._data=      null ;  return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  DATA      * data) {if(T!=data){MAP.decRef(T._data); MAP.incRef(T._data=      data);} return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C MapElmPtr & eptr) {if(T!=eptr){MAP.decRef(T._data); MAP.incRef(T._data=eptr._data);} return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  MapElmPtr &&eptr) {Swap(_data, eptr._data);                                           return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(  null_t          ) {clear();                                                           return T;}
 
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::find     (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._find   (&key, true); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::get      (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._get    (&key, true); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::require  (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP._decRef(old); return T;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP._decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::find     (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._find   (&key, true); MAP.decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::get      (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._get    (&key, true); MAP.decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::require  (C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP.decRef(old); return T;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>&  MapElmPtr<KEY,DATA,MAP>::operator=(C KEY &key) {DATA *old=T._data; T._data=(DATA*)MAP._require(&key, true); MAP.decRef(old); return T;}
 
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  null_t          ) {            T._data=      null ;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  DATA      * data) {MAP._incRef(T._data=      data);}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C MapElmPtr & eptr) {MAP._incRef(T._data=eptr._data);}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  MapElmPtr &&eptr) {            T._data=eptr._data ; eptr._data=null;}
-template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C KEY       & key ) {            T._data=(DATA*)MAP._require(&key, true);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  null_t          ) {           T._data=      null ;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  DATA      * data) {MAP.incRef(T._data=      data);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C MapElmPtr & eptr) {MAP.incRef(T._data=eptr._data);}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(  MapElmPtr &&eptr) {           T._data=eptr._data ; eptr._data=null;}
+template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>:: MapElmPtr(C KEY       & key ) {           T._data=(DATA*)MAP._require(&key, true);}
 template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP>  MapElmPtr<KEY,DATA,MAP>::~MapElmPtr(                  ) {clear();}
 /******************************************************************************/
 // GRID

@@ -67,7 +67,7 @@ mutable Byte         _d_lock;
    Ptr     validElmData(  Elm &elm , Bool counted);
    void      addToOrder(  Elm &elm);
    void removeFromOrder(  Elm &elm);
-   Bool        contains(C Elm *elm )C {return _memx.  contains(        elm  );} // this is NOT thread-safe
+   Bool  lockedContains(C Elm *elm )C {return _memx.  contains(        elm  );} // this is NOT thread-safe
    Int         absIndex(C Elm *elm )C {return _memx.  absIndex(        elm  );} // this is NOT thread-safe
    Int       validIndex(C Elm *elm )C {return _memx.validIndex(        elm  );} // this is NOT thread-safe
    Int         absIndex( CPtr  data)C {return         absIndex(dataElm(data));} // this is NOT thread-safe, assumes that '_data_offset' is zero
@@ -79,18 +79,18 @@ mutable Byte         _d_lock;
    Ptr    _get       (C UID &id  , CChar *path, Bool counted);
    Ptr    _require   (CChar *file, CChar *path, Bool counted);
    Ptr    _require   (C UID &id  , CChar *path, Bool counted);
-   Bool   _contains  (CPtr   data                           )C;
-   Int    _ptrCount  (CPtr   data                           )C;
-   Bool   _dummy     (CPtr   data                           )C;
-   void   _dummy     (CPtr   data, Bool   dummy             );
-   CChar* _name      (CPtr   data, CChar *path              )C;
-   UID    _id        (CPtr   data                           )C;
-   void   _removeData(CPtr   data                           );
+   Bool    contains  (CPtr   data                           )C;
+   Int     ptrCount  (CPtr   data                           )C;
+   Bool    dummy     (CPtr   data                           )C;
+   void    dummy     (CPtr   data, Bool   dummy             );
+   CChar*  name      (CPtr   data, CChar *path              )C;
+   UID     id        (CPtr   data                           )C;
+   void    removeData(CPtr   data                           );
 
-   void _incRef(CPtr data);
-   void _decRef(CPtr data);
+   void incRef(CPtr data);
+   void decRef(CPtr data);
 
-   void _lockedFrom(C _Cache &src);
+   void lockedFrom(C _Cache &src);
 
  C Desc& lockedDesc(Int i)C;
    CPtr  lockedData(Int i)C;

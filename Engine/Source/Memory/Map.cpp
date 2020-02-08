@@ -234,6 +234,16 @@ Int _MapTS::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); 
 Ptr _Map::get    (CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=get    (key); just_created=(elms!=T.elms()); return data;}
 Ptr _Map::require(CPtr key, Bool &just_created) {Int elms=T.elms(); Ptr data=require(key); just_created=(elms!=T.elms()); return data;}
 /******************************************************************************/
+Bool _Map::dummy(CPtr data)C
+{
+   if(C Elm *elm=dataElm(data))if(containsElm(elm))if(elmDesc(*elm).flag&CACHE_ELM_DUMMY)return true;
+   return false;
+}
+void _Map::dummy(CPtr data, Bool dummy)
+{
+   if(Elm *elm=dataElm(data))if(containsElm(elm))FlagSet(elmDesc(*elm).flag, CACHE_ELM_DUMMY, dummy);
+}
+/******************************************************************************/
 Bool _Map  ::containsKey(CPtr key)C {return find(key)!=null;}
 Bool _MapTS::containsKey(CPtr key)C {return find(key)!=null;}
 /******************************************************************************/
@@ -523,7 +533,7 @@ Ptr _MapEx::_require(CPtr key, Bool counted)
    if(Ptr data=_get(key, counted))return data; getFailed(); return null;
 }
 /******************************************************************************/
-void _MapEx::_incRef(CPtr data)
+void _MapEx::incRef(CPtr data)
 {
    if(Elm *elm=dataElm(data))
  /*#if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means map was already initialized)
@@ -535,7 +545,7 @@ void _MapEx::_incRef(CPtr data)
       if(containsElm(elm))IncPtrNum(elmDesc(*elm).ptr_num);
    }
 }
-void _MapEx::_decRef(CPtr data)
+void _MapEx::decRef(CPtr data)
 {
    if(Elm *elm=dataElm(data))
  /*#if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means map was already initialized)

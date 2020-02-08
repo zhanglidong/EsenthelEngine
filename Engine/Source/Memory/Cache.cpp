@@ -319,52 +319,52 @@ INLINE Int _Cache::absIndex(CPtr data)C // this function assumes that 'data' is 
 #endif
 }
 /******************************************************************************/
-Bool _Cache::_contains(CPtr data)C
+Bool _Cache::contains(CPtr data)C
 {
    if(C Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))if(!(elmDesc(*elm).flag&CACHE_ELM_LOADING))return true;
+      if(lockedContains(elm))if(!(elmDesc(*elm).flag&CACHE_ELM_LOADING))return true;
    }
    return false;
 }
-Bool _Cache::_dummy(CPtr data)C
+Bool _Cache::dummy(CPtr data)C
 {
    if(C Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))if(elmDesc(*elm).flag&CACHE_ELM_DUMMY)return true;
+      if(lockedContains(elm))if(elmDesc(*elm).flag&CACHE_ELM_DUMMY)return true;
    }
    return false;
 }
-void _Cache::_dummy(CPtr data, Bool dummy)
+void _Cache::dummy(CPtr data, Bool dummy)
 {
    if(Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))FlagSet(elmDesc(*elm).flag, CACHE_ELM_DUMMY, dummy);
+      if(lockedContains(elm))FlagSet(elmDesc(*elm).flag, CACHE_ELM_DUMMY, dummy);
    }
 }
-Int _Cache::_ptrCount(CPtr data)C
+Int _Cache::ptrCount(CPtr data)C
 {
    if(C Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))return elmDesc(*elm).ptr_num;
+      if(lockedContains(elm))return elmDesc(*elm).ptr_num;
    }
    return -1;
 }
-CChar* _Cache::_name(CPtr data, CChar *path)C
+CChar* _Cache::name(CPtr data, CChar *path)C
 {
    if(C Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))
+      if(lockedContains(elm))
       {
        C Desc &desc=elmDesc(*elm);
          if(!(desc.flag&CACHE_ELM_LOADING)) // name may change while loading
@@ -376,24 +376,24 @@ CChar* _Cache::_name(CPtr data, CChar *path)C
    }
    return null;
 }
-UID _Cache::_id(CPtr data)C
+UID _Cache::id(CPtr data)C
 {
    if(C Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))return FileNameID(elmDesc(*elm).file()); // ID does not change while loading, so ignore CACHE_ELM_LOADING
+      if(lockedContains(elm))return FileNameID(elmDesc(*elm).file()); // ID does not change while loading, so ignore CACHE_ELM_LOADING
    }
    return UIDZero;
 }
 /******************************************************************************/
-void _Cache::_removeData(CPtr data)
+void _Cache::removeData(CPtr data)
 {
    if(Elm *elm=dataElm(data))
    {
       SyncUnlocker unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
       SyncLocker     locker(  _lock);
-      if(contains(elm))
+      if(lockedContains(elm))
       {
          Desc &desc=elmDesc(*elm);
          FlagDisable(desc.flag, CACHE_ELM_STD_PTR);
@@ -407,7 +407,7 @@ void _Cache::_removeData(CPtr data)
    }
 }
 /******************************************************************************/
-void _Cache::_incRef(CPtr data)
+void _Cache::incRef(CPtr data)
 {
    if(Elm *elm=dataElm(data))
    #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
@@ -416,10 +416,10 @@ void _Cache::_incRef(CPtr data)
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(contains(elm))IncPtrNum(elmDesc(*elm).ptr_num);
+      if(lockedContains(elm))IncPtrNum(elmDesc(*elm).ptr_num);
    }
 }
-void _Cache::_decRef(CPtr data)
+void _Cache::decRef(CPtr data)
 {
    if(Elm *elm=dataElm(data))
    #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
@@ -428,7 +428,7 @@ void _Cache::_decRef(CPtr data)
    {
       SyncUnlocker unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
       SyncLocker     locker(  _lock);
-      if(contains(elm))
+      if(lockedContains(elm))
       {
          Desc &desc=elmDesc(*elm); DEBUG_ASSERT(desc.ptr_num>0, "'_Cache.decRef' Decreasing 'ptr_num' when it's already zero");
          if(!--desc.ptr_num && !(desc.flag&CACHE_ELM_STD_PTR)) // if there are no more pointers accessing this element
@@ -497,7 +497,7 @@ void _Cache::delayRemoveDec() {if(AtomicDec(_delay_remove_counter)==1)update();}
 void _Cache::delayRemoveNow() {                                                                                           processDelayRemove(true );}
 void _Cache::update        () {if(_delay_remove.elms() && _delay_remove_counter==0 && Time.appTime()>=_delay_remove_check)processDelayRemove(false);}
 /******************************************************************************/
-void _Cache::_lockedFrom(C _Cache &src)
+void _Cache::lockedFrom(C _Cache &src)
 {
    del();
 

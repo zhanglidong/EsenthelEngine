@@ -76,6 +76,9 @@ private:
    Int     getAbsIndex(CPtr key);
    Int requireAbsIndex(CPtr key);
 
+   Bool dummy(CPtr data            )C;
+   void dummy(CPtr data, Bool dummy);
+
    Bool containsKey (CPtr key )C;
    Bool containsData(CPtr data)C;
    CPtr dataToKey   (CPtr data)C;
@@ -99,6 +102,7 @@ private:
    T2(KEY,DATA) friend struct  Map;
    T2(KEY,DATA) friend struct  MapEx;
    T2(KEY,DATA) friend struct  ThreadSafeMap;
+   template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP> friend struct MapElmPtr;
 };
 /******************************************************************************/
 struct _MapEx : private _Map // Map Extended (base) - Do not use this class, use 'MapEx' instead
@@ -136,8 +140,8 @@ private:
    Ptr _get    (CPtr key, Bool counted);
    Ptr _require(CPtr key, Bool counted);
 
-   void _incRef(CPtr data);
-   void _decRef(CPtr data);
+   void incRef(CPtr data);
+   void decRef(CPtr data);
 
    explicit _MapEx(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src));
 
