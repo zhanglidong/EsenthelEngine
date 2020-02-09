@@ -387,7 +387,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    struct Ref
    {
       Int tri_abs      , // absolute index of the triangle
-          tri_vtx_index; // 0..2 (1 of 3 vertexes in triangle)
+          tri_vtx_index; // 0..2, 1 of 3 vertexes in triangle, this could be a Byte
    };
    struct VtxDupMap : VtxDup
    {
@@ -995,24 +995,35 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
    struct VtxConnection
    {
-      Int       vtx   , // index of the other vertex
-                tris  ; // how many tris reference this edge
-    C Triangle *tri   ; // pointer to the first triangle that has this edge, TODO: this could be a list of all triangles, however we would need a memory container, and in most cases it's not needed
-      Bool      mirror; // mirrored tex between 2 triangles
+      Bool      mirror   ; // mirrored tex between 2 triangles
+      Byte      side     ; // which side/winding order this edge is used by (1=from 'vtx' to 'other_vtx', 2=from 'other_vtx' to 'vtx')
+      Int       other_vtx; // index of the other vertex
+    //Int       tris     ; // how many tris reference this edge
+    C Triangle *tri      ; // pointer to the first triangle that has this edge, TODO: this could be a list of all triangles, however we would need a memory container, and in most cases it's not needed
 
-      void init(Int vtx, C Triangle &tri) {T.vtx=vtx; T.tris=1; T.tri=&tri; mirror=false;}
+      Bool border()C
+      {
+       //return tris==1;
+         return side!=(1|2); // not referenced by triangles from both sides
+      }
+      void init(Int other_vtx, C Triangle &tri, Byte side)
+      {
+         T.other_vtx=other_vtx; T.tri=&tri; T.mirror=false; T.side=side;
+       //T.tris=1;
+      }
    };
-   void addEdge(Memt<VtxConnection> &edges, Int vtx_index, C Triangle &tri)
+   void addEdge(Memt<VtxConnection> &edges, Int vtx_index, C Triangle &tri, Byte side)
    {
       REPA(edges) // check if this edge was already created by another tri
       {
-         VtxConnection &edge=edges[i]; if(edge.vtx==vtx_index) // found
+         VtxConnection &edge=edges[i]; if(edge.other_vtx==vtx_index) // found
          {
             // mark that this edge is referenced by 1 more triangle
           C Triangle &edge_tri=*edge.tri;
             if(Dot(edge_tri.nrm, tri.nrm)>-EPS_COL_COS) // but only if the other triangle is not mirror co-planar (can happen for meshes which have 2 sided triangles), if it is mirror co-planar, then we don't want to increase the counter, but keep at 1, so the edge is detected as a border
             {
-               edge.tris++;
+             //edge.tris++;
+               edge.side|=side;
                if(edge_tri.flag&tri.flag&VTX_TEX_ALL)
                   if(Dot(edge_tri.tan, tri.tan)<=0  // and triangles don't have mirrored tex
                   || Dot(edge_tri.bin, tri.bin)<=0) // and triangles don't have mirrored tex
@@ -1021,7 +1032,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             return;
          }
       }
-      edges.New().init(vtx_index, tri); // create a new edge
+      edges.New().init(vtx_index, tri, side); // create a new edge
    }
    struct TriLink
    {
@@ -1047,8 +1058,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
               //tri_v0=tri.ind.c[ tvi     ], this is always 'vi', and we don't need to process it, because we're not interested in 'vi'<->'vi' connection
                 tri_v1=tri.ind.c[(tvi+1)%3],
                 tri_v2=tri.ind.c[(tvi+2)%3];
-            addEdge(edges, tri_v1, tri); // add connection from 'vi' to 'tri_v1'
-            addEdge(edges, tri_v2, tri); // add connection from 'vi' to 'tri_v2'
+            addEdge(edges, tri_v1, tri, 1); // add connection from 'vi' to 'tri_v1', use '1' for side because order is from v0->v1
+            addEdge(edges, tri_v2, tri, 2); // add connection from 'vi' to 'tri_v2', use '2' for side because order is from v2->v0 (reversed)
             tris_left.New().set(tri, tri_v1, tri_v2);
          }
 
@@ -1056,16 +1067,16 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          REPA(edges)
          {
           C VtxConnection &edge=edges[i];
-            if(edge.tris==1)vtx.border|=BORDER_POS; // if edge is referenced by only 1 tri
-            if(edge.mirror )vtx.border|=BORDER_TEX;
+            if(edge.border())vtx.border|=BORDER_POS; // if edge is referenced by only 1 tri
+            if(edge.mirror  )vtx.border|=BORDER_TEX;
 
             // normally vtxs will be repositioned only on the triangle surface, however for border vertexes, we don't want them to move away from the border too, so adjust 'qm' and 'planes'
             if(VTX_BORDER_QM>0)
-               if(edge.tris==1 // if BORDER_POS (check "edge.tris==1" again, instead of "vtx.border&BORDER_POS", because BORDER_POS could have been enabled due to other edge)
-               || edge.mirror  // if BORDER_TEX (check "edge.mirror"  again, because check below only checks if both have BORDER_TEX)
-               || (vtx.border&BORDER_TEX) && (vtxs[edge.vtx].border&BORDER_TEX)) // also check for BORDER_TEX, currently there is no fast check to check this edge, so for simplicity, just check if both vertexes have this enabled
+               if(edge.border() // if BORDER_POS (check "edge.border()" again, instead of "vtx.border&BORDER_POS", because BORDER_POS could have been enabled due to other edge)
+               || edge.mirror   // if BORDER_TEX (check "edge.mirror"   again, because check below only checks if both have BORDER_TEX)
+               || (vtx.border&BORDER_TEX) && (vtxs[edge.other_vtx].border&BORDER_TEX)) // also check for BORDER_TEX, currently there is no fast check to check this edge, so for simplicity, just check if both vertexes have this enabled
             {
-               Vec cross=Cross(vtxs[edge.vtx].pos-vtx.pos, edge.tri->nrm); // this vector points outside (or inside) of the triangle (perpendicular to edge direction and triangle normal), if we use "cross" or "-cross" it's not important, because of how 'QuadricMatrix' works
+               Vec cross=Cross(vtxs[edge.other_vtx].pos-vtx.pos, edge.tri->nrm); // this vector points outside (or inside) of the triangle (perpendicular to edge direction and triangle normal), if we use "cross" or "-cross" it's not important, because of how 'QuadricMatrix' works
                cross.normalize();
                vtx.qm+=QuadricMatrix(cross, vtx.pos)*(vtx.weight*VTX_BORDER_QM); // always set this, because it affects mid position
             #if ALLOW_PLANES
