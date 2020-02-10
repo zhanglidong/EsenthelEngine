@@ -683,7 +683,8 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
 Int Compare(C BlendInstance &a, C BlendInstance &b)
 {
    if(Int z=Compare   (a.z         , b.z         ))return z;
-    // compare other values in case 'z' is the same (which means the same object draws many parts with the same matrix, which may cause flickering)
+   // compare other values in case 'z' is the same (which means the same object draws many parts with the same matrix, which may cause flickering)
+   // compare by shader, material, mesh, because that's the order of rendering
    if(Int c=ComparePtr(a.s.shader  , b.s.shader  ))return c;
    if(Int c=ComparePtr(a.s.material, b.s.material))return c;
    if(Int c=ComparePtr(a.s.mesh    , b.s.mesh    ))return c;
@@ -737,9 +738,9 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                   if(next.s.material==&material) // same material
                   {
                      if(&next.s.mesh->render==&render
-                     && next.s.highlight==Highlight
-                     && next.s.shader_param_changes==LastChanges
-                     && next.s.stencil_mode==D._stencil)
+                     &&  next.s.highlight==Highlight
+                     &&  next.s.shader_param_changes==LastChanges
+                     &&  next.s.stencil_mode==D._stencil)
                      {
                         if(instancing_mesh)
                         {
