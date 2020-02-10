@@ -996,7 +996,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    struct VtxConnection
    {
       Bool      mirror   ; // mirrored tex between 2 triangles
-      Byte      side     ; // which side/winding order this edge is used by (1=from 'vtx' to 'other_vtx', 2=from 'other_vtx' to 'vtx')
+      Byte      side[2]  ; // [Visible] bit mask which side/winding order this edge is used by (0=none, 1=from 'vtx' to 'other_vtx', 2=from 'other_vtx' to 'vtx', 1|2=both)
       Int       other_vtx; // index of the other vertex
     //Int       tris     ; // how many tris reference this edge
     C Triangle *tri      ; // pointer to the first triangle that has this edge, TODO: this could be a list of all triangles, however we would need a memory container, and in most cases it's not needed
@@ -1004,11 +1004,23 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       Bool border()C
       {
        //return tris==1;
-         return side!=(1|2); // not referenced by triangles from both sides
+         switch(side[true]) // check which sides are used for visible triangles
+         {
+            case 0: // not referenced by visible triangles
+               return side[false]!=(1|2); // if not referenced by visible triangles, still allow to be border, check hidden triangles (can check only != 1|2, skipping zero, because if not referenced by visible, then it must be referenced by hidden, so 0 will never happen)
+
+            // for cases other than 0, do not check hidden side (side[false]) because we want to prioritize visible triangles (if they're present, just check based on them, check hidden triangles only if there are no visible)
+            case 1: // referenced by visible triangles only on one side (A)
+            case 2: // referenced by visible triangles only on one side (B)
+               return true;
+
+          //case 1|2: return false; // referenced by visible triangles on both sides
+         }
+         return false;
       }
       void init(Int other_vtx, C Triangle &tri, Byte side)
       {
-         T.other_vtx=other_vtx; T.tri=&tri; T.mirror=false; T.side=side;
+         T.other_vtx=other_vtx; T.tri=&tri; T.mirror=false; T.side[tri.visible]=side; T.side[!tri.visible]=0;
        //T.tris=1;
       }
    };
@@ -1023,7 +1035,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(Dot(edge_tri.nrm, tri.nrm)>-EPS_COL_COS) // but only if the other triangle is not mirror co-planar (can happen for meshes which have 2 sided triangles), if it is mirror co-planar, then we don't want to increase the counter, but keep at 1, so the edge is detected as a border
             {
              //edge.tris++;
-               edge.side|=side;
+               edge.side[tri.visible]|=side;
                if(edge_tri.flag&tri.flag&VTX_TEX_ALL)
                   if(Dot(edge_tri.tan, tri.tan)<=0  // and triangles don't have mirrored tex
                   || Dot(edge_tri.bin, tri.bin)<=0) // and triangles don't have mirrored tex
