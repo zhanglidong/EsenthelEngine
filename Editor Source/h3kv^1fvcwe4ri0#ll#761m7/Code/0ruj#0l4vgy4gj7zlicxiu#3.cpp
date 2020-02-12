@@ -835,6 +835,7 @@ bool GetClampWrap(C Str &name, bool default_clamp)
    if(Contains(name, "wrap" ))return false; // clamp=0
                               return default_clamp; // default
 }
+bool GetAlphaWeight(C Str &name) {return Contains(name, "alphaWeight");}
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage.TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, bool env, C VecI2 &custom_size=0, C int *force_type=null)
 {
    VecI size=edit.size3();
@@ -1265,10 +1266,11 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(ResizeTransformAny(param.name))
    {
-      VecI2 size        =GetSize     (param.name, param.value, image.size3());
-      int   filter      =GetFilter   (param.name);
-      bool  resize_clamp=GetClampWrap(param.name, clamp);
-      image.resize(size.x, size.y, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP));
+      VecI2 size        =GetSize       (param.name, param.value, image.size3());
+      int   filter      =GetFilter     (param.name);
+      bool  resize_clamp=GetClampWrap  (param.name, clamp);
+      bool  alpha_weight=GetAlphaWeight(param.name);
+      image.resize(size.x, size.y, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP)|(alpha_weight?IC_ALPHA_WEIGHT:0));
    }else
    if(param.name=="tile")image.tile(param.asInt());else
    if(param.name=="inverseRGB")

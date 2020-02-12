@@ -7,6 +7,7 @@ class LodRegion : Region
    Text           edit_dist_text;
    TextWhite      ts;
    Memx<Property> props;
+   Property      *dist;
    Region         props_region;
    Menu           menu;
 
@@ -28,6 +29,9 @@ class LodRegion : Region
 
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
    void drag(Memc<UID> &elms, GuiObj* &focus_obj, C Vec2 &screen_pos);
+
+public:
+   LodRegion();
 };
 /******************************************************************************/
 /******************************************************************************/

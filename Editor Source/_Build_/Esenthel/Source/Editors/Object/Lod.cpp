@@ -31,7 +31,7 @@ NewLodClass NewLod;
    Str  LodRegion::Dist(C LodRegion &lr          ) {return ObjEdit.absLodDist(ObjEdit.getLod());}
    void LodRegion::Dist(  LodRegion &lr, C Str &t) {ObjEdit.mesh_undos.set("lodDist"); MeshLod &lod=ObjEdit.getLod(); flt dist=TextFlt(t); if(NegativeSB(lod.dist2))CHSSB(dist); ObjEdit.setLodDist(lod, dist);}
    void LodRegion::EditDistChanged(LodRegion &lr) {if(lr.edit_dist()>=0)NewLod.hide();}
-   void LodRegion::EditDistToggle(LodRegion &lr) {lr.edit_dist.toggle(0);}
+   void LodRegion::EditDistToggle(LodRegion &lr) {lr.edit_dist.toggle(0); if(lr.edit_dist()>=0 && lr.dist)lr.dist->textline.selectAll().kbSet();}
    LodRegion& LodRegion::create()
    {
       Gui+=NewLod.create();
@@ -43,7 +43,7 @@ NewLodClass NewLod;
       ObjEdit.mode.tab(ObjView::LOD)+=props_region.create().skin(&TransparentSkin, false);
       ObjEdit.mode.tab(ObjView::LOD)+=edit_dist.create(t_edit_dist, Elms(t_edit_dist)).func(EditDistChanged, T).desc(S+"Keyboard Shortcut: "+Kb.ctrlCmdName()+"+E").hide();
       edit_dist.tab(0)+=edit_dist_text.create("Set distance at which LOD's look similar", &ts); ts.reset().size=0.05f;
-      props.New().create("Distance", MemberDesc(DATA_REAL).setFunc(Dist, Dist)).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5f);
+      dist=&props.New().create("Distance", MemberDesc(DATA_REAL).setFunc(Dist, Dist)).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5f);
       AddProperties(props, edit_dist.tab(0), edit_dist.rect().ru()+Vec2(0.01f, 0), 0.05f, 0.2f, &ts); REPAO(props).autoData(this);
 
       {
@@ -343,6 +343,8 @@ draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass
       }
    }
 LodView::LodView() : lod_index(0) {}
+
+LodRegion::LodRegion() : dist(null) {}
 
 NewLodClass::NewLodClass() : preview(true), simplified_valid(false), processed_ready(false), keep_border(false), draw_at_distance(false), finished(false), stop(false), intensity(0.5f), max_distance(1), max_uv(1), max_color(1), max_material(1), max_skin(1), max_normal(PI), draw_distance(2), scale(1), src_id(0), simplified_src_id(0), change_id(0), simplified_change_id(0), quality(null), preview_prop(null), draw_at_distance_prop(null) {}
 

@@ -34,6 +34,7 @@ class LodRegion : Region
    Text           edit_dist_text;
    TextWhite      ts;
    Memx<Property> props;
+   Property      *dist=null;
    Region         props_region;
    Menu           menu;
 
@@ -45,7 +46,7 @@ class LodRegion : Region
    static void Dist(  LodRegion &lr, C Str &t) {ObjEdit.mesh_undos.set("lodDist"); MeshLod &lod=ObjEdit.getLod(); flt dist=TextFlt(t); if(NegativeSB(lod.dist2))CHSSB(dist); ObjEdit.setLodDist(lod, dist);} // preserve sign because it specifies if LOD is disabled or not
 
    static void EditDistChanged(LodRegion &lr) {if(lr.edit_dist()>=0)NewLod.hide();}
-   static void EditDistToggle (LodRegion &lr) {lr.edit_dist.toggle(0);}
+   static void EditDistToggle (LodRegion &lr) {lr.edit_dist.toggle(0); if(lr.edit_dist()>=0 && lr.dist)lr.dist.textline.selectAll().kbSet();}
 
    LodRegion& create()
    {
@@ -58,7 +59,7 @@ class LodRegion : Region
       ObjEdit.mode.tab(ObjView.LOD)+=props_region.create().skin(&TransparentSkin, false);
       ObjEdit.mode.tab(ObjView.LOD)+=edit_dist.create(t_edit_dist, Elms(t_edit_dist)).func(EditDistChanged, T).desc(S+"Keyboard Shortcut: "+Kb.ctrlCmdName()+"+E").hide();
       edit_dist.tab(0)+=edit_dist_text.create("Set distance at which LOD's look similar", &ts); ts.reset().size=0.05;
-      props.New().create("Distance", MemberDesc(DATA_REAL).setFunc(Dist, Dist)).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5);
+      dist=&props.New().create("Distance", MemberDesc(DATA_REAL).setFunc(Dist, Dist)).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5);
       AddProperties(props, edit_dist.tab(0), edit_dist.rect().ru()+Vec2(0.01, 0), 0.05, 0.2, &ts); REPAO(props).autoData(this);
 
       {

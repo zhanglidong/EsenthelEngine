@@ -6,7 +6,7 @@ class MtrlImages
    {
       VecI2 size; // if >0 then image should be resized
       int   filter;
-      bool  clamp ;
+      bool  clamp , alpha_weight;
 
       ImageResize& clearParams();
       ImageResize& del();
