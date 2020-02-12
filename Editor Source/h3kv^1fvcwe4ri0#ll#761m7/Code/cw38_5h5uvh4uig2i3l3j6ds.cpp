@@ -1656,7 +1656,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void setPhysMtrl(C UID &mtrl_id)
    {
       Elm *mtrl_elm=Proj.findElm(mtrl_id, ELM_PHYS_MTRL);
-      if( !mtrl_id.valid() || mtrl_elm)if(phys_elm)if(ElmPhys *phys_data=phys_elm.physData())if(phys_data.mtrl_id!=mtrl_id)
+      if( !mtrl_id.valid() || mtrl_elm) // no material or found material
+      if(  mtrl_id.valid() || phys_elm) // some material or we have phys already (this will skip creating phys elm if we want to clear material)
+      if(getPhysElm()) // create if needed
+      if(ElmPhys *phys_data=phys_elm.physData())if(phys_data.mtrl_id!=mtrl_id) // if different
       {
          phys_undos.set("mtrl");
          phys_data.mtrl_id=mtrl_id;
@@ -1671,11 +1674,15 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void setBody(C UID &body_id)
    {
-      if(mesh_elm)
+      Elm *body_elm=Proj.findElm(body_id, ELM_MESH);
+      if( !body_id.valid() || body_elm) // no body or found body
+      if(  body_id.valid() || mesh_elm) // some body or we have mesh already (this will skip creating mesh elm if we want to clear body)
+      if(getMeshElm()) // create if needed
       {
        C UID &actual_body_id=((mesh_elm.id==body_id) ? UIDZero : body_id); // if trying to set body to self, then clear it instead
-         Elm *body=Proj.findElm(actual_body_id, ELM_MESH);
-         if( !actual_body_id.valid() || body)if(ElmMesh *mesh_data=mesh_elm.meshData())if(mesh_data.body_id!=actual_body_id)
+         Elm *actual_body=Proj.findElm(actual_body_id, ELM_MESH);
+         if( !actual_body_id.valid() || actual_body) // no body or found body
+         if(ElmMesh *mesh_data=mesh_elm.meshData())if(mesh_data.body_id!=actual_body_id) // if different
          {
             mesh_undos.set("body");
             mesh_data.body_id=actual_body_id;
@@ -1693,7 +1700,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void setDrawGroupEnum(C UID &enum_id)
    {
       Elm *enum_elm=Proj.findElm(enum_id, ELM_ENUM);
-      if( !enum_id.valid() || enum_elm)if(mesh_elm)if(ElmMesh *mesh_data=mesh_elm.meshData())if(mesh_data.draw_group_id!=enum_id)
+      if( !enum_id.valid() || enum_elm) // no enum or found enum
+      if(  enum_id.valid() || mesh_elm) // some enum or we have mesh already (this will skip creating mesh elm if we want to clear enum)
+      if(getMeshElm()) // create if needed
+      if(ElmMesh *mesh_data=mesh_elm.meshData())if(mesh_data.draw_group_id!=enum_id) // if different
       {
          mesh_undos.set("drawGroup");
          mesh_data.draw_group_id=enum_id;
@@ -2071,7 +2081,6 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void dragBody(Memc<UID> &elms)
    {
       FREPA(elms)if(Elm *obj=Proj.findElm(elms[i]))if(ElmObj *obj_data=obj.objData())
-         if(obj_data.mesh_id.valid() && obj.id!=obj_id && obj_data.mesh_id!=mesh_elm.id) // don't apply self as body
       {
          setBody(obj_data.mesh_id);
          elms.clear();
@@ -2146,9 +2155,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             break;
          }
 
-         if(mode()==PHYS  && phys_elm)dragPhysMtrl (elms);
-         if(mode()==GROUP && mesh_elm)dragDrawGroup(elms);
-         if(mode()==BODY  && mesh_elm)dragBody     (elms);
+         if(mode()==PHYS )dragPhysMtrl (elms);
+         if(mode()==GROUP)dragDrawGroup(elms);
+         if(mode()==BODY )dragBody     (elms);
 
          if(mode()==BACKGROUND)
          {
