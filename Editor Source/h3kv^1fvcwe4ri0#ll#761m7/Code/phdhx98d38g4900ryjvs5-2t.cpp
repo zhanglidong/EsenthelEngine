@@ -65,7 +65,7 @@ class MiniMapEditor : PropWin
          // graphics settings
          MOTION_MODE      motion     =D.   motionMode(); D. motionMode  (MOTION_NONE     );
          AMBIENT_MODE     ambient    =D.  ambientMode(); D.ambientMode  (AMBIENT_ULTRA   );
-         int              ambient_res=D.   ambientRes(); D.ambientRes   (0               );
+         int              ambient_res=D.   ambientRes(); D.ambientRes   (1               );
          bool             bloom_half =D.    bloomHalf(); D.bloomHalf    (true            );
          EDGE_SOFTEN_MODE edge       =D.   edgeSoften(); D.edgeSoften   (EDGE_SOFTEN_SMAA);
          DOF_MODE         dof        =D.      dofMode(); D.    dofMode  (DOF_NONE        );
