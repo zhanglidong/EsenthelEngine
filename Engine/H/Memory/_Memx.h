@@ -24,6 +24,7 @@ struct _Memx // Block Based Extended Container Base - Do not use this class, use
 
    Int  validToAbsIndex(Int  valid)C;
    Int  absToValidIndex(Int  abs  )C;
+   Bool absIndexIsValid(Int  abs  )C;
    Int  validIndex     (CPtr elm  )C;
    Int    absIndex     (CPtr elm  )C;
    Bool   contains     (CPtr elm  )C {return validIndex(elm)>=0;}

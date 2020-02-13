@@ -219,6 +219,16 @@ Int _Memx::absToValidIndex(Int abs)C
    }
    return -1;
 }
+Bool _Memx::absIndexIsValid(Int abs)C
+{
+   if(InRange(abs, _abs))
+   {
+      Ptr  elm  =absElm(abs);
+      UInt index=((UInt*)elm)[-1];
+      if(!(index&SIGN_BIT))return true; // if not removed
+   }
+   return false;
+}
 Int _Memx::absIndex(CPtr elm)C
 {
    if(elm && absElms()) // check if there are still elements left (in case memory was already released by destructor)

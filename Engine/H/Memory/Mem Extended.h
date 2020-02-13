@@ -45,11 +45,12 @@ T1(TYPE) struct Memx : _Memx // Block Based Extended Container
    TYPE& New       (     ) ; // create    new      element, this method does not change the memory address of any of the elements
    TYPE& NewAt     (Int i) ; // create    new      element at i-th valid index, all old element valid indexes starting from i-th position will be moved to the right, this method does not change the memory address of any of the elements
 
-   Int validToAbsIndex(  Int valid)C; // convert valid to absolute index, -1 on fail
-   Int absToValidIndex(  Int   abs)C; // convert absolute to valid index, -1 on fail
-   Int validIndex     (C TYPE *elm)C; // get valid    index of element in container, -1 on fail, testing is done by comparing elements memory address only
-   Int   absIndex     (C TYPE *elm)C; // get absolute index of element in container, -1 on fail, testing is done by comparing elements memory address only
-   Bool  contains     (C TYPE *elm)C; // check if memory container actually contains element   , testing is done by comparing elements memory address only
+   Int  validToAbsIndex(  Int valid)C; // convert valid to absolute index, -1 on fail
+   Int  absToValidIndex(  Int   abs)C; // convert absolute to valid index, -1 on fail
+   Bool absIndexIsValid(  Int   abs)C; // check if element at 'abs' absolute index is valid
+   Int  validIndex     (C TYPE *elm)C; // get valid    index of element in container, -1 on fail, testing is done by comparing elements memory address only
+   Int    absIndex     (C TYPE *elm)C; // get absolute index of element in container, -1 on fail, testing is done by comparing elements memory address only
+   Bool contains       (C TYPE *elm)C; // check if memory container actually contains element   , testing is done by comparing elements memory address only
 
    // remove
    Memx& removeAbs  (  Int   i  , Bool keep_order=false); // remove i-th absolute element               , if 'keep_order'=false then "valid index" of last valid element is changed to "valid index" of specified element, if 'keep_order'=true then all "valid indexes" are changed (keeping order), in both cases memory addressess of all elements are preserved (only order of "valid indexes" is handled differently), this method does not change the memory address of any of the elements

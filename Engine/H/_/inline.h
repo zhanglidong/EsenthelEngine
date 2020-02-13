@@ -1028,6 +1028,7 @@ T1(TYPE)  C TYPE&  Memx<TYPE>::      last(     )C {return ConstCast(T).    last(
 
 T1(TYPE)  Int   Memx<TYPE>::validToAbsIndex(  Int valid)C {return super::validToAbsIndex(valid);}
 T1(TYPE)  Int   Memx<TYPE>::absToValidIndex(  Int   abs)C {return super::absToValidIndex(abs  );}
+T1(TYPE)  Bool  Memx<TYPE>::absIndexIsValid(  Int   abs)C {return super::absIndexIsValid(abs  );}
 T1(TYPE)  Int   Memx<TYPE>::validIndex     (C TYPE *elm)C {return super::validIndex     (elm  );}
 T1(TYPE)  Int   Memx<TYPE>::  absIndex     (C TYPE *elm)C {return super::  absIndex     (elm  );}
 T1(TYPE)  Bool  Memx<TYPE>::  contains     (C TYPE *elm)C {return super::  contains     (elm  );}
