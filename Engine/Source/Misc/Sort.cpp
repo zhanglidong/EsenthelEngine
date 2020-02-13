@@ -503,32 +503,32 @@ Bool _BinarySearch(CPtr data, Int elms, Int elm_size, CPtr value, Int &index, In
    }
    index=l; return false;
 }
-Bool _BinarySearch(C _Memb &data, CPtr value, Int &index, Int compare(CPtr a, CPtr b))
+Bool _Memb::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C
 {
-   Int l=0, r=data.elms(); for(; l<r; )
+   Int l=0, r=elms(); for(; l<r; )
    {
       Int mid=UInt(l+r)/2,
-          c  =compare(data[mid], value);
+          c  =compare(T[mid], value);
       if( c<0)l=mid+1;else
       if( c>0)r=mid  ;else {index=mid; return true;}
    }
    index=l; return false;
 }
-Bool _BinarySearch(C _Memx &data, CPtr value, Int &index, Int compare(CPtr a, CPtr b))
+Bool _Memx::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C
 {
-   Int l=0, r=data.elms(); for(; l<r; )
+   Int l=0, r=elms(); for(; l<r; )
    {
       Int mid=UInt(l+r)/2,
-          c  =compare(data[mid], value);
+          c  =compare(T[mid], value);
       if( c<0)l=mid+1;else
       if( c>0)r=mid  ;else {index=mid; return true;}
    }
    index=l; return false;
 }
-Bool _BinarySearch(C _Meml &data, CPtr value, Int &index, Int compare(CPtr a, CPtr b))
+Bool _Meml::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C
 {
-   Int pos=0; MemlNode *node=data.first(); // get first node
-   Int l=0, r=data.elms(); for(; l<r; )
+   Int pos=0; MemlNode *node=first(); // get first node
+   Int l=0, r=elms(); for(; l<r; )
    {
       Int mid=UInt(l+r)/2;
       for(; pos<mid; pos++)node=node->next(); // go forward

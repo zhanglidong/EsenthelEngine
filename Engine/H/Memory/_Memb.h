@@ -30,6 +30,7 @@ struct _Memb // Block Based Container Base - Do not use this class, use 'Memb' i
    Int  addNum    (Int num);
    void reserve   (Int num);
 
+   Bool binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
    void         sort(           Int compare(CPtr a, CPtr b           ));
    void         sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
    void reverseOrder();

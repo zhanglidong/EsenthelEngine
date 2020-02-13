@@ -128,10 +128,7 @@ void _Sort(Ptr data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr
 T1(TYPE) void Sort(TYPE *data, Int elms,            Int compare(C TYPE &a, C TYPE &b           )) {_Sort(Ptr(data), elms, SIZE(TYPE),       (Int(*)(CPtr, CPtr      ))compare);}
 T1(TYPE) void Sort(TYPE *data, Int elms, CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(Ptr(data), elms, SIZE(TYPE), user, (Int(*)(CPtr, CPtr, CPtr))compare);}
 
-Bool _BinarySearch(   CPtr  data, Int elms, Int elm_size, CPtr value, Int &index, Int compare(CPtr a, CPtr b));
-Bool _BinarySearch(C _Memb &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
-Bool _BinarySearch(C _Memx &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
-Bool _BinarySearch(C _Meml &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
+Bool _BinarySearch(CPtr data, Int elms, Int elm_size, CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 
 T2(DATA, VALUE) Bool BinarySearch(C DATA *data, Int elms, C VALUE &value, Int &index, Int compare(C DATA &a, C VALUE &b)) {return _BinarySearch(data, elms, SIZE(DATA), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -920,7 +917,7 @@ T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNum    (Int num) {       super::setNum    
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
 T1(TYPE)  Int          Memb<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
-T1(TYPE) T1(VALUE)  Bool  Memb<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  Memb<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
@@ -1040,7 +1037,7 @@ T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeValid(  Int   i  , Bool keep_order) {su
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeData (C TYPE *elm, Bool keep_order) {super::removeData (elm, keep_order); return T;}
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeLast (                            ) {super::removeLast (               ); return T;}
 
-T1(TYPE) T1(VALUE)  Bool  Memx<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  Memx<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
@@ -1155,7 +1152,7 @@ T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::removeIndex(Int       i   , Bool keep_order) 
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNum    (Int num) {super::setNum    (num); return T;}
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNumZero(Int num) {super::setNumZero(num); return T;}
 
-T1(TYPE) T1(VALUE)  Bool  Meml<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
+T1(TYPE) T1(VALUE)  Bool  Meml<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
