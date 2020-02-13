@@ -1449,11 +1449,18 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    {
       UInt flags=0; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
       mesh.create(tris.elms()*3, 0, tris.elms(), 0, flags&(VTX_ALL&~(VTX_TAN_BIN|VTX_DUP)));
+      Int tri_index=0;
+   #if 0
       REPA(tris)
       {
          Triangle &tri=tris[i];
-         Int       tri_index=i, vtx_index=i*3;
-         mesh.tri.ind(tri_index).set(vtx_index, vtx_index+1, vtx_index+2);
+   #else
+      FREP(tris.absElms()) // process in absolute order (as they were added from original mesh to preserve original order)
+      {
+         if(!tris.absIndexIsValid(i))continue; Triangle &tri=tris.absElm(i);
+   #endif
+         Int vtx_index=tri_index*3;
+         mesh.tri.ind( tri_index++).set(vtx_index, vtx_index+1, vtx_index+2);
          tri.vtxs[0].to(mesh, vtx_index  );
          tri.vtxs[1].to(mesh, vtx_index+1);
          tri.vtxs[2].to(mesh, vtx_index+2);
@@ -1493,9 +1500,16 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          mesh.create(part.tris*3, 0, part.tris, 0, part.flag&(VTX_ALL&~(VTX_TAN_BIN|VTX_DUP)));
       }
       REPAO(part_infos).tris=0;
-      REPA (tris)
+
+   #if 0
+      REPA(tris)
       {
          Triangle &tri=tris[i];
+   #else
+      FREP(tris.absElms()) // process in absolute order (as they were added from original mesh to preserve original order)
+      {
+         if(!tris.absIndexIsValid(i))continue; Triangle &tri=tris.absElm(i);
+   #endif
          Int part=tri.part;
          Int tri_index=(part_infos[part].tris++), vtx_index=tri_index*3;
          MeshBase &mesh=parts[part].base;
