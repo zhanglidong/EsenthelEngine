@@ -366,26 +366,26 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
          }
       }
    }
-   Vec2 TheaterClass::offset()C
+   VecD2 TheaterClass::offset()C
    {
-      Vec2 offset=0; if(flt size=list.imageSizeBase().c[!options.horizontal])
+      VecD2 offset=0; if(dbl size=list.imageSizeBase().c[!options.horizontal])
       {
-         flt scale=(old_rows ? old_rows : options.rows)/size;
+         dbl scale=(old_rows ? old_rows : options.rows)/size;
          REPA(offset)offset.c[i]=slidebar[i].offset()*scale;
       }
       return offset;
    }
-   void TheaterClass::offset(C Vec2 &offset)
+   void TheaterClass::offset(C VecD2 &offset)
    {
-      flt scale=list.imageSizeBase().c[!options.horizontal]/options.rows;
+      dbl scale=list.imageSizeBase().c[!options.horizontal]; scale/=options.rows;
       REPA(offset)slidebar[i].offset(offset.c[i]*scale);
    }
    void TheaterClass::refreshSize() {refresh|=REFRESH_SIZE;}
    void TheaterClass::refreshData() {refresh|=REFRESH_DATA;}
    void TheaterClass::refreshNow()
    {
-      Vec2 offset=T.offset();
-      Vec2 size=rect().size()-slidebarSize();
+      VecD2 offset=T.offset();
+      VecD2 size=rect().size()-slidebarSize();
       if(options.horizontal)
       {
          size=size.y/options.rows;

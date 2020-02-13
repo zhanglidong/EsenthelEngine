@@ -136,8 +136,8 @@ public:
    void create();
    void moveAbove(GuiObj &go);
    void listElms(ElmNode &node, bool parent_contains_name=false);
-   Vec2 offset()C;
-   void offset(C Vec2 &offset);
+   VecD2 offset()C;
+   void offset(C VecD2&offset);
    void refreshSize();       
    void refreshData();       
    void refreshNow();

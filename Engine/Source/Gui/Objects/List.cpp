@@ -689,7 +689,8 @@ void _List::setRects()
       Bool type_new_line=(FlagTest(flag, LIST_TYPE_SORT) && FlagTest(flag, LIST_TYPE_LINE) && _type_offset>=0);
       UInt type_prev    =0,
            type_cur     =0;
-      Flt  x=0, y=0, W=0, H=0;
+      Dbl  x=0, y=0; // use double precision to improve precision for a lot of elements (this gets increased for every element, so errors get accumulated)
+      Flt  W=0, H=0;
       Vec2 max_size=size;
       if(parent() && parent()->type()==GO_REGION)
       {
@@ -725,8 +726,8 @@ void _List::setRects()
             }
             type_prev=type_cur;
          }
-         Flt max_x=x+w,
-             min_y=y-h;
+         auto max_x=x+w,
+              min_y=y-h;
         _rects[i].set(x, min_y, max_x, y);
          MAX(size.x,  max_x);
          MAX(size.y, -min_y);
