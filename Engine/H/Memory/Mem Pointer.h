@@ -80,9 +80,11 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
    T1(VALUE)   Bool    binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
 
    // order
-   MemPtr&         sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function
-   MemPtr& reverseOrder(                                         ); // reverse order of elements
-   MemPtr&    swapOrder(Int i, Int j                             ); // swap order of 'i' and 'j' valid elements
+   MemPtr& sort(           Int compare(C TYPE &a, C TYPE &b           )=Compare); // sort elements with custom comparing function
+   MemPtr& sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)        ); // sort elements with custom comparing function and 'user' parameter
+
+   MemPtr& reverseOrder(            ); // reverse order of elements
+   MemPtr&    swapOrder(Int i, Int j); // swap order of 'i' and 'j' valid elements
 
    // misc
                           MemPtr& operator=(C TYPE                    &src           ); // copy elements using assignment operator

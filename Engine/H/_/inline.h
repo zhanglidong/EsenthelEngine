@@ -122,21 +122,16 @@ T1(TYPE) struct ClassFunc // various basic functions used by many classes
 /******************************************************************************/
 // SORT
 /******************************************************************************/
-void _Sort( Ptr   data, Int elms, Int elm_size, Int compare(CPtr a, CPtr b));
-void _Sort(_Memb &memb,                         Int compare(CPtr a, CPtr b));
-void _Sort(_Memx &memx,                         Int compare(CPtr a, CPtr b));
-void _Sort(_Meml &meml,                         Int compare(CPtr a, CPtr b));
+void _Sort(Ptr data, Int elms, Int elm_size,            Int compare(CPtr a, CPtr b           ));
+void _Sort(Ptr data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
 
-void _Sort( Ptr   data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
+T1(TYPE) void Sort(TYPE *data, Int elms,            Int compare(C TYPE &a, C TYPE &b           )) {_Sort(Ptr(data), elms, SIZE(TYPE),       (Int(*)(CPtr, CPtr      ))compare);}
+T1(TYPE) void Sort(TYPE *data, Int elms, CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(Ptr(data), elms, SIZE(TYPE), user, (Int(*)(CPtr, CPtr, CPtr))compare);}
 
 Bool _BinarySearch(   CPtr  data, Int elms, Int elm_size, CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Memb &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Memx &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Meml &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
-
-T1(TYPE) void Sort(TYPE *data, Int elms, Int compare(C TYPE &a, C TYPE &b)) {_Sort(Ptr(data), elms, SIZE(TYPE), (Int(*)(CPtr, CPtr))compare);}
-
-T1(TYPE) void Sort(TYPE *data, Int elms, CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(Ptr(data), elms, SIZE(TYPE), user, (Int(*)(CPtr, CPtr, CPtr))compare);}
 
 T2(DATA, VALUE) Bool BinarySearch(C DATA *data, Int elms, C VALUE &value, Int &index, Int compare(C DATA &a, C VALUE &b)) {return _BinarySearch(data, elms, SIZE(DATA), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -380,7 +375,8 @@ T1(TYPE)  Int  Mems<TYPE>::addNum(Int num) {Int index=elms(); Long new_elms=Long
 
 T1(TYPE) T1(VALUE)  Bool  Mems<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(data(), elms(), elmSize(), (Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {_Sort(data(), elms(), elmSize(),       (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(data(), elms(), elmSize(), user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
 T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::  reverseOrder(                      ) {  _ReverseOrder(data(), elms(), elmSize()                ); return T;}
 T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::randomizeOrder(                      ) {_RandomizeOrder(data(), elms(), elmSize()                ); return T;}
@@ -481,12 +477,14 @@ T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return super::
 
 T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {super::          sort((Int(*)(CPtr, CPtr))compare); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::  reverseOrder(                                 ) {super::  reverseOrder(                           ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::randomizeOrder(                                 ) {super::randomizeOrder(                           ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::   rotateOrder(Int offset                       ) {super::   rotateOrder(offset                     ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     swapOrder(Int i  , Int j                   ) {super::     swapOrder(i, j                       ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     moveElm  (Int elm, Int new_index           ) {super::     moveElm  (elm, new_index             ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
+
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::  reverseOrder(                      ) {super::  reverseOrder(              ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::randomizeOrder(                      ) {super::randomizeOrder(              ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::   rotateOrder(Int offset            ) {super::   rotateOrder(offset        ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     swapOrder(Int i  , Int j        ) {super::     swapOrder(i, j          ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::     moveElm  (Int elm, Int new_index) {super::     moveElm  (elm, new_index); return T;}
 
 T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(C Mems  <TYPE      >  &src) {                    setNum(src.elms()); FREPAO(T)=src[i];  return T;}
 T1(TYPE)                     Memc<TYPE>&  Memc<TYPE>::operator=(C Memc  <TYPE      >  &src) {if(this!=&src     ){setNum(src.elms()); FREPAO(T)=src[i];} return T;}
@@ -608,12 +606,14 @@ T1(TYPE)  Int                    MemcThreadSafe<TYPE>::addNum    (Int num) {retu
 T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::      binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::      binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::lockedBinarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::lockedBinarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::          sort(Int compare(C TYPE &a, C TYPE &b)) {super::          sort((Int(*)(CPtr, CPtr))compare); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                                 ) {super::  reverseOrder(                           ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::randomizeOrder(                                 ) {super::randomizeOrder(                           ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   rotateOrder(Int offset                       ) {super::   rotateOrder(offset                     ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     swapOrder(Int i  , Int j                   ) {super::     swapOrder(i, j                       ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     moveElm  (Int elm, Int new_index           ) {super::     moveElm  (elm, new_index             ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
+
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                      ) {super::  reverseOrder(              ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::randomizeOrder(                      ) {super::randomizeOrder(              ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   rotateOrder(Int offset            ) {super::   rotateOrder(offset        ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     swapOrder(Int i  , Int j        ) {super::     swapOrder(i, j          ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     moveElm  (Int elm, Int new_index) {super::     moveElm  (elm, new_index); return T;}
 
 T1(TYPE)  void  MemcThreadSafe<TYPE>::  lock()C {super::  lock();}
 T1(TYPE)  void  MemcThreadSafe<TYPE>::unlock()C {super::unlock();}
@@ -834,7 +834,8 @@ template<typename TYPE, Int size>  Int  Memt<TYPE, size>::addNum(Int num) {Int i
 
 template<typename TYPE, Int size> T1(VALUE)  Bool  Memt<TYPE, size>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
-template<typename TYPE, Int size>  Memt<TYPE, size>&   Memt<TYPE, size>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(data(), elms(), elmSize(), (Int(*)(CPtr, CPtr))compare); return T;}
+template<typename TYPE, Int size>  Memt<TYPE, size>&   Memt<TYPE, size>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {_Sort(data(), elms(), elmSize(),       (Int(*)(CPtr, CPtr      ))compare); return T;}
+template<typename TYPE, Int size>  Memt<TYPE, size>&   Memt<TYPE, size>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(data(), elms(), elmSize(), user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
 template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::  reverseOrder(                      ) {  _ReverseOrder(data(), elms(), elmSize()                ); return T;}
 template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::randomizeOrder(                      ) {_RandomizeOrder(data(), elms(), elmSize()                ); return T;}
@@ -921,7 +922,8 @@ T1(TYPE)  Int          Memb<TYPE>::addNum    (Int num) {return super::addNum    
 
 T1(TYPE) T1(VALUE)  Bool  Memb<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::reverseOrder(                      ) {super::reverseOrder(              ); return T;}
 T1(TYPE)  Memb<TYPE>&  Memb<TYPE>::   swapOrder(Int i  , Int j        ) {super::   swapOrder(i  , j        ); return T;}
@@ -1040,7 +1042,8 @@ T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::removeLast (                            ) {su
 
 T1(TYPE) T1(VALUE)  Bool  Memx<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::reverseOrder(                      ) {super::reverseOrder(              ); return T;}
 T1(TYPE)  Memx<TYPE>&  Memx<TYPE>::   swapOrder(Int i  , Int j        ) {super::   swapOrder(i  , j        ); return T;}
@@ -1154,7 +1157,8 @@ T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::setNumZero(Int num) {super::setNumZero(num); 
 
 T1(TYPE) T1(VALUE)  Bool  Meml<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(T, &value, index, (Int(*)(CPtr, CPtr))compare);}
 
-T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(Int compare(C TYPE &a, C TYPE &b)) {_Sort(T, (Int(*)(CPtr, CPtr))compare); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
+T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::reverseOrder(            ) {super::reverseOrder(    ); return T;}
 T1(TYPE)  Meml<TYPE>&  Meml<TYPE>::   swapOrder(Int i, Int j) {super::   swapOrder(i, j); return T;}
@@ -1469,6 +1473,20 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
       case MEMB: _memb->sort(             compare); break;
       case MEMX: _memx->sort(             compare); break;
       case MEML: _meml->sort(             compare); break;
+   }
+   return T;
+}
+template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user))
+{
+   switch(_mode)
+   {
+      case PTR :        Sort(_ptr, _elms, user, compare); break;
+      case MEMS: _mems->sort(             user, compare); break;
+      case MEMC: _memc->sort(             user, compare); break;
+      case MEMT: _memt->sort(             user, compare); break;
+      case MEMB: _memb->sort(             user, compare); break;
+      case MEMX: _memx->sort(             user, compare); break;
+      case MEML: _meml->sort(             user, compare); break;
    }
    return T;
 }

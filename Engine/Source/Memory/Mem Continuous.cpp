@@ -187,12 +187,14 @@ Int _Memc::index(CPtr elm)C
 /******************************************************************************/
 Bool _Memc::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {return _BinarySearch(data(), elms(), elmSize(), value, index, compare);}
 
-void _Memc::          sort(Int compare(CPtr a, CPtr b)) {          _Sort(data(), elms(), elmSize(), compare       );}
-void _Memc::  reverseOrder(                           ) {  _ReverseOrder(data(), elms(), elmSize()                );}
-void _Memc::randomizeOrder(                           ) {_RandomizeOrder(data(), elms(), elmSize()                );}
-void _Memc::   rotateOrder(Int offset                 ) {   _RotateOrder(data(), elms(), elmSize(), offset        );}
-void _Memc::     moveElm  (Int elm, Int new_index     ) {     _MoveElm  (data(), elms(), elmSize(), elm, new_index);}
-void _Memc::     swapOrder(Int i  , Int j             ) {if(InRange(i, T) && InRange(j, T))Swap(T[i], T[j], elmSize());}
+void _Memc::sort(           Int compare(CPtr a, CPtr b           )) {_Sort(data(), elms(), elmSize(),       compare);}
+void _Memc::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user)) {_Sort(data(), elms(), elmSize(), user, compare);}
+
+void _Memc::  reverseOrder(                      ) {  _ReverseOrder(data(), elms(), elmSize()                );}
+void _Memc::randomizeOrder(                      ) {_RandomizeOrder(data(), elms(), elmSize()                );}
+void _Memc::   rotateOrder(Int offset            ) {   _RotateOrder(data(), elms(), elmSize(), offset        );}
+void _Memc::     moveElm  (Int elm, Int new_index) {     _MoveElm  (data(), elms(), elmSize(), elm, new_index);}
+void _Memc::     swapOrder(Int i  , Int j        ) {if(InRange(i, T) && InRange(j, T))Swap(T[i], T[j], elmSize());}
 
 void _Memc::moveElmLeftUnsafe(Int elm, Int new_index, Ptr temp) {_MoveElmLeftUnsafe(data(), elmSize(), elm, new_index, temp);}
 /******************************************************************************/
@@ -245,12 +247,14 @@ Int  _MemcThreadSafe::addNum    (Int num) {SyncLocker locker(_lock); return _mem
 
 Bool _MemcThreadSafe::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {SyncLocker locker(_lock); return _memc.binarySearch(value, index, compare);}
 
-void _MemcThreadSafe::          sort(Int compare(CPtr a, CPtr b)) {SyncLocker locker(_lock); _memc.          sort(compare       );}
-void _MemcThreadSafe::  reverseOrder(                           ) {SyncLocker locker(_lock); _memc.  reverseOrder(              );}
-void _MemcThreadSafe::randomizeOrder(                           ) {SyncLocker locker(_lock); _memc.randomizeOrder(              );}
-void _MemcThreadSafe::   rotateOrder(Int offset                 ) {SyncLocker locker(_lock); _memc.   rotateOrder(offset        );}
-void _MemcThreadSafe::     swapOrder(Int i  , Int j             ) {SyncLocker locker(_lock); _memc.     swapOrder(i, j          );}
-void _MemcThreadSafe::     moveElm  (Int elm, Int new_index     ) {SyncLocker locker(_lock); _memc.     moveElm  (elm, new_index);}
+void _MemcThreadSafe::sort(           Int compare(CPtr a, CPtr b           )) {SyncLocker locker(_lock); _memc.sort(      compare);}
+void _MemcThreadSafe::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user)) {SyncLocker locker(_lock); _memc.sort(user, compare);}
+
+void _MemcThreadSafe::  reverseOrder(                      ) {SyncLocker locker(_lock); _memc.  reverseOrder(              );}
+void _MemcThreadSafe::randomizeOrder(                      ) {SyncLocker locker(_lock); _memc.randomizeOrder(              );}
+void _MemcThreadSafe::   rotateOrder(Int offset            ) {SyncLocker locker(_lock); _memc.   rotateOrder(offset        );}
+void _MemcThreadSafe::     swapOrder(Int i  , Int j        ) {SyncLocker locker(_lock); _memc.     swapOrder(i, j          );}
+void _MemcThreadSafe::     moveElm  (Int elm, Int new_index) {SyncLocker locker(_lock); _memc.     moveElm  (elm, new_index);}
 /******************************************************************************/
 }
 /******************************************************************************/

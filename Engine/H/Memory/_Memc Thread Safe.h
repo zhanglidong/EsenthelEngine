@@ -32,7 +32,8 @@ struct _MemcThreadSafe // Thread-Safe Continuous Memory Based Container Base - D
    Bool       binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
    Bool lockedBinarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {return _memc.binarySearch(value, index, compare);}
 
-   void           sort(Int compare(CPtr a, CPtr b));
+   void           sort(           Int compare(CPtr a, CPtr b           ));
+   void           sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
    void   reverseOrder();
    void randomizeOrder();
    void    rotateOrder(Int offset);

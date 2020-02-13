@@ -1154,14 +1154,14 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       Int    vtx_ofs=vtx_dups.addNum(mesh.vtxs     ()),
              tri_ofs=tris    .addNum(mesh.trisTotal());
       Box   mesh_box=mesh; if(vtx_ofs)T.box|=mesh_box;else T.box=mesh_box;
-      FREPA(mesh.vtx)
+      FREPA(mesh.vtx) // add in order
       {
          VtxDupMap &vtx_dup=vtx_dups[vtx_ofs+i];
                             vtx_dup.pos       =mesh.vtx.pos (i);
          if(mesh.vtx.tex0())vtx_dup.tex0      =mesh.vtx.tex0(i);else vtx_dup.tex0.zero(); // if not available then zero so BORDER_TEX can be detected properly
                             vtx_dup.mtrl_group=mtrl_group_i;
       }
-      FREPA(mesh.tri)
+      FREPA(mesh.tri) // add in order
       {
          Triangle &tri=tris[tri_ofs+i];
        C VecI     &src=mesh.tri.ind(i);
@@ -1173,7 +1173,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          REPAO(tri.vtxs).from(mesh, src.c[i]);
       }
       Int quad_ofs=tri_ofs+mesh.tris();
-      FREPA(mesh.quad)
+      FREPA(mesh.quad) // add in order
       {
        C VecI4 &src=mesh.quad.ind(i);
          VecI    t0=src.tri0(), t1=src.tri1();
@@ -1552,7 +1552,7 @@ MeshLod& MeshLod::simplify(Flt intensity, Flt max_distance, Flt max_uv, Flt max_
       if(s.stop())goto stop;
       {
          PROF(ADD);
-         FREPA(T)
+         FREPA(T) // add in order
          {
             s.add(parts[i].base, i, &parts[i]);
             if(s.stop())goto stop;

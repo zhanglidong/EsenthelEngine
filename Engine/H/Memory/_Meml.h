@@ -35,6 +35,8 @@ struct _Meml // List Based Container Base - Do not use this class, use 'Meml' in
    void setNumZero(Int num);
    Int  addNum    (Int num);
 
+   void         sort(           Int compare(CPtr a, CPtr b           ));
+   void         sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
    void reverseOrder();
    void    swapOrder(Int i, Int j);
 

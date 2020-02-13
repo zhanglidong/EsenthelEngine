@@ -175,16 +175,16 @@ void _Sort(Ptr data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr
    }
 }
 #undef  ELM
-#define ELM(i) memb[i]
-void _Sort(_Memb &memb, Int compare(CPtr a, CPtr b))
+#define ELM(i) T[i]
+void _Memb::sort(Int compare(CPtr a, CPtr b))
 {
-   Int elm_size=memb.elmSize();
+   Int elm_size=elmSize();
 
-   if(memb.elms()>1)
+   if(elms()>1)
    {
       // init
       Memt<Byte >   buf; buf.setNum(elm_size); Ptr temp=buf.data();
-      Memt<VecI2> stack; stack.New().set(0, memb.elms()-1);
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
       for(; stack.elms(); )
       {
          VecI2 lr=stack.pop();
@@ -225,7 +225,63 @@ void _Sort(_Memb &memb, Int compare(CPtr a, CPtr b))
             #else
                CPtr test=ELM(i);
                Int j; for(j=i; j>l && compare(ELM(j-1), test)>0; j--);
-               memb.moveElmLeftUnsafe(i, j, temp);
+               moveElmLeftUnsafe(i, j, temp);
+            #endif
+            }
+         }
+      }
+   }
+}
+void _Memb::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user))
+{
+   Int elm_size=elmSize();
+
+   if(elms()>1)
+   {
+      // init
+      Memt<Byte >   buf; buf.setNum(elm_size); Ptr temp=buf.data();
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
+      for(; stack.elms(); )
+      {
+         VecI2 lr=stack.pop();
+         Int   l =lr.x,
+               r =lr.y;
+         if(r-l>16) // 16 gave the best result
+         {
+            // quicksort
+            Int m=UInt(r+l)/2;
+            if(compare(ELM(l), ELM(r), user)>0)SWAP(l, r);
+            if(compare(ELM(l), ELM(m), user)>0)SWAP(l, m);
+            if(compare(ELM(m), ELM(r), user)>0)SWAP(m, r);
+
+            Int i=l, j=r;
+            COPY(temp, ELM(m)); 
+            for(; i<=j; )
+            {
+               for(; compare(ELM(i), temp, user)<0; )i++; // find first element from left  that is larger  or equal to 'temp'
+               for(; compare(ELM(j), temp, user)>0; )j--; // find first element from right that is smaller or equal to 'temp'
+               if(i<=j)
+               {
+                  SWAP(i, j);
+                  i++;
+                  j--;
+               }
+            }
+            if(l<j)stack.New().set(l, j);
+            if(i<r)stack.New().set(i, r);
+         }else
+         {
+            // insertion sort
+            for(Int i=l+1; i<=r; i++)
+            {
+            #if 0 // slower
+               COPY(temp, ELM(i));
+               Int j; for(j=i; j>l && compare(ELM(j-1), temp, user)>0; j--)COPY(ELM(j), ELM(j-1));
+               COPY(ELM(j), temp);
+            #else
+               CPtr test=ELM(i);
+               Int j; for(j=i; j>l && compare(ELM(j-1), test, user)>0; j--);
+               moveElmLeftUnsafe(i, j, temp);
             #endif
             }
          }
@@ -234,14 +290,14 @@ void _Sort(_Memb &memb, Int compare(CPtr a, CPtr b))
 }
 #undef  COPY
 #undef   ELM
-#define  ELM(i   ) memx[i]
+#define  ELM(i   ) T[i]
 #undef  SWAP
-#define SWAP(a, b) memx.swapOrder(a, b)
-void _Sort(_Memx &memx, Int compare(CPtr a, CPtr b))
+#define SWAP(a, b) swapOrder(a, b)
+void _Memx::sort(Int compare(CPtr a, CPtr b))
 {
-   if(memx.elms()>1)
+   if(elms()>1)
    {
-      Memt<VecI2> stack; stack.New().set(0, memx.elms()-1);
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
       for(; stack.elms(); )
       {
          VecI2 lr=stack.pop();
@@ -281,7 +337,58 @@ void _Sort(_Memx &memx, Int compare(CPtr a, CPtr b))
             #else
                CPtr test=ELM(i);
                Int j; for(j=i; j>l && compare(ELM(j-1), test)>0; j--);
-               memx.moveElmLeftUnsafe(i, j);
+               moveElmLeftUnsafe(i, j);
+            #endif
+            }
+         }
+      }
+   }
+}
+void _Memx::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user))
+{
+   if(elms()>1)
+   {
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
+      for(; stack.elms(); )
+      {
+         VecI2 lr=stack.pop();
+         Int   l =lr.x,
+               r =lr.y;
+         if(r-l>16) // 16 gave the best result
+         {
+            // quicksort
+            Int m=UInt(r+l)/2;
+            if(compare(ELM(l), ELM(r), user)>0)SWAP(l, r);
+            if(compare(ELM(l), ELM(m), user)>0)SWAP(l, m);
+            if(compare(ELM(m), ELM(r), user)>0)SWAP(m, r);
+
+            Int i=l, j=r;
+            Ptr temp=ELM(m); // we can use this because address remains the same
+            for(; i<=j; )
+            {
+               for(; compare(ELM(i), temp, user)<0; )i++; // find first element from left  that is larger  or equal to 'temp'
+               for(; compare(ELM(j), temp, user)>0; )j--; // find first element from right that is smaller or equal to 'temp'
+               if(i<=j)
+               {
+                  SWAP(i, j);
+                  i++;
+                  j--;
+               }
+            }
+            if(l<j)stack.New().set(l, j);
+            if(i<r)stack.New().set(i, r);
+         }else
+         {
+            // insertion sort
+            for(Int i=l+1; i<=r; i++)
+            {
+            #if 0 // slower
+               Ptr temp=ELM(i); // we can use this because address remains the same
+               Int j; for(j=i; j>l && compare(ELM(j-1), temp, user)>0; j--)SWAP(j, j-1);
+            #else
+               CPtr test=ELM(i);
+               Int j; for(j=i; j>l && compare(ELM(j-1), test, user)>0; j--);
+               moveElmLeftUnsafe(i, j);
             #endif
             }
          }
@@ -289,14 +396,14 @@ void _Sort(_Memx &memx, Int compare(CPtr a, CPtr b))
    }
 }
 #undef   ELM
-#define  ELM(i   ) meml[i]
+#define  ELM(i   ) T[i]
 #undef  SWAP
-#define SWAP(a, b) meml.swapOrder(a, b)
-void _Sort(_Meml &meml, Int compare(CPtr a, CPtr b)) // TODO: this is slow for Meml
+#define SWAP(a, b) swapOrder(a, b)
+void _Meml::sort(Int compare(CPtr a, CPtr b)) // TODO: this is slow for Meml
 {
-   if(meml.elms()>1)
+   if(elms()>1)
    {
-      Memt<VecI2> stack; stack.New().set(0, meml.elms()-1);
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
       for(; stack.elms(); )
       {
          VecI2 lr=stack.pop();
@@ -332,6 +439,51 @@ void _Sort(_Meml &meml, Int compare(CPtr a, CPtr b)) // TODO: this is slow for M
             {
                Ptr temp=ELM(i); // we can use this because address remains the same
                Int j; for(j=i; j>l && compare(ELM(j-1), temp)>0; j--)SWAP(j, j-1);
+            }
+         }
+      }
+   }
+}
+void _Meml::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user)) // TODO: this is slow for Meml
+{
+   if(elms()>1)
+   {
+      Memt<VecI2> stack; stack.New().set(0, elms()-1);
+      for(; stack.elms(); )
+      {
+         VecI2 lr=stack.pop();
+         Int   l =lr.x,
+               r =lr.y;
+         if(r-l>16) // 16 gave the best result
+         {
+            // quicksort
+            Int m=UInt(r+l)/2;
+            if(compare(ELM(l), ELM(r), user)>0)SWAP(l, r);
+            if(compare(ELM(l), ELM(m), user)>0)SWAP(l, m);
+            if(compare(ELM(m), ELM(r), user)>0)SWAP(m, r);
+
+            Int i=l, j=r;
+            Ptr temp=ELM(m); // we can use this because address remains the same
+            for(; i<=j; )
+            {
+               for(; compare(ELM(i), temp, user)<0; )i++; // find first element from left  that is larger  or equal to 'temp'
+               for(; compare(ELM(j), temp, user)>0; )j--; // find first element from right that is smaller or equal to 'temp'
+               if(i<=j)
+               {
+                  SWAP(i, j);
+                  i++;
+                  j--;
+               }
+            }
+            if(l<j)stack.New().set(l, j);
+            if(i<r)stack.New().set(i, r);
+         }else
+         {
+            // insertion sort
+            for(Int i=l+1; i<=r; i++)
+            {
+               Ptr temp=ELM(i); // we can use this because address remains the same
+               Int j; for(j=i; j>l && compare(ELM(j-1), temp, user)>0; j--)SWAP(j, j-1);
             }
          }
       }

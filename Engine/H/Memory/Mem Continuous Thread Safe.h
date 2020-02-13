@@ -60,12 +60,14 @@ T1(const_mem_addr TYPE) struct MemcThreadSafe : _MemcThreadSafe // Thread-Safe C
    T1(VALUE)   Bool                  binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {SyncLocker locker(_lock); Int i; if(   !lockedBinarySearch(value, i, compare)){lockedNewAt (i)=value; return true;} lockedRemove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method may change the memory address of all elements
 
    // order
-   MemcThreadSafe&           sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function, this method may change the memory address of all elements
-   MemcThreadSafe&   reverseOrder(                                         ); // reverse   order of elements, this method     changes the memory address of all elements
-   MemcThreadSafe& randomizeOrder(                                         ); // randomize order of elements, this method may change  the memory address of all elements
-   MemcThreadSafe&    rotateOrder(Int offset                               ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
-   MemcThreadSafe&      swapOrder(Int i  , Int j                           ); // swap      order of 'i' and 'j' elements
-   MemcThreadSafe&      moveElm  (Int elm, Int new_index                   ); // move 'elm' element to new position located at 'new_index'
+   MemcThreadSafe& sort(           Int compare(C TYPE &a, C TYPE &b           )=Compare); // sort elements with custom comparing function                     , this method may change the memory address of all elements
+   MemcThreadSafe& sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)        ); // sort elements with custom comparing function and 'user' parameter, this method may change the memory address of all elements
+
+   MemcThreadSafe&   reverseOrder(                      ); // reverse   order of elements, this method     changes the memory address of all elements
+   MemcThreadSafe& randomizeOrder(                      ); // randomize order of elements, this method may change  the memory address of all elements
+   MemcThreadSafe&    rotateOrder(Int offset            ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
+   MemcThreadSafe&      swapOrder(Int i  , Int j        ); // swap      order of 'i' and 'j' elements
+   MemcThreadSafe&      moveElm  (Int elm, Int new_index); // move 'elm' element to new position located at 'new_index'
 
    // operations
    void   lock()C; //   lock this container, must be called before using methods which name starts with "locked", 'unlock' must be called after all of those operations

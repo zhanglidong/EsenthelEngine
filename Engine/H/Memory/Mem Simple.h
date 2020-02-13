@@ -79,12 +79,14 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    T1(VALUE)   Bool  binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
 
    // order
-   Mems&           sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function
-   Mems&   reverseOrder(                                         ); // reverse   order of elements
-   Mems& randomizeOrder(                                         ); // randomize order of elements
-   Mems&    rotateOrder(Int offset                               ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
-   Mems&      swapOrder(Int i  , Int j                           ); // swap      order of 'i' and 'j' elements
-   Mems&      moveElm  (Int elm, Int new_index                   ); // move 'elm' element to new position located at 'new_index'
+   Mems& sort(           Int compare(C TYPE &a, C TYPE &b           )=Compare); // sort elements with custom comparing function
+   Mems& sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)        ); // sort elements with custom comparing function and 'user' parameter
+
+   Mems&   reverseOrder(                      ); // reverse   order of elements
+   Mems& randomizeOrder(                      ); // randomize order of elements
+   Mems&    rotateOrder(Int offset            ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
+   Mems&      swapOrder(Int i  , Int j        ); // swap      order of 'i' and 'j' elements
+   Mems&      moveElm  (Int elm, Int new_index); // move 'elm' element to new position located at 'new_index'
 
    // misc
                       Mems& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator

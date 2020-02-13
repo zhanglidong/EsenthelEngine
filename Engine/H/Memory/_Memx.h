@@ -41,6 +41,8 @@ struct _Memx // Block Based Extended Container Base - Do not use this class, use
    Int  addNum (Int num);
    void reserve(Int num);
 
+   void         sort(           Int compare(CPtr a, CPtr b           ));
+   void         sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
    void reverseOrder();
    void    swapOrder(Int i  , Int j);
    void moveElm     (Int elm, Int new_index);
