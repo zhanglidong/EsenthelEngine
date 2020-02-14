@@ -92,6 +92,9 @@ struct DisplayState // Display States Control, this class methods can be called 
       #define FUNC_GREATER       GPU_API(D3D11_COMPARISON_GREATER      , GL_GREATER)
       #define FUNC_GREATER_EQUAL GPU_API(D3D11_COMPARISON_GREATER_EQUAL, GL_GEQUAL )
    #endif
+
+      #define FUNC_DEFAULT FUNC_LESS // FUNC_LESS or FUNC_LESS_EQUAL
+
       #define FUNC_BACKGROUND FUNC_LESS_EQUAL // for background use FUNC_LESS_EQUAL because we will draw with Z=1, and we process pixels that Z<=RTDepth (which is RTDepth>=Z, RTDepth>=1)
       #define FUNC_FOREGROUND FUNC_GREATER    // for foreground use FUNC_GREATER    because we will draw with Z=1, and we process pixels that Z> RTDepth (which is RTDepth< Z, RTDepth< 1)
 

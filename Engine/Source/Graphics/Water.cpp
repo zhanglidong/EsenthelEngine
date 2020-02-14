@@ -322,8 +322,8 @@ void WaterClass::begin()
          if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
          {
             Renderer.set(null, Renderer._water_ds, true);
-            D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw();
-            D.depthUnlock(    ); D.depthFunc(FUNC_LESS  ); D.stencil(STENCIL_NONE         );
+            D.depthLock  (true); D.depthFunc(FUNC_ALWAYS ); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw();
+            D.depthUnlock(    ); D.depthFunc(FUNC_DEFAULT); D.stencil(STENCIL_NONE         );
           //Renderer.set(Renderer._water_col, Renderer._water_nrm, null, null, Renderer._water_ds, true); don't set, instead swap first and set later
            _swapped_ds=Renderer.swapDS1S(Renderer._water_ds); // try to swap DS to put existing stencil values into '_water_ds' because we will write water depths onto '_water_ds' and we want to use it later instead of '_ds_1s' so we want all stencil values to be kept
             Renderer.set(Renderer._water_col, Renderer._water_nrm, null, null, Renderer._water_ds, true);
@@ -390,8 +390,8 @@ void WaterClass::end()
          {
             Renderer.set(null, Renderer._ds_1s, true);
             D.alpha(ALPHA_NONE);
-            D.depthLock  (true); Sh.ResolveDepth->draw(); // here we can keep FUNC_LESS because 1S DS was already set before and we just need to apply water on top
-            D.depthUnlock(    );
+            if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS   ); D.depthLock  (true); Sh.ResolveDepth->draw(); // FUNC_LESS because 1S DS was already set before and we just need to apply water on top
+            if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_DEFAULT); D.depthUnlock(    );
          }
       }
    }

@@ -139,9 +139,9 @@ void LayeredClouds::draw()
       MIN(from, to*EPS_SKY_MIN_VIEW_RANGE);
    #endif
       SetOneMatrix(MatrixM(from, CamMatrix.pos));
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
       D.alpha     (ALPHA_BLEND_DEC);
       D.depthWrite(false);
-      D.depthFunc (FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
       D.depth     (true );
       D.cull      (true );
       D.sampler3D (     );
@@ -153,7 +153,7 @@ void LayeredClouds::draw()
       }
       D.sampler2D ();
       D.depthWrite(true);
-      D.depthFunc (FUNC_LESS);
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
    }
 }
 void LayeredClouds::shadowMap() // !! Warning: 'Frustum' is invalid here !!

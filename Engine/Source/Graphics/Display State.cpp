@@ -146,7 +146,7 @@ DisplayState::DisplayState()
   _depth_write     =true;
   _depth_clip      =true;
   _depth_bias      =BIAS_ZERO;
-  _depth_func      =FUNC_LESS;
+  _depth_func      =FUNC_DEFAULT;
   _alpha           =ALPHA_BLEND;
   _stencil         =STENCIL_NONE;
   _col_write[0]    =COL_WRITE_RGBA;
@@ -223,7 +223,7 @@ void DisplayState::depth2DOn(UInt func)
 }
 void DisplayState::depth2DOff()
 {
-   UInt func=(Renderer.firstPass() ? FUNC_LESS : FUNC_LESS_EQUAL); // this can be called while rendering secondary lights for forward renderer, in that case we're using FUNC_LESS_EQUAL
+   UInt func=(Renderer.firstPass() ? FUNC_DEFAULT : FUNC_LESS_EQUAL); // this can be called while rendering secondary lights for forward renderer, in that case we're using FUNC_LESS_EQUAL because we need to apply secondary lights for same depths
 #if DX11
    if(D._depth_write!=true || D._depth_func!=func)
    {

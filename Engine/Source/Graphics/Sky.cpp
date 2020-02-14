@@ -201,7 +201,7 @@ void SkyClass::draw()
       Renderer.set(Renderer._col, Renderer._ds, true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
       D.alpha     (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
       D.depthWrite(false);
-      D.depthFunc (FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
     //D.cull      (true ); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
       D.sampler3D (     ); // set in case of drawing clouds
       if(shader_multi)D.stencil(STENCIL_MSAA_TEST);
@@ -215,7 +215,7 @@ void SkyClass::draw()
       }
       D.sampler2D (    );
       D.depthWrite(true);
-      D.depthFunc (FUNC_LESS);
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
       D.stencil   (STENCIL_NONE);
    }
 }

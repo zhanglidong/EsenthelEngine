@@ -262,8 +262,8 @@ void RendererClass::setDepthForDebugDrawing()
       if(_ds_1s)if(Shader *shader=Sh.SetDepth)
       {
          ImageRT *rt=_cur[0]; set(null, _cur_ds, true);
-         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); shader->draw();
-                          D.alpha(alpha     ); D.depthUnlock(    ); D.depthFunc(FUNC_LESS  );
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS ); shader->draw();
+                          D.alpha(alpha     ); D.depthUnlock(    ); D.depthFunc(FUNC_DEFAULT);
          set(rt, _cur_ds, true);
       }
    }
@@ -1026,7 +1026,7 @@ start:
    {
       set(null, _ds, true);
       tAACheck(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
-      D.set3D(); D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
+      D.set3D(); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
       setEyeViewportCam();
@@ -1034,7 +1034,7 @@ start:
       if(++_eye<_eye_num)goto early_z;
 
       ClearEarlyZInstances();
-      D.set2D(); D.depthBias(BIAS_ZERO);
+      D.set2D(); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthBias(BIAS_ZERO);
    }
 #endif
 
@@ -1195,10 +1195,10 @@ void RendererClass::solid()
            _first_pass=false;
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
             Sh.AmbientColorNS_l->set(VecZero); Sh.FirstPass->set(false); // disable ambient lighting
-            D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
+            if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
             REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow #RTOutput
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
-            D.depthFunc(FUNC_LESS);
+            if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
            _first_pass=true;
 
             // restore settings
@@ -1234,8 +1234,8 @@ void RendererClass::resolveDepth()
       // always resolve '_ds' into '_ds_1s'
       set(null, _ds_1s, true);
       D.stencil(STENCIL_ALWAYS_SET, 0); // use 'STENCIL_ALWAYS_SET' here so when down-sampling depth, we clear the entire stencil mask for '_ds_1s'
-      D.depthFunc(FUNC_ALWAYS); D.depthLock  (true); Sh.ResolveDepth->draw();
-      D.depthFunc(FUNC_LESS  ); D.depthUnlock(    );
+      D.depthFunc(FUNC_ALWAYS ); D.depthLock  (true); Sh.ResolveDepth->draw();
+      D.depthFunc(FUNC_DEFAULT); D.depthUnlock(    );
 
       // set 1-sampled '_ds_1s' MSAA
       if(_cur_type==RT_DEFERRED               // for     deferred set it always (needed for lighting)
@@ -1256,8 +1256,8 @@ void RendererClass::resolveDepth1()
    {
       // always resolve '_ds' into '_ds_1s'
       set(null, _ds_1s, true);
-      D.depthFunc(FUNC_LESS);   D.depthLock  (true); Sh.ResolveDepth->draw();
-    /*D.depthFunc(FUNC_LESS);*/ D.depthUnlock(    );
+      if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS   ); D.depthLock  (true); Sh.ResolveDepth->draw(); // this resolves secondary time so can modify only pixels that are closer than before
+      if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_DEFAULT); D.depthUnlock(    );
    }
 }
 void RendererClass::overlay()
@@ -1267,13 +1267,13 @@ void RendererClass::overlay()
    set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
+   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
       setEyeViewportCam();
       DrawOverlayObjects(); _render();
    }
-   D.set2D(); D.depthWrite(true); D.depthBias(BIAS_ZERO); D.depthFunc(FUNC_LESS);
+   D.set2D(); D.depthWrite(true); D.depthBias(BIAS_ZERO); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
    OverlayObjects.clear();
@@ -1425,7 +1425,7 @@ void RendererClass::light()
       // add ambient light from meshes
       set(_lum, _ds, true);
       D.alpha(ALPHA_ADD);
-      D.set3D(); mode(RM_AMBIENT); D.depth(true); D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply meshes on existing depth
+      D.set3D(); mode(RM_AMBIENT); D.depth(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply meshes on existing depth
       SortAmbientInstances();
       REPS(_eye, _eye_num)
       {
@@ -1433,7 +1433,7 @@ void RendererClass::light()
          DrawAmbientInstances(); _render();
       }
       ClearAmbientInstances();
-      D.set2D(); D.depthFunc(FUNC_LESS);
+      D.set2D(); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
 
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorD().max()>EPS_COL8_NATIVE), glow=(_has_glow && _col->hwTypeInfo().a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
@@ -1509,7 +1509,7 @@ Bool RendererClass::waterPostLight()
          src->copyMs(*temp, false, false, D.viewRect()); Swap(src, temp);
          D.depthLock (true); // we need depth testing
          D.depthWrite(false); // disable depth writing because we can't read and write to same DS
-         D.depthFunc (FUNC_LESS); // process only pixels that are closer (which means water on top of existing solid)
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS); // process only pixels that are closer (which means water on top of existing solid)
       }
       if(_col==src)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(_col->type()), _col->samples())); // can't read and write to same RT, in multi-sampling we're writing back to '_col' as it's not changed
 
@@ -1532,7 +1532,8 @@ Bool RendererClass::waterPostLight()
       if(depth_test)
       {
          D.depthUnlock();
-         D.depthWrite(true);
+         D.depthWrite (true);
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_DEFAULT);
       }
       Water.endImages();
 
@@ -1540,14 +1541,14 @@ Bool RendererClass::waterPostLight()
       if((!Water._swapped_ds || !swapDS1S(_water_ds)) && Sh.SetDepth) // if we haven't swapped before, or swap back failed, then we have to apply '_water_ds' on top of existing '_ds_1s', otherwise we just swap back '_water_ds' because it had the stencil values
       {
          set(null, _ds_1s, true);
-         D.depthLock(true); Sh.Depth->set(_water_ds); Sh.SetDepth->draw(); Sh.Depth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
-         D.depthUnlock();
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS   ); D.depthLock(true); Sh.Depth->set(_water_ds); Sh.SetDepth->draw(); Sh.Depth->set(_ds_1s); // FUNC_LESS to modify only those that are closer
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_DEFAULT); D.depthUnlock();
       }
       if(_ds!=_ds_1s && Sh.SetDepth) // multi-sample
       {
          set(null, _ds, true);
-         D.depthLock(true); Sh.Depth->set(_water_ds); Sh.SetDepth->draw(); Sh.Depth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
-         D.depthUnlock();
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS   ); D.depthLock(true); Sh.Depth->set(_water_ds); Sh.SetDepth->draw(); Sh.Depth->set(_ds_1s); // FUNC_LESS to modify only those that are closer
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_DEFAULT); D.depthUnlock();
       }
 
       if(stage)switch(stage)
@@ -1712,7 +1713,7 @@ void RendererClass::blend()
    const Bool blend_affect_vel=true;
    set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend
    D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use less equal for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
+   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
    REPS(_eye, _eye_num)
    {
@@ -1725,7 +1726,7 @@ void RendererClass::blend()
    }
    ClearBlendInstances();
   _SetHighlight(TRANSPARENT);
-   D.set2D(); D.depthWrite(true); D.depthFunc(FUNC_LESS);
+   D.set2D(); D.depthWrite(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
@@ -1784,7 +1785,7 @@ void RendererClass::behind()
          setEyeViewportCam();
         _render(); DrawBehindObjects();
       }
-      D.set2D(); D.depthWrite(true); D.depthFunc(FUNC_LESS);
+      D.set2D(); D.depthWrite(true); D.depthFunc(FUNC_DEFAULT);
    }
    BehindObjects.clear();
 }
@@ -1799,9 +1800,9 @@ void RendererClass::setOutline(C Color &color)
       D.clearCol  ();
       D.alpha     (ALPHA_NONE);
       D.sampler3D ();
-      D.depthFunc (FUNC_LESS_EQUAL);
       D.depthWrite(false);
-      if(D.outlineMode()==EDGE_DETECT_THIN)D.stencil(STENCIL_OUTLINE_SET, STENCIL_REF_OUTLINE);
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL    )D.depthFunc(FUNC_LESS_EQUAL);
+      if(D.outlineMode()==EDGE_DETECT_THIN)D.stencil  (STENCIL_OUTLINE_SET, STENCIL_REF_OUTLINE);
    }
    Int           outline_eye=(1<<_eye);
    if(!(_outline&outline_eye)) // not yet enabled for this eye
@@ -1816,8 +1817,8 @@ void RendererClass::applyOutline()
    {
      _SetHighlight(TRANSPARENT); // disable 'SetHighlight' which was called during mesh drawing
       D.sampler2D ();
-      D.depthFunc (FUNC_LESS); // restore default
       D.depthWrite(true);
+      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT); // restore default
 
       resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' will be called later and it requires to operate on full-sampled data
       ImageRT *ds=_ds_1s; // we've resolved multi-sample so have to use 1-sample
