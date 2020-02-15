@@ -37,6 +37,20 @@ struct ColorMatrix : Matrix // Color Transformation Matrix
 void ColorTransHB (Flt hue,                 Flt brightness, Flt alpha=1); // apply full-screen correct Hue-           Brightness color transformation, 'hue'=hue adjustment (0..1),                                            , 'brightness'=brightness adjustment (0..Inf)
 void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha=1); // apply full-screen correct Hue-Saturation-Brightness color transformation, 'hue'=hue adjustment (0..1), 'saturation'=saturation adjustment (0..Inf), 'brightness'=brightness adjustment (0..Inf), 'alpha'=effect opacity (0..1)
 /******************************************************************************/
+struct TitlesFx // Titles Swirl Effect
+{
+   Flt step  , // time     (0..Inf,                 default=Time.appTime()*2)
+       center, // center y (in UV coordinates 0..1, default=0.5 )
+       range , // range of sharp    visibility     (default=0.45)
+       smooth, // range of smoothed visibility     (default=0.05)
+       swirl ; // swirl amount                     (default=0.01)
+
+   TitlesFx& reset(); // reset to default values
+   void      draw (C Image &image); // draw 'image' using titles swirl effect
+
+   TitlesFx() {reset();}
+};
+/******************************************************************************/
 void FadeFx      (C Image &image, Flt time , Image *fade_modified=null              ); // draw 'image' with Fade        Effect, 'time' =effect time  (0..1  ), 'fade_modifier'=optional fade modifier texture (only its alpha channel is used)
 void WaveFx      (                Flt time , Flt    scale                           ); // apply full-screen Wave        Effect, 'time' =effect time  (0..Inf), 'scale'=wave scale (0..1)
 void RadialBlurFx(                Flt scale, Flt    alpha=1, C Vec2 &center=Vec2Zero); // apply full-screen Radial Blur Effect, 'scale'=blur   scale (0..Inf), 'alpha'=effect opacity (0..1), 'center'=screen point center of fading

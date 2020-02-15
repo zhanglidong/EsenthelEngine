@@ -104,33 +104,20 @@ void RippleFx::draw(C Image &image, C Rect &rect)
    Sh.RippleParams->set(T);
    VI.shader(Sh.Ripple); image.draw(rect);
 }
-/******************************************************************************
-struct TitlesFx // Titles Swirl Effect
-{
-   Flt step  , // time     (0..Inf,                 default=Time.appTime()*2)
-       center, // center y (in UV coordinates 0..1, default=0.5  )
-       range , // range of sharp    visibility     (default=0.4  )
-       smooth, // range of smoothed visibility     (default=0.1  )
-       swirl ; // swirl amount                     (default=0.015)
-
-   TitlesFx& reset(); // reset to default values
-   void      draw (C Image &image); // draw 'image' using titles swirl effect
-
-   TitlesFx() {reset();}
-};
+/******************************************************************************/
 TitlesFx& TitlesFx::reset()
 {
    step  =Time.appTime()*2;
    center=0.5f;
-   range =0.4f;
-   smooth=0.1f;
-   swirl =0.015f;
+   range =0.45f;
+   smooth=0.05f;
+   swirl =0.01f;
    return T;
 }
 void TitlesFx::draw(C Image &image)
 {
    if(!Sh.Titles)Sh.Titles=ShaderFiles("Effects 2D")->get("Titles"); // load shader first to load constant buffers and images
-   SPSet("Ttls", T);
+   SPSet("Titles", T);
    Sh.imgSize(image); Sh.Titles->draw(image);
 }
 /******************************************************************************/

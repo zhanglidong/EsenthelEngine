@@ -55,7 +55,7 @@ VecH4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    VecH4  c=Tex(Img, inTex); c.a*=Sat((Rppl.alpha_scale*2)*Length(inTex-Rppl.center)+Rppl.alpha_add);
    return c;
 }
-/******************************************************************************
+/******************************************************************************/
 #include "!Set Prec Struct.h"
 struct TitlesClass
 {
@@ -67,20 +67,19 @@ struct TitlesClass
 };
 
 BUFFER(Titles)
-   TitlesClass Ttls;
+   TitlesClass Titles;
 BUFFER_END
 #include "!Set Prec Default.h"
 
 VecH4 Titles_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   Flt s=Sat((Abs(inTex.y-Ttls.center)-Ttls.range)/Ttls.smooth);
-   inTex.x+=Sin(s*s*s*s*(PI*6)+Ttls.stp)*s*s*Ttls.swirl;
-   VecH4 color=0; UNROLL for(Int i=-4; i<=4; i++)color+=Tex(Img, inTex+s*ImgSize.xy*Vec2(i, 0));
-   color/=9;
-   color.a*=Pow(1-s, 0.6);
+   Flt s=Sat((Abs(inTex.y-Titles.center)-Titles.range)/Titles.smooth);
+   inTex.x+=Sin(s*s*s*(PI*4)+Titles.stp)*s*s*s*Titles.swirl;
+   Int   range=Round(s*12);
+   VecH4 color=0; LOOP for(Int i=-range; i<=range; i++)color+=Tex(Img, inTex+s*ImgSize.xy*Vec2(i, 0)); color/=range*2+1;
+   color.a*=Pow(1-s, 2.0);
    return color;
 }
-TECHNIQUE(Titles, Draw_VS(), Titles_PS());
 /******************************************************************************/
 VecH4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {

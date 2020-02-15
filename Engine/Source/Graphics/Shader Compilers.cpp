@@ -477,6 +477,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    src.New("Fade", "Draw_VS", "Fade_PS");
    src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
    src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
+   src.New("Titles", "Draw_VS", "Titles_PS");
    src.New("Wave", "Wave_VS", "Wave_PS");
 }
 #endif
