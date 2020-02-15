@@ -413,28 +413,27 @@ void VtxFull::reset()
 {
    Zero(T);
    color=WHITE;
-   material.x=255; // 'material.sum' must be exactly equal to 255 !!
-   blend   .x=255; //    'blend.sum' must be exactly equal to 255 !!
+   material.x=255; // !! 'material.sum' must be exactly equal to 255 !!
+   blend   .x=255; // !!    'blend.sum' must be exactly equal to 255 !!
 }
 VtxFull& VtxFull::from(C MeshBase &mshb, Int i)
 {
-   reset();
    if(InRange(i, mshb.vtx))
    {
-      if(mshb.vtx.pos     ())pos     =mshb.vtx.pos     (i);
-      if(mshb.vtx.nrm     ())nrm     =mshb.vtx.nrm     (i);
-      if(mshb.vtx.tan     ())tan     =mshb.vtx.tan     (i);
-      if(mshb.vtx.bin     ())bin     =mshb.vtx.bin     (i);
-      if(mshb.vtx.hlp     ())hlp     =mshb.vtx.hlp     (i);
-      if(mshb.vtx.tex0    ())tex0    =mshb.vtx.tex0    (i);
-      if(mshb.vtx.tex1    ())tex1    =mshb.vtx.tex1    (i);
-      if(mshb.vtx.tex2    ())tex2    =mshb.vtx.tex2    (i);
-      if(mshb.vtx.color   ())color   =mshb.vtx.color   (i);
-      if(mshb.vtx.material())material=mshb.vtx.material(i);
-      if(mshb.vtx.matrix  ())matrix  =mshb.vtx.matrix  (i);
-      if(mshb.vtx.blend   ())blend   =mshb.vtx.blend   (i);
-      if(mshb.vtx.size    ())size    =mshb.vtx.size    (i);
-   }
+      if(mshb.vtx.pos     ())pos     =mshb.vtx.pos     (i);else pos.zero();
+      if(mshb.vtx.nrm     ())nrm     =mshb.vtx.nrm     (i);else nrm.zero();
+      if(mshb.vtx.tan     ())tan     =mshb.vtx.tan     (i);else tan.zero();
+      if(mshb.vtx.bin     ())bin     =mshb.vtx.bin     (i);else bin.zero();
+      if(mshb.vtx.hlp     ())hlp     =mshb.vtx.hlp     (i);else hlp.zero();
+      if(mshb.vtx.tex0    ())tex0    =mshb.vtx.tex0    (i);else tex0.zero();
+      if(mshb.vtx.tex1    ())tex1    =mshb.vtx.tex1    (i);else tex1.zero();
+      if(mshb.vtx.tex2    ())tex2    =mshb.vtx.tex2    (i);else tex2.zero();
+      if(mshb.vtx.color   ())color   =mshb.vtx.color   (i);else color=WHITE;
+      if(mshb.vtx.material())material=mshb.vtx.material(i);else material.set(255, 0, 0, 0); // !! 'material.sum' must be exactly equal to 255 !!
+      if(mshb.vtx.matrix  ())matrix  =mshb.vtx.matrix  (i);else matrix  .zero();
+      if(mshb.vtx.blend   ())blend   =mshb.vtx.blend   (i);else blend   .set(255, 0, 0, 0); // !!    'blend.sum' must be exactly equal to 255 !!
+      if(mshb.vtx.size    ())size    =mshb.vtx.size    (i);else size=0;
+   }else reset();
    return T;
 }
 void VtxFull::to(MeshBase &mshb, Int i)C

@@ -1274,6 +1274,16 @@ struct VecB4 // Vector 4D (Byte)
    friend VecB4 operator+ (C VecB4 &v, Int i) {return VecB4(v.x+i, v.y+i, v.z+i, v.w+i);}
    friend VecB4 operator- (C VecB4 &v, Int i) {return VecB4(v.x-i, v.y-i, v.z-i, v.w-i);}
 
+   friend Vec4 operator+ (C VecB4 &v, Flt f) {return Vec4(v.x+f, v.y+f, v.z+f, v.w+f);}
+   friend Vec4 operator- (C VecB4 &v, Flt f) {return Vec4(v.x-f, v.y-f, v.z-f, v.w-f);}
+   friend Vec4 operator* (C VecB4 &v, Flt f) {return Vec4(v.x*f, v.y*f, v.z*f, v.w*f);}
+   friend Vec4 operator/ (C VecB4 &v, Flt f) {return Vec4(v.x/f, v.y/f, v.z/f, v.w/f);}
+
+   friend Vec4 operator+ (Flt f, C VecB4 &v) {return Vec4(f+v.x, f+v.y, f+v.z, f+v.w);}
+   friend Vec4 operator- (Flt f, C VecB4 &v) {return Vec4(f-v.x, f-v.y, f-v.z, f-v.w);}
+   friend Vec4 operator* (Flt f, C VecB4 &v) {return Vec4(f*v.x, f*v.y, f*v.z, f*v.w);}
+   friend Vec4 operator/ (Flt f, C VecB4 &v) {return Vec4(f/v.x, f/v.y, f/v.z, f/v.w);}
+
    Bool   any         (         )C {return u!=0            ;}                             // if any component  is  non-zero, faster version of "x || y || z || w"
    Bool   all         (         )C {return x && y && z && w;}                             // if all components are non-zero
    Bool   allZero     (         )C {return u==0;}                                         // if all components are     zero

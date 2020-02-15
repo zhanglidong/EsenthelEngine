@@ -207,38 +207,58 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    {
       Vec   hlp, nrm;
       Vec2  tex0, tex1, tex2;
-      Vec4  color, material;
+      Vec4  color, material; // here material is allowed to be 0, because 'to' method supports that case
       VecB4 matrix, blend;
       Flt   size;
 
+      void zero()
+      {
+         Zero(T);
+         color=1;
+         blend.x=255; // !! 'blend.sum' must be exactly equal to 255 !!
+      }
       void from(C MeshBase &mshb, Int i)
       {
-         VtxFull vtx; vtx.from(mshb, i);
-         hlp=vtx.hlp;
-         nrm=vtx.nrm;
-         tex0=vtx.tex0;
-         tex1=vtx.tex1;
-         tex2=vtx.tex2;
-         color=vtx.color;
-         material=vtx.material; material/=255;
-         matrix=vtx.matrix;
-         blend=vtx.blend;
-         size=vtx.size;
+         if(InRange(i, mshb.vtx))
+         {
+          //if(mshb.vtx.pos     ())pos     =mshb.vtx.pos     (i);else pos.zero();
+            if(mshb.vtx.hlp     ())hlp     =mshb.vtx.hlp     (i);else hlp.zero();
+            if(mshb.vtx.nrm     ())nrm     =mshb.vtx.nrm     (i);else nrm.zero();
+          //if(mshb.vtx.tan     ())tan     =mshb.vtx.tan     (i);else tan.zero();
+          //if(mshb.vtx.bin     ())bin     =mshb.vtx.bin     (i);else bin.zero();
+            if(mshb.vtx.tex0    ())tex0    =mshb.vtx.tex0    (i);else tex0.zero();
+            if(mshb.vtx.tex1    ())tex1    =mshb.vtx.tex1    (i);else tex1.zero();
+            if(mshb.vtx.tex2    ())tex2    =mshb.vtx.tex2    (i);else tex2.zero();
+            if(mshb.vtx.color   ())color   =mshb.vtx.color   (i);else color=1;
+            if(mshb.vtx.material())material=mshb.vtx.material(i)/255.0f;else material.zero();
+            if(mshb.vtx.matrix  ())matrix  =mshb.vtx.matrix  (i);else matrix.zero();
+            if(mshb.vtx.blend   ())blend   =mshb.vtx.blend   (i);else blend.set(255, 0, 0, 0); // !! 'blend.sum' must be exactly equal to 255 !!
+            if(mshb.vtx.size    ())size    =mshb.vtx.size    (i);else size=0;
+         }else zero();
       }
-      void to(MeshBase &mshb, Int i)
+      void to(MeshBase &mshb, Int i)C
       {
-         VtxFull vtx;
-         vtx.hlp=hlp;
-         vtx.nrm=nrm;
-         vtx.tex0=tex0;
-         vtx.tex1=tex1;
-         vtx.tex2=tex2;
-         vtx.color=color;
-         if(Flt sum=material.sum())material/=sum; Color mc=material; vtx.material.set(mc.r, mc.g, mc.b, mc.a);
-         vtx.matrix=matrix;
-         vtx.blend=blend;
-         vtx.size=size;
-         vtx.to(mshb, i);
+         if(InRange(i, mshb.vtx))
+         {
+          //if(mshb.vtx.pos     ())mshb.vtx.pos     (i)=pos;
+            if(mshb.vtx.hlp     ())mshb.vtx.hlp     (i)=hlp;
+            if(mshb.vtx.nrm     ())mshb.vtx.nrm     (i)=nrm;
+          //if(mshb.vtx.tan     ())mshb.vtx.tan     (i)=tan;
+          //if(mshb.vtx.bin     ())mshb.vtx.bin     (i)=bin;
+            if(mshb.vtx.tex0    ())mshb.vtx.tex0    (i)=tex0;
+            if(mshb.vtx.tex1    ())mshb.vtx.tex1    (i)=tex1;
+            if(mshb.vtx.tex2    ())mshb.vtx.tex2    (i)=tex2;
+            if(mshb.vtx.color   ())mshb.vtx.color   (i)=color;
+            if(mshb.vtx.matrix  ())mshb.vtx.matrix  (i)=matrix;
+            if(mshb.vtx.blend   ())mshb.vtx.blend   (i)=blend;
+            if(mshb.vtx.size    ())mshb.vtx.size    (i)=size;
+            if(mshb.vtx.dup     ())mshb.vtx.dup     (i)=i;
+            if(mshb.vtx.material())
+            {
+               VecB4 &m=mshb.vtx.material(i);
+               if(Flt sum=material.sum()){Color mc=material/sum; m.set(mc.r, mc.g, mc.b, mc.a);}else m.set(255, 0, 0, 0); // !! 'material.sum' must be exactly equal to 255 !!
+            }
+         }
       }
       void lerp(C VtxData &a, C VtxData &b, Flt step, UInt flag)
       {
@@ -1144,7 +1164,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
       // check visibility add tri count
       Bool visible=(!mesh_part || !(mesh_part->part_flag&MSHP_HIDDEN));
-      if(  visible)visible_tris+=mesh_part->trisTotal();
+      if(  visible)visible_tris+=mesh.trisTotal();
 
       // set material group
       MtrlGroup mtrl_group(mesh_flag, mesh_part);
