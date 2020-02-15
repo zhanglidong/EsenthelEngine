@@ -1376,7 +1376,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          Triangle &tri=tris[i]; if(tri.error_min>max_error || stop())break; // tris are sorted by their error, so if we've reached the one above the limit, then stop
 
          Int i=MinI(tri.edge_error[0], tri.edge_error[1], tri.edge_error[2]);
-         Int edge_vtx0i=tri.ind.c[ i     ]; Vertex &edge_vtx0=vtxs[edge_vtx0i]; 
+         Int edge_vtx0i=tri.ind.c[ i     ]; Vertex &edge_vtx0=vtxs[edge_vtx0i];
          Int edge_vtx1i=tri.ind.c[(i+1)%3]; Vertex &edge_vtx1=vtxs[edge_vtx1i];
 
          // border check
