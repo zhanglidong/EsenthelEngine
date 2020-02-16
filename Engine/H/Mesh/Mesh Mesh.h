@@ -131,6 +131,8 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    Mesh& weldVtx      (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
    Mesh& weldVtxValues(UInt flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
+   Mesh& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
+
    Mesh& tesselate(); // smooth subdivide faces, preserving original vertexes
    Mesh& subdivide(); // smooth subdivide faces,  smoothing original vertexes
 

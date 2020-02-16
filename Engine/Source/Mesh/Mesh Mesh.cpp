@@ -403,9 +403,10 @@ Mesh& Mesh::weldVtx2D    (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degene
 Mesh& Mesh::weldVtx      (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtx      (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
 Mesh& Mesh::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtxValues(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
 
-Mesh& Mesh::weldEdge () {REP(lods())lod(i).weldEdge (); return T;}
-Mesh& Mesh::tesselate() {REP(lods())lod(i).tesselate(); return T;}
-Mesh& Mesh::subdivide() {REP(lods())lod(i).subdivide(); return T;}
+Mesh& Mesh::weldEdge   () {REP(lods())lod(i).weldEdge   (); return T;}
+Mesh& Mesh::explodeVtxs() {REP(lods())lod(i).explodeVtxs(); return T;}
+Mesh& Mesh::tesselate  () {REP(lods())lod(i).tesselate  (); return T;}
+Mesh& Mesh::subdivide  () {REP(lods())lod(i).subdivide  (); return T;}
 
 Int Mesh::boneFind(CChar8 *bone_name)C {return _bone_map.find(bone_name);}
 
