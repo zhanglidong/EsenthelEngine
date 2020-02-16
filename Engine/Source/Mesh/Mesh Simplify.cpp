@@ -1488,8 +1488,14 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          mesh.vtx.pos(vtx_index+1)=vtxs[tri.ind.y].pos;
          mesh.vtx.pos(vtx_index+2)=vtxs[tri.ind.z].pos;
       }
+
+      // this needs to be done before welding vertexes so we don't weld with big tan/bin differences
+      if(flags&VTX_TAN)mesh.setTangents ();
+      if(flags&VTX_BIN)mesh.setBinormals();
+
       mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
-      // recalculate precisely
+
+      // recalculate again after welding to smoothen out
       if(flags&VTX_TAN)mesh.setTangents ();
       if(flags&VTX_BIN)mesh.setBinormals();
    }
@@ -1543,16 +1549,22 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       }
       REPA(parts) // go from the end so we can remove if needed
       {
-         MeshBase &mesh=parts[i].base;
-         mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
          if(stop())return;
-         if(!mesh.is())parts.remove(i, true);else // if became empty, then just remove it
-         {
-            // recalculate precisely
-            UInt flag=part_infos[i].flag;
-            if(flag&VTX_TAN)mesh.setTangents ();
-            if(flag&VTX_BIN)mesh.setBinormals();
-         }
+
+         MeshBase &mesh=parts[i].base;
+
+         // this needs to be done before welding vertexes so we don't weld with big tan/bin differences
+         UInt flag=part_infos[i].flag;
+         if(flag&VTX_TAN)mesh.setTangents ();
+         if(flag&VTX_BIN)mesh.setBinormals();
+
+         mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
+
+         // recalculate again after welding to smoothen out
+         if(flag&VTX_TAN)mesh.setTangents ();
+         if(flag&VTX_BIN)mesh.setBinormals();
+
+         if(!mesh.is())parts.remove(i, true); // if became empty, then just remove it
       }
    }
 };
