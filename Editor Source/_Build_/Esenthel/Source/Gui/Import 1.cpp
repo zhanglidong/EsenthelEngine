@@ -495,7 +495,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                   mesh_data->obj_id=elm->id;
 
                   Mesh edit_mesh, game_mesh; if(game.mesh())edit_mesh.create(*game.mesh());
-                  edit_mesh.setBase().delRender();
+                  edit_mesh.setBase().delRender().keepOnly(EditMeshFlagAnd);
 
                   // adjust materials
                   Adjust(edit_mesh);
@@ -594,7 +594,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                mesh_data->src_file=file;
                mesh_data->obj_id=elm.id;
 
-               edit_mesh.setBase().delRender();
+               edit_mesh.setBase().delRender().keepOnly(EditMeshFlagAnd);
 
                // adjust materials
                Adjust(edit_mesh);

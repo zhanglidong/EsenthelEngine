@@ -212,15 +212,17 @@
                {
                 C VecI2 &v=vtxs[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
                   {
-                     parts.binaryInclude(v.x);
                      MeshBase &base=part->base; if(InRange(v.y, base.vtx))
                      {
+                        parts.binaryInclude(v.x);
                         if(trans_normal && base.vtx.pos() && base.vtx.nrm())base.vtx.pos(v.y)+=base.vtx.nrm(v.y)*trans_normal; // transform before transforming by matrix
                         if(base.vtx.pos())base.vtx.pos(v.y)*=matrix;
                         if(base.vtx.hlp())base.vtx.hlp(v.y)*=matrix;
                         if(base.vtx.nrm())base.vtx.nrm(v.y)*=matrix_n;
+                     #if 0 // we'll just recalc tan/bin later
                         if(base.vtx.tan())base.vtx.tan(v.y)*=matrix_n;
                         if(base.vtx.bin())base.vtx.bin(v.y)*=matrix_n;
+                     #endif
                         if(base.vtx.tex0()){Vec2 &t=base.vtx.tex0(v.y); t=t*scale_uv+move_uv;}
                      }
                   }
@@ -229,9 +231,13 @@
                {
                   MeshPart &part=lod.parts[parts[i]];
                   Normalize(part.base.vtx.nrm(), part.base.vtxs());
+               #if 0 // can't do this
                   Normalize(part.base.vtx.tan(), part.base.vtxs());
                   Normalize(part.base.vtx.bin(), part.base.vtxs());
-                  part.base.setTangents().setBinormals(); part.setRender();
+               #else // have to recalc tan/bin, because if only some vertexes were moved, then tan/bin could be totally different
+                  part.base.setTangents().setBinormals();
+               #endif
+                  part.setRender();
                }
             }else
             REPA(lod)if(ObjEdit.partOp(i))

@@ -114,7 +114,7 @@ void ObjView::meshWeldPos(flt pos_eps)
    MeshLod &lod=getLod();
    REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
    {
-           part->base.weldVtxValues(VTX_POS, pos_eps, EPS_COL_COS, remove_degenerate_faces_eps); // only weld vtx positions, but keep as separate vtx's
+           part->base.weldVtxValues(VTX_POS, pos_eps, -1, remove_degenerate_faces_eps); // only weld vtx positions, but keep as separate vtx's, use -1 for 'nrm_cos' to ignore vtx normal tests
       if(1)part->base.weldVtx      (VTX_ALL, pos_eps, EPS_COL_COS, -1); // weld vtxs as one, don't remove degen faces because we've already done it above
       part->setRender();
       changed=true;
@@ -202,7 +202,7 @@ void ObjView::meshReverseN()
       REPA(changed_parts)
       {
          MeshPart &part=lod.parts[changed_parts[i]];
-         part.base.setTangents().setBinormals(); part.setRender();
+         /*part.base.setTangents().setBinormals(); not affected by normals*/ part.setRender();
          changed=true;
       }
    }else
@@ -210,7 +210,7 @@ void ObjView::meshReverseN()
       REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
       {
          Chs(part->base.vtx.nrm(), part->base.vtxs());
-         part->base.setTangents().setBinormals(); part->setRender();
+         /*part.base.setTangents().setBinormals(); not affected by normals*/ part->setRender();
          changed=true;
       }
    }
@@ -244,7 +244,7 @@ void ObjView::meshSetNrm(uint vtx_test)
                changed=true;
             }
          }
-         lod.setTangents().setBinormals().setRender().exclude(VTX_DUP);
+         lod.setTangents().setBinormals().setRender().exclude(VTX_DUP); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
       }
    }else
    {
@@ -254,7 +254,7 @@ void ObjView::meshSetNrm(uint vtx_test)
          if(vtx_test)base.setVtxDup(vtx_test, pos_eps);else base.exclude(VTX_DUP);
          base.setNormals();
          if(avg)REPA(base.vtx)base.vtx.nrm(i)=!Avg(base.vtx.nrm(i), temp.vtx.nrm(i));
-         base.setTangents().setBinormals(); part->setRender();
+         base.setTangents().setBinormals(); part->setRender(); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
          changed=true;
       }
       lod.exclude(VTX_DUP);
@@ -299,7 +299,7 @@ void ObjView::meshSetNrmH()
                      changed_part=true;
                   }
                }
-               if(changed_part){base.setTangents().setBinormals(); part->setRender(); changed=true;}
+               if(changed_part){/*base.setTangents().setBinormals(); not affected by normals*/ part->setRender(); changed=true;}
             }
          }
       }
@@ -334,7 +334,7 @@ void ObjView::meshNrmY()
                changed=true;
             }
          }
-         lod.setTangents().setBinormals().setRender();
+         lod./*setTangents().setBinormals(). not affected by normals*/setRender();
       }
    }else
    {
@@ -343,7 +343,7 @@ void ObjView::meshNrmY()
          MeshBase &base=part->base; if(base.vtx.nrm())
          {
             REPA(base.vtx)AlignVtxNormal(base.vtx.nrm(i), dest);
-            base.setTangents().setBinormals(); part->setRender();
+            /*base.setTangents().setBinormals(); not affected by normals*/ part->setRender();
             changed=true;
          }
       }
@@ -430,8 +430,7 @@ void ObjView::meshCreateFace()
                if(base.vtx.blend   ())base.vtx.blend   (v).set(255, 0, 0, 0);
                if(base.vtx.tex0    ()){C Vec &pos=base.vtx.pos(v); base.vtx.tex0(v).set(Dot(pos, tex_matrix.x), Dot(pos, tex_matrix.y));}
             }
-            if(base.vtx.tan())base.setTangents ();
-            if(base.vtx.bin())base.setBinormals();
+            base.setTangents().setBinormals(); // when adding vertex we need to calc its tan/bin, have to call before 'weldVtx'
             base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're only adding new faces
          }
          part->setRender();
@@ -741,7 +740,7 @@ void ObjView::meshCopyParts()
                mesh.variationInclude(src_mesh);
                getLod().add(src_mesh, &src_mesh, &mesh);
             }else  mesh.add(src_mesh); // otherwise copy to entire mesh
-            mesh.setTangents().setBinormals().setRender().setBox();
+            mesh.setTangents().setBinormals().setRender().setBox(); // set tan/bin because src mesh from disk doesn't have them
             Memc<int> sel_parts; REP(getLod().parts.elms()-old_parts)sel_parts.add(old_parts+i);
             mesh_parts.selParts(sel_parts);
             changed=true;
