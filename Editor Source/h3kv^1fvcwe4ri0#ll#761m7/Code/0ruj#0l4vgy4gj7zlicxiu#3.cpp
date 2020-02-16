@@ -2486,16 +2486,18 @@ bool HasMaterial(C MeshPart &part, C MaterialPtr &material)
 /******************************************************************************/
 bool FixVtxNrm(MeshBase &base)
 {
-   bool ok=false;
-   MeshBase temp(base, VTX_POS|FACE_IND); temp.setNormals();
-   if(base.vtxs()==temp.vtxs() && temp.vtx.nrm()) // safety checks
+   bool ok=false; if(base.vtx.nrm())
    {
-      ok=true;
-      REPA(base.vtx)
+      MeshBase temp(base, VTX_POS|FACE_IND); temp.setNormals(); // copy to a temp mesh and set its vtx normals
+      if(base.vtxs()==temp.vtxs() && temp.vtx.nrm()) // safety checks
       {
-         Vec &nrm=base.vtx.nrm(i); if(!nrm.any())
+         ok=true;
+         REPA(base.vtx)
          {
-            nrm=temp.vtx.nrm(i); if(!nrm.any())ok=false;
+            Vec &nrm=base.vtx.nrm(i); if(!nrm.any()) // if any 'base' vtx normal is zero
+            {
+               nrm=temp.vtx.nrm(i); if(!nrm.any())ok=false; // copy from 'temp'
+            }
          }
       }
    }
@@ -2521,6 +2523,8 @@ void FixMesh(Mesh &mesh)
             {
                base.explodeVtxs();
                FixVtxNrm(base);
+               if(!base.vtx.tan())base.setTangents (); // if doesn't have yet, then create, need to call before 'weldVtx'
+               if(!base.vtx.bin())base.setBinormals(); // if doesn't have yet, then create, need to call before 'weldVtx'
                base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
             }
             break;
