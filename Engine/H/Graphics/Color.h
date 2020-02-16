@@ -71,6 +71,9 @@ const Color
 const Vec ColorLumWeight (0.2126f, 0.7152f, 0.0722f), // ITU BT.709 - https://en.wikipedia.org/wiki/Rec._709
           ColorLumWeight2(0.2990f, 0.5870f, 0.1140f); // ITU BT.601 - https://en.wikipedia.org/wiki/Rec._601
 /******************************************************************************/
+Vec4 operator*(Flt f, C Color &c);
+Vec4 operator*(C Color &c, Flt f);
+
 Color ColorI(Int i); // get one of the few major colors based on 'i' index, for example: ColorI(0)->RED, ColorI(1)->GREEN, ColorI(2)->BLUE, ...
 
 Color ColorInverse     (C Color &color                              ); // get inversed color                                 , (1-r         , 1-g         , 1-b         , a       )

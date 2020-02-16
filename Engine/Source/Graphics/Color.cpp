@@ -67,6 +67,23 @@ Bool Color::fromHex(C Str &t)
    ASSERT(SIZE(T)==4); return TextHexMem(t, this, SIZE(T));
 }
 /******************************************************************************/
+Vec4 operator*(Flt f, C Color &c)
+{
+   f/=255;
+   return Vec4(c.r*f,
+               c.g*f,
+               c.b*f,
+               c.a*f);
+}
+Vec4 operator*(C Color &c, Flt f)
+{
+   f/=255;
+   return Vec4(c.r*f,
+               c.g*f,
+               c.b*f,
+               c.a*f);
+}
+/******************************************************************************/
 Color ColorI(Int i) {return ColorArray[Mod(i, Elms(ColorArray))];}
 /******************************************************************************/
 Color ColorInverse(C Color &color)
