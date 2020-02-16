@@ -99,6 +99,7 @@ void MeshGroup::copyParams(C MeshGroup &src)
 /******************************************************************************/
 UInt MeshGroup::flag     ()C {UInt flag=0; REPA(T)flag|=meshes[i].flag     (); return flag;}
 Int  MeshGroup::vtxs     ()C {Int  n   =0; REPA(T)n   +=meshes[i].vtxs     (); return n   ;}
+Int  MeshGroup::baseVtxs ()C {Int  n   =0; REPA(T)n   +=meshes[i].baseVtxs (); return n   ;}
 Int  MeshGroup::edges    ()C {Int  n   =0; REPA(T)n   +=meshes[i].edges    (); return n   ;}
 Int  MeshGroup::tris     ()C {Int  n   =0; REPA(T)n   +=meshes[i].tris     (); return n   ;}
 Int  MeshGroup::quads    ()C {Int  n   =0; REPA(T)n   +=meshes[i].quads    (); return n   ;}
@@ -160,64 +161,66 @@ MeshGroup& MeshGroup::weldVtx2D    (UInt flag, Flt pos_eps, Flt nrm_cos, Flt rem
 MeshGroup& MeshGroup::weldVtx      (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPAO(meshes).weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
 MeshGroup& MeshGroup::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
-   struct VtxDupIndex : VtxDupNrm
+   flag&=T.flag(); // can weld only values that we have
+   if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
    {
-      VecI index;
-      Int  count;
-   };
-   flag&=T.flag();
-
-   // create vertex array
-   Int vtx_num=0; REPAD(m, T){Mesh &mesh=T.meshes[m]; REPAD(p, mesh.parts)vtx_num+=mesh.parts[p].base.vtxs();} // do not use T.vtxs() as it includes MeshRender
-   Memc<VtxDupIndex> vtxs; vtxs.setNum(vtx_num); vtx_num=0;
-   REPAD(m, T)
-   {
-      Mesh &mesh=T.meshes[m];
-      REPAD(p, mesh.parts)
+      struct VtxDupIndex : VtxDupNrm
       {
-         MeshBase &mshb=mesh.parts[p].base;
-       C Vec      *nrm =mshb.vtx.nrm();
-         REPA(mshb.vtx)
+         VecI index;
+         Int  count;
+      };
+
+      // create vertex array
+      Int vtx_num=baseVtxs();
+      Memc<VtxDupIndex> vtxs; vtxs.setNum(vtx_num); vtx_num=0;
+      REPAD(m, T)
+      {
+         Mesh &mesh=T.meshes[m];
+         REPAD(p, mesh.parts)
          {
-            VtxDupIndex &vtx=vtxs[vtx_num++];
-            vtx.pos  =mshb.vtx.pos(i);
-            vtx.nrm  =(nrm ? nrm[i] : VecZero);
-            vtx.index.set(i, p, m);
-            vtx.count=0;
+            MeshBase &mshb=mesh.parts[p].base;
+          C Vec      *nrm =mshb.vtx.nrm();
+            REPA(mshb.vtx)
+            {
+               VtxDupIndex &vtx=vtxs[vtx_num++];
+               vtx.pos  =mshb.vtx.pos(i);
+               vtx.nrm  =(nrm ? nrm[i] : VecZero);
+               vtx.index.set(i, p, m);
+               vtx.count=0;
+            }
          }
       }
-   }
 
-   // get vtx dup
-   SetVtxDup(SCAST(Memc<VtxDupNrm>, vtxs), ext, pos_eps, nrm_cos);
+      // get vtx dup
+      SetVtxDup(SCAST(Memc<VtxDupNrm>, vtxs), ext, pos_eps, nrm_cos);
 
-   // weld
-   REPA(vtxs)
-   {
-      VtxDupIndex &vn=vtxs[i]; vtxs[vn.dup].count++; if(vn.dup!=i)
+      // weld
+      REPA(vtxs)
       {
-         VtxDupIndex &vd=vtxs[vn.dup];
-         if(flag&VTX_POS )meshes[vn.index.z].parts[vn.index.y].base.vtx.pos (vn.index.x) =meshes[vd.index.z].parts[vd.index.y].base.vtx.pos (vd.index.x);
-         if(flag&VTX_NRM )meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x);
-         if(flag&VTX_TAN )meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x);
-         if(flag&VTX_BIN )meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x);
-         if(flag&VTX_HLP )meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x);
-         if(flag&VTX_TEX0)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x);
-         if(flag&VTX_TEX1)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x);
-         if(flag&VTX_TEX2)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x);
+         VtxDupIndex &vn=vtxs[i]; vtxs[vn.dup].count++; if(vn.dup!=i)
+         {
+            VtxDupIndex &vd=vtxs[vn.dup];
+            if(flag&VTX_POS )meshes[vn.index.z].parts[vn.index.y].base.vtx.pos (vn.index.x) =meshes[vd.index.z].parts[vd.index.y].base.vtx.pos (vd.index.x);
+            if(flag&VTX_NRM )meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x);
+            if(flag&VTX_TAN )meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x);
+            if(flag&VTX_BIN )meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x);
+            if(flag&VTX_HLP )meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x);
+            if(flag&VTX_TEX0)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x);
+            if(flag&VTX_TEX1)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x);
+            if(flag&VTX_TEX2)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x);
+         }
       }
+      if(flag&VTX_NRM ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x);}}
+      if(flag&VTX_TAN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x);}}
+      if(flag&VTX_BIN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x);}}
+      if(flag&VTX_HLP ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x);}}
+      if(flag&VTX_TEX0){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x);}}
+      if(flag&VTX_TEX1){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x);}}
+      if(flag&VTX_TEX2){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x);}}
+
+      // remove degenerate faces
+      if((flag&VTX_POS) && remove_degenerate_faces_eps>=0)removeDegenerateFaces(remove_degenerate_faces_eps);
    }
-   if(flag&VTX_NRM ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x);}}
-   if(flag&VTX_TAN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x);}}
-   if(flag&VTX_BIN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x);}}
-   if(flag&VTX_HLP ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x);}}
-   if(flag&VTX_TEX0){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x);}}
-   if(flag&VTX_TEX1){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x);}}
-   if(flag&VTX_TEX2){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x);}}
-
-   // remove degenerate faces
-   if(flag&VTX_POS && remove_degenerate_faces_eps>=0)removeDegenerateFaces(remove_degenerate_faces_eps);
-
    return T;
 }
 MeshGroup& MeshGroup::freeOpenGLESData() {REPAO(meshes).freeOpenGLESData(); return T;}

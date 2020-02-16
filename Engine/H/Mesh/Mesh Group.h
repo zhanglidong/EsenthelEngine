@@ -28,6 +28,9 @@ struct MeshGroup // Mesh Group (array of Meshes)
    Bool is       ()C {return meshes.elms()>0;} // if has any meshes
    UInt flag     ()C; // get MESH_BASE_FLAG
    Int  vtxs     ()C; // get total number of vertexes
+#if EE_PRIVATE
+   Int  baseVtxs ()C; // get total number of vertexes in MeshBase only, without MeshRender
+#endif
    Int  edges    ()C; // get total number of edges
    Int  tris     ()C; // get total number of triangles
    Int  quads    ()C; // get total number of quads

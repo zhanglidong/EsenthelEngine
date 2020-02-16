@@ -1559,11 +1559,6 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          if(flag&VTX_BIN)mesh.setBinormals();
 
          mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
-
-         // recalculate again after welding to smoothen out
-         if(flag&VTX_TAN)mesh.setTangents ();
-         if(flag&VTX_BIN)mesh.setBinormals();
-
          if(!mesh.is())parts.remove(i, true); // if became empty, then just remove it
       }
    }

@@ -48,6 +48,7 @@ MeshLod& MeshLod::keepOnly(UInt flag) {REPAO(parts).keepOnly(flag); return T;}
 UInt MeshLod::flag     ()C {UInt flag =0; REPA(T)flag |=parts[i].flag     (); return flag ;}
 UInt MeshLod::memUsage ()C {UInt size =0; REPA(T)size +=parts[i].memUsage (); return size ;}
 Int  MeshLod::vtxs     ()C {Int  vtxs =0; REPA(T)vtxs +=parts[i].vtxs     (); return vtxs ;}
+Int  MeshLod::baseVtxs ()C {Int  vtxs =0; REPA(T)vtxs +=parts[i].base.vtxs(); return vtxs ;}
 Int  MeshLod::edges    ()C {Int  edges=0; REPA(T)edges+=parts[i].edges    (); return edges;}
 Int  MeshLod::tris     ()C {Int  tris =0; REPA(T)tris +=parts[i].tris     (); return tris ;}
 Int  MeshLod::quads    ()C {Int  quads=0; REPA(T)quads+=parts[i].quads    (); return quads;}
@@ -120,7 +121,7 @@ MeshLod& MeshLod::setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges)
    };
 
    // create vertex array
-   Int vtx_num=0; REPA(parts)vtx_num+=parts[i].base.vtxs(); // do not use T.vtxs() as it includes 'MeshRender'
+   Int vtx_num=baseVtxs();
    Memc<VtxDupIndex> vtxs; vtxs.setNum(vtx_num); vtx_num=0;
    REPAD(p, T)
    {
@@ -405,8 +406,8 @@ MeshLod& MeshLod::weldVtx2D    (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_
 MeshLod& MeshLod::weldVtx      (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPA(T)parts[i].base.weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
 MeshLod& MeshLod::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
-   flag&=T.flag();
-   if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE))
+   flag&=T.flag(); // can weld only values that we have
+   if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
    {
       struct VtxDupIndex : VtxDupNrm
       {
@@ -418,7 +419,7 @@ MeshLod& MeshLod::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_
       Box box; if(!getBox(box))return T;
 
       // create vertex array
-      Int vtx_num=0; REPA(parts)vtx_num+=parts[i].base.vtxs(); // do not use T.vtxs() as it includes MeshRender
+      Int vtx_num=baseVtxs();
       Memc<VtxDupIndex> vtxs; vtxs.setNum(vtx_num); vtx_num=0;
       REPAD(p, T)
       {

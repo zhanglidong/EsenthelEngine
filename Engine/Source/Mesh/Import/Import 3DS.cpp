@@ -228,6 +228,8 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
             if(mesh.vtx.dup())
             {
                mesh.exclude(VTX_DUP);
+               if(!mesh.vtx.tan())mesh.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+               if(!mesh.vtx.bin())mesh.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
                mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, having duplicates means that we called explode vertexes, which now we need to weld, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
             }
          }

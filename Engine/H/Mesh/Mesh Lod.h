@@ -30,6 +30,9 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    UInt flag     (                                     )C;                            // get MESH_BASE_FLAG
    UInt memUsage (                                     )C;                            // get memory usage
    Int  vtxs     (                                     )C;                            // get total number of vertexes
+#if EE_PRIVATE
+   Int  baseVtxs (                                     )C;                            // get total number of vertexes in MeshBase only, without MeshRender
+#endif
    Int  edges    (                                     )C;                            // get total number of edges
    Int  tris     (                                     )C;                            // get total number of triangles
    Int  quads    (                                     )C;                            // get total number of quads

@@ -220,7 +220,7 @@ Vec  GetNormalU(            C Vec  &p1, C Vec  &p2) {return Cross (p1   , p2   )
 Flt TriArea2(C Vec  &p0, C Vec  &p1, C Vec  &p2) {return Cross(p1-p0, p2-p0).length();}
 Dbl TriArea2(C VecD &p0, C VecD &p1, C VecD &p2) {return Cross(p1-p0, p2-p0).length();}
 
-Vec  GetNormalEdge(C Vec  &p0, C Vec  &p1) // this is called the "Newell" method
+Vec GetNormalEdge(C Vec  &p0, C Vec  &p1) // this is called the "Newell" method
 {
    return Vec((p0.y-p1.y)*(p0.z+p1.z),
               (p0.z-p1.z)*(p0.x+p1.x),

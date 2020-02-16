@@ -270,6 +270,8 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                }
                (quad++)->set(vtxs, vtxs+1, vtxs+2, vtxs+3); vtxs+=4;
             }
+            if(!mshb.vtx.tan())mshb.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+            if(!mshb.vtx.bin())mshb.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
             mshb.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
          }
          mesh->mirrorX().setBox();

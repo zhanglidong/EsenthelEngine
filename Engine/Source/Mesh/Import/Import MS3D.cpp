@@ -295,6 +295,8 @@ Bool ImportMS3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animati
                base.tri.ind(i).set(v+0, v+1, v+2);
             }
             
+            if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+            if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
             base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
          }
          mesh->setBox();

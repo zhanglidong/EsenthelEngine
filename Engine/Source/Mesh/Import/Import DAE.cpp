@@ -1248,7 +1248,10 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                base.tri.ind(i).set(a, b, c); if(reverse)base.tri.ind(i).reverse();
             }
 
-            base.removeUnusedVtxs(); base.weldVtx(VTX_NRM|VTX_TEX_ALL|VTX_SKIN|VTX_COLOR, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+            base.removeUnusedVtxs();
+            if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+            if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
             if( matrixes.elms())base.animate   (matrixes);else base.transform(node.world_matrix);
             if(!base.vtx.nrm ())base.setNormals();
          }
@@ -1381,7 +1384,10 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                poly.clear();
             }
 
-            base.removeUnusedVtxs(); base.weldVtx(VTX_NRM|VTX_TEX_ALL|VTX_SKIN|VTX_COLOR, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+            base.removeUnusedVtxs();
+            if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+            if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
             if( matrixes.elms())base.animate   (matrixes);else base.transform(node.world_matrix);
             if(!base.vtx.nrm ())base.setNormals();
          }
@@ -1515,7 +1521,10 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                poly.clear();
             }
 
-            base.removeUnusedVtxs(); base.weldVtx(VTX_NRM|VTX_TEX_ALL|VTX_SKIN|VTX_COLOR, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+            base.removeUnusedVtxs();
+            if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+            if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
             if( matrixes.elms())base.animate   (matrixes);else base.transform(node.world_matrix);
             if(!base.vtx.nrm ())base.setNormals();
          }

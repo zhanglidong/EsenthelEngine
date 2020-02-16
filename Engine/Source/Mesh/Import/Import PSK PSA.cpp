@@ -190,6 +190,8 @@ Bool ImportPSK(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XMaterial> ma
             base.tri.ind(i).set(c, b, a); // face indexes need to be reversed
          }
 
+         if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
+         if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
          base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1).setVtxDup().setNormals().copyId(*mesh); // use small epsilon in case mesh is scaled down
 
          // material indexes

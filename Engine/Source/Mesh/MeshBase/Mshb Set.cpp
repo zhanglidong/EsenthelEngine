@@ -267,7 +267,7 @@ MeshBase& MeshBase::setTangents()
                  p02=p2-p0;
             Vec  tan=p01*u + p02*v;
               // Flt Tri::area()C {return 0.5f*Cross(p[1]-p[0], p[2]-p[0]).length();}
-                 tan.setLength(Cross(p01, p02).length());
+                 tan.setLength(Cross(p01, p02).length()); // make proportional to face area
             vtx.tan(f.x)+=tan;
             vtx.tan(f.y)+=tan;
             vtx.tan(f.z)+=tan;
@@ -292,7 +292,7 @@ MeshBase& MeshBase::setTangents()
                  p13=p3-p1;
              Vec tan=p01*u + p03*v;
               // Flt Quad::area()C {return 0.5f*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
-                 tan.setLength(Cross(p01, p03).length() + Cross(p12, p13).length());
+                 tan.setLength(Cross(p01, p03).length() + Cross(p12, p13).length()); // make proportional to face area
             vtx.tan(f.x)+=tan;
             vtx.tan(f.y)+=tan;
             vtx.tan(f.z)+=tan;
@@ -336,7 +336,7 @@ MeshBase& MeshBase::setBinormals()
                  p02=p2-p0;
             Vec  bin=p01*u + p02*v;
               // Flt Tri::area()C {return 0.5f*Cross(p[1]-p[0], p[2]-p[0]).length();}
-                 bin.setLength(Cross(p01, p02).length());
+                 bin.setLength(Cross(p01, p02).length()); // make proportional to face area
             vtx.bin(f.x)+=bin;
             vtx.bin(f.y)+=bin;
             vtx.bin(f.z)+=bin;
@@ -361,7 +361,7 @@ MeshBase& MeshBase::setBinormals()
                  p13=p3-p1;
              Vec bin=p01*u + p03*v;
               // Flt Quad::area()C {return 0.5f*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
-                 bin.setLength(Cross(p01, p03).length() + Cross(p12, p13).length());
+                 bin.setLength(Cross(p01, p03).length() + Cross(p12, p13).length()); // make proportional to face area
             vtx.bin(f.x)+=bin;
             vtx.bin(f.y)+=bin;
             vtx.bin(f.z)+=bin;
@@ -387,15 +387,19 @@ MeshBase& MeshBase::setAutoTanBin()
    {
       setTangents(); if(vtx.tan())
       {
-         setBinormals(); if(vtx.bin())
+         setBinormals();
+      #if 0 // skip this because it's used only for game mesh which encodes TanBin together
+         // check if we can remove binormals if they can be reconstructed from Nrm Tan
+         if(vtx.bin())
          {
             REPA(vtx)
             {
                Vec bin=Cross(vtx.nrm(i), vtx.tan(i));
-               if(Dot(bin, vtx.bin(i))<0.99f)return T; // if binormals are different, then it means that binormal is necessary, so keep it and return without deleting it
+               if(Dot(bin, vtx.bin(i))<here some eps_cos)return T; // if binormals are different, then it means that binormal is necessary, so keep it and return without deleting it
             }
             exclude(VTX_BIN); // binormal unnecessary
          }
+      #endif
       }
    }else exclude(VTX_TAN_BIN);
    return T;
