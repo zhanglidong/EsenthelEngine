@@ -268,10 +268,10 @@ public:
    static void MeshSplit      (ObjView &editor); void meshSplit    ();
    static void MeshAlignXZ    (ObjView &editor);      void meshAlign(bool xz);
    static void MeshAlign      (ObjView &editor);   
-   static void MeshWeldPos    (ObjView &editor); void meshWeldPos  ();   void meshWeldPos(flt pos_eps);
-   static void MeshSetPos     (ObjView &editor); void meshSetPos   ();
-   static void MeshReverse    (ObjView &editor); void meshReverse  ();
-   static void MeshReverseN   (ObjView &editor); void meshReverseN ();
+   static void MeshWeldPos    (ObjView &editor); void meshWeldPos   ();   void meshWeldPos(flt pos_eps);
+   static void MeshSetPos     (ObjView &editor); void meshSetPos    ();
+   static void MeshReverse    (ObjView &editor); void meshReverse   ();
+   static void MeshReverseNrm (ObjView &editor); void meshReverseNrm();
    static void MeshSetNormalN (ObjView &editor);         void meshSetNrm(uint vtx_test);
    static void MeshSetNormalT (ObjView &editor);      
    static void MeshSetNormalP (ObjView &editor);      

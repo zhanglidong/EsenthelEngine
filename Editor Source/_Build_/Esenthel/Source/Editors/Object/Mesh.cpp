@@ -179,11 +179,11 @@ void ObjView::meshReverse()
    }
    if(changed)setChangedMesh(true, false);
 }
-void ObjView::meshReverseN()
+void ObjView::meshReverseNrm()
 {
    bool changed=false;
    MeshLod &lod=getLod();
-      mesh_undos.set("reverseN");
+      mesh_undos.set("reverseNrm");
    if(mesh_parts.edit_selected())
    {
       Memt<int  > changed_parts;
