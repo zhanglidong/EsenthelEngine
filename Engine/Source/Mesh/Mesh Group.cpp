@@ -167,7 +167,8 @@ MeshGroup& MeshGroup::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt rem
       struct VtxDupIndex : VtxDupNrm
       {
          VecI index;
-         Int  count;
+         Flt  weight;
+         Vec4 color;
       };
 
       // create vertex array
@@ -179,14 +180,40 @@ MeshGroup& MeshGroup::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt rem
          REPAD(p, mesh.parts)
          {
             MeshBase &mshb=mesh.parts[p].base;
+          C Vec      *pos =mshb.vtx.pos();
           C Vec      *nrm =mshb.vtx.nrm();
-            REPA(mshb.vtx)
+            Int       part_vtx_ofs=vtx_num;
+
+            FREPA(mshb.vtx) // add in order
             {
                VtxDupIndex &vtx=vtxs[vtx_num++];
-               vtx.pos  =mshb.vtx.pos(i);
+               vtx.pos  =(pos ? pos[i] : VecZero);
                vtx.nrm  =(nrm ? nrm[i] : VecZero);
                vtx.index.set(i, p, m);
-               vtx.count=0;
+               vtx.weight=0;
+               vtx.color.zero();
+            }
+
+            // calculate weight for all vertexes based on their face area
+            if(pos)
+            {
+               if(C VecI *tri_ind=mshb.tri.ind())REPA(mshb.tri)
+               {
+                C VecI  &ind=tri_ind[i];
+                  Flt weight=TriArea2(pos[ind.x], pos[ind.y], pos[ind.z]);
+                  vtxs[part_vtx_ofs+ind.x].weight+=weight;
+                  vtxs[part_vtx_ofs+ind.y].weight+=weight;
+                  vtxs[part_vtx_ofs+ind.z].weight+=weight;
+               }
+               if(C VecI4 *quad_ind=mshb.quad.ind())REPA(mshb.quad)
+               {
+                C VecI4 &ind=quad_ind[i];
+                  Flt weight=TriArea2(pos[ind.x], pos[ind.y], pos[ind.w]) + TriArea2(pos[ind.y], pos[ind.z], pos[ind.w]);
+                  vtxs[part_vtx_ofs+ind.x].weight+=weight;
+                  vtxs[part_vtx_ofs+ind.y].weight+=weight;
+                  vtxs[part_vtx_ofs+ind.z].weight+=weight;
+                  vtxs[part_vtx_ofs+ind.w].weight+=weight;
+               }
             }
          }
       }
@@ -194,29 +221,96 @@ MeshGroup& MeshGroup::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt rem
       // get vtx dup
       SetVtxDup(SCAST(Memc<VtxDupNrm>, vtxs), ext, pos_eps, nrm_cos);
 
-      // weld
+      // first scale unique vertex values by their weight
       REPA(vtxs)
       {
-         VtxDupIndex &vn=vtxs[i]; vtxs[vn.dup].count++; if(vn.dup!=i)
+         VtxDupIndex &vn=vtxs[i]; if(vn.dup==i) // unique
          {
-            VtxDupIndex &vd=vtxs[vn.dup];
-            if(flag&VTX_POS )meshes[vn.index.z].parts[vn.index.y].base.vtx.pos (vn.index.x) =meshes[vd.index.z].parts[vd.index.y].base.vtx.pos (vd.index.x);
-            if(flag&VTX_NRM )meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x);
-            if(flag&VTX_TAN )meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x);
-            if(flag&VTX_BIN )meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x);
-            if(flag&VTX_HLP )meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x);
-            if(flag&VTX_TEX0)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x);
-            if(flag&VTX_TEX1)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x);
-            if(flag&VTX_TEX2)meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x)+=meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x);
+            Flt weight=vn.weight;
+            if(flag&VTX_POS     )         meshes[vn.index.z].parts[vn.index.y].base.vtx.pos     (vn.index.x)*=weight;
+          //if(flag&VTX_MATERIAL)         meshes[vn.index.z].parts[vn.index.y].base.vtx.material(vn.index.x)*=weight; VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )         meshes[vn.index.z].parts[vn.index.y].base.vtx.matrix  (vn.index.x)*=weight; VecB4
+          //if(flag&VTX_BLEND   )         meshes[vn.index.z].parts[vn.index.y].base.vtx.blend   (vn.index.x)*=weight; VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )         meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm     (vn.index.x)*=weight;
+            if(flag&VTX_TAN     )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tan     (vn.index.x)*=weight;
+            if(flag&VTX_BIN     )         meshes[vn.index.z].parts[vn.index.y].base.vtx.bin     (vn.index.x)*=weight;
+            if(flag&VTX_HLP     )         meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp     (vn.index.x)*=weight;
+            if(flag&VTX_TEX0    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)*=weight;
+            if(flag&VTX_TEX1    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)*=weight;
+            if(flag&VTX_TEX2    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)*=weight;
+            if(flag&VTX_SIZE    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)*=weight;
+            if(flag&VTX_COLOR   )vn.color=meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x)* weight;
          }
       }
-      if(flag&VTX_NRM ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm (vd.index.x);}}
-      if(flag&VTX_TAN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tan (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tan (vd.index.x);}}
-      if(flag&VTX_BIN ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x).normalize();} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.bin (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.bin (vd.index.x);}}
-      if(flag&VTX_HLP ){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp (vd.index.x);}}
-      if(flag&VTX_TEX0){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0(vd.index.x);}}
-      if(flag&VTX_TEX1){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1(vd.index.x);}}
-      if(flag&VTX_TEX2){REPA(vtxs){VtxDupIndex &vn=vtxs[i]; if(vn.dup==i)meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)/=vn.count  ;} REPA(vtxs){VtxDupIndex &vn=vtxs[i], &vd=vtxs[vn.dup]; meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2(vd.index.x);}}
+
+      // now add duplicate values to unique
+      REPA(vtxs)
+      {
+         VtxDupIndex &vn=vtxs[i]; if(vn.dup!=i) // duplicate
+         {
+            VtxDupIndex &vd=vtxs[vn.dup];
+            Flt weight=vn.weight;
+                                 vd.weight                                                         +=weight;
+            if(flag&VTX_POS     )meshes[vd.index.z].parts[vd.index.y].base.vtx.pos     (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.pos     (vn.index.x);
+          //if(flag&VTX_MATERIAL)meshes[vd.index.z].parts[vd.index.y].base.vtx.material(vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.material(vn.index.x); VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )meshes[vd.index.z].parts[vd.index.y].base.vtx.matrix  (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.matrix  (vn.index.x); VecB4
+          //if(flag&VTX_BLEND   )meshes[vd.index.z].parts[vd.index.y].base.vtx.blend   (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.blend   (vn.index.x); VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm     (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm     (vn.index.x);
+            if(flag&VTX_TAN     )meshes[vd.index.z].parts[vd.index.y].base.vtx.tan     (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tan     (vn.index.x);
+            if(flag&VTX_BIN     )meshes[vd.index.z].parts[vd.index.y].base.vtx.bin     (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.bin     (vn.index.x);
+            if(flag&VTX_HLP     )meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp     (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp     (vn.index.x);
+            if(flag&VTX_TEX0    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x);
+            if(flag&VTX_TEX1    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x);
+            if(flag&VTX_TEX2    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x);
+            if(flag&VTX_SIZE    )meshes[vd.index.z].parts[vd.index.y].base.vtx.size    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x);
+            if(flag&VTX_COLOR   )vd                                           .color               +=weight*vn                                           .color               ;
+         }
+      }
+
+      // normalize unique vertex values
+      REPA(vtxs)
+      {
+         VtxDupIndex &vn=vtxs[i]; if(vn.dup==i) // unique
+            if(Flt weight=vn.weight)
+         {
+            weight=1/weight;
+            if(flag&VTX_POS     )meshes[vn.index.z].parts[vn.index.y].base.vtx.pos     (vn.index.x)*=weight;
+          //if(flag&VTX_MATERIAL)meshes[vn.index.z].parts[vn.index.y].base.vtx.material(vn.index.x)*=weight; VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )meshes[vn.index.z].parts[vn.index.y].base.vtx.matrix  (vn.index.x)*=weight; VecB4
+          //if(flag&VTX_BLEND   )meshes[vn.index.z].parts[vn.index.y].base.vtx.blend   (vn.index.x)*=weight; VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm     (vn.index.x).normalize();
+            if(flag&VTX_TAN     )meshes[vn.index.z].parts[vn.index.y].base.vtx.tan     (vn.index.x).normalize();
+            if(flag&VTX_BIN     )meshes[vn.index.z].parts[vn.index.y].base.vtx.bin     (vn.index.x).normalize();
+            if(flag&VTX_HLP     )meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp     (vn.index.x)*=weight;
+            if(flag&VTX_TEX0    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)*=weight;
+            if(flag&VTX_TEX1    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)*=weight;
+            if(flag&VTX_TEX2    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)*=weight;
+            if(flag&VTX_SIZE    )meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)*=weight;
+            if(flag&VTX_COLOR   )meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x) =weight*vn.color;
+         }
+      }
+
+      // set duplicate vertex values
+      REPA(vtxs)
+      {
+         VtxDupIndex &vn=vtxs[i]; if(vn.dup!=i) // duplicate
+         {
+            VtxDupIndex &vd=vtxs[vn.dup];
+            if(flag&VTX_POS     )meshes[vn.index.z].parts[vn.index.y].base.vtx.pos     (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.pos     (vd.index.x);
+            if(flag&VTX_MATERIAL)meshes[vn.index.z].parts[vn.index.y].base.vtx.material(vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.material(vd.index.x);
+            if(flag&VTX_MATRIX  )meshes[vn.index.z].parts[vn.index.y].base.vtx.matrix  (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.matrix  (vd.index.x);
+            if(flag&VTX_BLEND   )meshes[vn.index.z].parts[vn.index.y].base.vtx.blend   (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.blend   (vd.index.x);
+            if(flag&VTX_NRM     )meshes[vn.index.z].parts[vn.index.y].base.vtx.nrm     (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.nrm     (vd.index.x);
+            if(flag&VTX_TAN     )meshes[vn.index.z].parts[vn.index.y].base.vtx.tan     (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tan     (vd.index.x);
+            if(flag&VTX_BIN     )meshes[vn.index.z].parts[vn.index.y].base.vtx.bin     (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.bin     (vd.index.x);
+            if(flag&VTX_HLP     )meshes[vn.index.z].parts[vn.index.y].base.vtx.hlp     (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.hlp     (vd.index.x);
+            if(flag&VTX_TEX0    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0    (vd.index.x);
+            if(flag&VTX_TEX1    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1    (vd.index.x);
+            if(flag&VTX_TEX2    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2    (vd.index.x);
+            if(flag&VTX_SIZE    )meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.size    (vd.index.x);
+            if(flag&VTX_COLOR   )meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.color   (vd.index.x);
+         }
+      }
 
       // remove degenerate faces
       if((flag&VTX_POS) && remove_degenerate_faces_eps>=0)removeDegenerateFaces(remove_degenerate_faces_eps);

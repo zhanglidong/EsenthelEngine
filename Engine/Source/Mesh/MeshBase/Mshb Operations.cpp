@@ -110,50 +110,126 @@ MeshBase& MeshBase::weldVtx  (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_de
 /******************************************************************************/
 MeshBase& MeshBase::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
-   flag&=T.flag();
-   if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE))
+   flag&=T.flag(); // can weld only values that we have
+   if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
    {
       setVtxDup(0, pos_eps, nrm_cos);
-      Memt<Int  > num  ;                   num  .setNumZero(vtxs());
-      Memt<VecI4> color; if(flag&VTX_COLOR)color.setNumZero(vtxs());
-      // sum all values in duplicates
-      REPA(vtx)
+
+      // calculate weight for all vertexes based on their face area
+      Memt<Flt> vtx_weight; vtx_weight.setNumZero(vtxs());
+      if(C Vec *pos=vtx.pos())
       {
-         Int d=vtx.dup(i); num[d]++; if(d!=i)
+         if(tri.ind())REPA(tri)
          {
-            if(flag&VTX_POS     )vtx.pos     (i) =vtx.pos     (d);
-            if(flag&VTX_MATERIAL)vtx.material(i) =vtx.material(d); // !! sum must be equal to 255 !!
-            if(flag&VTX_MATRIX  )vtx.matrix  (i) =vtx.matrix  (d);
-            if(flag&VTX_BLEND   )vtx.blend   (i) =vtx.blend   (d); // !! sum must be equal to 255 !!
-            if(flag&VTX_NRM     )vtx.nrm     (d)+=vtx.nrm     (i);
-            if(flag&VTX_TAN     )vtx.tan     (d)+=vtx.tan     (i);
-            if(flag&VTX_BIN     )vtx.bin     (d)+=vtx.bin     (i);
-            if(flag&VTX_HLP     )vtx.hlp     (d)+=vtx.hlp     (i);
-            if(flag&VTX_TEX0    )vtx.tex0    (d)+=vtx.tex0    (i);
-            if(flag&VTX_TEX1    )vtx.tex1    (d)+=vtx.tex1    (i);
-            if(flag&VTX_TEX2    )vtx.tex2    (d)+=vtx.tex2    (i);
-            if(flag&VTX_SIZE    )vtx.size    (d)+=vtx.size    (i);
+          C VecI  &ind=tri.ind(i);
+            Flt weight=TriArea2(pos[ind.x], pos[ind.y], pos[ind.z]);
+            vtx_weight[ind.x]+=weight;
+            vtx_weight[ind.y]+=weight;
+            vtx_weight[ind.z]+=weight;
          }
-         if(flag&VTX_COLOR)color[d]+=vtx.color(i).v4;
-      }
-      // first calculate the average values, then set those values
-      if(flag&VTX_NRM  ){REPA(vtx)if(vtx.dup(i)==i)vtx.nrm (i).normalize(); REPA(vtx)vtx.nrm (i)=vtx.nrm (vtx.dup(i));}
-      if(flag&VTX_TAN  ){REPA(vtx)if(vtx.dup(i)==i)vtx.tan (i).normalize(); REPA(vtx)vtx.tan (i)=vtx.tan (vtx.dup(i));}
-      if(flag&VTX_BIN  ){REPA(vtx)if(vtx.dup(i)==i)vtx.bin (i).normalize(); REPA(vtx)vtx.bin (i)=vtx.bin (vtx.dup(i));}
-      if(flag&VTX_HLP  ){REPA(vtx)if(vtx.dup(i)==i)vtx.hlp (i)/=    num[i]; REPA(vtx)vtx.hlp (i)=vtx.hlp (vtx.dup(i));}
-      if(flag&VTX_TEX0 ){REPA(vtx)if(vtx.dup(i)==i)vtx.tex0(i)/=    num[i]; REPA(vtx)vtx.tex0(i)=vtx.tex0(vtx.dup(i));}
-      if(flag&VTX_TEX1 ){REPA(vtx)if(vtx.dup(i)==i)vtx.tex1(i)/=    num[i]; REPA(vtx)vtx.tex1(i)=vtx.tex1(vtx.dup(i));}
-      if(flag&VTX_TEX2 ){REPA(vtx)if(vtx.dup(i)==i)vtx.tex2(i)/=    num[i]; REPA(vtx)vtx.tex2(i)=vtx.tex2(vtx.dup(i));}
-      if(flag&VTX_SIZE ){REPA(vtx)if(vtx.dup(i)==i)vtx.size(i)/=    num[i]; REPA(vtx)vtx.size(i)=vtx.size(vtx.dup(i));}
-      if(flag&VTX_COLOR){REPA(vtx)if(vtx.dup(i)==i)
+         if(quad.ind())REPA(quad)
          {
-            VecI4 &c=color[i];
-            Int    n=num  [i];
-            vtx.color(i).set(DivRound(c.x, n), DivRound(c.y, n), DivRound(c.z, n), DivRound(c.w, n));
+          C VecI4 &ind=quad.ind(i);
+            Flt weight=TriArea2(pos[ind.x], pos[ind.y], pos[ind.w]) + TriArea2(pos[ind.y], pos[ind.z], pos[ind.w]);
+            vtx_weight[ind.x]+=weight;
+            vtx_weight[ind.y]+=weight;
+            vtx_weight[ind.z]+=weight;
+            vtx_weight[ind.w]+=weight;
          }
-         REPA(vtx)vtx.color(i)=vtx.color(vtx.dup(i));
       }
 
+      Memt<Vec4> color; if(flag&VTX_COLOR)color.setNumZero(vtxs());
+
+      // first scale unique vertex values by their weight
+      REPA(vtx)
+      {
+         Int d=vtx.dup(i); if(d==i) // unique
+         {
+            Flt weight=vtx_weight[i];
+            if(flag&VTX_POS     )vtx.pos     (i)*=weight;
+          //if(flag&VTX_MATERIAL)vtx.material(i)*=weight; VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )vtx.matrix  (i)*=weight; VecB4
+          //if(flag&VTX_BLEND   )vtx.blend   (i)*=weight; VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )vtx.nrm     (i)*=weight;
+            if(flag&VTX_TAN     )vtx.tan     (i)*=weight;
+            if(flag&VTX_BIN     )vtx.bin     (i)*=weight;
+            if(flag&VTX_HLP     )vtx.hlp     (i)*=weight;
+            if(flag&VTX_TEX0    )vtx.tex0    (i)*=weight;
+            if(flag&VTX_TEX1    )vtx.tex1    (i)*=weight;
+            if(flag&VTX_TEX2    )vtx.tex2    (i)*=weight;
+            if(flag&VTX_SIZE    )vtx.size    (i)*=weight;
+            if(flag&VTX_COLOR   )color       [i] =weight*vtx.color(i);
+         }
+      }
+
+      // now add duplicate values to unique
+      REPA(vtx)
+      {
+         Int d=vtx.dup(i); if(d!=i) // duplicate
+         {
+            Flt weight=vtx_weight[i];
+                                 vtx_weight  [d]+=weight;
+            if(flag&VTX_POS     )vtx.pos     (d)+=weight*vtx.pos     (i);
+          //if(flag&VTX_MATERIAL)vtx.material(d)+=weight*vtx.material(i); VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )vtx.matrix  (d)+=weight*vtx.matrix  (i); VecB4
+          //if(flag&VTX_BLEND   )vtx.blend   (d)+=weight*vtx.blend   (i); VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )vtx.nrm     (d)+=weight*vtx.nrm     (i);
+            if(flag&VTX_TAN     )vtx.tan     (d)+=weight*vtx.tan     (i);
+            if(flag&VTX_BIN     )vtx.bin     (d)+=weight*vtx.bin     (i);
+            if(flag&VTX_HLP     )vtx.hlp     (d)+=weight*vtx.hlp     (i);
+            if(flag&VTX_TEX0    )vtx.tex0    (d)+=weight*vtx.tex0    (i);
+            if(flag&VTX_TEX1    )vtx.tex1    (d)+=weight*vtx.tex1    (i);
+            if(flag&VTX_TEX2    )vtx.tex2    (d)+=weight*vtx.tex2    (i);
+            if(flag&VTX_SIZE    )vtx.size    (d)+=weight*vtx.size    (i);
+            if(flag&VTX_COLOR   )color       [d]+=weight*vtx.color   (i);
+         }
+      }
+
+      // normalize unique vertex values
+      REPA(vtx)
+      {
+         Int d=vtx.dup(i); if(d==i) // unique
+            if(Flt weight=vtx_weight[i])
+         {
+            weight=1/weight;
+            if(flag&VTX_POS     )vtx.pos     (i)*=weight;
+          //if(flag&VTX_MATERIAL)vtx.material(i)*=weight; VecB4 !! sum must be equal to 255 !!
+          //if(flag&VTX_MATRIX  )vtx.matrix  (i)*=weight; VecB4
+          //if(flag&VTX_BLEND   )vtx.blend   (i)*=weight; VecB4 !! sum must be equal to 255 !!
+            if(flag&VTX_NRM     )vtx.nrm     (i).normalize();
+            if(flag&VTX_TAN     )vtx.tan     (i).normalize();
+            if(flag&VTX_BIN     )vtx.bin     (i).normalize();
+            if(flag&VTX_HLP     )vtx.hlp     (i)*=weight;
+            if(flag&VTX_TEX0    )vtx.tex0    (i)*=weight;
+            if(flag&VTX_TEX1    )vtx.tex1    (i)*=weight;
+            if(flag&VTX_TEX2    )vtx.tex2    (i)*=weight;
+            if(flag&VTX_SIZE    )vtx.size    (i)*=weight;
+            if(flag&VTX_COLOR   )vtx.color   (i) =weight*color[i];
+         }
+      }
+
+      // set duplicate vertex values
+      REPA(vtx)
+      {
+         Int d=vtx.dup(i); if(d!=i) // duplicate
+         {
+            if(flag&VTX_POS     )vtx.pos     (i)=vtx.pos     (d);
+            if(flag&VTX_MATERIAL)vtx.material(i)=vtx.material(d);
+            if(flag&VTX_MATRIX  )vtx.matrix  (i)=vtx.matrix  (d);
+            if(flag&VTX_BLEND   )vtx.blend   (i)=vtx.blend   (d);
+            if(flag&VTX_NRM     )vtx.nrm     (i)=vtx.nrm     (d);
+            if(flag&VTX_TAN     )vtx.tan     (i)=vtx.tan     (d);
+            if(flag&VTX_BIN     )vtx.bin     (i)=vtx.bin     (d);
+            if(flag&VTX_HLP     )vtx.hlp     (i)=vtx.hlp     (d);
+            if(flag&VTX_TEX0    )vtx.tex0    (i)=vtx.tex0    (d);
+            if(flag&VTX_TEX1    )vtx.tex1    (i)=vtx.tex1    (d);
+            if(flag&VTX_TEX2    )vtx.tex2    (i)=vtx.tex2    (d);
+            if(flag&VTX_SIZE    )vtx.size    (i)=vtx.size    (d);
+            if(flag&VTX_COLOR   )vtx.color   (i)=vtx.color   (d);
+         }
+      }
+
+      // remove degenerate faces
       if((flag&VTX_POS) && remove_degenerate_faces_eps>=0)removeDegenerateFaces(remove_degenerate_faces_eps);
    }
    return T;
