@@ -113,7 +113,7 @@ MeshBase& MeshBase::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remov
    flag&=T.flag(); // can weld only values that we have
    if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
    {
-      setVtxDup(0, pos_eps, nrm_cos);
+      setVtxDup(VTX_NRM, pos_eps, nrm_cos);
 
       // calculate weight for all vertexes based on their face area
       Memt<Flt> vtx_weight; vtx_weight.setNumZero(vtxs());

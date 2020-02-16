@@ -453,6 +453,7 @@ MeshBase& MeshBase::setVtxDup2D(UInt flag, Flt pos_eps, Flt nrm_cos)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
    flag&=(T.flag()&(VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_SIZE|VTX_SKIN|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)); // only these are tested
+   if(nrm_cos<=-1)FlagDisable(flag, VTX_NRM); // disable vtx normal tests if we have tolerant 'nrm_cos'
 
    // link rect->vtx
    Rects rects   (Rect(T)    , vtxs());
@@ -521,6 +522,7 @@ MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Bool smooth
    UInt t_flag=T.flag();
    flag                         &=(t_flag&(VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_SIZE|VTX_SKIN|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)); // only these are tested
    smooth_groups_in_vtx_material&=FlagTest(t_flag, VTX_MATERIAL);
+   if(nrm_cos<=-1)FlagDisable(flag, VTX_NRM); // disable vtx normal tests if we have tolerant 'nrm_cos'
 
    // link box->vtx
    Boxes boxes  (Box(T)     , vtxs());

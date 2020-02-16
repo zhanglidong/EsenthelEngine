@@ -1842,7 +1842,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          Load(mesh, Proj.editPath(mesh_elm.id), Proj.game_path);
          mesh.skeleton(mesh_skel).skeleton(null) // adjust mapping to skeleton in case that one got changed in the meantime
-             .setTangents().setBinormals().setRender();
+             .setTangents().setBinormals().setRender(); // tan/bin needed for rendering (set always so we don't have to recalc when changing materials depending if they're needed or not)
          mesh_ptr=Proj.gamePath(mesh_elm.id);
       }else
       {
@@ -2090,6 +2090,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    
    void setAutoTanBin(C MaterialPtr &material)
    {
+   #if 0 // not needed because this mesh always has tan/bin for rendering
       bool changed=false;
       REPD(l, mesh.lods())
       {
@@ -2103,6 +2104,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          }
       }
       if(changed)setChangedMesh(true, false);
+   #endif
    }
    void setMaterial(int part_i, C MaterialPtr &material)
    {
@@ -2123,13 +2125,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                }
                MeshPart &part=lod2.parts[part_i];
                part.variations(Max(part.variations(), variation+1)) // make room first for specified variation
-                   .variation (variation, material).setAutoTanBin();
+                   .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
             }
             different:;
          }
          MeshPart &part=lod.parts[part_i];
          part.variations(Max(part.variations(), variation+1)) // make room first for specified variation
-             .variation (variation, material).setAutoTanBin();
+             .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
          setChangedMesh(true, false);
          Proj.refresh(false, false); // refresh in case the mesh had invalid refs and now it won't
       }

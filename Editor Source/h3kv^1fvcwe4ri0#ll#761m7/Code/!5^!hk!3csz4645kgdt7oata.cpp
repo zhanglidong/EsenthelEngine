@@ -267,12 +267,14 @@ class ConvertToAtlasClass : PropWin
                            if(mtrl.rotated)Swap(t.x, t.y);
                            t*=mul; t+=add;
                         }
+                        base.setTangents().setBinormals(); // need to set before 'weldVtx' so it doesn't weld too many vtx's. src mesh doesn't have them
                         base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
                      }
                   }
                }
             }
             mesh_data.newVer(); mesh_data.file_time.getUTC();
+            mesh.keepOnly(EditMeshFlagAnd);
             Save(mesh, Proj.editPath(mesh_elm.id), Proj.game_path);
             Proj.makeGameVer(*mesh_elm);
             Server.setElmLong(mesh_elm.id);
