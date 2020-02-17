@@ -113,12 +113,12 @@ MeshBase& MeshBase::setEdgeNormals(Bool flag)
 }
 MeshBase& MeshBase::setFaceNormals()
 {
-   if(vtx.pos())
+   if(C Vec *pos=vtx.pos())
    {
       exclude(EDGE_NRM);
       include(FACE_NRM);
-      if(VecI  *_tri =tri .ind()){Vec *nrm=tri .nrm(); REPA(tri ){Int *p=(_tri ++)->c; *nrm++=GetNormal(vtx.pos(p[0]), vtx.pos(p[1]), vtx.pos(p[2]));}}
-      if(VecI4 *_quad=quad.ind()){Vec *nrm=quad.nrm(); REPA(quad){Int *p=(_quad++)->c; *nrm++=GetNormal(vtx.pos(p[0]), vtx.pos(p[1]), vtx.pos(p[3]));}}
+      if(VecI  *_tri =tri .ind()){Vec *nrm=tri .nrm(); REPA(tri ){Int *p=(_tri ++)->c; *nrm++=GetNormal(pos[p[0]], pos[p[1]], pos[p[2]]);}}
+      if(VecI4 *_quad=quad.ind()){Vec *nrm=quad.nrm(); REPA(quad){Int *p=(_quad++)->c; *nrm++=GetNormal(pos[p[0]], pos[p[1]], pos[p[3]]);}}
    }
    return T;
 }
@@ -142,7 +142,6 @@ MeshBase& MeshBase::setNormals()
 {
    include(VTX_NRM); ZeroN(vtx.nrm(), vtxs());
 
-#if 1 // weighted normal depending on face surface area (that's why there's 'GetNormalU')
    REPA(tri)
    {
       VecI f  =tri.ind(i); f.remap(vtx.dup());
@@ -166,40 +165,7 @@ MeshBase& MeshBase::setNormals()
       vtx.nrm(f.c[3])+=nrm;
    }
    Normalize(vtx.nrm(), vtxs());
-#elif 1 // weighted normal depending on face angle
-   REPA(tri)
-   {
-      VecI f  =tri.ind(i); f.remap(vtx.dup());
-      Vec &v0 =vtx.pos(f.c[0]),
-          &v1 =vtx.pos(f.c[1]),
-          &v2 =vtx.pos(f.c[2]),
-           nrm=GetNormal(v0, v1, v2);
-      Flt  a0 =AbsAngleBetween(v2, v0, v1),
-           a1 =AbsAngleBetween(v0, v1, v2), a2=PI-a0-a1;
-      vtx.nrm(f.c[0])+=a0*nrm;
-      vtx.nrm(f.c[1])+=a1*nrm;
-      vtx.nrm(f.c[2])+=a2*nrm;
-   }
-   REPA(quad)
-   {
-      VecI4 f     =quad.ind(i); f.remap(vtx.dup());
-      Vec  &v0    =vtx.pos(f.c[0]),
-           &v1    =vtx.pos(f.c[1]),
-           &v2    =vtx.pos(f.c[2]),
-           &v3    =vtx.pos(f.c[3]),
-            nrm013=GetNormal(v0, v1, v3),
-            nrm123=GetNormal(v1, v2, v3);
-      Flt   a301  =AbsAngleBetween(v3, v0, v1),
-            a013  =AbsAngleBetween(v0, v1, v3), a130=PI-a301-a013,
-            a123  =AbsAngleBetween(v1, v2, v3),
-            a231  =AbsAngleBetween(v2, v3, v1), a312=PI-a123-a231;
-      vtx.nrm(f.c[0])+=a301*nrm013;
-      vtx.nrm(f.c[1])+=a013*nrm013 + a312*nrm123;
-      vtx.nrm(f.c[2])+=            + a123*nrm123;
-      vtx.nrm(f.c[3])+=a130*nrm013 + a231*nrm123;
-   }
-   Normalize(vtx.nrm(), vtxs());
-#else // calculate using Quadrics (this is only for testing)
+/* Calculate using Quadrics (this is only for testing)
    Memt<QuadricMatrix> vtx_qm; vtx_qm.setNumZero(vtxs());
    REPA(tri)
    {
@@ -235,7 +201,7 @@ MeshBase& MeshBase::setNormals()
    }
 
    REPA(vtx)vtx.nrm(i)=vtx_qm[i].normal(vtx.pos(i)+offset); // <- here we would have to use some offset because normal at the surface is not precise, best offset is vtx.nrm which we're trying to calculate
-#endif
+*/
 
    if(vtx.dup())REPA(vtx)vtx.nrm(i)=vtx.nrm(vtx.dup(i));
    return T;
@@ -381,26 +347,24 @@ MeshBase& MeshBase::setBinormals()
    }
    return T;
 }
+/******************************************************************************/
 MeshBase& MeshBase::setAutoTanBin()
 {
-   if(vtx.nrm())
+   if(vtx.nrm()) // we will need tan/bin only if we have normals
    {
-      setTangents(); if(vtx.tan())
+      setTanBin();
+      // check if we can remove binormals if they can be reconstructed from Nrm Tan
+   #if 0 // skip this because it's used only for game mesh which always encodes TanBin packed together
+      if(vtx.bin())
       {
-         setBinormals();
-      #if 0 // skip this because it's used only for game mesh which encodes TanBin together
-         // check if we can remove binormals if they can be reconstructed from Nrm Tan
-         if(vtx.bin())
+         REPA(vtx)
          {
-            REPA(vtx)
-            {
-               Vec bin=Cross(vtx.nrm(i), vtx.tan(i));
-               if(Dot(bin, vtx.bin(i))<here some eps_cos)return T; // if binormals are different, then it means that binormal is necessary, so keep it and return without deleting it
-            }
-            exclude(VTX_BIN); // binormal unnecessary
+            Vec bin=Cross(vtx.nrm(i), vtx.tan(i));
+            if(Dot(bin, vtx.bin(i))<here some eps_cos)return T; // if binormals are different, then it means that binormal is necessary, so keep it and return without deleting it
          }
-      #endif
+         exclude(VTX_BIN); // binormal unnecessary
       }
+   #endif
    }else exclude(VTX_TAN_BIN);
    return T;
 }
@@ -449,6 +413,8 @@ MeshBase& MeshBase::setID(Int solid, Int not_solid)
    return T;
 }
 /******************************************************************************/
+static inline Bool EqualTex(C Vec2 &a, C Vec2 &b, Bool wrap=false) {return wrap ? EqualWrap(a, b) : Equal(a, b);}
+/******************************************************************************/
 MeshBase& MeshBase::setVtxDup2D(UInt flag, Flt pos_eps, Flt nrm_cos)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
@@ -491,19 +457,19 @@ MeshBase& MeshBase::setVtxDup2D(UInt flag, Flt pos_eps, Flt nrm_cos)
                {
                   if(flag)
                   {
-                     if(flag&VTX_NRM      &&  Dot  (vtx.nrm     (num_cur), vtx.nrm     (num_test))<nrm_cos    )continue;
-                     if(flag&VTX_TAN      &&  Dot  (vtx.tan     (num_cur), vtx.tan     (num_test))<EPS_TAN_COS)continue;
-                     if(flag&VTX_BIN      &&  Dot  (vtx.bin     (num_cur), vtx.bin     (num_test))<EPS_TAN_COS)continue;
-                     if(flag&VTX_HLP      && !Equal(vtx.hlp     (num_cur), vtx.hlp     (num_test))            )continue;
-                     if(flag&VTX_TEX0     && !Equal(vtx.tex0    (num_cur), vtx.tex0    (num_test))            )continue;
-                     if(flag&VTX_TEX1     && !Equal(vtx.tex1    (num_cur), vtx.tex1    (num_test))            )continue;
-                     if(flag&VTX_TEX2     && !Equal(vtx.tex2    (num_cur), vtx.tex2    (num_test))            )continue;
-                     if(flag&VTX_SIZE     && !Equal(vtx.size    (num_cur), vtx.size    (num_test))            )continue;
-                     if(flag&VTX_BLEND    &&        vtx.blend   (num_cur)!=vtx.blend   (num_test)             )continue;
-                     if(flag&VTX_MATRIX   &&        vtx.matrix  (num_cur)!=vtx.matrix  (num_test)             )continue;
-                     if(flag&VTX_MATERIAL &&        vtx.material(num_cur)!=vtx.material(num_test)             )continue;
-                     if(flag&VTX_COLOR    &&        vtx.color   (num_cur)!=vtx.color   (num_test)             )continue;
-                     if(flag&VTX_FLAG     &&        vtx.flag    (num_cur)!=vtx.flag    (num_test)             )continue;
+                     if(flag&VTX_NRM      &&  Dot     (vtx.nrm     (num_cur), vtx.nrm     (num_test))<nrm_cos    )continue;
+                     if(flag&VTX_TAN      &&  Dot     (vtx.tan     (num_cur), vtx.tan     (num_test))<EPS_TAN_COS)continue;
+                     if(flag&VTX_BIN      &&  Dot     (vtx.bin     (num_cur), vtx.bin     (num_test))<EPS_BIN_COS)continue;
+                     if(flag&VTX_HLP      && !Equal   (vtx.hlp     (num_cur), vtx.hlp     (num_test))            )continue;
+                     if(flag&VTX_TEX0     && !EqualTex(vtx.tex0    (num_cur), vtx.tex0    (num_test))            )continue;
+                     if(flag&VTX_TEX1     && !EqualTex(vtx.tex1    (num_cur), vtx.tex1    (num_test))            )continue;
+                     if(flag&VTX_TEX2     && !EqualTex(vtx.tex2    (num_cur), vtx.tex2    (num_test))            )continue;
+                     if(flag&VTX_SIZE     && !Equal   (vtx.size    (num_cur), vtx.size    (num_test))            )continue;
+                     if(flag&VTX_BLEND    &&           vtx.blend   (num_cur)!=vtx.blend   (num_test)             )continue;
+                     if(flag&VTX_MATRIX   &&           vtx.matrix  (num_cur)!=vtx.matrix  (num_test)             )continue;
+                     if(flag&VTX_MATERIAL &&           vtx.material(num_cur)!=vtx.material(num_test)             )continue;
+                     if(flag&VTX_COLOR    &&           vtx.color   (num_cur)!=vtx.color   (num_test)             )continue;
+                     if(flag&VTX_FLAG     &&           vtx.flag    (num_cur)!=vtx.flag    (num_test)             )continue;
                   }
                   vtx.dup(num_cur)=num_test; goto next;
                }
@@ -515,14 +481,16 @@ MeshBase& MeshBase::setVtxDup2D(UInt flag, Flt pos_eps, Flt nrm_cos)
    }
    return T;
 }
-MeshBase& MeshBase::setVtxDup  (UInt flag, Flt pos_eps, Flt nrm_cos                                    ) {return setVtxDupEx(flag, pos_eps, nrm_cos);}
-MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Bool smooth_groups_in_vtx_material)
+MeshBase& MeshBase::setVtxDup  (UInt flag, Flt pos_eps, Flt nrm_cos                                                                             ) {return setVtxDupEx(flag, pos_eps, nrm_cos);}
+MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Flt tan_cos, Flt bin_cos, Bool tex_wrap, Bool smooth_groups_in_vtx_material)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
    UInt t_flag=T.flag();
    flag                         &=(t_flag&(VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_SIZE|VTX_SKIN|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)); // only these are tested
    smooth_groups_in_vtx_material&=FlagTest(t_flag, VTX_MATERIAL);
-   if(nrm_cos<=-1)FlagDisable(flag, VTX_NRM); // disable vtx normal tests if we have tolerant 'nrm_cos'
+   if(nrm_cos<=-1)FlagDisable(flag, VTX_NRM); // disable vtx normal   tests if we have tolerant 'nrm_cos'
+   if(tan_cos<=-1)FlagDisable(flag, VTX_TAN); // disable vtx tangent  tests if we have tolerant 'tan_cos'
+   if(bin_cos<=-1)FlagDisable(flag, VTX_BIN); // disable vtx binormal tests if we have tolerant 'bin_cos'
 
    // link box->vtx
    Boxes boxes  (Box(T)     , vtxs());
@@ -566,39 +534,41 @@ MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Bool smooth
          }
       }
 
-      FREPA(*box_cur)
+      FREPA(*box_cur) // iterate all vertexes in current box
       {
-         Int  num_cur=(*box_cur)[i];
-         Vec &pos_cur=vtx.pos(num_cur);
-         REPD(c, box_tests)
+         Int  num_cur=(*box_cur)[i]; // vertex index
+         Vec &pos_cur=vtx.pos(num_cur); // vertex position
+         REPD(c, box_tests) // iterate all nearby boxes for testing
          {
-            IndexGroup *bt=box_test[c];
-            REPD(j, (box_cur==bt) ? i : bt->num)
+            IndexGroup *bt=box_test[c]; // box for testing
+            REPD(j, (box_cur==bt) ? i : bt->num) // iterate all vertexes in box for testing (but if it's current box then check only vertexes up to current vertex to make sure they were already processed before)
             {
-               Int num_test=(*bt)[j]; if(vtx.dup(num_test)==num_test && Equal(pos_cur, vtx.pos(num_test), pos_eps))
+               Int num_test=(*bt)[j]; // test vertex index
+               if(vtx.dup(num_test)==num_test // if its unique
+               && Equal(pos_cur, vtx.pos(num_test), pos_eps)) // same position
                {
                   if(flag)
                   {
-                     if(flag&VTX_NRM      &&  Dot  (vtx.nrm     (num_cur), vtx.nrm     (num_test))<nrm_cos    )continue;
-                     if(flag&VTX_TAN      &&  Dot  (vtx.tan     (num_cur), vtx.tan     (num_test))<EPS_TAN_COS)continue;
-                     if(flag&VTX_BIN      &&  Dot  (vtx.bin     (num_cur), vtx.bin     (num_test))<EPS_TAN_COS)continue;
-                     if(flag&VTX_HLP      && !Equal(vtx.hlp     (num_cur), vtx.hlp     (num_test))            )continue;
-                     if(flag&VTX_TEX0     && !Equal(vtx.tex0    (num_cur), vtx.tex0    (num_test))            )continue;
-                     if(flag&VTX_TEX1     && !Equal(vtx.tex1    (num_cur), vtx.tex1    (num_test))            )continue;
-                     if(flag&VTX_TEX2     && !Equal(vtx.tex2    (num_cur), vtx.tex2    (num_test))            )continue;
-                     if(flag&VTX_SIZE     && !Equal(vtx.size    (num_cur), vtx.size    (num_test))            )continue;
-                     if(flag&VTX_BLEND    &&        vtx.blend   (num_cur)!=vtx.blend   (num_test)             )continue;
-                     if(flag&VTX_MATRIX   &&        vtx.matrix  (num_cur)!=vtx.matrix  (num_test)             )continue;
-                     if(flag&VTX_MATERIAL &&        vtx.material(num_cur)!=vtx.material(num_test)             )continue;
-                     if(flag&VTX_COLOR    &&        vtx.color   (num_cur)!=vtx.color   (num_test)             )continue;
-                     if(flag&VTX_FLAG     &&        vtx.flag    (num_cur)!=vtx.flag    (num_test)             )continue;
+                     if(flag&VTX_NRM      &&  Dot     (vtx.nrm     (num_cur), vtx.nrm     (num_test))<nrm_cos  )continue;
+                     if(flag&VTX_TAN      &&  Dot     (vtx.tan     (num_cur), vtx.tan     (num_test))<tan_cos  )continue;
+                     if(flag&VTX_BIN      &&  Dot     (vtx.bin     (num_cur), vtx.bin     (num_test))<bin_cos  )continue;
+                     if(flag&VTX_HLP      && !Equal   (vtx.hlp     (num_cur), vtx.hlp     (num_test))          )continue;
+                     if(flag&VTX_TEX0     && !EqualTex(vtx.tex0    (num_cur), vtx.tex0    (num_test), tex_wrap))continue;
+                     if(flag&VTX_TEX1     && !EqualTex(vtx.tex1    (num_cur), vtx.tex1    (num_test), tex_wrap))continue;
+                     if(flag&VTX_TEX2     && !EqualTex(vtx.tex2    (num_cur), vtx.tex2    (num_test), tex_wrap))continue;
+                     if(flag&VTX_SIZE     && !Equal   (vtx.size    (num_cur), vtx.size    (num_test))          )continue;
+                     if(flag&VTX_BLEND    &&           vtx.blend   (num_cur)!=vtx.blend   (num_test)           )continue;
+                     if(flag&VTX_MATRIX   &&           vtx.matrix  (num_cur)!=vtx.matrix  (num_test)           )continue;
+                     if(flag&VTX_MATERIAL &&           vtx.material(num_cur)!=vtx.material(num_test)           )continue;
+                     if(flag&VTX_COLOR    &&           vtx.color   (num_cur)!=vtx.color   (num_test)           )continue;
+                     if(flag&VTX_FLAG     &&           vtx.flag    (num_cur)!=vtx.flag    (num_test)           )continue;
                   }
                   if(smooth_groups_in_vtx_material)if(!(vtx.material(num_cur).u&vtx.material(num_test).u))continue; // if there are no shared smooth groups
-                  vtx.dup(num_cur)=num_test; goto next;
+                  vtx.dup(num_cur)=num_test; goto next; // set duplicate and continue
                }
             }
          }
-         vtx.dup(num_cur)=num_cur;
+         vtx.dup(num_cur)=num_cur; // set unique
          next:;
       }
    }

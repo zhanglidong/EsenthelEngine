@@ -708,7 +708,7 @@ Blocks& Blocks::setMesh(Flt tex_scale, C BlocksOcclusion *occl, C BoxI *local_bo
          mpart.material(_materials[i+1]);
          base.setNormals(); // set vtx normals before welding because they need to be tested as well (otherwise holes on the sides could appear on blocks)
          base.weldVtx(VTX_TEX0|VTX_COLOR|VTX_NRM, 0.01f, EPS_COL_COS, -1);
-         mpart.setAutoTanBin();
+         mpart.setAutoTanBin(); // for blocks we can create tan/bin after welding, because block meshes are simple and since already vertex normals are tested there won't be any conflicts for tan/bin
          if(optimize)
          {
             MeshBase optimized(base); optimized.weldCoplanarFaces(EPS_COL_COS, -1, false, max_face_length);

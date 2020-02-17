@@ -1842,7 +1842,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          Load(mesh, Proj.editPath(mesh_elm.id), Proj.game_path);
          mesh.skeleton(mesh_skel).skeleton(null) // adjust mapping to skeleton in case that one got changed in the meantime
-             .setTangents().setBinormals().setRender(); // tan/bin needed for rendering (set always so we don't have to recalc when changing materials depending if they're needed or not)
+             .setTanBin().setRender(); // tan/bin needed for rendering (set always so we don't have to recalc when changing materials depending if they're needed or not)
          mesh_ptr=Proj.gamePath(mesh_elm.id);
       }else
       {

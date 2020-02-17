@@ -1490,10 +1490,9 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       }
 
       // this needs to be done before welding vertexes so we don't weld with big tan/bin differences
-      if(flags&VTX_TAN)mesh.setTangents ();
-      if(flags&VTX_BIN)mesh.setBinormals();
+      if(flags&VTX_TAN_BIN)mesh.setTanBin(); // if(flags&VTX_TAN)mesh.setTangents(); if(flags&VTX_BIN)mesh.setBinormals();
 
-      mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
+      mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, ignore degenerate faces
    }
 
    void store(MemPtr<MeshPart> parts)
@@ -1551,10 +1550,9 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
          // this needs to be done before welding vertexes so we don't weld with big tan/bin differences
          UInt flag=part_infos[i].flag;
-         if(flag&VTX_TAN)mesh.setTangents ();
-         if(flag&VTX_BIN)mesh.setBinormals();
+         if(flag&VTX_TAN_BIN)mesh.setTanBin(); // if(flag&VTX_TAN)mesh.setTangents(); if(flag&VTX_BIN)mesh.setBinormals();
 
-         mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, ignore degenerate faces
+         mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, ignore degenerate faces
          if(!mesh.is())parts.remove(i, true); // if became empty, then just remove it
       }
    }

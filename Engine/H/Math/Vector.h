@@ -69,7 +69,8 @@
 #define EPS_ANIM_BLEND         (1.0f/4096)                                 // Animation Blend Epsilon (default value used for ignoring animations)
 #define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                    // 12.5 cm
 #define EPS_SKY_MIN_VIEW_RANGE 0.999f                                      // 0.999f was the biggest value that caused holes to disappear
-#define EPS_TAN_COS            SQRT2_2                                     // Tangent Cos Epsilon = Cos(PI_4) 45 deg, used for Dot product of 2 directional vectors
+#define EPS_TAN_COS            EPS_COL_COS                                 // use strict eps to merge only if are the same
+#define EPS_BIN_COS            0                                           // can use 0 for 'Dot' (to differentiate only if binormals are on the same side) because binormals are stored in MeshRender using 1-bit only and reconstructed as "Cross(nrm, tan)" or "-Cross(nrm, tan)"
 #endif
 /******************************************************************************/
 enum AXIS_TYPE

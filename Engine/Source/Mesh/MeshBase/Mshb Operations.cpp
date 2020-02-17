@@ -1053,7 +1053,7 @@ MeshBase& MeshBase::tesselate()
          vtxs+=5;
       }
 
-      temp.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+      temp.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
       Swap(temp, T);
    }
    return T;

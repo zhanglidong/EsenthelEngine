@@ -156,7 +156,7 @@ class LodRegion : Region
                ObjEdit.mesh_undos.set("lod");
                ObjEdit.getMeshElm(); // make sure mesh exists
                src.skeleton(ObjEdit.mesh_skel).skeleton(null); // set skeleton to remap bones to match the original mesh
-               src.setTangents().setBinormals().setRender(); // set tan/bin because src mesh from disk doesn't have them
+               src.setTanBin().setRender(); // set tan/bin because src mesh from disk doesn't have them
                // keep original matrix as the 'mesh' matrix is identity
                flt dist_add;
                if(InRange(l, ObjEdit.mesh.lods()))dist_add=                        ObjEdit.absLodDist(ObjEdit.mesh.lod(l));
@@ -263,8 +263,7 @@ class NewLodClass : ClosableWindow
             {
                MeshPart &part=lod.parts[i];
                MeshBase &base=part.base;
-               if(!base.vtx.tan())base.setTangents (); // set in case mesh doesn't have them yet
-               if(!base.vtx.bin())base.setBinormals(); // set in case mesh doesn't have them yet
+               if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // set in case mesh doesn't have them yet
                if(InRange(i, pmi)) // set materials
                {
                   int mtrl_index=pmi[i];

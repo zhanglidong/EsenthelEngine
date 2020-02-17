@@ -235,7 +235,7 @@
                   Normalize(part.base.vtx.tan(), part.base.vtxs());
                   Normalize(part.base.vtx.bin(), part.base.vtxs());
                #else // have to recalc tan/bin, because if only some vertexes were moved, then tan/bin could be totally different
-                  part.base.setTangents().setBinormals();
+                  part.base.setTanBin();
                #endif
                   part.setRender();
                }

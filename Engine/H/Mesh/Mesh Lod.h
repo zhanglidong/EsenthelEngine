@@ -51,9 +51,8 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior
 #endif
    MeshLod& setNormals    (); // recalculate vertex            3D normals
-   MeshLod& setTangents   (); // recalculate vertex            3D tangents
-   MeshLod& setBinormals  (); // recalculate vertex            3D binormals
    MeshLod& setFaceNormals(); // recalculate triangle and quad 3D normals
+   MeshLod& setTanBin     (); // recalculate vertex            3D tangents and binormals
    MeshLod& setAutoTanBin (); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
 
 #if EE_PRIVATE

@@ -66,9 +66,8 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    Mesh& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior
 #endif
    Mesh& setNormals    (); // recalculate vertex            3D normals
-   Mesh& setTangents   (); // recalculate vertex            3D tangents
-   Mesh& setBinormals  (); // recalculate vertex            3D binormals
    Mesh& setFaceNormals(); // recalculate triangle and quad 3D normals
+   Mesh& setTanBin     (); // recalculate vertex            3D tangents and binormals
    Mesh& setAutoTanBin (); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
    Bool  setBox        (Bool skip_hidden_parts=true); // recalculate bounding box, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail
 

@@ -158,8 +158,7 @@ MeshBase& MeshBase::create(C Ball &ball, UInt flag, Int resolution)
       CopyN  (vtx.nrm(), vtx.pos(), vtxs());
    }
    transform(Matrix(ball.r, ball.pos));
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 MeshBase& MeshBase::createHalf(C Ball &ball, UInt flag, Int resolution)
@@ -235,8 +234,7 @@ MeshBase& MeshBase::createHalf(C Ball &ball, UInt flag, Int resolution)
       CopyN  (vtx.nrm(), vtx.pos(), vtxs());
    }
    transform(Matrix(ball.r, ball.pos));
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 /******************************************************************************/
@@ -280,8 +278,7 @@ MeshBase& MeshBase::create2(C Ball &ball, UInt flag, Int resolution, Int resolut
       CopyN  (vtx.nrm(), vtx.pos(), vtxs());
    }
    transform(Matrix(ball.r, ball.pos));
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 /******************************************************************************/
@@ -355,8 +352,7 @@ MeshBase& MeshBase::createIco(C Ball &ball, UInt flag, Int resolution)
       CopyN  (vtx.nrm(), vtx.pos(), T.vtxs());
    }
    transform(Matrix(ball.r, ball.pos));
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 /******************************************************************************/
@@ -379,8 +375,7 @@ MeshBase& MeshBase::createIcoHalf(C Ball &ball, UInt flag, Int resolution)
       CopyN  (vtx.nrm(), vtx.pos(), T.vtxs());
    }
    transform(Matrix(ball.r, ball.pos));
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 /******************************************************************************/
@@ -431,9 +426,8 @@ MeshBase& MeshBase::create(C Capsule &capsule, UInt flag, Int resolution, Int re
 
    if(!(flag&VTX_TEX0))weldVtx(VTX_ALL, EPS, EPS_COL_COS, -1);
    transform(Matrix().setPosUp(capsule.pos, capsule.up));
-   if(flag&VTX_NRM)setVtxDup   ().setNormals().exclude(VTX_DUP);
-   if(flag&VTX_TAN)setTangents ();
-   if(flag&VTX_BIN)setBinormals();
+   if(flag&VTX_NRM    )setVtxDup().setNormals().exclude(VTX_DUP);
+   if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
 /******************************************************************************/
@@ -1143,7 +1137,7 @@ MeshBase& MeshBase::createRock(Int resolution, Int subdivisions)
    REP(subdivisions)subdivide().setVtxDup();
 
    // finish
-   setTangents();
+   setTanBin();
    return T;
 }
 /******************************************************************************/
@@ -1385,8 +1379,8 @@ static Mesh& setTree(Mesh &mesh, MaterialPtr bark_material, Memb<MaterialPtr> &l
       mesh.create (p.elms()            ); FREPA(mesh)Swap(mesh.part(i),p[i]);
       mesh.joinAll(true, true, false, 0);
 
-      mesh.setTangents()
-          .setBox     ();
+      mesh.setTanBin()
+          .setBox   ();
    }
 
    return mesh;

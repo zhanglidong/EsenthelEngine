@@ -252,9 +252,8 @@ Bool ImportASE(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
             {
                base.include(TRI_ID); FREPA(base.tri)base.tri.id(i)=src.tri[i].sub_material;
             }
-            if(!base.vtx.tan())base.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
-            if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
-            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+            if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
 
             if(base.tri.id()) // we need to split into parts
             {

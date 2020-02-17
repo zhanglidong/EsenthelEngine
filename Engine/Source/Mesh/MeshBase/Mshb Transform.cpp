@@ -128,7 +128,7 @@ MeshBase& MeshBase::mirrorX()
    Reverse(tri .ind(), tris ());
    SwapXZ (quad.ind(), quads()); // use 'SwapXZ' to preserve the same triangles being generated, but flipped, this is important, because 'Reverse' would cause different triangle combination
 
-   if(vtx.tan() && !vtx.bin())setBinormals(); // binormals are needed if tangents are present
+   if(vtx.tan() && !vtx.bin())setTanBin(); // setBinormals(); // binormals are needed if tangents are present
    return T;
 }
 MeshBase& MeshBase::mirrorY()
@@ -146,7 +146,7 @@ MeshBase& MeshBase::mirrorY()
    Reverse(tri .ind(), tris ());
    SwapXZ (quad.ind(), quads()); // use 'SwapXZ' to preserve the same triangles being generated, but flipped, this is important, because 'Reverse' would cause different triangle combination
 
-   if(vtx.tan() && !vtx.bin())setBinormals(); // binormals are needed if tangents are present
+   if(vtx.tan() && !vtx.bin())setTanBin(); // setBinormals(); // binormals are needed if tangents are present
    return T;
 }
 MeshBase& MeshBase::mirrorZ()
@@ -164,7 +164,7 @@ MeshBase& MeshBase::mirrorZ()
    Reverse(tri .ind(), tris ());
    SwapXZ (quad.ind(), quads()); // use 'SwapXZ' to preserve the same triangles being generated, but flipped, this is important, because 'Reverse' would cause different triangle combination
 
-   if(vtx.tan() && !vtx.bin())setBinormals(); // binormals are needed if tangents are present
+   if(vtx.tan() && !vtx.bin())setTanBin(); // setBinormals(); // binormals are needed if tangents are present
    return T;
 }
 MeshBase& MeshBase::rightToLeft()
@@ -182,7 +182,7 @@ MeshBase& MeshBase::rightToLeft()
    Reverse(tri .ind(), tris ());
    SwapXZ (quad.ind(), quads()); // use 'SwapXZ' to preserve the same triangles being generated, but flipped, this is important, because 'Reverse' would cause different triangle combination
 
-   if(vtx.tan() && !vtx.bin())setBinormals(); // binormals are needed if tangents are present
+   if(vtx.tan() && !vtx.bin())setTanBin(); // setBinormals(); // binormals are needed if tangents are present
    return T;
 }
 /******************************************************************************/
@@ -196,7 +196,7 @@ MeshBase& MeshBase::reverse()
                    Reverse(tri .ind(), tris ());
                    SwapXZ (quad.ind(), quads()); // use 'SwapXZ' to preserve the same triangles being generated, but flipped, this is important, because 'Reverse' would cause different triangle combination
 
-   if(vtx.tan() && !vtx.bin())setBinormals(); // binormals are needed if tangents are present
+   if(vtx.tan() && !vtx.bin())setTanBin(); // setBinormals(); // binormals are needed if tangents are present
    return T;
 }
 MeshBase& MeshBase::reverse(Int face)
@@ -228,7 +228,7 @@ MeshBase& MeshBase::reverse(C MemPtr<Int> &faces)
       if(temp.is())
       {
          T+=temp.reverse();
-         weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+         weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
       }
    }
    return T;

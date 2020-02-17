@@ -213,13 +213,13 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
          {
             Group    &cur =groups[i];
             MeshPart &part=mesh->parts[i]; Set(part.name, cur.name);
-            MeshBase &mshb=part.base;
-            mshb.create(cur.tri.elms()*3+cur.quad.elms()*4, 0, cur.tri.elms(), cur.quad.elms(), (vnrm.elms() ? VTX_NRM : 0)|(vtex.elms() ? VTX_TEX0 : 0));
-            Vec   *pos =mshb.vtx .pos ();
-            Vec   *nrm =mshb.vtx .nrm ();
-            Vec2  *tex =mshb.vtx .tex0();
-            VecI  *tri =mshb.tri .ind ();
-            VecI4 *quad=mshb.quad.ind ();
+            MeshBase &base=part.base;
+            base.create(cur.tri.elms()*3+cur.quad.elms()*4, 0, cur.tri.elms(), cur.quad.elms(), (vnrm.elms() ? VTX_NRM : 0)|(vtex.elms() ? VTX_TEX0 : 0));
+            Vec   *pos =base.vtx .pos ();
+            Vec   *nrm =base.vtx .nrm ();
+            Vec2  *tex =base.vtx .tex0();
+            VecI  *tri =base.tri .ind ();
+            VecI4 *quad=base.quad.ind ();
             Int    vtxs=0;
             FREPA(cur.tri)
             {
@@ -270,9 +270,8 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                }
                (quad++)->set(vtxs, vtxs+1, vtxs+2, vtxs+3); vtxs+=4;
             }
-            if(!mshb.vtx.tan())mshb.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
-            if(!mshb.vtx.bin())mshb.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
-            mshb.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down
+            if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
          }
          mesh->mirrorX().setBox();
          REPA(*mesh)if(!mesh->parts[i].base.vtx.nrm())mesh->parts[i].base.setNormals();

@@ -220,7 +220,7 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                      UInt group=mesh.tri_smooth_groups[i]; // get smoothing groups of that face
                    C VecI &t=tri[i]; REPA(t)mesh.vtx.material(t.c[i]).u=group; // apply smoothing groups onto triangle vertexes
                   }
-                  mesh.setVtxDupEx(0, EPSD, EPS_COL_COS, true); // generate vertex duplicates based on smoothing groups, use small epsilon in case mesh is scaled down
+                  mesh.setVtxDupEx(0, EPSD, EPS_COL_COS, EPS_TAN_COS, EPS_BIN_COS, false, true); // generate vertex duplicates based on smoothing groups, use small pos epsilon in case mesh is scaled down
                   mesh.exclude(VTX_MATERIAL); // remove no longer needed vertex material
                }
             }
@@ -228,9 +228,8 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
             if(mesh.vtx.dup())
             {
                mesh.exclude(VTX_DUP);
-               if(!mesh.vtx.tan())mesh.setTangents (); // need to call before 'weldVtx' to don't remove too many vertexes
-               if(!mesh.vtx.bin())mesh.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
-               mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, having duplicates means that we called explode vertexes, which now we need to weld, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
+               if(!mesh.vtx.tan() || !mesh.vtx.bin())mesh.setTanBin(); //if(!mesh.vtx.tan())mesh.setTangents(); if(!mesh.vtx.bin())mesh.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+               mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, having duplicates means that we called explode vertexes, which now we need to weld, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
             }
          }
 

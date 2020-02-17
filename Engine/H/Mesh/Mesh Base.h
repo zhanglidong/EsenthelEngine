@@ -340,15 +340,14 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    // set
 #if EE_PRIVATE
-   MeshBase& setEdgeNormals(Bool flag=false                                                                                ); // recalculate edge                2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
-   MeshBase& setNormals2D  (Bool flag=false                                                                                ); // recalculate edge     and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
-   MeshBase& setVtxDupEx   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Bool smooth_groups_in_vtx_material=false);
+   MeshBase& setEdgeNormals(Bool flag=false); // recalculate edge            2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
+   MeshBase& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
+   MeshBase& setVtxDupEx   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt tan_cos=EPS_TAN_COS, Flt bin_cos=EPS_BIN_COS, Bool tex_wrap=false, Bool smooth_groups_in_vtx_material=false);
 #endif
    MeshBase& setNormals    (                                                     ); // recalculate vertex            3D normals
-   MeshBase& setTangents   (                                                     ); // recalculate vertex            3D tangents
-   MeshBase& setBinormals  (                                                     ); // recalculate vertex            3D binormals
    MeshBase& setFaceNormals(                                                     ); // recalculate triangle and quad 3D normals
-   MeshBase& setAutoTanBin (                                                     ); // automatically calculate vertex tangents and binormals if needed, if binormals are not needed then they will be removed
+   MeshBase& setTanBin     (                                                     ); // recalculate vertex            3D tangents and binormals
+   MeshBase& setAutoTanBin (                                                     ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
    MeshBase& setVtxDup2D   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
    MeshBase& setVtxDup     (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)
    MeshBase& setAdjacencies(Bool faces=true, Bool edges=false                    ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')

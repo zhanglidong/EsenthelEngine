@@ -329,8 +329,7 @@ Mesh& Mesh::setEdgeNormals(Bool flag) {REP(lods())lod(i).setEdgeNormals(flag); r
 Mesh& Mesh::setFaceNormals(         ) {REP(lods())lod(i).setFaceNormals(    ); return T;}
 Mesh& Mesh::setNormals2D  (Bool flag) {REP(lods())lod(i).setNormals2D  (flag); return T;}
 Mesh& Mesh::setNormals    (         ) {REP(lods())lod(i).setNormals    (    ); return T;}
-Mesh& Mesh::setTangents   (         ) {REP(lods())lod(i).setTangents   (    ); return T;}
-Mesh& Mesh::setBinormals  (         ) {REP(lods())lod(i).setBinormals  (    ); return T;}
+Mesh& Mesh::setTanBin     (         ) {REP(lods())lod(i).setTanBin     (    ); return T;}
 Mesh& Mesh::setAutoTanBin (         ) {REP(lods())lod(i).setAutoTanBin (    ); return T;}
 Bool  Mesh::setBox        (Bool skip_hidden_parts)
 {
