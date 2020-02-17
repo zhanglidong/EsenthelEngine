@@ -207,102 +207,53 @@ MeshBase& MeshBase::setNormals()
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::setTangents()
+MeshBase& MeshBase::setTanBin()
 {
-   if(C Vec  *pos=vtx.pos ())
-   if(C Vec2 *tex=vtx.tex0())
+   Bool set_tan=true, set_bin=true;
+
+   if(set_tan || set_bin) // want to set anything
+   if(C Vec  *pos=vtx.pos ()) // we can calculate only if we have positions
+   if(C Vec2 *tex=vtx.tex0()) // and tex coords
    {
-      include(VTX_TAN); ZeroN(vtx.tan(), vtxs());
+      // when calculating tangents/binormals, we can't use any duplicates, because they have no knowledge about mirrored triangles, to detect them, tangents/binormals are needed, so first we set tan/bin per triangle, then we detect which go in same way, and then we merge
+      include((set_tan ? VTX_TAN : 0)|(set_bin ? VTX_BIN : 0));
+      if(set_tan)ZeroN(vtx.tan(), vtxs());
+      if(set_bin)ZeroN(vtx.bin(), vtxs());
 
       if(VecI *_tri=tri.ind())REPA(tri)
       {
-         VecI f =*_tri++;
-         Vec2 t0=tex[f.x],
-              ta=tex[f.y]-t0,
-              tb=tex[f.z]-t0;
-         Flt  u, v;
+         VecI  f  =*_tri++; // here can't remap duplicates, because doing so would break mirrored triangles/texcoords
+       C Vec2 &t0 =tex[f.x],
+               ta =tex[f.y]-t0,
+               tb =tex[f.z]-t0;
+       C Vec  &p0 =pos[f.x],
+              &p1 =pos[f.y],
+              &p2 =pos[f.z],
+               p01=p1-p0,
+               p02=p2-p0;
+         // Flt Tri::area()C {return 0.5f*Cross(p[1]-p[0], p[2]-p[0]).length();}
+         Flt length=Cross(p01, p02).length();
+         Flt u, v;
+         // tangent
          // u*ta   + v*tb   = Vec2(1, 0)
          // u*ta.x + v*tb.x = 1
          // u*ta.y + v*tb.y = 0
-         if(Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
+         if(set_tan && Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
          {
-          C Vec &p0 =pos[f.x],
-                &p1 =pos[f.y],
-                &p2 =pos[f.z],
-                 p01=p1-p0,
-                 p02=p2-p0;
-            Vec  tan=p01*u + p02*v;
-              // Flt Tri::area()C {return 0.5f*Cross(p[1]-p[0], p[2]-p[0]).length();}
-                 tan.setLength(Cross(p01, p02).length()); // make proportional to face area
+            Vec tan=p01*u + p02*v;
+                tan.setLength(length); // make proportional to face area
             vtx.tan(f.x)+=tan;
             vtx.tan(f.y)+=tan;
             vtx.tan(f.z)+=tan;
          }
-      }
-      if(VecI4 *_quad=quad.ind())REPA(quad)
-      {
-         VecI4 f =*_quad++;
-         Vec2  t0=tex[f.x],
-               ta=tex[f.y]-t0,
-               tb=tex[f.w]-t0;
-         Flt u, v;
-         if(Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
-         {
-          C Vec &p0 =pos[f.x],
-                &p1 =pos[f.y],
-                &p2 =pos[f.z],
-                &p3 =pos[f.w],
-                 p01=p1-p0,
-                 p03=p3-p0,
-                 p12=p2-p1,
-                 p13=p3-p1;
-             Vec tan=p01*u + p03*v;
-              // Flt Quad::area()C {return 0.5f*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
-                 tan.setLength(Cross(p01, p03).length() + Cross(p12, p13).length()); // make proportional to face area
-            vtx.tan(f.x)+=tan;
-            vtx.tan(f.y)+=tan;
-            vtx.tan(f.z)+=tan;
-            vtx.tan(f.w)+=tan;
-         }
-      }
-      REPA(vtx)
-      {
-         Vec &tan=vtx.tan(i); if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
-         {
-            if(vtx.nrm())tan=PerpN(vtx.nrm(i));
-            else         tan.set(1, 0, 0);
-         }
-      }
-   }
-   return T;
-}
-MeshBase& MeshBase::setBinormals()
-{
-   if(C Vec  *pos=vtx.pos ())
-   if(C Vec2 *tex=vtx.tex0())
-   {
-      include(VTX_BIN); ZeroN(vtx.bin(), vtxs());
-
-      if(VecI *_tri=tri.ind())REPA(tri)
-      {
-         VecI f =*_tri++;
-         Vec2 t0=tex[f.x],
-              ta=tex[f.y]-t0,
-              tb=tex[f.z]-t0;
-         Flt  u, v;
+         // binormal
          // u*ta   + v*tb   = Vec2(0, 1)
          // u*ta.x + v*tb.x = 0
          // u*ta.y + v*tb.y = 1
-         if(Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
+         if(set_bin && Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
          {
-          C Vec &p0 =pos[f.x],
-                &p1 =pos[f.y],
-                &p2 =pos[f.z],
-                 p01=p1-p0,
-                 p02=p2-p0;
-            Vec  bin=p01*u + p02*v;
-              // Flt Tri::area()C {return 0.5f*Cross(p[1]-p[0], p[2]-p[0]).length();}
-                 bin.setLength(Cross(p01, p02).length()); // make proportional to face area
+            Vec bin=p01*u + p02*v;
+                bin.setLength(length); // make proportional to face area
             vtx.bin(f.x)+=bin;
             vtx.bin(f.y)+=bin;
             vtx.bin(f.z)+=bin;
@@ -310,39 +261,89 @@ MeshBase& MeshBase::setBinormals()
       }
       if(VecI4 *_quad=quad.ind())REPA(quad)
       {
-         VecI4 f =*_quad++;
-         Vec2  t0=tex[f.x],
-               ta=tex[f.y]-t0,
-               tb=tex[f.w]-t0;
+         VecI4 f  =*_quad++; // here can't remap duplicates, because doing so would break mirrored triangles/texcoords
+       C Vec2 &t0 =tex[f.x],
+               ta =tex[f.y]-t0,
+               tb =tex[f.w]-t0;
+       C Vec  &p0 =pos[f.x],
+              &p1 =pos[f.y],
+              &p2 =pos[f.z],
+              &p3 =pos[f.w],
+               p01=p1-p0,
+               p03=p3-p0,
+               p12=p2-p1,
+               p13=p3-p1;
+         // Flt Quad::area()C {return 0.5f*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
+         Flt length=Cross(p01, p03).length() + Cross(p12, p13).length();
          Flt u, v;
-         if(Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
+         if(set_tan && Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
          {
-          C Vec &p0 =pos[f.x],
-                &p1 =pos[f.y],
-                &p2 =pos[f.z],
-                &p3 =pos[f.w],
-                 p01=p1-p0,
-                 p03=p3-p0,
-                 p12=p2-p1,
-                 p13=p3-p1;
-             Vec bin=p01*u + p03*v;
-              // Flt Quad::area()C {return 0.5f*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
-                 bin.setLength(Cross(p01, p03).length() + Cross(p12, p13).length()); // make proportional to face area
+            Vec tan=p01*u + p03*v;
+                tan.setLength(length); // make proportional to face area
+            vtx.tan(f.x)+=tan;
+            vtx.tan(f.y)+=tan;
+            vtx.tan(f.z)+=tan;
+            vtx.tan(f.w)+=tan;
+         }
+         if(set_bin && Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
+         {
+            Vec bin=p01*u + p03*v;
+                bin.setLength(length); // make proportional to face area
             vtx.bin(f.x)+=bin;
             vtx.bin(f.y)+=bin;
             vtx.bin(f.z)+=bin;
             vtx.bin(f.w)+=bin;
          }
       }
+
+      // merge neighbors
+      // !! Warning: here vtx.tan, vtx.bin lengths are proportional to their face areas, and aren't normalized, so 'setVtxDupEx' 'Dot' tests for those vectors will work correctly only with 0 as eps cos
+      setVtxDupEx(VTX_POS|VTX_NRM_TAN_BIN|VTX_TEX0, EPSD, EPS_COL_COS, 0, 0, true); // use small pos epsilon in case mesh is scaled down, use 0 eps cos for tan/bin to only test if they're on the same side (also only this value can work for unnormalized vectors), for tan/bin we can use tex_wrap=true
+      if(vtx.dup())REPA(vtx)
+      {
+         Int dup=vtx.dup(i); if(dup!=i) // duplicate
+         { // add to unique
+            if(set_tan)vtx.tan(dup)+=vtx.tan(i);
+            if(set_bin)vtx.bin(dup)+=vtx.bin(i);
+         }
+      }
+
+      // normalize unique
       REPA(vtx)
       {
-         Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise triangles can become black !!
+         if(vtx.dup() && vtx.dup(i)!=i)continue; // skip for duplicates
+         if(set_tan)
          {
-            if(vtx.nrm() && vtx.tan())bin=Cross(vtx.nrm(i), vtx.tan(i));else
-            if(vtx.nrm()             )bin=PerpN(vtx.nrm(i)            );else
-            if(             vtx.tan())bin=PerpN(            vtx.tan(i));else
-                                      bin.set(0, -1, 0);
+            Vec &tan=vtx.tan(i); if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
+            {
+               if(vtx.nrm())tan=PerpN(vtx.nrm(i));
+               else         tan.set(1, 0, 0);
+            }
          }
+         if(set_bin)
+         {
+            Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise triangles can become black !!
+            {
+               if(vtx.nrm() && vtx.tan())bin=CrossN(vtx.nrm(i), vtx.tan(i));else
+               if(vtx.nrm()             )bin= PerpN(vtx.nrm(i)            );else
+               if(             vtx.tan())bin= PerpN(            vtx.tan(i));else
+                                         bin.set(0, 0, -1); // Cross(Vec(0,1,0), Vec(1,0,0))
+            }
+         }
+      }
+
+      // set duplicates from unique
+      if(vtx.dup())
+      {
+         REPA(vtx)
+         {
+            Int dup=vtx.dup(i); if(dup!=i) // duplicate
+            {
+               if(set_tan)vtx.tan(i)=vtx.tan(dup);
+               if(set_bin)vtx.bin(i)=vtx.bin(dup);
+            }
+         }
+         exclude(VTX_DUP);
       }
    }
    return T;
