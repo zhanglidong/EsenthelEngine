@@ -19,10 +19,10 @@ void Chr::ragdollEnable()
    {
       ragdollValidate(); // make sure the ragdoll is created
 
-      ctrl.actor.active  (false); // disable character controller completely
       ragdoll   .active  (true )  // enable ragdoll actors
                 .gravity (true )  // gravity should be enabled for full ragdoll mode
                 .fromSkel(skel, ctrl.actor.vel()); // set ragdoll initial pose
+      ctrl.actor.active  (false); // disable character controller completely, do this after setting ragdoll in case deactivating clears velocity which is used above
 
       ragdoll_mode=RAGDOLL_FULL;
    }
