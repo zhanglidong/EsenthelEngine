@@ -915,7 +915,7 @@ bool HighPrecTransform(C Str &name)
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
        || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -1633,6 +1633,28 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             c.y*=sat;
             c.xyz=HsbToRgb(c.xyz);
             image.color3DF(x, y, z, c);
+         }
+         image.unlock();
+      }
+   }else
+   if(param.name=="medSat")
+   {
+      if(image.lock()) // lock for writing because we will use this lock for applying sat too
+      {
+         Vec4 col; if(image.stats(null, null, null, &col, null, null, &box))if(flt med_sat=RgbToHsb(col.xyz).y)
+         {
+            flt sat=param.asFlt()/med_sat;
+            if( sat!=1)
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)
+            {
+               Vec4 c=image.color3DF(x, y, z);
+               c.xyz=RgbToHsb(c.xyz);
+               c.y*=sat;
+               c.xyz=HsbToRgb(c.xyz);
+               image.color3DF(x, y, z, c);
+            }
          }
          image.unlock();
       }
