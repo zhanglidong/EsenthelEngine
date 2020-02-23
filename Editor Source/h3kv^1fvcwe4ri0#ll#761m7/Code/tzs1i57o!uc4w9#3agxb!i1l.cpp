@@ -124,7 +124,7 @@ class LodRegion : Region
                else         ObjEdit.selLod(lod.lod_index);
             }
          }
-         int l=lods.elms(), show_l=Min(5, l);
+         int l=lods.elms(), show_l=Min(6, l);
          size(Vec2(show_l*s, s+((l>show_l) ? slidebarSize() : 0)));
          props_region.visible(edit_dist.visible() && edit_dist()==0);
       }
