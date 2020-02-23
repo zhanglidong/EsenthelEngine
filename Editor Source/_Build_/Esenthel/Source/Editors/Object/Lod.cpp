@@ -64,7 +64,7 @@ NewLodClass NewLod;
       Vec2 delta=edit_dist.posRU()-old; REPAO(props).move(delta);
       props_region.rect(Rect_D(ObjEdit.rect().w()/2, -ObjEdit.rect().h(), 0.8f, 0.13f));
    }
-   void LodRegion::toGui() {REPAO(props).toGui();}
+   void LodRegion::toGui() {REPAO(props).toGui(); if(dist)dist->textline.selectAll();}
    void LodRegion::update(C GuiPC &gpc)
 {
       super::update(gpc);

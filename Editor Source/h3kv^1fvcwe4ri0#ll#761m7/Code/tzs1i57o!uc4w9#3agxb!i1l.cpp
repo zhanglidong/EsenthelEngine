@@ -80,7 +80,7 @@ class LodRegion : Region
       Vec2 delta=edit_dist.posRU()-old; REPAO(props).move(delta);
       props_region.rect(Rect_D(ObjEdit.rect().w()/2, -ObjEdit.rect().h(), 0.8, 0.13));
    }
-   void toGui() {REPAO(props).toGui();}
+   void toGui() {REPAO(props).toGui(); if(dist)dist.textline.selectAll();}
 
    virtual void update(C GuiPC &gpc)override
    {
