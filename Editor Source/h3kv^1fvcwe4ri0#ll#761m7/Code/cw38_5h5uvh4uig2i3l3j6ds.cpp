@@ -2470,8 +2470,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    int  selLod()C {return Mid(sel_lod, 0, mesh.lods()-1);}
    void selLod(int lod)
    {
-      if(sel_lod!=lod){sel_lod=lod; T.lod.toGui(); mesh_parts.refresh(); lod_tabs.set(selLod(), QUIET);}
       T.lod.edit_dist.visible(lod>0 && mesh.lods()>1);
+      if(sel_lod!=lod){sel_lod=lod; T.lod.toGui(); mesh_parts.refresh(); lod_tabs.set(selLod(), QUIET); if(mode()==LOD && T.lod.dist)T.lod.dist.textline.kbSet();}
    }
    void eraseLOD(int i)
    {
