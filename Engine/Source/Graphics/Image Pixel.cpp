@@ -32,35 +32,35 @@ namespace EE{
 #define ALPHA_LIMIT_NONE              FLT_MIN // use FLT_MIN so we still process 0<alpha_limit
 
 /*
-   Flt CW[8][8];
-   Int smallest=-1; Flt dist=0;
-   for(Int i=1; i<34984; i++)
+   Flt CW [8][8];
+   Int CWI[8][8];
+   Int smallest=-1; Flt error=0;
+   for(Int i=1; i<=INT_MAX/255/8/8; i++)
    {
-      Flt d=0;
+      Flt  e=0;
+      Long sum=0;
       REPD(y, 8)
       {
          Flt fy2=Sqr(-1.75f+0.5f*y);
          REPD(x, 8)
          {
-            Flt fx2=Sqr(-1.75f+0.5f*x), w=Cubic(Sqrt(fx2+fy2));
-            CW[y][x]=w/0.00417041779f*i;
-            MAX(d, Abs(Round(CW[y][x])-CW[y][x]));
+            Flt fx2=Sqr(-1.75f+0.5f*x), w=CubicFastSharp(Sqrt(fx2+fy2));
+            if(Min(x, 7-x)+Min(y, 7-y)<2)w=0; // we will disable corner samples
+         #if 0
+            Flt mul=i;
+         #else
+            Flt mul=i/0.00417041779f; // 0.00417041779f is 'w' weight for smallest sample (y=0, x=2)
+         #endif
+            CW [y][x]=w;
+            CWI[y][x]=Round(CW[y][x]*mul);
+            e+=Abs(CWI[y][x]/mul-CW[y][x]);
+            sum+=255*CWI[y][x];
          }
       }
-      if(smallest<0 || d<dist)
+      if(sum + sum/2>INT_MAX)break; // we will add sum/2 for rounding
+      if(smallest<0 || e<error){error=e; smallest=i;}
+      if(smallest==6806) // this is the value that will have smallest error for "mul=i/0.00417041779f"
       {
-         Long sum=0; REPD(y, 8)REPD(x, 8)sum+=255*CW[y][x];
-         if(sum<0x7FFFFFFF){dist=d; smallest=i;}
-      }
-      if(smallest==1321)
-      {
-         Long sum=0;
-         REPD(y, 8)
-         REPD(x, 8)sum+=255*CW[y][x];
-         Int x=CW[4][4];
-             x*=255; // color
-             x*=255; // alpha
-             x*=64;
          Str s;
          s.line()+=S+"static const Int CW8Sum="+sum+"/255;";
          s.line()+=S+"static const Int CW8[8][8]={";
@@ -70,7 +70,7 @@ namespace EE{
             FREPD(x, 8)
             {
                if(x)s+=", ";
-               s+=Round(CW[y][x]);
+               s+=CWI[y][x];
             }
             s+="},";
          }
@@ -86,7 +86,7 @@ namespace EE{
       Flt fy2=Sqr(-1.75f+0.5f*y);
       REPD(x, 8)
       {
-         Flt fx2=Sqr(-1.75f+0.5f*x), w=Cubic(Sqrt(fx2+fy2));
+         Flt fx2=Sqr(-1.75f+0.5f*x), w=CubicFastSharp(Sqrt(fx2+fy2));
          CWA[y][x]=w*0xFF08/2.9391276836395264;
          sum+=Round(CWA[y][x]);
       }
@@ -124,16 +124,16 @@ namespace EE{
    s.line()+="};";
    ClipSet(s.line());
 */
-static const Int CW8Sum=237400608/255;
+static const Int CW8Sum=1431592440/255;
 static const Int CW8[8][8]={
-   {0, 0, -1321, -6558, -6558, -1321, 0, 0},
-   {0, -6558, -21317, -22888, -22888, -21317, -6558, 0},
-   {-1321, -21317, -8477, 56591, 56591, -8477, -21317, -1321},
-   {-6558, -22888, 56591, 238767, 238767, 56591, -22888, -6558},
-   {-6558, -22888, 56591, 238767, 238767, 56591, -22888, -6558},
-   {-1321, -21317, -8477, 56591, 56591, -8477, -21317, -1321},
-   {0, -6558, -21317, -22888, -22888, -21317, -6558, 0},
-   {0, 0, -1321, -6558, -6558, -1321, 0, 0},
+   {0, 0, -7966, -39547, -39547, -7966, 0, 0},
+   {0, -39547, -128548, -138021, -138021, -128548, -39547, 0},
+   {-7966, -128548, -51119, 341260, 341260, -51119, -128548, -7966},
+   {-39547, -138021, 341260, 1439832, 1439832, 341260, -138021, -39547},
+   {-39547, -138021, 341260, 1439832, 1439832, 341260, -138021, -39547},
+   {-7966, -128548, -51119, 341260, 341260, -51119, -128548, -7966},
+   {0, -39547, -128548, -138021, -138021, -128548, -39547, 0},
+   {0, 0, -7966, -39547, -39547, -7966, 0, 0},
 };
 static const Int CWA8Sum=5571097/255;
 static const Int CWA8AlphaLimit=CWA8Sum*255*ALPHA_LIMIT_CUBIC_FAST_SHARP;
@@ -4554,14 +4554,14 @@ struct CopyContext
             if(!alpha_weight)
             {
                col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
-            linear_rgb_f:
+            rgb_f:
                col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
                col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
                col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
             }else
             {
                Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
-               if(!a){col.w=0; goto linear_rgb_f;}
+               if(!a){col.w=0; goto rgb_f;}
                col.w=a/4;
                col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
                col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
@@ -4575,14 +4575,14 @@ struct CopyContext
             if(!alpha_weight)
             {
                col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
-            linear_rgb:
+            rgb:
                col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
                col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
                col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
             }else
             {
                UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
-               if( !a){col.a=0; goto linear_rgb;}
+               if( !a){col.a=0; goto rgb;}
                col.a=((a+2)>>2); UInt a_2=a>>1;
                col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
                col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
@@ -4607,14 +4607,14 @@ struct CopyContext
          if(!alpha_weight)
          {
             col.a=((c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a+4)>>3);
-         linear_rgb_3D:
+         rgb_3D:
             col.r=((c[0][0][0].r+c[0][0][1].r+c[0][1][0].r+c[0][1][1].r+c[1][0][0].r+c[1][0][1].r+c[1][1][0].r+c[1][1][1].r+4)>>3);
             col.g=((c[0][0][0].g+c[0][0][1].g+c[0][1][0].g+c[0][1][1].g+c[1][0][0].g+c[1][0][1].g+c[1][1][0].g+c[1][1][1].g+4)>>3);
             col.b=((c[0][0][0].b+c[0][0][1].b+c[0][1][0].b+c[0][1][1].b+c[1][0][0].b+c[1][0][1].b+c[1][1][0].b+c[1][1][1].b+4)>>3);
          }else
          {
             UInt a=c[0][0][0].a+c[0][0][1].a+c[0][1][0].a+c[0][1][1].a+c[1][0][0].a+c[1][0][1].a+c[1][1][0].a+c[1][1][1].a;
-            if( !a){col.a=0; goto linear_rgb_3D;}
+            if( !a){col.a=0; goto rgb_3D;}
             col.a=((a+4)>>3); UInt a_2=a>>1;
             col.r=(c[0][0][0].r*c[0][0][0].a + c[0][0][1].r*c[0][0][1].a + c[0][1][0].r*c[0][1][0].a + c[0][1][1].r*c[0][1][1].a + c[1][0][0].r*c[1][0][0].a + c[1][0][1].r*c[1][0][1].a + c[1][1][0].r*c[1][1][0].a + c[1][1][1].r*c[1][1][1].a + a_2)/a;
             col.g=(c[0][0][0].g*c[0][0][0].a + c[0][0][1].g*c[0][0][1].a + c[0][1][0].g*c[0][1][0].a + c[0][1][1].g*c[0][1][1].a + c[1][0][0].g*c[1][0][0].a + c[1][0][1].g*c[1][0][1].a + c[1][1][0].g*c[1][1][0].a + c[1][1][1].g*c[1][1][1].a + a_2)/a;
@@ -4652,7 +4652,7 @@ struct CopyContext
                        + c[5][0].a*CW8[5][0]  + c[5][1].a*CW8[5][1]  + c[5][2].a*CW8[5][2] + c[5][3].a*CW8[5][3] + c[5][4].a*CW8[5][4] + c[5][5].a*CW8[5][5] +  c[5][6].a*CW8[5][6] +  c[5][7].a*CW8[5][7]
                      /*+ c[6][0].a*CW8[6][0]*/+ c[6][1].a*CW8[6][1]  + c[6][2].a*CW8[6][2] + c[6][3].a*CW8[6][3] + c[6][4].a*CW8[6][4] + c[6][5].a*CW8[6][5] +  c[6][6].a*CW8[6][6] +/*c[6][7].a*CW8[6][7]*/
                      /*+ c[7][0].a*CW8[7][0]  + c[7][1].a*CW8[7][1]*/+ c[7][2].a*CW8[7][2] + c[7][3].a*CW8[7][3] + c[7][4].a*CW8[7][4] + c[7][5].a*CW8[7][5] +/*c[7][6].a*CW8[7][6] +  c[7][7].a*CW8[7][7]*/ + CW8Sum/2)/CW8Sum, 0, 255);
-         cubic_sharp_rgb:
+         rgb:
             col.r=Mid((/*c[0][0].r*CW8[0][0]  + c[0][1].r*CW8[0][1]*/+ c[0][2].r*CW8[0][2] + c[0][3].r*CW8[0][3] + c[0][4].r*CW8[0][4] + c[0][5].r*CW8[0][5] +/*c[0][6].r*CW8[0][6] +  c[0][7].r*CW8[0][7]*/
                      /*+ c[1][0].r*CW8[1][0]*/+ c[1][1].r*CW8[1][1]  + c[1][2].r*CW8[1][2] + c[1][3].r*CW8[1][3] + c[1][4].r*CW8[1][4] + c[1][5].r*CW8[1][5] +  c[1][6].r*CW8[1][6] +/*c[1][7].r*CW8[1][7]*/
                        + c[2][0].r*CW8[2][0]  + c[2][1].r*CW8[2][1]  + c[2][2].r*CW8[2][2] + c[2][3].r*CW8[2][3] + c[2][4].r*CW8[2][4] + c[2][5].r*CW8[2][5] +  c[2][6].r*CW8[2][6] +  c[2][7].r*CW8[2][7]
@@ -4695,7 +4695,7 @@ struct CopyContext
                     + w[5][0]  + w[5][1]  + w[5][2] + w[5][3] + w[5][4] + w[5][5]  + w[5][6]  + w[5][7]
                   /*+ w[6][0]*/+ w[6][1]  + w[6][2] + w[6][3] + w[6][4] + w[6][5]  + w[6][6]/*+ w[6][7]*/
                   /*+ w[7][0]  + w[7][1]*/+ w[7][2] + w[7][3] + w[7][4] + w[7][5]/*+ w[7][6]  + w[7][7]*/;
-            if(div<=0){col.a=0; goto cubic_sharp_rgb;}
+            if(div<=0){col.a=0; goto rgb;}
             col.a=Min(DivRound(div, CWA8Sum), 255); // here "div>0" so no need to do "Max(0, "
             if(div<CWA8AlphaLimit) // below this limit, lerp to RGB
             {
