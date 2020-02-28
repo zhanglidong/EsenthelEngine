@@ -1005,7 +1005,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="inverseG"
        || p.name=="inverseRG"
        || p.name=="lerpRGB" && values>2
-       || p.name=="ilerpRGB" && values>2
+       || p.name=="iLerpRGB" && values>2
        || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulAddRGB" && values>2
@@ -1036,7 +1036,7 @@ bool HighPrecTransform(C Str &name)
        || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
-       || name=="lerpRGB" || name=="ilerpRGB"
+       || name=="lerpRGB" || name=="iLerpRGB"
        || name=="blur"
        || name=="bump"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
@@ -1045,9 +1045,9 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -1162,6 +1162,27 @@ void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box)
       image.unlock();
    }
 }
+void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
+{
+   if(contrast!=1 && image.lock())
+   {
+      flt avg_hue=RgbToHsb(avg_col).x;
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         flt d_hue=HueDelta(avg_hue, c.x);
+         d_hue*=contrast;
+         Clamp(d_hue, -0.5, 0.5); // clamp so we don't go back
+         c.x=d_hue+avg_hue;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }
+}
 void AddHue(Image &image, flt hue, C BoxI &box)
 {
    hue=Frac(hue);
@@ -1174,6 +1195,23 @@ void AddHue(Image &image, flt hue, C BoxI &box)
          Vec4 c=image.color3DF(x, y, z);
          c.xyz=RgbToHsb(c.xyz);
          c.x +=hue;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }
+}
+void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box)
+{
+   if(contrast!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         c.y=(c.y-avg_sat)*contrast+avg_sat;
          c.xyz=HsbToRgb(c.xyz);
          image.color3DF(x, y, z, c);
       }
@@ -1211,6 +1249,23 @@ void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, 
       c.xyz*=Lerp(1.0, hue_mul, hsb.y);
       image.color3DF(x, y, z, c);
    }
+}
+void MulSat(Image &image, flt mul, C BoxI &box)
+{
+   if(mul!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         c.y*=mul;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }   
 }
 void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, bool sat, bool photo, C BoxI &box)
 {
@@ -1395,7 +1450,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
       }
    }else
-   if(param.name=="ilerpRGB")
+   if(param.name=="iLerpRGB")
    {
       Memc<Str> c; Split(c, param.value, ',');
       switch(c.elms())
@@ -1576,48 +1631,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box) && image.lock())
-         {
-            flt avg_hue=RgbToHsb(avg.xyz).x;
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               flt d_hue=HueDelta(avg_hue, c.x);
-               d_hue*=contrast;
-               Clamp(d_hue, -0.5, 0.5); // clamp so we don't go back
-               c.x=d_hue+avg_hue;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))ContrastHue(image, contrast, avg.xyz, box);
+      }
+   }else
+   if(param.name=="medContrastHue")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))ContrastHue(image, contrast, med.xyz, box);
       }
    }else
    if(param.name=="contrastHueAlphaWeight")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box) && image.lock())
-         {
-            flt avg_hue=RgbToHsb(avg).x;
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               flt d_hue=HueDelta(avg_hue, c.x);
-               d_hue*=contrast;
-               Clamp(d_hue, -0.5, 0.5); // clamp so we don't go back
-               c.x=d_hue+avg_hue;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))ContrastHue(image, contrast, avg, box);
       }
    }else
    if(param.name=="contrastHuePow")
@@ -1648,58 +1676,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box) && image.lock())
-         {
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               c.y=(c.y-avg)*contrast+avg;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))ContrastSat(image, contrast, avg, box);
+      }
+   }else
+   if(param.name=="medContrastSat")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt med; if(image.statsSat(null, null, null, &med, null, null, &box))ContrastSat(image, contrast, med, box);
       }
    }else
    if(param.name=="contrastSatAlphaWeight")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box) && image.lock())
-         {
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               c.y=(c.y-avg)*contrast+avg;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
-      }
-   }else
-   if(param.name=="avgSat")
-   {
-      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg && image.lock())
-      {
-         flt mul=param.asFlt()/avg;
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-            c.xyz=RgbToHsb(c.xyz);
-            c.y*=mul;
-            c.xyz=HsbToRgb(c.xyz);
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
+         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box))ContrastSat(image, contrast, avg, box);
       }
    }else
    if(param.name=="avgLum")
@@ -1754,42 +1745,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="mulSat")
    {
-      flt sat=param.asFlt(); if(sat!=1 && image.lock())
-      {
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-            c.xyz=RgbToHsb(c.xyz);
-            c.y*=sat;
-            c.xyz=HsbToRgb(c.xyz);
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
-      }
+      MulSat(image, param.asFlt(), box);
+   }else
+   if(param.name=="avgSat")
+   {
+      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg)MulSat(image, param.asFlt()/avg, box);
    }else
    if(param.name=="medSat")
    {
-      if(image.lock()) // lock for writing because we will use this lock for applying sat too
-      {
-         Vec4 col; if(image.stats(null, null, null, &col, null, null, &box))if(flt med_sat=RgbToHsb(col.xyz).y)
-         {
-            flt sat=param.asFlt()/med_sat;
-            if( sat!=1)
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               c.y*=sat;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-         }
-         image.unlock();
-      }
+      flt med; if(image.statsSat(null, null, null, &med, null, null, &box))if(med)MulSat(image, param.asFlt()/med, box);
    }else
    if(param.name=="mulSatPhoto")
    {
