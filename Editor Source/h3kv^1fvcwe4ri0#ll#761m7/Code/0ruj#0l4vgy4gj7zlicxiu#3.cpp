@@ -1024,6 +1024,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="lerpHueSat"
        || p.name=="rollHueSat"
        || p.name=="rollHueSatPhoto"
+       || p.name=="min" && TextVecEx(p.value).anyDifferent()
        || p.name=="max" && TextVecEx(p.value).anyDifferent()
        || p.name=="channel" && !ChannelMonoTransform(p.value)
        || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent()
@@ -2011,6 +2012,18 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             image.color3DF(x, y, z, c);
          }
          image.unlock();
+      }
+   }else
+   if(param.name=="min")
+   {
+      Vec min=TextVecEx(param.value);
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=Min(c.xyz, min);
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="max")
