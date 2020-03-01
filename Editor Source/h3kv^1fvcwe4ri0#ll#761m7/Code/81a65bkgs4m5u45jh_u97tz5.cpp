@@ -1666,9 +1666,9 @@ class ProjectEx : ProjectHierarchy
          {
             edit.separateNormalMap();
             Mems<Edit.FileParams> fps=Edit.FileParams.Decode(edit.normal_map);
-            flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scaleXY"))mul*=p.asFlt();
-            if(Equal(mul, 1))DelTransform(fps, "scaleXY");
-            else             SetTransform(fps, "scaleXY", TextVecEx(mul));
+            flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scale"))mul*=p.asFlt();
+            if(Equal(mul, 1))DelTransform(fps, "scale");
+            else             SetTransform(fps, "scale", TextReal(mul, -3));
             edit.normal_map=Edit.FileParams.Encode(fps); edit.normal_map_time.now();
             edit.normal=1; edit.normal_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexNrm");

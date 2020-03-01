@@ -269,7 +269,7 @@ ConvertToAtlasClass ConvertToAtlas;
             VecI2 size=mtrl.packed_rect.size();
             if(mtrl.edit.flip_normal_y && normal) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
             if(mtrl.rotated                     ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
-            if(!mul_1                           ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
+            if(!mul_1                           ) fp.params.New().set(normal ? "scale" : "mulRGB", TextVecEx(mul));
                                                   fp.params.New().set("resizeClamp", VecI2AsText(size));
             if(mtrl.packed_rect.min.any()       ) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
             Swap(fps_dest.New(), fp); // move it to dest
@@ -278,7 +278,7 @@ ConvertToAtlasClass ConvertToAtlas;
          if(force)
          {
             Edit::FileParams &fp=fps_dest.New();
-            fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
+            fp.params.New().set(normal ? "scale" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
             added=true; forced=true;
          }
          if(added)
