@@ -2532,6 +2532,7 @@ void FixMesh(Mesh &mesh)
 }
 bool SamePartInAllLods(C Mesh &mesh, int part)
 {
+#if 0 // checks only 1 part
    if(InRange(part, mesh.parts))
    {
       cchar8 *name=mesh.parts[part].name;
@@ -2543,6 +2544,14 @@ bool SamePartInAllLods(C Mesh &mesh, int part)
       return true;
    }
    return false;
+#else // checks all parts
+   for(Int i=mesh.lods(); --i>=1; )
+   {
+    C MeshLod &lod=mesh.lod(i); if(lod.parts.elms()!=mesh.parts.elms())return false;
+      REPA(lod.parts)if(!Equal(lod.parts[i].name, mesh.parts[i].name))return false;
+   }
+   return true;
+#endif
 }
 void SetDrawGroup(Mesh &mesh, MeshLod &lod, int part, int group, Enum *draw_group_enum)
 {
