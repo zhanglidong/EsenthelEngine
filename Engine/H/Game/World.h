@@ -105,7 +105,7 @@ struct WorldManager // World Manager
    T1(TYPE) WorldManager&   setAreaClass(                                   ) { _grid.replaceClass<TYPE>(                                 ); return T;} // set class responsible for areas    , TYPE must be extended from 'Game.Area'
    T1(TYPE) WorldManager&   setAreaData (                                   ) {return _setAreaData<TYPE>(                                 );          } // set class responsible for area data, TYPE must be extended from 'Game.Area.Data'
    T1(TYPE) WorldManager&   setObjType  (ObjMap<TYPE> &obj_map, Int obj_type) {return _setObjType       (&obj_map, obj_type, CType<TYPE>());          } // set   memory container responsible for selected OBJ_TYPE
-   T1(TYPE) WorldManager& clearObjType  (                       Int obj_type) {return _setObjType       ( null   , obj_type, null         );          } // clear memory container responsible for selected OBJ_TYPE
+            WorldManager& clearObjType  (                       Int obj_type) {return _setObjType       ( null   , obj_type, null         );          } // clear memory container responsible for selected OBJ_TYPE
 
    // manage
    WorldManager& del   (                                                                  ); // manually delete current world
