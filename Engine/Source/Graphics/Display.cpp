@@ -889,7 +889,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
 
   _diffuse_mode=(MOBILE ? DIFFUSE_LAMBERT : DIFFUSE_BURLEY);
 
-  _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_PARALLAX);
+  _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_RELIEF);
 
   _mtn_mode  =MOTION_NONE;
   _mtn_dilate=DILATE_ORTHO2;
