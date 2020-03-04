@@ -311,7 +311,11 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       bool is =false;
       Box  box=mesh.ext;
-      if(mode()==MESH)REPA(mesh_parts.list.sel)if(C MeshPart *part=getPart(mesh_parts.list.sel[i]))Include(box, is, part->base);
+      if(mode()==MESH)
+      {
+       C MeshLod &lod=getLod();
+         REPA(mesh_parts.list.sel)if(C MeshPart *part=lod.parts.addr(mesh_parts.list.sel[i]))Include(box, is, part->base);
+      }
       return box.center()*transformMatrix(true);
    }
    Skeleton* ObjView::getVisSkel()
@@ -1075,20 +1079,24 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       vtxs.clear();
       if(from_vtxs )vtxs=sel_vtx;
-      if(from_faces)REPA(sel_face)
+      if(from_faces)
       {
-       C VecI2 &v=sel_face[i]; if(MeshPart *part=getPart(v.x))
+         MeshLod &lod=getLod();
+         REPA(sel_face)
          {
-          C MeshBase &base=part->base;
-            if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]));}}
-            else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]));}}
+          C VecI2 &v=sel_face[i]; if(MeshPart *part=lod.parts.addr(v.x))
+            {
+             C MeshBase &base=part->base;
+               if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]));}}
+               else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]));}}
+            }
          }
       }
    }
    void ObjView::getSamePos(int part, int vtx, MemPtr<VecI2> vtxs)
    {
       vtxs.clear();
-    C MeshLod &lod=getLod(); if(C MeshPart *p=getPart(part))if(InRange(vtx, p->base.vtx))
+    C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))if(InRange(vtx, p->base.vtx))
       {
        C Vec &pos=p->base.vtx.pos(vtx); REPAD(p, lod)
          {
@@ -1098,7 +1106,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::includeSamePos(int part, MemPtr<VecI2> vtxs) // !! assumes that 'vtxs' is sorted and valid (point to valid indexes) !!
    {
-    C MeshLod &lod=getLod(); if(C MeshPart *p=getPart(part))REPA(p->base.vtx)
+    C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))REPA(p->base.vtx)
       {
        C Vec &pos=p->base.vtx.pos(i); REPAD(v, vtxs)
          {
@@ -2572,12 +2580,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                Memt<VecI2> vtxs; getVtxs(Gui.ms(), shape, vtxs);
                Matrix      matrix=transformMatrix();
                MeshLod    &lod=getLod(); REPA(lod)if(mesh_parts.partOp(i))includeSamePos(i, vtxs);
-               Memt<int, SIZE(int)*128> parts;
+               MemtN<int, 128> changed_parts;
                REPA(vtxs)
                {
-                C VecI2 &vtx=vtxs[i]; if(mesh_parts.partOp(vtx.x))if(MeshPart *part=getPart(vtx.x))
+                C VecI2 &vtx=vtxs[i]; if(mesh_parts.partOp(vtx.x))if(MeshPart *part=lod.parts.addr(vtx.x))
                   {
-                     parts.binaryInclude(vtx.x);
+                     changed_parts.binaryInclude(vtx.x);
                      MeshBase &base=part->base;
                      if(add) // if adding then create and setup vertex data if needed
                      {
@@ -2624,8 +2632,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      }
                   }
                }
-               REPA(parts)lod.parts[parts[i]].setRender();
-               if(parts.elms())setChangedMesh(true, false);
+               REPA(changed_parts)lod.parts[changed_parts[i]].setRender();
+               if(changed_parts.elms())setChangedMesh(true, false);
             }
          }
       }
