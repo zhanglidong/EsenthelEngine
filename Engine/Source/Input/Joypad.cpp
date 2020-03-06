@@ -197,14 +197,12 @@ Joypad& Joypad::vibration(C Vec2 &force)
       }
 
       DIEFFECT eff; Zero(eff);
-      eff.dwSize=SIZE(DIEFFECT);
+      eff.dwSize=SIZE(eff);
       eff.dwFlags=DIEFF_CARTESIAN|DIEFF_OBJECTOFFSETS;
       eff.cAxes=_vibration_axes;
       eff.rglDirection=rglDirection;
-      eff.lpEnvelope=0;
-      eff. cbTypeSpecificParams=SIZE(DICONSTANTFORCE);
+      eff. cbTypeSpecificParams=SIZE(cf);
       eff.lpvTypeSpecificParams=&cf;
-      eff.dwStartDelay=0;
 
      _effect->SetParameters(&eff, DIEP_DIRECTION|DIEP_TYPESPECIFICPARAMS|DIEP_START);
    }
