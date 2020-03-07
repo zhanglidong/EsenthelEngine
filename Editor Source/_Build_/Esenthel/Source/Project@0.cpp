@@ -412,6 +412,7 @@ void DrawProject()
    void ProjectEx::MtrlSetNormalCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal     );else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetSmoothCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth     );else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetReflectCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect    );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetGlowCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetGlow        (proj.menu_list_sel, MtrlEdit.edit.glow       );else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlResetAlpha(ProjectEx &proj) {                proj.mtrlResetAlpha     (proj.menu_list_sel);}
    void ProjectEx::MtrlCullOn(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, true );}
    void ProjectEx::MtrlCullOff(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, false);}
@@ -421,6 +422,7 @@ void DrawProject()
    void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit. normal_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit. smooth_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetReflectTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexReflect  (proj.menu_list_sel, MtrlEdit.edit.reflect_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetGlowTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.   glow_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {                proj.mtrlMulTexCol      (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {                proj.mtrlMulTexNormal   (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {                proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
@@ -1484,6 +1486,21 @@ void DrawProject()
       }
       return ok;
    }
+   bool ProjectEx::mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul)
+   {
+      bool ok=true;
+      if(!mul || glow!=1)
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.glow!=glow)
+         {
+            if(mul)edit.glow*=glow;else edit.glow=glow; edit.glow_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setGlow");
+         }
+      }
+      return ok;
+   }
    bool ProjectEx::mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map)
    {
       bool ok=true;
@@ -1522,6 +1539,20 @@ void DrawProject()
          {
             edit.reflect_map=reflect_map; edit.reflect_map_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexReflect");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.glow_map, glow_map, true))
+         {
+            edit.glow_map=glow_map; edit.glow_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexGlow");
          }
       }
       return ok;
@@ -3916,12 +3947,15 @@ void DrawProject()
                   m++;
                   m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
                   m++;
+                  m.New().create("Set Normal Value to Edited Material" , MtrlSetNormalCur , T);
                   m.New().create("Set Smooth Value to Edited Material" , MtrlSetSmoothCur , T);
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
+                  m.New().create("Set Glow Value to Edited Material"   , MtrlSetGlowCur   , T);
                   m++;
                   m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
                   m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
                   m.New().create("Set Reflect Texture to Edited Material", MtrlSetReflectTexCur, T);
+                  m.New().create("Set Glow Texture to Edited Material"   , MtrlSetGlowTexCur   , T);
                   m++;
                   m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
                   m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);
