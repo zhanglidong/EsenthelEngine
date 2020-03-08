@@ -20,17 +20,19 @@ struct _MemcThreadSafe // Thread-Safe Continuous Memory Based Container Base - D
    Int  index   (CPtr elm)C;
    Bool contains(CPtr elm)C {return index(elm)>=0;}
 
+   void lockedRemoveLast() {_memc.removeLast();}
    void       removeLast();
-   void       remove    (Int  i  , Bool keep_order=false);
    void lockedRemove    (Int  i  , Bool keep_order=false) {_memc.remove(i, keep_order);}
+   void       remove    (Int  i  , Bool keep_order=false);
+   void lockedRemoveData(CPtr elm, Bool keep_order=false) {_memc.removeData(elm, keep_order);}
    void       removeData(CPtr elm, Bool keep_order=false);
 
    void setNum    (Int num);
    void setNumZero(Int num);
    Int  addNum    (Int num);
 
-   Bool       binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
    Bool lockedBinarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {return _memc.binarySearch(value, index, compare);}
+   Bool       binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
 
    void           sort(           Int compare(CPtr a, CPtr b           ));
    void           sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
