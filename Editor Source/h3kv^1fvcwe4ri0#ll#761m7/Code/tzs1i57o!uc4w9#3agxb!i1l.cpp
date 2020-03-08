@@ -248,7 +248,7 @@ class NewLodClass : ClosableWindow
             // first setup materials
             Memt<MaterialPtr> mtrl_ptrs;
             Str path=GetPath(name);
-            Edit.FileParams fp=name;
+            FileParams fp=name;
             FREPA(mtrls)
             {
                // TODO: detect existing similar materials in the source mesh?

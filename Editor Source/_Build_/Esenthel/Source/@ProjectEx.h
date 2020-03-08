@@ -391,7 +391,7 @@ public:
    {
       bool loaded=false;
       reflection.del();
-      Mems<Edit.FileParams> faces=Edit.FileParams.Decode(material.reflection_map);
+      Mems<FileParams> faces=FileParams.Decode(material.reflection_map);
       if(faces.elms()==6) // 6 images specified
       {
          Image images[6]; REPA(images)

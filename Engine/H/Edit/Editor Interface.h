@@ -198,28 +198,6 @@ private:
    IDPalette _ip;
 };
 /******************************************************************************/
-struct FileParams
-{
-   Str             name;
-   Mems<TextParam> params;
-
-   Bool is()C {return name.is() || params.elms();}
-
-   TextParam* findParam(C Str &name);
- C TextParam* findParam(C Str &name)C;
-   TextParam&  getParam(C Str &name);
-
-   Str  encode(        )C; // encode into string
-   void decode(C Str &s) ; // decode from string
-
-   FileParams(        ) {}
-   FileParams(C Str &s) {decode(s);}
-
-   static Str              Encode(C MemPtr<FileParams> &file_params); // encode 'file_params' array into string
-   static Mems<FileParams> Decode(C Str                &str        ); // decode 'str' string into file params array
-   static Str              Merge (C Str                &a, C Str &b); // merge  'a' 'b' strings
-};
-/******************************************************************************/
 struct Material
 {
    enum TEX_QUALITY : SByte

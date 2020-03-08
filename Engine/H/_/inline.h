@@ -43,7 +43,7 @@ inline C XmlParam*  XmlNode::findParam(C Str &name, Int i                       
 inline C TextNode* TextNode::findNode (C Str &name, Int i                           )C {return          ConstCast(T    ).findNode (name, i);}
 inline C TextNode* TextData::findNode (C Str &name, Int i                           )C {return          ConstCast(T    ).findNode (name, i);}
 /******************************************************************************/
-inline C TextParam* Edit::FileParams::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
+inline C TextParam* FileParams::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
 /******************************************************************************/
 inline C SkelBone * Skeleton ::findBone (              BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T).findBone (      type, type_index, type_sub);}
 inline C SkelBone & Skeleton :: getBone (              BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T). getBone (      type, type_index, type_sub);}

@@ -265,19 +265,19 @@ DIR_ENUM GetCubeDir(int face)
 }
 Str GetCubeFile(C Str &files, int face)
 {
-   Mems<Edit::FileParams> faces=Edit::FileParams::Decode(files);
+   Mems<FileParams> faces=FileParams::Decode(files);
    return (faces.elms()==1) ? files : InRange(face, faces) ? faces[face].encode() : S;
 }
 Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified 'face' and return all files
 {
    if(InRange(face, 6))
    {
-      Mems<Edit::FileParams> faces=Edit::FileParams::Decode(files);
+      Mems<FileParams> faces=FileParams::Decode(files);
       if(faces.elms()==1){faces.setNum(6); REPAO(faces)=files;} // set all from original
       if(faces.elms()!=6)faces.clear(); // if invalid number then clear
       faces.setNum(6); // set 6 faces
       faces[face]=file; // set i-th face to target file
-      files=Edit::FileParams::Encode(faces); // get all faces
+      files=FileParams::Encode(faces); // get all faces
    }
    return files;
 }
@@ -933,10 +933,10 @@ bool SizeDependentTransform(C TextParam &p)
 }
 bool ForcesMono(C Str &file)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   Mems<FileParams> files=FileParams::Decode(file);
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -949,10 +949,10 @@ bool ForcesMono(C Str &file)
 }
 Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (default)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(color_map);
+   Mems<FileParams> files=FileParams::Decode(color_map);
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -961,14 +961,14 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
       if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
    SetTransform(files, "bump", (blur<0) ? S : S+blur);
-   return Edit::FileParams::Encode(files);
+   return FileParams::Encode(files);
 }
-bool ExtractResize(MemPtr<Edit::FileParams> files, TextParam &resize)
+bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
 {
    resize.del();
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
@@ -2187,11 +2187,11 @@ Str8 ImageDownSizeSuffix(int size)
    return S;
 }
 /******************************************************************************/
-TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms
+TextParam* FindTransform(MemPtr<FileParams> files, C Str &name) // this ignores partial(non full size) transforms
 {
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -2200,11 +2200,11 @@ TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ig
    }
    return null;
 }
-void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
+void DelTransform(MemPtr<FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
 {
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
@@ -2217,7 +2217,7 @@ void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores p
       }
    }
 }
-void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+void SetTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
@@ -2225,7 +2225,7 @@ void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // 
       TextParam *p;
       REPA(files) // go from end
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
@@ -2237,7 +2237,7 @@ void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // 
       p->setValue(value);
    }
 }
-void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+void SetResizeTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
@@ -2245,7 +2245,7 @@ void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &valu
       TextParam *p;
       REPA(files) // go from end
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
@@ -2262,9 +2262,9 @@ void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &valu
 }
 void SetTransform(Str &file, C Str &name, C Str &value)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   Mems<FileParams> files=FileParams::Decode(file);
    SetTransform(files, name, value);
-   file=Edit::FileParams::Encode(files);
+   file=FileParams::Encode(files);
 }
 /******************************************************************************/
 SOUND_CODEC TextSoundCodec(C Str &t)
@@ -2711,7 +2711,7 @@ UID AsID(C Elm *elm) {return elm ? elm->id : UIDZero;}
 /******************************************************************************/
 void SetPath(WindowIO &win_io, C Str &path, bool clear)
 {
-   Mems<Edit::FileParams> fps=Edit::FileParams::Decode(path); if(fps.elms()==1)
+   Mems<FileParams> fps=FileParams::Decode(path); if(fps.elms()==1)
    {
       Str first=FFirstUp(fps[0].name);
       if(FileInfoSystem(first).type==FSTD_FILE)first=GetPath(first);
@@ -2940,14 +2940,14 @@ Str GetStr(File &f)
 }
 void GetStr(File &f, Str &s) {s=GetStr(f);}
 
-Mems<Edit::FileParams> _DecodeFileParams(C Str &str)
+Mems<FileParams> _DecodeFileParams(C Str &str)
 {
-   Mems<Edit::FileParams> files; if(str.is())
+   Mems<FileParams> files; if(str.is())
    {
       Memc<Str> strs=Split(str, '|'); // get list of all files
       files.setNum(strs.elms()); FREPA(files)
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          Memc<Str> fp=Split(strs[i], '?'); // file_name?params
          file.name=(fp.elms() ? fp[0] : S);
          if(fp.elms()>=2)

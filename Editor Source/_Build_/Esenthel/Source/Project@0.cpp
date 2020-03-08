@@ -1335,12 +1335,12 @@ void DrawProject()
    }
    bool ProjectEx::forceImageSize(Str &file, C VecI2 &size, bool relative)
    {
-      Mems<Edit::FileParams> files=Edit::FileParams::Decode(file); if(files.elms())
+      Mems<FileParams> files=FileParams::Decode(file); if(files.elms())
       {
        //if(relative) // for relative we need to remove any existing "resize" before calling 'loadImages', actually do this always, because there are now many "resize" commands and we want to remove all of them
             REPA(files) // go from end
          {
-            Edit::FileParams &file=files[i];
+            FileParams &file=files[i];
             if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
             REPA(file.params) // go from end
             {
@@ -1356,7 +1356,7 @@ void DrawProject()
             VecI2 s=size;
             if(relative) // for relative size, we need to get information about the source image size
             {
-               Image temp; if(!loadImages(temp, null, Edit::FileParams::Encode(files)))return false; // if failed to load, then do nothing, can ignore sRGB
+               Image temp; if(!loadImages(temp, null, FileParams::Encode(files)))return false; // if failed to load, then do nothing, can ignore sRGB
                s.set(Max(1, Shl(temp.w(), size.x)), Max(1, Shl(temp.h(), size.y)));
                s.set(NearestPow2(s.x), NearestPow2(s.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
             }
@@ -1364,7 +1364,7 @@ void DrawProject()
             // set "resize" param into 'files'
             if(s.any())SetResizeTransform(files, "resize", VecI2AsText(s)); // only if any specified
          }
-         file=Edit::FileParams::Encode(files);
+         file=FileParams::Encode(files);
          return true;
       }
       return false;
@@ -1696,11 +1696,11 @@ void DrawProject()
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
          if(!Equal(edit.color_s.xyz, Vec(1)) && edit.color_map.is())
          {
-            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.color_map);
+            Mems<FileParams> fps=FileParams::Decode(edit.color_map);
             Vec mul=edit.color_s.xyz; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p->value);
             if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
             else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
-            edit.color_map=Edit::FileParams::Encode(fps); edit.color_map_time.now();
+            edit.color_map=FileParams::Encode(fps); edit.color_map_time.now();
             edit.color_s.xyz=1; edit.color_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexCol");
          }
@@ -1716,11 +1716,11 @@ void DrawProject()
          if(!Equal(edit.normal, 1) && edit.hasNormalMap())
          {
             edit.separateNormalMap();
-            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.normal_map);
+            Mems<FileParams> fps=FileParams::Decode(edit.normal_map);
             flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scale"))mul*=p->asFlt();
             if(Equal(mul, 1))DelTransform(fps, "scale");
             else             SetTransform(fps, "scale", TextReal(mul, -3));
-            edit.normal_map=Edit::FileParams::Encode(fps); edit.normal_map_time.now();
+            edit.normal_map=FileParams::Encode(fps); edit.normal_map_time.now();
             edit.normal=1; edit.normal_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexNrm");
          }
@@ -1735,11 +1735,11 @@ void DrawProject()
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
          if(!Equal(edit.smooth, 1) && edit.smooth_map.is())
          {
-            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.smooth_map);
+            Mems<FileParams> fps=FileParams::Decode(edit.smooth_map);
             flt mul=edit.smooth; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p->asFlt();
             if(Equal(mul, 1))DelTransform(fps, "mulRGB");
             else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
-            edit.smooth_map=Edit::FileParams::Encode(fps); edit.smooth_map_time.now();
+            edit.smooth_map=FileParams::Encode(fps); edit.smooth_map_time.now();
             edit.smooth=1; edit.smooth_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
          }
@@ -2574,12 +2574,12 @@ void DrawProject()
       Memt<UID> reloading;
       FREPA(elm_ids)if(Elm *elm=findElm(elm_ids[i], ELM_SOUND))
       {
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(elm->srcFile()); if(files.elms())
+         Mems<FileParams> files=FileParams::Decode(elm->srcFile()); if(files.elms())
          {
-            Edit::FileParams &file=files[0];
+            FileParams &file=files[0];
             if(codec          )file.getParam("codec"     ).setValue((codec==SOUND_WAV) ? "raw" : CodecName(codec));else file.params.removeData(file.findParam("codec"     ), true);
             if(rel_bit_rate>=0)file.getParam("relBitRate").setValue(rel_bit_rate                                 );else file.params.removeData(file.findParam("relBitRate"), true); file.params.removeData(file.findParam("relativeBitRate"), true);
-            elm->setSrcFile(Edit::FileParams::Encode(files)); Server.setElmShort(elm->id); reloading.add(elm->id);
+            elm->setSrcFile(FileParams::Encode(files)); Server.setElmShort(elm->id); reloading.add(elm->id);
          }
       }
       elmReload(reloading);
@@ -2591,14 +2591,14 @@ void DrawProject()
          Memt<UID> changed;
          FREPA(elm_ids)if(Elm *elm=findElm(elm_ids[i], ELM_SOUND))
          {
-            Mems<Edit::FileParams> fps=Edit::FileParams::Decode(elm->srcFile());
+            Mems<FileParams> fps=FileParams::Decode(elm->srcFile());
 
             flt v=volume;
             if(C TextParam *p=FindTransform(fps, "volume"))v*=p->asFlt();
             if(Equal(v, 1)    )DelTransform(fps, "volume");
             else               SetTransform(fps, "volume", TextReal(v, -3));
 
-            elm->setSrcFile(Edit::FileParams::Encode(fps)); Server.setElmShort(elm->id); changed.add(elm->id);
+            elm->setSrcFile(FileParams::Encode(fps)); Server.setElmShort(elm->id); changed.add(elm->id);
          }
          elmReload(changed);
       }

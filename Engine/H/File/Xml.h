@@ -227,3 +227,25 @@ C TextNode* FindNodeC(C MemPtr<TextNode> &nodes, C Str &name, Int i=0); // find 
 XmlNode* FindNode(MemPtr<XmlNode> nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
 XmlNode&  GetNode(MemPtr<XmlNode> nodes, C Str &name         ); // get       node which name is equal to 'name', New  on fail (if not found)
 /******************************************************************************/
+struct FileParams
+{
+   Str             name;
+   Mems<TextParam> params;
+
+   Bool is()C {return name.is() || params.elms();}
+
+   TextParam* findParam(C Str &name);
+ C TextParam* findParam(C Str &name)C;
+   TextParam&  getParam(C Str &name);
+
+   Str  encode(        )C; // encode into string
+   void decode(C Str &s) ; // decode from string
+
+   FileParams(        ) {}
+   FileParams(C Str &s) {decode(s);}
+
+   static Str              Encode(C MemPtr<FileParams> &file_params); // encode 'file_params' array into string
+   static Mems<FileParams> Decode(C Str                &str        ); // decode 'str' string into file params array
+   static Str              Merge (C Str                &a, C Str &b); // merge  'a' 'b' strings
+};
+/******************************************************************************/
