@@ -51,6 +51,7 @@ struct Connection // reliable TCP based client/server connection with automatic 
 
    // operations
    Bool tcpNoDelay(Bool on) {return _socket.tcpNoDelay(on);} // set TCP_NODELAY option, false on fail
+   void reinitData(); // re-initialize 'data' file object if for example you've deleted it or swapped it with another file object, this will open 'data' for writing to memory using 'writeMem'
 
    Connection();
   ~Connection() {del();}
@@ -72,7 +73,6 @@ private:
    Bool            greet  ();
    Bool            flushEx(Int timeout); // wait 'timeout' until all data has been sent
    CONNECT_RECEIVE update (Int timeout, Bool read);
-   void reinitData(); // re-initialize 'data' file object if for example you've deleted it or swapped it with another file object, this will open 'data' for writing in memory using 'writeMem'
 #endif
 };
 /******************************************************************************/
