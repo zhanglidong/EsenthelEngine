@@ -334,8 +334,8 @@ struct EditorInterface
       Bool codeSyncExport(); // export all codes from active Project into the Code Synchronization folder, false on fail
 
       // file
-      Bool getFile(C UID &elm_id, File &data); // get data of 'elm_id' ELM_FILE ELM_SOUND ELM_VIDEO elements in the project, 'data' must be already opened for writing as the method will write  to it, false on fail
-      Bool setFile(C UID &elm_id, File &data); // set data of 'elm_id' ELM_FILE ELM_SOUND ELM_VIDEO elements in the project, 'data' must be already opened for reading as the method will read from it, false on fail
+      Bool getFile(C UID &elm_id, File &data); // get data of 'elm_id' ELM_FILE ELM_SOUND ELM_VIDEO elements in the project, 'data' should be already opened for writing as the method will write  to it, false on fail
+      Bool setFile(C UID &elm_id, File &data); // set data of 'elm_id' ELM_FILE ELM_SOUND ELM_VIDEO elements in the project, 'data' should be already opened for reading as the method will read from it, false on fail
 
       // material
       UID     curMaterial              (                                                                             ); // get ID of currently opened ELM_MTRL element, 'UIDZero' is returned if no material is opened
