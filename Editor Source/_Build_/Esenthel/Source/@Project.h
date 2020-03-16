@@ -173,6 +173,7 @@ class Project
       APPLY_MUL,
       APPLY_MUL_RGB,
       APPLY_MUL_A,
+      APPLY_MUL_SAT,
       APPLY_DIV,
       APPLY_ADD,
       APPLY_ADD_RGB,
