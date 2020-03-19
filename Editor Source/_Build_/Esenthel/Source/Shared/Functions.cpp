@@ -906,7 +906,7 @@ bool HighPrecTransform(C Str &name)
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
        || name=="lerpRGB" || name=="iLerpRGB"
-       || name=="blur"
+       || name=="blur" || name=="sharpen"
        || name=="bump"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
@@ -924,6 +924,7 @@ bool HighPrecTransform(C Str &name)
 bool SizeDependentTransform(C TextParam &p)
 {
    return p.name=="blur" // range depends on size
+       || p.name=="sharpen" // range depends on size
        || p.name=="bump" // range depends on size
        || p.name=="crop" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
@@ -1308,6 +1309,22 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+      }
+   }else
+   if(param.name=="sharpen")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      if(c.elms()>=1 && c.elms()<=2)
+      {
+         flt power=TextFlt(c[0]);
+         flt range=((c.elms()>=2) ? TextFlt(c[1]) : 1);
+         if(box.min.allZero() && box.max==image.size3())image.sharpen(power, range, clamp);else
+         {
+            Image temp; image.copyTry(temp); temp.sharpen(power, range, clamp);
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+         }
       }
    }else
    if(param.name=="lerpRGB")
