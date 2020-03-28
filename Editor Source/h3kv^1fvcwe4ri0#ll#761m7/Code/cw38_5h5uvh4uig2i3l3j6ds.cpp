@@ -511,7 +511,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   if(C MeshPtr &mesh=Proj.gamePath(obj_data.mesh_id))
                      mesh->drawBlend(MatrixIdentity, &Vec4(1, 1, 1, 0.5));
 
-            if(background_alpha()<1)REPAO(back_meshes).drawBlend();
+            if(background_alpha()>0 && background_alpha()<1)REPAO(back_meshes).drawBlend();
          }break;
       }
       particles.draw();
