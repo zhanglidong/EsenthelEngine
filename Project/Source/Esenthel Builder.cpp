@@ -1488,10 +1488,13 @@ Bool Update()
 
    if(!build_threads.queued() && Todo.elms())
    {
-      App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
-      done++; // start with small progress
-      WindowSetProgress(Flt(done)/(Todo.elms()+done));
-      if(TaskBase *t=Todo.popFirst())t->call();
+      MemcThreadSafeLock lock(Todo); if(Todo.elms())
+      {
+         App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
+         done++; // start with small progress
+         WindowSetProgress(Flt(done)/(Todo.elms()+done));
+         if(TaskBase *t=Todo.lockedPopFirst())t->call();
+      }
    }
    if(done && !build_threads.queued() && !Todo.elms()) // finished all tasks
    {
