@@ -306,6 +306,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(mesh_elm)if(ElmMesh *mesh_data=mesh_elm->meshData())return mesh_data->posScale(); // because we're operating on meshes in original import matrix, we need to adjust by the transform scale
       return 1;
    }
+   flt       ObjView::posEps()C {return          EPS*posScale();}
    flt ObjView::vtxDupPosEps()C {return VtxDupPosEps*posScale();}
    Vec ObjView::selMeshCenter()C
    {
@@ -1096,21 +1097,23 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::getSamePos(int part, int vtx, MemPtr<VecI2> vtxs)
    {
       vtxs.clear();
+      flt pos_eps=posEps();
     C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))if(InRange(vtx, p->base.vtx))
       {
        C Vec &pos=p->base.vtx.pos(vtx); REPAD(p, lod)
          {
-          C MeshPart &part=lod.parts[p]; if(partVisible(p, part))REPA(part.base.vtx)if(Equal(part.base.vtx.pos(i), pos))vtxs.add(VecI2(p, i));
+          C MeshPart &part=lod.parts[p]; if(partVisible(p, part))REPA(part.base.vtx)if(Equal(part.base.vtx.pos(i), pos, pos_eps))vtxs.add(VecI2(p, i));
          }
       }
    }
    void ObjView::includeSamePos(int part, MemPtr<VecI2> vtxs) // !! assumes that 'vtxs' is sorted and valid (point to valid indexes) !!
    {
+      flt pos_eps=posEps();
     C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))REPA(p->base.vtx)
       {
        C Vec &pos=p->base.vtx.pos(i); REPAD(v, vtxs)
          {
-          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y))){vtxs.binaryInclude(VecI2(part, i)); break;} // if share position then process this one too
+          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y), pos_eps)){vtxs.binaryInclude(VecI2(part, i)); break;} // if share position then process this one too
          }
       }
    }

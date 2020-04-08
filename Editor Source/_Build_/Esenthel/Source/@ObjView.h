@@ -220,6 +220,7 @@ public:
    int boneTabs()C;
    int boneAxis()C;
    flt posScale()C;
+   flt       posEps()C; 
    flt vtxDupPosEps()C; 
    Vec selMeshCenter()C;
    Skeleton* getVisSkel();
