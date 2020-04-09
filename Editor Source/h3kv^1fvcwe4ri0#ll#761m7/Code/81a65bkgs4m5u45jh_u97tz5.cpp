@@ -1317,6 +1317,7 @@ class ProjectEx : ProjectHierarchy
    {
       Mems<FileParams> files=FileParams.Decode(file); if(files.elms())
       {
+         Str resize_name;
        //if(relative) // for relative we need to remove any existing "resize" before calling 'loadImages', actually do this always, because there are now many "resize" commands and we want to remove all of them
             REPA(files) // go from end
          {
@@ -1325,13 +1326,19 @@ class ProjectEx : ProjectHierarchy
             REPA(file.params) // go from end
             {
                TextParam &p=file.params[i];
-               if(ResizeTransform(p.name))file.params.remove(i, true);else // remove resize transforms
+               if(ResizeTransform(p.name))
+               {
+                  if(!resize_name.is())resize_name=p.name; // get the name of resize at the end (check if not yet set because we're processing from the end), this is needed to preserve filtering choice
+                  file.params.remove(i, true); // remove resize transforms
+               }else
                if(SizeDependentTransform(p))goto skip; // if encountered a size dependent transform then it means we can't remove any other resize transforms
             }
             if(!file.is())files.remove(i, true); // if nothing left then remove it
          }
       skip:
-         if(files.elms() && !(relative && !size.x && !size.y)) // "relative && !size" means original size, for which we don't need to do anything, because "resize" was already removed
+         if(!resize_name.is())resize_name="resize"; // set default resize name
+         bool specific_resize=(resize_name!="resize"); // if not default
+         if(files.elms() && !(relative && !size.x && !size.y && !specific_resize)) // "relative && !size" means original size, for which we don't need to do anything, because "resize" was already removed
          {
             VecI2 s=size;
             if(relative) // for relative size, we need to get information about the source image size
@@ -1342,7 +1349,7 @@ class ProjectEx : ProjectHierarchy
             }
 
             // set "resize" param into 'files'
-            if(s.any())SetResizeTransform(files, "resize", VecI2AsText(s)); // only if any specified
+            if(specific_resize || s.any())SetResizeTransform(files, resize_name, s.any() ? VecI2AsText(s) : S); // only if any specified
          }
          file=FileParams.Encode(files);
          return true;
