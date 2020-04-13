@@ -988,6 +988,23 @@ struct FBX
          }
       }
    }
+   static void AddKeyTimes(FbxAnimCurve *curve, Memc<FbxTime> &times, Dbl fps)
+   {
+      if(curve)
+      {
+         Int keys=curve->KeyGetCount(); FREP(keys) // process in order to avoid moving elements when inserting with 'binaryInclude'
+         {
+            FbxTime time=curve->KeyGetTime(i);
+            times.binaryInclude(time, CompareTime);
+            if(InRange(i+1, keys) && curve->KeyGetInterpolation(i)!=FbxAnimCurveDef::eInterpolationLinear) // have next key, and interpolation is not linear
+            { // this is needed for keys that use non-linear interpolation (cubic/spline/tangets)
+               Dbl  t =time.GetSecondDouble(), t1 =curve->KeyGetTime(i+1).GetSecondDouble();
+               Long ti=RoundL(t*fps)         , ti1=RoundL(t1*fps);
+               for(Long t=ti+1; t<ti1; t++){time.SetSecondDouble(t/fps); times.binaryInclude(time, CompareTime);} // add keys between
+            }
+         }
+      }
+   }
    void set(Skeleton *skeleton, MemPtr<XAnimation> animations)
    {
       if(skeleton && animations)
@@ -1025,17 +1042,17 @@ struct FBX
                      {
                         if(cur!=&node && cur->hasAnim(anim_layer))animated_node_ancestor=cur; // remember the last encountered node that has some animations !! 'hasAnim' assumes that 'SetCurrentAnimationStack' was already called !!
 
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
+                        AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), rot_times, fps);
+                        AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), rot_times, fps);
+                        AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), rot_times, fps);
 
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
+                        AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), pos_times, fps);
+                        AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), pos_times, fps);
+                        AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), pos_times, fps);
 
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
+                        AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), scale_times, fps);
+                        AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), scale_times, fps);
+                        AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), scale_times, fps);
 
                         cur=cur->parent; if(!cur || InRange(cur->bone_index, skeleton->bones))break; // if there's no parent, or it's a bone (its animations are alread stored in it so we can skip them), then break
                      }
@@ -1043,9 +1060,17 @@ struct FBX
                      if(rot_times.elms() || pos_times.elms() || scale_times.elms())
                      {
                         Memc<FbxTime> times;
+                     #if 0 // force keys for all frames, this can be used for testing
+                        Int steps=Round(fps*xanim.anim.length())+1;
+                        if(  rot_times.elms()){  rot_times.setNum(steps); FREP(steps)  rot_times[i].SetSecondDouble(time_start+i/fps);}
+                        if(  pos_times.elms()){  pos_times.setNum(steps); FREP(steps)  pos_times[i].SetSecondDouble(time_start+i/fps);}
+                        if(scale_times.elms()){scale_times.setNum(steps); FREP(steps)scale_times[i].SetSecondDouble(time_start+i/fps);}
+                                                     times.setNum(steps); FREP(steps)      times[i].SetSecondDouble(time_start+i/fps);
+                     #else
                         FREPA(  rot_times)times.binaryInclude(  rot_times[i], CompareTime);
                         FREPA(  pos_times)times.binaryInclude(  pos_times[i], CompareTime);
                         FREPA(scale_times)times.binaryInclude(scale_times[i], CompareTime);
+                     #endif
 
                      #if DEBUG
                       //if(!node.bone)Exit("Animated Node is not a Bone");
