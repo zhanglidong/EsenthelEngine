@@ -362,6 +362,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlSetRGB              (ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel);}
    static void MtrlMulRGB              (ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel, true);}
    static void MtrlSetRGBCur           (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetRGB         (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
+   static void MtrlSetBumpCur          (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetBump        (proj.menu_list_sel, MtrlEdit.edit.bump       );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetNormalCur        (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal     );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetSmoothCur        (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth     );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetReflectCur       (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect    );else Gui.msgBox(S, "There's no Material opened");}
@@ -1427,6 +1428,21 @@ class ProjectEx : ProjectHierarchy
             Server.setElmLong(mtrl.id);
          }
       }
+   }
+   bool mtrlSetBump(C MemPtr<UID> &elm_ids, flt bump, bool mul=false)
+   {
+      bool ok=true;
+      if(!mul || bump!=1)
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.bump!=bump)
+         {
+            if(mul)edit.bump*=bump;else edit.bump=bump; edit.bump_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setBump");
+         }
+      }
+      return ok;
    }
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false)
    {
@@ -4024,6 +4040,7 @@ class ProjectEx : ProjectHierarchy
                   m++;
                   m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
                   m++;
+                  m.New().create("Set Bump Value to Edited Material"   , MtrlSetBumpCur   , T);
                   m.New().create("Set Normal Value to Edited Material" , MtrlSetNormalCur , T);
                   m.New().create("Set Smooth Value to Edited Material" , MtrlSetSmoothCur , T);
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
