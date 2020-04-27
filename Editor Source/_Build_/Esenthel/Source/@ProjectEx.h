@@ -475,7 +475,7 @@ public:
    void mulSoundVolume(C MemPtr<UID> &elm_ids, flt volume);
 
    void adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight>> &bone_weights, int old_bone_as_root=-1);
-   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id);
+   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id, C UID &ignore_anim_id=UIDZero);
  /*void updateSkelBoneTypes()
    {
       REPA(elms)

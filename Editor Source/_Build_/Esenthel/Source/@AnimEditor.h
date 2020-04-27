@@ -187,14 +187,21 @@ public:
    static void RemMovement    (AnimEditor &editor);
    static void FreezeBone     (AnimEditor &editor);
    static void Mirror         (AnimEditor &editor);
+   void rotate(C Matrix3 &m);
    static void RotX           (AnimEditor &editor);
    static void RotY           (AnimEditor &editor);
    static void RotZ           (AnimEditor &editor);
+   static void RotXH          (AnimEditor &editor);
+   static void RotYH          (AnimEditor &editor);
+   static void RotZH          (AnimEditor &editor);
    static void DrawBones      (AnimEditor &editor);
    static void DrawMesh       (AnimEditor &editor);
    static void Grid           (AnimEditor &editor);
    static void TransformObj   (AnimEditor &editor);
-   static void TransformObjDo(AnimEditor &editor);
+   static void TransformObjYes            (AnimEditor &editor);                       
+   static void TransformObjYesPreserveThis(AnimEditor &editor);                       
+   static void TransformObjYesPreserveAll (AnimEditor &editor);                       
+          void transformObj(bool transform_anims=true, C UID &ignore_anim_id=UIDZero);
 
    static void Undo  (AnimEditor &editor);
    static void Redo  (AnimEditor &editor);

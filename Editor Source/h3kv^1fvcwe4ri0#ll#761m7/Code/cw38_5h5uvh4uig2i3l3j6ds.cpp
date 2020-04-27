@@ -2217,7 +2217,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(obj_elm)REPA(v4.view)if(focus_obj==&v4.view[i].viewport)Importer.import(*obj_elm, names, screen_pos);
    }
 
-   void animate(C AnimSkel &anim_skel)
+   void animate(C AnimSkel &anim_skel, bool transform_anims=true, C UID &ignore_anim_id=UIDZero)
    {
       if(mesh_skel && skel_elm)
       {
@@ -2229,7 +2229,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          mesh_skel.animate(anim_skel); // 'mesh_skel' is in 'mesh_matrix'
          edit_skel.animate(anim_skel, matrixes); // need to modify 'edit_skel' so new animations will import correctly
 
-         Proj.offsetAnimations(saved_skel, *mesh_skel, skel_elm.id); // we've transformed mesh skeleton, and since animations can transform bones on top of skeleton, then we need to offset them back
+         if(transform_anims)Proj.offsetAnimations(saved_skel, *mesh_skel, skel_elm.id, ignore_anim_id); // we've transformed mesh skeleton, and since animations can transform bones on top of skeleton, then we need to offset them back
 
          // need to modify 'saved_skel' so existing animations won't be modified
          saved_skel=*mesh_skel; saved_edit_skel=edit_skel; saved_skel_matrix=mesh_matrix; cur_skel_to_saved_skel.create(saved_skel);

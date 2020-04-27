@@ -585,28 +585,45 @@ AnimEditor AnimEdit;
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
    void AnimEditor::RemMovement(AnimEditor &editor) {editor.removeMovement();}
    void AnimEditor::FreezeBone(AnimEditor &editor) {editor.freezeBone();}
-   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror   (                            editor.skel ? *editor.skel : temp      ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotX(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotY(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotZ(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror(editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::rotate(C Matrix3 &m)
+   {
+      if(anim)
+      {
+         undos.set("rot", true);
+         if(ElmAnim *d=data())if(d->rootMove()){Vec root_move=d->root_move*m; d->rootMove(root_move);} // !! don't do "d.root_move*=m" because we need to call 'rootMove' !!
+         Skeleton temp; anim->transform(m, skel ? *skel : temp, true); prepMeshSkel(); setOrnTarget(); setChanged(); toGui();
+      }
+   }
+   void AnimEditor::RotX(AnimEditor &editor) {editor.rotate(Matrix3().setRotateX(PI_2));}
+   void AnimEditor::RotY(AnimEditor &editor) {editor.rotate(Matrix3().setRotateY(PI_2));}
+   void AnimEditor::RotZ(AnimEditor &editor) {editor.rotate(Matrix3().setRotateZ(PI_2));}
+   void AnimEditor::RotXH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateX(PI_4));}
+   void AnimEditor::RotYH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateY(PI_4));}
+   void AnimEditor::RotZH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateZ(PI_4));}
    void AnimEditor::DrawBones(AnimEditor &editor) {editor.draw_bones.push();}
    void AnimEditor::DrawMesh(AnimEditor &editor) {editor.draw_mesh .push();}
    void AnimEditor::Grid(AnimEditor &editor) {editor.show_grid .push();}
    void AnimEditor::TransformObj(AnimEditor &editor)
    {
       Dialog &dialog=Gui.getMsgBox(transform_obj_dialog_id);
-      dialog.set("Transform Object", "Warning: this option will open the original object in the Object Editor, clear undo levels (if any) and transform it, including its Mesh and Skeleton according to current animation. This cannot be undone. Are you sure you want to do this?", Memt<Str>().add("Yes").add("Cancel"));
-      dialog.buttons[0].func(TransformObjDo, editor);
-      dialog.buttons[1].func(Hide          , SCAST(GuiObj, dialog));
+      dialog.set("Transform Object", "Warning: this option will open the original object in the Object Editor, clear undo levels (if any) and transform it, including its Mesh and Skeleton according to current Animation. This cannot be undone. Are you sure you want to do this?", Memt<Str>().add("Yes").add("Yes (preserve this Animation)").add("Yes (preserve all Animations)").add("Cancel"));
+      dialog.buttons[0].func(TransformObjYes            , editor).desc("This Animation will be transformed among other Object Animations to the new Skeleton.\nChoose this option if you intend to use this Animation on the transformed Object.");
+      dialog.buttons[1].func(TransformObjYesPreserveThis, editor).desc("Other Object Animations will be transformed to the new Skeleton, except this one which will remain unmodified.\nChoose this option if you don't intend to use this Animation on the transformed Object, but instead keep it as backup to transform the original Object again in the future.");
+      dialog.buttons[2].func(TransformObjYesPreserveAll , editor).desc("No Animations will be transformed to the new Skeleton, all will remain unmodified.\nChoose this option if you want to keep animations as they are.");
+      dialog.buttons[3].func(Hide                       , SCAST(GuiObj, dialog));
       dialog.activate();
    }
-   void AnimEditor::TransformObjDo(AnimEditor &editor)
+   void AnimEditor::TransformObjYes(AnimEditor &editor) {editor.transformObj();}
+   void AnimEditor::TransformObjYesPreserveThis(AnimEditor &editor) {editor.transformObj(true, editor.elm_id);}
+   void AnimEditor::TransformObjYesPreserveAll(AnimEditor &editor) {editor.transformObj(false);}
+          void AnimEditor::transformObj(bool transform_anims, C UID &ignore_anim_id)
    {
       Gui.closeMsgBox(transform_obj_dialog_id);
-      if(Elm *obj=Proj.animToObjElm(editor.elm))
+      if(Elm *obj=Proj.animToObjElm(elm))
       {
          ObjEdit.activate(obj);
-         ObjEdit.animate(editor.anim_skel);
+         ObjEdit.animate(anim_skel, transform_anims, ignore_anim_id);
       }else Gui.msgBox(S, "There's no Object associated with this Animation.");
    }
    void AnimEditor::Undo(AnimEditor &editor) {editor.undos.undo();}
@@ -963,10 +980,13 @@ AnimEditor AnimEdit;
       n.New().create("Set Root From Body XZ"     , RootFromBodyXZ, T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_ALT));
       n.New().create("Del Root Position+Rotation", RootDel       , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT));
       n++;
-      n.New().create("Mirror"  , Mirror, T).desc("Mirror entire animation along X axis");
-      n.New().create("Rotate X", RotX  , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along X axis");
-      n.New().create("Rotate Y", RotY  , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Y axis");
-      n.New().create("Rotate Z", RotZ  , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Z axis");
+      n.New().create("Mirror"   , Mirror, T).desc("Mirror entire animation along X axis");
+      n.New().create("Rotate X" , RotX  , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along X axis (hold Shift for half rotation)");
+      n.New().create("Rotate Y" , RotY  , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Y axis (hold Shift for half rotation)");
+      n.New().create("Rotate Z" , RotZ  , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Z axis (hold Shift for half rotation)");
+      n.New().create("Rotate XH", RotXH , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along X axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
+      n.New().create("Rotate YH", RotYH , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along Y axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
+      n.New().create("Rotate ZH", RotZH , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along Z axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
       n++;
       n.New().create("Transform Original Object", TransformObj, T);
       T+=cmd.create(Rect_LU(op.rect().ru(), h), n).focusable(false); cmd.flag|=COMBOBOX_CONST_TEXT;

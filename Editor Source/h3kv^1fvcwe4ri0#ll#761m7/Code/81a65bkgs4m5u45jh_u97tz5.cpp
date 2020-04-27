@@ -2745,11 +2745,11 @@ class ProjectEx : ProjectHierarchy
          }
       }
    }
-   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id)
+   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id, C UID &ignore_anim_id=UIDZero)
    {
       REPA(elms) // iterate all project elements
       {
-         Elm &anim_elm=elms[i]; if(ElmAnim *anim_data=anim_elm.animData())if(anim_data.skel_id==skel_id) // process animations using this skeleton
+         Elm &anim_elm=elms[i]; if(ElmAnim *anim_data=anim_elm.animData())if(anim_data.skel_id==skel_id && anim_elm.id!=ignore_anim_id) // process animations using this skeleton
          {
             Animation temp, *anim=getAnim(anim_elm.id, temp);
             if(anim.is()) // process if has any data (this also skips animations that haven't finished downloading from the server)
