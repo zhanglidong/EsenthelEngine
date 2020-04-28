@@ -294,6 +294,8 @@ public:
    flt getBlend(C AnimKeys::Key &key )C;
    flt getBlend(           flt  time)C;
 
+   static void ScaleScaleFactor(Vec &scale_factor, C Vec &scale);
+
    virtual void update(C GuiPC &gpc)override;
    bool selectionZoom(flt &dist);
    bool getHit(GuiObj *go, C Vec2 &screen_pos, Vec &hit_pos);
@@ -307,7 +309,7 @@ public:
    bool delFramesPos(int bone);
    bool delFramesScale(int bone);
    void delFrame();
-   void delFrames();
+   void delFrames(int bone);
    void delFramesAtEnd();
    void reverseFrames();
    void removeMovement();

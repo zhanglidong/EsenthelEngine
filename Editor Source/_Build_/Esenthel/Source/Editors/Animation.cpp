@@ -578,7 +578,7 @@ AnimEditor AnimEdit;
    void AnimEditor::PrevFrame(AnimEditor &editor) {editor.frame(-1);}
    void AnimEditor::NextFrame(AnimEditor &editor) {editor.frame(+1);}
    void  AnimEditor::DelFrame(AnimEditor &editor) {editor.delFrame ();}
-   void  AnimEditor::DelFrames(AnimEditor &editor) {editor.delFrames();}
+   void  AnimEditor::DelFrames(AnimEditor &editor) {editor.delFrames(editor.sel_bone);}
    void  AnimEditor::DelFramesAtEnd(AnimEditor &editor) {editor.delFramesAtEnd();}
    void AnimEditor::Optimize(AnimEditor &editor) {editor.optimize_anim.activate();}
    void AnimEditor::TimeRangeSp(AnimEditor &editor) {editor.time_range_speed.display();}
@@ -1123,6 +1123,7 @@ AnimEditor AnimEdit;
       }
       return BlendSmoothCube(delta/blend_range);
    }
+   void AnimEditor::ScaleScaleFactor(Vec &scale_factor, C Vec &scale) {scale_factor=ScaleFactorR(ScaleFactor(scale_factor)*scale);}
    void AnimEditor::update(C GuiPC &gpc)
 {
       lit_bone=-1;
@@ -1349,13 +1350,14 @@ AnimEditor AnimEdit;
                            case  2: d.z+=AlignDirToCamEx(bone.dir    , Ms.d()*mul)      ; break;
                            default: d  +=                             (Ms.d()*mul).sum(); break;
                         }
+                        Vec mul=ScaleFactor(d);
                         if(Kb.ctrlCmd()) // all
                         {
-                           if(use_blend)REPA (keys->scales)keys->scales[i].scale+=d*getBlend(keys->scales[i]);
-                           else         REPAO(keys->scales).scale+=d;
+                           if(use_blend)REPA(keys->scales)ScaleScaleFactor(keys->scales[i].scale, ScaleFactor(d*getBlend(keys->scales[i])));
+                           else         REPA(keys->scales)ScaleScaleFactor(keys->scales[i].scale, mul);
                         }else // single
                         {
-                           scale->scale+=d;
+                           ScaleScaleFactor(scale->scale, mul);
                         }
                         keys->setTangents(anim->loop(), anim->length());
                         anim->setRootMatrix();
@@ -1364,6 +1366,9 @@ AnimEditor AnimEdit;
                      }break;
                   }
                }
+               if(Kb.ctrlCmd() && Kb.shift() && Kb.b(KB_BACK)) // fast delete of highlighted bone keyframes
+                  if(lit_bone>=0) // only if have any highlighted bone (to skip root)
+                     delFrames(lit_bone);
             }
          }
          if(Ms.bp(2)) // close on middle click
@@ -1514,13 +1519,13 @@ AnimEditor AnimEdit;
       if(op()==OP_SCALE || op()<0)changed|=delFrameScale(sel_bone);
       if(changed){prepMeshSkel(); setOrnTarget(); anim->setRootMatrix(); setChanged();}
    }
-   void AnimEditor::delFrames()
+   void AnimEditor::delFrames(int bone)
    {
       bool changed=false;
-      if(op()==OP_ORN   || op()<0)changed|=delFramesOrn  (sel_bone);
-      if(op()==OP_ORN2           )changed|=delFramesOrn  (sel_bone)|delFramesOrn(boneParent(sel_bone));
-      if(op()==OP_POS   || op()<0)changed|=delFramesPos  (sel_bone);
-      if(op()==OP_SCALE || op()<0)changed|=delFramesScale(sel_bone);
+      if(op()==OP_ORN   || op()<0)changed|=delFramesOrn  (bone);
+      if(op()==OP_ORN2           )changed|=delFramesOrn  (bone)|delFramesOrn(boneParent(bone));
+      if(op()==OP_POS   || op()<0)changed|=delFramesPos  (bone);
+      if(op()==OP_SCALE || op()<0)changed|=delFramesScale(bone);
       if(changed){prepMeshSkel(); setOrnTarget(); anim->setRootMatrix(); setChanged();}
    }
    void AnimEditor::delFramesAtEnd()
