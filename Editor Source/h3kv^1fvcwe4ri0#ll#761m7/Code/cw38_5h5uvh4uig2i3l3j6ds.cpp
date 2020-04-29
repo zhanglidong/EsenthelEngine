@@ -2239,6 +2239,16 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          setChangedSkel(true);
       }
    }
+   void animate(C Animation &anim, flt anim_time, bool transform_anims=true, C UID &ignore_anim_id=UIDZero)
+   {
+      if(mesh_skel)
+      {
+         SkelAnim skel_anim; skel_anim.create(*mesh_skel, anim);
+         AnimSkel anim_skel; anim_skel.create( mesh_skel);
+         anim_skel.updateBegin().clear().animateEx(skel_anim, anim_time, true, true, true).updateMatrix().updateEnd();
+         animate(anim_skel, transform_anims, ignore_anim_id);
+      }
+   }
 
    virtual void update(C GuiPC &gpc)override
    {

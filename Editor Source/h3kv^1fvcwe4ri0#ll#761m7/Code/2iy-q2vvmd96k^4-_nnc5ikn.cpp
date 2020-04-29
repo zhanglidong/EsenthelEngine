@@ -721,10 +721,11 @@ class AnimEditor : Viewport4Region
           void transformObj(bool transform_anims=true, C UID &ignore_anim_id=UIDZero)
    {
       Gui.closeMsgBox(transform_obj_dialog_id);
+      if(anim)
       if(Elm *obj=Proj.animToObjElm(elm))
       {
          ObjEdit.activate(obj);
-         ObjEdit.animate(anim_skel, transform_anims, ignore_anim_id);
+         ObjEdit.animate(*anim, animTime(), transform_anims, ignore_anim_id); // can't use 'anim_skel' because this operates on game mesh/skel, which can be different if using object body, we need mesh original skel
       }else Gui.msgBox(S, "There's no Object associated with this Animation.");
    }
 

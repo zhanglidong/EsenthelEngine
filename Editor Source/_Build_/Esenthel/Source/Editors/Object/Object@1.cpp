@@ -2121,6 +2121,16 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          setChangedSkel(true);
       }
    }
+   void ObjView::animate(C Animation &anim, flt anim_time, bool transform_anims, C UID &ignore_anim_id)
+   {
+      if(mesh_skel)
+      {
+         SkelAnim skel_anim; skel_anim.create(*mesh_skel, anim);
+         AnimSkel anim_skel; anim_skel.create( mesh_skel);
+         anim_skel.updateBegin().clear().animateEx(skel_anim, anim_time, true, true, true).updateMatrix().updateEnd();
+         animate(anim_skel, transform_anims, ignore_anim_id);
+      }
+   }
    void ObjView::update(C GuiPC &gpc)
 {
       has_cur_pos=false;
