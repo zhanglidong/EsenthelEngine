@@ -115,6 +115,26 @@ public:
    OptimizeAnim();
    };
 
+   class ScalePosKeys : PropWin
+   {
+      bool      refresh_needed, preview;
+      Vec       scale;
+      flt       scale_xyz;
+      Button    ok;
+      Animation anim;
+
+      static void Changed(C Property &prop);
+      static void OK(ScalePosKeys &oa);
+
+      void scalePos(Animation &anim);
+      Animation* getAnim();
+      void refresh();        
+      ScalePosKeys& create();
+
+public:
+   ScalePosKeys();
+   };
+
    class TimeRangeSpeed : PropWin
    {
       flt    start, end, speed;
@@ -160,6 +180,7 @@ public:
    Str8              sel_bone_name;
    Vec               orn_target, orn_perp, copied_bone_pos;
    OptimizeAnim      optimize_anim;
+   ScalePosKeys      scale_pos_keys;
    TimeRangeSpeed    time_range_speed;
    Edit::Undo<Change> undos;   void undoVis();
 
@@ -182,6 +203,7 @@ public:
    static void  DelFrames     (AnimEditor &editor);
    static void  DelFramesAtEnd(AnimEditor &editor);
    static void Optimize       (AnimEditor &editor);
+   static void ScalePosKey    (AnimEditor &editor);
    static void TimeRangeSp    (AnimEditor &editor);
    static void ReverseFrames  (AnimEditor &editor);
    static void RemMovement    (AnimEditor &editor);
@@ -274,9 +296,10 @@ public:
    Matrix transformedBoneAxis(int i)C;
    int getBone(GuiObj *go, C Vec2 &screen_pos);
    int boneParent(int bone)C;
-   AnimKeys* findVisKeys(int sbon_index, bool root=true);
-   AnimKeys* findKeys(int sbon_index, bool root=true);
-   AnimKeys* getKeys(int sbon_index, bool root=true);
+   AnimKeys* findKeys(Animation *anim, int sbon_index, bool root=true);
+   AnimKeys* findVisKeys(int sbon_index, bool root=true);            
+   AnimKeys* findKeys   (int sbon_index, bool root=true);            
+   AnimKeys*  getKeys   (int sbon_index, bool root=true);
    AnimKeys* findKeysParent(int sbon_index, bool root=true); // return null for root, because 'findKeys' already returns root for -1, and 'findKeysParent' would return the same
 
    static int CompareKey(C AnimKeys::Orn   &key, C flt &time);

@@ -209,7 +209,7 @@ AnimEditor AnimEdit;
                }else
                {
                   r.draw(Color(0, 64), false);
-                  
+
                   AnimKeys *sel_keys=AnimEdit.findVisKeys(AnimEdit.sel_bone),
                            *lit_keys=AnimEdit.findVisKeys(AnimEdit.lit_bone, false); // don't display root keys for highlighted
                   const flt s=r.h()/(TRACK_NUM+1)/2;
@@ -456,6 +456,59 @@ AnimEditor AnimEdit;
          hide();
          return T;
       }
+      void AnimEditor::ScalePosKeys::Changed(C Property &prop) {AnimEdit.scale_pos_keys.refresh();}
+      void AnimEditor::ScalePosKeys::OK(ScalePosKeys &oa)
+      {
+         if(AnimEdit.anim)
+         {
+            AnimEdit.undos.set("scalePos");
+            oa.scalePos(*AnimEdit.anim);
+            AnimEdit.setChanged();
+         }
+         oa.hide();
+      }
+      void AnimEditor::ScalePosKeys::scalePos(Animation &anim)
+      {
+         if(AnimKeys *keys=AnimEdit.findKeys(&anim, AnimEdit.sel_bone))
+         {
+            REPA(keys->poss)
+            {
+               Vec &pos=keys->poss[i].pos;
+               pos.x*=scale.x;
+               pos.y*=scale.y;
+               pos.z*=scale.z;
+               pos  *=scale_xyz;
+            }
+            keys->setTangents(anim.loop(), anim.length());
+         }
+         anim.setRootMatrix();
+      }
+      Animation* AnimEditor::ScalePosKeys::getAnim()
+      {
+         Animation *src=AnimEdit.anim;
+         if(refresh_needed)
+         {
+            refresh_needed=false;
+            if(src)anim=*src;else anim.del();
+            scalePos(anim);
+         }
+         return preview ? &anim : src;
+      }
+      void AnimEditor::ScalePosKeys::refresh() {refresh_needed=true;}
+      ::AnimEditor::ScalePosKeys& AnimEditor::ScalePosKeys::create()
+      {
+         add("Preview"  , MEMBER(ScalePosKeys, preview  ));
+         add("Scale X"  , MEMBER(ScalePosKeys, scale.x  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale Y"  , MEMBER(ScalePosKeys, scale.y  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale Z"  , MEMBER(ScalePosKeys, scale.z  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale XYZ", MEMBER(ScalePosKeys, scale_xyz)).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         Rect r=super::create("Scale Pos Keys", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
+         autoData(this);
+         resize(Vec2(0, 0.1f));
+         T+=ok.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.2f, 0.06f), "OK").func(OK, T);
+         hide();
+         return T;
+      }
       void AnimEditor::TimeRangeSpeed::Apply(TimeRangeSpeed &tsr)
       {
          if(AnimEdit.anim && tsr.speed)
@@ -581,6 +634,7 @@ AnimEditor AnimEdit;
    void  AnimEditor::DelFrames(AnimEditor &editor) {editor.delFrames(editor.sel_bone);}
    void  AnimEditor::DelFramesAtEnd(AnimEditor &editor) {editor.delFramesAtEnd();}
    void AnimEditor::Optimize(AnimEditor &editor) {editor.optimize_anim.activate();}
+   void AnimEditor::ScalePosKey(AnimEditor &editor) {editor.scale_pos_keys.activate();}
    void AnimEditor::TimeRangeSp(AnimEditor &editor) {editor.time_range_speed.display();}
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
    void AnimEditor::RemMovement(AnimEditor &editor) {editor.removeMovement();}
@@ -845,7 +899,7 @@ AnimEditor AnimEdit;
       flush();
    }
    ElmAnim* AnimEditor::data()C {return elm ? elm->animData() : null;}
-   Animation* AnimEditor::getVisAnim() {return optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
+   Animation* AnimEditor::getVisAnim() {return scale_pos_keys.visibleFull() ? scale_pos_keys.getAnim() : optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
    flt  AnimEditor::timeToFrac(flt time)C {return (anim && anim->length()) ? time/anim->length() : 0;}
    bool AnimEditor::timeToFrame(flt time, flt &frame)C
    {
@@ -958,11 +1012,11 @@ AnimEditor AnimEdit;
       n.New().create("Delete KeyFrames"                , DelFrames     , T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This will delete all keyframes for selected bone");
       n.New().create("Delete All Bone KeyFrames at End", DelFramesAtEnd, T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_WIN_CTRL)).desc("This will delete keyframes located at the end of the animation, for all bones (except root motion).");
       n++;
-      n.New().create("Reduce KeyFrames", Optimize, T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
-      n++;
       n.New().create("Reverse KeyFrames", ReverseFrames, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT)); // avoid Ctrl+R collision with reload project element
       n++;
-      n.New().create("Change Speed for Time Range", TimeRangeSp, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));
+      n.New().create("Reduce KeyFrames"           , Optimize   , T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
+      n.New().create("Scale Position Keys"        , ScalePosKey, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));
+      n.New().create("Change Speed for Time Range", TimeRangeSp, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT));
       n++;
     //n.New().create("Remove Movement", RemMovement, T).desc("This option can be used for animations that include actual movement - ending position is not the same as the starting position.\nThis option will adjust the animation so that the ending position is the same as starting position.").kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_ALT));
       n.New().create("Freeze Bone"    , FreezeBone , T).desc("This option will adjust position offset to the root bone, so that currently selected bone will appear without movement.").kbsc(KbSc(KB_F, KBSC_CTRL_CMD|KBSC_ALT));
@@ -1039,6 +1093,7 @@ AnimEditor AnimEdit;
       T+=end       .create("]").focusable(false).func(End      , T).desc(S+"Go to animation end\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+End, "+Kb.ctrlCmdName()+"+]");
       T+=track           .create(false);
       T+=optimize_anim   .create();
+      T+=scale_pos_keys  .create();
       T+=time_range_speed.create();
       preview.create();
       return T;
@@ -1076,16 +1131,7 @@ AnimEditor AnimEdit;
    {
       return skel ? skel->boneParent(bone) : -1;
    }
-   AnimKeys* AnimEditor::findVisKeys(int sbon_index, bool root)
-   {
-      if(Animation *anim=getVisAnim())
-      {
-         if(skel)if(C SkelBone *sbon=skel->bones.addr(sbon_index))return anim->findBone(sbon->name, sbon->type, sbon->type_index, sbon->type_sub); // use types in case animation was from another skeleton and we haven't adjusted types
-         if(root)return &anim->keys;
-      }
-      return null;
-   }
-   AnimKeys* AnimEditor::findKeys(int sbon_index, bool root)
+   AnimKeys* AnimEditor::findKeys(Animation *anim, int sbon_index, bool root)
    {
       if(anim)
       {
@@ -1094,7 +1140,9 @@ AnimEditor AnimEdit;
       }
       return null;
    }
-   AnimKeys* AnimEditor::getKeys(int sbon_index, bool root)
+   AnimKeys* AnimEditor::findVisKeys(int sbon_index, bool root) {return findKeys(getVisAnim(), sbon_index, root);}
+   AnimKeys* AnimEditor::findKeys(int sbon_index, bool root) {return findKeys(      anim  , sbon_index, root);}
+   AnimKeys*  AnimEditor::getKeys(int sbon_index, bool root)
    {
       if(anim)
       {
@@ -1130,7 +1178,8 @@ AnimEditor AnimEdit;
       lit_bone=-1;
       if(visible() && gpc.visible)
       {
-         optimize_anim.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
+         optimize_anim .refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
+         scale_pos_keys.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
          playUpdate();
          prepMeshSkel();
 
@@ -1430,7 +1479,8 @@ AnimEditor AnimEdit;
       prev_frame.rect(Rect_RD(force_play.rect().ld(), 0.08f, 0.07f));
       start     .rect(Rect_RD(prev_frame.rect().ld(), 0.07f, 0.07f));
       v4.rect(Rect(v4.rect().min.x, Proj.visible() ? track.rect().max.y : Misc.rect().h()-clientHeight(), v4.rect().max.x, v4.rect().max.y));
-      optimize_anim.move(Vec2(rect().w(), rect().h()/-2)-optimize_anim.rect().right());
+      optimize_anim .move(Vec2(rect().w(), rect().h()/-2)-optimize_anim .rect().right());
+      scale_pos_keys.move(Vec2(rect().w(), rect().h()/-2)-scale_pos_keys.rect().right());
    }
    void AnimEditor::frame(int d)
    {
@@ -1738,7 +1788,8 @@ AnimEditor AnimEdit;
             data->newVer();
             if(anim)data->from(*anim);
             if(file)data->file_time.getUTC();
-            optimize_anim.refresh();
+            optimize_anim .refresh();
+            scale_pos_keys.refresh();
          }
       }
    }
@@ -1776,11 +1827,13 @@ AnimEditor AnimEdit;
          validateFullscreen();
          RenameEvent.hide();
 
-         optimize_anim.refresh();
+         optimize_anim .refresh();
+         scale_pos_keys.refresh();
          prepMeshSkel();
          selBone(skel ? skel->findBoneI(sel_bone_name) : -1);
          setOrnTarget();
-         optimize_anim.hide();
+         optimize_anim   .hide();
+         scale_pos_keys  .hide();
          time_range_speed.hide();
          Gui.closeMsgBox(transform_obj_dialog_id);
          preview.moveToTop();
@@ -1882,5 +1935,7 @@ AnimEditor::AnimEditor() : elm_id(UIDZero), elm(null), changed(false), fullscree
 AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), event_lit(-1), event_sel(-1), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
 
 AnimEditor::OptimizeAnim::OptimizeAnim() : refresh_needed(true), preview(true), angle_eps(EPS_ANIM_ANGLE), pos_eps(EPS_ANIM_POS), scale_eps(EPS_ANIM_SCALE), file_size(null), optimized_size(null) {}
+
+AnimEditor::ScalePosKeys::ScalePosKeys() : refresh_needed(true), preview(true), scale(1), scale_xyz(1) {}
 
 /******************************************************************************/
