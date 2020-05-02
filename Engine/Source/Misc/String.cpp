@@ -1411,9 +1411,10 @@ Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
 {
-   if(src && t)
+   Bool ok=true; // assume ok at the start if there are no words to test
+   if(t)
    {
       Memt<Char> word; for(CChar *start=t; ; )
       {
@@ -1425,13 +1426,14 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
                if(Contains(src, word.data(), case_sensitive, whole_words))return true;
+               ok=false; // encountered a word to test, but it failed
             }
             if(c=='\0')break;
             start=t;
          }
       }
    }
-   return false;
+   return ok;
 }
 /****************************************************************************/
 Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
