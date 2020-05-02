@@ -914,7 +914,7 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
@@ -1053,7 +1053,7 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
       image.unlock();
    }
 }
-void AddHue(Image &image, flt hue, C BoxI &box)
+void AddHue(Image &image, flt hue, C BoxI &box, bool photo)
 {
    hue=Frac(hue);
    if(hue && image.lock())
@@ -1063,9 +1063,16 @@ void AddHue(Image &image, flt hue, C BoxI &box)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
+         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          c.x +=hue;
          c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+         }
          image.color3DF(x, y, z, c);
       }
       image.unlock();
@@ -1595,7 +1602,8 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))AvgContrastLum(image, param.asFlt(), med.xyz.max(), box);
    }else
-   if(param.name=="addHue")AddHue(image, param.asFlt(), box);else
+   if(param.name=="addHue"     )AddHue(image, param.asFlt(), box);else
+   if(param.name=="addHuePhoto")AddHue(image, param.asFlt(), box, true);else
    if(param.name=="avgHue")
    {
       if(image.lock()) // lock for writing because we will use this lock for applying hue too
@@ -1747,12 +1755,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec2 hue_sat=param.asVec2();
          Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
+              rgb=SRGBToLinear(rgb);
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
+          //c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
+            c.xyz=LinearToSRGB(rgb*LinearLumOfSRGBColor(c.xyz));
             image.color3DF(x, y, z, c);
          }
          image.unlock();
