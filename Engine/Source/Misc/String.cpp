@@ -1017,7 +1017,8 @@ Int ComparePathNumber(CChar8 *a, CChar8 *b, Bool case_sensitive)
 /****************************************************************************/
 Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
 {
-   if(t && start)
+   if(!Is(start))return true;
+   if(t)
    {
       I();
       Char8 last_start='\0';
@@ -1045,7 +1046,8 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
 }
 Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
 {
-   if(t && start)
+   if(!Is(start))return true;
+   if(t)
    {
       I();
       Char8 last_start='\0';
@@ -1073,7 +1075,8 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
 }
 Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
 {
-   if(t && start)
+   if(!Is(start))return true;
+   if(t)
    {
       I();
       Char last_start='\0';
@@ -1101,7 +1104,8 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
 }
 Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
 {
-   if(t && start)
+   if(!Is(start))return true;
+   if(t)
    {
       I();
       Char last_start='\0';
@@ -1130,7 +1134,8 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
 /****************************************************************************/
 Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, Bool whole_words=false)
 {
-   if(t && start)
+   if(!Is(start))return true;
+   if(t)
    {
       I();
      CChar *t_start=t;
@@ -1315,10 +1320,9 @@ Bool Contains(CChar8 *src, Char  c) {Char8 a=Char16To8Fast(c); if(Char8To16Fast(
 /****************************************************************************/
 Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
 {
-   if(src && t)
+   if(!Is(t))return true;
+   if(src)
    {
-      if(!t[0])return true;
-
       I();
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
@@ -1339,10 +1343,9 @@ Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
 }
 Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
 {
-   if(src && t)
+   if(!Is(t))return true;
+   if(src)
    {
-      if(!t[0])return true;
-
       I();
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
@@ -1363,10 +1366,9 @@ Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
 }
 Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
 {
-   if(src && t)
+   if(!Is(t))return true;
+   if(src)
    {
-      if(!t[0])return true;
-
       I();
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
@@ -1387,10 +1389,9 @@ Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
 }
 Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
 {
-   if(src && t)
+   if(!Is(t))return true;
+   if(src)
    {
-      if(!t[0])return true;
-
       I();
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
