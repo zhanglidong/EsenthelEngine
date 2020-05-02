@@ -1434,9 +1434,9 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
 {
-   if(src && t)
+   if(t)
    {
       Memt<Char> word; for(CChar *start=t; ; )
       {
@@ -1449,16 +1449,16 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
-            if(c=='\0')return true;
+            if(c=='\0')break;
             start=t;
          }
       }
    }
-   return false;
+   return true;
 }
-Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
 {
-   if(src && t)
+   if(t)
    {
       Memt<Char8> word; for(CChar8 *start=t; ; )
       {
@@ -1471,16 +1471,16 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
-            if(c=='\0')return true;
+            if(c=='\0')break;
             start=t;
          }
       }
    }
-   return false;
+   return true;
 }
-Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
 {
-   if(src && t)
+   if(t)
    {
       Memt<Char> word; for(CChar *start=t; ; )
       {
@@ -1493,16 +1493,16 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
-            if(c=='\0')return true;
+            if(c=='\0')break;
             start=t;
          }
       }
    }
-   return false;
+   return true;
 }
-Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
 {
-   if(src && t)
+   if(t)
    {
       Memt<Char8> word; for(CChar8 *start=t; ; )
       {
@@ -1515,12 +1515,12 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
-            if(c=='\0')return true;
+            if(c=='\0')break;
             start=t;
          }
       }
    }
-   return false;
+   return true;
 }
 /****************************************************************************/
 CChar * _SkipWhiteChars     (CChar  *t) {if(t) for(; WhiteChar(*t); )t++;            return t;}
