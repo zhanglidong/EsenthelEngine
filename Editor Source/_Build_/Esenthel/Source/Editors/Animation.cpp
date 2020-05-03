@@ -831,7 +831,23 @@ AnimEditor AnimEdit;
    void AnimEditor::RootRotZ(  AnimEditor &editor, C Str &t) {if(ElmAnim *d=editor.data()){editor.undos.set("rootRot"); editor.root_set_rot.set(true, QUIET); if(!d->rootRot())d->root_rot=editor.anim->rootTransform().axisAngle(); d->root_rot.z=DegToRad(TextFlt(t)); d->rootRot(d->root_rot); /*d.file_time.getUTC(); already changed in 'setChanged' */ d->setRoot(*editor.anim); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
    void AnimEditor::SetSelMirror(AnimEditor &editor) {editor.setSelMirror(false);}
    void AnimEditor::SetMirrorSel(AnimEditor &editor) {editor.setSelMirror(true );}
-          void AnimEditor::setSelMirror(bool set_other)
+          void AnimEditor::setSelMirror(int i, int bone_i, bool set_other)
+   {
+      if(set_other)Swap(i, bone_i);
+      AnimKeys *src=findKeys(i, false), *dest=(src ? getKeys(bone_i, false) : findKeys(bone_i, false));
+      if(dest)
+      {
+         if(src)
+         {
+           *dest=*src;
+            dest->mirrorX();
+         }else anim->bones.remove(bone_i, true);
+      }
+      prepMeshSkel();
+      setOrnTarget();
+      setChanged();
+   }
+   void AnimEditor::setSelMirror(bool set_other)
    {
       if(skel)
       {
@@ -842,21 +858,12 @@ AnimEditor AnimEdit;
             Str bone_name=BoneNeutralName(bone->name);
             REPA(skel->bones)if(i!=bone_i && bone_name==BoneNeutralName(skel->bones[i].name))
             {
-               if(set_other)Swap(i, bone_i);
-               AnimKeys *src=findKeys(i, false), *dest=(src ? getKeys(bone_i, false) : findKeys(bone_i, false));
-               if(dest)
-               {
-                  if(src)
-                  {
-                    *dest=*src;
-                     dest->mirrorX();
-                  }else anim->bones.remove(bone_i, true);
-               }
-               prepMeshSkel();
-               setOrnTarget();
-               setChanged();
-               break;
+               setSelMirror(i, bone_i, set_other);
+               return;
             }
+            int mirror_type_index=-bone->type_index-1;
+            int i=skel->findBoneI(bone->type, mirror_type_index, bone->type_sub);
+            if(i>=0)setSelMirror(i, bone_i, set_other);
          }
       }
    }

@@ -264,9 +264,10 @@ public:
    static void RootRotY(  AnimEditor &editor, C Str&t);
    static void RootRotZ(  AnimEditor &editor, C Str&t);
 
-   static void SetSelMirror(AnimEditor &editor);
-   static void SetMirrorSel(AnimEditor &editor);
-          void setSelMirror(bool set_other);
+   static void SetSelMirror(AnimEditor &editor);               
+   static void SetMirrorSel(AnimEditor &editor);               
+          void setSelMirror(int i, int bone_i, bool set_other);
+   void setSelMirror(bool set_other);
    static void SkelBonePosCopy (AnimEditor &editor);
    static void SkelBonePosCopyR(AnimEditor &editor);
           void skelBonePosCopy (bool relative);
