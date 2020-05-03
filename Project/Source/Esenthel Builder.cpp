@@ -1522,7 +1522,7 @@ Bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    TextStyleParams ts; ts.size=0.055; ts.align.set(1, -1); D.text(ts, -D.w()+0.01, D.h()-0.01, S+"Busy:"+build_threads.queued()+", Queued:"+Todo.elms());
    Gui.draw();
 }

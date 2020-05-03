@@ -769,8 +769,8 @@ void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines)
    {
       pi.drawScaledLines(RED, lu); pi.drawScaledLines(RED, ru);
       pi.drawScaledLines(RED, ld); pi.drawScaledLines(RED, rd);
-      lu.draw(TURQ, false); ru.draw(TURQ, false);
-      ld.draw(TURQ, false); rd.draw(TURQ, false);
+      lu.draw(AZURE, false); ru.draw(AZURE, false);
+      ld.draw(AZURE, false); rd.draw(AZURE, false);
    }
 }
 /******************************************************************************/
