@@ -870,8 +870,8 @@ Skeleton& Skeleton::setBoneTypes()
       // leave not unique names (such as "arm", "leg", "eye" and "head") at the end
       if(BoneName(bone, "Spine") || BoneName(bone, "Pelvis") || BoneName(bone, "Hips") || BoneName(bone, "Chest") || BoneName(bone, "Torso") || BoneName(bone, "Body") || BoneName(bone, "Ribs") || BoneName(bone, "RibCage") || BoneName(bone, "Rib Cage") || BoneName(bone, "Rib_Cage"))type=BONE_SPINE;else
 
-      if(BoneName(bone, "Shoulder") || BoneName(bone, "Shoulders") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else // "Shoulders" used by "Orcs"
-      if(BoneName(bone, "ForeArm") || BoneName(bone, "LowerArm") || BoneName(bone, "Elbow"))type=BONE_LOWER_ARM;else // "Elbow" used by "Fire Ice Elemental"
+      if(BoneName(bone, "Shoulder") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else
+      if(BoneName(bone, "ForeArm") || BoneName(bone, "LowerArm") || BoneName(bone, "Elbow"))type=BONE_LOWER_ARM;else
       if(BoneName(bone, "Hand") || BoneName(bone, "Wrist") || BoneName(bone, "Palm") && !BoneName(bone, "LegPalm"))type=BONE_HAND;else
       if(BoneName(bone, "Finger") || BoneName(bone, "Fingers"))type=BONE_FINGER;else // "Fingers" used by "Troll"
 
