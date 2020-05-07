@@ -113,6 +113,8 @@ struct Animation // set of animation keyframes used for animating 'AnimatedSkele
 
    Animation& reverse(); // reverse animation
 
+   Animation& removeUnused(); // remove unused bone animations
+
 #if EE_PRIVATE
    void setRootMatrix2();
    void getRootMatrixExactTime(Matrix &matrix, Flt time)C; // get root 'matrix' at specified 'time'
@@ -120,8 +122,6 @@ struct Animation // set of animation keyframes used for animating 'AnimatedSkele
    Bool timeRange(Flt &min, Flt &max)C; // get min/max time value out of all keyframes/events, false on fail (if there are no keyframes/events)
 
    Animation& sortFrames(); // sort frames in time order, this should be called after manually modifying the keyframes and changing their time positions
-
-   Animation& removeUnused(); // remove unused bone animations
 
    void includeTimesForBoneAndItsParents(C Skeleton &skel, Int skel_bone, MemPtr<Flt, 16384> orn_times, MemPtr<Flt, 16384> pos_times, MemPtr<Flt, 16384> scale_times)C;
 
