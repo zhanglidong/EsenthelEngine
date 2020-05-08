@@ -235,6 +235,7 @@ bool OverrideMeshSkel(C Mesh *mesh, C Skeleton *skel);
 bool OverridePhys    (C PhysBody *body              );
 int CompareObj(C Game::Area::Data::AreaObj &a, C Game::Area::Data::AreaObj &b);
 void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot);
+bool DelEndKeys(Animation &anim);
 inline bool NegativeSB(flt  x);
 inline void      CHSSB(flt &x);
 int UniquePairs(int elms);

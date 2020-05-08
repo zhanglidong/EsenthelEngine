@@ -2682,6 +2682,22 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
       anim.setRootMatrix();
    }
 }
+bool DelEndKeys(Animation &anim) // return if any change was made
+{
+   bool changed=false;
+   flt time=anim.length()-EPS;
+   REPA(anim.bones)
+   {
+      bool bone_changed=false;
+      AnimBone &bone=anim.bones[i];
+      if(bone.poss  .elms()>=2 && bone.poss  .last().time>=time && bone.poss  .first().time<=EPS){bone.poss  .removeLast(); bone_changed=true;}
+      if(bone.orns  .elms()>=2 && bone.orns  .last().time>=time && bone.orns  .first().time<=EPS){bone.orns  .removeLast(); bone_changed=true;}
+      if(bone.scales.elms()>=2 && bone.scales.last().time>=time && bone.scales.first().time<=EPS){bone.scales.removeLast(); bone_changed=true;}
+      if(bone_changed){bone.setTangents(anim.loop(), anim.length()); changed=true;}
+   }
+   //anim.setRootMatrix(); we don't change root, only bones
+   return changed;
+}
 /******************************************************************************/
 // MATH
 /******************************************************************************/

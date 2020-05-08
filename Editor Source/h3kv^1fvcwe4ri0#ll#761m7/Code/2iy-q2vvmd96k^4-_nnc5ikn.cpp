@@ -1718,19 +1718,8 @@ class AnimEditor : Viewport4Region
    {
       if(anim)
       {
-         bool changed=false;
-         undos.set("delAtEnd");
-         flt time=anim.length()-EPS;
-         REP(anim.bones.elms())
-         {
-            bool bone_changed=false;
-            AnimBone &bone=anim.bones[i];
-            if(bone.poss  .elms()>=2 && bone.poss  .last().time>=time && bone.poss  .first().time<=EPS){bone.poss  .removeLast(); bone_changed=true;}
-            if(bone.orns  .elms()>=2 && bone.orns  .last().time>=time && bone.orns  .first().time<=EPS){bone.orns  .removeLast(); bone_changed=true;}
-            if(bone.scales.elms()>=2 && bone.scales.last().time>=time && bone.scales.first().time<=EPS){bone.scales.removeLast(); bone_changed=true;}
-            if(bone_changed){bone.setTangents(anim.loop(), anim.length()); changed=true;}
-         }
-         if(changed){prepMeshSkel(); setOrnTarget(); /*anim.setRootMatrix(); we don't change root, only bones*/ setChanged();}
+         undos.set("delEndKeys");
+         if(DelEndKeys(*anim)){prepMeshSkel(); setOrnTarget(); setChanged();}
       }
    }
    void reverseFrames()
