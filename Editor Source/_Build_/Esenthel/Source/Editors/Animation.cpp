@@ -234,7 +234,7 @@ AnimEditor AnimEdit;
                   Vec2         p=AnimEdit.screenPos()+Vec2(0.01f, -0.25f);
                   int       bone=AnimEdit.lit_bone;
                   Skeleton *skel=AnimEdit.skel;
-                  flt frame; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame))frame_t=S+", "+Round(frame)+"f";
+                  flt frame, frames; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame) && AnimEdit.timeToFrame(anim->length(), frames))frame_t=S+", "+Round(frame)+'/'+Round(frames)+"f";
                                                        D.text(ObjEdit.ts, p, S+"Time: "+AnimEdit.animTime()+'/'+anim->length()+"s ("+Round(AnimEdit.timeToFrac(AnimEdit.animTime())*100)+'%'+frame_t+')'); p.y-=ObjEdit.ts.size.y;
                   if(skel && InRange(bone, skel->bones))D.text(ObjEdit.ts, p, S+"Bone \""+skel->bones[bone].name+"\", Parent: "+(InRange(skel->bones[bone].parent, skel->bones) ? S+'"'+skel->bones[skel->bones[bone].parent].name+'"' : S+"none"));
                   if(Gui.ms()==this)
