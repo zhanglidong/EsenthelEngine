@@ -2194,6 +2194,31 @@ static void DelRot(Animation &anim, UInt flag)
       anim.keys.setTangents(anim.loop(), anim.length());
    }
 }
+struct SphericalInterpolator
+{
+   Flt angle, circle_r;
+   Vec circle_pos, axis, delta, cross;
+
+   Bool init(C Matrix &start, C Matrix &end, Flt eps=EPS) // 'eps' must be >=0 because codes below will fail if angle is <=0
+   {
+      DEBUG_ASSERT(eps>=0, "SphericalInterpolator eps");
+      GetDelta(axis, start, end);
+      angle=axis.normalize();
+      if(angle<=eps)return false; // if angle is close to zero, then we can't compure spherical interpolation, and instead fall back to linear interpolation
+      delta=end.pos-start.pos; Flt delta_len=delta.normalize();
+      cross=CrossN(delta, axis);
+
+      // isosceles triangle inside the interpolation circle, triangle top is located at the center of circle, bottom vertexes are 'start.pos' and 'end.pos', bottom edge is 'delta' (before normalization)
+      Flt delta_len_2=delta_len*0.5f,
+           tri_height=delta_len_2*Ctg(angle/2); // ctg=1/tan
+      circle_r  =Dist(tri_height, delta_len_2);
+      circle_pos=start.pos+delta*delta_len_2 // center between start and end (bottom if triangle)
+                -cross*tri_height;
+      delta*=circle_r;
+      cross*=circle_r;
+      return true;
+   }
+};
 Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &old_skel, C Skeleton &new_skel, Int old_skel_bone_as_root, C MemPtr< Mems<IndexWeight> > &weights, UInt root_flags)
 {
 /* 
@@ -2320,22 +2345,90 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
    MemtN<BoneWeight, 4> old_bones;
 
-   if(root_flags&(ROOT_2_KEYS|ROOT_SMOOTH)) // FIXME remove smooth
+   if(root_flags&(ROOT_2_KEYS|ROOT_SMOOTH))
    {
       Bool changed=false;
-      if(anim_out.keys.poss.elms()>2)
+      SphericalInterpolator si;
+      if((root_flags&ROOT_SMOOTH) && anim_out.keys.orns.elms()>2 && si.init(anim_out.rootStart(), anim_out.rootEnd(), EPS_ANIM_ANGLE)) // use spherical interpolation only if we actually have some rotations
       {
-         anim_out.keys.poss.setNumDiscard(2);
-         anim_out.keys.poss[0].time=                0; anim_out.keys.poss[0].pos=anim_out.rootStart().pos;
-         anim_out.keys.poss[1].time=anim_out.length(); anim_out.keys.poss[1].pos=anim_out.rootEnd  ().pos;
          changed=true;
-      }
-      if(anim_out.keys.orns.elms()>2)
+         // set orientations
+         {
+            const Int precision=4; // number of keyframes per 90 deg, can be modified, this is needed because rotation interpolation is done by interpolating axis vectors, and few samples are needed to get smooth results
+            Int num=1+Max(1, Round(si.angle*(precision/PI_2)));
+            anim_out.keys.orns.setNum(num);
+            if(num)
+            {
+               OrientD orn=anim_out.rootStart(); orn.fix();
+               AnimKeys::Orn &key=anim_out.keys.orns.first();
+               key.time=0;
+               key.orn =orn;
+               if(num>=2)
+               {
+                  AnimKeys::Orn &key=anim_out.keys.orns.last();
+                  key.time=anim_out.length ();
+                 (key.orn =anim_out.rootEnd()).fix();
+                  if(num>=3)
+                  {
+                     num--;
+                     MatrixD3 rot; rot.setRotate(si.axis, si.angle/num);
+                     for(int i=1; i<num; i++)
+                     {
+                        orn.mul(rot, true);
+                        AnimKeys::Orn &key=anim_out.keys.orns[i];
+                        key.time=Flt(i)/num*anim_out.length();
+                        key.orn =orn;
+                     }
+                  }
+               }
+            }
+         }
+
+         // set positions
+         {
+            Flt travel_distance=si.circle_r*si.angle;
+            const Int precision=10; // number of keyframes per meter, can be modified
+            Int num=((travel_distance<=EPS) ? Equal(anim_out.rootStart().pos, VecZero) ? 0 : 1 : 1+Max(1, Round(travel_distance*precision)));
+            anim_out.keys.poss.setNum(num);
+            if(num)
+            {
+               AnimKeys::Pos &key=anim_out.keys.poss.first();
+               key.time=0;
+               key.pos =anim_out.rootStart().pos;
+               if(num>=2)
+               {
+                  AnimKeys::Pos &key=anim_out.keys.poss.last();
+                  key.time=anim_out.length ();
+                  key.pos =anim_out.rootEnd().pos;
+                  num--;
+                  for(Int i=1; i<num; i++)
+                  {
+                     Flt frac=Flt(i)/num;
+                     Flt angle=(frac-0.5f)*si.angle; // subtract 0.5 because 'si' triangle has bottom half-way through 'delta'
+                     Vec2 cs; CosSin(cs.x, cs.y, angle);
+                     AnimKeys::Pos &key=anim_out.keys.poss[i];
+                     key.time=frac*anim_out.length();
+                     key.pos =si.circle_pos + si.cross*cs.x + si.delta*cs.y;
+                  }
+               }
+            }
+         }
+      }else
       {
-         anim_out.keys.orns.setNumDiscard(2);
-         anim_out.keys.orns[0].time=                0; anim_out.keys.orns[0].orn=anim_out.rootStart(); anim_out.keys.orns[0].orn.fix();
-         anim_out.keys.orns[1].time=anim_out.length(); anim_out.keys.orns[1].orn=anim_out.rootEnd  (); anim_out.keys.orns[1].orn.fix();
-         changed=true;
+         if(anim_out.keys.poss.elms()>2)
+         {
+            anim_out.keys.poss.setNumDiscard(2);
+            anim_out.keys.poss[0].time=                0; anim_out.keys.poss[0].pos=anim_out.rootStart().pos;
+            anim_out.keys.poss[1].time=anim_out.length(); anim_out.keys.poss[1].pos=anim_out.rootEnd  ().pos;
+            changed=true;
+         }
+         if(anim_out.keys.orns.elms()>2)
+         {
+            anim_out.keys.orns.setNumDiscard(2);
+            anim_out.keys.orns[0].time=                0; anim_out.keys.orns[0].orn=anim_out.rootStart(); anim_out.keys.orns[0].orn.fix();
+            anim_out.keys.orns[1].time=anim_out.length(); anim_out.keys.orns[1].orn=anim_out.rootEnd  (); anim_out.keys.orns[1].orn.fix();
+            changed=true;
+         }
       }
       if(anim_out.keys.scales.elms()>2)
       {
@@ -2350,10 +2443,6 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
        //anim_out.setRootMatrix(); no need to call because it doesn't change
          root_not_changed=root_not_changed_post=false;
       }
-   }else
-   if(root_flags&ROOT_SMOOTH)
-   {
-      // FIXME ROOT_SMOOTH
    }
    if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
    {
