@@ -2665,10 +2665,13 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
             }else
             {
                num--;
-               VecD pos=anim.rootStart().pos, dir=*root_move/num, axis=*root_rot; dbl angle=axis.normalize(); MatrixD3 rot; rot.setRotate(axis, angle/num);
+               const bool simple=false; // these are not perfect, but not bad
+               VecD pos=anim.rootStart().pos, dir=*root_move/(simple ? num : num*2), // for advanced mode, make 'dir' 2x smaller, because we will process it 2 times per step
+                   axis=*root_rot; dbl angle=axis.normalize(); MatrixD3 rot; rot.setRotate(axis, angle/num);
                for(int i=1; i<=num; i++)
                {
-                  dir*=rot; pos+=dir;
+                  if(simple){dir*=rot; pos+=dir;}
+                  else      {pos+=dir; dir*=rot; pos+=dir;} // much more precise
                   anim.keys.poss[i].time=flt(i)/num*anim.length();
                   anim.keys.poss[i].pos =pos;
                }
