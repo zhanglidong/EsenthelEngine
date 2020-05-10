@@ -778,8 +778,8 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    // orientation
    if(angle_eps>=0)
    {
-   #define USE_DOT 1 // calculating Dot is faster than the angle
-   #if USE_DOT
+   #define USE_DOT 0 // don't use Dot, because even though it is faster, the precision for Flt is too low (example: dot_eps=Cos(angle_eps); for angle_eps=0.0002f gives dot_eps=1.0f)
+   #if     USE_DOT
       Flt dot_eps=Cos(angle_eps);
    #endif
       optimized.setNumDiscard(orns.elms()); REPAO(optimized)=i;
