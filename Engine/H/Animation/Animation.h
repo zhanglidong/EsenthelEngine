@@ -31,20 +31,24 @@ enum ANIM_FLAG // Animation Flags
 enum ROOT_FLAG // Root Flags
 {
    ROOT_BONE_POSITION =1<< 0, // set    root animation position from bone position (valid only when converting bone to root, ignored if root already available)
-   ROOT_2_KEYS        =1<< 1, // reduce root animation to 2 keyframes: start+end
-   ROOT_SMOOTH        =1<< 2, // set    root animation to be smooth with constant velocities
-   ROOT_START_IDENTITY=1<< 3, // start  root animation with identity
-   ROOT_DEL_POSITION_X=1<< 4, // remove root animation position X
-   ROOT_DEL_POSITION_Y=1<< 5, // remove root animation position Y
-   ROOT_DEL_POSITION_Z=1<< 6, // remove root animation position Z
-   ROOT_DEL_ROTATION_X=1<< 7, // remove root animation rotation X
-   ROOT_DEL_ROTATION_Y=1<< 8, // remove root animation rotation Y
-   ROOT_DEL_ROTATION_Z=1<< 9, // remove root animation rotation Z
-   ROOT_DEL_SCALE     =1<<10, // remove root animation scale
+   ROOT_START_IDENTITY=1<< 1, // start  root animation with identity
+   ROOT_DEL_POSITION_X=1<< 2, // remove root animation position X
+   ROOT_DEL_POSITION_Y=1<< 3, // remove root animation position Y
+   ROOT_DEL_POSITION_Z=1<< 4, // remove root animation position Z
+   ROOT_DEL_ROTATION_X=1<< 5, // remove root animation rotation X
+   ROOT_DEL_ROTATION_Y=1<< 6, // remove root animation rotation Y
+   ROOT_DEL_ROTATION_Z=1<< 7, // remove root animation rotation Z
+   ROOT_DEL_SCALE     =1<< 8, // remove root animation scale
+   ROOT_SMOOTH_ROT    =1<< 9, // set    root animation rotation to be smooth with constant velocities
+   ROOT_SMOOTH_POS    =1<<10, // set    root animation position to be smooth with constant velocities
+   ROOT_LINEAR_POS    =1<<11, // set    root animation position to be linear with constant velocities and have only 2 keyframes: start+end
+   ROOT_SMOOTH_SCALE  =1<<12, // set    root animation scale    to be smooth with constant velocities
 
-   ROOT_DEL_POSITION=ROOT_DEL_POSITION_X|ROOT_DEL_POSITION_Y|ROOT_DEL_POSITION_Z,
-   ROOT_DEL_ROTATION=ROOT_DEL_ROTATION_X|ROOT_DEL_ROTATION_Y|ROOT_DEL_ROTATION_Z,
-   ROOT_DEL         =ROOT_DEL_POSITION|ROOT_DEL_ROTATION|ROOT_DEL_SCALE,
+   ROOT_DEL_POSITION  =ROOT_DEL_POSITION_X|ROOT_DEL_POSITION_Y|ROOT_DEL_POSITION_Z,
+   ROOT_DEL_ROTATION  =ROOT_DEL_ROTATION_X|ROOT_DEL_ROTATION_Y|ROOT_DEL_ROTATION_Z,
+   ROOT_DEL           =ROOT_DEL_POSITION|ROOT_DEL_ROTATION|ROOT_DEL_SCALE,
+   ROOT_SMOOTH_ROT_POS=ROOT_SMOOTH_ROT|ROOT_SMOOTH_POS,
+   ROOT_SMOOTH        =ROOT_SMOOTH_ROT_POS|ROOT_SMOOTH_SCALE,
 };
 /******************************************************************************/
 struct Animation // set of animation keyframes used for animating 'AnimatedSkeleton'
