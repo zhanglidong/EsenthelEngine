@@ -794,8 +794,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
          Flt  n_time=AfterTime(n->time, p->time, anim_length);
          Orient test;
 
-         // check between this and previous key (this is extra important for orientations)
-         if(!anim_linear)
+         // check between this and previous key !! this is extra important for orientations, both Linear and Cubic !!
          {
           C Orn &orn=orns[i];
             Flt  prev_time=(InRange(i-1, orns) ? orns[i-1].time : anim_loop ? orns.last().time-anim_length : 0);
@@ -809,27 +808,41 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                Orient orn;
              C Orn &src_p=orns[src_prev], &src_n=orns[src_next];
                Flt  step =0.5f; // here for source, step is always 0.5, because we want to test between keys
-            #if HAS_ANIM_TANGENT
-               orn.dir =LerpTan(src_p.orn.dir , src_n.orn.dir , step, src_p.tan.dir , src_n.tan.dir );
-               orn.perp=LerpTan(src_p.orn.perp, src_n.orn.perp, step, src_p.tan.perp, src_n.tan.perp);
-            #else
-               Int src_prev2=Index(i-2, anim_loop, orns.elms()),
-                   src_next2=Index(i+1, anim_loop, orns.elms());
-             C Orn &src_p2=orns[src_prev2], &src_n2=orns[src_next2];
-               orn.dir =Lerp4(src_p2.orn.dir , src_p.orn.dir , src_n.orn.dir , src_n2.orn.dir , step);
-               orn.perp=Lerp4(src_p2.orn.perp, src_p.orn.perp, src_n.orn.perp, src_n2.orn.perp, step);
-            #endif
+               if(anim_linear)
+               {
+                  orn.dir =Lerp(src_p.orn.dir , src_n.orn.dir , step);
+                  orn.perp=Lerp(src_p.orn.perp, src_n.orn.perp, step);
+               }else
+               {
+               #if HAS_ANIM_TANGENT
+                  orn.dir =LerpTan(src_p.orn.dir , src_n.orn.dir , step, src_p.tan.dir , src_n.tan.dir );
+                  orn.perp=LerpTan(src_p.orn.perp, src_n.orn.perp, step, src_p.tan.perp, src_n.tan.perp);
+               #else
+                  Int src_prev2=Index(i-2, anim_loop, orns.elms()),
+                      src_next2=Index(i+1, anim_loop, orns.elms());
+                C Orn &src_p2=orns[src_prev2], &src_n2=orns[src_next2];
+                  orn.dir =Lerp4(src_p2.orn.dir , src_p.orn.dir , src_n.orn.dir , src_n2.orn.dir , step);
+                  orn.perp=Lerp4(src_p2.orn.perp, src_p.orn.perp, src_n.orn.perp, src_n2.orn.perp, step);
+               #endif
+               }
                orn.fix();
 
                // calculate optimized orn
                step=LerpRS(p->time, n_time, AfterTime(anim_params.time, p->time, anim_length)); // use Sat in case orn.time is outside of range, or 'p' has the same time as 'n'
-            #if HAS_ANIM_TANGENT
-               test.dir =LerpTan(p->orn.dir , n->orn.dir , step, GetTangentDir(p2->orn.dir , n->orn.dir ), GetTangentDir(p->orn.dir , n2->orn.dir ));
-               test.perp=LerpTan(p->orn.perp, n->orn.perp, step, GetTangentDir(p2->orn.perp, n->orn.perp), GetTangentDir(p->orn.perp, n2->orn.perp));
-            #else
-               test.dir =Lerp4(p2->orn.dir , p->orn.dir , n->orn.dir , n2->orn.dir , step);
-               test.perp=Lerp4(p2->orn.perp, p->orn.perp, n->orn.perp, n2->orn.perp, step);
-            #endif
+               if(anim_linear)
+               {
+                  test.dir =Lerp(p->orn.dir , n->orn.dir , step);
+                  test.perp=Lerp(p->orn.perp, n->orn.perp, step);
+               }else
+               {
+               #if HAS_ANIM_TANGENT
+                  test.dir =LerpTan(p->orn.dir , n->orn.dir , step, GetTangentDir(p2->orn.dir , n->orn.dir ), GetTangentDir(p->orn.dir , n2->orn.dir ));
+                  test.perp=LerpTan(p->orn.perp, n->orn.perp, step, GetTangentDir(p2->orn.perp, n->orn.perp), GetTangentDir(p->orn.perp, n2->orn.perp));
+               #else
+                  test.dir =Lerp4(p2->orn.dir , p->orn.dir , n->orn.dir , n2->orn.dir , step);
+                  test.perp=Lerp4(p2->orn.perp, p->orn.perp, n->orn.perp, n2->orn.perp, step);
+               #endif
+               }
                test.fix();
 
             #if USE_DOT
