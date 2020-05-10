@@ -2374,6 +2374,62 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
    MemtN<BoneWeight, 4> old_bones;
 
+   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
+   {
+      AnimParams params(anim_out, 0);
+      if(!anim_out.keys.scales.elms())
+      {
+      #if 0 // using Matrix
+         REPAO(anim_out.keys.poss).pos*=anim_out._root_start_inv;
+         REPAO(anim_out.keys.orns).orn*=anim_out._root_start_inv;
+         anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
+         anim_out._root_start    .identity();
+         anim_out._root_start_inv.identity();
+         anim_out._root_end      =rootTransform();
+       //anim_out._root_transform=rootTransform(); remains the same
+      #else // using RevMatrix
+         REPA(anim_out.keys.orns){Orient &orn=anim_out.keys.orns[i].orn; orn=anim_out._root_start_inv.orn()*orn;}
+      #endif
+      }else
+      {
+         Matrix root_start_inv=anim_out.rootStart(); Vec root_start_scale=1/root_start_inv.scale(); root_start_inv.scaleOrnL(root_start_scale); root_start_inv.inverse(true);
+         REPA(anim_out.keys.orns  ){Orient &orn  =anim_out.keys.orns  [i].orn  ; orn=root_start_inv.orn()*orn;}
+         REPA(anim_out.keys.scales){Vec    &scale=anim_out.keys.scales[i].scale; scale=ScaleFactorR(ScaleFactor(scale)*root_start_scale);}
+      }
+      REPA(anim_out.keys.poss){AnimKeys::Pos &pos=anim_out.keys.poss[i]; params.time=pos.time; Orient orn; if(!anim_out.keys.orn(orn, params) && !SET_ON_FAIL)orn.identity();else DelRot(orn, root_flags); pos.pos-=anim_out.rootStart().pos*orn;} // this needs to be done after adjusting orientations, it's better to delete rotations before adjusting positions, "this is needed to cast position on plane" for example if character body is rotating and moving, then this will try to cancel out movement through rotation, and just focus on the movement only
+      anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
+      anim_out.setRootMatrix();
+      root_not_changed=root_not_changed_post=false;
+   }
+   if((root_flags&ROOT_DEL) && anim_out.keys.is()) // !! delete after ROOT_START_IDENTITY because it needs rotations and positions to perform adjustment !!
+   {
+      Bool changed=false;
+      if(FlagAll(root_flags, ROOT_DEL)){anim_out.keys.del(); changed=true;}else
+      {
+         if((root_flags&ROOT_DEL_POSITION) && anim_out.keys.poss.elms())
+         {
+            if(FlagAll(root_flags, ROOT_DEL_POSITION))anim_out.keys.poss.del();else
+            {
+               REPA(anim_out.keys.poss)
+               {
+                  Vec &pos=anim_out.keys.poss[i].pos;
+                  if(root_flags&ROOT_DEL_POSITION_X)pos.x=0;
+                  if(root_flags&ROOT_DEL_POSITION_Y)pos.y=0;
+                  if(root_flags&ROOT_DEL_POSITION_Z)pos.z=0;
+               }
+               anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
+            }
+            changed=true;
+         }
+         if((root_flags&ROOT_DEL_ROTATION) && anim_out.keys.orns  .elms()){DelRot(anim_out, root_flags      ); changed=true;}
+         if((root_flags&ROOT_DEL_SCALE   ) && anim_out.keys.scales.elms()){       anim_out.keys.scales.del() ; changed=true;}
+      }
+      if(changed)
+      {
+         anim_out.setRootMatrix();
+         root_not_changed=root_not_changed_post=false;
+      }
+   }
    if(root_flags&(ROOT_SMOOTH|ROOT_LINEAR_POS))
    {
       if(root_flags&ROOT_LINEAR_POS)FlagDisable(root_flags, ROOT_SMOOTH_POS); // if want only simple linear pos, then disable smooth pos
@@ -2471,62 +2527,6 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       {
          anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
        //anim_out.setRootMatrix(); no need to call because it doesn't change
-         root_not_changed=root_not_changed_post=false;
-      }
-   }
-   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
-   {
-      AnimParams params(anim_out, 0);
-      if(!anim_out.keys.scales.elms())
-      {
-      #if 0 // using Matrix
-         REPAO(anim_out.keys.poss).pos*=anim_out._root_start_inv;
-         REPAO(anim_out.keys.orns).orn*=anim_out._root_start_inv;
-         anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
-         anim_out._root_start    .identity();
-         anim_out._root_start_inv.identity();
-         anim_out._root_end      =rootTransform();
-       //anim_out._root_transform=rootTransform(); remains the same
-      #else // using RevMatrix
-         REPA(anim_out.keys.orns){Orient &orn=anim_out.keys.orns[i].orn; orn=anim_out._root_start_inv.orn()*orn;}
-      #endif
-      }else
-      {
-         Matrix root_start_inv=anim_out.rootStart(); Vec root_start_scale=1/root_start_inv.scale(); root_start_inv.scaleOrnL(root_start_scale); root_start_inv.inverse(true);
-         REPA(anim_out.keys.orns  ){Orient &orn  =anim_out.keys.orns  [i].orn  ; orn=root_start_inv.orn()*orn;}
-         REPA(anim_out.keys.scales){Vec    &scale=anim_out.keys.scales[i].scale; scale=ScaleFactorR(ScaleFactor(scale)*root_start_scale);}
-      }
-      REPA(anim_out.keys.poss){AnimKeys::Pos &pos=anim_out.keys.poss[i]; params.time=pos.time; Orient orn; if(!anim_out.keys.orn(orn, params) && !SET_ON_FAIL)orn.identity();else DelRot(orn, root_flags); pos.pos-=anim_out.rootStart().pos*orn;} // this needs to be done after adjusting orientations, it's better to delete rotations before adjusting positions, "this is needed to cast position on plane" for example if character body is rotating and moving, then this will try to cancel out movement through rotation, and just focus on the movement only
-      anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
-      anim_out.setRootMatrix();
-      root_not_changed=root_not_changed_post=false;
-   }
-   if((root_flags&ROOT_DEL) && anim_out.keys.is()) // !! delete after ROOT_START_IDENTITY because it needs rotations and positions to perform adjustment !!
-   {
-      Bool changed=false;
-      if(FlagAll(root_flags, ROOT_DEL)){anim_out.keys.del(); changed=true;}else
-      {
-         if((root_flags&ROOT_DEL_POSITION) && anim_out.keys.poss.elms())
-         {
-            if(FlagAll(root_flags, ROOT_DEL_POSITION))anim_out.keys.poss.del();else
-            {
-               REPA(anim_out.keys.poss)
-               {
-                  Vec &pos=anim_out.keys.poss[i].pos;
-                  if(root_flags&ROOT_DEL_POSITION_X)pos.x=0;
-                  if(root_flags&ROOT_DEL_POSITION_Y)pos.y=0;
-                  if(root_flags&ROOT_DEL_POSITION_Z)pos.z=0;
-               }
-               anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
-            }
-            changed=true;
-         }
-         if((root_flags&ROOT_DEL_ROTATION) && anim_out.keys.orns  .elms()){DelRot(anim_out, root_flags      ); changed=true;}
-         if((root_flags&ROOT_DEL_SCALE   ) && anim_out.keys.scales.elms()){       anim_out.keys.scales.del() ; changed=true;}
-      }
-      if(changed)
-      {
-         anim_out.setRootMatrix();
          root_not_changed=root_not_changed_post=false;
       }
    }
