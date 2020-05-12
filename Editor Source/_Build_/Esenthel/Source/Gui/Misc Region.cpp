@@ -191,6 +191,10 @@ MiscRegion Misc;
             Node<MenuElm> &Export=(build_menu+="Export");
             Export.New().create("Text"                                            , ExportTXT          , T);
             Export.New().create("C++"                                             , ExportCPP          , T);
+          /*Export.New().create("C++ with Visual Studio 2008 project"             , ExportVS2008       , T);
+            Export.New().create("C++ with Visual Studio 2010 project"             , ExportVS2010       , T);
+            Export.New().create("C++ with Visual Studio 2012 project"             , ExportVS2012       , T);
+            Export.New().create("C++ with Visual Studio 2013 project"             , ExportVS2013       , T);*/
             Export.New().create("C++ with Visual Studio 2015 project"             , ExportVS2015       , T);
             Export.New().create("C++ with Visual Studio 2017 project"             , ExportVS2017       , T);
             Export.New().create("C++ with Visual Studio 2019 project"             , ExportVS2019       , T);
@@ -217,8 +221,17 @@ MiscRegion Misc;
          build_menu.New().create("Debug"  , ConfigDebug  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Release", ConfigRelease, T).flag(MENU_TOGGLABLE);
          build_menu++;
+      #if WINDOWS
+       /*build_menu.New().create("64-bit", Config64, T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("32-bit", Config32, T).flag(MENU_TOGGLABLE);
+         build_menu++;*/
+       /*build_menu.New().create("DirectX 11", ConfigDX11, T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("DirectX 9" , ConfigDX9 , T).flag(MENU_TOGGLABLE);
+         build_menu++; */
+      #endif
          build_menu.New().create("Windows EXE"      , ConfigEXE  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Windows DLL"      , ConfigDLL  , T).flag(MENU_TOGGLABLE);
+       //build_menu.New().create("Windows LIB"      , ConfigLIB  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
