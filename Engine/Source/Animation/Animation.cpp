@@ -2387,7 +2387,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
    MemtN<BoneWeight, 4> old_bones;
 
-   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
+   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL and ROOT_SMOOTH !!
    {
       AnimParams params(anim_out, 0);
       if(!anim_out.keys.scales.elms())
@@ -2443,7 +2443,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          root_not_changed=root_not_changed_post=false;
       }
    }
-   if(root_flags&(ROOT_SMOOTH|ROOT_LINEAR_POS))
+   if(root_flags&(ROOT_SMOOTH|ROOT_LINEAR_POS)) // !! do this after ROOT_START_IDENTITY, because otherwise using only ROOT_SMOOTH may change positions too !!
    {
       if(root_flags&ROOT_LINEAR_POS)FlagDisable(root_flags, ROOT_SMOOTH_POS); // if want only simple linear pos, then disable smooth pos
 
