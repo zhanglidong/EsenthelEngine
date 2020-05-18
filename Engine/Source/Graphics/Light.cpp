@@ -1864,8 +1864,19 @@ void LimitLights()
          REPA(Lights)
          {
             Light &l=Lights[i];
-            LightImportance[i].f=((l.type==LIGHT_DIR) ? 1-l.dir.color_l.max() : 1+Dist2(ActiveCam.at, l.pos()));
-            LightImportance[i].i=i;
+            FloatIndex &li=LightImportance[i]; li.i=i;
+            // since we sort from smallest to biggest value, and then keep only the first few lights, then make most important lights to have small 'f' "importance value" instead of big
+            switch(l.type)
+            {
+               case LIGHT_DIR   : li.f=-l.dir.color_l.max(); break; // set highest color intensity directional lights to have smallest negative value from -Inf..0, and keep 0..Inf range for non-directional lights
+/* Through simple visual test results, linear light ranges have to be set from point power as "linear.range=Sqrt(point.power)*3" to achieve similar overall brightness as point lights, and in order to achieve same importance as point lights using formula below, "/3" has to be applied for linear lights to counter the *3 factor from before, "Dist2(ActiveCam.at, l.pos())" was replaced as "1" since it's the same everywhere
+   Flt importance_power1_point=1/1.0f, importance_power1_linear=1/Sqr(Sqrt(1.0f)*3 /3);
+   Flt importance_power2_point=1/2.0f, importance_power2_linear=1/Sqr(Sqrt(2.0f)*3 /3);
+   remember that here, smaller value = more important, higher value = less important, so high distance means less important, etc. */
+               case LIGHT_POINT : li.f=Dist2(ActiveCam.at, l.pos())/    l.point .power       ; break; // this is the most realistic/common type of light so this calculation has to be fast, 'Dist2' is used instead of 'Dist' to avoid having to do 'Sqrt', so 'point.power' needs to be linear
+               case LIGHT_LINEAR: li.f=Dist2(ActiveCam.at, l.pos())/Sqr(l.linear.range    /3); break; // use 'Sqr' to keep proportions with point lights, div by 3 to achieve approximate similar importance as point lights
+               case LIGHT_CONE  : li.f=Dist2(ActiveCam.at, l.pos())/Sqr(l.cone  .pyramid.h/3); break; // use 'Sqr' to keep proportions with point lights, div by 3 to achieve approximate similar importance as point lights
+            }
          }
          LightImportance.sort(FloatIndex::Compare);
          REP(D._max_lights)LightTemp[i]=Lights[LightImportance[i].i];
