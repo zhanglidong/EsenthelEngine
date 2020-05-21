@@ -1849,7 +1849,6 @@ struct LightFade
 static LightFade LightFades[2][MAX_LIGHTS];
 static Int       LightFadesNum=0;
 static Bool      LightFadeIndex=false;
-static Light     LightTemp[MAX_LIGHTS];
 
 void LimitLights()
 {
@@ -1879,6 +1878,7 @@ void LimitLights()
             }
          }
          LightImportance.sort(FloatIndex::Compare);
+         Light LightTemp[MAX_LIGHTS];
          REP(D._max_lights)LightTemp[i]=Lights[LightImportance[i].i];
          Lights.setNum(D._max_lights); REPAO(Lights)=LightTemp[i];
       }
@@ -1887,6 +1887,7 @@ void LimitLights()
       Int         old_fades=LightFadesNum; LightFadesNum=0;
       LightFade (&old_fade)[MAX_LIGHTS]=LightFades[ LightFadeIndex],
                 (&new_fade)[MAX_LIGHTS]=LightFades[!LightFadeIndex];
+      Flt fade_inc=Time.rd()*3;
       REPA(Lights)
       {
          Light &l=Lights[i];
@@ -1894,7 +1895,7 @@ void LimitLights()
          {
             LightFade &lf=new_fade[LightFadesNum++];
             lf.src =l.src;
-            lf.fade=Time.rd()*3; REP(old_fades)if(old_fade[i].src==l.src){lf.fade+=old_fade[i].fade; break;} SAT(lf.fade);
+            lf.fade=fade_inc; REP(old_fades)if(old_fade[i].src==l.src){lf.fade+=old_fade[i].fade; break;} SAT(lf.fade);
             l.fade(lf.fade);
          }
       }
