@@ -916,7 +916,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _grass_mirror =false;
 
   _bloom_original=1.0f;
-  _bloom_scale   =0.5f;
+  _bloom_scale   =0.4f;
   _bloom_cut     =0.3f;
   _bloom_blurs   =1;
   _bloom_max     =false;
