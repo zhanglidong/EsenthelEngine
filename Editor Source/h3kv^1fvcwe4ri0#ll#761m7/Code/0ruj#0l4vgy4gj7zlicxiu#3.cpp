@@ -1435,6 +1435,17 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.color3DF(x, y, z, c);
       }
    }else
+   if(param.name=="satLum")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt lum=c.xyz.max(); if(lum>1)c.xyz/=lum;
+         image.color3DF(x, y, z, c);
+      }
+   }else
    if(param.name=="blur")
    {
       UNIT_TYPE unit=GetUnitType(param.value);
@@ -1572,23 +1583,23 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="brightness")
    {
-      Vec b=TextVecEx(param.value), mul; if(b.any())
+      Vec bright=TextVecEx(param.value), mul; if(bright.any())
       {
          flt (*R)(flt);
          flt (*G)(flt);
          flt (*B)(flt);
-         if(!b.x){b.x=1; mul.x=1; R=FloatSelf;}else if(b.x<0){b.x=SigmoidSqrt(b.x); mul.x=1/SigmoidSqrtInv(b.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(b.x); R=SigmoidSqrt;}
-         if(!b.y){b.y=1; mul.y=1; G=FloatSelf;}else if(b.y<0){b.y=SigmoidSqrt(b.y); mul.y=1/SigmoidSqrtInv(b.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(b.y); G=SigmoidSqrt;}
-         if(!b.z){b.z=1; mul.z=1; B=FloatSelf;}else if(b.z<0){b.z=SigmoidSqrt(b.z); mul.z=1/SigmoidSqrtInv(b.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(b.z); B=SigmoidSqrt;}
+         if(!bright.x){bright.x=1; mul.x=1; R=FloatSelf;}else if(bright.x<0){bright.x=SigmoidSqrt(bright.x); mul.x=1/SigmoidSqrtInv(bright.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(bright.x); R=SigmoidSqrt;}
+         if(!bright.y){bright.y=1; mul.y=1; G=FloatSelf;}else if(bright.y<0){bright.y=SigmoidSqrt(bright.y); mul.y=1/SigmoidSqrtInv(bright.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(bright.y); G=SigmoidSqrt;}
+         if(!bright.z){bright.z=1; mul.z=1; B=FloatSelf;}else if(bright.z<0){bright.z=SigmoidSqrt(bright.z); mul.z=1/SigmoidSqrtInv(bright.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(bright.z); B=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
             c.xyz=Sqr(c.xyz);
-            c.x=R(c.x*b.x)*mul.x;
-            c.y=G(c.y*b.y)*mul.y;
-            c.z=B(c.z*b.z)*mul.z;
+            c.x=R(c.x*bright.x)*mul.x;
+            c.y=G(c.y*bright.y)*mul.y;
+            c.z=B(c.z*bright.z)*mul.z;
             c.xyz=Sqrt(c.xyz);
             image.color3DF(x, y, z, c);
          }
@@ -1596,21 +1607,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="brightnessLum")
    {
-      flt b=param.asFlt(), mul; flt (*f)(flt);
-      if(b)
+      flt bright=param.asFlt(), mul; flt (*f)(flt);
+      if( bright)
       {
-         if(b<0){b=SigmoidSqrt(b); mul=1/SigmoidSqrtInv(b); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(b); f=SigmoidSqrt;}
+         if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            if(flt l=c.xyz.max())
+            if(flt old_lum=c.xyz.max())
             {
-               flt new_lum=Sqr(l);
-               new_lum=f(new_lum*b)*mul;
+               flt new_lum=Sqr(old_lum);
+               new_lum=f(new_lum*bright)*mul;
                new_lum=Sqrt(new_lum);
-               c.xyz*=new_lum/l;
+               c.xyz*=new_lum/old_lum;
                image.color3DF(x, y, z, c);
             }
          }
