@@ -802,6 +802,7 @@ class Project
                            flt lin_lum=LinearLumOfSRGBColor(base.xyz);
 
                            c.xyz=RgbToHsb(base.xyz);
+                           c.w=base.w;
                            c.y*=l.xyz.max();
                            c.xyz=HsbToRgb(c.xyz);
 
