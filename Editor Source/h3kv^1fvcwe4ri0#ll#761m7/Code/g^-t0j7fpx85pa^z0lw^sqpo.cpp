@@ -655,6 +655,7 @@ class Project
       APPLY_BLEND_PREMUL,
       APPLY_MUL,
       APPLY_MUL_RGB,
+      APPLY_MUL_RGB_SAT,
       APPLY_MUL_RGB_LIN,
       APPLY_MUL_A,
       APPLY_MUL_SAT,
@@ -702,6 +703,7 @@ class Project
             if(p.value=="blendPremultiplied" || p.value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
             if(p.value=="mul"                                                )mode=APPLY_MUL;else
             if(p.value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
+            if(p.value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
             if(p.value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
             if(p.value=="mulA"                                               )mode=APPLY_MUL_A;else
             if(p.value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
@@ -778,6 +780,15 @@ class Project
                         case APPLY_MIN           : c=Min(base, l); break;
                         case APPLY_MAX           : c=Max(base, l); break;
                         case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+
+                        case APPLY_MUL_RGB_SAT:
+                        {
+                           flt sat=RgbToHsb(base.xyz).y;
+                           c.x=Lerp(base.x, base.x*l.x, sat); // red
+                           c.y=Lerp(base.y, base.y*l.y, sat); // green
+                           c.z=Lerp(base.z, base.z*l.z, sat); // blue
+                           c.w=base.w;
+                        }break;
 
                         case APPLY_MASK_ADD:
                         {

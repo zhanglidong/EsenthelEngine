@@ -1395,9 +1395,9 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec4 c=image.color3DF(x, y, z);
          flt  sat=RgbToHsb(c.xyz).y;
-         c.x=Lerp(c.x, c.x*mul.x, sat);  // red
-         c.y=Lerp(c.y, c.y*mul.y, sat);  // green
-         c.z=Lerp(c.z, c.z*mul.z, sat);  // blue
+         c.x=Lerp(c.x, c.x*mul.x, sat); // red
+         c.y=Lerp(c.y, c.y*mul.y, sat); // green
+         c.z=Lerp(c.z, c.z*mul.z, sat); // blue
          image.color3DF(x, y, z, c);
       }
    }else
