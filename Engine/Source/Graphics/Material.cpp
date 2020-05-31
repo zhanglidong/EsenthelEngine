@@ -54,9 +54,6 @@ namespace EE{
       Cobalt      0.662124    0.654864    0.633732
       Platinum    0.672411    0.637331    0.585456
 
-   https://marmoset.co/posts/basic-theory-of-physically-based-rendering/
-   https://www.substance3d.com/system/files/software/download/build/PBR_Guide_Vol.1.pdf
-
 /******************************************************************************/
 enum MTRL_TEX_LAYOUT : Byte
 {
