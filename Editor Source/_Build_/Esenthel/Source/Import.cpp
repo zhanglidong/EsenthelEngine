@@ -546,7 +546,7 @@ ImporterClass Importer;
          n.New().create("Import and add to object"       , ImportAdd    , T).desc("This will import mesh and add it to current object.");
          Gui+=import_menu.create(n);
       }
-      threads.create(true, Max(1, Cpu.threads()-1)); // leave 1 thread for the main thread
+      threads.create(true, Max(1, Cpu.threads()-1), 0, "Editor.Import"); // leave 1 thread for the main thread
    }
    void ImporterClass::stop()
    {
