@@ -44,6 +44,7 @@ namespace EE{
 
    Metals Linear Specular/Color:
                   R           G           B
+      Iron        0.563       0.579       0.579
       Silver      0.971519    0.959915    0.915324
       Aluminium   0.913183    0.921494    0.924524
       Gold        1           0.765557    0.336057
