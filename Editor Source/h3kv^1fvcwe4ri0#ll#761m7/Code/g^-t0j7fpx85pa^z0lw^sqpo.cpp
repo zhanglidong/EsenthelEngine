@@ -664,6 +664,7 @@ class Project
       APPLY_ADD,
       APPLY_ADD_RGB,
       APPLY_SUB,
+      APPLY_BRIGHTNESS,
       APPLY_BRIGHTNESS_LUM,
       APPLY_AVG,
       APPLY_MIN,
@@ -712,6 +713,7 @@ class Project
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
+            if(p.value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
             if(p.value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
             if(p.value=="avg" || p.value=="average"                          )mode=APPLY_AVG;else
             if(p.value=="min"                                                )mode=APPLY_MIN;else
@@ -820,6 +822,19 @@ class Project
                            c.xyz=SRGBToLinear(c.xyz);
                            if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
                            c.xyz=LinearToSRGB(c.xyz);
+                        }break;
+
+                        case APPLY_BRIGHTNESS:
+                        {
+                           c=base;
+                           Vec &bright=l.xyz; if(bright.any())
+                           {
+                              c.xyz=Sqr(c.xyz);
+                              if(bright.x<0){bright.x=SigmoidSqrt(bright.x); c.x=SigmoidSqrtInv(c.x*bright.x)/SigmoidSqrtInv(bright.x);}else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
+                              if(bright.y<0){bright.y=SigmoidSqrt(bright.y); c.y=SigmoidSqrtInv(c.y*bright.y)/SigmoidSqrtInv(bright.y);}else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
+                              if(bright.z<0){bright.z=SigmoidSqrt(bright.z); c.z=SigmoidSqrtInv(c.z*bright.z)/SigmoidSqrtInv(bright.z);}else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
+                              c.xyz=Sqrt(c.xyz);
+                           }
                         }break;
 
                         case APPLY_BRIGHTNESS_LUM:

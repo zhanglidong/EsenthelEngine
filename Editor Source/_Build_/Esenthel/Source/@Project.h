@@ -181,6 +181,7 @@ class Project
       APPLY_ADD,
       APPLY_ADD_RGB,
       APPLY_SUB,
+      APPLY_BRIGHTNESS,
       APPLY_BRIGHTNESS_LUM,
       APPLY_AVG,
       APPLY_MIN,
