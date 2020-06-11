@@ -187,7 +187,7 @@ MtrlBrushClass MtrlBrush;
    }
    void MtrlBrushClass::update()
    {
-      if(visibleFull())
+      if(visibleOnActiveDesktop())
       {
          // edit heightmap material
          {

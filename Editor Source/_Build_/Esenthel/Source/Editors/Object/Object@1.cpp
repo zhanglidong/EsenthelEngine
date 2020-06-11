@@ -321,7 +321,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    Skeleton* ObjView::getVisSkel()
    {
-      return adjust_bone_orns.visibleFull() ? &adjust_bone_orns.getSkel() : mesh_skel;
+      return adjust_bone_orns.visibleOnActiveDesktop() ? &adjust_bone_orns.getSkel() : mesh_skel;
    }
    void ObjView::setMatrixAtDist(Matrix &matrix, flt dist)
    {
@@ -867,9 +867,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       mesh_undos.set("remove");
       bool changed=false;
-      REPD(i, mesh.lods())if(!only_selected || ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+      REPD(i, mesh.lods())if(!only_selected || ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
       {
-         MeshLod &lod=mesh.lod(i); REPA(lod.parts)if(!only_selected || ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+         MeshLod &lod=mesh.lod(i); REPA(lod.parts)if(!only_selected || ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
          {
             MeshPart &part=lod.parts[i]; if(!mtrl || HasMaterial(part, mtrl))if(FlagTest(part.base.flag()|part.render.flag(), flag)){part.exclude(flag); changed=true;}
          }
@@ -2273,7 +2273,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(mesh.is())
          {
             Str  s="Vertex Data: ";
-            uint flag=((mode()==LOD) ? lod.flag() : mesh.flag());
+            uint flag=(visibleLodSelection() ? VisibleFlag(lod) : VisibleFlag(mesh));
             if(flag&VTX_POS     )Add(s, "Position"); if(flag&VTX_HLP )Add(s, "Helper"); if(flag&VTX_NRM)Add(s, "Normal");
           //if(flag&VTX_TAN     )Add(s, "Tangent" ); if(flag&VTX_BIN )Add(s, "Binormal"); ignore these as they're always set in the Editor
             if(flag&VTX_TEX0    )Add(s, "TexCoord"); if(flag&VTX_TEX1)Add(s, "TexCoord1"); if(flag&VTX_TEX2)Add(s, "TexCoord2");
@@ -2359,7 +2359,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    int ObjView::visibleVariation()C
    {
       if(mesh_variations.list.lit>=0)return mesh_variations.list.lit;
-      if(variation_tabs.visibleFull())return selVariation();
+      if(variation_tabs.visibleOnActiveDesktop())return selVariation();
       return param_edit.v_mesh_var();
    }
    int  ObjView::selVariation()C {return Mid(sel_variation, 0, mesh.variations()-1);}
@@ -2371,6 +2371,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(mode!=QUIET)mesh_variations.list.setCur(selVariation());
       }
    }
+   bool ObjView::visibleLodSelection()C {return lod_tabs.visibleOnActiveDesktop() || lod.visibleOnActiveDesktop();}
    int  ObjView::selLod()C {return Mid(sel_lod, 0, mesh.lods()-1);}
    void ObjView::selLod(int lod)
    {

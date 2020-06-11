@@ -1039,7 +1039,7 @@ class AnimEditor : Viewport4Region
    }
 
    ElmAnim* data()C {return elm ? elm.animData() : null;}
-   Animation* getVisAnim() {return scale_pos_keys.visibleFull() ? scale_pos_keys.getAnim() : optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
+   Animation* getVisAnim() {return scale_pos_keys.visibleOnActiveDesktop() ? scale_pos_keys.getAnim() : optimize_anim.visibleOnActiveDesktop() ? optimize_anim.getAnim() : anim;}
 
    flt  timeToFrac (flt time)C {return (anim && anim.length()) ? time/anim.length() : 0;}
    bool timeToFrame(flt time, flt &frame)C

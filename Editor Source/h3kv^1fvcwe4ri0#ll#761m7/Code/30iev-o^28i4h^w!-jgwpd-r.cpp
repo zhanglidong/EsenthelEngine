@@ -471,7 +471,7 @@ class ModeTabs : Tabs
    }
    void kbToggle()
    {
-      if(Proj.list.contains(Gui.kb()) || !Proj.list.visibleFull())kbSet();else Proj.list.kbSet();
+      if(Proj.list.contains(Gui.kb()) || !Proj.list.visibleOnActiveDesktop())kbSet();else Proj.list.kbSet();
    }
    void activateLast()
    {

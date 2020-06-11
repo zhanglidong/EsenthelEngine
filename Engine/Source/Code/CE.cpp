@@ -1080,7 +1080,7 @@ Flt  CodeEditor::fontSpaceOffset()C {return (1-CE.ts.space.y)*CE.ts.size.y*0.5f;
 Rect CodeEditor::sourceRect     ()
 {
    Rect   r(-D.w(), build_region.visible() ? build_region.rect().max.y : -D.h(), D.w(), D.h());
-   if(menu.visibleFull())if(menu_on_top)MIN(r.max.y, menu.rect().min.y);else MAX(r.min.y, menu.rect().max.y); // check 'visibleFull' in case 'menu' is attached to a Tabs::Tab
+   if(menu.visibleFull())if(menu_on_top)MIN(r.max.y, menu.rect().min.y);else MAX(r.min.y, menu.rect().max.y); // check 'visibleFull' in case 'menu' is attached to a Tabs.Tab
    return r&cei().sourceRect();
 }
 Source* CodeEditor::findSource(C SourceLoc &loc) {if(loc.is())REPA(sources)if(sources[i].loc==loc)return &sources[i]; return null;}

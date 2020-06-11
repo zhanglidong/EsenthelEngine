@@ -115,7 +115,7 @@ ColorBrushClass ColorBrush;
    }
    void ColorBrushClass::update()
    {
-      if(visibleFull())
+      if(visibleOnActiveDesktop())
       {
          // edit
          if(sel>=0)WorldEdit.grid.mtFunc(WorkerThreads, Brush.affectedAreas(1), EditColor, col[sel].col);

@@ -204,7 +204,7 @@ class MtrlBrushClass : Window
 
    void update()
    {
-      if(visibleFull())
+      if(visibleOnActiveDesktop())
       {
          // edit heightmap material
          {

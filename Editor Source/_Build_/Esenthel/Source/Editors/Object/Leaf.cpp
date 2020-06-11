@@ -37,9 +37,9 @@
          }
          if(changed_parts.elms())changed=true;
       }else
-      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
       {
-         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
          {
             MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){part.setLeafAttachment(pos); changed=true;}
          }
@@ -50,9 +50,9 @@
    {
       ObjEdit.mesh_undos.set("bending");
       bool changed=false;
-      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
       {
-         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
          {
             MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game) && (part.flag()&VTX_HLP)) // set only for parts that already have leaf attachment
             {
@@ -95,9 +95,9 @@
          }
          if(changed_parts.elms())changed=true;
       }else
-      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
       {
-         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
          {
             MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game) && (part.flag()&VTX_HLP)) // set only for parts that already have leaf attachment
             {
@@ -112,9 +112,9 @@
       ObjEdit.mesh_undos.set("color");
       flt  variation=TextFlt(leaf.color_value());
       bool changed=false;
-      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+      REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
       {
-         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+         MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
          {
             MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){part.setRandomLeafColor(variation); changed=true;}
          }
@@ -154,9 +154,9 @@
          {
             Vec2 tex=(Ms.pos()-texture.screenPos())/texture.size(); CHS(tex.y); tex.sat();
             bool changed=false;
-            REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
+            REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
             {
-               MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
+               MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
                {
                   MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){ObjEdit.mesh_undos.set("leaf"); part.setLeafAttachment(tex); changed=true;}
                }

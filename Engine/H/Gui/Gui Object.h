@@ -129,6 +129,8 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
            GuiObj& resize  (C Vec2 &delta   );                                                         //         resize by delta
            GuiObj& baseLevel( Int   level   );   Int          baseLevel  ()C {return _base_level    ;} // set/get base level
 
+                                                 Bool         visibleOnActiveDesktop()C;               //     get if visible and all parents are also visible, and belongs to active desktop
+
    // helpers
    Bool contains    (C GuiObj *child)C; // if object contains 'child'
    Int  compareLevel(C GuiObj &obj  )C; // compare level between this object and 'obj' in parent's children hierarchy, <0 value is returned if this object is below 'obj', 0 value is returned if they share the same level or have different parents, >0 value is returned if this object is above 'obj'

@@ -444,7 +444,8 @@ public:
    int visibleVariation()C;
    int  selVariation()C;                                       
    void selVariation(int variation, SET_MODE mode=SET_DEFAULT);
-   int  selLod()C;                                        
+   bool visibleLodSelection()C;                              
+   int  selLod()C;          
    void selLod(int lod);
    void eraseLOD(int i);
    void disableLOD(int i);

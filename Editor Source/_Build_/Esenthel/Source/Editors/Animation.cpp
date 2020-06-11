@@ -918,7 +918,7 @@ AnimEditor AnimEdit;
       flush();
    }
    ElmAnim* AnimEditor::data()C {return elm ? elm->animData() : null;}
-   Animation* AnimEditor::getVisAnim() {return scale_pos_keys.visibleFull() ? scale_pos_keys.getAnim() : optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
+   Animation* AnimEditor::getVisAnim() {return scale_pos_keys.visibleOnActiveDesktop() ? scale_pos_keys.getAnim() : optimize_anim.visibleOnActiveDesktop() ? optimize_anim.getAnim() : anim;}
    flt  AnimEditor::timeToFrac(flt time)C {return (anim && anim->length()) ? time/anim->length() : 0;}
    bool AnimEditor::timeToFrame(flt time, flt &frame)C
    {

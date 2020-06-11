@@ -251,7 +251,7 @@ HeightBrushClass HeightBrush;
    void HeightBrushClass::update()
    {
       bool view_on=false;
-      if(visibleFull() && OpHm==OP_HM_HEIGHT)
+      if(visibleOnActiveDesktop() && OpHm==OP_HM_HEIGHT)
       {
          REP(WorldEdit.curTotal())if(WorldEdit.curAll(i).onViewport() && WorldEdit.curAll(i).on()){view_on=true; break;}
          if(view_on)

@@ -222,6 +222,8 @@ int VisibleTris      (C MeshLod &mesh);
 int VisibleTrisTotal (C MeshLod &mesh);
 int VisibleQuads     (C MeshLod &mesh);
 int VisibleSize      (C MeshLod &mesh);
+int VisibleFlag      (C MeshLod &mesh);
+int VisibleFlag      (C Mesh    &mesh);
 flt VisibleLodQuality(C Mesh    &mesh, int lod_index);
 void KeepParams(C Mesh &src, Mesh &dest);
 void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, C Matrix *matrix);

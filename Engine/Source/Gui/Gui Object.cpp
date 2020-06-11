@@ -374,8 +374,8 @@ GuiObj& GuiObj::windowsToTop                (             )
 }
 Bool GuiObj::visibleFull()C
 {
-   if(hidden())return false; // if we're starting from 'Tab' then check this
-   for(C GuiObj *go=this; go; go=go->parent())
+   if(hidden())return false; // if we're starting from 'Tab' then check this, because 'Tab' visibility is ignored below
+   for(C GuiObj *go=this; ; )
    {
       if(go->type()==GO_TAB)
       {
@@ -385,11 +385,33 @@ Bool GuiObj::visibleFull()C
             Tab  *tabs_tab=tabs._tabs.addr(tabs()); // get active 'Tab' in 'Tabs'
             if(   tabs_tab!=go)return false; // if active tab is not the processed one, then it means it's not selected and children should be hidden
          }
-         continue; // ignore visibility of a 'Tab'
+      }else // ignore visibility of a 'Tab'
+      {
+         if(go->hidden())return false;
       }
-      if(go->hidden())return false;
+      go=go->parent(); if(!go)return true;
    }
-   return true;
+}
+Bool GuiObj::visibleOnActiveDesktop()C
+{
+   if(hidden())return false; // if we're starting from 'Tab' then check this, because 'Tab' visibility is ignored below
+   for(C GuiObj *go=this; ; )
+   {
+      if(go->type()==GO_TAB)
+      {
+         if(go->parent() && go->parent()->type()==GO_TABS) // check if parent is 'Tabs' and it's set to that tab
+         {
+            Tabs &tabs    =go->parent()->asTabs();
+            Tab  *tabs_tab=tabs._tabs.addr(tabs()); // get active 'Tab' in 'Tabs'
+            if(   tabs_tab!=go)return false; // if active tab is not the processed one, then it means it's not selected and children should be hidden
+         }
+      }else // ignore visibility of a 'Tab'
+      {
+         if(go->hidden())return false;
+      }
+    C GuiObj *parent=go->parent(); if(!parent)return go==Gui.desktop(); // if no parent, then check if last object is active desktop
+      go=parent;
+   }
 }
 Bool GuiObj::enabledFull()C
 {
