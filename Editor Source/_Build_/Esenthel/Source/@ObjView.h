@@ -444,7 +444,7 @@ public:
    int visibleVariation()C;
    int  selVariation()C;                                       
    void selVariation(int variation, SET_MODE mode=SET_DEFAULT);
-   bool visibleLodSelection()C;                              
+   bool visibleLodSelection()C;                               // check "mode()==LOD" instead of "lod.visibleOnActiveDesktop()" because it's faster
    int  selLod()C;          
    void selLod(int lod);
    void eraseLOD(int i);

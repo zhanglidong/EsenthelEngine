@@ -2455,7 +2455,7 @@ int VisibleTrisTotal (C MeshLod &mesh) {int  num =0; REPA(mesh)if(!(mesh.parts[i
 int VisibleQuads     (C MeshLod &mesh) {int  num =0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].quads          (); return num ;}
 int VisibleSize      (C MeshLod &mesh) {int  size=0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))size+=mesh.parts[i].render.memUsage(); return size;}
 int VisibleFlag      (C MeshLod &mesh) {uint flag=0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))flag|=mesh.parts[i].flag           (); return flag;}
-int VisibleFlag      (C Mesh    &mesh) {uint flag=0; REP (mesh.lods())flag|=VisibleFlag(mesh.lod(i));                                           return flag;}
+int VisibleFlag      (C Mesh    &mesh) {uint flag=0; REP (mesh.lods()                                   )flag|=VisibleFlag       (mesh.lod(i)); return flag;}
 flt VisibleLodQuality(C Mesh    &mesh, int lod_index)
 {
    Clamp(lod_index, 0, mesh.lods());

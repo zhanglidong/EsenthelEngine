@@ -2494,7 +2494,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(mode!=QUIET)mesh_variations.list.setCur(selVariation());
       }
    }
-   bool visibleLodSelection()C {return lod_tabs.visibleOnActiveDesktop() || lod.visibleOnActiveDesktop();}
+   bool visibleLodSelection()C {return lod_tabs.visibleOnActiveDesktop() || mode()==LOD;} // check "mode()==LOD" instead of "lod.visibleOnActiveDesktop()" because it's faster
    int  selLod()C {return Mid(sel_lod, 0, mesh.lods()-1);}
    void selLod(int lod)
    {
