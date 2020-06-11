@@ -54,8 +54,8 @@ MeshGroup& MeshGroup::create(C Mesh &src, C Boxes &boxes)
    MeshGroup temp, &dest=(T.meshes.contains(&src) ? temp : T); // if this contains 'src' then operate on 'temp' first
    dest.meshes.setNum(bps); REPAD(s, dest.meshes)
    {
-      Mesh &mesh=dest.meshes[s].setLods(src.lods()); mesh.copyParams(src); // create split meshes to always have the same amount of LOD's
-      REPD(l, mesh.lods()) // process all LOD's in this split mesh
+      Mesh &mesh=dest.meshes[s].setLods(src.lods()); mesh.copyParams(src); // create split meshes to always have the same amount of LODs
+      REPD(l, mesh.lods()) // process all LODs in this split mesh
       {
          MeshLod &lod=mesh.lod(l); lod.copyParams(src.lod(l));
          Int parts=0; // how many parts in this LOD

@@ -839,12 +839,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void  ObjView::GotoGroups(ObjView &editor) {editor.gotoDrawGroupEnum();}
    void ObjView::ClearGroups(ObjView &editor) {editor. setDrawGroupEnum(UIDZero);}
    void ObjView::ClearBack(ObjView &editor) {editor.back_meshes.clear();}
-   void ObjView::MeshRemVtxTex0(ObjView &editor) {editor.remVtx(VTX_TEX0         );}
-   void ObjView::MeshRemVtxTex1(ObjView &editor) {editor.remVtx(VTX_TEX1         );}
-   void ObjView::MeshRemVtxTex2(ObjView &editor) {editor.remVtx(         VTX_TEX2);}
-   void ObjView::MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2);}
-   void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR, null, ObjEdit.mesh_parts.list.sel.elms()>0);}
-   void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN );}
+   void ObjView::MeshRemVtxTex0(ObjView &editor) {editor.remVtx(VTX_TEX0         , true);}
+   void ObjView::MeshRemVtxTex1(ObjView &editor) {editor.remVtx(VTX_TEX1         , true);}
+   void ObjView::MeshRemVtxTex2(ObjView &editor) {editor.remVtx(         VTX_TEX2, true);}
+   void ObjView::MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
+   void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
+   void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
    void ObjView::modeS(int i)
    {
       switch(mode())
@@ -863,7 +863,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          case MESH     : trans_tabs.toggle(i); break;
       }
    }
-   void ObjView::remVtx(uint flag, C MaterialPtr &mtrl, bool only_selected)
+   void ObjView::remVtx(uint flag, bool only_selected, C MaterialPtr &mtrl)
    {
       mesh_undos.set("remove");
       bool changed=false;
@@ -876,7 +876,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       }
       if(changed)
       {
-         if(flag&VTX_SKIN)mesh.clearSkeleton();
+         if((flag&VTX_SKIN) && !(mesh.flag()&VTX_SKIN))mesh.clearSkeleton();
          setChangedMesh(true, false);
       }
    }
@@ -2273,7 +2273,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(mesh.is())
          {
             Str  s="Vertex Data: ";
-            uint flag=mesh.flag();
+            uint flag=((mode()==LOD) ? lod.flag() : mesh.flag());
             if(flag&VTX_POS     )Add(s, "Position"); if(flag&VTX_HLP )Add(s, "Helper"); if(flag&VTX_NRM)Add(s, "Normal");
           //if(flag&VTX_TAN     )Add(s, "Tangent" ); if(flag&VTX_BIN )Add(s, "Binormal"); ignore these as they're always set in the Editor
             if(flag&VTX_TEX0    )Add(s, "TexCoord"); if(flag&VTX_TEX1)Add(s, "TexCoord1"); if(flag&VTX_TEX2)Add(s, "TexCoord2");

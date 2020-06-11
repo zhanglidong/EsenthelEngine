@@ -12,7 +12,7 @@
    Use 'Meshes' cache for easy mesh accessing from files.
 
 /******************************************************************************/
-struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
+struct Mesh : MeshLod // Mesh (array of Mesh LODs)
 {
    Extent ext       ; // bounding box
    Vec    lod_center; // mesh center position used for calculating LOD level, usually equal to "ext.pos"
@@ -48,7 +48,8 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    Mesh& keepOnly(UInt flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
 
    // get
-   UInt memUsage()C; // get memory usage
+   UInt flag    ()C; // get MESH_BASE_FLAG of all LODs
+   UInt memUsage()C; // get memory usage   of all LODs
 
  C MeshLod& getDrawLod (C Matrix  &matrix)C; // get          Level of Detail which should be used for drawing with current camera and given object 'matrix'
  C MeshLod& getDrawLod (C MatrixM &matrix)C; // get          Level of Detail which should be used for drawing with current camera and given object 'matrix'
@@ -174,7 +175,7 @@ struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
    MeshLod&    newLod(     ); // add empty   MeshLod
    MeshLod&    newLod(Int i); // add empty   MeshLod at 'i' LOD index
    Mesh   & removeLod(Int i); // remove i-th MeshLod
-   Mesh   &   setLods(Int n); // set n levels of MeshLod's, new LODs will be empty
+   Mesh   &   setLods(Int n); // set n levels of MeshLods, new LODs will be empty
 
    // optimize
 #if EE_PRIVATE

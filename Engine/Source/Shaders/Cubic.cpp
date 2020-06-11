@@ -28,13 +28,13 @@ Half CubicMed(Half x) {return Cubic(x, 0.0, 0.375);}
 /*VecH4 TexLerp(Flt x0, Flt x1, Flt y, Flt l, Flt r)
 {
    Flt w=l+r;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
+   // keep 'Tex' in case we need LODs (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, Vec2((x0*l + x1*r)/w, y))*Half(w);
 }
 VecH TexLerpRGB(Flt x0, Flt x1, Flt y, Flt l, Flt r) // ignores alpha channel
 {
    Flt w=l+r;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
+   // keep 'Tex' in case we need LODs (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, Vec2((x0*l + x1*r)/w, y)).rgb*Half(w);
 }
 
@@ -51,7 +51,7 @@ VecH4 TexLerp(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb)
          +Vec2(t0.x, t1.y)*lb
          +Vec2(t1.x, t1.y)*rb;
    Flt w=lu+ru+lb+rb;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
+   // keep 'Tex' in case we need LODs (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, t/w)*Half(w);
 #endif
 }
@@ -62,7 +62,7 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
          +Vec2(t0.x, t1.y)*lb
          +Vec2(t1.x, t1.y)*rb;
    Flt w=lu+ru+lb+rb;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
+   // keep 'Tex' in case we need LODs (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, t/w).rgb*Half(w);
 }*/
 

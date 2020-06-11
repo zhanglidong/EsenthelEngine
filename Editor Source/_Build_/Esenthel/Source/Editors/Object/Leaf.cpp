@@ -3,9 +3,9 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   void LeafRegion::RemoveAttachment(LeafRegion &leaf) {ObjEdit.remVtx(VTX_HLP  , MtrlEdit.game, true);}
-   void LeafRegion::RemoveBending(LeafRegion &leaf) {ObjEdit.remVtx(VTX_SIZE , MtrlEdit.game, true);}
-   void LeafRegion::RemoveColor(LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, MtrlEdit.game, true);}
+   void LeafRegion::RemoveAttachment(LeafRegion &leaf) {ObjEdit.remVtx(VTX_HLP  , true, MtrlEdit.game);}
+   void LeafRegion::RemoveBending(LeafRegion &leaf) {ObjEdit.remVtx(VTX_SIZE , true, MtrlEdit.game);}
+   void LeafRegion::RemoveColor(LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, true, MtrlEdit.game);}
    void LeafRegion::SetAttachmentCam(LeafRegion &leaf)
    {
       ObjEdit.mesh_undos.set("leaf");

@@ -7,9 +7,9 @@ class LeafRegion : Region
    Button    remove_attachment, set_attachment_cam, random_bending, same_random_bending, remove_bending, random_color, remove_color;
    TextLine  color_value;
 
-   static void RemoveAttachment(LeafRegion &leaf) {ObjEdit.remVtx(VTX_HLP  , MtrlEdit.game, true);}
-   static void RemoveBending   (LeafRegion &leaf) {ObjEdit.remVtx(VTX_SIZE , MtrlEdit.game, true);}
-   static void RemoveColor     (LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, MtrlEdit.game, true);}
+   static void RemoveAttachment(LeafRegion &leaf) {ObjEdit.remVtx(VTX_HLP  , true, MtrlEdit.game);}
+   static void RemoveBending   (LeafRegion &leaf) {ObjEdit.remVtx(VTX_SIZE , true, MtrlEdit.game);}
+   static void RemoveColor     (LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, true, MtrlEdit.game);}
    static void SetAttachmentCam(LeafRegion &leaf)
    {
       ObjEdit.mesh_undos.set("leaf");

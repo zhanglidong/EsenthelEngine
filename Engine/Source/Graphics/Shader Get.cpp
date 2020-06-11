@@ -137,9 +137,9 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
       case TEX_USE_DISABLE:                detail=false; break;
       case TEX_USE_SINGLE : if(materials>1)detail=false; break;
    }
-   if(!D.texMacro    () || lod_index<=0 || skin || !heightmap)macro =false; // disable macro  for LOD's=0, skin, !heightmaps
-   if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LOD's>0
-   if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0 and layout<2 (no bump channel)
+   if(!D.texMacro    () || lod_index<=0 || skin || !heightmap)macro =false; // disable macro  for LODs=0, skin, !heightmaps
+   if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LODs>0
+   if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LODs>0 and layout<2 (no bump channel)
    if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
    if(!normal || !D.envMap()                                 )reflect=false; // reflection requires vtx normals
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures

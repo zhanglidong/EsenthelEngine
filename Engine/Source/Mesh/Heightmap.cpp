@@ -863,7 +863,7 @@ struct MtrlCombo // Material Combination
 #if VMC_CONTINUOUS
 struct VtxMtrlCombo
 {
-   UShort next_add, // index of next VMC for the same vertex, 0 if none (normally this would be an absolute index, however since there can be ~98K elements, then we would need UInt, but since the vertexes will usually be close together, then we use UShort and use it as relative index), the highest number of VMC is for the first lod, which only uses quads, other LODs can use triangles/edge skirts which could set vertexes first which are further apart, however since they are LOD's then the total number of triangles is smaller, and the next index should be in the range of 64K always
+   UShort next_add, // index of next VMC for the same vertex, 0 if none (normally this would be an absolute index, however since there can be ~98K elements, then we would need UInt, but since the vertexes will usually be close together, then we use UShort and use it as relative index), the highest number of VMC is for the first lod, which only uses quads, other LODs can use triangles/edge skirts which could set vertexes first which are further apart, however since they are LODs then the total number of triangles is smaller, and the next index should be in the range of 64K always
           mtrl_combo, // index of material combo
           mc_vtx_index; // vertex index in that material combo
 };

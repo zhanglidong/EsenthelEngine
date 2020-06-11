@@ -13,12 +13,12 @@
 #define RELIEF_STEPS_MAX    32
 #define RELIEF_STEPS_BINARY 3 // 3 works good in most cases, 4 could be used for absolute best quality
 #define RELIEF_STEPS_MUL    0.75 // 0.75 gets slightly worse quality but better performance, 1.0 gets full quality but slower performance, default=0.75
-#define RELIEF_LOD_OFFSET   0.33 // values >0 increase performance (by using fewer steps and smaller LOD's) which also makes results more soft and flat helping to reduce jitter for distant pixels, default=0.33
+#define RELIEF_LOD_OFFSET   0.33 // values >0 increase performance (by using fewer steps and smaller LODs) which also makes results more soft and flat helping to reduce jitter for distant pixels, default=0.33
 #define RELIEF_TAN_POS      1 // 0=gets worse quality but better performance (not good for triangles with vertexes with very different normals or for surfaces very close to camera), 1=gets full quality but slower performance, default=1
 #define RELIEF_DEC_NRM      1 // if reduce relief bump intensity where there are big differences between vtx normals, tangents and binormals, default=1
 #define RELIEF_MODE         1 // 1=best
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
-#define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
+#define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LODs other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 #define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)

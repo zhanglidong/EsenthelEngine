@@ -825,8 +825,8 @@ Bool Mesh::saveData(File &f, CChar *path)C
    if(_variations.save(f))
    {
       f.cmpUIntV(_lods.elms()); FREP(lods())if(!lod(i).saveData(f, path))return false;
-      f.putAsset(Enums    .id(drawGroupEnum())); // save after LOD's, so when loading and setting 'drawGroupEnum' it can operate on LOD's
-      f.putAsset(Skeletons.id(skeleton     ())); // save after LOD's, so when loading and setting 'skeleton'      it can operate on LOD's
+      f.putAsset(Enums    .id(drawGroupEnum())); // save after LODs, so when loading and setting 'drawGroupEnum' it can operate on LODs
+      f.putAsset(Skeletons.id(skeleton     ())); // save after LODs, so when loading and setting 'skeleton'      it can operate on LODs
       return f.ok();
    }
    return false;

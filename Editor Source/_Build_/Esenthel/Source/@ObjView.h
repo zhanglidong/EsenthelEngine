@@ -321,7 +321,7 @@ public:
 
    void modeS(int i);
 
-   void remVtx(uint flag, C MaterialPtr &mtrl=null, bool only_selected=false);
+   void remVtx(uint flag, bool only_selected=false, C MaterialPtr &mtrl=null);
 
    static void MeshUndo(ObjView &editor);
    static void MeshRedo(ObjView &editor);

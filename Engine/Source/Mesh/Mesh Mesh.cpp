@@ -219,7 +219,7 @@ Mesh& Mesh::create(C Mesh *mesh, Int meshes, UInt flag_and)
    if(!mesh || meshes<=0)del();else
    {
       Mesh temp, &dest=(InRange(IntPtr(this-mesh), IntPtr(meshes)) ? temp : T); // if 'mesh' array contains 'this' then operate on 'temp' first
-      Int lods=0; REP(meshes)MAX(lods, mesh[i].lods()); // get max number of LOD's
+      Int lods=0; REP(meshes)MAX(lods, mesh[i].lods()); // get max number of LODs
       dest.setLods(lods).copyParams(*mesh); // copy params from first Mesh
       REPD(l, dest.lods())
       {
@@ -269,6 +269,7 @@ Mesh& Mesh::keepOnly(UInt flag) {REP(lods())lod(i).keepOnly(flag); return T;}
 /******************************************************************************/
 // GET
 /******************************************************************************/
+UInt Mesh::flag    ()C {UInt flag=0; REP(lods())flag|=lod(i).flag    (); return flag;}
 UInt Mesh::memUsage()C {UInt size=0; REP(lods())size+=lod(i).memUsage(); return size;}
 
 C MeshLod& Mesh::getDrawLod(C Matrix &matrix)C
@@ -503,7 +504,7 @@ Mesh& Mesh::add(C Mesh &src)
       }
       variationInclude(src);
    }
-   if(src.lods()>lods())setLods(src.lods()); // make room for LOD's
+   if(src.lods()>lods())setLods(src.lods()); // make room for LODs
    FREP(src.lods())lod(i).add(src.lod(i), &src, this);
    return T;
 }
@@ -554,7 +555,7 @@ Mesh& Mesh::simplify(Flt intensity, Flt max_distance, Flt max_uv, Flt max_color,
       dest->copyParams(T);
       dest->setLods(lods());
    }
-   REP(lods()) // go from the end so we can remove lod's if needed
+   REP(lods()) // go from the end so we can remove LODs if needed
    {
       MeshLod &dest_lod=dest->lod(i);
       lod(i).simplify(intensity, max_distance, max_uv, max_color, max_material, max_skin, max_normal, keep_border, mode, pos_eps, &dest_lod, stop); if(stop && *stop)break;
