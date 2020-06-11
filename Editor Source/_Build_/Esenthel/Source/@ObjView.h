@@ -312,6 +312,7 @@ public:
    static void  GotoGroups    (ObjView &editor); 
    static void ClearGroups    (ObjView &editor); 
    static void ClearBack      (ObjView &editor); 
+   static void MeshRemVtxTex0 (ObjView &editor); 
    static void MeshRemVtxTex1 (ObjView &editor); 
    static void MeshRemVtxTex2 (ObjView &editor); 
    static void MeshRemVtxTex12(ObjView &editor); 

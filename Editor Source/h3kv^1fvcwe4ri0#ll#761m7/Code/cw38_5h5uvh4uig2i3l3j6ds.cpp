@@ -939,6 +939,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void  GotoGroups    (ObjView &editor) {editor.gotoDrawGroupEnum();}
    static void ClearGroups    (ObjView &editor) {editor. setDrawGroupEnum(UIDZero);}
    static void ClearBack      (ObjView &editor) {editor.back_meshes.clear();}
+   static void MeshRemVtxTex0 (ObjView &editor) {editor.remVtx(VTX_TEX0         );}
    static void MeshRemVtxTex1 (ObjView &editor) {editor.remVtx(VTX_TEX1         );}
    static void MeshRemVtxTex2 (ObjView &editor) {editor.remVtx(         VTX_TEX2);}
    static void MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2);}
@@ -1496,6 +1497,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             rem.New().create("Vertex TexCoord1&2", MeshRemVtxTex12, T);
             rem.New().create("Vertex Color"      , MeshRemVtxColor, T);
             rem.New().create("Vertex Skin"       , MeshRemVtxSkin , T);
+            rem.New().create("Vertex TexCoord0"  , MeshRemVtxTex0 , T);
          }
          mode.tab(MESH)+=mesh_ops.create(Rect_LU(vtx_face_sel_mode.rect().max.x+h, mode.rect().min.y-0.01, 0.25, 0.055), n).focusable(false); mesh_ops.text="Operations"; mesh_ops.flag|=COMBOBOX_CONST_TEXT;
       }
