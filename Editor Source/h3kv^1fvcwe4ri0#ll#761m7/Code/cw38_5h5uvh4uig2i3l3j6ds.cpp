@@ -2119,13 +2119,15 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void setMaterial(int part_i, C MaterialPtr &material)
    {
+      bool set_other_lods=!Kb.ctrlCmd();
       MeshLod &lod=getLod();
       if(InRange(part_i, lod))
       {
          mesh_undos.set("mtrl");
-         // set the material of other LOD's if they're the same (have same number of parts with same materials and names)
          int variation=visibleVariation();
-         REPD(l, mesh.lods())
+
+         // set the material of other LOD's if they're the same (have same number of parts with same materials and names)
+         if(set_other_lods)REPD(l, mesh.lods())
          {
             MeshLod &lod2=mesh.lod(l); if(&lod2!=&lod && lod.parts.elms()==lod2.parts.elms())
             {
@@ -2140,6 +2142,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             }
             different:;
          }
+
          MeshPart &part=lod.parts[part_i];
          part.variations(Max(part.variations(), variation+1)) // make room first for specified variation
              .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
