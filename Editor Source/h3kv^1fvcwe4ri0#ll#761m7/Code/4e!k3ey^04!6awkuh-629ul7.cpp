@@ -562,18 +562,19 @@ void ObjView.meshTesselate()
       setChangedMesh(true);
    }
 }
-void ObjView.meshColorBrght()
+void ObjView.meshColorBrghtn()
 {
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("vtxCol");
    if(mesh_parts.edit_selected())
    {
-      if(!sel_vtx.elms())Gui.msgBox(S, "No vertexes selected");else
+      Memt<VecI2> vtxs; getSelectedVtxs(vtxs);
+      if(!vtxs.elms())Gui.msgBox(S, "No vertexes selected");else
       {
-         REPA(sel_vtx)
+         REPA(vtxs)
          {
-          C VecI2 &v=sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part.base.vtx) && part.base.vtx.color())
+          C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part.base.vtx) && part.base.vtx.color())
             {
                Color &c=part.base.vtx.color(v.y);
                c=Lerp(c, WHITE, 0.1);
@@ -588,6 +589,50 @@ void ObjView.meshColorBrght()
       MeshBase &base=part.base; if(base.vtx.color())
       {
          REPA(base.vtx)base.vtx.color(i)=Lerp(base.vtx.color(i), WHITE, 0.1);
+         part.setRender();
+         changed=true;
+      }
+   }
+   if(changed)setChangedMesh(true, false);
+}
+void IncludeColors(MeshBase &mesh)
+{
+   if(!mesh.vtx.color())
+   {
+      mesh.include(VTX_COLOR);
+      if(mesh.vtx.color())REPA(mesh.vtx)mesh.vtx.color(i)=WHITE;
+   }
+}
+void ObjView.meshColorDarken()
+{
+   bool changed=false;
+   MeshLod &lod=getLod();
+   mesh_undos.set("vtxCol");
+   if(mesh_parts.edit_selected())
+   {
+      Memt<VecI2> vtxs; getSelectedVtxs(vtxs);
+      if(!vtxs.elms())Gui.msgBox(S, "No vertexes selected");else
+      {
+         REPA(vtxs)
+         {
+          C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part.base.vtx))
+            {
+               IncludeColors(part.base); if(part.base.vtx.color())
+               {
+                  Color &c=part.base.vtx.color(v.y);
+                  c=Lerp(c, BLACK, 0.1);
+                  changed=true;
+               }
+            }
+         }
+         if(changed)lod.setRender();
+      }
+   }else
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
+   {
+      MeshBase &base=part.base; IncludeColors(base); if(base.vtx.color())
+      {
+         REPA(base.vtx)base.vtx.color(i)=Lerp(base.vtx.color(i), BLACK, 0.1);
          part.setRender();
          changed=true;
       }
