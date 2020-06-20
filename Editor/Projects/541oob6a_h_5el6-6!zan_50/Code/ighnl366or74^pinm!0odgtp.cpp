@@ -26,7 +26,7 @@ void Draw()
 
    // to draw big number of shapes more efficiently please use VertexIndexBuffer (VI)
 
-   CChar *mode;
+   cchar8 *mode;
 
    if(Kb.b(KB_SPACE)) // when space pressed, draw separately
    {

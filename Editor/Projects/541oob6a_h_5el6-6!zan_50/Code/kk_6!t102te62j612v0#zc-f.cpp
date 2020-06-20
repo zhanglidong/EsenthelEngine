@@ -13,7 +13,7 @@ enum COL_TRANS_MODE // color transformation modes
    CT_CUSTOM,
    CT_CUSTOM2,
 };
-CChar *CTText[]= // color transformation description
+cchar8 *CTText[]= // color transformation description
 {
    "RGB",
    "RBG",
