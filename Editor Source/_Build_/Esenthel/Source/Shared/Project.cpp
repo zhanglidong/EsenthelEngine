@@ -633,6 +633,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(p->value=="div"                                                )mode=APPLY_DIV;else
             if(p->value=="add"                                                )mode=APPLY_ADD;else
             if(p->value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
+            if(p->value=="addLum"                                             )mode=APPLY_ADD_LUM;else
             if(p->value=="sub"                                                )mode=APPLY_SUB;else
             if(p->value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
             if(p->value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
@@ -698,6 +699,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                         case APPLY_DIV           : c=base/l; break;
                         case APPLY_ADD           : c=base+l; break;
                         case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
+                        case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
                         case APPLY_SUB           : c=base-l; break;
                         case APPLY_AVG           : c=Avg(base, l); break;
                         case APPLY_MIN           : c=Min(base, l); break;

@@ -180,6 +180,7 @@ class Project
       APPLY_DIV,
       APPLY_ADD,
       APPLY_ADD_RGB,
+      APPLY_ADD_LUM,
       APPLY_SUB,
       APPLY_BRIGHTNESS,
       APPLY_BRIGHTNESS_LUM,
