@@ -18,7 +18,8 @@
 
 #include "../end.h"
 
-#define KEY_SAFETY 0 // not needed since time's are represented using integer values, and they will always be filled out
+#define TRIANGULATE 0 // don't do this, because we want to preserve quads
+#define KEY_SAFETY  0 // not needed since time's are represented using integer values, and they will always be filled out
 /******************************************************************************/
 namespace EE{
 static SyncLock Lock; // FBX SDK is not thread-safe and crashes upon importing multiple files at the same time
@@ -650,7 +651,7 @@ struct FBX
          {
             Node &node=nodes[i];
 
-          //FbxGeometryConverter(manager).Triangulate(node.node->GetNodeAttribute(), true); // triangulate, don't do this, because we want to preserve quads
+            if(TRIANGULATE)FbxGeometryConverter(manager).Triangulate(node.node->GetNodeAttribute(), true); // triangulate
             if(FbxMesh *fbx_mesh=node.node->GetMesh()) // access fbx mesh
             {
                Int         control_points=fbx_mesh->GetControlPointsCount();
