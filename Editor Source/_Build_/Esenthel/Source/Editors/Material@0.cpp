@@ -96,7 +96,9 @@ MaterialTech mtrl_techs[]=
          Str desc=Replace(text, '\n', ' '); if(C ImagePtr &image=getImage())desc+=S+", "+image->w()+'x'+image->h();
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
-         desc+=S+"\nUse Ctrl+Click to Explore";
+         desc+="\nUse Ctrl+Click to Explore";
+         if(type==TEX_SMOOTH )desc+="\nAppend \"?inverseRGB\" to file name when using a \"Roughness\" map,\nor hold Alt while drag and drop to auto append.";
+         if(type==TEX_REFLECT)desc+="\nAppend \"?metalToReflect\" to file name when using a \"Metal\" map,\nor hold Shift while drag and drop to auto append.";
          T.desc(desc);
       }
       void MaterialRegion::Texture::setFile(Str file)

@@ -643,6 +643,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(p->value=="maskMul"                                            )mode=APPLY_MASK_MUL;else
             if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
             if(p->value=="metal"                                              )mode=APPLY_METAL;else
+            if(p->value=="scale"                                              )mode=APPLY_SCALE;else
             if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
          }
          bool alpha_1=Equal(alpha, 1),
@@ -650,18 +651,6 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          if(i==0 && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
          if(mode!=APPLY_SKIP)
          {
-            Vec mask[4];
-            switch(mode)
-            {
-               case APPLY_MASK_MUL:
-               case APPLY_MASK_ADD:
-               {
-                  if(C TextParam *p=file.findParam("maskRed"  ))mask[0]=TextVecEx(p->asText());else mask[0]=1;
-                  if(C TextParam *p=file.findParam("maskGreen"))mask[1]=TextVecEx(p->asText());else mask[1]=1;
-                  if(C TextParam *p=file.findParam("maskBlue" ))mask[2]=TextVecEx(p->asText());else mask[2]=1;
-                  if(C TextParam *p=file.findParam("maskAlpha"))mask[3]=TextVecEx(p->asText());else mask[3]=1;
-               }break;
-            }
             VecI2 size=layer.size()+pos;
             if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
             {
@@ -675,6 +664,23 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
             if(layer.is())
             {
                // put 'layer' onto image
+
+               Vec  mask[4];
+               bool mono;
+               switch(mode)
+               {
+                  case APPLY_MASK_MUL:
+                  case APPLY_MASK_ADD:
+                  {
+                     if(C TextParam *p=file.findParam("maskRed"  ))mask[0]=TextVecEx(p->asText());else mask[0]=1;
+                     if(C TextParam *p=file.findParam("maskGreen"))mask[1]=TextVecEx(p->asText());else mask[1]=1;
+                     if(C TextParam *p=file.findParam("maskBlue" ))mask[2]=TextVecEx(p->asText());else mask[2]=1;
+                     if(C TextParam *p=file.findParam("maskAlpha"))mask[3]=TextVecEx(p->asText());else mask[3]=1;
+                  }break;
+
+                  case APPLY_SCALE: mono=(image.typeChannels()<=1 || image.monochromatic()); break;
+               }
+
                AdjustImage(image, layer.typeInfo().a>0, layer.highPrecision());
                REPD(y, layer.h())
                REPD(x, layer.w())
@@ -771,6 +777,22 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                               new_lum=f(new_lum*bright)*mul;
                               new_lum=Sqrt(new_lum);
                               c.xyz*=new_lum/old_lum;
+                           }
+                        }break;
+                        
+                        case APPLY_SCALE:
+                        {
+                           flt scale=l.xyz.max();
+                           c.w=base.w;
+                           if( mono )c.xyz=(base.xyz-0.5f)*scale+0.5f;else
+                           if(!scale)c.xyz.set(0.5f, 0.5f, 1);else
+                           {
+                              Vec &n=c.xyz;
+                              n=base.xyz*2-1;
+                              n.normalize();
+                              n.z/=scale;
+                              n.normalize();
+                              n=n*0.5f+0.5f;
                            }
                         }break;
                      }
