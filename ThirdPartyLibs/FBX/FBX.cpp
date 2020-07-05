@@ -969,16 +969,8 @@ struct FBX
                      }
                   }
                   MAX(lod_i, 0);
-                  Int old_lods=mesh->lods(); // how many LODs set so far
                   mesh->setLods(Max(mesh->lods(), lod_i+1)); // make room for 'lod_i'
                   MIN(lod_i, mesh->lods()-1); // in case failed to create
-
-                  // process newly added LODs
-                  for(Int i=Max(1, old_lods); i<mesh->lods(); i++)
-                  {
-                     MeshLod &prev=mesh->lod(i-1), &cur=mesh->lod(i);
-                     cur.dist(Max(2, prev.dist()*2)); // setup some default LOD distances
-                  }
 
                   Int pmi_pos=0; // position in 'part_material_index' at which to add new parts, it's sorted by LODs first, then by parts (L0P0 L0P1, L1P0 L1P1, ..), so we have to insert in between other elements
                   if(part_material_index)for(Int i=0; i<=lod_i; i++)pmi_pos+=mesh->lod(i).parts.elms(); // count how many parts are there for LODs up to 'lod_i' (inclusive)
@@ -1291,6 +1283,11 @@ Bool _ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> 
             if(mesh      )mesh    ->scale(fbx.scale);
             if(skeleton  )skeleton->scale(fbx.scale);
          REPAO(animations).anim    .scale(fbx.scale);
+      }
+      if(mesh) // set LOD distances after scale
+      {
+         Flt dist=2;
+         for(Int i=1; i<mesh->lods(); i++, dist*=2)mesh->lod(i).dist(dist);
       }
       return true;
    }
