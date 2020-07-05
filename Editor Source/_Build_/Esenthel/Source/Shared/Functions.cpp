@@ -2362,10 +2362,10 @@ void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, 
 {
    game.create(edit, GameMeshFlagAnd);
    // cleanup mesh
-   REPD(l, game.lods()) // have to go from end because we're removing LOD's
+   REPD(l, game.lods()) // have to go from end because we're removing LODs
    {
       MeshLod &lod=game.lod(l);
-      // remove LOD's
+      // remove LODs
       if(NegativeSB(lod.dist2) // negative distance (marked as disabled)
       || InRange(l+1, game.lods()) && (l ? lod.dist2 : 0)>=game.lod(l+1).dist2) // distance is higher than the next one (have to check next one and not previous one, because we need to delete those with negative distance first. Force 0 dist for #0 LOD because currently it's uneditable and assumed to be 0 however it may not be)
       {

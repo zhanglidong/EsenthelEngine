@@ -159,7 +159,7 @@
    {
       ObjEdit.mesh_undos.set("moveNewLod");
       int lod_i=ObjEdit.selLod(); // get at the start because creating new lod may change this index
-      MeshLod &last=ObjEdit.mesh.newLod(); // create last first, because it will change memory address of other LOD's
+      MeshLod &last=ObjEdit.mesh.newLod(); // create last first, because it will change memory address of other LODs
       MeshLod &prev=ObjEdit.mesh.lod(ObjEdit.mesh.lods()-2),
               &lod =ObjEdit.mesh.lod(lod_i);
       ObjEdit.lodDist(last, NewLodClass::NextLodDist(ObjEdit.lodDist(prev)));

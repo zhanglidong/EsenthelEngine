@@ -2130,7 +2130,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          mesh_undos.set("mtrl");
          int variation=visibleVariation();
 
-         // set the material of other LOD's if they're the same (have same number of parts with same materials and names)
+         // set the material of other LODs if they're the same (have same number of parts with same materials and names)
          if(set_other_lods)REPD(l, mesh.lods())
          {
             MeshLod &lod2=mesh.lod(l); if(&lod2!=&lod && lod.parts.elms()==lod2.parts.elms())

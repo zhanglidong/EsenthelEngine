@@ -42,7 +42,7 @@ NewLodClass NewLod;
       };
       ObjEdit.mode.tab(ObjView::LOD)+=props_region.create().skin(&TransparentSkin, false);
       ObjEdit.mode.tab(ObjView::LOD)+=edit_dist.create(t_edit_dist, Elms(t_edit_dist)).func(EditDistChanged, T).desc(S+"Keyboard Shortcut: "+Kb.ctrlCmdName()+"+E").hide();
-      edit_dist.tab(0)+=edit_dist_text.create("Set distance at which LOD's look similar", &ts); ts.reset().size=0.05f;
+      edit_dist.tab(0)+=edit_dist_text.create("Set distance at which LODs look similar", &ts); ts.reset().size=0.05f;
       dist=&props.New().create("Distance", MemberDesc(DATA_REAL).setFunc(Dist, Dist)).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5f);
       AddProperties(props, edit_dist.tab(0), edit_dist.rect().ru()+Vec2(0.01f, 0), 0.05f, 0.2f, &ts); REPAO(props).autoData(this);
 
