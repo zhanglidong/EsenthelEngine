@@ -665,6 +665,7 @@ class Project
       APPLY_ADD_RGB,
       APPLY_ADD_LUM,
       APPLY_SUB,
+      APPLY_GAMMA,
       APPLY_BRIGHTNESS,
       APPLY_BRIGHTNESS_LUM,
       APPLY_AVG,
@@ -716,6 +717,7 @@ class Project
             if(p.value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
             if(p.value=="addLum"                                             )mode=APPLY_ADD_LUM;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
+            if(p.value=="gamma"                                              )mode=APPLY_GAMMA;else
             if(p.value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
             if(p.value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
             if(p.value=="avg" || p.value=="average"                          )mode=APPLY_AVG;else
@@ -788,6 +790,7 @@ class Project
                         case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
                         case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
                         case APPLY_SUB           : c=base-l; break;
+                        case APPLY_GAMMA         : {flt gamma=l.xyz.max(); c.set(Pow(base.x, gamma), Pow(base.y, gamma), Pow(base.z, gamma), base.w);} break;
                         case APPLY_AVG           : c=Avg(base, l); break;
                         case APPLY_MIN           : c=Min(base, l); break;
                         case APPLY_MAX           : c=Max(base, l); break;
