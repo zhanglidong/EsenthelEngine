@@ -2321,6 +2321,11 @@ Dbl Dist2(C VecD  &a, C VecD  &b);
 Int Dist2(C VecI  &a, C VecI  &b);
 Flt Dist2(C Vec4  &a, C Vec4  &b);
 
+#if EE_PRIVATE
+// squared distance between 2 points, using 0..1 wrapping
+Flt Dist2Wrap(C Vec2 &a, C Vec2 &b);
+#endif
+
 // dot product
 inline Flt Dot(C Vec2  &a, C Vec2  &b) {return a.x*b.x + a.y*b.y                    ;}
 inline Flt Dot(C Vec2  &a, C VecI2 &b) {return a.x*b.x + a.y*b.y                    ;}

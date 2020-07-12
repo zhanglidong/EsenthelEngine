@@ -122,6 +122,8 @@ Dbl Dist2(C VecD  &a, C VecD  &b) {return Dist2(a.x-b.x, a.y-b.y, a.z-b.z);}
 Int Dist2(C VecI  &a, C VecI  &b) {return Dist2(a.x-b.x, a.y-b.y, a.z-b.z);}
 Flt Dist2(C Vec4  &a, C Vec4  &b) {return Dist2(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
 
+Flt Dist2Wrap(C Vec2 &a, C Vec2 &b) {Vec2 d=Frac(a-b); if(d.x>0.5)d.x=1-d.x; if(d.y>0.5)d.y=1-d.y; return d.length2();}
+
 Flt Cross(C Vec2  &a, C Vec2  &b) {return a.x*b.y - a.y*b.x;}
 Dbl Cross(C VecD2 &a, C VecD2 &b) {return a.x*b.y - a.y*b.x;}
 
