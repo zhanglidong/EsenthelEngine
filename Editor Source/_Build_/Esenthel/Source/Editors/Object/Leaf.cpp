@@ -128,7 +128,7 @@
    }
    LeafRegion& LeafRegion::create()
    {
-      super::create(Rect_LU(0, 0, 0.44f, 0.793f)).skin(&TransparentSkin, false); kb_lit=false;
+      super::create(Rect_LU(0, 0, 0.44f+0.12f, 0.793f+0.12f)).skin(&TransparentSkin, false); kb_lit=false;
       ts.reset(); ts.size=0.038f; ts.align.set(1, 0);
       flt h=0.044f, p=0.005f, vh=h*0.97f, y=-0.025f, w=rect().w()-0.02f;
       T+=leaf_attachment.create(Vec2(0.01f, y), "Set Leaf Attachment", &ts); y-=h/2;
@@ -139,7 +139,7 @@
       T+=same_random_bending.create(Rect_L(0.01f, y, w     , vh), "Set Same Random Bending").func(SameRandomBending, T).desc("This function will set the same random bending value for selected mesh parts"); y-=h;
       T+=     remove_bending.create(Rect_L(0.01f, y, w     , vh), "Del Random Bending"     ).func(    RemoveBending, T); y-=h+p;
       T+=random_color       .create(Rect_L(0.01f, y, w-0.09f, vh), "Set Random Color"       ).func(RandomColor      , T).desc("This function will randomize color of each leaf"); y-=h;
-      T+=remove_color       .create(Rect_L(0.01f, y, w-0.09f, vh), "Del Random Color"       ).func(RemoveColor     , T); y-=h;
+      T+=remove_color       .create(Rect_L(0.01f, y, w-0.09f, vh), "Del Random Color"       ).func(RemoveColor      , T); y-=h;
       T+=color_value        .create(Rect_L(random_color.rect().right()+Vec2(0.01f, 0), 0.08f, vh), "0.3").desc("Random color variation (0..1)");
       return T;
    }

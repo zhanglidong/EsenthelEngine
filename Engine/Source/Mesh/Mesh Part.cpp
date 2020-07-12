@@ -65,15 +65,43 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &face)
       else           {VecI  ind=mesh.tri .ind(f         ); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
    }
 }
-static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex)
+static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments, Memc<Int> &face)
+{
+   DEBUG_ASSERT(attachments.elms(), "'SetLeafAttachment' 'attachments' must have elements");
+   Int best_attachment=0; if(attachments.elms()>1) // if have more than 1 attachments, then check which one is best (closest)
+   {
+      VecD2 face_tex=0;
+      Dbl   weight=0;
+    C Vec  *pos=mesh.vtx.pos();
+    C Vec2 *tx0=mesh.vtx.tex0();
+      REPA(face)
+      {
+         Int f=face[i];
+         if( f&SIGN_BIT){VecI4 ind=mesh.quad.ind(f^SIGN_BIT); Flt w=QuadArea2(pos[ind.x], pos[ind.y], pos[ind.z], pos[ind.w]); Vec2 t=Avg(tx0[ind.x], tx0[ind.y], tx0[ind.z], tx0[ind.w]); weight+=w; face_tex+=w*t;}
+         else           {VecI  ind=mesh.tri .ind(f         ); Flt w= TriArea2(pos[ind.x], pos[ind.y], pos[ind.z]            ); Vec2 t=Avg(tx0[ind.x], tx0[ind.y], tx0[ind.z]            ); weight+=w; face_tex+=w*t;}
+      }
+      Vec2 ft=face_tex/weight; // normalize
+      Flt  dist=FLT_MAX;
+      REPA(attachments)
+      {
+         Flt d=Dist2Wrap(ft, attachments[i].center); if(d<dist)
+         {
+            dist=d;
+            best_attachment=i;
+         }
+      }
+   }
+   SetLeafAttachment(mesh, attachments[best_attachment].attachment, face);
+}
+static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments)
 {
    if(mesh.vtx.tex0())
    {
       mesh.setVtxDup().setAdjacencies(true, false).include(VTX_HLP);
 
-      Memc<Int> face;
-      Byte * tri_done=AllocZero<Byte>(mesh. tris()),
-           *quad_done=AllocZero<Byte>(mesh.quads());
+      Memc<Int >      face;
+      Mems<Bool>  tri_done;  tri_done.setNumZero(mesh. tris());
+      Mems<Bool> quad_done; quad_done.setNumZero(mesh.quads());
 
       REPA(mesh.tri)if(!tri_done[i])
       {
@@ -100,7 +128,7 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex)
             }
             last=new_last;
          }
-         SetLeafAttachment(mesh, tex, face);
+         SetLeafAttachment(mesh, attachments, face);
          face.clear();
       }
       REPA(mesh.quad)if(!quad_done[i])
@@ -128,12 +156,9 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex)
             }
             last=new_last;
          }
-         SetLeafAttachment(mesh, tex, face);
+         SetLeafAttachment(mesh, attachments, face);
          face.clear();
       }
-
-      Free( tri_done);
-      Free(quad_done);
    }
 }
 /******************************************************************************/
@@ -783,13 +808,23 @@ MeshPart& MeshPart::freeOpenGLESData() {render.freeOpenGLESData(); return T;}
 /******************************************************************************/
 MeshPart& MeshPart::setLeafAttachment(C Vec2 &tex)
 {
-   Bool base_is=base.is();
-   if( !base_is && render.is())setBase();
+   LeafAttachment attachment;
+   attachment.center.zero(); // will be ignored because we pass only 1 attachment
+   attachment.attachment=tex;
+   return setLeafAttachment(attachment);
+}
+MeshPart& MeshPart::setLeafAttachment(C MemPtr<LeafAttachment> &attachments)
+{
+   if(attachments.elms())
+   {
+      Bool base_is=base.is();
+      if( !base_is && render.is())setBase();
 
-   SetLeafAttachment(base, tex);
+      SetLeafAttachment(base, attachments);
 
-   if(render.is())setRender();
-   if(!base_is   )delBase();
+      if(render.is())setRender();
+      if(!base_is   )delBase();
+   }
    return T;
 }
 MeshPart& MeshPart::setLeafAttachment(C Vec &pos)
