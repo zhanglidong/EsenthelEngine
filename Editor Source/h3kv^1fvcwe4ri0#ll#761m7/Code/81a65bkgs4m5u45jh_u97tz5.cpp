@@ -1294,7 +1294,7 @@ class ProjectEx : ProjectHierarchy
                {
                   MeshLod &lod=mesh.lod(l); REPA(lod)
                   {
-                     MeshPart &part=mesh.parts[i]; if(part.flag()&flag){changed=true; part.exclude(flag);}
+                     MeshPart &part=lod.parts[i]; if(part.flag()&flag){changed=true; part.exclude(flag);}
                   }
                }
                if(changed)
