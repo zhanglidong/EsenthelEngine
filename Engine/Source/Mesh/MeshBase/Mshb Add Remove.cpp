@@ -422,9 +422,9 @@ MeshBase& MeshBase::mergeFaces(Int a, Int b)
                         {
                            VecI4 f1=face; f1.w=b;
                            VecI4 f2=face; f2.z=b;
-                           Flt area=(GetNormalU(vtx.pos(face.x), vtx.pos(face.y), vtx.pos(face.w))+GetNormalU(vtx.pos(face.z), vtx.pos(face.w), vtx.pos(face.y))).length2(),
-                               a1  =(GetNormalU(vtx.pos(f1  .x), vtx.pos(f1  .y), vtx.pos(f1  .w))+GetNormalU(vtx.pos(f1  .z), vtx.pos(f1  .w), vtx.pos(f1  .y))).length2(),
-                               a2  =(GetNormalU(vtx.pos(f2  .x), vtx.pos(f2  .y), vtx.pos(f2  .w))+GetNormalU(vtx.pos(f2  .z), vtx.pos(f2  .w), vtx.pos(f2  .y))).length2();
+                           Flt area=QuadArea2(vtx.pos(face.x), vtx.pos(face.y), vtx.pos(face.z), vtx.pos(face.w)),
+                               a1  =QuadArea2(vtx.pos(f1  .x), vtx.pos(f1  .y), vtx.pos(f1  .z), vtx.pos(f1  .w)),
+                               a2  =QuadArea2(vtx.pos(f2  .x), vtx.pos(f2  .y), vtx.pos(f2  .z), vtx.pos(f2  .w));
                            if(a1>area){face=f1; area=a1;}
                            if(a2>area){face=f2; area=a2;}
                         }

@@ -46,10 +46,16 @@ QuadD& QuadD::set(C VecD &p0, C VecD &p1, C VecD &p2, C VecD &p3, C VecD *normal
    return T;
 }
 /******************************************************************************/
-Flt Quad2 ::area()C {return 0.5f*Abs(Cross(p[1]-p[0], p[3]-p[0])         +Cross(p[2]-p[1], p[3]-p[1]));}
-Dbl QuadD2::area()C {return 0.5 *Abs(Cross(p[1]-p[0], p[3]-p[0])         +Cross(p[2]-p[1], p[3]-p[1]));}
-Flt Quad  ::area()C {return 0.5f*   (Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
-Dbl QuadD ::area()C {return 0.5 *   (Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
+Flt QuadArea2(C Vec2  &p0, C Vec2  &p1, C Vec2  &p2, C Vec2  &p3) {auto e0=p1-p0, e1=p3-p1, e2=p1-p2; return Abs(Cross(e0, e1)) + Abs(Cross(e1, e2));} // use 'Abs' 2 times to support concave quads ("Abs(Cross+Cross)" supports only convex)
+Dbl QuadArea2(C VecD2 &p0, C VecD2 &p1, C VecD2 &p2, C VecD2 &p3) {auto e0=p1-p0, e1=p3-p1, e2=p1-p2; return Abs(Cross(e0, e1)) + Abs(Cross(e1, e2));} // use 'Abs' 2 times to support concave quads ("Abs(Cross+Cross)" supports only convex)
+
+Flt QuadArea2(C Vec  &p0, C Vec  &p1, C Vec  &p2, C Vec  &p3) {auto e0=p1-p0, e1=p3-p1, e2=p1-p2; return Cross(e0, e1).length() + Cross(e1, e2).length();}
+Dbl QuadArea2(C VecD &p0, C VecD &p1, C VecD &p2, C VecD &p3) {auto e0=p1-p0, e1=p3-p1, e2=p1-p2; return Cross(e0, e1).length() + Cross(e1, e2).length();}
+
+Flt Quad2 ::area()C {return 0.5f*QuadArea2(p[0], p[1], p[2], p[3]);}
+Dbl QuadD2::area()C {return 0.5 *QuadArea2(p[0], p[1], p[2], p[3]);}
+Flt Quad  ::area()C {return 0.5f*QuadArea2(p[0], p[1], p[2], p[3]);}
+Dbl QuadD ::area()C {return 0.5 *QuadArea2(p[0], p[1], p[2], p[3]);}
 /******************************************************************************/
 static inline Bool SameSide(  Int  a, Int b   ) {return a==b || !a || !b;} // both are on same side or one is zero, the same as "a*b>=0"
 static        Bool SameSide(C Int *x, Int elms) {Int last=0; REP(elms)if(Int v=*x++)if(!last)last=v;else if(last!=v)return false; return true;}

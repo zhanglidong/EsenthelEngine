@@ -146,6 +146,10 @@ struct QuadD // Quadrilateral 3D (double precision)
    CONVERSION QuadD(C Quad &quad);
 };
 /******************************************************************************/
+// calculate quad area
+Flt QuadArea2(C Vec  &p0, C Vec  &p1, C Vec  &p2, C Vec  &p3); // calculate "area of the quad * 2"
+Dbl QuadArea2(C VecD &p0, C VecD &p1, C VecD &p2, C VecD &p3); // calculate "area of the quad * 2"
+
 // distance between point and a quad, if you're sure that quad's are fully valid (their triangles are coplanar) set 'test_quads_as_2_tris'=false for performance boost
 Flt Dist(C Vec2 &point, C Quad2 &quad, DIST_TYPE *type=null);
 Flt Dist(C Vec  &point, C Quad  &quad, DIST_TYPE *type=null, Bool test_quads_as_2_tris=true);
