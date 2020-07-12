@@ -53,6 +53,7 @@ class AdjustBoneOrns : PropWin
              multi_child=true,
              force_eye_forward=true,
              force_nose_forward=true,
+             force_jaw_forward=true,
              force_spine_up=false,
              force_neck_up=false,
              force_head_up=true,
@@ -187,6 +188,11 @@ class AdjustBoneOrns : PropWin
             bone.length=Max(min_length, 2*BoneMeshLength(bone));
          }else
          if(force_nose_forward && bone.type==BONE_NOSE && bone.type_sub==0)
+         {
+            bone.rotateToDir(Vec(0, 0, 1));
+            bone.length=Max(min_length, BoneMeshLength(bone));
+         }else
+         if(force_jaw_forward && bone.type==BONE_JAW && bone.type_sub==0)
          {
             bone.rotateToDir(Vec(0, 0, 1));
             bone.length=Max(min_length, BoneMeshLength(bone));
@@ -407,6 +413,7 @@ class AdjustBoneOrns : PropWin
       add("Force Spine Up"          , MEMBER(AdjustBoneOrns, force_spine_up));
       add("Force Eye Forward"       , MEMBER(AdjustBoneOrns, force_eye_forward));
       add("Force Nose Forward"      , MEMBER(AdjustBoneOrns, force_nose_forward));
+      add("Force Jaw Forward"       , MEMBER(AdjustBoneOrns, force_jaw_forward));
       add("Force Toe Forward"       , MEMBER(AdjustBoneOrns, force_toe_forward));
       add("Hand"                    , MEMBER(AdjustBoneOrns, hand_mode)).setEnum(HandMode, Elms(HandMode));
       add("Foot"                    , MEMBER(AdjustBoneOrns, foot_mode)).setEnum(FootMode, Elms(FootMode));

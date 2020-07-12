@@ -40,6 +40,7 @@ class AdjustBoneOrns : PropWin
              multi_child,
              force_eye_forward,
              force_nose_forward,
+             force_jaw_forward,
              force_spine_up,
              force_neck_up,
              force_head_up,

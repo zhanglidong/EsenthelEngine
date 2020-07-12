@@ -153,6 +153,11 @@
             bone.rotateToDir(Vec(0, 0, 1));
             bone.length=Max(min_length, BoneMeshLength(bone));
          }else
+         if(force_jaw_forward && bone.type==BONE_JAW && bone.type_sub==0)
+         {
+            bone.rotateToDir(Vec(0, 0, 1));
+            bone.length=Max(min_length, BoneMeshLength(bone));
+         }else
          if(force_toe_forward && bone.type==BONE_TOE && !bone.children_num)
          {
             bone.rotateToDir(Vec(0, 0, 1));
@@ -368,6 +373,7 @@
       add("Force Spine Up"          , MEMBER(AdjustBoneOrns, force_spine_up));
       add("Force Eye Forward"       , MEMBER(AdjustBoneOrns, force_eye_forward));
       add("Force Nose Forward"      , MEMBER(AdjustBoneOrns, force_nose_forward));
+      add("Force Jaw Forward"       , MEMBER(AdjustBoneOrns, force_jaw_forward));
       add("Force Toe Forward"       , MEMBER(AdjustBoneOrns, force_toe_forward));
       add("Hand"                    , MEMBER(AdjustBoneOrns, hand_mode)).setEnum(HandMode, Elms(HandMode));
       add("Foot"                    , MEMBER(AdjustBoneOrns, foot_mode)).setEnum(FootMode, Elms(FootMode));
@@ -381,6 +387,6 @@
       hide();
       return T;
    }
-AdjustBoneOrns::AdjustBoneOrns() : zero_child(true), one_child(true), multi_child(true), force_eye_forward(true), force_nose_forward(true), force_spine_up(false), force_neck_up(false), force_head_up(true), force_toe_forward(true), add_shoulder(false), reset_perp(true), refresh_needed(true), hand_mode(HAND_PARENT), foot_mode(FOOT_DOWN), rotate_shoulder(ROT_SHOULDER_NO) {}
+AdjustBoneOrns::AdjustBoneOrns() : zero_child(true), one_child(true), multi_child(true), force_eye_forward(true), force_nose_forward(true), force_jaw_forward(true), force_spine_up(false), force_neck_up(false), force_head_up(true), force_toe_forward(true), add_shoulder(false), reset_perp(true), refresh_needed(true), hand_mode(HAND_PARENT), foot_mode(FOOT_DOWN), rotate_shoulder(ROT_SHOULDER_NO) {}
 
 /******************************************************************************/
