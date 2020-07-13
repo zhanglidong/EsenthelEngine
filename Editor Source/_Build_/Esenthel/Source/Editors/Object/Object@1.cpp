@@ -1247,7 +1247,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    ObjView& ObjView::create()
    {
-      mesh_undos.maxMemUsage(100*1024*1024); // 100 MB
+      MemStats mem; mem.get(); long mem_limit=((mem.total_phys>0) ? mem.total_phys*25/100 : 1024*1024*1024); // allocate 25% of RAM for Undo or 1 GB if RAM is unknown
+      if(!X64)MIN(mem_limit, 400*1024*1024); // for 32-bit platforms limit to 400 MB
+      mesh_undos.maxMemUsage(mem_limit);
+
       ts.reset().size=0.045f; ts.align.set(1, 0);
       super::create(Draw, false, 0, PI, 1, 0.01f, 1000); v4.toggleHorizontal();
       flt h=0.05f;

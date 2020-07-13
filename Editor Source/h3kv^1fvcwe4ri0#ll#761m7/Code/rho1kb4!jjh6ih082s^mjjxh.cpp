@@ -216,11 +216,9 @@ class WorldView : Viewport4Region, WorldData
    {
       REPAO(show_obj_access)=true; waypoints.replaceClass<Waypoint>();
       
-      MemStats mem; mem.get(); long limit=(mem.total_phys ? mem.total_phys*25/100 : 256*1024*1024); // allocate 25% of RAM for Undo or 256 MB if RAM is unknown
-   #if !X64
-      MIN(limit, 400*1024*1024); // for 32-bit platforms limit to 400 MB
-   #endif
-      undos.maxMemUsage(limit);
+      MemStats mem; mem.get(); long mem_limit=((mem.total_phys>0) ? mem.total_phys*25/100 : 1024*1024*1024); // allocate 25% of RAM for Undo or 1 GB if RAM is unknown
+      if(!X64)MIN(mem_limit, 400*1024*1024); // for 32-bit platforms limit to 400 MB
+      undos.maxMemUsage(mem_limit);
    }
 
    static void Grid            (WorldView &world) {world.show_grid.push();}
