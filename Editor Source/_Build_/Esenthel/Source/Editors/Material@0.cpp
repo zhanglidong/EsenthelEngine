@@ -942,6 +942,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             MaterialRegion &other=((this==&MtrlEdit) ? WaterMtrlEdit : MtrlEdit);
             hide(); if(other.elm)other.show();
          }
+         ObjEdit.leaf.clear(); // clear attachments when changing material
       }
    }
    void MaterialRegion::activate(Elm *elm)

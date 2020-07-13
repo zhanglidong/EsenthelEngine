@@ -3,6 +3,70 @@
 /******************************************************************************/
 
 /******************************************************************************/
+      void LeafRegion::Texture::update(C GuiPC &gpc)
+{
+         super::update(gpc);
+         if(gpc.visible)
+         {
+            image=(MtrlEdit.game ? MtrlEdit.game->base_0 : ImagePtr());
+            if(Gui.ms()==this)
+            {
+               bool set=false;
+               Memc<LeafAttachment> &attachments=ObjEdit.leaf.attachments;
+               if(Ms.bp(1) && attachments.elms()){attachments.removeLast(); set=true;}
+               if(Ms.bp(0) || Ms.b(0))
+               {
+                  Vec2 screen_pos=pos()+gpc.offset;
+                  Vec2 tex=(Ms.pos()-screen_pos)/size(); CHS(tex.y); tex.sat();
+                  if(Ms.bp(0))
+                  {
+                     if(!Kb.ctrlCmd())attachments.clear();
+                     LeafAttachment &at=attachments.New();
+                     at.center=at.attachment=tex;
+                     set=true;
+                  }
+                  if(attachments.elms())
+                  {
+                     LeafAttachment &at=attachments.last();
+                     if(at.attachment!=tex)
+                     {
+                        at.attachment=tex;
+                        set=true;
+                     }
+                  }
+               }
+               if(set)
+               {
+                  bool changed=false;
+                  REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
+                  {
+                     MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
+                     {
+                        MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){ObjEdit.mesh_undos.set("leaf"); part.setLeafAttachment(attachments); changed=true;}
+                     }
+                  }
+                  if(changed)ObjEdit.setChangedMesh(true, false);
+               }
+            }
+         }
+      }
+      void LeafRegion::Texture::draw(C GuiPC &gpc)
+{
+         super::draw(gpc);
+         Memc<LeafAttachment> &attachments=ObjEdit.leaf.attachments; if(attachments.elms())
+         {
+            Rect r=T.rect()+gpc.offset; r.swapY();
+            FREPA(attachments)
+            {
+               LeafAttachment &at=attachments[i];
+               Edge2 e;
+               e.p[0]=r.lerp(at.center);
+               e.p[1]=r.lerp(at.attachment);
+               e.p[0].draw(PURPLE);
+               e.draw(PURPLE);
+            }
+         }
+      }
    void LeafRegion::RemoveAttachment(LeafRegion &leaf) {ObjEdit.remVtx(VTX_HLP  , true, MtrlEdit.game);}
    void LeafRegion::RemoveBending(LeafRegion &leaf) {ObjEdit.remVtx(VTX_SIZE , true, MtrlEdit.game);}
    void LeafRegion::RemoveColor(LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, true, MtrlEdit.game);}
@@ -132,7 +196,7 @@
       ts.reset(); ts.size=0.038f; ts.align.set(1, 0);
       flt h=0.044f, p=0.005f, vh=h*0.97f, y=-0.025f, w=rect().w()-0.02f;
       T+=leaf_attachment.create(Vec2(0.01f, y), "Set Leaf Attachment", &ts); y-=h/2;
-      T+=texture.create(Rect(0.01f, y-w, rect().w()-0.01f, y)).desc("Click on the image to set leaf attachment according to selected texture position"); y-=w+h/2; texture.alpha_mode=ALPHA_NONE;
+      T+=texture.create(Rect(0.01f, y-w, rect().w()-0.01f, y)).desc("Click on the image to set leaf attachment according to selected texture position.\nClick on approximate leaf/branch center then drag into attachment point.\nHold Ctrl to add new attachments.\nClick RMB to remove last attachment"); y-=w+h/2; texture.alpha_mode=ALPHA_NONE;
       T+=set_attachment_cam .create(Rect_L(0.01f, y, w     , vh), "Set At Cam Target"      ).func(SetAttachmentCam , T).desc("This function will set Leaf Attachment at current Camera Target"); y-=h;
       T+=remove_attachment  .create(Rect_L(0.01f, y, w     , vh), "Del Leaf Attachment"    ).func(RemoveAttachment , T); y-=h+p;
       T+=     random_bending.create(Rect_L(0.01f, y, w     , vh), "Set Random Bending"     ).func(    RandomBending, T).desc("This function will force each leaf to bend differently"); y-=h;
@@ -143,27 +207,11 @@
       T+=color_value        .create(Rect_L(random_color.rect().right()+Vec2(0.01f, 0), 0.08f, vh), "0.3").desc("Random color variation (0..1)");
       return T;
    }
+   void LeafRegion::clear() {attachments.clear();}
    void LeafRegion::update(C GuiPC &gpc)
 {
-      super::update(gpc);
       visible(MtrlEdit.visible() && (MtrlEdit.edit.tech==MTECH_LEAF_2D || MtrlEdit.edit.tech==MTECH_LEAF || MtrlEdit.edit.tech==MTECH_BLEND_LIGHT_LEAF || MtrlEdit.edit.tech==MTECH_TEST_BLEND_LIGHT_LEAF) && meshHasMtrl(MtrlEdit.game));
-      if(visible())
-      {
-         texture.image=(MtrlEdit.game ? MtrlEdit.game->base_0 : ImagePtr());
-         if(Ms.b(0) && Gui.ms()==&texture)
-         {
-            Vec2 tex=(Ms.pos()-texture.screenPos())/texture.size(); CHS(tex.y); tex.sat();
-            bool changed=false;
-            REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.visibleLodSelection())
-            {
-               MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleOnActiveDesktop())
-               {
-                  MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){ObjEdit.mesh_undos.set("leaf"); part.setLeafAttachment(tex); changed=true;}
-               }
-            }
-            if(changed)ObjEdit.setChangedMesh(true, false);
-         }
-         if(Ms.bp(2) && contains(Gui.ms()))MtrlEdit.set(null);
-      }
+      super::update(gpc);
+      if(Ms.bp(2) && contains(Gui.ms()))MtrlEdit.set(null);
    }
 /******************************************************************************/
