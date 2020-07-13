@@ -196,7 +196,7 @@
       ts.reset(); ts.size=0.038f; ts.align.set(1, 0);
       flt h=0.044f, p=0.005f, vh=h*0.97f, y=-0.025f, w=rect().w()-0.02f;
       T+=leaf_attachment.create(Vec2(0.01f, y), "Set Leaf Attachment", &ts); y-=h/2;
-      T+=texture.create(Rect(0.01f, y-w, rect().w()-0.01f, y)).desc("Click on the image to set leaf attachment according to selected texture position.\nClick on approximate leaf/branch center then drag into attachment point.\nHold Ctrl to add new attachments.\nClick RMB to remove last attachment"); y-=w+h/2; texture.alpha_mode=ALPHA_NONE;
+      T+=texture.create(Rect(0.01f, y-w, rect().w()-0.01f, y)).desc("Click on the image to set leaf attachment according to selected texture position.\nClick on approximate leaf/branch center then drag into attachment point.\nHold Ctrl to add new attachments.\nClick RMB to remove last attachment.\nPress Ctrl+RMB to apply attachments to current object."); y-=w+h/2; texture.alpha_mode=ALPHA_NONE;
       T+=set_attachment_cam .create(Rect_L(0.01f, y, w     , vh), "Set At Cam Target"      ).func(SetAttachmentCam , T).desc("This function will set Leaf Attachment at current Camera Target"); y-=h;
       T+=remove_attachment  .create(Rect_L(0.01f, y, w     , vh), "Del Leaf Attachment"    ).func(RemoveAttachment , T); y-=h+p;
       T+=     random_bending.create(Rect_L(0.01f, y, w     , vh), "Set Random Bending"     ).func(    RandomBending, T).desc("This function will force each leaf to bend differently"); y-=h;
