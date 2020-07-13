@@ -13,7 +13,7 @@ class LeafRegion : Region
             {
                bool set=false;
                Memc<LeafAttachment> &attachments=ObjEdit.leaf.attachments;
-               if(Ms.bp(1) && attachments.elms()){attachments.removeLast(); set=true;}
+               if(Ms.bp(1)){if(!Kb.ctrlCmd())attachments.removeLast(); set=true;} // remove only if no Ctrl pressed, so Ctrl+RMB can be used as SET without changing anything (to be used for different objects with existing attachment setup)
                if(Ms.bp(0) || Ms.b(0))
                {
                   Vec2 screen_pos=pos()+gpc.offset;
