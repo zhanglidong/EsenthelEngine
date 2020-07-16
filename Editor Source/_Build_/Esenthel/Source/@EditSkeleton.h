@@ -9,6 +9,7 @@ class EditSkeleton
       OrientP orient_pos; // as imported from FBX
 
       uint memUsage()C;   
+      bool rootZero()C;   
       bool save(File &f)C;
       bool load(File &f);
       bool loadOld(File &f);
@@ -51,7 +52,9 @@ public:
 
    Str nodeUID(int i)C; // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
 
-   bool rootZero()C;
+   bool     rootZero(          )C;
+   bool     rootZero(int node_i)C;
+   bool boneRootZero(int bone_i)C; // if this bone is a rootZero
 
    bool   hasNode (C Str &name);               
    Node* findNode (C Str &name);               

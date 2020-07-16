@@ -8,6 +8,7 @@ class EditSkeleton
       OrientP orient_pos; // as imported from FBX
 
       uint memUsage()C {return name.memUsage();}
+      bool rootZero()C {return Equal(orient_pos.pos, VecZero);}
       bool save(File &f)C
       {
          f.cmpUIntV(0);
@@ -158,7 +159,13 @@ class EditSkeleton
       return path;
    }
 
-   bool rootZero()C {return InRange(root, nodes) && Equal(nodes[root].orient_pos.pos, VecZero);}
+   bool     rootZero(          )C {return rootZero(root);}
+   bool     rootZero(int node_i)C {return InRange(node_i, nodes) && nodes[node_i].rootZero();}
+   bool boneRootZero(int bone_i)C // if this bone is a rootZero
+   {
+      if(bone_i<0)return rootZero(); // if unspecified, then have to check default (this behavior is expected by codes using this method)
+      return rootZero(boneToNode(bone_i));
+   }
 
    bool   hasNode (C Str &name)  {return findNodeI(name)>=0;}
    Node* findNode (C Str &name)  {return nodes.addr(findNodeI(name));}

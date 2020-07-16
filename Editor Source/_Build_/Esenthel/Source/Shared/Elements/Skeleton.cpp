@@ -4,6 +4,7 @@
 
 /******************************************************************************/
       uint EditSkeleton::Node::memUsage()C {return name.memUsage();}
+      bool EditSkeleton::Node::rootZero()C {return Equal(orient_pos.pos, VecZero);}
       bool EditSkeleton::Node::save(File &f)C
       {
          f.cmpUIntV(0);
@@ -131,7 +132,13 @@
       }
       return path;
    }
-   bool EditSkeleton::rootZero()C {return InRange(root, nodes) && Equal(nodes[root].orient_pos.pos, VecZero);}
+   bool     EditSkeleton::rootZero(          )C {return rootZero(root);}
+   bool     EditSkeleton::rootZero(int node_i)C {return InRange(node_i, nodes) && nodes[node_i].rootZero();}
+   bool EditSkeleton::boneRootZero(int bone_i)C // if this bone is a rootZero
+   {
+      if(bone_i<0)return rootZero(); // if unspecified, then have to check default (this behavior is expected by codes using this method)
+      return rootZero(boneToNode(bone_i));
+   }
    bool   EditSkeleton::hasNode(C Str &name)  {return findNodeI(name)>=0;}
    ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name)  {return nodes.addr(findNodeI(name));}
  C ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name)C {return ConstCast(T).findNode(name);}

@@ -2733,7 +2733,7 @@ class ProjectEx : ProjectHierarchy
                   anim.bones.remove(i, true);
                }else // have to perform full adjustment
                {
-                  anim.adjustForSameTransformWithDifferentSkeleton(old_skel, new_skel, old_bone_as_root, bone_weights, anim_data.rootFlags()|(old_edit_skel.rootZero() ? 0 : ROOT_BONE_POSITION|ROOT_START_IDENTITY));
+                  anim.adjustForSameTransformWithDifferentSkeleton(old_skel, new_skel, old_bone_as_root, bone_weights, anim_data.rootFlags()|(old_edit_skel.boneRootZero(old_bone_as_root) ? 0 : ROOT_BONE_POSITION|ROOT_START_IDENTITY));
                   anim.optimize(); // 'optimize' after 'adjustForSameTransformWithDifferentSkeleton' because it may generate lot of keyframes
                }
 
