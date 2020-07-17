@@ -937,6 +937,13 @@ class ImporterClass
                            anim.adjustForSameSkeletonWithDifferentPose(import.skel, temp);
                            Swap(temp.bones, import.skel.bones);
                         }
+                        if(file_params.elms())
+                        {
+                           // transform / rotate !! before root !!
+                         C Skeleton &sk=import.skel;
+                           if(C TextParam *p=file_params[0].findParam("rotY"))anim.transform(Matrix().setRotateY(DegToRad(p.asFlt())), sk, true);
+                           if(C TextParam *p=file_params[0].findParam("rotX"))anim.transform(Matrix().setRotateX(DegToRad(p.asFlt())), sk, true);
+                        }
                         {
                            Mems<Mems<IndexWeight>> weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton.BONE_NAME_IS_NODE_INDEX);
                            int root=edit_skel.root;

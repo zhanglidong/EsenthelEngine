@@ -159,10 +159,10 @@ class ObjScale : Region
    {
       ts.reset().size=0.04; ts.align.set(1, 0);
       super.create(Rect_U(up, 0.30, 0.19)).skin(&TransparentSkin, false).hide(); kb_lit=false;
-      props.New().create("X"  , MEMBER(ObjScale, scale.x  )).precision(4).textline.func(ChangedX  , T, true);
-      props.New().create("Y"  , MEMBER(ObjScale, scale.y  )).precision(4).textline.func(ChangedY  , T, true);
-      props.New().create("Z"  , MEMBER(ObjScale, scale.z  )).precision(4).textline.func(ChangedZ  , T, true);
-      props.New().create("XYZ", MEMBER(ObjScale, scale_all)).precision(4).textline.func(ChangedXYZ, T, true);
+      props.New().create("X"  , MEMBER(ObjScale, scale.x  )).precision(4).max(100).textline.func(ChangedX  , T, true); // limit max scale, because accidental big objects can process lots of world areas
+      props.New().create("Y"  , MEMBER(ObjScale, scale.y  )).precision(4).max(100).textline.func(ChangedY  , T, true);
+      props.New().create("Z"  , MEMBER(ObjScale, scale.z  )).precision(4).max(100).textline.func(ChangedZ  , T, true);
+      props.New().create("XYZ", MEMBER(ObjScale, scale_all)).precision(4).max(100).textline.func(ChangedXYZ, T, true);
       AddProperties(props, T, Vec2(0.01, -0.01), 0.043, 0.20, &ts); REPAO(props).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).autoData(this);
       Zero(multi_val);
       return T;
