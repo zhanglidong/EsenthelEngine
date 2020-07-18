@@ -36,19 +36,21 @@ void VS
        +vtx.weight().y*Sat(1-Abs(bone.y-BoneHighlight))
        +vtx.weight().z*Sat(1-Abs(bone.z-BoneHighlight));
    }
-   O.col=((b>EPS) ? Vec(b, 0, 1-b) : Vec(1, 1, 1));
+   O.col=((b>EPS) ? VecH(b, 0, 1-b) : VecH(1, 1, 1));
 
    O_vtx=Project(TransformPos(vtx.pos()));
 }
 /******************************************************************************/
 VecH4 PS(VS_PS I, IS_FRONT):TARGET
 {
+   if(LINEAR_GAMMA)I.col.rgb=SRGBToLinear(I.col.rgb);
    I.col.rgb+=Highlight.rgb;
 
    // perform lighting
 #if BUMP_MODE>=SBUMP_FLAT
    VecH nrm=Normalize(I.nrm); BackFlip(nrm, front);
    Half d  =Sat(Dot(nrm, LightDir.dir));
+   if(LINEAR_GAMMA)d=Sqr(d);
    VecH lum=LightDir.color.rgb*d + AmbientNSColor;
    I.col.rgb*=lum;
 #endif
