@@ -2162,6 +2162,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             if(!Ms.b(1)) // don't highlight when operating (like transforming)
             {
                getSkel(Gui.msLit(), Ms.pos(), &lit_bone_vis, null); lit_bone=visToBone(lit_bone_vis);
+               if(mesh_parts.list.lit>=0)lit_part=mesh_parts.visToPart(mesh_parts.list.lit);
             }
          }else
          if(mode()==RAGDOLL)
