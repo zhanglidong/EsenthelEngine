@@ -94,6 +94,7 @@ public:
          bool contains(C GuiObj*obj)C;
          void setSkin();
          void toGui();
+         Param& addTo(GuiObj &parent);
          Param& moveToTop();
          Param& setRect(int i, flt list_w);
          void desc(C Str &desc);

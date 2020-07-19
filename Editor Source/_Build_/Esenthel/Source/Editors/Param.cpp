@@ -260,6 +260,20 @@ ObjClassEditor ObjClassEdit;
                val_textline.desc(desc);
             }
          }
+         ::ParamEditor::ParamWindow::Param& ParamEditor::ParamWindow::Param::addTo(GuiObj &parent)
+         {
+            parent+=ovr         ;
+            parent+=remove      ;
+            parent+=type        ;
+            parent+=name        ;
+            parent+=val_checkbox;
+            parent+=val_textline;
+            parent+=val_combobox;
+            parent+=val_color   ;
+            parent+=val_adjust  ;
+            parent+=clear       ;
+            return T;
+         }
          ::ParamEditor::ParamWindow::Param& ParamEditor::ParamWindow::Param::moveToTop()
          {
             ovr         .moveToTop();
@@ -336,16 +350,16 @@ ObjClassEditor ObjClassEdit;
             T.cur     = src.cur;
             T.base    = src.base;
             T.base_ovr= src.base_ovr;
-            pe.param_window.region+=ovr         .create(                    ).func(ChangedOvr  , T).desc(MLT("Override default value", PL,u"Zmień domyślną wartość"    , DE,u"Überschreibt Ausgangswert", RU,u"Перезаписать значение по умолчанию", PO,"Substituir o valor default"  ));
-            pe.param_window.region+=remove      .create(                    ).func(RemoveParam , T).desc(MLT("Remove this parameter" , PL,u"Usuń ten parametr (Remove)", DE,"Entfernt diesen Parameter", RU,u"Удалить этот параметр"             , PO,u"Remover este parâmetro"      )); remove.image="Gui/close.img";
-            pe.param_window.region+=type        .create(Proj.param_type_node).func(ChangedType , T).desc(MLT("Parameter Type"        , PL,"Typ Parametru"             , DE,"Parameter Typ"            , RU,u"Тип параметра"                     , PO,u"Tipo de Parâmetro"           )); type.set(0, QUIET); FlagDisable(type.flag, COMBOBOX_MOUSE_WHEEL);
-            pe.param_window.region+=name        .create(                    ).func(ChangedName , T).desc(MLT("Parameter Name"        , PL,"Nazwa Parametru"           , DE,"Parameter Name"           , RU,u"Имя параметра"                     , PO,u"Nome do Parâmetro"           ));
-            pe.param_window.region+=val_checkbox.create(                    ).func(ChangedCheck, T).focusable(false).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
-            pe.param_window.region+=val_textline.create(                    ).func(ChangedText , T).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
-            pe.param_window.region+=val_combobox.create(                    ).func(ChangedCombo, T).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
-            pe.param_window.region+=val_color   .create(this                ).                      desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
-            pe.param_window.region+=val_adjust  .create(                    ).func(MouseEdit   , T).subType(BUTTON_TYPE_PROPERTY_VALUE).focusable(false); val_adjust.mode=BUTTON_CONTINUOUS;
-            pe.param_window.region+=clear       .create('C'                 ).func(ClearValue  , T).desc(MLT("Clear this value"      , PL,u"Wyczyść wartość (Clear)"   , DE,u"Diesen Wert zurücksetzen" , RU,u"Очистить значение"                 , PO,"Limpar este valor"           ));
+            ovr         .create(                    ).func(ChangedOvr  , T).desc(MLT("Override default value", PL,u"Zmień domyślną wartość"    , DE,u"Überschreibt Ausgangswert", RU,u"Перезаписать значение по умолчанию", PO,"Substituir o valor default"  ));
+            remove      .create(                    ).func(RemoveParam , T).desc(MLT("Remove this parameter" , PL,u"Usuń ten parametr (Remove)", DE,"Entfernt diesen Parameter", RU,u"Удалить этот параметр"             , PO,u"Remover este parâmetro"      )); remove.image="Gui/close.img";
+            type        .create(Proj.param_type_node).func(ChangedType , T).desc(MLT("Parameter Type"        , PL,"Typ Parametru"             , DE,"Parameter Typ"            , RU,u"Тип параметра"                     , PO,u"Tipo de Parâmetro"           )); type.set(0, QUIET); FlagDisable(type.flag, COMBOBOX_MOUSE_WHEEL);
+            name        .create(                    ).func(ChangedName , T).desc(MLT("Parameter Name"        , PL,"Nazwa Parametru"           , DE,"Parameter Name"           , RU,u"Имя параметра"                     , PO,u"Nome do Parâmetro"           ));
+            val_checkbox.create(                    ).func(ChangedCheck, T).focusable(false).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
+            val_textline.create(                    ).func(ChangedText , T).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
+            val_combobox.create(                    ).func(ChangedCombo, T).desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
+            val_color   .create(this                ).                      desc(MLT("Parameter Value"       , PL,u"Wartość Parametru"         , DE,"Parameter Wert"           , RU,u"Значение параметра"                , PO,u"Valor do Parâmtero"          ));
+            val_adjust  .create(                    ).func(MouseEdit   , T).subType(BUTTON_TYPE_PROPERTY_VALUE).focusable(false); val_adjust.mode=BUTTON_CONTINUOUS;
+            clear       .create('C'                 ).func(ClearValue  , T).desc(MLT("Clear this value"      , PL,u"Wyczyść wartość (Clear)"   , DE,u"Diesen Wert zurücksetzen" , RU,u"Очистить значение"                 , PO,"Limpar este valor"           ));
             if(gui=src.gui)
             {
                if(gui->desc().is())desc(gui->desc()); // override description
@@ -540,7 +554,8 @@ ObjClassEditor ObjClassEdit;
          if(pe.world)REPA(Selection)addParams(Selection[i].params);else
          if(pe.p    )               addParams(*pe.p);
          params.sort(CompareParam);
-         FREPAO(params).moveToTop().setRect(i, listWidth()).toGui(); // go from start because of 'moveToTop'
+         FREPAO(params).addTo(region).toGui(); // add in order
+          REPAO(params).setRect(i, listWidth()); // set rect for last elements first, because they're at the bottom, this way we set region rect to max size in first step, without extending it in each step if going from the start
 
          // add sub objects
          if(pe.world){if(Selection.elms()==1)addSubObjs(Selection[0].params);}
