@@ -622,198 +622,210 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
    force_src_resize:
 
        REPA(files)if(C TextParam *p=files[i].findParam("mode"))if(p->value!="set"){hp=true; break;} // if there's at least one apply mode that's not "set" then use high precision
-      FREPA(files)if(loadImage(layer, layer_resize_ptr, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
+      FREPA(files) // process in order
       {
          FileParams &file=files[i];
-         if(layer_resize.name.is() && !image_resize_final.name.is())Swap(layer_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
-         VecI2 pos  =0; {C TextParam *p=file.findParam("position"); if(!p)p=file.findParam("pos"  ); if(p)pos=p->asVecI2();}
-         flt   alpha=1; {C TextParam *p=file.findParam("opacity" ); if(!p)p=file.findParam("alpha"); if(p)alpha=p->asFlt();}
-         APPLY_MODE mode=APPLY_SET; if(C TextParam *p=file.findParam("mode"))
+         bool layer_ok;
+         if(file.nodes.elms())
          {
-            if(p->value=="blend"                                              )mode=APPLY_BLEND;else
-            if(p->value=="blendPremultiplied" || p->value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
-            if(p->value=="mul"                                                )mode=APPLY_MUL;else
-            if(p->value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
-            if(p->value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
-            if(p->value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
-            if(p->value=="mulA"                                               )mode=APPLY_MUL_A;else
-            if(p->value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
-            if(p->value=="mulSatPhoto"                                        )mode=APPLY_MUL_SAT_PHOTO;else
-            if(p->value=="div"                                                )mode=APPLY_DIV;else
-            if(p->value=="add"                                                )mode=APPLY_ADD;else
-            if(p->value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
-            if(p->value=="addLum"                                             )mode=APPLY_ADD_LUM;else
-            if(p->value=="sub"                                                )mode=APPLY_SUB;else
-            if(p->value=="gamma"                                              )mode=APPLY_GAMMA;else
-            if(p->value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
-            if(p->value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
-            if(p->value=="avg" || p->value=="average"                          )mode=APPLY_AVG;else
-            if(p->value=="min"                                                )mode=APPLY_MIN;else
-            if(p->value=="max"                                                )mode=APPLY_MAX;else
-            if(p->value=="maskMul"                                            )mode=APPLY_MASK_MUL;else
-            if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
-            if(p->value=="metal"                                              )mode=APPLY_METAL;else
-            if(p->value=="scale"                                              )mode=APPLY_SCALE;else
-            if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
+               layer_ok=loadImages(layer, layer_resize_ptr, FileParams::Encode(file.nodes), srgb, clamp, background, color, color_resize, smooth, smooth_resize, bump, bump_resize);
+            if(layer_ok)TransformImage(layer, file.params, clamp);
+         }else
+         {
+            layer_ok=loadImage(layer, layer_resize_ptr, file, srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize);
          }
-         bool alpha_1=Equal(alpha, 1),
-           simple_set=(mode==APPLY_SET && alpha_1);
-         if(i==0 && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
-         if(mode!=APPLY_SKIP)
+         if(layer_ok)
          {
-            VecI2 size=layer.size()+pos;
-            if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
+            if(layer_resize.name.is() && !image_resize_final.name.is())Swap(layer_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
+            VecI2 pos  =0; {C TextParam *p=file.findParam("position"); if(!p)p=file.findParam("pos"  ); if(p)pos=p->asVecI2();}
+            flt   alpha=1; {C TextParam *p=file.findParam("opacity" ); if(!p)p=file.findParam("alpha"); if(p)alpha=p->asFlt();}
+            APPLY_MODE mode=APPLY_SET; if(C TextParam *p=file.findParam("mode"))
             {
-               VecI2 old_size=image.size();
-               if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-               else         {image.createSoftTry(size.x, size.y, 1, (hp || layer.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
-               if(background!=TRANSPARENT) // skip TRANSPARENT because in both cases above (crop and create+clear) TRANSPARENT is already set
-                  REPD(y, image.h())
-                  REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
+               if(p->value=="blend"                                              )mode=APPLY_BLEND;else
+               if(p->value=="blendPremultiplied" || p->value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
+               if(p->value=="mul"                                                )mode=APPLY_MUL;else
+               if(p->value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
+               if(p->value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
+               if(p->value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
+               if(p->value=="mulA"                                               )mode=APPLY_MUL_A;else
+               if(p->value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
+               if(p->value=="mulSatPhoto"                                        )mode=APPLY_MUL_SAT_PHOTO;else
+               if(p->value=="div"                                                )mode=APPLY_DIV;else
+               if(p->value=="add"                                                )mode=APPLY_ADD;else
+               if(p->value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
+               if(p->value=="addLum"                                             )mode=APPLY_ADD_LUM;else
+               if(p->value=="sub"                                                )mode=APPLY_SUB;else
+               if(p->value=="gamma"                                              )mode=APPLY_GAMMA;else
+               if(p->value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
+               if(p->value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
+               if(p->value=="avg" || p->value=="average"                          )mode=APPLY_AVG;else
+               if(p->value=="min"                                                )mode=APPLY_MIN;else
+               if(p->value=="max"                                                )mode=APPLY_MAX;else
+               if(p->value=="maskMul"                                            )mode=APPLY_MASK_MUL;else
+               if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
+               if(p->value=="metal"                                              )mode=APPLY_METAL;else
+               if(p->value=="scale"                                              )mode=APPLY_SCALE;else
+               if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
             }
-            if(layer.is())
+            bool alpha_1=Equal(alpha, 1),
+              simple_set=(mode==APPLY_SET && alpha_1);
+            if(i==0 && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
+            if(mode!=APPLY_SKIP)
             {
-               // put 'layer' onto image
-
-               Vec  mask[4];
-               bool mono;
-               switch(mode)
+               VecI2 size=layer.size()+pos;
+               if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
                {
-                  case APPLY_MASK_MUL:
-                  case APPLY_MASK_ADD:
-                  {
-                     if(C TextParam *p=file.findParam("maskRed"  ))mask[0]=TextVecEx(p->asText());else mask[0]=1;
-                     if(C TextParam *p=file.findParam("maskGreen"))mask[1]=TextVecEx(p->asText());else mask[1]=1;
-                     if(C TextParam *p=file.findParam("maskBlue" ))mask[2]=TextVecEx(p->asText());else mask[2]=1;
-                     if(C TextParam *p=file.findParam("maskAlpha"))mask[3]=TextVecEx(p->asText());else mask[3]=1;
-                  }break;
-
-                  case APPLY_SCALE: mono=(image.typeChannels()<=1 || image.monochromatic()); break;
+                  VecI2 old_size=image.size();
+                  if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
+                  else         {image.createSoftTry(size.x, size.y, 1, (hp || layer.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
+                  if(background!=TRANSPARENT) // skip TRANSPARENT because in both cases above (crop and create+clear) TRANSPARENT is already set
+                     REPD(y, image.h())
+                     REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
                }
-
-               AdjustImage(image, layer.typeInfo().a>0, layer.highPrecision());
-               REPD(y, layer.h())
-               REPD(x, layer.w())
+               if(layer.is())
                {
-                  Vec4 l=layer.colorF(x, y);
-                  if(simple_set)
+                  // put 'layer' onto image
+
+                  Vec  mask[4];
+                  bool mono;
+                  switch(mode)
                   {
-                     image.colorF(x+pos.x, y+pos.y, l);
-                  }else
-                  {
-                     Vec4 base=image.colorF(x+pos.x, y+pos.y), c;
-                     switch(mode)
+                     case APPLY_MASK_MUL:
+                     case APPLY_MASK_ADD:
                      {
-                        default                  : c =l; break; // APPLY_SET
-                        case APPLY_BLEND         : c =             Blend(base, l); break;
-                        case APPLY_BLEND_PREMUL  : c =PremultipliedBlend(base, l); break;
-                        case APPLY_MUL           : c=base*l; break;
-                        case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
-                        case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
-                        case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
-                        case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
-                        case APPLY_DIV           : c=base/l; break;
-                        case APPLY_ADD           : c=base+l; break;
-                        case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
-                        case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
-                        case APPLY_SUB           : c=base-l; break;
-                        case APPLY_GAMMA         : {flt gamma=l.xyz.max(); c.set(Pow(base.x, gamma), Pow(base.y, gamma), Pow(base.z, gamma), base.w);} break;
-                        case APPLY_AVG           : c=Avg(base, l); break;
-                        case APPLY_MIN           : c=Min(base, l); break;
-                        case APPLY_MAX           : c=Max(base, l); break;
-                        case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+                        if(C TextParam *p=file.findParam("maskRed"  ))mask[0]=TextVecEx(p->asText());else mask[0]=1;
+                        if(C TextParam *p=file.findParam("maskGreen"))mask[1]=TextVecEx(p->asText());else mask[1]=1;
+                        if(C TextParam *p=file.findParam("maskBlue" ))mask[2]=TextVecEx(p->asText());else mask[2]=1;
+                        if(C TextParam *p=file.findParam("maskAlpha"))mask[3]=TextVecEx(p->asText());else mask[3]=1;
+                     }break;
 
-                        case APPLY_MUL_RGB_SAT:
-                        {
-                           flt sat=RgbToHsb(base.xyz).y;
-                           c.x=Lerp(base.x, base.x*l.x, sat); // red
-                           c.y=Lerp(base.y, base.y*l.y, sat); // green
-                           c.z=Lerp(base.z, base.z*l.z, sat); // blue
-                           c.w=base.w;
-                        }break;
-
-                        case APPLY_MASK_ADD:
-                        {
-                           c=base;
-                           c.xyz+=mask[0]*l.x;
-                           c.xyz+=mask[1]*l.y;
-                           c.xyz+=mask[2]*l.z;
-                           c.xyz+=mask[3]*l.w;
-                        }break;
-
-                        case APPLY_MASK_MUL:
-                        {
-                           c=base;
-                           c.xyz*=Lerp(VecOne, mask[0], l.x);
-                           c.xyz*=Lerp(VecOne, mask[1], l.y);
-                           c.xyz*=Lerp(VecOne, mask[2], l.z);
-                           c.xyz*=Lerp(VecOne, mask[3], l.w);
-                        }break;
-
-                        case APPLY_MUL_SAT_PHOTO: 
-                        {
-                           flt lin_lum=LinearLumOfSRGBColor(base.xyz);
-
-                           c.xyz=RgbToHsb(base.xyz);
-                           c.w=base.w;
-                           c.y*=l.xyz.max();
-                           c.xyz=HsbToRgb(c.xyz);
-
-                           c.xyz=SRGBToLinear(c.xyz);
-                           if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
-                           c.xyz=LinearToSRGB(c.xyz);
-                        }break;
-
-                        case APPLY_BRIGHTNESS:
-                        {
-                           c=base;
-                           Vec &bright=l.xyz; if(bright.any())
-                           {
-                              c.xyz=Sqr(c.xyz);
-                              if(bright.x<0){bright.x=SigmoidSqrt(bright.x); c.x=SigmoidSqrtInv(c.x*bright.x)/SigmoidSqrtInv(bright.x);}else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
-                              if(bright.y<0){bright.y=SigmoidSqrt(bright.y); c.y=SigmoidSqrtInv(c.y*bright.y)/SigmoidSqrtInv(bright.y);}else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
-                              if(bright.z<0){bright.z=SigmoidSqrt(bright.z); c.z=SigmoidSqrtInv(c.z*bright.z)/SigmoidSqrtInv(bright.z);}else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
-                              c.xyz=Sqrt(c.xyz);
-                           }
-                        }break;
-
-                        case APPLY_BRIGHTNESS_LUM:
-                        {
-                           c=base;
-                           if(flt bright=l.xyz.max())if(flt old_lum=c.xyz.max())
-                           {
-                              flt mul; flt (*f)(flt);
-                              if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
-                              flt new_lum=Sqr(old_lum);
-                              new_lum=f(new_lum*bright)*mul;
-                              new_lum=Sqrt(new_lum);
-                              c.xyz*=new_lum/old_lum;
-                           }
-                        }break;
-                        
-                        case APPLY_SCALE:
-                        {
-                           flt scale=l.xyz.max();
-                           c.w=base.w;
-                           if( mono )c.xyz=(base.xyz-0.5f)*scale+0.5f;else
-                           if(!scale)c.xyz.set(0.5f, 0.5f, 1);else
-                           {
-                              Vec &n=c.xyz;
-                              n=base.xyz*2-1;
-                              n.normalize();
-                              n.z/=scale;
-                              n.normalize();
-                              n=n*0.5f+0.5f;
-                           }
-                        }break;
-                     }
-                     image.colorF(x+pos.x, y+pos.y, alpha_1 ? c : Lerp(base, c, alpha));
+                     case APPLY_SCALE: mono=(image.typeChannels()<=1 || image.monochromatic()); break;
                   }
-               }
-            }else
-            if(!file.name.is())TransformImage(image, file.params, clamp); // if this 'layer' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
-         }
-      }else ok=false;
+
+                  AdjustImage(image, layer.typeInfo().a>0, layer.highPrecision());
+                  REPD(y, layer.h())
+                  REPD(x, layer.w())
+                  {
+                     Vec4 l=layer.colorF(x, y);
+                     if(simple_set)
+                     {
+                        image.colorF(x+pos.x, y+pos.y, l);
+                     }else
+                     {
+                        Vec4 base=image.colorF(x+pos.x, y+pos.y), c;
+                        switch(mode)
+                        {
+                           default                  : c =l; break; // APPLY_SET
+                           case APPLY_BLEND         : c =             Blend(base, l); break;
+                           case APPLY_BLEND_PREMUL  : c =PremultipliedBlend(base, l); break;
+                           case APPLY_MUL           : c=base*l; break;
+                           case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
+                           case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
+                           case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
+                           case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
+                           case APPLY_DIV           : c=base/l; break;
+                           case APPLY_ADD           : c=base+l; break;
+                           case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
+                           case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
+                           case APPLY_SUB           : c=base-l; break;
+                           case APPLY_GAMMA         : {flt gamma=l.xyz.max(); c.set(Pow(base.x, gamma), Pow(base.y, gamma), Pow(base.z, gamma), base.w);} break;
+                           case APPLY_AVG           : c=Avg(base, l); break;
+                           case APPLY_MIN           : c=Min(base, l); break;
+                           case APPLY_MAX           : c=Max(base, l); break;
+                           case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+
+                           case APPLY_MUL_RGB_SAT:
+                           {
+                              flt sat=RgbToHsb(base.xyz).y;
+                              c.x=Lerp(base.x, base.x*l.x, sat); // red
+                              c.y=Lerp(base.y, base.y*l.y, sat); // green
+                              c.z=Lerp(base.z, base.z*l.z, sat); // blue
+                              c.w=base.w;
+                           }break;
+
+                           case APPLY_MASK_ADD:
+                           {
+                              c=base;
+                              c.xyz+=mask[0]*l.x;
+                              c.xyz+=mask[1]*l.y;
+                              c.xyz+=mask[2]*l.z;
+                              c.xyz+=mask[3]*l.w;
+                           }break;
+
+                           case APPLY_MASK_MUL:
+                           {
+                              c=base;
+                              c.xyz*=Lerp(VecOne, mask[0], l.x);
+                              c.xyz*=Lerp(VecOne, mask[1], l.y);
+                              c.xyz*=Lerp(VecOne, mask[2], l.z);
+                              c.xyz*=Lerp(VecOne, mask[3], l.w);
+                           }break;
+
+                           case APPLY_MUL_SAT_PHOTO: 
+                           {
+                              flt lin_lum=LinearLumOfSRGBColor(base.xyz);
+
+                              c.xyz=RgbToHsb(base.xyz);
+                              c.w=base.w;
+                              c.y*=l.xyz.max();
+                              c.xyz=HsbToRgb(c.xyz);
+
+                              c.xyz=SRGBToLinear(c.xyz);
+                              if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
+                              c.xyz=LinearToSRGB(c.xyz);
+                           }break;
+
+                           case APPLY_BRIGHTNESS:
+                           {
+                              c=base;
+                              Vec &bright=l.xyz; if(bright.any())
+                              {
+                                 c.xyz=Sqr(c.xyz);
+                                 if(bright.x<0){bright.x=SigmoidSqrt(bright.x); c.x=SigmoidSqrtInv(c.x*bright.x)/SigmoidSqrtInv(bright.x);}else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
+                                 if(bright.y<0){bright.y=SigmoidSqrt(bright.y); c.y=SigmoidSqrtInv(c.y*bright.y)/SigmoidSqrtInv(bright.y);}else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
+                                 if(bright.z<0){bright.z=SigmoidSqrt(bright.z); c.z=SigmoidSqrtInv(c.z*bright.z)/SigmoidSqrtInv(bright.z);}else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
+                                 c.xyz=Sqrt(c.xyz);
+                              }
+                           }break;
+
+                           case APPLY_BRIGHTNESS_LUM:
+                           {
+                              c=base;
+                              if(flt bright=l.xyz.max())if(flt old_lum=c.xyz.max())
+                              {
+                                 flt mul; flt (*f)(flt);
+                                 if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
+                                 flt new_lum=Sqr(old_lum);
+                                 new_lum=f(new_lum*bright)*mul;
+                                 new_lum=Sqrt(new_lum);
+                                 c.xyz*=new_lum/old_lum;
+                              }
+                           }break;
+                           
+                           case APPLY_SCALE:
+                           {
+                              flt scale=l.xyz.max();
+                              c.w=base.w;
+                              if( mono )c.xyz=(base.xyz-0.5f)*scale+0.5f;else
+                              if(!scale)c.xyz.set(0.5f, 0.5f, 1);else
+                              {
+                                 Vec &n=c.xyz;
+                                 n=base.xyz*2-1;
+                                 n.normalize();
+                                 n.z/=scale;
+                                 n.normalize();
+                                 n=n*0.5f+0.5f;
+                              }
+                           }break;
+                        }
+                        image.colorF(x+pos.x, y+pos.y, alpha_1 ? c : Lerp(base, c, alpha));
+                     }
+                  }
+               }else
+               if(!(file.name.is() || file.nodes.elms()))TransformImage(image, file.params, clamp); // if this 'layer' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
+            }
+         }else ok=false;
+      }
 
       // store information about image size, if can't store then just resize it
       if(image_resize)*image_resize=image_resize_final;else TransformImage(image, image_resize_final, clamp);
