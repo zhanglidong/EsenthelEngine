@@ -938,7 +938,7 @@ bool ForcesMono(C Str &file)
    REPA(files) // go from end
    {
       FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
        C TextParam &param=file.params[i];
@@ -954,7 +954,7 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
    REPA(files) // go from end
    {
       FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
          TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
@@ -970,7 +970,7 @@ bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
    REPA(files) // go from end
    {
       FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
        C TextParam &p=file.params[pi];
@@ -2230,7 +2230,7 @@ TextParam* FindTransform(MemPtr<FileParams> files, C Str &name) // this ignores 
    REPA(files) // go from end
    {
       FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
          TextParam &p=file.params[i]; if(p.name==name && !PartialTransform(p))return &p;
@@ -2243,7 +2243,7 @@ void DelTransform(MemPtr<FileParams> files, C Str &name) // this ignores partial
    REPA(files) // go from end
    {
       FileParams &file=files[i];
-      if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
          TextParam &p=file.params[pi]; if(p.name==name && !PartialTransform(p))
@@ -2259,12 +2259,12 @@ void SetTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this i
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
-      if(files.elms()>1 && files.last().name.is())files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
+      if(files.elms()>1 && (files.last().name.is() || files.last().nodes.elms()))files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
       TextParam *p;
       REPA(files) // go from end
       {
          FileParams &file=files[i];
-         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+         if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
             p=&file.params[i]; if(p->name==name && !PartialTransform(*p))goto found;
@@ -2279,12 +2279,12 @@ void SetResizeTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
-      if(files.elms()>1 && files.last().name.is())files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
+      if(files.elms()>1 && (files.last().name.is() || files.last().nodes.elms()))files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
       TextParam *p;
       REPA(files) // go from end
       {
          FileParams &file=files[i];
-         if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+         if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
             p=&file.params[i];
@@ -2770,14 +2770,14 @@ UID AsID(C Elm *elm) {return elm ? elm->id : UIDZero;}
 /******************************************************************************/
 void SetPath(WindowIO &win_io, C Str &path, bool clear)
 {
-   Mems<FileParams> fps=FileParams::Decode(path); if(fps.elms()==1)
+   Mems<FileParams> fps=FileParams::Decode(path); if(fps.elms()==1 && !fps[0].nodes.elms())
    {
       Str first=FFirstUp(fps[0].name);
       if(FileInfoSystem(first).type==FSTD_FILE)first=GetPath(first);
       fps[0].name=SkipStartPath(fps[0].name, first);
       win_io.path(S, first).textline.set(fps[0].encode()); return;
    }else
-   if(fps.elms()>1)
+   if(fps.elms())
    {
       win_io.path(S).textline.set(path); return;
    }

@@ -45,12 +45,14 @@ class MaterialRegion : Region
       static void Remove(             Texture &texture);
 
       ImagePtr getImage();
+      static void ReplaceElmNames(Mems<FileParams> &files);
       void setDesc();
       static void FixPath(Mems<FileParams> &fps);
       void setFile(Str file);
       void toGui();
       Texture& create(TEX_TYPE type, C MemberDesc &md_file, C MemberDesc &md_time, Rect rect, C Str &text, MaterialRegion &mr);
 
+      static bool ExploreFiles(Mems<FileParams> &fps);
       virtual void update(C GuiPC &gpc)override;
       bool draw(C Rect &rect);
       virtual void draw(C GuiPC &gpc)override;

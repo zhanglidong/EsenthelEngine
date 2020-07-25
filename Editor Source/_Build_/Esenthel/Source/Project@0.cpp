@@ -1343,7 +1343,7 @@ void DrawProject()
             REPA(files) // go from end
          {
             FileParams &file=files[i];
-            if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+            if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
             REPA(file.params) // go from end
             {
                TextParam &p=file.params[i];

@@ -573,7 +573,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       if(mini_map_id.valid() && mini_map_paths.binaryInclude(mini_map_id)) // create paths only at first time
          FCreateDirs(gamePath(mini_map_id));
    }
-   bool Project::loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C
+   bool Project::loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)C // !! this ignores 'fp.nodes' !!
    {
       if(image_resize)image_resize->del();
       if(!fp.name.is()){image.del(); return true;}
@@ -2956,17 +2956,24 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       }
       return null;
    }
+   Str ProjectHierarchy::ElmSrcFileFirst(Mems<FileParams> &files)
+   {
+      FREPA(files)
+      {
+         FileParams &fp=files[i];
+         Str path=FFirstUp       (fp.name ); if(path.is())return path;
+             path=ElmSrcFileFirst(fp.nodes); if(path.is())return path;
+      }
+      return S;
+   }
    Str ProjectHierarchy::elmSrcFileFirst(C Elm *elm)C
    {
       for(int i=elms.validIndex(elm); InRange(i, hierarchy); i=hierarchy[i].parent)
       {
        C Elm &elm=elms[i]; if(elm.srcFile().is())
          {
-            Mems<FileParams> files=FileParams::Decode(elm.srcFile());
-            FREPA(files)
-            {
-               Str path=FFirstUp(files[i].name); if(path.is())return path;
-            }
+            Str path=ElmSrcFileFirst(FileParams::Decode(elm.srcFile()));
+            if( path.is())return path;
          }
       }
       return S;

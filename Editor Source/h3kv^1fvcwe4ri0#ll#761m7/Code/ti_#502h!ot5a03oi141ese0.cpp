@@ -44,7 +44,7 @@ class MergeSimilarMaterials : PropWin
       {
          if(Elm *elm=Proj.findElm(elm_id))name=elm.name;
          T.elm_id=elm_id;
-         color_name=GetBase(FileParams(m.color_map).name);
+         color_name=m.color_map;
          base_0_tex=m.base_0_tex;
          base_1_tex=m.base_1_tex;
          base_2_tex=m.base_2_tex;
@@ -195,7 +195,7 @@ class MergeSimilarMaterials : PropWin
    {
       add("Require Same:");
       add("Material Name"    , MEMBER(MergeSimilarMaterials,        name)).desc("Materials will be tested against their name in the project");
-      add("Color Source Name", MEMBER(MergeSimilarMaterials,  color_name)).desc("Materials will be tested against the source file name of the color texture.\nOnly the base part of the file name (without the path) is checked.");
+      add("Color Source Name", MEMBER(MergeSimilarMaterials,  color_name)).desc("Materials will be tested against the source file name of the color texture");
       add("Color Texture"    , MEMBER(MergeSimilarMaterials,  color_tex )).desc("Materials will be tested against the actual color texture image");
       add("Normal Texture"   , MEMBER(MergeSimilarMaterials, normal_tex ));
       add("Base2 Texture"    , MEMBER(MergeSimilarMaterials,  base2_tex ));
