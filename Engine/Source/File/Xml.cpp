@@ -2,6 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 #define XML_NODE_DATA_SUB_NODE 1 // if keep 'XmlNode.data' as a sub-node when converting it to 'TextNode'
+#define FILE_PARAMS_INLINE     1 // if store simple children inline
 /******************************************************************************/
 // TEXT DATA
 /******************************************************************************
@@ -1557,14 +1558,22 @@ TextParam* FileParams::findParam(C Str &name)
    return null;
 }
 /******************************************************************************/
-static void Save(C FileParams &fp, FileText &f)
+static void Save(C FileParams &fp, FileText &f, Bool in_line=false)
 {
-   f.startLine(); SaveTextFileParams(f, fp.name, false);
+   if(!in_line)f.startLine(); SaveTextFileParams(f, fp.name, false);
    if(fp.nodes.elms())
    {
-      f.putChar('<'); f.endLine(); f.depth++;
-      FREPA(fp.nodes){Save(fp.nodes[i], f); f.endLine();}
-      f.depth--; f.startLine(); f.putChar('>');
+      f.putChar('<');
+      if(FILE_PARAMS_INLINE && fp.nodes.elms()==1 && !fp.nodes[0].nodes.elms()) // save in 1 line, optional, only if 1 child which doesn't have children
+      {
+         Save(fp.nodes[0], f, true);
+      }else
+      {
+         f.endLine(); f.depth++;
+         FREPA(fp.nodes){Save(fp.nodes[i], f); f.endLine();}
+         f.depth--; f.startLine();
+      }
+      f.putChar('>');
    }
    FREPA(fp.params)
    {

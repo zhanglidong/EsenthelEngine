@@ -699,7 +699,7 @@ class Project
       REPA(files) // go from end
       {
          FileParams &file=files[i];
-         if(i && file.name.is())goto force_src_resize; // force resize if there's more than one file name specified
+         if(i && (file.name.is() || file.nodes.elms()))goto force_src_resize; // force resize if there's more than one file name specified
          REPA(file.params)if(SizeDependentTransform(file.params[i]))goto force_src_resize; // if there's at least one size dependent transform anywhere then always apply
       }
       layer_resize_ptr=&layer_resize; // if didn't meet any conditions above then store resize in 'layer_resize' to be processed later
