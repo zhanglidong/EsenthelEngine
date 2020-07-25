@@ -46,6 +46,7 @@ class MaterialRegion : Region
 
       ImagePtr getImage();
       void setDesc();
+      static void FixPath(Mems<FileParams> &fps);
       void setFile(Str file);
       void toGui();
       Texture& create(TEX_TYPE type, C MemberDesc &md_file, C MemberDesc &md_time, Rect rect, C Str &text, MaterialRegion &mr);

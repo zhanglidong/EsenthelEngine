@@ -59,7 +59,7 @@
    {
       if(!normal_map.is() && hasNormalMap()) // if normal map is not specified, but is created from some other map
       {
-                                               normal_map="<bump>"; // set normal map from bump map
+                                               normal_map="|bump|"; // set normal map from bump map
          if(!ForcesMono(bump_map))SetTransform(normal_map, "grey"); // force grey scale, in case 'bump_map' may be RGB
                                                normal_map_time=time;
       }
@@ -70,7 +70,7 @@
       {
          Image color; if(proj.loadImages(color, null, color_map, true))if(HasAlpha(color)) // if color has alpha
          {
-                         alpha_map="<color>"; // set alpha map from color map
+                         alpha_map="|color|"; // set alpha map from color map
             SetTransform(alpha_map, "channel", "a");
                          alpha_map_time=time;
          }
@@ -78,8 +78,8 @@
    }
    void EditMaterial::cleanupMaps()
    { // no need to adjust time because this is called after maps have been changed
-      if( alpha_map=="<color>") alpha_map.clear();
-      if(normal_map=="<bump>" )normal_map.clear();
+      if( alpha_map=="|color|") alpha_map.clear();
+      if(normal_map=="|bump|" )normal_map.clear();
    }
    void EditMaterial::expandMap(Str &map, C MemPtr<FileParams> &color, C MemPtr<FileParams> &smooth, C MemPtr<FileParams> &bump)
    {
@@ -89,9 +89,9 @@
       {
          FileParams &file=files[i];
        C MemPtr<FileParams> *src;
-         if(file.name=="<color>" )src=&color ;else
-         if(file.name=="<smooth>")src=&smooth;else
-         if(file.name=="<bump>"  )src=&bump  ;else
+         if(file.name=="|color|" )src=&color ;else
+         if(file.name=="|smooth|")src=&smooth;else
+         if(file.name=="|bump|"  )src=&bump  ;else
             continue;
          if(src->elms()<=0)file.name.clear();else // if source is empty
          if(src->elms()==1) // if source has only one file
@@ -362,9 +362,31 @@
       }
       return changed;
    }
+   void EditMaterial::FixOldFileParams(Str &name)
+   {
+      name=Replace(name, "<color>"  , "|color|" );
+      name=Replace(name, "<smooth>" , "|smooth|");
+      name=Replace(name, "<bump>"   , "|bump|"  );
+   }
+   void EditMaterial::fixOldFileParams()
+   {
+      FixOldFileParams(color_map);
+      FixOldFileParams(alpha_map);
+      FixOldFileParams(bump_map);
+      FixOldFileParams(normal_map);
+      FixOldFileParams(smooth_map);
+      FixOldFileParams(reflect_map);
+      FixOldFileParams(glow_map);
+      FixOldFileParams(detail_color);
+      FixOldFileParams(detail_bump);
+      FixOldFileParams(detail_normal);
+      FixOldFileParams(detail_smooth);
+      FixOldFileParams(macro_map);
+      FixOldFileParams(light_map);
+   }
    bool EditMaterial::save(File &f)C
    {
-      f.cmpUIntV(12);
+      f.cmpUIntV(13);
       f<<flip_normal_y<<cull<<tex_quality<<tech<<downsize_tex_mobile;
       f<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump<<tex_scale<<det_scale<<det_power;
       f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex;
@@ -386,6 +408,24 @@
       flt sss; bool bump_from_color=false; byte mip_map_blur; UID old_reflection_tex; Str old_reflection_map; TimeStamp sss_time, mip_map_blur_time, bump_from_color_time, old_reflection_map_time;
       reset(); switch(f.decUIntV())
       {
+         case 13:
+         {
+            f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
+            f>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power;
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex;
+
+            f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>reflect_map>>glow_map
+             >>detail_color>>detail_bump>>detail_normal>>detail_smooth
+             >>macro_map
+             >>light_map;
+
+            f>>flip_normal_y_time>>tex_quality_time;
+            f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>reflect_map_time>>glow_map_time;
+            f>>detail_map_time>>macro_map_time>>light_map_time;
+            f>>cull_time>>tech_time>>downsize_tex_mobile_time;
+            f>>color_time>>ambient_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>tex_scale_time>>detail_time;
+         }break;
+
          case 12:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
@@ -402,6 +442,7 @@
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>ambient_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>tex_scale_time>>detail_time;
+            fixOldFileParams();
          }break;
 
          case 11:
@@ -420,6 +461,7 @@
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>ambient_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>tex_scale_time>>detail_time;
+            fixOldFileParams();
          }break;
 
          case 10:
@@ -439,6 +481,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 9:
@@ -458,6 +501,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 8:
@@ -477,6 +521,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 7:
@@ -496,6 +541,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 6:
@@ -515,6 +561,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 5:
@@ -534,6 +581,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 4:
@@ -552,6 +600,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 3:
@@ -570,6 +619,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>mip_map_blur_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 2:
@@ -588,6 +638,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 1:
@@ -605,6 +656,7 @@
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time;
             f>>cull_time>>tech_time;
             f>>color_time>>ambient_time>>smooth_time>>sss_time>>normal_time>>glow_time>>tex_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else reflect_map=smooth_map;
+            fixOldFileParams();
          }break;
 
          case 0: break; // empty, this requires 'reset' to be called before

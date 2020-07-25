@@ -64,6 +64,8 @@ class EditMaterial
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);
    uint undo(C EditMaterial &src);
+   static void FixOldFileParams(Str &name);
+   void fixOldFileParams();
 
    // io
    bool save(File &f)C;

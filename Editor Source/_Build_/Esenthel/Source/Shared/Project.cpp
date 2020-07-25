@@ -355,59 +355,67 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       || id_mode==ID_SKIP_ZERO && id.valid())return id.asCString();
       return S;
    }
-   bool Project::invalidSrc(C Str &src, Str *invalid)C // if specified and is not present
+   bool Project::invalidSrc(Mems<FileParams> &files, Str *invalid)C // if specified and is not present
    {
-      if(src.is())
+      REPA(files)
       {
-         Mems<FileParams> files=FileParams::Decode(src); REPA(files)
+         FileParams &fp=files[i];
+       C Str &name=fp.name; if(name.is())
          {
-          C Str &name=files[i].name; if(name.is())
+            UID id; if(DecodeFileName(name, id)) // project element
             {
-               UID id; if(DecodeFileName(name, id)) // project element
+             C Elm *elm=findElm(id); if(!elm){if(invalid)*invalid=name; return true;} // INVALID
+            }else // source file
+            {
+               if(FileInfoSystem(name        ).type!=FSTD_FILE
+             //&& FileInfoSystem(name+".cmpr").type!=FSTD_FILE // check for compressed alternative
+               )
                {
-                C Elm *elm=findElm(id); if(!elm){if(invalid)*invalid=name; return true;} // INVALID
-               }else // source file
-               {
-                  if(FileInfoSystem(name        ).type!=FSTD_FILE
-                //&& FileInfoSystem(name+".cmpr").type!=FSTD_FILE // check for compressed alternative
-                  )
-                  {
-                     if(invalid)*invalid=name; return true; // INVALID
-                  }
+                  if(invalid)*invalid=name; return true; // INVALID
                }
             }
          }
+         if(invalidSrc(fp.nodes, invalid))return true;
+      }
+      if(invalid)invalid->clear(); return false; // OK
+   }
+   bool Project::invalidSrc(C Str &src, Str *invalid)C // if specified and is not present
+   {
+      if(src.is() && invalidSrc(FileParams::Decode(src), invalid))return true;
+      if(invalid)invalid->clear(); return false; // OK
+   }
+   bool Project::invalidTexSrc(Mems<FileParams> &files, Str *invalid)C // if specified and is not present
+   {
+      REPA(files)
+      {
+         FileParams &fp=files[i];
+       C Str &name=fp.name; if(name.is())
+         {
+            UID id;
+            if(name=="|color|" || name=="|smooth|" || name=="|bump|") // another image
+            {
+               
+            }else
+            if(DecodeFileName(name, id)) // project element
+            {
+             C Elm *elm=findElm(id); if(!elm || !ElmImageLike(elm->type)){if(invalid)*invalid=name; return true;} // INVALID
+            }else // source file
+            {
+               if(FileInfoSystem(name        ).type!=FSTD_FILE
+             //&& FileInfoSystem(name+".cmpr").type!=FSTD_FILE // check for compressed alternative
+               )
+               {
+                  if(invalid)*invalid=name; return true; // INVALID
+               }
+            }
+         }
+         if(invalidTexSrc(fp.nodes, invalid))return true;
       }
       if(invalid)invalid->clear(); return false; // OK
    }
    bool Project::invalidTexSrc(C Str &src, Str *invalid)C // if specified and is not present
    {
-      if(src.is())
-      {
-         Mems<FileParams> files=FileParams::Decode(src); REPA(files)
-         {
-          C Str &name=files[i].name; if(name.is())
-            {
-               UID id;
-               if(name[0]=='<') // another image
-               {
-                  
-               }else
-               if(DecodeFileName(name, id)) // project element
-               {
-                C Elm *elm=findElm(id); if(!elm || !ElmImageLike(elm->type)){if(invalid)*invalid=name; return true;} // INVALID
-               }else // source file
-               {
-                  if(FileInfoSystem(name        ).type!=FSTD_FILE
-                //&& FileInfoSystem(name+".cmpr").type!=FSTD_FILE // check for compressed alternative
-                  )
-                  {
-                     if(invalid)*invalid=name; return true; // INVALID
-                  }
-               }
-            }
-         }
-      }
+      if(src.is() && invalidTexSrc(FileParams::Decode(src), invalid))return true;
       if(invalid)invalid->clear(); return false; // OK
    }
    bool Project::invalidTex(C UID &tex_id                     )C {return tex_id.valid() && !texs.binaryHas(tex_id);}
@@ -572,26 +580,27 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       Str  name=fp.name;
       bool lum_to_alpha=false;
       UID  image_id;
-      if(name[0]=='<')
+
+      // check for special images
+      if(name=="|color|" ){if(color ){color ->copyTry(image); if( color_resize){if(image_resize)*image_resize=* color_resize;else TransformImage(image, * color_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+      if(name=="|smooth|"){if(smooth){smooth->copyTry(image); if(smooth_resize){if(image_resize)*image_resize=*smooth_resize;else TransformImage(image, *smooth_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+      if(name=="|bump|"  ){if(bump  ){bump  ->copyTry(image); if(  bump_resize){if(image_resize)*image_resize=*  bump_resize;else TransformImage(image, *  bump_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
       {
-         if(name=="<color>"  && color ){color ->copyTry(image); if( color_resize){if(image_resize)*image_resize=* color_resize;else TransformImage(image, * color_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
-         if(name=="<smooth>" && smooth){smooth->copyTry(image); if(smooth_resize){if(image_resize)*image_resize=*smooth_resize;else TransformImage(image, *smooth_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
-         if(name=="<bump>"   && bump  ){bump  ->copyTry(image); if(  bump_resize){if(image_resize)*image_resize=*  bump_resize;else TransformImage(image, *  bump_resize, clamp);}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
-            image.del();
-         goto imported;
-      }
-      if(DecodeFileName(name, image_id))
-      {
-         name=editPath(image_id); // if the filename is in UID format then it's ELM_IMAGE
-         if(C Elm *image=findElm(image_id))if(C ElmImage *data=image->imageData())lum_to_alpha=data->alphaLum();
-      }
-      if(ImportImage(image, name, -1, IMAGE_SOFT, 1, true))
-      {
-      imported:
-         image.copyTry(image, -1, -1, -1, srgb ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())); // set desired sRGB
-         if(lum_to_alpha)image.alphaFromBrightness().divRgbByAlpha();
-         TransformImage(image, ConstCast(fp.params), clamp);
-         return true;
+         // check for element ID
+         if(DecodeFileName(name, image_id))
+         {
+            name=editPath(image_id); // if the filename is in UID format then it's ELM_IMAGE
+            if(C Elm *image=findElm(image_id))if(C ElmImage *data=image->imageData())lum_to_alpha=data->alphaLum();
+         }
+
+         if(ImportImage(image, name, -1, IMAGE_SOFT, 1, true))
+         {
+         imported:
+            image.copyTry(image, -1, -1, -1, srgb ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())); // set desired sRGB
+            if(lum_to_alpha)image.alphaFromBrightness().divRgbByAlpha();
+            TransformImage(image, ConstCast(fp.params), clamp);
+            return true;
+         }
       }
       image.del(); return false;
    }

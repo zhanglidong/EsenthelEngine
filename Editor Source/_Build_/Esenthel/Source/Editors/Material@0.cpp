@@ -101,14 +101,20 @@ MaterialTech mtrl_techs[]=
          if(type==TEX_REFLECT)desc+="\nAppend \"?metalToReflect\" to file name when using a \"Metal\" map,\nor hold Shift while drag and drop to auto append.";
          T.desc(desc);
       }
-      void MaterialRegion::Texture::setFile(Str file)
+      void MaterialRegion::Texture::FixPath(Mems<FileParams> &fps)
       {
-         // convert multiple lines into separate file params and handle <..> commands
-         Mems<FileParams> fps=FileParams::Decode(file); REPA(fps)
+         REPA(fps)
          {
             FileParams &fp=fps[i];
-            if(Contains(fp.name, '<'))fp.name=GetBaseNoExt(fp.name); // we want to support things like "<bump>" but when entering that into 'WindowIO', it may append the path, so when this command is detected, remove the path (and possible extension too)
+            if(Contains(fp.name, '|'))fp.name=GetBaseNoExt(fp.name); // we want to support things like "|bump|" but when entering that into 'WindowIO', it may append the path, so when this command is detected, remove the path (and possible extension too)
+            FixPath(fp.nodes);
          }
+      }
+      void MaterialRegion::Texture::setFile(Str file)
+      {
+         // fix |..| paths, such as "|color|" etc.
+         Mems<FileParams> fps=FileParams::Decode(file);
+         FixPath(fps);
          file=FileParams::Encode(fps);
 
          T.file=file; setDesc();
@@ -126,9 +132,9 @@ MaterialTech mtrl_techs[]=
             {
                Str name; switch(type)
                {
-                  case TEX_COLOR : name="<color>" ; break;
-                  case TEX_SMOOTH: name="<smooth>"; break;
-                  case TEX_BUMP  : name="<bump>"  ; break;
+                  case TEX_COLOR : name="|color|" ; break;
+                  case TEX_SMOOTH: name="|smooth|"; break;
+                  case TEX_BUMP  : name="|bump|"  ; break;
                }
                if(name.is())REPA(mr->texs)
                {

@@ -109,6 +109,13 @@ FileText& FileText::readMem(CPtr data, Int size, Int encoding, Cipher *cipher)
    if(encoding>=0)_code=(ENCODING)encoding; // override encoding if it was specified
    return T;
 }
+FileText& FileText::readMem(C Str &data)
+{
+   del();
+  _f.readMem(data(), data.length()*SIZE(Char));
+  _code=UTF_16;
+   return T;
+}
 /******************************************************************************/
 FileText& FileText::startLine()
 {

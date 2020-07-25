@@ -27,7 +27,7 @@ static Str FileSize(C WindowIO::File &f)
 static MemberDesc win_io_file_size_sort(MEMBER(WindowIO::File, size));
 Memc<Str> WindowIOFavorites, WindowIORecents;
 /******************************************************************************/
-void WindowIORecent(Str path)
+void WindowIORecent(C Str &path)
 {
    if(path.is())
    {
@@ -295,17 +295,26 @@ WindowIO& WindowIO::modeDirOperate()
    }
    return T;
 }
-Mems<FileParams> WindowIO::final(           )C {return final(textline());}
-Mems<FileParams> WindowIO::final(C Str &name)C // this will always include 'path', or be empty on error
+static Bool ProcessPaths(Mems<FileParams> &fps, C Str &path, C Str &sub_path)
 {
-   auto fps=FileParams::Decode(name);
-   if(_mode==WIN_IO_DIR && !fps.elms())fps.New().name=path()+subPath();else
    REPA(fps)
    {
       FileParams &fp=fps[i];
-      if(fp.name.is())fp.name=NormalizePath(FullPath(fp.name) ? fp.name : path()+subPath()+fp.name);
-      if(path().is() && !StartsPath(fp.name, path())){fps.clear(); break;} // if name doesn't start with 'path' then clear
+      if(fp.name.is())
+      {
+         fp.name=NormalizePath(FullPath(fp.name) ? fp.name : path+sub_path+fp.name);
+         if(path.is() && !StartsPath(fp.name, path))return false; // if 'name' doesn't start with 'path' then fail
+      }
+      if(!ProcessPaths(fp.nodes, path, sub_path))return false; // if nodes failed
    }
+   return true;
+}
+Mems<FileParams> WindowIO::final(           )C {return final(textline());}
+Mems<FileParams> WindowIO::final(C Str &name)C // this will always include 'path', or be empty on error
+{
+   Mems<FileParams> fps=FileParams::Decode(name);
+   if(_mode==WIN_IO_DIR && !fps.elms())fps.New().name=path()+subPath();else
+   if(!ProcessPaths(fps, path(), subPath()))fps.clear(); // if processing failed then clear all
    return fps;
 }
 Bool WindowIO::goodExt(C Str &name)C
@@ -313,6 +322,20 @@ Bool WindowIO::goodExt(C Str &name)C
    if(!_dot_exts.elms())return true; // no extensions specified -> support all of them
    FREPA(_dot_exts)if(Ends(name, _dot_exts[i]))return true;
    return false;
+}
+static void ProcessExt(Mems<FileParams> &fps, C WindowIO &wio)
+{
+   REPA(fps)
+   {
+      FileParams &fp=fps[i];
+
+      if(fp.name.is()
+      && !wio.goodExt(fp.name)
+      && (wio.ext_mode==WIN_IO_EXT_ALWAYS || !GetExt(fp.name).is()))
+         fp.name+=wio._dot_exts[0];
+
+      ProcessExt(fp.nodes, wio);
+   }
 }
 void WindowIO::Ok()
 {
@@ -328,7 +351,7 @@ void WindowIO::Ok()
          // try entering the path if possible
          {
             FileInfo f;
-            if(fps.elms()==1 && fps[0].name.is() && !fps[0].params.elms() && f.getSystem(fps[0].name))
+            if(fps.elms()==1 && fps[0].name.is() && !fps[0].nodes.elms() && !fps[0].params.elms() && f.getSystem(fps[0].name))
                if(f.type==FSTD_DRIVE || f.type==FSTD_DIR)
                   if(_dir_operate ? (f.type!=FSTD_DIR || !goodExt(fps[0].name)) : true)
             {
@@ -342,16 +365,9 @@ void WindowIO::Ok()
 
          // perform operation on file
          {
+            // add extension
             if(ext_mode
-            && ((_mode==WIN_IO_SAVE) ? _dot_exts.elms()>=1 : _dot_exts.elms()==1)) // for saving add if we have at least 1, for other mode add if we have only 1
-               REPA(fps)
-            {
-               FileParams &fp=fps[i];
-               if(fp.name.is()
-               && !goodExt(fp.name)
-               && (ext_mode==WIN_IO_EXT_ALWAYS || !GetExt(fp.name).is()))
-                  fp.name+=_dot_exts[0];
-            }
+            && ((_mode==WIN_IO_SAVE) ? _dot_exts.elms()>=1 : _dot_exts.elms()==1))ProcessExt(fps, T); // for saving add if we have at least 1, for other mode add if we have only 1
 
             Bool hide;
             if(_mode==WIN_IO_LOAD)
@@ -365,7 +381,7 @@ void WindowIO::Ok()
                hide=true;
             }else
             {
-               hide=(fps.elms()==1 && fps[0].name.is() && !fps[0].params.elms() && !overwriteAsk(fps[0].name));
+               hide=(fps.elms()==1 && fps[0].name.is() && !fps[0].nodes.elms() && !fps[0].params.elms() && !overwriteAsk(fps[0].name));
             }
 
             if(hide)T.hide(); // hide at the end, in case it will delete this object

@@ -229,10 +229,13 @@ XmlNode&  GetNode(MemPtr<XmlNode> nodes, C Str &name         ); // get       nod
 /******************************************************************************/
 struct FileParams
 {
-   Str             name;
-   Mems<TextParam> params;
+   Str              name;
+   Mems<FileParams> nodes;
+   Mems<TextParam > params;
 
-   Bool is()C {return name.is() || params.elms();}
+   Bool is()C {return name.is() || params.elms() || nodes.elms();}
+
+   FileParams& clear();
 
    TextParam* findParam(C Str &name);
  C TextParam* findParam(C Str &name)C;

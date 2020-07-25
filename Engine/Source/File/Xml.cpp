@@ -369,13 +369,15 @@ static Char LoadText(FileText &f, Str &t, Char c)
             if(c==QUOTE_END)break; // end of name
             if(c=='~'      )       // special char
             {
-               c=f.getChar();
-               if(c=='0')t.alwaysAppend('\0');else
-               if(c=='n')t.alwaysAppend('\n');else
-               if(c=='t')t.alwaysAppend('\t');else // just in case it was written as special char
-               if(c=='`')t.alwaysAppend('`' );else
-               if(c=='~')t.alwaysAppend('~' );else
-                  return ERROR; // invalid char
+               switch(c=f.getChar())
+               {
+                  case '0': t.alwaysAppend('\0'); break;
+                  case 'n': t.alwaysAppend('\n'); break;
+                  case 't': t.alwaysAppend('\t'); break; // just in case it was written as special char
+                  case '`': t.alwaysAppend('`' ); break;
+                  case '~': t.alwaysAppend('~' ); break;
+                  default : return ERROR; // invalid char
+               }
             }else
             if(Unsigned(c)>=32 || c=='\t' || c=='\n')t.alwaysAppend(c);else // valid char, '\n' here is supported as well, but prefer as "~n"
             if(c!='\r')return ERROR; // skip '\r'
@@ -1459,6 +1461,88 @@ Bool XmlData::loadAndroidBinary(File &f)
 /******************************************************************************/
 // FILE PARAMS
 /******************************************************************************/
+static Bool SimpleCharFileParams(Char c, Bool param_name)
+{
+   switch(c)
+   {
+      case '"': // needed for complex names TEXT_QUOTE
+      case '<': // start of nodes
+      case '>': // end   of nodes
+      case '?': // parameter
+      case '\0':
+      case '\n':
+      case '\t': return false;
+
+      case '=': return param_name ? false : true; // parameter value
+
+      default: return true;
+   }
+}
+static void SaveTextFileParams(FileText &f, C Str &t, Bool param_name)
+{
+   REPA(t)if(!SimpleCharFileParams(t()[i], param_name)) // () skips range checks
+   {
+      f.putChar('"');
+      FREPA(t)switch(Char c=t()[i]) // () avoids range check
+      {
+         case '\0': f.putChar('?').putChar('0'); break;
+         case '\n': f.putChar('?').putChar('n'); break; // we can encode new line below normally too, but prefer this version
+       //case '\t': f.putChar('?').putChar('t'); break; // we can encode tab below normally instead
+         case '"' : f.putChar('?').putChar('"'); break;
+         case '?' : f.putChar('?').putChar('?'); break;
+         default  : if(Unsigned(c)>=32 || c=='\t' || c=='\n')f.putChar(c); break; // '\n' here is supported as well, but prefer as "?n"
+      }
+      f.putChar('"');
+      return;
+   }
+   f.putText(t);
+}
+static Char LoadTextFileParams(FileText &f, Str &t, Char c, Bool param_name)
+{
+   if(SimpleCharFileParams(c, param_name)) // TEXT_SIMPLE
+   {
+      t=c; // we've already read the first character
+      for(;;)
+      {
+         c=f.getChar();
+         if(SimpleCharFileParams(c, param_name))t.alwaysAppend(c); // valid name char
+            else break;
+      }
+   }else
+   if(c=='"') // TEXT_QUOTE
+   {
+      for(;;)
+      {
+         c=f.getChar();
+         if(c=='"')break; // end of name
+         if(c=='?')       // special char
+         {
+            switch(c=f.getChar())
+            {
+               case '0': t.alwaysAppend('\0'); break;
+               case 'n': t.alwaysAppend('\n'); break;
+               case 't': t.alwaysAppend('\t'); break; // just in case it was written as special char
+               case '"': t.alwaysAppend('"' ); break;
+               case '?': t.alwaysAppend('?' ); break;
+               default : return ERROR; // invalid char
+            }
+         }else
+         if(Unsigned(c)>=32 || c=='\t' || c=='\n')t.alwaysAppend(c);else // valid char, '\n' here is supported as well, but prefer as "?n"
+         if(c!='\r')return ERROR; // skip '\r'
+      }
+      c=f.getChar(); // read next char after the name, so we're at the same situation as with the "simple name" case
+   }
+   return c;
+}
+/******************************************************************************/
+FileParams& FileParams::clear()
+{
+   name  .clear();
+   nodes .clear();
+   params.clear();
+   return T;
+}
+/******************************************************************************/
 TextParam& FileParams:: getParam(C Str &name) {if(TextParam *par=findParam(name))return *par; return params.New().setName(name);}
 TextParam* FileParams::findParam(C Str &name)
 {
@@ -1473,46 +1557,93 @@ TextParam* FileParams::findParam(C Str &name)
    return null;
 }
 /******************************************************************************/
+static void Save(C FileParams &fp, FileText &f)
+{
+   f.startLine(); SaveTextFileParams(f, fp.name, false);
+   if(fp.nodes.elms())
+   {
+      f.putChar('<'); f.endLine(); f.depth++;
+      FREPA(fp.nodes){Save(fp.nodes[i], f); f.endLine();}
+      f.depth--; f.startLine(); f.putChar('>');
+   }
+   FREPA(fp.params)
+   {
+    C TextParam &param=fp.params[i]; f.putChar('?'); SaveTextFileParams(f, param.name, true); if(param.value.is()){f.putChar('='); SaveTextFileParams(f, param.value, false);}
+   }
+}
+static Char SkipSpace(FileText &f, Char c)
+{
+again:
+   if(c==' ' || c=='\t'){c=f.getChar(); goto again;}
+   return c;
+}
+static Char Load(FileParams &fp, FileText &f, Char c) // !! does not call 'clear' for 'fp' !! (assumes it's empty)
+{
+   // name
+   c=SkipSpace(f, c);
+   c=LoadTextFileParams(f, fp.name, c, false);
+   c=SkipSpace(f, c);
+
+   // nodes
+   if(c=='<')
+   {
+   skip_empty:
+      c=f.getChar();
+   next:
+      if(c==' ' || c=='\t' || c=='\r' || c=='\n')goto skip_empty;
+      if(c=='>')c=SkipSpace(f, f.getChar());else
+      if(c)
+      {
+         c=Load(fp.nodes.New(), f, c);
+         goto next;
+      }
+   }
+
+   // params
+check_param:
+   if(c=='?')
+   {
+      TextParam &p=fp.params.New();
+      c=LoadTextFileParams(f, p.name, f.getChar(), true);
+      if(c=='=')c=LoadTextFileParams(f, p.value, f.getChar(), false);
+      goto check_param;
+   }
+   return c;
+}
+/******************************************************************************/
 Str FileParams::encode()C
 {
-   Str s=name; FREPA(params)
-   {
-    C TextParam &param=params[i]; s+='?'; s+=param.name; if(param.value.is()){s+='='; s+=param.value;}
-   }
-   return s;
+   FileText f; f.writeMem(UTF_16); Save(T, f); f.rewind(); return f.getAll(); // use UTF_16 to get Str later in a fast way
 }
 void FileParams::decode(C Str &s)
 {
-   Memt<Str> strs; Split(strs, s, '?');
-   name=(strs.elms() ? strs[0] : S);
-   params.setNum(strs.elms()-1); FREPA(params)
-   {
-      TextParam &param=params[i];
-      Str       &str  =strs[i+1]; FREPA(str)if(str()[i]=='=') // find first '=' occurrence
-      {
-         param.value=str()+i+1;
-         param.name =str.clip(i);
-         goto param_set;
-      }
-      param.set(str);
-   param_set:;
-   }
+   FileText f; f.readMem(s); clear(); Load(T, f, f.getChar());
 }
 /******************************************************************************/
 Str FileParams::Encode(C MemPtr<FileParams> &file_params)
 {
+#if 0
    Str s; FREPA(file_params)
    {
       if(i)s+='\n'; s+=file_params[i].encode();
    }
    return s;
+#else
+   FileText f; f.writeMem(UTF_16); // use UTF_16 to get Str later in a fast way
+   FREPA(file_params)
+   {
+      if(i)f.endLine(); Save(file_params[i], f);
+   }
+   f.rewind(); return f.getAll();
+#endif
 }
 Mems<FileParams> FileParams::Decode(C Str &str)
 {
    Mems<FileParams> files; if(str.is())
    {
-      Memt<Str> strs; Split(strs, str, '\n'); // get list of all files
-      files.setNum(strs.elms()); FREPAO(files).decode(strs[i]);
+      FileText f; f.readMem(str);
+   next:
+      Char c=Load(files.New(), f, f.getChar()); if(c=='\n')goto next;
    }
    return files;
 }
