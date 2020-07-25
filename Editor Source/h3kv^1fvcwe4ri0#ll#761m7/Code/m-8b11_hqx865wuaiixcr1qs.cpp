@@ -90,9 +90,18 @@ class MaterialRegion : Region
          }
          return null;
       }
+      static void ReplaceElmNames(Mems<FileParams> &files)
+      {
+         UID image_id; REPA(files)
+         {
+            FileParams &fp=files[i];
+            if(DecodeFileName(fp.name, image_id))fp.name=Proj.elmFullName(image_id);
+            ReplaceElmNames(fp.nodes);
+         }
+      }
       void setDesc()
       {
-         Mems<FileParams> files=FileParams.Decode(file); UID image_id; REPA(files)if(DecodeFileName(files[i].name, image_id))files[i].name=Proj.elmFullName(image_id);
+         Mems<FileParams> files=FileParams.Decode(file); ReplaceElmNames(files);
          Str desc=Replace(text, '\n', ' '); if(C ImagePtr &image=getImage())desc+=S+", "+image->w()+'x'+image->h();
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
@@ -182,6 +191,20 @@ class MaterialRegion : Region
          return T;
       }
 
+      static bool ExploreFiles(Mems<FileParams> &fps)
+      {
+         FREPA(fps)
+         {
+            FileParams &fp=fps[i];
+            if(fp.name.is())
+            {
+               UID id; if(id.fromFileName(fp.name))Proj.elmLocate(id, true);else Explore(FFirstUp(fp.name));
+               return true;
+            }
+            if(ExploreFiles(fp.nodes))return true;
+         }
+         return false;
+      }
       virtual void update(C GuiPC &gpc)override
       {
          if(visible() && gpc.visible)
@@ -194,10 +217,7 @@ class MaterialRegion : Region
                {
                   if(Kb.ctrlCmd()) // Ctrl+Click -> explore file path
                   {
-                     Mems<FileParams> fps=FileParams.Decode(file); if(fps.elms()>=1)
-                     {
-                        UID id; if(id.fromFileName(fps[0].name))Proj.elmLocate(id, true);else Explore(FFirstUp(fps[0].name));
-                     }
+                     ExploreFiles(FileParams.Decode(file));
                      goto skip_win_io;
                   }else
                   {

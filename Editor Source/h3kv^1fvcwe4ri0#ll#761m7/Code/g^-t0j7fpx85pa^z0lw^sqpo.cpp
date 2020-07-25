@@ -628,7 +628,7 @@ class Project
          FCreateDirs(gamePath(mini_map_id));
    }
 
-   bool loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
+   bool loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C // !! this ignores 'fp.nodes' !!
    {
       if(image_resize)image_resize.del();
       if(!fp.name.is()){image.del(); return true;}
@@ -3111,17 +3111,24 @@ class ProjectHierarchy : Project
       }
       return null;
    }
+   static Str ElmSrcFileFirst(Mems<FileParams> &files)
+   {
+      FREPA(files)
+      {
+         FileParams &fp=files[i];
+         Str path=FFirstUp       (fp.name ); if(path.is())return path;
+             path=ElmSrcFileFirst(fp.nodes); if(path.is())return path;
+      }
+      return S;
+   }
    Str elmSrcFileFirst(C Elm *elm)C
    {
       for(int i=elms.validIndex(elm); InRange(i, hierarchy); i=hierarchy[i].parent)
       {
        C Elm &elm=elms[i]; if(elm.srcFile().is())
          {
-            Mems<FileParams> files=FileParams.Decode(elm.srcFile());
-            FREPA(files)
-            {
-               Str path=FFirstUp(files[i].name); if(path.is())return path;
-            }
+            Str path=ElmSrcFileFirst(FileParams.Decode(elm.srcFile()));
+            if( path.is())return path;
          }
       }
       return S;
