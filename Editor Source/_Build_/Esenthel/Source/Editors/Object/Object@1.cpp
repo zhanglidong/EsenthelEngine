@@ -3078,17 +3078,19 @@ cur_skel_to_saved_skel.removeBone(bone->name);
          }
       }
    }
-   void ObjView::RotBoneRoll(ObjView &editor)
+   void ObjView::RotBoneRollR(ObjView &editor) {editor.rotBoneRoll(-PI_2);}
+   void ObjView::RotBoneRoll(ObjView &editor) {editor.rotBoneRoll( PI_2);}
+          void ObjView::rotBoneRoll(flt angle)
    {
-      if(editor.mesh_skel)
-      if(SkelBone *bone=editor.mesh_skel->bones.addr(editor.sel_bone>=0 ? editor.sel_bone : editor.lit_bone))
+      if(mesh_skel)
+      if(SkelBone *bone=mesh_skel->bones.addr(sel_bone>=0 ? sel_bone : lit_bone))
       {
-         editor.mesh_undos.set("boneEdit");
-         bone->rotateDir(PI_2);
-         editor.mesh_skel->setBoneTypes(); // bone orientation may affect bone type indexes
-         editor.setChangedSkel(true);
-         editor.mesh.skeleton(editor.mesh_skel, true).skeleton(null);
-         editor.setChangedMesh(true, false);
+         mesh_undos.set("boneEdit");
+         bone->rotateDir(angle);
+         mesh_skel->setBoneTypes(); // bone orientation may affect bone type indexes
+         setChangedSkel(true);
+         mesh.skeleton(mesh_skel, true).skeleton(null);
+         setChangedMesh(true, false);
       }
    }
    void ObjView::AdjustBoneOrnsDo(ObjView &editor) {editor.adjust_bone_orns.activate();}
@@ -3170,7 +3172,8 @@ cur_skel_to_saved_skel.bones.del();
          n.New().create("Set Mirrored from Selection", SkelSetMirrorSel, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD           )).desc("This option will set bone transformation from the other side as mirrored version of the selected bone");
          n.New().create("Set Selection from Mirrored", SkelSetSelMirror, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will set selected bone transformation as mirrored version of the bone from the other side");
          n++;
-         n.New().create("Rotate Bone Roll", RotBoneRoll, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT)).desc("Rotate bone along its direction");
+         n.New().create("Rotate Bone Roll"        , RotBoneRoll , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT           )).desc("Rotate bone along its direction");
+         n.New().create("Rotate Bone Roll Reverse", RotBoneRollR, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT|KBSC_SHIFT)).desc("Rotate bone along its direction");
          n.New().create("Adjust Bone Orientations", AdjustBoneOrnsDo, T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD)).desc("With this option you can automatically adjust bone orientations, in case it was not done by the Artist");
          n++;
          n.New().create("Delete Bones", SkelDelBones, T).desc("Delete all Skeleton Bones");

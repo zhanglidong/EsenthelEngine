@@ -940,9 +940,15 @@ class ImporterClass
                         if(file_params.elms())
                         {
                            // transform / rotate !! before root !!
-                         C Skeleton &sk=import.skel;
-                           if(C TextParam *p=file_params[0].findParam("rotY"))anim.transform(Matrix().setRotateY(DegToRad(p.asFlt())), sk, true);
-                           if(C TextParam *p=file_params[0].findParam("rotX"))anim.transform(Matrix().setRotateX(DegToRad(p.asFlt())), sk, true);
+                         C Skeleton   &sk =import.skel;
+                           FileParams &fps=file_params[0];
+                           FREPA(fps.params)
+                           {
+                            C TextParam &p=fps.params[i];
+                              if(p.name=="rotX")anim.transform(Matrix().setRotateX(DegToRad(p.asFlt())), sk, true);else
+                              if(p.name=="rotY")anim.transform(Matrix().setRotateY(DegToRad(p.asFlt())), sk, true);else
+                              if(p.name=="rotZ")anim.transform(Matrix().setRotateZ(DegToRad(p.asFlt())), sk, true);
+                           }
                         }
                         {
                            Mems<Mems<IndexWeight>> weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton.BONE_NAME_IS_NODE_INDEX);

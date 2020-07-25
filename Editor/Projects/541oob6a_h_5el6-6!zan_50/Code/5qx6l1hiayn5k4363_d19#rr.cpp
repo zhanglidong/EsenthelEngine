@@ -10,7 +10,8 @@ class Decal2 : Decal // create a helper class which bases on Decal and uses time
    }
    void draw(C Matrix &matrix)
    {
-      super.drawAnimated(matrix, Sat(time)); // draw the overlay with transparency of 'Saturate(time)' value
+      color.w=Sat(time); // set transparency of 'Saturate(time)' value
+      super.drawAnimated(matrix); // draw the overlay
    }
 
    // io
