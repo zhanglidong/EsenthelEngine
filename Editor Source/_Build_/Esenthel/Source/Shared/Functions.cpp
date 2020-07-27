@@ -1456,9 +1456,9 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          flt (*R)(flt);
          flt (*G)(flt);
          flt (*B)(flt);
-         if(!bright.x){bright.x=1; mul.x=1; R=FloatSelf;}else if(bright.x<0){bright.x=SigmoidSqrt(bright.x); mul.x=1/SigmoidSqrtInv(bright.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(bright.x); R=SigmoidSqrt;}
-         if(!bright.y){bright.y=1; mul.y=1; G=FloatSelf;}else if(bright.y<0){bright.y=SigmoidSqrt(bright.y); mul.y=1/SigmoidSqrtInv(bright.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(bright.y); G=SigmoidSqrt;}
-         if(!bright.z){bright.z=1; mul.z=1; B=FloatSelf;}else if(bright.z<0){bright.z=SigmoidSqrt(bright.z); mul.z=1/SigmoidSqrtInv(bright.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(bright.z); B=SigmoidSqrt;}
+         if(!bright.x){bright.x=1; mul.x=1; R=FloatSelf;}else if(bright.x<0){mul.x=1/bright.x; bright.x=SigmoidSqrt(bright.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(bright.x); R=SigmoidSqrt;}
+         if(!bright.y){bright.y=1; mul.y=1; G=FloatSelf;}else if(bright.y<0){mul.y=1/bright.y; bright.y=SigmoidSqrt(bright.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(bright.y); G=SigmoidSqrt;}
+         if(!bright.z){bright.z=1; mul.z=1; B=FloatSelf;}else if(bright.z<0){mul.z=1/bright.z; bright.z=SigmoidSqrt(bright.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(bright.z); B=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
@@ -1478,7 +1478,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       flt bright=param.asFlt(), mul; flt (*f)(flt);
       if( bright)
       {
-         if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
+         if(bright<0){mul=1/bright; bright=SigmoidSqrt(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)

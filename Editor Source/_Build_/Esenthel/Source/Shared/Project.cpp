@@ -781,9 +781,9 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                               Vec &bright=l.xyz; if(bright.any())
                               {
                                  c.xyz=Sqr(c.xyz);
-                                 if(bright.x<0){bright.x=SigmoidSqrt(bright.x); c.x=SigmoidSqrtInv(c.x*bright.x)/SigmoidSqrtInv(bright.x);}else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
-                                 if(bright.y<0){bright.y=SigmoidSqrt(bright.y); c.y=SigmoidSqrtInv(c.y*bright.y)/SigmoidSqrtInv(bright.y);}else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
-                                 if(bright.z<0){bright.z=SigmoidSqrt(bright.z); c.z=SigmoidSqrtInv(c.z*bright.z)/SigmoidSqrtInv(bright.z);}else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
+                                 if(bright.x<0)c.x=SigmoidSqrtInv(c.x*SigmoidSqrt(bright.x))/bright.x;else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
+                                 if(bright.y<0)c.y=SigmoidSqrtInv(c.y*SigmoidSqrt(bright.y))/bright.y;else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
+                                 if(bright.z<0)c.z=SigmoidSqrtInv(c.z*SigmoidSqrt(bright.z))/bright.z;else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
                                  c.xyz=Sqrt(c.xyz);
                               }
                            }break;
@@ -794,7 +794,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                               if(flt bright=l.xyz.max())if(flt old_lum=c.xyz.max())
                               {
                                  flt mul; flt (*f)(flt);
-                                 if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
+                                 if(bright<0){mul=1/bright; bright=SigmoidSqrt(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
                                  flt new_lum=Sqr(old_lum);
                                  new_lum=f(new_lum*bright)*mul;
                                  new_lum=Sqrt(new_lum);
