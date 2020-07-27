@@ -864,25 +864,26 @@ class Project
                               c=base;
                               Vec &bright=l.xyz; if(bright.any())
                               {
-                                 c.xyz=Sqr(c.xyz);
-                                 if(bright.x<0)c.x=SigmoidSqrtInv(c.x*SigmoidSqrt(bright.x))/bright.x;else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
-                                 if(bright.y<0)c.y=SigmoidSqrtInv(c.y*SigmoidSqrt(bright.y))/bright.y;else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
-                                 if(bright.z<0)c.z=SigmoidSqrtInv(c.z*SigmoidSqrt(bright.z))/bright.z;else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
-                                 c.xyz=Sqrt(c.xyz);
+                                 if(c.x>0 && c.x<1){c.x=Sqr(c.x); if(bright.x<0)c.x=SigmoidSqrtInv(c.x*SigmoidSqrt(bright.x))/bright.x;else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x); c.x=SqrtFast(c.x);}
+                                 if(c.y>0 && c.y<1){c.y=Sqr(c.y); if(bright.y<0)c.y=SigmoidSqrtInv(c.y*SigmoidSqrt(bright.y))/bright.y;else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y); c.y=SqrtFast(c.y);}
+                                 if(c.z>0 && c.z<1){c.z=Sqr(c.z); if(bright.z<0)c.z=SigmoidSqrtInv(c.z*SigmoidSqrt(bright.z))/bright.z;else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z); c.z=SqrtFast(c.z);}
                               }
                            }break;
 
                            case APPLY_BRIGHTNESS_LUM:
                            {
                               c=base;
-                              if(flt bright=l.xyz.max())if(flt old_lum=c.xyz.max())
+                              if(flt bright=l.xyz.max())
                               {
-                                 flt mul; flt (*f)(flt);
-                                 if(bright<0){mul=1/bright; bright=SigmoidSqrt(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
-                                 flt new_lum=Sqr(old_lum);
-                                 new_lum=f(new_lum*bright)*mul;
-                                 new_lum=Sqrt(new_lum);
-                                 c.xyz*=new_lum/old_lum;
+                                 flt old_lum=c.xyz.max(); if(old_lum>0 && old_lum<1)
+                                 {
+                                    flt mul; flt (*f)(flt);
+                                    if(bright<0){mul=1/bright; bright=SigmoidSqrt(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
+                                    flt new_lum=Sqr(old_lum);
+                                    new_lum=f(new_lum*bright)*mul;
+                                    new_lum=SqrtFast(new_lum);
+                                    c.xyz*=new_lum/old_lum;
+                                 }
                               }
                            }break;
                            

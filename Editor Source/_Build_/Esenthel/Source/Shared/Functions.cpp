@@ -1464,11 +1464,9 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            c.xyz=Sqr(c.xyz);
-            c.x=R(c.x*bright.x)*mul.x;
-            c.y=G(c.y*bright.y)*mul.y;
-            c.z=B(c.z*bright.z)*mul.z;
-            c.xyz=Sqrt(c.xyz);
+            if(c.x>0 && c.x<1)c.x=SqrtFast(R(Sqr(c.x)*bright.x)*mul.x);
+            if(c.y>0 && c.y<1)c.y=SqrtFast(G(Sqr(c.y)*bright.y)*mul.y);
+            if(c.z>0 && c.z<1)c.z=SqrtFast(B(Sqr(c.z)*bright.z)*mul.z);
             image.color3DF(x, y, z, c);
          }
       }
@@ -1483,12 +1481,12 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
-            Vec4 c=image.color3DF(x, y, z);
-            if(flt old_lum=c.xyz.max())
+            Vec4 c=image.color3DF(x, y, z); flt old_lum=c.xyz.max();
+            if(old_lum>0 && old_lum<1)
             {
                flt new_lum=Sqr(old_lum);
                new_lum=f(new_lum*bright)*mul;
-               new_lum=Sqrt(new_lum);
+               new_lum=SqrtFast(new_lum);
                c.xyz*=new_lum/old_lum;
                image.color3DF(x, y, z, c);
             }
