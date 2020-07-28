@@ -289,6 +289,8 @@ public:
    static void MeshColorBrghtn(ObjView &editor); void meshColorBrghtn();
    static void MeshColorDarken(ObjView &editor); void meshColorDarken();
    static void MeshDelDblSide (ObjView &editor); void meshDelDblSide ();
+   static void MeshCopyLods   (ObjView &editor); void meshCopyLods   ();
+   static void MeshReplaceLods(ObjView &editor); void meshReplaceLods();
    static void MeshSeparate1  (ObjView &editor); void meshSeparate1  ();
    static void MeshSeparateN  (ObjView &editor); void meshSeparateN  ();
    static void MeshCopyParts  (ObjView &editor); void meshCopyParts  ();

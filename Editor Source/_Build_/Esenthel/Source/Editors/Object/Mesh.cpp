@@ -661,6 +661,20 @@ void ObjView::meshDelDblSide()
    }
    if(changed)setChangedMesh(true, false);
 }
+void ObjView::meshCopyLods()
+{
+   Proj.mesh_mem.create(mesh);
+}
+void ObjView::meshReplaceLods()
+{
+   mesh_undos.set("add");
+   if(getMeshElm())
+   {
+      mesh.create(Proj.mesh_mem);
+      if(mesh_skel && mesh_skel->is())mesh.skeleton(mesh_skel).skeleton(null);else mesh.clearSkeleton().exclude(VTX_SKIN); // call 'skeleton' to reassign bone mapping or remove it if not present
+      setChangedMesh(true);
+   }
+}
 void ObjView::meshSeparate1()
 {
    mesh_undos.set("sep1");

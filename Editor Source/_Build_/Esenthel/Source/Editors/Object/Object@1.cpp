@@ -816,6 +816,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn();}
    void ObjView::MeshColorDarken(ObjView &editor) {editor.meshColorDarken();}
    void ObjView::MeshDelDblSide(ObjView &editor) {editor.meshDelDblSide ();}
+   void ObjView::MeshCopyLods(ObjView &editor) {editor.meshCopyLods   ();}
+   void ObjView::MeshReplaceLods(ObjView &editor) {editor.meshReplaceLods();}
    void ObjView::MeshSeparate1(ObjView &editor) {editor.meshSeparate1  ();}
    void ObjView::MeshSeparateN(ObjView &editor) {editor.meshSeparateN  ();}
    void ObjView::MeshCopyParts(ObjView &editor) {editor.meshCopyParts  ();}
@@ -1375,6 +1377,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Brighten Vertex Colors"        , MeshColorBrghtn, T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT         |KBSC_REPEAT)).desc("This option will brighten vertex colors");
          n.New().create("Darken Vertex Colors"          , MeshColorDarken, T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT|KBSC_REPEAT)).desc("This option will darken vertex colors");
          n.New().create("Delete Double Side Faces"      , MeshDelDblSide , T).desc("This option will remove double sided faces");
+         n.New().create("Copy all Lods to Memory"       , MeshCopyLods   , T);
+         n.New().create("Replace all Lods from Memory"  , MeshReplaceLods, T);
          n++;
          n.New().create("Separate into 1 Object"        , MeshSeparate1  , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will separate selected parts into 1 new object");
          n.New().create("Separate into Multiple Objects", MeshSeparateN  , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will separate selected parts into multiple new objects (1 per part)");

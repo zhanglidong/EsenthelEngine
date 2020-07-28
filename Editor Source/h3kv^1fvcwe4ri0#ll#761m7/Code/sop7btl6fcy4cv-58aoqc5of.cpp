@@ -387,7 +387,7 @@ class MeshParts : Window
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         Mesh temp; temp.create(Proj.mesh_mem); 
+         Mesh temp; temp.create(Proj.mesh_mem);
          if(ObjEdit.mesh_skel && ObjEdit.mesh_skel.is())temp.skeleton(ObjEdit.mesh_skel).skeleton(null);else temp.clearSkeleton().exclude(VTX_SKIN); // call 'skeleton' to reassign bone mapping or remove it if not present
          if(!ObjEdit.mesh.is() && ObjEdit.mesh.lods()<=1)Swap(ObjEdit.mesh, temp);else // if this mesh is empty, then just create from 'temp', this will copy all variations
          {
