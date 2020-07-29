@@ -677,7 +677,7 @@ AnimEditor AnimEdit;
       if(Elm *obj=Proj.animToObjElm(elm))
       {
          ObjEdit.activate(obj);
-         ObjEdit.animate(*anim, animTime(), transform_anims, ignore_anim_id); // can't use 'anim_skel' because this operates on game mesh/skel, which can be different if using object body, we need mesh original skel
+         ObjEdit.animate(*anim, animTime(), transform_anims, ignore_anim_id); // can't use 'anim_skel' because this may operate on game mesh/skel, which can be different if using "object body", we need mesh original skel
       }else Gui.msgBox(S, "There's no Object associated with this Animation.");
    }
    void AnimEditor::Undo(AnimEditor &editor) {editor.undos.undo();}
@@ -1674,7 +1674,7 @@ AnimEditor AnimEdit;
          skel=mesh->skeleton();
       #else // load Edit mesh (slower but uses "original mesh skel")
          skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
-         mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); mesh_data.transform(skel_data->transform());
+         mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data->transform());
          mesh_data.skeleton(skel).setTanBin().setRender(false);
       #endif
          setAnimSkel(true);

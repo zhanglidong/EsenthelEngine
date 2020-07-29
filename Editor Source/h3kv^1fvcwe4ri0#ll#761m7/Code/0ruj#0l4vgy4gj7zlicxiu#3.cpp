@@ -2488,19 +2488,17 @@ void KeepParams(C Mesh &src, Mesh &dest)
    }
    dest.drawGroupEnum(src.drawGroupEnum()); // keep the same draw group enum
 }
-void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, C Matrix *matrix)
+void RemovePartsAndLods(Mesh &mesh)
 {
-   game.create(edit, GameMeshFlagAnd);
-   // cleanup mesh
-   REPD(l, game.lods()) // have to go from end because we're removing LODs
+   REPD(l, mesh.lods()) // have to go from end because we're removing LODs
    {
-      MeshLod &lod=game.lod(l);
+      MeshLod &lod=mesh.lod(l);
       // remove LODs
       if(NegativeSB(lod.dist2) // negative distance (marked as disabled)
-      || InRange(l+1, game.lods()) && (l ? lod.dist2 : 0)>=game.lod(l+1).dist2) // distance is higher than the next one (have to check next one and not previous one, because we need to delete those with negative distance first. Force 0 dist for #0 LOD because currently it's uneditable and assumed to be 0 however it may not be)
+      || InRange(l+1, mesh.lods()) && (l ? lod.dist2 : 0)>=mesh.lod(l+1).dist2) // distance is higher than the next one (have to check next one and not previous one, because we need to delete those with negative distance first. Force 0 dist for #0 LOD because currently it's uneditable and assumed to be 0 however it may not be)
       {
       remove_lod:
-         game.removeLod(l);
+         mesh.removeLod(l);
       }else
       {
          // remove hidden mesh parts
@@ -2508,6 +2506,11 @@ void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, 
          if(!lod.parts.elms())goto remove_lod;
       }
    }
+}
+void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, C Matrix *matrix)
+{
+   game.create(edit, GameMeshFlagAnd);
+   RemovePartsAndLods(game);
    game.joinAll(true, true, false, MeshJoinAllTestVtxFlag, -1); // disable vtx weld, because: 1) mesh isn't scaled/transformed yet 2) it would be performed only if some parts were merged 3) there are no tangents yet. Instead let's always do it manually
    if(matrix)game.transform(*matrix); // transform before welding
    game.setAutoTanBin() // calculate tangents before welding

@@ -226,6 +226,7 @@ int VisibleFlag      (C MeshLod &mesh);
 int VisibleFlag      (C Mesh    &mesh);
 flt VisibleLodQuality(C Mesh    &mesh, int lod_index);
 void KeepParams(C Mesh &src, Mesh &dest);
+void RemovePartsAndLods(Mesh &mesh);
 void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, C Matrix *matrix);
 bool HasMaterial(C MeshPart &part, C MaterialPtr &material);
 bool FixVtxNrm(MeshBase &base);
