@@ -685,6 +685,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
 
    friend MatrixD operator* (C MatrixD  &a, C MatrixD3 &b) {MatrixD temp; a.mul    (b, temp); return temp;} // get a*b
    friend MatrixD operator* (C MatrixD  &a, C MatrixD  &b) {MatrixD temp; a.mul    (b, temp); return temp;} // get a*b
+   friend MatrixD operator* (C MatrixD  &a, C MatrixM  &b) {MatrixD temp; a.mul    (b, temp); return temp;} // get a*b
    friend MatrixD operator/ (C MatrixD  &a, C MatrixD3 &b) {MatrixD temp; a.div    (b, temp); return temp;} // get a/b
    friend MatrixD operator/ (C MatrixD  &a, C MatrixD  &b) {MatrixD temp; a.div    (b, temp); return temp;} // get a/b
    friend MatrixD operator~ (C MatrixD  &m               ) {MatrixD temp; m.inverse(   temp); return temp;} // get inversed 'm'
@@ -693,8 +694,10 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
 
    void     mul(C MatrixD3 &matrix, MatrixD &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void     mul(C MatrixD  &matrix, MatrixD &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
-   MatrixD& mul(C MatrixD  &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+   void     mul(C MatrixM  &matrix, MatrixD &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    MatrixD& mul(C MatrixD3 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+   MatrixD& mul(C MatrixD  &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+   MatrixD& mul(C MatrixM  &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
 
    void     div(C MatrixD3 &matrix, MatrixD &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
    void     div(C MatrixD  &matrix, MatrixD &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal

@@ -2120,7 +2120,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          flushMeshSkel(); // save any unsaved changes, after this call 'saved_skel' is the same as 'mesh_skel'
          mesh_undos.del(); undoVis(); // we're modifying 'saved_skel' so we can't go back
 
-         MemtN<MatrixM, 256> matrixes; anim_skel.getMatrixes(matrixes); REPAO(matrixes)=mesh_matrix*matrixes[i]/mesh_matrix;
+         MemtN<MatrixM, 256> matrixes; anim_skel.getMatrixes(matrixes); MatrixD mesh_matrix_d=mesh_matrix; REPAO(matrixes)=mesh_matrix_d*matrixes[i]/mesh_matrix_d;
          mesh     .animate(matrixes ); // 'mesh'      is in identity matrix
          mesh_skel->animate(anim_skel); // 'mesh_skel' is in 'mesh_matrix'
          edit_skel.animate(anim_skel, matrixes); // need to modify 'edit_skel' so new animations will import correctly

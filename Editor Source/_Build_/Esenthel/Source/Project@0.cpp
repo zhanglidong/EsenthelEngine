@@ -4150,6 +4150,7 @@ void DrawProject()
       super::skelTransformChanged(skel_id);
 
       if(ObjEdit.skel_elm && ObjEdit.skel_elm->id==skel_id)ObjEdit.skelTransformChanged();
+      if(AnimEdit.skel_id==skel_id)AnimEdit.setMeshSkel();
    }
    void ProjectEx::objChanged(Elm &obj)
 {
@@ -4166,6 +4167,7 @@ void DrawProject()
       super::meshChanged(mesh);
 
       if(ObjEdit.mesh_elm && ObjEdit.mesh_elm->id==mesh.id)ObjEdit.meshChanged();
+      if(AnimEdit.mesh_id==mesh.id)AnimEdit.setMeshSkel();
       if(Selection.elms() && Selection[0].mesh_proper.id()==mesh.id)WorldEdit.param_edit.meshVariationChanged();
    }
    void ProjectEx::elmChanging(Elm &elm)
