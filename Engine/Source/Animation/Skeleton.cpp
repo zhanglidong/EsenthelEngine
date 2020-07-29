@@ -928,7 +928,9 @@ Skeleton& Skeleton::setBoneTypes()
                || BoneName(bone, "Middle")
                || BoneName(bone, "Ring"  )
                || BoneName(bone, "Pinky" ) || BoneName(bone, "Pinkie" ) || BoneName(bone, "Little") // "Little" used by "Fire Ice Elemental", "Pinkie" used by "Barbarian (Poker)"
-               || BoneName(bone, "Digit" ))bone.type=type;                                          //          used by "Barbarian" and "Wolf"
+               || BoneName(bone, "Digit" )                                                          //          used by "Barbarian" and "Wolf"
+               || BoneName(bone, "Ball"  )                                                          //          used by "Barbarian" and "Wolf"
+               )bone.type=type;
             }
             break;
          }
