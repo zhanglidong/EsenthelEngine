@@ -9,10 +9,10 @@ void NewObjs(C Vec &pos)
    {
       REPA(Selection){Obj &obj=Selection[i]; center+=obj.pos(); selected.add(&obj);} center/=Selection.elms();
       Matrix delta(-center); if(WorldEdit.obj_random_angle)delta.rotateY(Random.f(PI2)); delta.move(pos);
-      if(WorldEdit.grid_align)
+      if(WorldEdit.grid_align && WorldEdit.gridAlignSize()>0)
       {
-         delta.pos.x=AlignRound(delta.pos.x, WorldEdit.grid_align_size_xz);
-         delta.pos.z=AlignRound(delta.pos.z, WorldEdit.grid_align_size_xz);
+         delta.pos.x=AlignRound(delta.pos.x, WorldEdit.gridAlignSize());
+         delta.pos.z=AlignRound(delta.pos.z, WorldEdit.gridAlignSize());
       }
       REPA(selected)
       {

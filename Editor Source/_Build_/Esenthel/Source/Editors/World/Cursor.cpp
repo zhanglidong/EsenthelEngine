@@ -162,7 +162,7 @@ void UpdateButtonState(byte *dest, byte *on, int num)
          {
             Clamp(_pos.x, (we.visible_area.min.x)*we.areaSize()+EPSL, (we.visible_area.max.x+1)*we.areaSize()-EPSL);
             Clamp(_pos.z, (we.visible_area.min.y)*we.areaSize()+EPSL, (we.visible_area.max.y+1)*we.areaSize()-EPSL);
-            if(we.gridAlignSize())
+            if(we.gridAlignSize()>0)
             {
                if(we.gridAlignRound())_xz.set(Round(_pos.x/we.gridAlignSize()), Round(_pos.z/we.gridAlignSize()));
                else                   _xz.set(Floor(_pos.x/we.gridAlignSize()), Floor(_pos.z/we.gridAlignSize()));
