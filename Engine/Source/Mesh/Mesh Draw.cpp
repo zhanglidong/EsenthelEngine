@@ -1286,11 +1286,43 @@ void MeshPart::drawBlend(C Vec4 *color)C
       }
    }
 }
-void MeshLod::drawBlend(                                                    C Vec4 *color)C {                                                    FREPAO(parts).drawBlend(color);}
-void Mesh   ::drawBlend(                                                    C Vec4 *color)C {                                   getDrawLod(       ObjMatrix  ).drawBlend(color);}
-void Mesh   ::drawBlend(C MatrixM          &matrix,                         C Vec4 *color)C {SetOneMatrix(matrix, matrix     ); getDrawLod(          matrix  ).drawBlend(color);} // blend might use velocity so set both matrixes
-void Mesh   ::drawBlend(C MatrixM          &matrix, C MatrixM &matrix_prev, C Vec4 *color)C {SetOneMatrix(matrix, matrix_prev); getDrawLod(          matrix  ).drawBlend(color);}
-void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                      C Vec4 *color)C {anim_skel.setMatrix();             getDrawLod(anim_skel.matrix()).drawBlend(color);}
+void MeshPart::drawBlend(C Material &material, C Vec4 *color)C
+{
+   DEBUG_ASSERT(Renderer()==RM_BLEND || !Renderer._render, "'MeshPart.drawBlend' called outside of RM_BLEND");
+   if(_draw_mask&Renderer._mesh_draw_mask)
+   {
+    C Variation &variation=getVariation();
+      Shader    *s=variation.shader[RM_BLEND];                                                        // first try using Blend if specified
+      if(    !s && variation.blst)s=*(Shader**)(((Byte*)variation.blst)+Renderer._blst_light_offset); // then  try using Blend Light
+      if(s)
+      {
+         SetSkinning();
+         D.cull      (material.cull);
+         D.depth     (true);
+         D.depthWrite(material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
+         D.alpha     (              Renderer._mesh_blend_alpha );
+         D.stencil   ((STENCIL_MODE)Renderer._mesh_stencil_mode);
+         material.setBlendForce();
+         Bool no_blend=!material.hasAlphaBlend(); // if there is no blending then it means it's ALPHA_NONE or ALPHA_TEST, in both cases we should ignore the material.color.a, and use 1.0
+         if(color || no_blend)
+         {
+            Vec4 col=material.color_l;
+            if(no_blend)col.w=1; // force full alpha for non-blending techniques
+            if(color   )col *=*color;
+            Renderer.material_color_l->set(LinearToDisplay(col));
+            MaterialClear(); // we've changed material properties
+         }
+         s->begin(); render.set().draw();
+         D.stencil(STENCIL_NONE);
+      }
+   }
+}
+void MeshLod::drawBlend(                                                    C Vec4 *color)C {                                                    FREPAO(parts).drawBlend(          color);}
+void MeshLod::drawBlend(C Material &material                              , C Vec4 *color)C {                                                    FREPAO(parts).drawBlend(material, color);}
+void Mesh   ::drawBlend(                                                    C Vec4 *color)C {                                   getDrawLod(       ObjMatrix  ).drawBlend(          color);}
+void Mesh   ::drawBlend(C MatrixM          &matrix,                         C Vec4 *color)C {SetOneMatrix(matrix, matrix     ); getDrawLod(          matrix  ).drawBlend(          color);} // blend might use velocity so set both matrixes
+void Mesh   ::drawBlend(C MatrixM          &matrix, C MatrixM &matrix_prev, C Vec4 *color)C {SetOneMatrix(matrix, matrix_prev); getDrawLod(          matrix  ).drawBlend(          color);}
+void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                      C Vec4 *color)C {anim_skel.setMatrix();             getDrawLod(anim_skel.matrix()).drawBlend(          color);}
 /******************************************************************************/
 void MeshPart::drawBoneHighlight(Int bone)C
 {
