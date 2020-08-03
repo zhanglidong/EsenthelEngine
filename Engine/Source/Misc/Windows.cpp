@@ -320,6 +320,10 @@ void WindowList(MemPtr<Ptr> hwnds)
    hwnds.clear();
    EnumWindows(EnumWindowList, LPARAM(&hwnds));
 }
+Ptr WindowMonitor(Ptr hwnd)
+{
+   return MonitorFromWindow((HWND)hwnd, MONITOR_DEFAULTTONULL);
+}
 /******************************************************************************/
 #elif MAC
 /******************************************************************************/

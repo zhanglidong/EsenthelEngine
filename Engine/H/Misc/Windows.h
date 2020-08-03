@@ -54,6 +54,8 @@ void  WindowList       (MemPtr<Ptr> hwnds                               ); // ge
 void WindowMsgBox(C Str &title, C Str &text, Bool error=false); // show OS message box, 'error'=if display as error or message
 
 #if EE_PRIVATE
+Ptr WindowMonitor(Ptr hwnd); // return HMONITOR for 'hwnd' window
+
 void InitWindow();
 void ShutWindow();
 #endif

@@ -776,7 +776,7 @@ C DisplayClass::Monitor* DisplayClass::curMonitor()
    if(App.hwnd())
    {
    #if 1
-      if(HMONITOR hmonitor=MonitorFromWindow(App.Hwnd(), MONITOR_DEFAULTTONEAREST))
+      if(HMONITOR hmonitor=(HMONITOR)WindowMonitor(App.Hwnd()))
    #else
       RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
       POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
@@ -1781,7 +1781,7 @@ Bool DisplayClass::findMode()
             output=null; SwapChain->GetContainingOutput(&output); if(output){ok=true; goto has_output;} // set 'ok' so break will be called
          }
          if(Adapter)
-            if(HMONITOR monitor=MonitorFromWindow(App.Hwnd(), MONITOR_DEFAULTTONEAREST)) // get nearest monitor
+            if(Ptr monitor=WindowMonitor(App.Hwnd()))
                for(Int i=0; ; i++) // iterate all outputs
          {
             output=null; Adapter->EnumOutputs(i, &output); if(output)
