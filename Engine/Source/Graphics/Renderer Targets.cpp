@@ -203,7 +203,7 @@ Bool RendererClass::rtCreate()
 
    rtDel();
    ResetImageTypeCreateResult();
-   if(!D.canDraw())return true; // don't bother with render targets if the device can't draw (can happen when using 'APP_ALLOW_NO_GPU')
+   if(!D.created())return true; // don't bother with render targets for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
 
    if(!mapMain())return false;
 

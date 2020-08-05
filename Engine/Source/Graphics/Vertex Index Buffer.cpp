@@ -2516,7 +2516,7 @@ void VtxIndBuf::face(C Vtx3DFull &a, C Vtx3DFull &b, C Vtx3DFull &c, C Vtx3DFull
 void InitVtxInd()
 {
    if(LogInit)LogN("InitVtxInd");
-   if(!D._can_draw)return;
+   if(!D.created())return; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
    VI.create();
 
    Int quads=16384; // 16384 is the maximum number of quads that still use 16-bit indexes (16384*4 == 65536)

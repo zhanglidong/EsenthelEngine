@@ -120,7 +120,7 @@ Bool UpdateState()
 }
 Bool DrawState()
 {
-   if(App.minimized() || (D.full() && !App.activeOrBackFull()) || !D.canDraw())return true;
+   if(App.minimized() || (D.full() && !App.activeOrBackFull()) || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
    if(StateActive && StateActive->draw)
    {
       // draw

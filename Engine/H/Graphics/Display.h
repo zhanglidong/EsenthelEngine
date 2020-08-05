@@ -162,7 +162,6 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
  C Mems<VecI2>& modes          ()C {return _modes         ;} // get fullscreen display modes, where x=width, y=height (in pixels)
  C Str8&        deviceName     ()C {return _device_name   ;} // get GPU device name
    Long         deviceMemory   ()C {return _device_mem    ;} // get GPU memory (-1 if unknown)
-   Bool         canDraw        ()C {return _can_draw      ;} // if  drawing graphics is available (this can be false when APP_ALLOW_NO_GPU was enabled and GPU was not found)
    Bool         smallSize      ()C;                          // if  display device is of a small size (phone size)
    Flt          browserZoom    ()C;                          // get current browser zoom level (1.0=100%, 2.0=200%, etc), this is valid only for the WEB platform (other platforms always return 1.0)
 
@@ -537,7 +536,7 @@ private:
                      _vol_light, _vol_add,
                      _taa, _taa_dual,
                      _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo,
-                     _initialized, _resetting, _no_gpu, _can_draw;
+                     _initialized, _resetting, _no_gpu;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,

@@ -28,7 +28,7 @@ static void SetupFur(Int res=256)
 /******************************************************************************/
 void InitFur()
 {
-   if(D.canDraw() && FurCol.get("Img/Fur.img"))GetShaderImage("FurCol")->set(FurCol());
+   if(FurCol.get("Img/Fur.img"))GetShaderImage("FurCol")->set(FurCol());
    FurStep =GetShaderParam("FurStep");
    FurLight=GetShaderImage("FurLight");
 }

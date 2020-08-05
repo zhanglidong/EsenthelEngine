@@ -1082,6 +1082,13 @@ void DisplayClass::del()
 #endif
 }
 /******************************************************************************/
+#if GL && WINDOWS
+static void _glBlendEquation    (GLenum mode) {}
+static void _glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha) {}
+static void _glBlendColor       (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {}
+static void _glColorMaski       (GLuint buf, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {}
+static void _glBindBufferBase   (GLenum target, GLuint index, GLuint buffer) {}
+#endif
 void DisplayClass::createDevice()
 {
    if(LogInit)LogN("Display.createDevice");
@@ -1138,13 +1145,12 @@ void DisplayClass::createDevice()
 
    if(OK(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE, null, flags, feature_level_force, feature_level_force ? 1 : 0, D3D11_SDK_VERSION, &D3D, &FeatureLevel, &D3DC)))
    {
-     _can_draw=true;
-     _no_gpu  =false;
+     _no_gpu=false;
       if(FeatureLevel<D3D_FEATURE_LEVEL_10_0)Exit("Minimum D3D Feature Level 10.0 required.\nA better GPU is required.");
    }else
    {
-     _can_draw=true; // we can still draw on DX10+ by using D3D_DRIVER_TYPE_WARP
-     _no_gpu  =true;
+      // we can still draw on DX10+ by using D3D_DRIVER_TYPE_WARP
+     _no_gpu=true;
       if((App.flag&APP_ALLOW_NO_GPU) ? !OK(D3D11CreateDevice(null, D3D_DRIVER_TYPE_WARP, null, flags, null, 0, D3D11_SDK_VERSION, &D3D, &FeatureLevel, &D3DC)) : true)Exit(MLTC(u"Can't create Direct3D Device.", PL,u"Nie można utworzyć Direct3D."));
       RELEASE(Adapter); // D3D may have gotten a different adapter
    }
@@ -1221,19 +1227,15 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-   if(FlagTest(App.flag, APP_ALLOW_NO_GPU)) // completely disable hardware on OpenGL because there's no way to know if it's available
-   {
-     _can_draw=false;
-     _no_gpu  =true;
-   }else
-   {
-     _can_draw=true;
-     _no_gpu  =false;
-   }
-
    const VecB2 ctx_vers[]={{3,2}, {4,0}}; // set highest at the end, 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
    #if WINDOWS
+      // setup dummy functions to prevent null exceptions when GL context failed to create, but we still want to continue
+      glBlendEquation    =_glBlendEquation;
+      glBlendFuncSeparate=_glBlendFuncSeparate;
+      glBlendColor       =_glBlendColor;
+      glColorMaski       =_glColorMaski;
+      glBindBufferBase   =_glBindBufferBase;
       PIXELFORMATDESCRIPTOR pfd=
       {
          SIZE(PIXELFORMATDESCRIPTOR), // size of 'pfd'
@@ -1364,14 +1366,18 @@ again:
             }
          }
       #endif
-         if(!MainContext.context)Exit("Can't create a OpenGL 3.2 Context.");
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
+         if(!MainContext.context)
+         {
+            if(App.flag&APP_ALLOW_NO_GPU)goto no_gpu;
+            Exit("Can't create a OpenGL 3.2 Context.");
+         }
          MainContext.lock();
          glXSwapInterval=(glXSwapIntervalType)glGetProcAddress("glXSwapIntervalEXT"); // access it via 'glGetProcAddress' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
       }else
       {
-        _can_draw=false;
-        _no_gpu  =true;
+      no_gpu:
+        _no_gpu=true;
          return;
       }
    #elif ANDROID

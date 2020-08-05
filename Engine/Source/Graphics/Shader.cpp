@@ -342,6 +342,7 @@ void ShaderBuffer::Buffer::create(Int size)
       if(D.created())
       {
          T.size=size;
+
       #if DX11
          D3D11_BUFFER_DESC desc;
          desc.ByteWidth          =size;
@@ -360,9 +361,10 @@ void ShaderBuffer::Buffer::create(Int size)
          glBindBuffer(GL_UNIFORM_BUFFER, buffer);
          glBufferData(GL_UNIFORM_BUFFER, size, null, GL_DYNAMIC);
       #endif
+
+         if(!buffer)Exit("Can't create Constant Buffer"); // Exit only if 'D.created' so we can still continue with APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
       }
    }
-   if(!buffer)Exit("Can't create Constant Buffer");
 }
 /******************************************************************************/
 // !! Warning: if we have any 'parts', then 'buffer' does not own the resources, but is just a raw copy !!
@@ -395,9 +397,9 @@ Single UBO with GL_BUFFER_SUB_RESET_FULL - 27.2 fps NOT SMOOTH */
 #else
    buffer.create(size);
 #endif
+   full_size=size;
    AllocZero(data, size+MIN_SHADER_PARAM_DATA_SIZE); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least MIN_SHADER_PARAM_DATA_SIZE size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]"
    changed=true;
-   full_size=buffer.size;
 }
 void ShaderBuffer::update()
 {
@@ -1260,7 +1262,7 @@ void ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
 }
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
-   if(prog || !D.canDraw())return true; // skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
+   if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
    SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
    if(!prog)
       if(UInt prog=compileEx(shader._vs, shader._ps, true, &shader, messages)) // create into temp var first and set to this only after fully initialized

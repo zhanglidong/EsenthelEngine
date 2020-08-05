@@ -477,7 +477,7 @@ void GUI::create()
 {
    if(LogInit)LogN("GUI.create");
 
-   if(D._can_draw) // will cause Exit on Linux without XDisplay, so skip loading if can't draw
+   if(D.created()) // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
       if(skin=default_skin)
    {
       EmptyGuiSkin.list.   cursor_color=skin->list.   cursor_color;

@@ -115,8 +115,6 @@ static void (*glBlendFunci) (GLuint buf, GLenum src, GLenum dst); // see 'D.inde
 static STENCIL_MODE LastStencilMode;
 #endif
 /******************************************************************************/
-// DEPTH / STENCIL
-/******************************************************************************/
 DisplayState::DisplayState()
 {
 #if 0 // there's only one 'DisplayState' global 'D' and it doesn't need clearing members to zero
@@ -155,7 +153,9 @@ DisplayState::DisplayState()
   _col_write[3]    =COL_WRITE_RGBA;
   _sample_mask     =~0;
 }
-
+/******************************************************************************/
+// DEPTH / STENCIL
+/******************************************************************************/
 void DisplayState::depthUnlock(       ) {           D._depth_lock=false;}
 void DisplayState::depthLock  (Bool on) {depth(on); D._depth_lock=true ;}
 /******************************************************************************/
