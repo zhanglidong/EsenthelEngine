@@ -369,15 +369,29 @@ void ShaderBuffer::Buffer::create(Int size)
 /******************************************************************************/
 // !! Warning: if we have any 'parts', then 'buffer' does not own the resources, but is just a raw copy !!
 /******************************************************************************/
-ShaderBuffer::~ShaderBuffer()
+void ShaderBuffer::zero()
+{
+   data=null; changed=false; explicit_bind_slot=-1; full_size=0;
+#if GL_MULTIPLE_UBOS
+   part=0;
+#endif
+}
+void ShaderBuffer::del()
 {
 #if DX11 || GL_MULTIPLE_UBOS
-   if(parts.elms())buffer.zero(); // if we have any 'parts', then 'buffer' does not own the resources, so just zero it, and they will be released in the 'parts' container
+   if(parts.elms())
+   {
+      buffer.zero(); // if we have any 'parts', then 'buffer' does not own the resources, so just zero it, and they will be released in the 'parts' container
+      parts.del();
+   }
 #endif
+   buffer.del();
    Free(data);
+   zero();
 }
 void ShaderBuffer::create(Int size) // no locks needed because this is called only in shader loading, and there 'ShaderBuffers.lock' is called
 {
+   del();
 #if GL_MULTIPLE_UBOS
 /* Test Results for viewing "Fantasy Demo" World in Esenthel Editor on Mac
 1 - 8.0 fps

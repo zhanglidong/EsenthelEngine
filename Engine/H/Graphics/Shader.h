@@ -179,7 +179,7 @@ struct ShaderBuffer // Constant Buffer
 {
    struct Buffer
    {
-      GPU_API(ID3D11Buffer*, UInt) buffer; // keep this is first member because it's used most often
+      GPU_API(ID3D11Buffer*, UInt) buffer; // keep this as first member because it's used most often
       Int                          size  ;
 
       void del   ();
@@ -193,11 +193,11 @@ struct ShaderBuffer // Constant Buffer
       // intentionally keep copy constructor as raw member copy, because we expect this behavior
    };
 
-   Buffer buffer; // keep this is first member because it's used most often
-   Byte  *data=null;
-   Bool   changed=false;
-   SByte  explicit_bind_slot=-1; // -1=any available
-   Int    full_size=0; // remember full size, because 'buffer.size' can be dynamically adjusted
+   Buffer buffer; // keep this as first member because it's used most often
+   Byte  *data;
+   Bool   changed;
+   SByte  explicit_bind_slot; // -1=any available
+   Int    full_size; // remember full size, because 'buffer.size' can be dynamically adjusted
 
 #if DX11
    Mems<Buffer> parts;
@@ -206,17 +206,19 @@ struct ShaderBuffer // Constant Buffer
 #endif
 #if GL_MULTIPLE_UBOS
    Mems<Buffer> parts;
-   Int          part=0;
+   Int          part;
 #endif
 
-   Bool is       ()C {return buffer.is();}
+   Bool is       ()C {return full_size>0;} // check 'full_size' instead of 'buffer' which can be empty for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY
+   void del      ();
    void create   (Int size );
    void update   (         );
    void bind     (Int index);
    void bindCheck(Int index);
+   void zero     ();
 
-   ShaderBuffer() {}
-  ~ShaderBuffer();
+  ~ShaderBuffer() {del ();}
+   ShaderBuffer() {zero();}
 
    NO_COPY_CONSTRUCTOR(ShaderBuffer);
 };

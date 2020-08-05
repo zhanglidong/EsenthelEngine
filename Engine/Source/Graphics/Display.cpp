@@ -1236,6 +1236,7 @@ again:
       glBlendColor       =_glBlendColor;
       glColorMaski       =_glColorMaski;
       glBindBufferBase   =_glBindBufferBase;
+
       PIXELFORMATDESCRIPTOR pfd=
       {
          SIZE(PIXELFORMATDESCRIPTOR), // size of 'pfd'
