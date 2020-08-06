@@ -2217,12 +2217,27 @@ struct SphericalInterpolator
    Flt linearDist()C {return linear_delta.length();} // distance travelled along the 'linear_delta' edge
    Flt travelDist()C {return Dist(circleDist(), linearDist());} // linear distance is always perpendicular to the rotation plane (on separate axis), this is a helix length
 
-   Bool init(C Matrix &start, C Matrix &end, Flt eps=EPS) // 'eps' must be >=0 because codes below will fail if angle is <=0
+   Bool init(C Animation &anim, Flt eps=EPS) // 'eps' must be >=0 because codes below will fail if angle is <=0
    {
+    C Matrix &start=anim.rootStart(), &end=anim.rootEnd();
       DEBUG_ASSERT(eps>=0, "SphericalInterpolator eps");
       GetDelta(rot_axis, start, end);
       rot_angle=rot_axis.normalize();
       if(rot_angle<=eps)return false; // if 'rot_angle' is close to zero, then there is no rotation and we can fall back to linear interpolation
+
+      if(rot_angle>=PI-eps) // rotation by 180 deg, special case where 'rot_axis' direction may be imprecise
+      {
+         // have to calculate transform from start to middle (instead of end), and then make it a full 180 deg rotation
+         Orient orn; AnimParams params(anim, anim.length()/2); if(anim.keys.orn(orn, params)) // calculate orientation at middle of animation
+         {
+            Vec temp; GetDelta(temp, start, orn); // get rotation from start to middle
+            if( temp.normalize()>eps) // if have any rotation (and normalize it)
+            { // use that rotation
+               rot_axis =temp;
+               rot_angle=PI; // make it a full 180 deg
+            }
+         }
+      }
 
       Vec full_delta=end.pos-start.pos; // full delta from 'start' to 'end'
       Vec rot_plane_delta=PointOnPlane(full_delta, rot_axis); // delta on rotation plane
@@ -2449,7 +2464,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
       Bool changed=false;
       SphericalInterpolator si;
-      if((root_flags&ROOT_SMOOTH_ROT_POS) && anim_out.keys.orns.elms()>=2 && si.init(anim_out.rootStart(), anim_out.rootEnd(), EPS_ANIM_ANGLE)) // use spherical interpolation only if we actually have some rotations
+      if((root_flags&ROOT_SMOOTH_ROT_POS) && anim_out.keys.orns.elms()>=2 && si.init(anim_out, EPS_ANIM_ANGLE)) // use spherical interpolation only if we actually have some rotations
       {
          if(root_flags&ROOT_SMOOTH_ROT) // orientations
          {
