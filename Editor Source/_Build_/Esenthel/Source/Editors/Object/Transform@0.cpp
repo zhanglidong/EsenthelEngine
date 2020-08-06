@@ -16,6 +16,15 @@
       "Camera Target",
    };
 /******************************************************************************/
+   void TransformRegion::RescaleWidth(TransformRegion &tr)
+   {
+      if(flt w=ObjEdit.mesh_box.w())
+      if(flt t=TextFlt(tr.rescale_width_value()))
+      {
+         tr.trans.scale=t/w;
+         tr.toGui();
+      }
+   }
    void TransformRegion::RescaleHeight(TransformRegion &tr)
    {
       if(flt h=ObjEdit.mesh_box.h())
@@ -301,6 +310,7 @@ if(full)
       REPD(a, 3)REPD(i, 2)T+=rot[a][i].create(Rect_LU(rot_p[a]->button.rect().ru()+Vec2(0.01f+prop_height*i, 0), prop_height)).setImage(i ? "Gui/arrow_right_big.img" : "Gui/arrow_left_big.img").func(i ? Inc90 : Dec90, *rot_p[a]);
       if(!full)
       {
+         T+=rescale_width    .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29f, elm_height), "Rescale Width to:").func(RescaleWidth  , T); T+=rescale_width_value .create(Rect_LU(rescale_width .rect().max.x+e, prop_rect.min.y, 0.09f, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=rescale_height   .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29f, elm_height), "Rescale Height to:").func(RescaleHeight, T); T+=rescale_height_value.create(Rect_LU(rescale_height.rect().max.x+e, prop_rect.min.y, 0.09f, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=rescale_depth    .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29f, elm_height), "Rescale Depth to:" ).func(RescaleDepth , T); T+=rescale_depth_value .create(Rect_LU(rescale_depth .rect().max.x+e, prop_rect.min.y, 0.09f, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=   move_bottom   .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.33f, elm_height), "Move Bottom to Y=0").func(MoveBottom, T); prop_rect.min.y-=prop_height;

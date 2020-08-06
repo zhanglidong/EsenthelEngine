@@ -675,6 +675,8 @@ class Project
       APPLY_ADD,
       APPLY_ADD_RGB,
       APPLY_ADD_LUM,
+      APPLY_ADD_HUE,
+      APPLY_SET_HUE,
       APPLY_SUB,
       APPLY_GAMMA,
       APPLY_BRIGHTNESS,
@@ -738,6 +740,8 @@ class Project
                if(p.value=="add"                                                )mode=APPLY_ADD;else
                if(p.value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
                if(p.value=="addLum"                                             )mode=APPLY_ADD_LUM;else
+               if(p.value=="addHue"                                             )mode=APPLY_ADD_HUE;else
+               if(p.value=="setHue"                                             )mode=APPLY_SET_HUE;else
                if(p.value=="sub"                                                )mode=APPLY_SUB;else
                if(p.value=="gamma"                                              )mode=APPLY_GAMMA;else
                if(p.value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
@@ -817,6 +821,40 @@ class Project
                            case APPLY_MIN           : c=Min(base, l); break;
                            case APPLY_MAX           : c=Max(base, l); break;
                            case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+
+                           case APPLY_ADD_HUE:
+                           {
+                              flt  hue  =l.xyz.max();
+                              bool photo=false;
+                              c=base;
+                              flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+                            //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+                              c.xyz=RgbToHsb(c.xyz);
+                              c.x +=hue;
+                              c.xyz=HsbToRgb(c.xyz);
+                              if(photo)
+                              {
+                                 c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                               //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+                              }
+                           }break;
+
+                           case APPLY_SET_HUE:
+                           {
+                              flt  hue  =l.xyz.max();
+                              bool photo=false;
+                              c=base;
+                              flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+                            //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+                              c.xyz=RgbToHsb(c.xyz);
+                              c.x  =hue;
+                              c.xyz=HsbToRgb(c.xyz);
+                              if(photo)
+                              {
+                                 c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                               //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+                              }
+                           }break;
 
                            case APPLY_MUL_RGB_SAT:
                            {

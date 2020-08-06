@@ -30,9 +30,9 @@ class TransformRegion : Region
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
-   Button         rescale_height, rescale_depth, move_bottom, move_back, move_center, move_center_xz, rest_bottom, rot_y_min_box, ok, reset, cancel, close, original,
+   Button         rescale_width, rescale_height, rescale_depth, move_bottom, move_back, move_center, move_center_xz, rest_bottom, rot_y_min_box, ok, reset, cancel, close, original,
                   rot[3][2]; // [xyz][dec/inc]
-   TextLine       rescale_height_value, rescale_depth_value;
+   TextLine       rescale_width_value, rescale_height_value, rescale_depth_value;
    Pose           trans;
    flt            trans_normal=0;
    Vec            trans_scale=1, anchor_pos=0;
@@ -40,6 +40,15 @@ class TransformRegion : Region
    Matrix         matrix(1);
    ANCHOR         anchor=SEL_CENTER;
 
+   static void RescaleWidth(TransformRegion &tr)
+   {
+      if(flt w=ObjEdit.mesh_box.w())
+      if(flt t=TextFlt(tr.rescale_width_value()))
+      {
+         tr.trans.scale=t/w;
+         tr.toGui();
+      }
+   }
    static void RescaleHeight(TransformRegion &tr)
    {
       if(flt h=ObjEdit.mesh_box.h())
@@ -332,6 +341,7 @@ if(full)
       REPD(a, 3)REPD(i, 2)T+=rot[a][i].create(Rect_LU(rot_p[a].button.rect().ru()+Vec2(0.01+prop_height*i, 0), prop_height)).setImage(i ? "Gui/arrow_right_big.img" : "Gui/arrow_left_big.img").func(i ? Inc90 : Dec90, *rot_p[a]);
       if(!full)
       {
+         T+=rescale_width    .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29, elm_height), "Rescale Width to:").func(RescaleWidth  , T); T+=rescale_width_value .create(Rect_LU(rescale_width .rect().max.x+e, prop_rect.min.y, 0.09, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=rescale_height   .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29, elm_height), "Rescale Height to:").func(RescaleHeight, T); T+=rescale_height_value.create(Rect_LU(rescale_height.rect().max.x+e, prop_rect.min.y, 0.09, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=rescale_depth    .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29, elm_height), "Rescale Depth to:" ).func(RescaleDepth , T); T+=rescale_depth_value .create(Rect_LU(rescale_depth .rect().max.x+e, prop_rect.min.y, 0.09, elm_height), "1"); prop_rect.min.y-=prop_height;
          T+=   move_bottom   .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.33, elm_height), "Move Bottom to Y=0").func(MoveBottom, T); prop_rect.min.y-=prop_height;

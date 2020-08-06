@@ -21,9 +21,9 @@ class TransformRegion : Region
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
-   Button         rescale_height, rescale_depth, move_bottom, move_back, move_center, move_center_xz, rest_bottom, rot_y_min_box, ok, reset, cancel, close, original,
+   Button         rescale_width, rescale_height, rescale_depth, move_bottom, move_back, move_center, move_center_xz, rest_bottom, rot_y_min_box, ok, reset, cancel, close, original,
                   rot[3][2]; // [xyz][dec/inc]
-   TextLine       rescale_height_value, rescale_depth_value;
+   TextLine       rescale_width_value, rescale_height_value, rescale_depth_value;
    Pose           trans;
    flt            trans_normal;
    Vec            trans_scale, anchor_pos;
@@ -31,6 +31,7 @@ class TransformRegion : Region
    Matrix         matrix;
    ANCHOR         anchor;
 
+   static void RescaleWidth(TransformRegion &tr);
    static void RescaleHeight(TransformRegion &tr);
    static void RescaleDepth(TransformRegion &tr);
    static void MoveBottom  (TransformRegion &tr);

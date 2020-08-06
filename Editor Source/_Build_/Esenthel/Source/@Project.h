@@ -185,6 +185,8 @@ class Project
       APPLY_ADD,
       APPLY_ADD_RGB,
       APPLY_ADD_LUM,
+      APPLY_ADD_HUE,
+      APPLY_SET_HUE,
       APPLY_SUB,
       APPLY_GAMMA,
       APPLY_BRIGHTNESS,
