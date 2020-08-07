@@ -1834,7 +1834,7 @@ void Application::windowCreate()
       GLX_STENCIL_SIZE , 8,
       GLX_DOUBLEBUFFER , true,
    #if LINEAR_GAMMA
-		GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, LINEAR_GAMMA,
+      GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, LINEAR_GAMMA,
    #endif
       NULL // end of list
    };
