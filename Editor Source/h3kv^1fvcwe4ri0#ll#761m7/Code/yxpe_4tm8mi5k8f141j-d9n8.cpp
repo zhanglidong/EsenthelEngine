@@ -54,6 +54,7 @@ class AdjustBoneOrns : PropWin
              force_eye_forward=true,
              force_nose_forward=true,
              force_jaw_forward=true,
+             force_breast_forward=true,
              force_spine_up=false,
              force_neck_up=false,
              force_head_up=true,
@@ -127,9 +128,11 @@ class AdjustBoneOrns : PropWin
          if(skel.findBoneI(test)<0)return test;
       }
    }
-   void setBoneLength(Skeleton &skel, SkelBone &bone, flt min_length) // set length as Max of all children
+   static void SetBoneLength(Skeleton &skel, SkelBone &bone, flt min_length) // set length as Max of all children
    {
       bone.length=min_length;
+
+      if(!bone.children_num)MAX(bone.length, BoneMeshLength(bone));else
       REP(bone.children_num)if(SkelBone *child=skel.bones.addr(bone.children_offset+i))
          MAX(bone.length, DistPointPlane(child.pos, bone.pos, bone.dir));
    }
@@ -175,12 +178,12 @@ class AdjustBoneOrns : PropWin
          if(force_neck_up && bone.type==BONE_NECK)
          {
             bone.rotateToDir(Vec(0, 1, 0));
-            setBoneLength(skel, bone, min_length);
+            SetBoneLength(skel, bone, min_length);
          }else
          if(force_spine_up && bone.type==BONE_SPINE)
          {
             bone.rotateToDir(Vec(0, 1, 0));
-            setBoneLength(skel, bone, min_length);
+            SetBoneLength(skel, bone, min_length);
          }else
          if(force_eye_forward && (bone.type==BONE_EYE || bone.type==BONE_EYELID || bone.type==BONE_EYEBROW) && bone.type_sub==0)
          {
@@ -197,10 +200,21 @@ class AdjustBoneOrns : PropWin
             bone.rotateToDir(Vec(0, 0, 1));
             bone.length=Max(min_length, BoneMeshLength(bone));
          }else
-         if(force_toe_forward && bone.type==BONE_TOE && !bone.children_num)
+         if(force_breast_forward && bone.type==BONE_BREAST && bone.type_sub==0)
          {
             bone.rotateToDir(Vec(0, 0, 1));
-            bone.length=Max(min_length, BoneMeshLength(bone));
+            SetBoneLength(skel, bone, min_length);
+         }else
+         if(force_toe_forward && bone.type==BONE_TOE && bone.type_sub==0)
+         {
+            if(1 && parent) // rotate to parent
+            {
+               Vec dir=bone.pos-parent.pos; dir.y=0; if(dir.normalize())bone.rotateToDir(dir);
+            }else // forward
+            {
+               bone.rotateToDir(Vec(0, 0, 1));
+            }
+            SetBoneLength(skel, bone, min_length);
          }else
          if(rotate_shoulder && bone.type==BONE_SHOULDER)
          {
@@ -347,15 +361,16 @@ class AdjustBoneOrns : PropWin
             if(parent)
             {
                bone.rotateToDir(parent.dir);
-               setBoneLength(skel, bone, min_length);
+               SetBoneLength(skel, bone, min_length);
                continue;
             }
          }
       }
-      if(reset_perp)REPA(skel.bones)
+      if(reset_perp)FREPA(skel.bones) // process parents first
       {
          SkelBone &bone=skel.bones[i]; if(bone.type)
          {
+          C SkelBone *parent=skel.bones.addr(bone.parent);
             switch(bone.type)
             {
                case BONE_SPINE:
@@ -363,8 +378,29 @@ class AdjustBoneOrns : PropWin
                case BONE_HEAD : bone.perp.set(0, -1,  1); break; // use diagonal because of animals standing on 4 feet
 
                case BONE_UPPER_LEG:
-               case BONE_LOWER_LEG:
-               case BONE_FOOT     : bone.perp.set(0, 0,  1); break;
+               case BONE_LOWER_LEG: bone.perp.set(0, 0, 1); break;
+
+               case BONE_FOOT:
+               {
+                   bone.perp.set(0, 0, 1);
+                   if(1 && bone.children_num) // optional, rotate towards children
+                   {
+                     Vec child_pos=0;
+                     int children_num=0;
+                     REP(bone.children_num)
+                        if(SkelBone *child=skel.bones.addr(bone.children_offset+i))
+                           if(child.type==BONE_TOE)
+                     {
+                        child_pos+=child.pos;
+                        children_num++;
+                     }
+                     if(children_num)
+                     {
+                        child_pos/=children_num;
+                        bone.perp=child_pos-bone.pos;
+                     }
+                   }
+               }break;
 
                case BONE_CAPE: bone.perp.set(0, 0, -1); break;
                default       : bone.perp.set(0, 1,  0); break;
@@ -373,10 +409,17 @@ class AdjustBoneOrns : PropWin
                case BONE_LOWER_ARM:
                case BONE_HAND     :
                case BONE_FINGER   :
-               { // set as vertical perpendicular because some characters have arms downwards
-                 // if bone.dir.y=0 then (0,1,0), if bone.dir.y=-1 then (1,0,0) for right and (-1,0,0) for left
-                  flt x=bone.dir.y*SignBool(bone.type_index<0);
-                  bone.perp.set(x, CosSin(x), 0);
+               {
+                  if(parent)
+                  {
+                     Orient temp=*parent; temp.rotateToDir(bone.dir); bone.perp=temp.perp;
+                  }else
+                  {
+                     // set as vertical perpendicular because some characters have arms downwards
+                     // if bone.dir.y=0 then (0,1,0), if bone.dir.y=-1 then (1,0,0) for right and (-1,0,0) for left
+                     flt x=bone.dir.y*SignBool(bone.type_index<0);
+                     bone.perp.set(x, CosSin(x), 0);
+                  }
                }break;
             }
             bone.fixPerp();
@@ -414,6 +457,7 @@ class AdjustBoneOrns : PropWin
       add("Force Eye Forward"       , MEMBER(AdjustBoneOrns, force_eye_forward));
       add("Force Nose Forward"      , MEMBER(AdjustBoneOrns, force_nose_forward));
       add("Force Jaw Forward"       , MEMBER(AdjustBoneOrns, force_jaw_forward));
+      add("Force Breast Forward"    , MEMBER(AdjustBoneOrns, force_breast_forward));
       add("Force Toe Forward"       , MEMBER(AdjustBoneOrns, force_toe_forward));
       add("Hand"                    , MEMBER(AdjustBoneOrns, hand_mode)).setEnum(HandMode, Elms(HandMode));
       add("Foot"                    , MEMBER(AdjustBoneOrns, foot_mode)).setEnum(FootMode, Elms(FootMode));

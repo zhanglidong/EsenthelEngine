@@ -1649,7 +1649,8 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::setAnimSkel(bool force)
    {
-      if(skel)
+      Animation *anim=getVisAnim();
+      if(anim && skel)
       {
          if(anim_skel.skeleton()!=skel || anim_skel.bones.elms()!=skel->bones.elms() || anim_skel.slots.elms()!=skel->slots.elms() || force)anim_skel.create(skel);
          skel_anim.create(*skel, *anim);
@@ -1665,7 +1666,7 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::setMeshSkel()
    {
-      if(Animation *anim=getVisAnim())if(ElmAnim *anim_data=data())if(Elm *skel_elm=Proj.findElm(anim_data->skel_id))if(ElmSkel *skel_data=skel_elm->skelData())if(skel_data->mesh_id.valid()) // get mesh from anim->skel->mesh
+      if(ElmAnim *anim_data=data())if(Elm *skel_elm=Proj.findElm(anim_data->skel_id))if(ElmSkel *skel_data=skel_elm->skelData())if(skel_data->mesh_id.valid()) // get mesh from anim->skel->mesh
       {
          mesh_id=skel_data->mesh_id;
          skel_id=skel_elm ->id;

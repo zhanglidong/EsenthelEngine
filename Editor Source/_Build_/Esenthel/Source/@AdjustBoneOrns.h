@@ -41,6 +41,7 @@ class AdjustBoneOrns : PropWin
              force_eye_forward,
              force_nose_forward,
              force_jaw_forward,
+             force_breast_forward,
              force_spine_up,
              force_neck_up,
              force_head_up,
@@ -60,7 +61,7 @@ class AdjustBoneOrns : PropWin
    static bool SetTarget(SkelBone &bone, C Vec &pos);
    static flt BoneMeshLength(C SkelBone &bone);
    static Str8 UniqueName(C Skeleton &skel, C Str8 &name);
-   void setBoneLength(Skeleton &skel, SkelBone &bone, flt min_length); // set length as Max of all children
+   static void SetBoneLength(Skeleton &skel, SkelBone &bone, flt min_length); // set length as Max of all children
    bool adjustDo(Skeleton &skel, Mesh *mesh=null); // return if mesh was changed
 
    Skeleton& getSkel();
