@@ -374,6 +374,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlFlipNrmYOff         (ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
    static void MtrlReloadBaseTex       (ProjectEx &proj) {                proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
 
+   static void MtrlSetColorTexCur      (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit.  color_map);else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetNormalTexCur     (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit. normal_map);else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetSmoothTexCur     (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit. smooth_map);else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetReflectTexCur    (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexReflect  (proj.menu_list_sel, MtrlEdit.edit.reflect_map);else Gui.msgBox(S, "There's no Material opened");}
@@ -1500,6 +1501,20 @@ class ProjectEx : ProjectHierarchy
          {
             if(mul)edit.glow*=glow;else edit.glow=glow; edit.glow_time.now();
             ok&=mtrlSync(elm_ids[i], edit, false, false, "setGlow");
+         }
+      }
+      return ok;
+   }
+   bool mtrlSetTexColor(C MemPtr<UID> &elm_ids, C Str &color_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.color_map, color_map, true))
+         {
+            edit.color_map=color_map; edit.color_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexCol");
          }
       }
       return ok;
@@ -4046,6 +4061,7 @@ class ProjectEx : ProjectHierarchy
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
                   m.New().create("Set Glow Value to Edited Material"   , MtrlSetGlowCur   , T);
                   m++;
+                  m.New().create("Set Color Texture to Edited Material"  , MtrlSetColorTexCur  , T);
                   m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
                   m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
                   m.New().create("Set Reflect Texture to Edited Material", MtrlSetReflectTexCur, T);

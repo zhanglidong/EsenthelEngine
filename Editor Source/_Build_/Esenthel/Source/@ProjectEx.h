@@ -239,6 +239,7 @@ public:
    static void MtrlFlipNrmYOff         (ProjectEx &proj);
    static void MtrlReloadBaseTex       (ProjectEx &proj);
 
+   static void MtrlSetColorTexCur      (ProjectEx &proj);
    static void MtrlSetNormalTexCur     (ProjectEx &proj);
    static void MtrlSetSmoothTexCur     (ProjectEx &proj);
    static void MtrlSetReflectTexCur    (ProjectEx &proj);
@@ -368,6 +369,7 @@ public:
    bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
    bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
    bool mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul=false);
+   bool mtrlSetTexColor(C MemPtr<UID> &elm_ids, C Str &color_map);
    bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
    bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
    bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
