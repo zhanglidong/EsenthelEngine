@@ -103,7 +103,7 @@ MeshLod& MeshLod::setEdgeNormals(Bool flag                          ) {REPAO(par
 MeshLod& MeshLod::setFaceNormals(                                   ) {REPAO(parts).base.setFaceNormals(                      ); return T;}
 MeshLod& MeshLod::setNormals2D  (Bool flag                          ) {REPAO(parts).base.setNormals2D  (flag                  ); return T;}
 MeshLod& MeshLod::setNormals    (                                   ) {REPAO(parts).base.setNormals    (                      ); return T;}
-MeshLod& MeshLod::setNormalsAuto(Flt  angle                         ) {REPAO(parts).base.setNormalsAuto(angle                 ); return T;}
+MeshLod& MeshLod::setNormalsAuto(Flt  angle, Flt pos_eps            ) {REPAO(parts).base.setNormalsAuto(angle, pos_eps        ); return T;}
 MeshLod& MeshLod::setTanBin     (                                   ) {REPAO(parts).base.setTanBin     (                      ); return T;}
 MeshLod& MeshLod::setAutoTanBin (                                   ) {REPAO(parts).     setAutoTanBin (                      ); return T;}
 MeshLod& MeshLod::setVtxDup2D   (UInt flag, Flt pos_eps, Flt nrm_cos) {REPAO(parts).base.setVtxDup2D   (flag, pos_eps, nrm_cos); return T;}

@@ -800,9 +800,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshSetPos(ObjView &editor) {editor.meshSetPos     ();}
    void ObjView::MeshReverse(ObjView &editor) {editor.meshReverse    ();}
    void ObjView::MeshReverseNrm(ObjView &editor) {editor.meshReverseNrm ();}
+   void ObjView::MeshSetNormalFa(ObjView &editor) {editor.meshSetNrmFace (        );}
    void ObjView::MeshSetNormalN(ObjView &editor) {editor.meshSetNrm     (VTX_NRM );}
-   void ObjView::MeshSetNormalT(ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
    void ObjView::MeshSetNormalP(ObjView &editor) {editor.meshSetNrm     (VTX_POS );}
+   void ObjView::MeshSetNormalT(ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
    void ObjView::MeshSetNormal(ObjView &editor) {editor.meshSetNrm     (       0);}
    void ObjView::MeshSetNormalH(ObjView &editor) {editor.meshSetNrmH    (        );}
    void ObjView::MeshNormalY(ObjView &editor) {editor.meshNrmY       ();}
@@ -1360,9 +1361,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Reverse"                       , MeshReverse    , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD                    )).desc("This option will reverse the selected faces");
          n.New().create("Reverse Normals"               , MeshReverseNrm , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will reverse normals of selected vertexes/faces");
          n.New().create("Set Normals (Normal)"          , MeshSetNormalN , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD                    )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on existing normal vertex connections");
-         n.New().create("Set Normals (UV)"              , MeshSetNormalT , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
-         n.New().create("Set Normals (Position)"        , MeshSetNormalP , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on vertex connections");
-         n.New().create("Set Normals (None)"            , MeshSetNormal  , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces");
+         n.New().create("Set Normals (Position)"        , MeshSetNormalP , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on vertex connections");
+         n.New().create("Set Normals (Face Normal)"     , MeshSetNormalFa, T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on face normals");
+         n.New().create("Set Normals (UV)"              , MeshSetNormalT , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
+         n.New().create("Set Normals (None)"            , MeshSetNormal  , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL                    )).desc("This option will set normals of selected vertexes/faces");
          n.New().create("Set Normals (Highlight)"       , MeshSetNormalH , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
          n.New().create("Align Normals Up"              , MeshNormalY    , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
          n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ    , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");

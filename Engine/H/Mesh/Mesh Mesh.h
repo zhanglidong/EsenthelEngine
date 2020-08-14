@@ -66,12 +66,12 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    Mesh& setEdgeNormals(Bool flag=false); // recalculate edge 2D normals, 'flag'=if include ETQ_FLAG behavior
    Mesh& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior
 #endif
-   Mesh& setNormals    (              ); // recalculate vertex            3D normals
-   Mesh& setNormalsAuto(Flt angle=PI_3); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals
-   Mesh& setFaceNormals(              ); // recalculate triangle and quad 3D normals
-   Mesh& setTanBin     (              ); // recalculate vertex            3D tangents and binormals
-   Mesh& setAutoTanBin (              ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
-   Bool  setBox        (Bool skip_hidden_parts=true); // recalculate bounding box, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail
+   Mesh& setNormals    (                               ); // recalculate vertex            3D normals
+   Mesh& setNormalsAuto(Flt angle=PI_3, Flt pos_eps=EPS); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals
+   Mesh& setFaceNormals(                               ); // recalculate triangle and quad 3D normals
+   Mesh& setTanBin     (                               ); // recalculate vertex            3D tangents and binormals
+   Mesh& setAutoTanBin (                               ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
+   Bool  setBox        (Bool skip_hidden_parts=true    ); // recalculate bounding box, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail
 
 #if EE_PRIVATE
    Mesh& setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                                 ); // set vertex color alpha   (vtx.color.a) as tesselation intensity, 'tesselate_edges'=if tesselate non continuous edges

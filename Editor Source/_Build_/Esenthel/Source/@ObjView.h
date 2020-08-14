@@ -273,9 +273,10 @@ public:
    static void MeshSetPos     (ObjView &editor); void meshSetPos    ();
    static void MeshReverse    (ObjView &editor); void meshReverse   ();
    static void MeshReverseNrm (ObjView &editor); void meshReverseNrm();
-   static void MeshSetNormalN (ObjView &editor);         void meshSetNrm(uint vtx_test);
-   static void MeshSetNormalT (ObjView &editor);      
+   static void MeshSetNormalFa(ObjView &editor);         void meshSetNrmFace();
+   static void MeshSetNormalN (ObjView &editor);         void meshSetNrm    (uint vtx_test);
    static void MeshSetNormalP (ObjView &editor);      
+   static void MeshSetNormalT (ObjView &editor);      
    static void MeshSetNormal  (ObjView &editor);      
    static void MeshSetNormalH (ObjView &editor);         void meshSetNrmH();
    static void MeshNormalY    (ObjView &editor); void meshNrmY       ();

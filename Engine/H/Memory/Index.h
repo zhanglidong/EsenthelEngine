@@ -99,8 +99,9 @@ inline Bool IndSave(File &f, C VecI4 *ind, Int inds, Int elms=-1) {return IndSav
 inline Bool IndLoad(File &f,   VecI4 *ind, Int inds             ) {return IndLoad(f, ind->c, inds*4      );}
 #endif
 /******************************************************************************/
-inline Int Elms(C IndexGroup    &index) {return index.num;}
-inline Int Elms(C IndexPtrGroup &index) {return index.num;}
+inline Int Elms(C IndexGroup    &index) {return index.num   ;}
+inline Int Elms(C IndexPtrGroup &index) {return index.num   ;}
+inline Int Elms(C Index         &index) {return index.groups;}
 /******************************************************************************/
 #endif
 Bool  ElmIs(C MemPtr<Bool> &is, Int i); // if i-th element is in range and set to true

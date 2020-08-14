@@ -456,7 +456,7 @@ void MeshBase::linkVtxVtxOnEdge(Index &vtx_vtx, Bool sort)C
    {
     C Vec        *pos=vtx.pos();
       FloatIndex *fi =Alloc<FloatIndex>(vtx_vtx.group_elms_max);
-      FREP(vtx_vtx.groups)
+      FREPA(vtx_vtx)
       {
          IndexGroup &ig    =vtx_vtx.group[i];
        C Vec2       &center=pos[i].xy;
@@ -484,7 +484,7 @@ void MeshBase::linkVtxEdge(Index &vtx_edge, Bool sort)C
    {
     C Vec        *pos=vtx.pos();
       FloatIndex *fi =Alloc<FloatIndex>(vtx_edge.group_elms_max);
-      FREP(vtx_edge.groups)
+      FREPA(vtx_edge)
       {
          IndexGroup &ig    =vtx_edge.group[i];
        C Vec2       &center=pos[i].xy;

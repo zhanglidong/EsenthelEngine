@@ -219,6 +219,27 @@ void ObjView.meshReverseNrm()
    }
    if(changed)setChangedMesh(true, false);
 }
+void ObjView.meshSetNrmFace()
+{
+   bool changed=false;
+   MeshLod &lod=getLod();
+   flt  pos_eps=vtxDupPosEps();
+      mesh_undos.set("setNrm");
+   if(mesh_parts.edit_selected())
+   {
+      // TODO:
+   }else
+   {
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
+      {
+         MeshBase &base=part.base;
+         base.setNormalsAuto(PI_3, pos_eps);
+         base.setTanBin(); part.setRender(); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
+         changed=true;
+      }
+   }
+   if(changed)setChangedMesh(true, false);
+}
 void ObjView.meshSetNrm(uint vtx_test)
 {
    const bool avg=false;
@@ -231,8 +252,8 @@ void ObjView.meshSetNrm(uint vtx_test)
       Memt<VecI2> vtxs; getSelectedVtxs(vtxs); if(vtxs.elms())
       {
          // set normals on entire 'temp' copy
-         MeshLod temp; temp.create(lod);
-         if(vtx_test)temp.setVtxDup(vtx_test, pos_eps);else temp.exclude(VTX_DUP);
+         MeshLod temp; temp.create(lod, ~VTX_DUP); // copy everything except VTX_DUP
+         if(vtx_test)temp.setVtxDup(vtx_test, pos_eps);
          temp.setNormals();
 
          // copy normals on selected vertexes
@@ -242,8 +263,8 @@ void ObjView.meshSetNrm(uint vtx_test)
             if(C MeshPart *src =temp.parts.addr(v.x))if(InRange(v.y,  src.base.vtx) && src.base.vtx.nrm())
             if(  MeshPart *dest= lod.parts.addr(v.x))if(InRange(v.y, dest.base.vtx))
             {
-               if(!dest.base.vtx.nrm()){dest.base.include(VTX_NRM); CopyN(dest.base.vtx.nrm(), src.base.vtx.nrm(), dest.base.vtxs());}
-               dest.base.vtx.nrm(v.y)=src.base.vtx.nrm(v.y);
+               if(dest.base.vtx.nrm())dest.base.vtx.nrm(v.y)=src.base.vtx.nrm(v.y);else
+               if(dest.base.vtxs()==src.base.vtxs()){dest.base.include(VTX_NRM); CopyN(dest.base.vtx.nrm(), src.base.vtx.nrm(), dest.base.vtxs());} // copy all
                changed=true;
             }
          }

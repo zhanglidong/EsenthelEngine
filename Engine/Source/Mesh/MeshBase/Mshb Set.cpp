@@ -206,6 +206,61 @@ MeshBase& MeshBase::setNormals()
    if(vtx.dup())REPA(vtx)vtx.nrm(i)=vtx.nrm(vtx.dup(i));
    return T;
 }
+MeshBase& MeshBase::setNormalsAuto(Flt angle, Flt pos_eps)
+{
+   explodeVtxs();
+   include(VTX_NRM); ZeroN(vtx.nrm(), vtxs());
+   
+   {
+      Memt<Vec> vtx_nrm_face; vtx_nrm_face.setNumZero(vtxs()); // vertex normals from face, unnormalized
+
+      REPA(tri)
+      {
+       C VecI &f  =tri.ind(i);
+         Vec   nrm=GetNormalU(vtx.pos(f.c[0]), vtx.pos(f.c[1]), vtx.pos(f.c[2]));
+         vtx_nrm_face[f.c[0]]+=nrm;
+         vtx_nrm_face[f.c[1]]+=nrm;
+         vtx_nrm_face[f.c[2]]+=nrm;
+      }
+
+      REPA(quad)
+      {
+       C VecI4 &f=quad.ind(i);
+       C Vec  &v0=vtx.pos(f.c[0]),
+              &v1=vtx.pos(f.c[1]),
+              &v2=vtx.pos(f.c[2]),
+              &v3=vtx.pos(f.c[3]),
+              nrm=GetNormalU(v0, v1, v3)+GetNormalU(v1, v2, v3);
+         vtx_nrm_face[f.c[0]]+=nrm;
+         vtx_nrm_face[f.c[1]]+=nrm;
+         vtx_nrm_face[f.c[2]]+=nrm;
+         vtx_nrm_face[f.c[3]]+=nrm;
+      }
+
+      Index vtx_vtx; linkVtxVtxSamePos(vtx_vtx, pos_eps, false); // link only single connections
+      Flt cos=Cos(angle);
+      REPA(vtx_vtx) // iterate all vtxs
+      {
+       C Vec        &vtx_nrm=vtx_nrm_face[i];
+       C IndexGroup &ig=vtx_vtx.group[i]; REPAD(j, ig) // iterate all vtxs in the same position
+         {
+            Int  test_vtx=ig[j];
+          C Vec &test_vtx_nrm=vtx_nrm_face[test_vtx];
+            if(CosBetween(vtx_nrm, test_vtx_nrm)>=cos) // use 'CosBetween' because vectors are not normalized, and >= instead of <= because we're comparing Cos instead of angles
+            { // share normals between vertexes
+               vtx.nrm(       i)+=test_vtx_nrm;
+               vtx.nrm(test_vtx)+=     vtx_nrm;
+            }
+         }
+         vtx.nrm(i)+=vtx_nrm; // add self
+      }
+   } // <- releases temp memory
+
+   Normalize(vtx.nrm(), vtxs());
+   weldVtx(VTX_ALL, pos_eps, EPS_COL_COS, -1);
+
+   return T;
+}
 /******************************************************************************/
 MeshBase& MeshBase::setTanBin()
 {
