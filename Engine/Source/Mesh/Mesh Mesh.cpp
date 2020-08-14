@@ -326,12 +326,13 @@ C MeshLod& Mesh::getDrawLod (Flt dist2)C {REPA(_lods){C MeshLod &test=_lods[i]; 
 /******************************************************************************/
 // SET
 /******************************************************************************/
-Mesh& Mesh::setEdgeNormals(Bool flag) {REP(lods())lod(i).setEdgeNormals(flag); return T;}
-Mesh& Mesh::setFaceNormals(         ) {REP(lods())lod(i).setFaceNormals(    ); return T;}
-Mesh& Mesh::setNormals2D  (Bool flag) {REP(lods())lod(i).setNormals2D  (flag); return T;}
-Mesh& Mesh::setNormals    (         ) {REP(lods())lod(i).setNormals    (    ); return T;}
-Mesh& Mesh::setTanBin     (         ) {REP(lods())lod(i).setTanBin     (    ); return T;}
-Mesh& Mesh::setAutoTanBin (         ) {REP(lods())lod(i).setAutoTanBin (    ); return T;}
+Mesh& Mesh::setEdgeNormals(Bool flag ) {REP(lods())lod(i).setEdgeNormals(flag ); return T;}
+Mesh& Mesh::setFaceNormals(          ) {REP(lods())lod(i).setFaceNormals(     ); return T;}
+Mesh& Mesh::setNormals2D  (Bool flag ) {REP(lods())lod(i).setNormals2D  (flag ); return T;}
+Mesh& Mesh::setNormals    (          ) {REP(lods())lod(i).setNormals    (     ); return T;}
+Mesh& Mesh::setNormalsAuto(Flt  angle) {REP(lods())lod(i).setNormalsAuto(angle); return T;}
+Mesh& Mesh::setTanBin     (          ) {REP(lods())lod(i).setTanBin     (     ); return T;}
+Mesh& Mesh::setAutoTanBin (          ) {REP(lods())lod(i).setAutoTanBin (     ); return T;}
 Bool  Mesh::setBox        (Bool skip_hidden_parts)
 {
    Box box; if(getBox(box, skip_hidden_parts))

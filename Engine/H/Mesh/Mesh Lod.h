@@ -52,10 +52,11 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& setEdgeNormals(Bool flag=false); // recalculate edge 2D normals, 'flag'=if include ETQ_FLAG behavior
    MeshLod& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior
 #endif
-   MeshLod& setNormals    (); // recalculate vertex            3D normals
-   MeshLod& setFaceNormals(); // recalculate triangle and quad 3D normals
-   MeshLod& setTanBin     (); // recalculate vertex            3D tangents and binormals
-   MeshLod& setAutoTanBin (); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
+   MeshLod& setNormals    (              ); // recalculate vertex            3D normals
+   MeshLod& setNormalsAuto(Flt angle=PI_3); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals
+   MeshLod& setFaceNormals(              ); // recalculate triangle and quad 3D normals
+   MeshLod& setTanBin     (              ); // recalculate vertex            3D tangents and binormals
+   MeshLod& setAutoTanBin (              ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
 
 #if EE_PRIVATE
    MeshLod& setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                                 ); // set vertex color alpha   (vtx.color.a) as tesselation intensity, 'tesselate_edges'=if tesselate non continuous edges

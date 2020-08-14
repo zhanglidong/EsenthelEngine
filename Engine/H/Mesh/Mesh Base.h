@@ -345,6 +345,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& setVtxDupEx   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt tan_cos=EPS_TAN_COS, Flt bin_cos=EPS_BIN_COS, Bool tex_wrap=false, Bool smooth_groups_in_vtx_material=false);
 #endif
    MeshBase& setNormals    (                                                     ); // recalculate vertex            3D normals
+   MeshBase& setNormalsAuto(Flt angle=PI_3                                       ); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals
    MeshBase& setFaceNormals(                                                     ); // recalculate triangle and quad 3D normals
    MeshBase& setTanBin     (                                                     ); // recalculate vertex            3D tangents and binormals
    MeshBase& setAutoTanBin (                                                     ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed

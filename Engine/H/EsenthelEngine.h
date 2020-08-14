@@ -154,9 +154,9 @@ namespace EE // Esenthel Engine namespace
    #include "Misc/String Borrowed.h"
    #include "Memory/Node.h"
    #include "Misc/Date Time.h"
-   #include "Memory/Index.h"
    //
    #include "Math/Vector.h"
+   #include "Memory/Index.h"
    #include "Graphics/Color.h"
    #include "Misc/Timer.h"
    #include "Math/Matrix.h"

@@ -174,7 +174,7 @@ void IndRemap(C MemPtr<Int> &remap, Int *ind, Int elms)
    for(; elms-->0; ind++)*ind=(InRange(*ind, remap) ? remap[*ind] : -1);
 }
 /******************************************************************************/
-Bool IndSave(File &f, CPtr ind, Int inds, Int elms)
+Bool IndSave(File &f, C Int *ind, Int inds, Int elms)
 {
    Int bytes=4;
    if(elms>0)
@@ -200,7 +200,7 @@ Bool IndSave(File &f, CPtr ind, Int inds, Int elms)
    f.put(data, size);
    return f.ok();
 }
-Bool IndLoad(File &f, Ptr ind, Int inds)
+Bool IndLoad(File &f, Int *ind, Int inds)
 {
    Int        bytes=f.getByte()/8,
               size=inds*bytes;

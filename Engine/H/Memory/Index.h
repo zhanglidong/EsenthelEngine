@@ -89,8 +89,14 @@ inline void IndRemap(C MemPtr<Int> &remap, VecI2 *ind, Int elms) {IndRemap(remap
 inline void IndRemap(C MemPtr<Int> &remap, VecI  *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*3);}
 inline void IndRemap(C MemPtr<Int> &remap, VecI4 *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*4);}
 
-Bool IndSave(File &f, CPtr ind, Int inds, Int elms=-1);
-Bool IndLoad(File &f,  Ptr ind, Int inds);
+       Bool IndSave(File &f, C Int   *ind, Int inds, Int elms=-1);
+       Bool IndLoad(File &f,   Int   *ind, Int inds             );
+inline Bool IndSave(File &f, C VecI2 *ind, Int inds, Int elms=-1) {return IndSave(f, ind->c, inds*2, elms);}
+inline Bool IndLoad(File &f,   VecI2 *ind, Int inds             ) {return IndLoad(f, ind->c, inds*2      );}
+inline Bool IndSave(File &f, C VecI  *ind, Int inds, Int elms=-1) {return IndSave(f, ind->c, inds*3, elms);}
+inline Bool IndLoad(File &f,   VecI  *ind, Int inds             ) {return IndLoad(f, ind->c, inds*3      );}
+inline Bool IndSave(File &f, C VecI4 *ind, Int inds, Int elms=-1) {return IndSave(f, ind->c, inds*4, elms);}
+inline Bool IndLoad(File &f,   VecI4 *ind, Int inds             ) {return IndLoad(f, ind->c, inds*4      );}
 #endif
 /******************************************************************************/
 inline Int Elms(C IndexGroup    &index) {return index.num;}

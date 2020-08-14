@@ -162,14 +162,14 @@ Bool MeshBase::saveData(File &f)C
    if(flag& TRI_ID)f.putN(tri .id(), tris );
    if(flag&QUAD_ID)f.putN(quad.id(), quads);
 
-   if(flag&EDGE_IND     )IndSave(f, edge.ind    (), edges*2, vtxs);
-   if(flag& TRI_IND     )IndSave(f, tri .ind    (), tris *3, vtxs);
-   if(flag&QUAD_IND     )IndSave(f, quad.ind    (), quads*4, vtxs);
-   if(flag&EDGE_ADJ_FACE)IndSave(f, edge.adjFace(), edges*2); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
-   if(flag& TRI_ADJ_FACE)IndSave(f, tri .adjFace(), tris *3); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
-   if(flag&QUAD_ADJ_FACE)IndSave(f, quad.adjFace(), quads*4); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
-   if(flag& TRI_ADJ_EDGE)IndSave(f, tri .adjEdge(), tris *3); // can't use size reduction for adjacent edges because they can contain -1
-   if(flag&QUAD_ADJ_EDGE)IndSave(f, quad.adjEdge(), quads*4); // can't use size reduction for adjacent edges because they can contain -1
+   if(flag&EDGE_IND     )IndSave(f, edge.ind    (), edges, vtxs);
+   if(flag& TRI_IND     )IndSave(f, tri .ind    (), tris , vtxs);
+   if(flag&QUAD_IND     )IndSave(f, quad.ind    (), quads, vtxs);
+   if(flag&EDGE_ADJ_FACE)IndSave(f, edge.adjFace(), edges); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
+   if(flag& TRI_ADJ_FACE)IndSave(f, tri .adjFace(), tris ); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
+   if(flag&QUAD_ADJ_FACE)IndSave(f, quad.adjFace(), quads); // can't use size reduction for adjacent faces because they can contain -1 and SIGN_BIT
+   if(flag& TRI_ADJ_EDGE)IndSave(f, tri .adjEdge(), tris ); // can't use size reduction for adjacent edges because they can contain -1
+   if(flag&QUAD_ADJ_EDGE)IndSave(f, quad.adjEdge(), quads); // can't use size reduction for adjacent edges because they can contain -1
 
    return f.ok();
 }
@@ -214,14 +214,14 @@ Bool MeshBase::loadData(File &f)
          if(flag& TRI_ID)f.getN(tri .id(), tris );
          if(flag&QUAD_ID)f.getN(quad.id(), quads);
 
-         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges*2);
-         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris *3);
-         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads*4);
-         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges*2);
-         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris *3);
-         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads*4);
-         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris *3);
-         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads*4);
+         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges);
+         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris );
+         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads);
+         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges);
+         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris );
+         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads);
+         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris );
+         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads);
 
          if(f.ok())return true;
       }break;
@@ -262,14 +262,14 @@ Bool MeshBase::loadData(File &f)
          if(flag& TRI_ID)f.skip(SIZE(VecI2)*tris );
          if(flag&QUAD_ID)f.skip(SIZE(VecI2)*quads);
 
-         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges*2);
-         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris *3);
-         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads*4);
-         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges*2);
-         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris *3);
-         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads*4);
-         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris *3);
-         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads*4);
+         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges);
+         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris );
+         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads);
+         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges);
+         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris );
+         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads);
+         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris );
+         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads);
 
          if(f.ok())return true;
       }break;
@@ -310,14 +310,14 @@ Bool MeshBase::loadData(File &f)
          if(flag& TRI_ID)f.skip(SIZE(VecI2)*tris );
          if(flag&QUAD_ID)f.skip(SIZE(VecI2)*quads);
 
-         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges*2);
-         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris *3);
-         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads*4);
-         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges*2);
-         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris *3);
-         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads*4);
-         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris *3);
-         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads*4);
+         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges);
+         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris );
+         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads);
+         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges);
+         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris );
+         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads);
+         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris );
+         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads);
 
          if(f.ok())return true;
       }break;
@@ -360,14 +360,14 @@ Bool MeshBase::loadData(File &f)
          if(flag& TRI_ID)f.skip(SIZE(VecI2)*tris );
          if(flag&QUAD_ID)f.skip(SIZE(VecI2)*quads);
 
-         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges*2);
-         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris *3);
-         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads*4);
-         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges*2);
-         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris *3);
-         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads*4);
-         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris *3);
-         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads*4);
+         if(flag&EDGE_IND     )IndLoad(f, edge.ind    (), edges);
+         if(flag& TRI_IND     )IndLoad(f, tri .ind    (), tris );
+         if(flag&QUAD_IND     )IndLoad(f, quad.ind    (), quads);
+         if(flag&EDGE_ADJ_FACE)IndLoad(f, edge.adjFace(), edges);
+         if(flag& TRI_ADJ_FACE)IndLoad(f, tri .adjFace(), tris );
+         if(flag&QUAD_ADJ_FACE)IndLoad(f, quad.adjFace(), quads);
+         if(flag& TRI_ADJ_EDGE)IndLoad(f, tri .adjEdge(), tris );
+         if(flag&QUAD_ADJ_EDGE)IndLoad(f, quad.adjEdge(), quads);
 
          if(f.ok())return true;
       }break;
