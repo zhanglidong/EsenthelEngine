@@ -426,13 +426,14 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    // link
 #if EE_PRIVATE
-   void linkVtxVtxOnFace(Index &vtx_vtx                  )C; // link vertexes   with neighbor vertexes on faces
-   void linkVtxVtxOnEdge(Index &vtx_vtx , Bool sort=true )C; // link vertexes   with neighbor vertexes on edges, 'sort'=if sort vertexes in angle order
-   void linkVtxEdge     (Index &vtx_edge, Bool sort=true )C; // link vertexes   with edges, 'sort'=if sort edges in angle order
-   void linkVtxFace     (Index &vtx_face                 )C; // link vertexes   with faces
-   void linkFaceFace    (Index &face_face                )C; // link faces      with faces, first are listed triangles followed by quads
-   void linkEdgeFace    (                                ) ; // link edges      with faces
-   void linkRectEdge    (Index &rect_edge, C Rects &rects)C; // link rectangles with edges
+   void linkVtxVtxSamePos(Index &vtx_vtx , Flt pos_eps=EPS, Bool single=false)C; // link vertexes   with neighbor vertexes that share the same position, 'single'=if link only A->B connections, instead of both A->B and B->A
+   void linkVtxVtxOnFace (Index &vtx_vtx                                     )C; // link vertexes   with neighbor vertexes on faces
+   void linkVtxVtxOnEdge (Index &vtx_vtx , Bool sort=true                    )C; // link vertexes   with neighbor vertexes on edges, 'sort'=if sort vertexes in angle order
+   void linkVtxEdge      (Index &vtx_edge, Bool sort=true                    )C; // link vertexes   with edges, 'sort'=if sort edges in angle order
+   void linkVtxFace      (Index &vtx_face                                    )C; // link vertexes   with faces
+   void linkFaceFace     (Index &face_face                                   )C; // link faces      with faces, first are listed triangles followed by quads
+   void linkEdgeFace     (                                                   ) ; // link edges      with faces
+   void linkRectEdge     (Index &rect_edge, C Rects &rects                   )C; // link rectangles with edges
 #endif
    void getVtxNeighbors (Int vtx , MemPtr<Int> vtxs )C; // get 'vtxs'  neighbors of 'vtx'  (including itself), this will return an array of vertexes that are connected to each other
    void getFaceNeighbors(Int face, MemPtr<Int> faces)C; // get 'faces' neighbors of 'face' (including itself), this will return an array of faces    that are connected to each other, here the 'face' and 'faces' indexes can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"

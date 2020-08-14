@@ -4,6 +4,165 @@ namespace EE{
 /******************************************************************************/
 static inline Bool EqualTex(C Vec2 &a, C Vec2 &b, Bool wrap=false) {return wrap ? EqualWrap(a, b) : Equal(a, b);}
 /******************************************************************************/
+Int SetVtxDup(MemPtr<VtxDup> vtxs, C Box &box, Flt pos_eps)
+{
+   Int unique=0;
+
+   // link box->vtx
+   Boxes boxes  (box        , vtxs.elms());
+   Index box_vtx(boxes.num(), vtxs.elms());
+   REPA(vtxs)box_vtx.elmGroup(boxes.index(vtxs[i].pos), i); box_vtx.set();
+
+   // get duplicates
+   Int xs=boxes.cells.x,
+       ys=boxes.cells.y, xys=xs*ys;
+
+   // iterate all boxes
+   FREPD(z, boxes.cells.z)
+   FREPD(y, boxes.cells.y)
+   FREPD(x, boxes.cells.x)
+   {
+      Int         box_tests=0;
+      IndexGroup *box_test[2+3+9],
+                 *box_cur=&box_vtx.group[x + y*xs + z*xys]; // get current box
+
+      // set which neighbor boxes to test
+           box_test[box_tests++]=box_cur  ;
+      if(x)box_test[box_tests++]=box_cur-1;
+      if(y)
+      {
+         if(x<xs-1)box_test[box_tests++]=box_cur+1-xs;
+                   box_test[box_tests++]=box_cur  -xs;
+         if(     x)box_test[box_tests++]=box_cur-1-xs;
+      }
+      if(z)
+      {
+         if(y<ys-1)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1+xs-xys;
+                      box_test[box_tests++]=box_cur  +xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1+xs-xys;
+         }
+            if(x<xs-1)box_test[box_tests++]=box_cur+1   -xys;
+                      box_test[box_tests++]=box_cur     -xys;
+            if(     x)box_test[box_tests++]=box_cur-1   -xys;
+         if(y)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1-xs-xys;
+                      box_test[box_tests++]=box_cur  -xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1-xs-xys;
+         }
+      }
+
+      FREPA(*box_cur) // iterate all vertexes in this box
+      {
+         Int     vtx_cur_i=  (*box_cur)[i]; // this is i-th vtx in this box
+         VtxDup &vtx_cur  =vtxs[vtx_cur_i];
+       C Vec    &pos_cur  =vtx_cur.pos; // this is position of that vertex
+         REPD(c, box_tests) // iterate all boxes to test
+         {
+            IndexGroup *bt=box_test[c];
+            REPD(m, (box_cur==bt) ? i : bt->num) // iterate all vtxs in the test box (if the test box is the current box, then check only vertexes before the current one)
+            {
+               Int     vtx_test_i=(*bt)[m]; // this is m-th vtx in the test box
+             C VtxDup &vtx_test  =vtxs[vtx_test_i];
+               if(vtx_test.dup==vtx_test_i // if this vtx is unique (points to self), this is so that we assign mapping only to uniqe vtxs (and not to vtxs that point to other vtxs)
+               && Equal(pos_cur, vtx_test.pos, pos_eps)) // if position is the same
+               {
+                  // found a duplicate
+                  vtx_cur.dup=vtx_test_i; goto next; // set 'dup' index to point to unique 'vtx_test_i'
+               }
+            }
+         }
+         // haven't found a duplicate, so set as unique
+         vtx_cur.dup=vtx_cur_i; // set 'dup' index to point to self
+         unique++; // increase unique counter
+      next:;
+      }
+   }
+   return unique;
+}
+Int SetVtxDup(MemPtr<VtxDupNrm> vtxs, C Box &box, Flt pos_eps, Flt nrm_cos)
+{
+   Int unique=0;
+
+   // link box->vtx
+   Boxes boxes  (box        , vtxs.elms());
+   Index box_vtx(boxes.num(), vtxs.elms());
+   REPA(vtxs)box_vtx.elmGroup(boxes.index(vtxs[i].pos), i); box_vtx.set();
+
+   // get duplicates
+   Int xs=boxes.cells.x,
+       ys=boxes.cells.y, xys=xs*ys;
+
+   // iterate all boxes
+   FREPD(z, boxes.cells.z)
+   FREPD(y, boxes.cells.y)
+   FREPD(x, boxes.cells.x)
+   {
+      Int         box_tests=0;
+      IndexGroup *box_test[2+3+9],
+                 *box_cur=&box_vtx.group[x + y*xs + z*xys]; // get current box
+
+      // set which neighbor boxes to test
+           box_test[box_tests++]=box_cur  ;
+      if(x)box_test[box_tests++]=box_cur-1;
+      if(y)
+      {
+         if(x<xs-1)box_test[box_tests++]=box_cur+1-xs;
+                   box_test[box_tests++]=box_cur  -xs;
+         if(     x)box_test[box_tests++]=box_cur-1-xs;
+      }
+      if(z)
+      {
+         if(y<ys-1)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1+xs-xys;
+                      box_test[box_tests++]=box_cur  +xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1+xs-xys;
+         }
+            if(x<xs-1)box_test[box_tests++]=box_cur+1   -xys;
+                      box_test[box_tests++]=box_cur     -xys;
+            if(     x)box_test[box_tests++]=box_cur-1   -xys;
+         if(y)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1-xs-xys;
+                      box_test[box_tests++]=box_cur  -xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1-xs-xys;
+         }
+      }
+
+      FREPA(*box_cur) // iterate all vertexes in this box
+      {
+         Int        vtx_cur_i=  (*box_cur)[i]; // this is i-th vtx in this box
+         VtxDupNrm &vtx_cur  =vtxs[vtx_cur_i];
+       C Vec       &pos_cur  =vtx_cur.pos; // this is position of that vertex
+       C Vec       &nrm_cur  =vtx_cur.nrm; // this is normal   of that vertex
+         REPD(c, box_tests) // iterate all boxes to test
+         {
+            IndexGroup *bt=box_test[c];
+            REPD(m, (box_cur==bt) ? i : bt->num) // iterate all vtxs in the test box (if the test box is the current box, then check only vertexes before the current one)
+            {
+               Int        vtx_test_i=(*bt)[m]; // this is m-th vtx in the test box
+             C VtxDupNrm &vtx_test  =vtxs[vtx_test_i];
+               if(vtx_test.dup==vtx_test_i // if this vtx is unique (points to self), this is so that we assign mapping only to uniqe vtxs (and not to vtxs that point to other vtxs)
+               && Equal(pos_cur, vtx_test.pos, pos_eps) // if position is the same
+               && Dot  (nrm_cur, vtx_test.nrm)>=nrm_cos)
+               {
+                  // found a duplicate
+                  vtx_cur.dup=vtx_test_i; goto next; // set 'dup' index to point to unique 'vtx_test_i'
+               }
+            }
+         }
+         // haven't found a duplicate, so set as unique
+         vtx_cur.dup=vtx_cur_i; // set 'dup' index to point to self
+         unique++; // increase unique counter
+      next:;
+      }
+   }
+   return unique;
+}
+/******************************************************************************/
 MeshBase& MeshBase::setVtxDup2D(UInt flag, Flt pos_eps, Flt nrm_cos)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
