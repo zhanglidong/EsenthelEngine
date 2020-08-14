@@ -323,253 +323,6 @@ MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Flt tan_cos
    return T;
 }
 /******************************************************************************/
-struct EdgeAdj
-{
-   VecI2 ind, adj_face;
-
-   EdgeAdj& set(Int p0, Int p1, Int f0, Int f1) {ind.set(p0, p1); adj_face.set(f0, f1); return T;}
-};
-struct Adj
-{
-   Int face,           // face index
-       vtxi,           // index of vertex place in the face
-       face_extra_vtx; // index of vertex which is loose
-
-   void set(Int face, Int vtxi, Int face_extra_vtx) {T.face=face; T.vtxi=vtxi; T.face_extra_vtx=face_extra_vtx;}
-};
-MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
-{
-   if(faces || edges)
-   {
-      include((faces ? FACE_ADJ_FACE : 0)|(edges ? FACE_ADJ_EDGE : 0));
-      if(faces)
-      {
-         SetMemN(tri .adjFace(), 0xFF, tris ());
-         SetMemN(quad.adjFace(), 0xFF, quads());
-      }
-      if(edges)
-      {
-         SetMemN(tri .adjEdge(), 0xFF, tris ());
-         SetMemN(quad.adjEdge(), 0xFF, quads());
-      }
-
-      // link vtx->face
-      Index vtx_face; linkVtxFace(vtx_face);
-
-      // add double sided edges
-      Memb<EdgeAdj> _edge(1024);
-   #if 0 // simple version, generates duplicates of edges, doesn't do any sorting if there are multiple face connections (for example 3 faces like "T")
-      do not use, we need sorting, for example for 'removeDoubleSideFaces'
-      REPAD(f0, tri) // for each triangle
-      {
-         VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 3) // for each triangle vertex
-         {
-            Int f0v0=f0i.c[ f0vi     ],
-                f0v1=f0i.c[(f0vi+1)%3];
-            IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig) // for each face that the vertex belongs to
-            {
-               Int f1=ig[vfi]; VecI4 f1i; Int f1vtxs;
-               if( f1&SIGN_BIT) // quad
-               {
-                  f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup()); f1vtxs=4;
-               }else
-               {
-                  if(f1>=f0)continue; // if the other triangle has a greater index (or is the same one) then skip, because we will check this again later for the other triangle
-                  f1i.xyz=tri.ind(f1); f1i.xyz.remap(vtx.dup()); f1vtxs=3;
-               }
-               REPD(f1vi, f1vtxs) // for each face vertex
-                  if(f0v1==f1i.c[ f1vi          ]  // here f0v1==f1v0 (order of vertexes is swapped)
-                  && f0v0==f1i.c[(f1vi+1)%f1vtxs]) // here f0v0==f1v1
-               {
-                  if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
-                  if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
-                  break;
-               }
-            }
-         }
-      }
-
-      REPAD(f0, quad) // for each quad
-      {
-         VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 4) // for each quad vertex
-         {
-            Int f0v0=f0i.c[ f0vi     ],
-                f0v1=f0i.c[(f0vi+1)%4];
-            IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig) // for each face that the vertex belongs to
-            {
-               // in this case we will process only quads, as we've already processed triangle-quad pairs above
-               Int f1=ig[vfi];
-               if( f1&SIGN_BIT) // quad
-               {
-                  f1^=SIGN_BIT;
-                  if(f1<f0) // here process only quads that have index smaller than 'f0', because we will check this again later for the other quad
-                  {
-                     VecI4 f1i=quad.ind(f1); f1i.remap(vtx.dup());
-                     REPD(f1vi, 4) // for each quad vertex
-                        if(f0v1==f1i.c[ f1vi     ]  // here f0v1==f1v0 (order of vertexes is swapped)
-                        && f0v0==f1i.c[(f1vi+1)%4]) // here f0v0==f1v1
-                     {
-                        if(faces){quad.adjFace(f0).c[f0vi]=f1^SIGN_BIT ; quad.adjFace(f1).c[f1vi]=f0^SIGN_BIT;}
-                        if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1^SIGN_BIT);}
-                        break;
-                     }
-                  }
-               }//else quad with tri pairs were already checked before
-            }
-         }
-      }
-   #else
-      Memt<Adj> adj;
-      REPAD(f0, tri) // for each triangle
-      {
-         VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 3) // for each triangle edge
-         {
-            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
-                f0v1=f0i.c[(f0vi+1)%3]; // edge second vertex
-            IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig) // for each face that edge first vertex belongs to
-            {
-               Int f1=ig[vfi];
-               if( f1&SIGN_BIT) // quad
-               {
-                  VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
-                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
-               }else
-               {
-                  VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
-               }
-            }
-            if(adj.elms())
-            {
-               Int adj_i=0;
-               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
-               {
-                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
-                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
-                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m); // calculate angle of the loose vertex on the 'f0' triangle and set it as base/zero angle
-                  REPA(adj) // iterate adjacent faces
-                  {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
-                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
-                  }
-               }
-               Adj &a =adj[adj_i];
-               Int  f1=a.face;
-               if(  f1&SIGN_BIT || f1>f0) // quad or triangle with bigger index
-               {
-                  Int f1vi=a.vtxi;
-                  if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
-                  if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
-               }
-               adj.clear();
-            }
-         }
-      }
-
-      REPAD(f0, quad) // for each quad
-      {
-         VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
-         REPD(f0vi, 4) // for each quad edge
-         {
-            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
-                f0v1=f0i.c[(f0vi+1)%4]; // edge second vertex
-            IndexGroup &ig=vtx_face.group[f0v0];
-            REPAD(vfi, ig) // for each face that edge first vertex belongs to
-            {
-               Int f1=ig[vfi];
-               if( f1&SIGN_BIT) // quad
-               {
-                  VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
-                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
-               }else
-               {
-                  VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
-               }
-            }
-            if(adj.elms())
-            {
-               Int adj_i=0;
-               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
-               {
-                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
-                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
-                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m); // calculate angle of the loose vertex on the 'f0' quad and set it as base/zero angle
-                  REPA(adj) // iterate adjacent faces
-                  {
-                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
-                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
-                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
-                  }
-               }
-               Adj &a =adj[adj_i];
-               Int  f1=a.face;
-               if((f1&SIGN_BIT) && (f1^SIGN_BIT)>f0) // quad with bigger index
-               {
-                  Int f1vi=a.vtxi;
-                  if(faces){quad.adjFace(f0).c[f0vi]=f1          ; quad.adjFace(f1^SIGN_BIT).c[f1vi]=f0^SIGN_BIT;}
-                  if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1^SIGN_BIT).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1);}
-               }
-               adj.clear();
-            }
-         }
-      }
-   #endif
-
-      if(edges)
-      {
-         // add one sided edges
-         FREPA(tri)
-         {
-            Int *p=tri.adjEdge(i).c;
-            REPD(j, 3)if(p[j]<0) // if any triangle edge didn't get linked to an edge, then it means it's empty (one-sided)
-            {
-               Int *v=tri.ind(i).c;
-               p[j]=_edge.elms();
-                    _edge.New().set(v[j], v[(j+1)%3], i, -1).ind.remap(vtx.dup());
-            }
-         }
-         FREPA(quad)
-         {
-            Int *p=quad.adjEdge(i).c;
-            REPD(j, 4)if(p[j]<0) // if any quad edge didn't get linked to an edge, then it means it's empty (one-sided)
-            {
-               Int *v=quad.ind(i).c;
-               p[j]=_edge.elms();
-                    _edge.New().set(v[j], v[(j+1)%4], i^SIGN_BIT, -1).ind.remap(vtx.dup());
-            }
-         }
-
-         // set edges
-         exclude(EDGE_ALL); edge._elms=_edge.elms();
-         include(EDGE_IND|EDGE_ADJ_FACE);
-         FREPA(edge)
-         {
-            edge.ind    (i)=_edge[i].ind;
-            edge.adjFace(i)=_edge[i].adj_face;
-         }
-      }
-   }
-   return T;
-}
-/******************************************************************************/
 void MeshBase::linkVtxVtxOnFace(Index &vtx_vtx)C
 {
  C Int   *p;
@@ -834,6 +587,253 @@ void MeshBase::getFaceNeighbors(Int face, MemPtr<Int> faces)C
       REPA(tri ){VecI  f=tri .ind(i); f.remap(vtx.dup()); if(is[f.x] || is[f.y] || is[f.z]           )faces.add(i         );}
       REPA(quad){VecI4 f=quad.ind(i); f.remap(vtx.dup()); if(is[f.x] || is[f.y] || is[f.z] || is[f.w])faces.add(i^SIGN_BIT);}
    }
+}
+/******************************************************************************/
+struct EdgeAdj
+{
+   VecI2 ind, adj_face;
+
+   EdgeAdj& set(Int p0, Int p1, Int f0, Int f1) {ind.set(p0, p1); adj_face.set(f0, f1); return T;}
+};
+struct Adj
+{
+   Int face,           // face index
+       vtxi,           // index of vertex place in the face
+       face_extra_vtx; // index of vertex which is loose
+
+   void set(Int face, Int vtxi, Int face_extra_vtx) {T.face=face; T.vtxi=vtxi; T.face_extra_vtx=face_extra_vtx;}
+};
+MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
+{
+   if(faces || edges)
+   {
+      include((faces ? FACE_ADJ_FACE : 0)|(edges ? FACE_ADJ_EDGE : 0));
+      if(faces)
+      {
+         SetMemN(tri .adjFace(), 0xFF, tris ());
+         SetMemN(quad.adjFace(), 0xFF, quads());
+      }
+      if(edges)
+      {
+         SetMemN(tri .adjEdge(), 0xFF, tris ());
+         SetMemN(quad.adjEdge(), 0xFF, quads());
+      }
+
+      // link vtx->face
+      Index vtx_face; linkVtxFace(vtx_face);
+
+      // add double sided edges
+      Memb<EdgeAdj> _edge(1024);
+   #if 0 // simple version, generates duplicates of edges, doesn't do any sorting if there are multiple face connections (for example 3 faces like "T")
+      do not use, we need sorting, for example for 'removeDoubleSideFaces'
+      REPAD(f0, tri) // for each triangle
+      {
+         VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
+         REPD(f0vi, 3) // for each triangle vertex
+         {
+            Int f0v0=f0i.c[ f0vi     ],
+                f0v1=f0i.c[(f0vi+1)%3];
+            IndexGroup &ig=vtx_face.group[f0v0];
+            REPAD(vfi, ig) // for each face that the vertex belongs to
+            {
+               Int f1=ig[vfi]; VecI4 f1i; Int f1vtxs;
+               if( f1&SIGN_BIT) // quad
+               {
+                  f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup()); f1vtxs=4;
+               }else
+               {
+                  if(f1>=f0)continue; // if the other triangle has a greater index (or is the same one) then skip, because we will check this again later for the other triangle
+                  f1i.xyz=tri.ind(f1); f1i.xyz.remap(vtx.dup()); f1vtxs=3;
+               }
+               REPD(f1vi, f1vtxs) // for each face vertex
+                  if(f0v1==f1i.c[ f1vi          ]  // here f0v1==f1v0 (order of vertexes is swapped)
+                  && f0v0==f1i.c[(f1vi+1)%f1vtxs]) // here f0v0==f1v1
+               {
+                  if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
+                  if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
+                  break;
+               }
+            }
+         }
+      }
+
+      REPAD(f0, quad) // for each quad
+      {
+         VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
+         REPD(f0vi, 4) // for each quad vertex
+         {
+            Int f0v0=f0i.c[ f0vi     ],
+                f0v1=f0i.c[(f0vi+1)%4];
+            IndexGroup &ig=vtx_face.group[f0v0];
+            REPAD(vfi, ig) // for each face that the vertex belongs to
+            {
+               // in this case we will process only quads, as we've already processed triangle-quad pairs above
+               Int f1=ig[vfi];
+               if( f1&SIGN_BIT) // quad
+               {
+                  f1^=SIGN_BIT;
+                  if(f1<f0) // here process only quads that have index smaller than 'f0', because we will check this again later for the other quad
+                  {
+                     VecI4 f1i=quad.ind(f1); f1i.remap(vtx.dup());
+                     REPD(f1vi, 4) // for each quad vertex
+                        if(f0v1==f1i.c[ f1vi     ]  // here f0v1==f1v0 (order of vertexes is swapped)
+                        && f0v0==f1i.c[(f1vi+1)%4]) // here f0v0==f1v1
+                     {
+                        if(faces){quad.adjFace(f0).c[f0vi]=f1^SIGN_BIT ; quad.adjFace(f1).c[f1vi]=f0^SIGN_BIT;}
+                        if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1^SIGN_BIT);}
+                        break;
+                     }
+                  }
+               }//else quad with tri pairs were already checked before
+            }
+         }
+      }
+   #else
+      Memt<Adj> adj;
+      REPAD(f0, tri) // for each triangle
+      {
+         VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
+         REPD(f0vi, 3) // for each triangle edge
+         {
+            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
+                f0v1=f0i.c[(f0vi+1)%3]; // edge second vertex
+            IndexGroup &ig=vtx_face.group[f0v0];
+            REPAD(vfi, ig) // for each face that edge first vertex belongs to
+            {
+               Int f1=ig[vfi];
+               if( f1&SIGN_BIT) // quad
+               {
+                  VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
+                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
+                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
+               }else
+               {
+                  VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
+                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
+               }
+            }
+            if(adj.elms())
+            {
+               Int adj_i=0;
+               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
+               {
+                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
+                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
+                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%3]), m); // calculate angle of the loose vertex on the 'f0' triangle and set it as base/zero angle
+                  REPA(adj) // iterate adjacent faces
+                  {
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
+                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
+                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
+                  }
+               }
+               Adj &a =adj[adj_i];
+               Int  f1=a.face;
+               if(  f1&SIGN_BIT || f1>f0) // quad or triangle with bigger index
+               {
+                  Int f1vi=a.vtxi;
+                  if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
+                  if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
+               }
+               adj.clear();
+            }
+         }
+      }
+
+      REPAD(f0, quad) // for each quad
+      {
+         VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
+         REPD(f0vi, 4) // for each quad edge
+         {
+            Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
+                f0v1=f0i.c[(f0vi+1)%4]; // edge second vertex
+            IndexGroup &ig=vtx_face.group[f0v0];
+            REPAD(vfi, ig) // for each face that edge first vertex belongs to
+            {
+               Int f1=ig[vfi];
+               if( f1&SIGN_BIT) // quad
+               {
+                  VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
+                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
+                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
+               }else
+               {
+                  VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
+                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
+               }
+            }
+            if(adj.elms())
+            {
+               Int adj_i=0;
+               if( adj.elms()>1 && vtx.pos()) // if the edge links many faces (for example 3 faces like "T")
+               {
+                  Matrix m; m.setPosDir(vtx.pos(f0v0), !(vtx.pos(f0v1)-vtx.pos(f0v0))); // construct matrix with pos on the edge first vertex and dir along the edge
+                  Flt    angle=FLT_MAX, // set as max possible value so any first test will pass
+                         a0=AngleFast(vtx.pos(f0i.c[(f0vi+2)%4]), m); // calculate angle of the loose vertex on the 'f0' quad and set it as base/zero angle
+                  REPA(adj) // iterate adjacent faces
+                  {
+                     Flt a=AngleFast(vtx.pos(adj[i].face_extra_vtx), m);
+                     if( a<=a0   )a+=PI2; // use <= to include coplanar faces
+                     if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
+                  }
+               }
+               Adj &a =adj[adj_i];
+               Int  f1=a.face;
+               if((f1&SIGN_BIT) && (f1^SIGN_BIT)>f0) // quad with bigger index
+               {
+                  Int f1vi=a.vtxi;
+                  if(faces){quad.adjFace(f0).c[f0vi]=f1          ; quad.adjFace(f1^SIGN_BIT).c[f1vi]=f0^SIGN_BIT;}
+                  if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1^SIGN_BIT).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1);}
+               }
+               adj.clear();
+            }
+         }
+      }
+   #endif
+
+      if(edges)
+      {
+         // add one sided edges
+         FREPA(tri)
+         {
+            Int *p=tri.adjEdge(i).c;
+            REPD(j, 3)if(p[j]<0) // if any triangle edge didn't get linked to an edge, then it means it's empty (one-sided)
+            {
+               Int *v=tri.ind(i).c;
+               p[j]=_edge.elms();
+                    _edge.New().set(v[j], v[(j+1)%3], i, -1).ind.remap(vtx.dup());
+            }
+         }
+         FREPA(quad)
+         {
+            Int *p=quad.adjEdge(i).c;
+            REPD(j, 4)if(p[j]<0) // if any quad edge didn't get linked to an edge, then it means it's empty (one-sided)
+            {
+               Int *v=quad.ind(i).c;
+               p[j]=_edge.elms();
+                    _edge.New().set(v[j], v[(j+1)%4], i^SIGN_BIT, -1).ind.remap(vtx.dup());
+            }
+         }
+
+         // set edges
+         exclude(EDGE_ALL); edge._elms=_edge.elms();
+         include(EDGE_IND|EDGE_ADJ_FACE);
+         FREPA(edge)
+         {
+            edge.ind    (i)=_edge[i].ind;
+            edge.adjFace(i)=_edge[i].adj_face;
+         }
+      }
+   }
+   return T;
 }
 /******************************************************************************/
 }

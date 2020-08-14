@@ -655,7 +655,7 @@ Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, Flt *hit_frac, Vec2 *h
    return false;
 }
 /******************************************************************************/
-Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, C Rects &rects, Index &rect_edge, Flt *hit_frac, Vec2 *hit_pos, Int *hit_edge)
+Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, C Rects &rects, C Index &rect_edge, Flt *hit_frac, Vec2 *hit_pos, Int *hit_edge)
 {
  C Vec   *pos =mshb.vtx .pos();
  C Vec   *nrm =mshb.edge.nrm();

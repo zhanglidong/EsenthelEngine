@@ -75,8 +75,8 @@ struct IndexPtr
    NO_COPY_CONSTRUCTOR(IndexPtr);
 };
 /******************************************************************************/
-void CreateIs       (  MemPtr<Bool>  is, C MemPtr<Int> &selection, Int elms);
-void CreateIsNot    (  MemPtr<Bool>  is, C MemPtr<Int> &selection, Int elms);
+void CreateIs       (  MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms);
+void CreateIsNot    (  MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms);
 void CreateFaceIs   (  MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads);
 void CreateFaceIsNot(  MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads);
 /******************************************************************************/
