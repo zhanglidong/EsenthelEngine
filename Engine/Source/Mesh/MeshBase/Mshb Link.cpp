@@ -323,6 +323,79 @@ MeshBase& MeshBase::setVtxDupEx(UInt flag, Flt pos_eps, Flt nrm_cos, Flt tan_cos
    return T;
 }
 /******************************************************************************/
+void MeshBase::linkVtxVtxSamePos(Index &vtx_vtx, Flt pos_eps, Bool dual)C
+{
+   // prepare groups
+   Memt<VecI2> temp_vtx_vtx;
+   vtx_vtx.create(vtxs());
+
+   // link box->vtx
+   Boxes boxes  (Box(T)     , vtxs());
+   Index box_vtx(boxes.num(), vtxs());
+   REPA(vtx)box_vtx.elmGroup(boxes.index(vtx.pos(i)), i); box_vtx.set();
+
+   // get duplicates
+   Int xs=boxes.cells.x,
+       ys=boxes.cells.y, xys=xs*ys;
+
+   FREPD(z, boxes.cells.z)
+   FREPD(y, boxes.cells.y)
+   FREPD(x, boxes.cells.x)
+   {
+      Int         box_tests=0;
+      IndexGroup *box_test[2+3+9], *box_cur=&box_vtx.group[x+y*xs+z*xys];
+           box_test[box_tests++]=box_cur  ;
+      if(x)box_test[box_tests++]=box_cur-1;
+      if(y)
+      {
+         if(x<xs-1)box_test[box_tests++]=box_cur+1-xs;
+                   box_test[box_tests++]=box_cur  -xs;
+         if(     x)box_test[box_tests++]=box_cur-1-xs;
+      }
+      if(z)
+      {
+         if(y<ys-1)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1+xs-xys;
+                      box_test[box_tests++]=box_cur  +xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1+xs-xys;
+         }
+            if(x<xs-1)box_test[box_tests++]=box_cur+1   -xys;
+                      box_test[box_tests++]=box_cur     -xys;
+            if(     x)box_test[box_tests++]=box_cur-1   -xys;
+         if(y)
+         {
+            if(x<xs-1)box_test[box_tests++]=box_cur+1-xs-xys;
+                      box_test[box_tests++]=box_cur  -xs-xys;
+            if(     x)box_test[box_tests++]=box_cur-1-xs-xys;
+         }
+      }
+
+      FREPA(*box_cur) // iterate all vertexes in current box
+      {
+         Int  ind_cur=(*box_cur)[i]; // vertex index
+       C Vec &pos_cur=vtx.pos(ind_cur); // vertex position
+         REPD(c, box_tests) // iterate all nearby boxes for testing
+         {
+            IndexGroup *bt=box_test[c]; // box for testing
+            REPD(j, (box_cur==bt) ? i : bt->num) // iterate all vertexes in box for testing (but if it's current box then check only vertexes up to current vertex to make sure they were already processed before)
+            {
+               Int ind_test=(*bt)[j]; // test vertex index
+               if(Equal(pos_cur, vtx.pos(ind_test), pos_eps)) // same position
+               {
+                           temp_vtx_vtx.New().set(ind_cur , ind_test); vtx_vtx.incGroup(ind_cur );
+                  if(dual){temp_vtx_vtx.New().set(ind_test, ind_cur ); vtx_vtx.incGroup(ind_test);}
+               }
+            }
+         }
+      }
+   }
+
+   // add elms
+   vtx_vtx.set();
+   REPA(temp_vtx_vtx){C VecI2 &vv=temp_vtx_vtx[i]; vtx_vtx.addElm(vv.x, vv.y);}
+}
+/******************************************************************************/
 void MeshBase::linkVtxVtxOnFace(Index &vtx_vtx)C
 {
  C Int   *p;
