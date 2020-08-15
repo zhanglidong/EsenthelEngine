@@ -1539,7 +1539,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(vals.elms())
       {
          case 1: {flt v=TextFlt(vals[0]); MulRGBH(image, v, v, v, v, v, v, box);} break;
-         case 3: MulRGBH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, box); break;
+         case 3: {Vec v(TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2])); MulRGBH(image, v.x, Avg(v.x, v.y), v.y, Avg(v.y, v.z), v.z, Avg(v.z, v.x), box);} break;
          case 6: MulRGBH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), box); break;
       }
    }else
@@ -1549,7 +1549,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(vals.elms())
       {
          case 1: {flt v=TextFlt(vals[0]); MulRGBHS(image, v, v, v, v, v, v, box);} break;
-         case 3: MulRGBHS(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, box); break;
+         case 3: {Vec v(TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2])); MulRGBHS(image, v.x, Avg(v.x, v.y), v.y, Avg(v.y, v.z), v.z, Avg(v.z, v.x), box);} break;
          case 6: MulRGBHS(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), box); break;
       }
    }else
@@ -1822,7 +1822,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(vals.elms())
       {
          case 1: {flt v=TextFlt(vals[0]); MulSatH(image, v, v, v, v, v, v, sat, false, box);} break;
-         case 3: MulSatH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, sat, false, box); break;
+         case 3: {Vec v(TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2])); MulSatH(image, v.x, Avg(v.x, v.y), v.y, Avg(v.y, v.z), v.z, Avg(v.z, v.x), sat, false, box);} break;
          case 6: MulSatH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), sat, false, box); break;
       }
    }else
@@ -1834,7 +1834,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(vals.elms())
       {
          case 1: {flt v=TextFlt(vals[0]); MulSatH(image, v, v, v, v, v, v, sat, true, box);} break;
-         case 3: MulSatH(image, TextFlt(vals[0]), 1, TextFlt(vals[1]), 1, TextFlt(vals[2]), 1, sat, true, box); break;
+         case 3: {Vec v(TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2])); MulSatH(image, v.x, Avg(v.x, v.y), v.y, Avg(v.y, v.z), v.z, Avg(v.z, v.x), sat, true, box);} break;
          case 6: MulSatH(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), sat, true, box); break;
       }
    }else
