@@ -233,7 +233,7 @@ void ObjView.meshSetNrmFace()
       REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
       {
          MeshBase &base=part.base;
-         base.setNormalsAuto(PI_3, pos_eps);
+         base.setNormalsAuto(PI_2*0.75, pos_eps);
          base.setTanBin(); part.setRender(); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
          changed=true;
       }
