@@ -4,14 +4,14 @@ namespace EE{
 /******************************************************************************/
 #define LEAF_RANDOM_BEND_RANGE 1024
 /******************************************************************************/
-static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &face)
+static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
 {
    // find face which has tex coords nearest 'tex'
    Flt dist;
    Int found=-1;
-   REPA(face)
+   REPA(faces)
    {
-      Int f=face[i];
+      Int f=faces[i];
       if( f&SIGN_BIT)
       {
          VecI4 ind =mesh.quad.ind(f^SIGN_BIT);
@@ -58,14 +58,14 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &face)
    if(Solve(u_dir.x, u_dir.y, v_dir.x, v_dir.y, tex.x-base.x, tex.y-base.y, u, v)!=1)pos=pos_tri.center();
    else                                                                              pos=pos_tri.p[0] + u*(pos_tri.p[1]-pos_tri.p[0]) + v*(pos_tri.p[2]-pos_tri.p[0]);
 
-   REPA(face)
+   REPA(faces)
    {
-      Int f=face[i];
+      Int f=faces[i];
       if( f&SIGN_BIT){VecI4 ind=mesh.quad.ind(f^SIGN_BIT); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
       else           {VecI  ind=mesh.tri .ind(f         ); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
    }
 }
-static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments, Memc<Int> &face)
+static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments, Memc<Int> &faces)
 {
    DEBUG_ASSERT(attachments.elms(), "'SetLeafAttachment' 'attachments' must have elements");
    Int best_attachment=0; if(attachments.elms()>1) // if have more than 1 attachments, then check which one is best (closest)
@@ -74,9 +74,9 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
       Dbl   weight=0;
     C Vec  *pos=mesh.vtx.pos();
     C Vec2 *tx0=mesh.vtx.tex0();
-      REPA(face)
+      REPA(faces)
       {
-         Int f=face[i];
+         Int f=faces[i];
          if( f&SIGN_BIT){VecI4 ind=mesh.quad.ind(f^SIGN_BIT); Flt w=QuadArea2(pos[ind.x], pos[ind.y], pos[ind.z], pos[ind.w]); Vec2 t=Avg(tx0[ind.x], tx0[ind.y], tx0[ind.z], tx0[ind.w]); weight+=w; face_tex+=w*t;}
          else           {VecI  ind=mesh.tri .ind(f         ); Flt w= TriArea2(pos[ind.x], pos[ind.y], pos[ind.z]            ); Vec2 t=Avg(tx0[ind.x], tx0[ind.y], tx0[ind.z]            ); weight+=w; face_tex+=w*t;}
       }
@@ -91,7 +91,7 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
          }
       }
    }
-   SetLeafAttachment(mesh, attachments[best_attachment].attachment, face);
+   SetLeafAttachment(mesh, attachments[best_attachment].attachment, faces);
 }
 static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments)
 {
@@ -99,20 +99,20 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
    {
       mesh.setVtxDup().setAdjacencies(true, false).include(VTX_HLP);
 
-      Memc<Int >      face;
+      Memc<Int >      faces;
       Mems<Bool>  tri_done;  tri_done.setNumZero(mesh. tris());
       Mems<Bool> quad_done; quad_done.setNumZero(mesh.quads());
 
       REPA(mesh.tri)if(!tri_done[i])
       {
-         face.add(i); tri_done[i]=true;
-         for(Int last=0; last!=face.elms(); )
+         faces.add(i); tri_done[i]=true;
+         for(Int last=0; last!=faces.elms(); )
          {
-            Int new_last=face.elms();
-            for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+            Int new_last=faces.elms();
+            for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
             {
                VecI4 a;
-               Int   f=face[i];
+               Int   f=faces[i];
                if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
                else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -121,26 +121,26 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
                   Int af =a.c[i];
                   if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                   {
-                     if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                     else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                     if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                     else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                   }
                }
             }
             last=new_last;
          }
-         SetLeafAttachment(mesh, attachments, face);
-         face.clear();
+         SetLeafAttachment(mesh, attachments, faces);
+         faces.clear();
       }
       REPA(mesh.quad)if(!quad_done[i])
       {
-         face.add(i^SIGN_BIT); quad_done[i]=true;
-         for(Int last=0; last!=face.elms(); )
+         faces.add(i^SIGN_BIT); quad_done[i]=true;
+         for(Int last=0; last!=faces.elms(); )
          {
-            Int new_last=face.elms();
-            for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+            Int new_last=faces.elms();
+            for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
             {
                VecI4 a;
-               Int   f=face[i];
+               Int   f=faces[i];
                if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
                else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -149,24 +149,24 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
                   Int af =a.c[i];
                   if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                   {
-                     if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                     else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                     if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                     else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                   }
                }
             }
             last=new_last;
          }
-         SetLeafAttachment(mesh, attachments, face);
-         face.clear();
+         SetLeafAttachment(mesh, attachments, faces);
+         faces.clear();
       }
    }
 }
 /******************************************************************************/
-static void SetRandomColor(MeshBase &mesh, Memc<Int> &face, C Color &color)
+static void SetRandomColor(MeshBase &mesh, Memc<Int> &faces, C Color &color)
 {
-   REPA(face)
+   REPA(faces)
    {
-      Int f=face[i];
+      Int f=faces[i];
       if( f&SIGN_BIT){VecI4 q=mesh.quad.ind(f^SIGN_BIT); REPA(q)mesh.vtx.color(q.c[i])=color;}
       else           {VecI  t=mesh.tri .ind(f         ); REPA(t)mesh.vtx.color(t.c[i])=color;}
    }
@@ -177,20 +177,20 @@ static void SetRandomColor(MeshBase &mesh, Flt variation)
 
    mesh.setVtxDup().setAdjacencies(true, false).include(VTX_COLOR);
 
-   Memc<Int>       face;
+   Memc<Int>       faces;
    Mems<Bool>  tri_done;  tri_done.setNumZero(mesh. tris());
    Mems<Bool> quad_done; quad_done.setNumZero(mesh.quads());
 
    REPA(mesh.tri)if(!tri_done[i])
    {
-      face.add(i); tri_done[i]=true;
-      for(Int last=0; last!=face.elms(); )
+      faces.add(i); tri_done[i]=true;
+      for(Int last=0; last!=faces.elms(); )
       {
-         Int new_last=face.elms();
-         for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+         Int new_last=faces.elms();
+         for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
          {
             VecI4 a;
-            Int   f=face[i];
+            Int   f=faces[i];
             if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
             else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -199,26 +199,26 @@ static void SetRandomColor(MeshBase &mesh, Flt variation)
                Int af =a.c[i];
                if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                {
-                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                }
             }
          }
          last=new_last;
       }
-      SetRandomColor(mesh, face, Color(Random(random, 255), Random(random, 255), Random(random, 255)));
-      face.clear();
+      SetRandomColor(mesh, faces, Color(Random(random, 255), Random(random, 255), Random(random, 255)));
+      faces.clear();
    }
    REPA(mesh.quad)if(!quad_done[i])
    {
-      face.add(i^SIGN_BIT); quad_done[i]=true;
-      for(Int last=0; last!=face.elms(); )
+      faces.add(i^SIGN_BIT); quad_done[i]=true;
+      for(Int last=0; last!=faces.elms(); )
       {
-         Int new_last=face.elms();
-         for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+         Int new_last=faces.elms();
+         for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
          {
             VecI4 a;
-            Int   f=face[i];
+            Int   f=faces[i];
             if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
             else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -227,23 +227,23 @@ static void SetRandomColor(MeshBase &mesh, Flt variation)
                Int af =a.c[i];
                if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                {
-                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                }
             }
          }
          last=new_last;
       }
-      SetRandomColor(mesh, face, Color(Random(random, 255), Random(random, 255), Random(random, 255)));
-      face.clear();
+      SetRandomColor(mesh, faces, Color(Random(random, 255), Random(random, 255), Random(random, 255)));
+      faces.clear();
    }
 }
 /******************************************************************************/
-static void SetRandomBend(MeshBase &mesh, Memc<Int> &face, Flt value)
+static void SetRandomBend(MeshBase &mesh, Memc<Int> &faces, Flt value)
 {
-   REPA(face)
+   REPA(faces)
    {
-      Int f=face[i];
+      Int f=faces[i];
       if( f&SIGN_BIT){VecI4 q=mesh.quad.ind(f^SIGN_BIT); REPA(q)mesh.vtx.size(q.c[i])=value;}
       else           {VecI  t=mesh.tri .ind(f         ); REPA(t)mesh.vtx.size(t.c[i])=value;}
    }
@@ -252,20 +252,20 @@ static void SetRandomBend(MeshBase &mesh)
 {
    mesh.setVtxDup().setAdjacencies(true, false).include(VTX_SIZE);
 
-   Memc<Int>       face;
+   Memc<Int>       faces;
    Mems<Bool>  tri_done;  tri_done.setNumZero(mesh. tris());
    Mems<Bool> quad_done; quad_done.setNumZero(mesh.quads());
 
    REPA(mesh.tri)if(!tri_done[i])
    {
-      face.add(i); tri_done[i]=true;
-      for(Int last=0; last!=face.elms(); )
+      faces.add(i); tri_done[i]=true;
+      for(Int last=0; last!=faces.elms(); )
       {
-         Int new_last=face.elms();
-         for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+         Int new_last=faces.elms();
+         for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
          {
             VecI4 a;
-            Int   f=face[i];
+            Int   f=faces[i];
             if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
             else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -274,26 +274,26 @@ static void SetRandomBend(MeshBase &mesh)
                Int af =a.c[i];
                if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                {
-                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                }
             }
          }
          last=new_last;
       }
-      SetRandomBend(mesh, face, Random.f(LEAF_RANDOM_BEND_RANGE));
-      face.clear();
+      SetRandomBend(mesh, faces, Random.f(LEAF_RANDOM_BEND_RANGE));
+      faces.clear();
    }
    REPA(mesh.quad)if(!quad_done[i])
    {
-      face.add(i^SIGN_BIT); quad_done[i]=true;
-      for(Int last=0; last!=face.elms(); )
+      faces.add(i^SIGN_BIT); quad_done[i]=true;
+      for(Int last=0; last!=faces.elms(); )
       {
-         Int new_last=face.elms();
-         for(Int i=face.elms(); --i>=last; ) // search recently added, order is important because face will receive new elements continuously
+         Int new_last=faces.elms();
+         for(Int i=faces.elms(); --i>=last; ) // search recently added, order is important because 'faces' will receive new elements continuously
          {
             VecI4 a;
-            Int   f=face[i];
+            Int   f=faces[i];
             if(   f&SIGN_BIT)a=    mesh.quad.adjFace(f^SIGN_BIT)     ; // get all adjacent faces
             else             a.set(mesh. tri.adjFace(f         ), -1); // get all adjacent faces
 
@@ -302,15 +302,15 @@ static void SetRandomBend(MeshBase &mesh)
                Int af =a.c[i];
                if( af!=-1) // if adjacent face exists, compare to -1 and not >=0 because it can have SIGN_BIT
                {
-                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; face.add(af);}}
-                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; face.add(af);}}
+                  if(af&SIGN_BIT){if(!quad_done[af^SIGN_BIT]){quad_done[af^SIGN_BIT]=true; faces.add(af);}}
+                  else           {if(! tri_done[af         ]){ tri_done[af         ]=true; faces.add(af);}}
                }
             }
          }
          last=new_last;
       }
-      SetRandomBend(mesh, face, Random.f(LEAF_RANDOM_BEND_RANGE));
-      face.clear();
+      SetRandomBend(mesh, faces, Random.f(LEAF_RANDOM_BEND_RANGE));
+      faces.clear();
    }
 }
 /******************************************************************************/
