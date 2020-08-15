@@ -4,65 +4,75 @@ namespace EE{
 /******************************************************************************/
 #define LEAF_RANDOM_BEND_RANGE 1024
 /******************************************************************************/
+Flt FracDelta(Flt x) // works like 'Frac' but wraps to -0.5 .. 0.5 range
+{
+   x=Frac(x);
+   return (x>0.5) ? x-1 : x;
+}
 static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
 {
    // find face which has tex coords nearest 'tex'
-   Flt dist;
+   Flt dist =FLT_MAX;
    Int found=-1;
    REPA(faces)
    {
       Int f=faces[i];
       if( f&SIGN_BIT)
       {
-         VecI4 ind =mesh.quad.ind(f^SIGN_BIT);
-         Quad2 quad(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z), mesh.vtx.tex0(ind.w));
-         Flt   d   =Dist(tex, quad);
-         if(found==-1 || d<dist){found=f; dist=d;} // compare to -1 and not <0 because 'found' can have SIGN_BIT
+         VecI4 ind     =mesh.quad.ind(f^SIGN_BIT);
+         Quad2 quad    (mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z), mesh.vtx.tex0(ind.w));
+         Vec2  tex_wrap=tex+Round(quad.center()-tex);
+         Flt   d       =Dist(tex_wrap, quad);
+         if(d<dist){found=f; dist=d;}
       }else
       {
-         VecI ind=mesh.tri.ind(f);
-         Tri2 tri(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z));
-         Flt  d  =Dist(tex, tri);
-         if(found==-1 || d<dist){found=f; dist=d;} // compare to -1 and not <0 because 'found' can have SIGN_BIT
+         VecI ind     =mesh.tri.ind(f);
+         Tri2 tri     (mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z));
+         Vec2 tex_wrap=tex+Round(tri.center()-tex);
+         Flt  d       =Dist(tex_wrap, tri);
+         if(d<dist){found=f; dist=d;}
       }
    }
 
-   // calculate UV coordinates of face
-   Tri2 tex_tri;
-   Tri  pos_tri;
-   if(found&SIGN_BIT)
+   if(found!=-1) // compare to -1 and not <0 because 'found' can have SIGN_BIT
    {
-      VecI4 ind=mesh.quad.ind(found^SIGN_BIT);
-            tex_tri.set(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.w));
-            pos_tri.set(mesh.vtx.pos (ind.x), mesh.vtx.pos (ind.y), mesh.vtx.pos (ind.w));
-   }else
-   {
-      VecI ind=mesh.tri.ind(found);
-           tex_tri.set(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z));
-           pos_tri.set(mesh.vtx.pos (ind.x), mesh.vtx.pos (ind.y), mesh.vtx.pos (ind.z));
-   }
+      // calculate UV coordinates of face
+      Tri2 tex_tri;
+      Tri  pos_tri;
+      if(found&SIGN_BIT)
+      {
+         VecI4 ind=mesh.quad.ind(found^SIGN_BIT);
+               tex_tri.set(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.w));
+               pos_tri.set(mesh.vtx.pos (ind.x), mesh.vtx.pos (ind.y), mesh.vtx.pos (ind.w));
+      }else
+      {
+         VecI ind=mesh.tri.ind(found);
+              tex_tri.set(mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z));
+              pos_tri.set(mesh.vtx.pos (ind.x), mesh.vtx.pos (ind.y), mesh.vtx.pos (ind.z));
+      }
 
-   Vec2 base =tex_tri.p[0]     ,
-        u_dir=tex_tri.p[1]-base,
-        v_dir=tex_tri.p[2]-base;
-   /* tex=base + u*u_dir + v*v_dir
+      Vec2 base =tex_tri.p[0]     ,
+           u_dir=tex_tri.p[1]-base,
+           v_dir=tex_tri.p[2]-base;
+      /* tex=base + u*u_dir + v*v_dir
       
-      tex.x = base.x + u*u_dir.x + v*v_dir.x
-      tex.y = base.y + u*u_dir.y + v*v_dir.y
+         tex.x = base.x + u*u_dir.x + v*v_dir.x
+         tex.y = base.y + u*u_dir.y + v*v_dir.y
 
-      u_dir.x*u + v_dir.x*v = tex.x - base.x
-      u_dir.y*u + v_dir.y*v = tex.y - base.y
-   */
-   Vec pos;
-   Flt u, v;
-   if(Solve(u_dir.x, u_dir.y, v_dir.x, v_dir.y, tex.x-base.x, tex.y-base.y, u, v)!=1)pos=pos_tri.center();
-   else                                                                              pos=pos_tri.p[0] + u*(pos_tri.p[1]-pos_tri.p[0]) + v*(pos_tri.p[2]-pos_tri.p[0]);
+         u_dir.x*u + v_dir.x*v = tex.x - base.x
+         u_dir.y*u + v_dir.y*v = tex.y - base.y
+      */
+      Vec pos;
+      Flt u, v;
+      if(Solve(u_dir.x, u_dir.y, v_dir.x, v_dir.y, FracDelta(tex.x-base.x), FracDelta(tex.y-base.y), u, v)!=1)pos=pos_tri.center();
+      else                                                                                                    pos=pos_tri.p[0] + u*(pos_tri.p[1]-pos_tri.p[0]) + v*(pos_tri.p[2]-pos_tri.p[0]);
 
-   REPA(faces)
-   {
-      Int f=faces[i];
-      if( f&SIGN_BIT){VecI4 ind=mesh.quad.ind(f^SIGN_BIT); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
-      else           {VecI  ind=mesh.tri .ind(f         ); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
+      REPA(faces)
+      {
+         Int f=faces[i];
+         if( f&SIGN_BIT){VecI4 ind=mesh.quad.ind(f^SIGN_BIT); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
+         else           {VecI  ind=mesh.tri .ind(f         ); REPA(ind)mesh.vtx.hlp(ind.c[i])=pos;}
+      }
    }
 }
 static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments, Memc<Int> &faces)
