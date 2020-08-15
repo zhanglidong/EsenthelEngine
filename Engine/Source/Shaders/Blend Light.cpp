@@ -256,9 +256,9 @@ void PS
    smooth      =Material.smooth;
    reflectivity=Material.reflect;
 #elif LAYOUT==2
-   VecH4 tex_ext=Tex(Ext, I.tex); if(ALPHA_TEST)clip(tex_ext.a-ALPHA_CLIP);
-            I.col.rgb*=Tex(Col, I.tex).rgb;
-   if(ALPHA)I.col.a  *=tex_ext.a;
+   VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_ext=Tex(Ext, I.tex);
+   if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    smooth      =Material.smooth *tex_ext.x;
    reflectivity=Material.reflect*tex_ext.y;
 #endif

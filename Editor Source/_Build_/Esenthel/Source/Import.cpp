@@ -68,33 +68,37 @@ ImporterClass Importer;
                light .load(l ); ImageProps(light , & light_id, null, MTRL_LIGHT );
 
                FileParams fp; 
-               fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb");  color_map=fp.encode();
-               fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy" ); normal_map=fp.encode();
-               fp=d ; if(fp.name.is())
+               color_map=b0;
+               alpha_map.clear();
+
+               fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy"); normal_map=fp.encode();
+
+               fp=b2; if(fp.name.is())
+               {
+                  fp.getParam("channel").setValue("x");  smooth_map=fp.encode();
+                  fp.getParam("channel").setValue("y"); reflect_map=fp.encode();
+                  fp.getParam("channel").setValue("z");    bump_map=fp.encode();
+                  fp.getParam("channel").setValue("w");    glow_map=fp.encode();
+               }else
+               {
+                   smooth_map.clear();
+                  reflect_map.clear();
+                     bump_map.clear();
+                     glow_map.clear();
+               }
+
+               fp=d; if(fp.name.is())
                {
                   fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
                   fp.getParam("channel").setValue("w" ); detail_smooth_map=fp.encode();
                   fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
-                                                         detail_bump_map.clear();
-               }
-
-                 alpha_map.clear();
-                  bump_map.clear();
-                smooth_map.clear();
-               reflect_map.clear();
-                  glow_map.clear();
-               if(b2.is())
-               {
-                  fp=b0; if(fp.name.is())fp.getParam("channel").setValue("a");    glow_map=fp.encode();
-                  fp=b2;                 fp.getParam("channel").setValue("x");  smooth_map=fp.encode();
-                                         fp.getParam("channel").setValue("y"); reflect_map=fp.encode();
-                                         fp.getParam("channel").setValue("z");    bump_map=fp.encode();
-                                         fp.getParam("channel").setValue("w");   alpha_map=fp.encode();
                }else
-               if(b0.is())
                {
-                  fp=b0; fp.getParam("channel").setValue("a"); alpha_map=fp.encode();
+                  detail_color_map .clear();
+                  detail_smooth_map.clear();
+                  detail_normal_map.clear();
                }
+               detail_bump_map.clear();
             }else
             {
                Image color, alpha, bump, normal, smooth, reflect, glow;

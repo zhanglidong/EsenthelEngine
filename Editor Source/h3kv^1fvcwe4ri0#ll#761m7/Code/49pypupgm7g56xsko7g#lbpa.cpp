@@ -715,8 +715,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                }
 
                // merge textures
-               FileInfo   src_base  (Proj.texPath       (data.base_0_tex.valid() ? data.base_0_tex : data.base_1_tex.valid() ? data.base_1_tex : data.base_2_tex)); // get modify time of first available original texture
-               Str       dest_base_0=Proj.texDynamicPath(     base_0_tex); // get path where merged texture will be stored
+               FileInfo  src_base  (Proj.texPath       (data.base_0_tex.valid() ? data.base_0_tex : data.base_1_tex.valid() ? data.base_1_tex : data.base_2_tex)); // get modify time of first available original texture
+               Str      dest_base_0=Proj.texDynamicPath(     base_0_tex); // get path where merged texture will be stored
                if((flags&Texture.REGENERATE) // if material was changed
                || Compare(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
                {
@@ -735,14 +735,13 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                          if(Texture *t=GetTexture(publish_texs, data. light_tex)){t .sRGB(true); t .downSize(downsize); MAX(t .quality, MinMtrlTexQualityLight );} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
-            if(t2)
-            {
-               if(t0 &&      uses_tex_glow )t0.usesAlpha(); // t0 Alpha used for glow
-               if(      data.usesTexAlpha())t2.usesAlpha(); // t2 Alpha used for opacity
-            }else
             if(t0)
             {
-               if(data.usesTexAlpha())t0.usesAlpha(); // Alpha used for opacity
+               if(data.usesTexAlpha())t0.usesAlpha(); // t0 Alpha used for opacity
+            }
+            if(t2)
+            {
+               if(uses_tex_glow)t2.usesAlpha(); // t2 Alpha used for glow
             }
          }
 

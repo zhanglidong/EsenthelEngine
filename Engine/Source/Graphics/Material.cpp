@@ -3,21 +3,10 @@
 namespace EE{
 /******************************************************************************
 
-   If Material has base_0 && base_2:
-      Layout 2
-      base_0: RGB, Glow
-      base_2: Smooth, Reflect, Bump, Alpha
-   Elif Material has base_0
-      Layout 1
-      base_0: RGBA
-   Else
-      Layout 0
-      empty
-   Endif
-
-   base_1 always: NrmX, NrmY
-
-   Detail tex always: NrmX, NrmY, Col, Smooth
+   base_0: RGB, Alpha
+   base_1: NrmX, NrmY
+   base_2: Smooth, Reflect, Bump, Glow
+   detail: NrmX, NrmY, Col, Smooth
 
    When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
 
@@ -56,20 +45,14 @@ namespace EE{
       Platinum    0.672411    0.637331    0.585456
 
 /******************************************************************************/
-enum MTRL_TEX_LAYOUT : Byte
-{
-   MTL_NONE,
-   MTL_RGBA,
-   MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA,
-};
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
+#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 #define BUMP_DEFAULT_PAR 0.03f
 
 // #MaterialTextureLayout
 // base_0
-#define    GLOW_CHANNEL 3
+#define   ALPHA_CHANNEL 3
 // base_1
 #define    NRMX_CHANNEL 0
 #define    NRMY_CHANNEL 1
@@ -77,7 +60,7 @@ enum MTRL_TEX_LAYOUT : Byte
 #define  SMOOTH_CHANNEL 0
 #define REFLECT_CHANNEL 1
 #define    BUMP_CHANNEL 2
-#define   ALPHA_CHANNEL 3
+#define    GLOW_CHANNEL 3
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -291,7 +274,6 @@ Material& Material::validate() // #MaterialTextureLayout
    // set multi
    {
      _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
-     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in 'base_0' (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -307,18 +289,22 @@ Material& Material::validate() // #MaterialTextureLayout
       // base2
       if(base_2)
       {
-        _multi.base2_mul.c[SMOOTH_CHANNEL]=smooth;
-        _multi.base2_add.c[SMOOTH_CHANNEL]=0;
+        _multi.srg_mul.x=smooth;
+        _multi.srg_add.x=0;
 
-        _multi.base2_mul.c[REFLECT_CHANNEL]=reflect;
-        _multi.base2_add.c[REFLECT_CHANNEL]=0;
+        _multi.srg_mul.y=reflect;
+        _multi.srg_add.y=0;
+
+        _multi.srg_mul.z=glow;
+        _multi.srg_add.z=0;
 
         _multi.bump=bump;
       }else
       {
-        _multi.base2_mul=0;
-        _multi.base2_add.c[ SMOOTH_CHANNEL]=smooth;
-        _multi.base2_add.c[REFLECT_CHANNEL]=reflect;
+        _multi.srg_mul=0;
+        _multi.srg_add.x=smooth;
+        _multi.srg_add.y=reflect;
+        _multi.srg_add.z=glow;
 
         _multi.bump=0;
       }
@@ -416,7 +402,7 @@ void Material::setBlend()C
 void Material::setBlendForce()C
 {
    if(_alpha_factor.a // if has glow in material settings
-   && base_2 && base_0) // and on texture channel (glow is in Base0 but only if Base2 is present #MaterialTextureLayout)
+   && base_2) // and on texture channel (glow is in Base2 #MaterialTextureLayout)
    { // then it means we need to disable it for forced blend, which operates on alpha instead of glow
       if(MaterialLast==this)MaterialLast=null;
       D.alphaFactor(TRANSPARENT);
@@ -836,38 +822,11 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       if(reflect_src->is())ret|=BT_REFLECT;
       if(   glow_src->is())ret|=BT_GLOW   ;
 
-      MTRL_TEX_LAYOUT layout=((ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) ? MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA : MTL_RGBA);
-
-      // base_0
-      if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA) // put glow in W channel
+      // base_0 RGBA
+      if(ret&(BT_COLOR|BT_ALPHA|BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
       {
-         Int w=Max(1, ImgW(color, color_src), ImgW(glow, glow_src)), // Max 1 in case all images are empty, but we still need it (because shaders support base_2 only if base_0 is also present, so if we've detected this layout, it means we want base_2 and thus also need base_0)
-             h=Max(1, ImgH(color, color_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
-         if(  glow_src->is() && ( glow_src->w()!=w ||  glow_src->h()!=h))if( glow_src->copyTry( glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( glow.filter), ( glow.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT)) glow_src=& glow_temp;else goto error;
-         if(!color_src->is() ||  color_src->lockRead())
-         {
-            if(!glow_src->is() || glow_src->lockRead())
-            {
-               dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-               REPD(y, dest_0.h())
-               REPD(x, dest_0.w())
-               {
-                  Color c=(color_src->is() ? color_src->color(x, y) : WHITE);
-                  if(glow_src->is())
-                  {
-                     Color glow=glow_src->color(x, y); c.a=DivRound(glow.lum()*glow.a, 255);
-                  }else                                c.a=255;
-                  dest_0.color(x, y, c);
-               }
-               glow_src->unlock();
-            }
-            color_src->unlock();
-         }
-      }else // put alpha in W channel
-      {
-         Int w=Max(ImgW(color, color_src), alpha_size.x),
-             h=Max(ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(1, ImgW(color, color_src), alpha_size.x), // Max 1 in case all images are empty, but we still need it because of Base2
+             h=Max(1, ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
          if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)                ))alpha_src=&alpha_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
@@ -884,7 +843,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          }
       }
 
-      // base_1 NRM !! do this first before base_2 SRBA which resizes bump !!
+      // base_1 NRM !! do this first before base_2 SRBG which resizes bump !!
     C Image *bump_to_normal=null;
       if(  bump_src->is() && !normal_src->is()                                                )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
       if(normal_src->is() && (normal.image.typeChannels()==1 || normal_src->monochromaticRG()))bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
@@ -918,16 +877,16 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          }
       }
 
-      // base_2 SRBA
-      if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA /*&& ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_ALPHA)*/) // always create 'base2' so we can determine layout based on 'base2' presence
+      // base_2 SRBG
+      if(ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW))
       {
-         Int w=Max(1, Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), alpha_size.x)), // Max 1 in case all images are empty, but we still need it
-             h=Max(1, Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), alpha_size.y)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
+             h=Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
          if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( smooth.filter), ( smooth.clamp?IC_CLAMP:IC_WRAP))) smooth_src=& smooth_temp;else goto error;
          if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(reflect.filter), (reflect.clamp?IC_CLAMP:IC_WRAP)))reflect_src=&reflect_temp;else goto error;
          if(   bump_src->is() && (   bump_src->w()!=w ||    bump_src->h()!=h))if(   bump_src->copyTry(   bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   bump.filter), (   bump.clamp?IC_CLAMP:IC_WRAP)))   bump_src=&   bump_temp;else goto error;
-         if(  alpha_src->is() && (  alpha_src->w()!=w ||   alpha_src->h()!=h))if(  alpha_src->copyTry(  alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1,          alpha_filter , (  alpha.clamp?IC_CLAMP:IC_WRAP)))  alpha_src=&  alpha_temp;else goto error;
+         if(   glow_src->is() && (   glow_src->w()!=w ||    glow_src->h()!=h))if(   glow_src->copyTry(   glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   glow.filter), (   glow.clamp?IC_CLAMP:IC_WRAP)))   glow_src=&   glow_temp;else goto error;
 
          if(!smooth_src->is() || smooth_src->lockRead())
          {
@@ -935,10 +894,9 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
             {
                if(!bump_src->is() || bump_src->lockRead())
                {
-                  if(!alpha_src->is() || alpha_src->lockRead())
+                  if(!glow_src->is() || glow_src->lockRead())
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
-                     Int alpha_component=(alpha_src->typeInfo().a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {
@@ -946,10 +904,10 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                         c.c[ SMOOTH_CHANNEL]=( smooth_src->is() ?  smooth_src->color(x, y).lum() : 255);
                         c.c[REFLECT_CHANNEL]=(reflect_src->is() ? reflect_src->color(x, y).lum() : 255);
                         c.c[   BUMP_CHANNEL]=(   bump_src->is() ?    bump_src->color(x, y).lum() : BUMP_DEFAULT_TEX);
-                        c.c[  ALPHA_CHANNEL]=(  alpha_src->is() ?   alpha_src->color(x, y).c[alpha_component] : 255);
+                        if(glow_src->is()){Color glow=glow_src->color(x, y); c.c[GLOW_CHANNEL]=DivRound(glow.lum()*glow.a, 255);}else c.c[GLOW_CHANNEL]=255;
                         dest_2.color(x, y, c);
                      }
-                     alpha_src->unlock();
+                     glow_src->unlock();
                   }
                   bump_src->unlock();
                }
@@ -1221,24 +1179,24 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
            spec_mul*=material.smooth*light_power/255.0f;
       Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
            glow_blur=0.07f;
-      Bool has_normal=(light_dir       && material.base_1 && material.normal*light_power>0.01f),
-           has_spec  =(light_dir       && material.base_2 && material.smooth*light_power>0.01f),
-           has_glow  =(material.base_2 && material.base_0 && material.glow              >0.01f); // glow is stored in base0 but only if base2 is present
+      Bool has_normal=(light_dir && material.base_1 && material.normal*light_power>0.01f),
+           has_spec  =(light_dir && material.base_2 && material.smooth*light_power>0.01f),
+           has_glow  =(             material.base_2 && material.glow              >0.01f);
 
       Image normal; // 'base_1' resized to 'color' resolution
-      if(has_normal      && material.base_1)if(!material.base_1->copyTry(normal, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
+      if(has_normal)if(!material.base_1->copyTry(normal, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
 
       Image b2; // 'base_2' resized to 'color' resolution
-      if((1 || has_spec) && material.base_2)if(!material.base_2->copyTry(b2    , color.w(), color.h(), 1, ImageTypeUncompressed(material.base_2->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false; // copy always because it has alpha
+      if(has_spec || has_glow)if(!material.base_2->copyTry(b2, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_2->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
 
-      // setup glow (before baking normals and overwriting 'color' alpha channel)
+      // setup glow (before baking normals)
       Image glow; if(has_glow && glow.createSoftTry(color.w(), color.h(), 1, IMAGE_F32_3)) // use Vec because we're storing glow with multiplier
       {
-         REPD(y, color.h())
-         REPD(x, color.w())
+         REPD(y, glow.h())
+         REPD(x, glow.w())
          {
-            Vec4 c=color.colorF(x, y); // RGB Glow
-            c.xyz*=c.c[GLOW_CHANNEL]*glow_mul;
+            Vec4 c=color.colorF(x, y); // RGB
+            c.xyz*=b2.colorF(x, y).c[GLOW_CHANNEL]*glow_mul; // Glow
             glow.colorF(x, y, c);
          }
          glow.blur(glow.size3()*glow_blur, false);
@@ -1246,15 +1204,13 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
 
       // setup alpha
       Bool has_alpha; // if has any alpha in the texture channel
-      if(material.base_2 // if have to replace alpha
-      || image_type<=0)  // or set 'has_alpha'
+      if(image_type<=0) // if need to set 'has_alpha'
       {
          has_alpha=false;
          REPD(y, color.h())
          REPD(x, color.w())
          {
             Color c=color.color(x, y);
-            if(material.base_2)c.a=(b2.is() ? b2.color(x, y).a : 255); // alpha is in base2
             if(c.a<254)has_alpha=true;
             color.color(x, y, c);
          }

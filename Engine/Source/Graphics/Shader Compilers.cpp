@@ -389,7 +389,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient", model, api).New(src_path+"Ambient.cpp");
 
    REPD(skin      , 2)
-   REPD(alpha_test, 3)
+   REPD(alpha_test, 2)
    REPD(light_map , 2)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "LIGHT_MAP", light_map);
 }
@@ -410,7 +410,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api).New(src_path+"Behind.cpp");
 
    REPD(skin      , 2)
-   REPD(alpha_test, 3)
+   REPD(alpha_test, 2)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test);
 }
 #endif
@@ -596,7 +596,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api).New(src_path+"Position.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
-   REPD(alpha_test, 3)
+   REPD(alpha_test, 2)
    REPD(test_blend, alpha_test ? 2 : 1)
       src.New().position(skin, alpha_test, test_blend, FX_NONE, tesselate);
 
@@ -613,7 +613,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api).New(src_path+"Set Color.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
-   REPD(alpha_test, 3)
+   REPD(alpha_test, 2)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
 }
 #endif

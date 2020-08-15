@@ -266,19 +266,16 @@ class TextureDownsize : Viewport4Region
                   base2_size=ImageSize(normal_mtrl->base_2, base2);
                }
                // #MaterialTextureLayout
-               if(base0_size!=base2_size)downsized.separateAlphaMap (Proj, time); // alpha  can be in base0/base2
-               if(base1_size!=base2_size)downsized.separateNormalMap(      time); // normal can be from bump
-
-               VecI2 alpha_size=(downsized.hasBase2Tex() ? base2_size : base0_size); // alpha can go into Base0/Base2, #MaterialTextureLayout
+               if(base1_size!=base2_size)downsized.separateNormalMap(time); // normal can be from bump
 
                // resize images, #MaterialTextureLayout
                Proj.forceImageSize(downsized.  color_map, base0_size, relative, downsized.  color_map_time, time);
-               Proj.forceImageSize(downsized.  alpha_map, alpha_size, relative, downsized.  alpha_map_time, time);
+               Proj.forceImageSize(downsized.  alpha_map, base0_size, relative, downsized.  alpha_map_time, time);
                Proj.forceImageSize(downsized.   bump_map, base2_size, relative, downsized.   bump_map_time, time);
                Proj.forceImageSize(downsized. normal_map, base1_size, relative, downsized. normal_map_time, time);
                Proj.forceImageSize(downsized. smooth_map, base2_size, relative, downsized. smooth_map_time, time);
                Proj.forceImageSize(downsized.reflect_map, base2_size, relative, downsized.reflect_map_time, time);
-               Proj.forceImageSize(downsized.   glow_map, base0_size, relative, downsized.   glow_map_time, time);
+               Proj.forceImageSize(downsized.   glow_map, base2_size, relative, downsized.   glow_map_time, time);
                downsized.cleanupMaps();
 
                if(Proj.mtrlSync(mtrl_id, downsized, true, false))
@@ -435,9 +432,9 @@ class TextureDownsize : Viewport4Region
 
       prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.053;
       props.New().create("Global", MemberDesc(DATA_INT).setFunc(Global, Global)).desc("How much to Downsize all Material Base Textures.");
-      props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha, Glow."          ); // #MaterialTextureLayout
-      props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                      ); // #MaterialTextureLayout
-      props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Reflect, Bump, Alpha."); // #MaterialTextureLayout
+      props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha."               ); // #MaterialTextureLayout
+      props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                     ); // #MaterialTextureLayout
+      props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Reflect, Bump, Glow."); // #MaterialTextureLayout
       Rect r=AddProperties(props, region, Vec2(padd, -0.005), prop_h, 0.18, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
 
       Node<MenuElm> menu; Viewport4Region &v4=T;
@@ -609,9 +606,9 @@ class TextureDownsize : Viewport4Region
                UID  base0_id   =mtrl_data.base_0_tex,
                     base1_id   =mtrl_data.base_1_tex,
                     base2_id   =mtrl_data.base_2_tex;
-               bool base0_valid= base0_id.valid(),
-                    base1_valid= base1_id.valid(),
-                    base2_valid=(base2_id.valid() && base2_id!=MaterialTexIDDummy);
+               bool base0_valid=base0_id.valid(),
+                    base1_valid=base1_id.valid(),
+                    base2_valid=base2_id.valid();
 
                // get materials using these textures
                Memt<UID> mtrls;

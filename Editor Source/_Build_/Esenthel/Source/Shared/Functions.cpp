@@ -437,40 +437,7 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image)
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
 { // #MaterialTextureLayout
    uint tex=0;
-   if(base_2.valid())
-   {
-      if(smooth || reflect || bump || alpha)
-      {
-         Image b2; LoadTexture(proj, base_2, b2);
-         if(smooth )smooth ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(reflect)reflect->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(bump   )bump   ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-         if(alpha  )alpha  ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-         REPD(y, b2.h())
-         REPD(x, b2.w())
-         {
-            Color c=b2.color(x, y);
-            if(smooth ){smooth ->pixel(x, y, c.r); if(c.r<254                           )tex|=BT_SMOOTH ;}
-            if(reflect){reflect->pixel(x, y, c.g); if(c.g<254                           )tex|=BT_REFLECT;}
-            if(bump   ){bump   ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP   ;} // BUMP_DEFAULT_TEX can be either 0, 128 or 255
-            if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_ALPHA  ;}
-         }
-      }
-      if(base_0.valid() && (color || glow)) // base_0 && base_2
-      {
-         Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color->createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(glow )glow ->createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
-         REPD(y, b0.h())
-         REPD(x, b0.w())
-         {
-            Color c=b0.color(x, y);
-            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(glow ){glow ->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_GLOW ;}
-         }
-      }
-   }else
-   if(base_0.valid() && (color || alpha)) // base_0 without base_2
+   if(base_0.valid() && (color || alpha))
    {
       Image b0; LoadTexture(proj, base_0, b0);
       if(color)color->createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
@@ -497,6 +464,23 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
          n.xyz=n.xyz*0.5f+0.5f;
          n.w=1;
          normal->colorF(x, y, n);
+      }
+   }
+   if(base_2.valid() && (smooth || reflect || bump || glow))
+   {
+      Image b2; LoadTexture(proj, base_2, b2);
+      if(smooth )smooth ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(reflect)reflect->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(bump   )bump   ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(glow   )glow   ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      REPD(y, b2.h())
+      REPD(x, b2.w())
+      {
+         Color c=b2.color(x, y);
+         if(smooth ){smooth ->pixel(x, y, c.r); if(c.r<254                           )tex|=BT_SMOOTH ;}
+         if(reflect){reflect->pixel(x, y, c.g); if(c.g<254                           )tex|=BT_REFLECT;}
+         if(bump   ){bump   ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP   ;} // BUMP_DEFAULT_TEX can be either 0, 128 or 255
+         if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_GLOW   ;}
       }
    }
    if(color   && !(tex&BT_COLOR  ))color  ->del();

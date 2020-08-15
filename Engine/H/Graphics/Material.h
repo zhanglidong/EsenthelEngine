@@ -46,9 +46,9 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
 #if EE_PRIVATE
    // #MaterialTextureLayout
 #endif
-   ImagePtr            base_0  , // base      texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha/Glow
+   ImagePtr            base_0  , // base      texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha
                        base_1  , // base      texture #1, default=null, this texture contains data packed in following channel order: NormalX, NormalY
-                       base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Smooth, Reflect, Bump, Alpha
+                       base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Smooth, Reflect, Bump, Glow
                      detail_map, // detail    texture   , default=null
                       macro_map, // macro     texture   , default=null
                       light_map; // light map texture   , default=null
@@ -111,8 +111,8 @@ private:
    struct Multi
    {
       Vec4 color;
-      Vec2 base2_mul, base2_add;
-      Flt  glow, normal, bump, det_mul, det_add, det_inv, macro, // medium prec
+      Vec  srg_mul, srg_add; // smooth, reflect, glow
+      Flt  normal, bump, det_mul, det_add, det_inv, macro, // medium prec
            tex_scale, det_scale; // high prec
    }_multi;
    struct MaterialShader // Material->Shader link

@@ -371,7 +371,6 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
 
-               // #MaterialTextureLayout
                edit.  color_map_time.getUTC(); edit.  color_map=b0; SetTransform(edit.color_map, "channel", "xyz");
                edit.  alpha_map_time.getUTC(); edit.  alpha_map.clear();
                edit.   bump_map_time.getUTC(); edit.   bump_map.clear();

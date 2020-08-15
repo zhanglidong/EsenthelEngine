@@ -85,18 +85,6 @@ class EditMaterial
                                                normal_map_time=time;
       }
    }
-   void separateAlphaMap(C Project &proj, C TimeStamp &time=TimeStamp().getUTC())
-   {
-      if(!alpha_map.is() && color_map.is() && hasBase2Tex()) // if alpha map not specified, but may come from color map, and will go to Base2 texture, #MaterialTextureLayout
-      {
-         Image color; if(proj.loadImages(color, null, color_map, true))if(HasAlpha(color)) // if color has alpha
-         {
-                         alpha_map="|color|"; // set alpha map from color map
-            SetTransform(alpha_map, "channel", "a");
-                         alpha_map_time=time;
-         }
-      }
-   }
    void cleanupMaps()
    { // no need to adjust time because this is called after maps have been changed
       if( alpha_map=="|color|") alpha_map.clear();

@@ -182,18 +182,18 @@ Shader* DefaultShaders::Solid(Bool mirror)C
 Shader* DefaultShaders::Ambient()C
 {
 #if SUPPORT_MATERIAL_AMBIENT
-   if(valid && !alpha_blend && ambient)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test ? layout : 0, ambient-1)); // (ambient==2) ? 1 : 0
+   if(valid && !alpha_blend && ambient)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test, ambient-1)); // (ambient==2) ? 1 : 0
 #endif
    return null;
 }
 Shader* DefaultShaders::Outline()C
 {
-   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(ShaderSetColor(skin, alpha_test ? layout : 0, tesselate));
+   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(ShaderSetColor(skin, alpha_test, tesselate));
    return null;
 }
 Shader* DefaultShaders::Behind()C
 {
-   if(valid && !fx)return ShaderFiles("Behind")->get(ShaderBehind(skin, alpha_test ? layout : 0));
+   if(valid && !fx)return ShaderFiles("Behind")->get(ShaderBehind(skin, alpha_test));
    return null;
 }
 Shader* DefaultShaders::Fur()C
@@ -203,7 +203,7 @@ Shader* DefaultShaders::Fur()C
 }
 Shader* DefaultShaders::Shadow()C
 {
-   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(ShaderPosition(skin, alpha_test ? layout : 0, alpha_test && alpha_blend_light, fx, tesselate));
+   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(ShaderPosition(skin, alpha_test, alpha_test && alpha_blend_light, fx, tesselate));
    return null;
 }
 Shader* DefaultShaders::Blend()C

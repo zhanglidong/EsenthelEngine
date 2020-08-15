@@ -57,8 +57,7 @@ VecH4 PS
 ):TARGET
 {
 #if ALPHA_TEST
-   if(ALPHA_TEST==1)clip(Tex(Col, I.tex).a+(Material.color.a-1));else
-   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(Material.color.a-1)); // #MaterialTextureLayout
+   clip(Tex(Col, I.tex).a+(Material.color.a-1));
 #endif
 
    return Highlight;

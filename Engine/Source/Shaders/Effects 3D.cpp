@@ -235,10 +235,7 @@ VecH4 Decal_PS(PIXEL,
    pos.xy=pos.xy*0.5+0.5;
 
    VecH4 col=Tex(Col, pos.xy);
-#if LAYOUT==2
-       col.a=Tex(Ext, pos.xy).a; // #MaterialTextureLayout
-#endif
-   col.a*=alpha;
+         col.a*=alpha;
 
 #if MODE==2 // palette
    return (col.a*Material.color.a)*Color[0];

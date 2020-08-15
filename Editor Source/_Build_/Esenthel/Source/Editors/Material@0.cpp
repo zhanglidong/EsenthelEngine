@@ -69,12 +69,12 @@ MaterialTech mtrl_techs[]=
             if(!mr->water())switch(type) // #MaterialTextureLayout
             {
                case TEX_COLOR     : if(em.    color_map.is()                       )return base_0; break;
-               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )return base_2 ? base_2 : base_0; break;
+               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )return base_0; break;
                case TEX_BUMP      : if(em.      hasBumpMap()                       )return base_2; break;
                case TEX_NORMAL    : if(em.    hasNormalMap()                       )return base_1; break;
                case TEX_SMOOTH    : if(em.   smooth_map.is()                       )return base_2; break;
                case TEX_REFLECT   : if(em.  reflect_map.is()                       )return base_2; break;
-               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2)return base_0; break;
+               case TEX_GLOW      : if(em.     glow_map.is()                       )return base_2; break;
                case TEX_LIGHT     : if(em.    light_map.is()                       )return light ; break;
                case TEX_MACRO     : if(em.    macro_map.is()                       )return macro ; break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break;
@@ -252,19 +252,19 @@ MaterialTech mtrl_techs[]=
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
             if(!mr->water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
-               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0 || base_2){VI.shader(ShaderFiles("Main")->get(base_2 ? "DrawTexWG" : "DrawTexWG" )); if(base_2)base_2->drawFit(rect);else base_0->drawFit(rect); tex=true;} break;
-               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      base_1->drawFit(rect); tex=true;} break;
-               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexXG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_REFLECT   : if(em.  reflect_map.is()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexYG" ));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2 && base_0){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      base_0->drawFit(rect); tex=true;} break;
-               case TEX_LIGHT     : if(em.    light_map.is()                       )if(           light){                                                                                                               light ->drawFit(rect); tex=true;} break;
-               case TEX_MACRO     : if(em.    macro_map.is()                       )if(           macro){                                                                                                               macro ->drawFit(rect); tex=true;} break;
-               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexZG" ));                                      detail->drawFit(rect); tex=true;} break;
-               case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(          detail){                                                               if(Image *bump=mr->getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; //{VI.shader(ShaderFiles("Main")->get(                      "DrawTexWG"  ));                                      detail->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
-               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexDetNrm"));                                   detail->drawFit(rect); tex=true;} break;
-               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(          detail){VI.shader(ShaderFiles("Main")->get(                       "DrawTexWG" ));                                      detail->drawFit(rect); tex=true;} break;
+               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0){                                                      base_0->drawFit(rect); tex=true;} break;
+               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm"   )); base_1->drawFit(rect); tex=true;} break;
+               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_REFLECT   : if(em.  reflect_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexYG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_LIGHT     : if(em.    light_map.is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
+               case TEX_MACRO     : if(em.    macro_map.is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(detail){      if(Image *bump=mr->getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
+               case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break;
              /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
                case TEX_RFL_F     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
                case TEX_RFL_R     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
@@ -285,9 +285,9 @@ MaterialTech mtrl_techs[]=
                }break;*/
             }else switch(type) // #WaterMaterialTextureLayout
             {
-               case TEX_COLOR   : if(em.    color_map.is()                       )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
-               case TEX_BUMP    : if(em.      hasBumpMap()                       )if(base_2          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexXSG"));                                      base_2->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL  : if(em.    hasNormalMap()                       )if(base_1          ){VI.shader(ShaderFiles("Main")->get(                       "DrawTexNrm"));                                      base_1->drawFit(rect); tex=true;} break;
+               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0){                                                   base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXSG")); base_2->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm")); base_1->drawFit(rect); tex=true;} break;
             }
             D.alpha(alpha);
          }
@@ -540,19 +540,18 @@ MaterialTech mtrl_techs[]=
             sizes[i].set(NearestPow2(sizes[i].x), NearestPow2(sizes[i].y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          }
          // #MaterialTextureLayout
-         if(sizes[0]!=sizes[2])edit.separateAlphaMap (Proj, time); // alpha  can be in base0/base2
-         if(sizes[1]!=sizes[2])edit.separateNormalMap(      time); // normal can be from bump
+         if(sizes[1]!=sizes[2])edit.separateNormalMap(time); // normal can be from bump
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
       // #MaterialTextureLayout
-      if(Proj.forceImageSize(edit.  color_map,                                 sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-      |  Proj.forceImageSize(edit.  alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit.  alpha_map_time, time)
-      |  Proj.forceImageSize(edit.   bump_map,                                 sizes[2], relative, edit.   bump_map_time, time)
-      |  Proj.forceImageSize(edit. normal_map,                                 sizes[1], relative, edit. normal_map_time, time)
-      |  Proj.forceImageSize(edit. smooth_map,                                 sizes[2], relative, edit. smooth_map_time, time)
-      |  Proj.forceImageSize(edit.reflect_map,                                 sizes[2], relative, edit.reflect_map_time, time)
-      |  Proj.forceImageSize(edit.   glow_map,                                 sizes[0], relative, edit.   glow_map_time, time))
+      if(Proj.forceImageSize(edit.  color_map, sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit.  alpha_map, sizes[0], relative, edit.  alpha_map_time, time)
+      |  Proj.forceImageSize(edit.   bump_map, sizes[2], relative, edit.   bump_map_time, time)
+      |  Proj.forceImageSize(edit. normal_map, sizes[1], relative, edit. normal_map_time, time)
+      |  Proj.forceImageSize(edit. smooth_map, sizes[2], relative, edit. smooth_map_time, time)
+      |  Proj.forceImageSize(edit.reflect_map, sizes[2], relative, edit.reflect_map_time, time)
+      |  Proj.forceImageSize(edit.   glow_map, sizes[2], relative, edit.   glow_map_time, time))
       {
          edit.cleanupMaps();
          rebuildBase(edit.baseTex());
@@ -565,13 +564,9 @@ MaterialTech mtrl_techs[]=
       TimeStamp time; time.getUTC();
       VecI2 size0=size;
 
-      if(relative || game && game->base_2 && game->base_2->size()!=size0)edit.separateAlphaMap(Proj, time); // separate if needed (alpha can be in base0/base2), and before reverting
-
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(                       Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
-         |                         Proj.forceImageSize(edit. glow_map, 0, relative, edit. glow_map_time, time)
-         | (!edit.hasBase2Tex() && Proj.forceImageSize(edit.alpha_map, 0, relative, edit.alpha_map_time, time)) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureLayout
-         )
+         if(Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time) // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit.alpha_map, 0, relative, edit.alpha_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(&size0, null, null); // calculate actual sizes
          size0.set(Max(1, Shl(size0.x, size.x)), Max(1, Shl(size0.y, size.y)));
@@ -579,10 +574,8 @@ MaterialTech mtrl_techs[]=
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
-      if(                       Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
-      |                         Proj.forceImageSize(edit. glow_map, size0, relative, edit. glow_map_time, time)
-      | (!edit.hasBase2Tex() && Proj.forceImageSize(edit.alpha_map, size0, relative, edit.alpha_map_time, time)) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureLayout
-      )
+      if(Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time) // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit.alpha_map, size0, relative, edit.alpha_map_time, time))
       {
          edit.cleanupMaps();
          rebuildBase(edit.baseTex());
@@ -619,15 +612,13 @@ MaterialTech mtrl_techs[]=
       TimeStamp time; time.getUTC();
       VecI2 size2=size;
 
-      if(relative || game && game->base_0 && game->base_0->size()!=size2)edit.separateAlphaMap (Proj, time); // separate if needed (alpha  can be in base0/base2), and before reverting
-    //if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(      time); // separate if needed (normal can be from bump     ), and before reverting
+    //if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(                      Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
-         |                        Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
-         |                        Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
-         | (edit.hasBase2Tex() && Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)) // resize alpha only if it's going to be placed in Base2 tex, #MaterialTextureLayout
-         )
+         if(Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
+         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
+         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(null, null, &size2); // calculate actual sizes
          size2.set(Max(1, Shl(size2.x, size.x)), Max(1, Shl(size2.y, size.y)));
@@ -635,11 +626,10 @@ MaterialTech mtrl_techs[]=
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
-      if(                      Proj.forceImageSize(edit. smooth_map, size2, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
-      |                        Proj.forceImageSize(edit.reflect_map, size2, relative, edit.reflect_map_time, time)
-      |                        Proj.forceImageSize(edit.   bump_map, size2, relative, edit.   bump_map_time, time)
-      | (edit.hasBase2Tex() && Proj.forceImageSize(edit.  alpha_map, size2, relative, edit.  alpha_map_time, time)) // resize alpha only if it's going to be placed in Base2 tex, #MaterialTextureLayout
-      )
+      if(Proj.forceImageSize(edit. smooth_map, size2, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit.reflect_map, size2, relative, edit.reflect_map_time, time)
+      |  Proj.forceImageSize(edit.   bump_map, size2, relative, edit.   bump_map_time, time)
+      |  Proj.forceImageSize(edit.   glow_map, size2, relative, edit.   glow_map_time, time))
       {
          edit.cleanupMaps();
          rebuildBase(edit.baseTex());
@@ -788,7 +778,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBaseDouble  , T);
       }
       {
-         Node<MenuElm> &resize=(n+=(water() ? "Resize Color Texture" : "Resize Color+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Color Texture" : "Resize Color+Alpha Textures")); if(!water())resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase0_128 , T);
          resize.New().create( "256x256" , ResizeBase0_256 , T);
          resize.New().create( "512x512" , ResizeBase0_512 , T);
@@ -844,7 +834,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Reflect+Bump Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Reflect+Bump+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);

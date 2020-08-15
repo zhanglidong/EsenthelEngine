@@ -133,8 +133,8 @@ VecH4 PS
 
    // #MaterialTextureLayout
 #if LAYOUT
-   if(LAYOUT==1)                            I.color    *=Tex(Col, I.tex);else                                                        // alpha in 'Col' texture
-   if(LAYOUT==2){VecH4 ext=Tex(Ext, I.tex); I.color.rgb*=Tex(Col, I.tex).rgb; I.color.a*=ext.a; smooth*=ext.x; reflectivity*=ext.y;} // alpha in 'Ext' texture
+   if(LAYOUT==1) I.color*=Tex(Col, I.tex);else
+   if(LAYOUT==2){I.color*=Tex(Col, I.tex); VecH2 ext=Tex(Ext, I.tex).xy; smooth*=ext.x; reflectivity*=ext.y;}
 #endif
 
    // normal

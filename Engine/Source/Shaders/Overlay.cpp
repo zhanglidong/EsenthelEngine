@@ -69,10 +69,9 @@ out VecH4   outExt   :TARGET2
          reflect=Material.reflect;
    VecH4 col    =Tex(Col, inTex.xy);
 #if LAYOUT==2 // #MaterialTextureLayout
-   VecH4 ext    =Tex(Ext, inTex.xy);
+   VecH2 ext    =Tex(Ext, inTex.xy).xy;
    smooth *=ext.x;
    reflect*=ext.y;
-   col.a   =ext.a;
 #endif
    col  *=Material.color;
    col.a*=Sat(inTex.z)*OverlayAlpha();

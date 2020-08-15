@@ -43,7 +43,6 @@ class EditMaterial
    void reset();     
    void resetAlpha();
    void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC());
-   void separateAlphaMap(C Project &proj, C TimeStamp &time=TimeStamp().getUTC());
    void cleanupMaps();
    void expandMap(Str &map, C MemPtr<FileParams> &color, C MemPtr<FileParams> &smooth, C MemPtr<FileParams> &bump);
    void expandMaps();

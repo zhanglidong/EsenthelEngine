@@ -417,8 +417,8 @@ BUFFER_END
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
-   VecH2 base2_mul, base2_add;
-   Half  glow, normal, bump, det_mul, det_add, det_inv, macro;
+   VecH  srg_mul, srg_add;
+   Half  normal, bump, det_mul, det_add, det_inv, macro;
    Flt   tex_scale, det_scale;
 };
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
@@ -443,6 +443,7 @@ Image     Ext, Ext1, Ext2, Ext3,
 #define  SMOOTH_CHANNEL x
 #define REFLECT_CHANNEL y
 #define    BUMP_CHANNEL z
+#define    GLOW_CHANNEL w
 #define   ALPHA_CHANNEL w
 
 Image     Img, Img1, Img2, Img3, Img4, Img5;
