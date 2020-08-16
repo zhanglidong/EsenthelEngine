@@ -169,7 +169,7 @@ void MeshBase::drawAuto(C Material *material)C
 
       // tris
       VI.shader(shader);
-      VI.cull  (true);
+      VI.cull  (mtrl.cull);
       nrm=tri.nrm(); if(C VecI *_tri=tri.ind())REPA(tri)
       {
          VecI p=*_tri++;
@@ -259,7 +259,7 @@ void MeshBase::drawAuto(C Material *material)C
 
       // quads
       VI.shader(shader);
-      VI.cull  (true);
+      VI.cull  (mtrl.cull);
       Zero(v); nrm=quad.nrm(); if(C VecI4 *_quad=quad.ind())REPA(quad)
       {
          VecI4 p=*_quad++;
