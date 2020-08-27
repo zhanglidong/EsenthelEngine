@@ -53,14 +53,14 @@ public:
    MeshPtr                 normal_mesh;
    Image                   downsized_base[3];
    Map<UID, DownsizedMtrl> downsized_mtrls; // key=Material ID, doesn't need to be thread-safe
-   MeshLod                 downsized_mesh;
+   Mesh                    downsized_mesh;
    bool                    draw_as_obj, different;
    Vec2                    light_angle;
 
    Vec previewLight()C;
 
    static int MaterialUses(C MeshLod &lod, C MaterialPtr &mtrl, int variation); // how many 'lod' parts use 'mtrl' in 'variation'
-   static int VariationWithMostMaterialUses(C Mesh &mesh, C MaterialPtr &mtrl);
+   static VecI2 LodAndVariationWithMostMaterialUses(C Mesh &mesh, C MaterialPtr &mtrl); // X=LOD, Y=Variation
 
    static void Render();
           void render();
@@ -118,7 +118,7 @@ public:
 
                     C Rect& rect(            );        
    virtual TextureDownsize& rect(C Rect &rect)override;
-   int getPart(GuiObj *go, C Vec2 &screen_pos, Vec *hit_pos=null);
+   bool sweep(GuiObj *go, C Vec2 &screen_pos, int *variation_index, int *lod_index, int *part_index, Vec *hit_pos=null);
    bool selectionZoom(flt &dist);
    virtual void camCenter(bool zoom)override;
    bool selected       ()C;        

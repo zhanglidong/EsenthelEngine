@@ -212,7 +212,7 @@ class CopyElements : ClosableWindow
             includeDep(data. obj_id); // always include
             includeDep(data.skel_id); // always include
             includeDep(data.phys_id); // always include
-            if(include_dependencies()){includeDep(Proj.meshToObj(data.body_id)); includeDep(data.draw_group_id); REPA(data.mtrl_ids)includeDep(data.mtrl_ids[i]);}
+            if(include_dependencies()){includeDep(Proj.meshToObj(data.body_id)); includeDep(data.draw_group_id); FREPA(data.mtrl_ids)includeDep(data.mtrl_ids[i]);}
          }break;
 
          case ELM_PHYS: if(ElmPhys *data=elm.physData())

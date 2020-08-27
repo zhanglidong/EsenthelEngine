@@ -51,10 +51,20 @@ TextureDownsize TexDownsize;
       int    uses=0; REPA(lod)if(lod.parts[i].variation(variation)==mtrl)uses++;
       return uses;
    }
-   int TextureDownsize::VariationWithMostMaterialUses(C Mesh &mesh, C MaterialPtr &mtrl)
+   VecI2 TextureDownsize::LodAndVariationWithMostMaterialUses(C Mesh &mesh, C MaterialPtr &mtrl) // X=LOD, Y=Variation
    {
-      int    best=-1, best_uses=0; FREP(mesh.variations()){int uses=MaterialUses(mesh, mtrl, i); if(best<0 || uses>best_uses){best=i; best_uses=uses;}} // go from start to prefer the default variation
-      return best;
+      int variation, most_uses=0;
+      FREPD(l, mesh.lods()) // iterate all lods, go from the start to prefer most detailed
+      {
+       C MeshLod &lod=mesh.lod(l);
+         FREPD(v, mesh.variations()) // go from start to prefer the default variation
+         {
+            int uses=MaterialUses(lod, mtrl, v);
+            if( uses>most_uses){variation=v; most_uses=uses;}
+         }
+         if(most_uses)return VecI2(l, variation); // stop on first LOD with any uses
+      }
+      return 0; // return 0 lod and 0 variation if not found
    }
    void TextureDownsize::Render() {TexDownsize.render();}
           void TextureDownsize::render()
@@ -68,8 +78,13 @@ TextureDownsize TexDownsize;
             {
                if(normal_mesh)
                {
-                  SetVariation(VariationWithMostMaterialUses(*normal_mesh, normal_mtrl)); (interval ? downsized_mesh : SCAST(MeshLod, *normal_mesh)).draw(MatrixIdentity);
-                  SetVariation();
+                  VecI2 lv=LodAndVariationWithMostMaterialUses(*normal_mesh, normal_mtrl);
+                C Mesh &mesh=(interval ? downsized_mesh : *normal_mesh); if(InRange(lv.x, mesh.lods()))
+                  {
+                   C MeshLod &lod=mesh.lod(lv.x);
+                     SetVariation(lv.y); lod.draw(MatrixIdentity);
+                     SetVariation();
+                  }
                }
                LightDir(light_dir() ? !Vec(-1, -1, -1) : ActiveCam.matrix.z, 1-D.ambientColorL()).add(false);
             }else
@@ -299,24 +314,31 @@ TextureDownsize TexDownsize;
       next  .move(offset);
       return T;
    }
-   int TextureDownsize::getPart(GuiObj *go, C Vec2 &screen_pos, Vec *hit_pos)
+   bool TextureDownsize::sweep(GuiObj *go, C Vec2 &screen_pos, int *variation_index, int *lod_index, int *part_index, Vec *hit_pos)
    {
-      int hit_part=-1;
+      bool hit=false;
       if(normal_mesh)
          if(Edit::Viewport4::View *view=v4.getView(go))
       {
-       C MeshLod &lod=*normal_mesh;
-         view->setViewportCamera();
-         Vec pos, dir; ScreenToPosDir(screen_pos, pos, dir);
-         pos+=(D.viewFrom ()/Dot(dir, ActiveCam.matrix.z))*dir;
-         dir*= D.viewRange();
-         flt frac, f; Vec hp;
-         REPA(lod)if(Sweep(pos, dir, lod.parts[i], null, &f, &hp, null, true, -1, false))if(hit_part<0 || f<frac)
+         VecI2 lv=LodAndVariationWithMostMaterialUses(*normal_mesh, normal_mtrl); if(InRange(lv.x, normal_mesh->lods()))
          {
-            hit_part=i; frac=f; if(hit_pos)*hit_pos=hp;
+          C MeshLod &lod=normal_mesh->lod(lv.x);
+            view->setViewportCamera();
+            Vec pos, dir; ScreenToPosDir(screen_pos, pos, dir);
+            pos+=(D.viewFrom ()/Dot(dir, ActiveCam.matrix.z))*dir;
+            dir*= D.viewRange();
+            flt frac, f; Vec hp;
+            REPA(lod)if(Sweep(pos, dir, lod.parts[i], null, &f, &hp, null, true, -1, false))if(!hit || f<frac)
+            {
+               hit=true; frac=f;
+               if(variation_index)*variation_index=lv.y;
+               if(      lod_index)*      lod_index=lv.x;
+               if(     part_index)*     part_index=i;
+               if(      hit_pos  )*      hit_pos  =hp;
+            }
          }
       }
-      return hit_part;
+      return hit;
    }
    bool TextureDownsize::selectionZoom(flt &dist)
    {
@@ -333,7 +355,7 @@ TextureDownsize TexDownsize;
    }
    void TextureDownsize::camCenter(bool zoom)
 {
-      Vec hit_pos; bool hit=(getPart(Gui.ms(), Ms.pos(), &hit_pos)>=0); flt dist;
+      Vec hit_pos; bool hit=sweep(Gui.ms(), Ms.pos(), null, null, null, &hit_pos); flt dist;
       v4.moveTo(hit ? hit_pos : normal_mesh ? normal_mesh->ext.center : VecZero); if(zoom && selectionZoom(dist))v4.dist(hit ? dist/5 : dist); // use smaller dist because here we focus on texture quality, so zoom up close
    }
    bool TextureDownsize::selected()C {return Mode()==MODE_TEX_DOWN;}
@@ -428,7 +450,7 @@ TextureDownsize TexDownsize;
       return T;
    }
    void TextureDownsize::toGui() {REPAO(props).toGui();}
-   void TextureDownsize::setShader() {downsized_mesh.setShader(0);}
+   void TextureDownsize::setShader() {downsized_mesh.setShader();}
    void TextureDownsize::setDrawAs()
    {
       draw_as_obj=(mode()==OBJECT && normal_mesh); // try as mesh first
@@ -510,14 +532,17 @@ TextureDownsize TexDownsize;
          normal_mesh.clear(); if(C Elm *obj=Proj.findElm(obj_id))if(C ElmObj *obj_data=obj->objData())normal_mesh=Proj.gamePath(obj_data->mesh_id);
       if(normal_mesh)
       {
-         downsized_mesh.create(*normal_mesh); REPA(downsized_mesh)
+         downsized_mesh.create(*normal_mesh); REPD(l, downsized_mesh.lods())
          {
-            MeshPart &part=downsized_mesh.parts[i]; REP(part.variations())if(C MaterialPtr &mtrl=part.variation(i))
+            MeshLod &downsized_lod=downsized_mesh.lod(l); REPA(downsized_lod)
             {
-               if(normal_base[0].valid() && normal_base[0]==mtrl->base_0.id()
-               || normal_base[1].valid() && normal_base[1]==mtrl->base_1.id()
-               || normal_base[2].valid() && normal_base[2]==mtrl->base_2.id())
-                  part.variation(i, downsized_mtrls(mtrl.id()));
+               MeshPart &part=downsized_lod.parts[i]; REP(part.variations())if(C MaterialPtr &mtrl=part.variation(i))
+               {
+                  if(normal_base[0].valid() && normal_base[0]==mtrl->base_0.id()
+                  || normal_base[1].valid() && normal_base[1]==mtrl->base_1.id()
+                  || normal_base[2].valid() && normal_base[2]==mtrl->base_2.id())
+                     part.variation(i, downsized_mtrls(mtrl.id()));
+               }
             }
          }
       }else downsized_mesh.del();
@@ -579,9 +604,13 @@ TextureDownsize TexDownsize;
                REPA(mesh_data.mtrl_ids)secondary.binaryInclude(mesh_data.mtrl_ids[i]);
             #else
                if(MeshPtr mesh=Proj.gamePath(obj_data->mesh_id))
+                  FREPD(l, mesh->lods()) // iterate all lods
+               {
+                C MeshLod &lod=mesh->lod(l);
                   FREPD (v, mesh->variations()) // iterate variations first
-                  FREPAD(p, mesh->parts       ) // iterate all parts
-                     if(C MaterialPtr &mtrl=mesh->parts[p].variation(v))secondary.include(mtrl.id());
+                  FREPAD(p, lod  .parts       ) // iterate all parts
+                     if(C MaterialPtr &mtrl=lod.parts[p].variation(v))secondary.include(mtrl.id());
+               }
             #endif
             }
          }break;
@@ -625,10 +654,15 @@ TextureDownsize TexDownsize;
             {
                if(Ms.b(0))
                {
-                  int part=getPart(Gui.ms(), Ms.pos()); if(InRange(part, *normal_mesh))
+                  int lod_i, part, variation;
+                  if(sweep(Gui.ms(), Ms.pos(), &variation, &lod_i, &part))
+                     if(InRange(lod_i, normal_mesh->lods()))
                   {
-                     UID mtrl_id=normal_mesh->parts[part].variation(VariationWithMostMaterialUses(*normal_mesh, normal_mtrl)).id();
-                     MtrlEdit.activate(Proj.findElm(mtrl_id));
+                   C MeshLod &lod=normal_mesh->lod(lod_i); if(InRange(part, lod))
+                     {
+                        UID mtrl_id=lod.parts[part].variation(variation).id();
+                        MtrlEdit.activate(Proj.findElm(mtrl_id));
+                     }
                   }
                }
                if(Ms.bd(0) && v4.getView(Gui.ms()))ObjEdit.activate(Proj.findElm(obj_id));

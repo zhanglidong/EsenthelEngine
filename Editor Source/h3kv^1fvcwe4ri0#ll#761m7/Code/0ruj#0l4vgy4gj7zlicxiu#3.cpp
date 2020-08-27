@@ -1030,7 +1030,7 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
@@ -1148,7 +1148,7 @@ void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box)
       image.unlock();
    }
 }
-void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
+void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool photo=false)
 {
    if(contrast!=1 && image.lock())
    {
@@ -1158,12 +1158,19 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
+         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          flt d_hue=HueDelta(avg_hue, c.x);
          d_hue*=contrast;
          Clamp(d_hue, -0.5, 0.5); // clamp so we don't go back
          c.x=d_hue+avg_hue;
          c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+         }
          image.color3DF(x, y, z, c);
       }
       image.unlock();
@@ -1652,6 +1659,13 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))ContrastHue(image, contrast, avg.xyz, box);
       }
    }else
+   if(param.name=="contrastHuePhoto")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))ContrastHue(image, contrast, avg.xyz, box, true);
+      }
+   }else
    if(param.name=="medContrastHue")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
@@ -1659,11 +1673,25 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))ContrastHue(image, contrast, med.xyz, box);
       }
    }else
+   if(param.name=="medContrastHuePhoto")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))ContrastHue(image, contrast, med.xyz, box, true);
+      }
+   }else
    if(param.name=="contrastHueAlphaWeight")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
          Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))ContrastHue(image, contrast, avg, box);
+      }
+   }else
+   if(param.name=="contrastHuePhotoAlphaWeight")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))ContrastHue(image, contrast, avg, box, true);
       }
    }else
    if(param.name=="contrastHuePow")

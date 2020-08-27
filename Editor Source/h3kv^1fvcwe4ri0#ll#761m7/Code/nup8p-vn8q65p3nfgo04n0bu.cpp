@@ -421,7 +421,7 @@ class ElmMesh : ElmData
              phys_id=UIDZero,
              body_id=UIDZero, // if this is a cloth then 'body_id' points to the body mesh ELM_MESH that this cloth can be applied to
        draw_group_id=UIDZero;
-   Mems<UID> mtrl_ids; // materials used by this mesh
+   Mems<UID> mtrl_ids; // materials used by this mesh (this is sorted)
    Box       box(Vec(0), Vec(-1)); // this should not be synced (it is set according to mesh data), set as invalid when mesh is empty
    TimeStamp file_time, body_time, draw_group_time, transform_time;
 

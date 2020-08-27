@@ -250,7 +250,7 @@ class Project
          {
             case ELM_MESH:
             {
-               if(C ElmMesh *mesh_data=elm.meshData())REPA(mesh_data.mtrl_ids)used.binaryInclude(mesh_data.mtrl_ids[i]);
+               if(C ElmMesh *mesh_data=elm.meshData())FREPA(mesh_data.mtrl_ids)used.binaryInclude(mesh_data.mtrl_ids[i]);
             }break;
          }
       }

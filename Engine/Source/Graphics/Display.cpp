@@ -3228,8 +3228,9 @@ DisplayClass& DisplayClass::grassRange  (Flt  range  )
 static Flt BendFactor;
 DisplayClass& DisplayClass::grassUpdate()
 {
+   const Flt speed=1.5f;
    BendFactor+=Time.d();
-   Vec4 bf=Vec4(1.6f, 1.2f, 1.4f, 1.1f)*BendFactor+Vec4(0.1f, 0.5f, 0.7f, 1.1f);
+   Vec4 bf=Vec4(1.4f*speed, 1.1f*speed, 1.3f*speed, 1.0f*speed)*BendFactor+Vec4(0.1f, 0.5f, 0.7f, 1.1f);
 #if 1 // increase precision on GPU when using Half's
    bf.x=AngleFull(bf.x);
    bf.y=AngleFull(bf.y);

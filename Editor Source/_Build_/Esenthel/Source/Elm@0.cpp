@@ -113,7 +113,7 @@ TexInfoGetter TIG;
       // object
       if(Proj.list.include_texture_size_in_object)
          if(C ElmObj *obj_data=elm.objData())if(C Elm *mesh=Proj.findElm(obj_data->mesh_id))if(C ElmMesh *mesh_data=mesh->meshData()) // check for Obj->Mesh, and not directly Mesh, because ELM_MESH are always hidden, and wouldn't be processed for ICS_NEVER
-            REPA(mesh_data->mtrl_ids)if(C Elm *mtrl=Proj.findElm(mesh_data->mtrl_ids[i]))IncludeTex(texs, *mtrl);
+            FREPA(mesh_data->mtrl_ids)if(C Elm *mtrl=Proj.findElm(mesh_data->mtrl_ids[i]))IncludeTex(texs, *mtrl);
    }
    void ListElm::IncludeTex(Memt<UID> &texs, C ElmNode &node)
    {

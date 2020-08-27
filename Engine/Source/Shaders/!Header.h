@@ -1430,32 +1430,32 @@ Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 // GRASS AND LEAF
 /******************************************************************************/
 #define GrassBendFreq  1.0
-#define GrassBendScale 0.18
+#define GrassBendScale 0.033
 
 #define LeafBendFreq   2.0
-#define LeafBendScale  0.13
+#define LeafBendScale  0.033
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
 Vec2 GetGrassBend(Vec world_pos, Bool prev=false)
 {
    VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
-   return Vec2((0.28*GrassBendScale)*Sin(offset+bend_factor.x) + (0.32*GrassBendScale)*Sin(offset+bend_factor.y),
-               (0.18*GrassBendScale)*Sin(offset+bend_factor.z) + (0.24*GrassBendScale)*Sin(offset+bend_factor.w));
+   Flt   offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
+   return Vec2((1.0*GrassBendScale)*Sin(offset+bend_factor.x) + (1.0*GrassBendScale)*Sin(offset+bend_factor.y),
+               (1.0*GrassBendScale)*Sin(offset+bend_factor.z) + (1.0*GrassBendScale)*Sin(offset+bend_factor.w));
 }
 VecH2 GetLeafBend(VecH center, Bool prev=false)
 {
    VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((0.28*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (0.32*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
-                (0.18*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (0.24*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
+   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
+   return VecH2((1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
+                (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
 }
 VecH2 GetLeafsBend(VecH center, Bool prev=false)
 {
    VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((0.28*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (0.32*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
-                (0.18*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
+   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
+   return VecH2((1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
+                (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
 }
 /******************************************************************************/
 Half GrassFadeOut(UInt mtrx=0)
@@ -1464,18 +1464,46 @@ Half GrassFadeOut(UInt mtrx=0)
 }
 void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
 {
-   Flt b=Cube(Sat(local_pos.y));
-   if(!prev)
+#if 1 // slower but higher quality
+   if(local_pos.y>0)
    {
-      Vec2 bend=GetGrassBend(ObjWorldPos(mtrx), prev)*(b*Length(ViewMatrixY(mtrx)));
-      view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x;
-      view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
-   }else
-   {
-      Vec2 bend=GetGrassBend(ObjWorldPosPrev(mtrx), prev)*(b*Length(ViewMatrixPrevY(mtrx)));
-      view_pos+=Vec(CamMatrixPrev[0].x, CamMatrixPrev[1].x, CamMatrixPrev[2].x)*bend.x;
-      view_pos+=Vec(CamMatrixPrev[0].y, CamMatrixPrev[1].y, CamMatrixPrev[2].y)*bend.y;
+      Vec center=(prev ? ViewMatrixPrevPos(mtrx) : ViewMatrixPos(mtrx)),
+          delta =view_pos-center;
+
+      Flt len2 =Length2(delta),
+          blend=Min(len2, Sqr(local_pos.y*2)); // minimize with vertical position
+      Vec2 bend=GetGrassBend(prev ? ObjWorldPosPrev(mtrx) : ObjWorldPos(mtrx), prev)*blend;
+
+      if(!prev)
+      {
+         delta+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x; // world X right
+         delta+=Vec(CamMatrix[0].z, CamMatrix[1].z, CamMatrix[2].z)*bend.y; // world Z forward
+      }else
+      {
+         delta+=Vec(CamMatrixPrev[0].x, CamMatrixPrev[1].x, CamMatrixPrev[2].x)*bend.x; // world X right
+         delta+=Vec(CamMatrixPrev[0].z, CamMatrixPrev[1].z, CamMatrixPrev[2].z)*bend.y; // world Z forward
+      }
+
+      Flt l2=Length2(delta); delta*=Sqrt(len2/l2); // delta.setLength2(len2);
+      view_pos=center+delta;
    }
+#else // fast & simple
+   if(local_pos.y>0)
+   {
+      Flt blend=Sqr(local_pos.y);
+      if(!prev)
+      {
+         Vec2 bend=GetGrassBend(ObjWorldPos(mtrx), prev)*(blend*Length2(ViewMatrixY(mtrx)));
+         view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x; // world X right
+         view_pos+=Vec(CamMatrix[0].z, CamMatrix[1].z, CamMatrix[2].z)*bend.y; // world Z forward
+      }else
+      {
+         Vec2 bend=GetGrassBend(ObjWorldPosPrev(mtrx), prev)*(blend*Length2(ViewMatrixPrevY(mtrx)));
+         view_pos+=Vec(CamMatrixPrev[0].x, CamMatrixPrev[1].x, CamMatrixPrev[2].x)*bend.x; // world X right
+         view_pos+=Vec(CamMatrixPrev[0].z, CamMatrixPrev[1].z, CamMatrixPrev[2].z)*bend.y; // world Z forward
+      }
+   }
+#endif
 }
 /******************************************************************************/
 void BendLeaf(VecH center, in out Vec pos, Bool prev=false)

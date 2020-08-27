@@ -2227,6 +2227,16 @@ inline Vec4& Vec4::operator-=(C VecI4 &v) {x-=v.x; y-=v.y; z-=v.z; w-=v.w; retur
 inline Vec4& Vec4::operator*=(C VecI4 &v) {x*=v.x; y*=v.y; z*=v.z; w*=v.w; return T;}
 inline Vec4& Vec4::operator/=(C VecI4 &v) {x/=v.x; y/=v.y; z/=v.z; w/=v.w; return T;}
 
+inline VecD2 operator+ (C Vec2 &v, Dbl r) {return VecD2(v.x+r, v.y+r);}
+inline VecD2 operator- (C Vec2 &v, Dbl r) {return VecD2(v.x-r, v.y-r);}
+inline VecD2 operator* (C Vec2 &v, Dbl r) {return VecD2(v.x*r, v.y*r);}
+inline VecD2 operator/ (C Vec2 &v, Dbl r) {return VecD2(v.x/r, v.y/r);}
+
+inline VecD2 operator+ (Dbl r, C Vec2 &v) {return VecD2(r+v.x, r+v.y);}
+inline VecD2 operator- (Dbl r, C Vec2 &v) {return VecD2(r-v.x, r-v.y);}
+inline VecD2 operator* (Dbl r, C Vec2 &v) {return VecD2(r*v.x, r*v.y);}
+inline VecD2 operator/ (Dbl r, C Vec2 &v) {return VecD2(r/v.x, r/v.y);}
+
 inline VecD operator+ (C Vec &v, Dbl r) {return VecD(v.x+r, v.y+r, v.z+r);}
 inline VecD operator- (C Vec &v, Dbl r) {return VecD(v.x-r, v.y-r, v.z-r);}
 inline VecD operator* (C Vec &v, Dbl r) {return VecD(v.x*r, v.y*r, v.z*r);}
@@ -2328,9 +2338,11 @@ Flt Dist2Wrap(C Vec2 &a, C Vec2 &b);
 
 // dot product
 inline Flt Dot(C Vec2  &a, C Vec2  &b) {return a.x*b.x + a.y*b.y                    ;}
+inline Dbl Dot(C Vec2  &a, C VecD2 &b) {return a.x*b.x + a.y*b.y                    ;}
+inline Dbl Dot(C VecD2 &a, C Vec2  &b) {return a.x*b.x + a.y*b.y                    ;}
+inline Dbl Dot(C VecD2 &a, C VecD2 &b) {return a.x*b.x + a.y*b.y                    ;}
 inline Flt Dot(C Vec2  &a, C VecI2 &b) {return a.x*b.x + a.y*b.y                    ;}
 inline Flt Dot(C VecI2 &a, C Vec2  &b) {return a.x*b.x + a.y*b.y                    ;}
-inline Dbl Dot(C VecD2 &a, C VecD2 &b) {return a.x*b.x + a.y*b.y                    ;}
 inline Int Dot(C VecI2 &a, C VecI2 &b) {return a.x*b.x + a.y*b.y                    ;}
 inline Flt Dot(C Vec   &a, C Vec   &b) {return a.x*b.x + a.y*b.y + a.z*b.z          ;}
 inline Dbl Dot(C Vec   &a, C VecD  &b) {return a.x*b.x + a.y*b.y + a.z*b.z          ;}

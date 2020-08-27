@@ -263,7 +263,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
          if(Elm *elm=Proj.findElm(elm_ids[i]))if(ElmObj *obj_data=elm->objData())if(Elm *mesh_elm=Proj.findElm(obj_data->mesh_id))if(ElmMesh *mesh_data=mesh_elm->meshData())
       {
          bool include_obj=false;
-         REPA(mesh_data->mtrl_ids)if(Elm *elm_mtrl=Proj.findElm(mesh_data->mtrl_ids[i]))if(ElmMaterial *mtrl_data=elm_mtrl->mtrlData())
+         FREPA(mesh_data->mtrl_ids)if(Elm *elm_mtrl=Proj.findElm(mesh_data->mtrl_ids[i]))if(ElmMaterial *mtrl_data=elm_mtrl->mtrlData())
             if(mtrl_data->base_0_tex.valid() || mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
          {
             if(!base_0_tex.valid() && !base_1_tex.valid() && !base_2_tex.valid())

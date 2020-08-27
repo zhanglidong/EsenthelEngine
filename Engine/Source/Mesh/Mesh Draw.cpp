@@ -154,6 +154,128 @@ void MeshLod  ::drawNormals2D(Flt length, C Color &edge_color, C Color &vtx_colo
 void MeshGroup::drawNormals2D(Flt length, C Color &edge_color, C Color &vtx_color                                                 )C {REPA(T)meshes[i]     .drawNormals2D(length, edge_color, vtx_color);}
 void MeshLod  ::drawNormals  (Flt length, C Color &face_color, C Color &vtx_color, C Color &tangent_color, C Color &binormal_color)C {REPA(T)parts [i].base.drawNormals  (length, face_color, vtx_color, tangent_color, binormal_color);}
 void MeshGroup::drawNormals  (Flt length, C Color &face_color, C Color &vtx_color, C Color &tangent_color, C Color &binormal_color)C {REPA(T)meshes[i]     .drawNormals  (length, face_color, vtx_color, tangent_color, binormal_color);}
+/******************************************************************************
+Code for testing Grass/Leaf bending
+
+#define GrassBendFreq  1.0
+#define GrassBendScale 0.033
+
+#define LeafBendFreq   2.0
+#define LeafBendScale  0.039
+#define LeafsBendScale (LeafBendScale/2)
+
+Vec2 GetGrassBend(Vec world_pos, Bool prev=false)
+{
+   Vec4 bend_factor=Sh.BendFactor->getVec4();
+   Flt  offset=Dot(world_pos.xz(), Vec2(0.7, 0.9)*GrassBendFreq);
+   return Vec2((1.0*GrassBendScale)*Sin(offset+bend_factor.x) + (1.0*GrassBendScale)*Sin(offset+bend_factor.y),
+               (1.0*GrassBendScale)*Sin(offset+bend_factor.z) + (1.0*GrassBendScale)*Sin(offset+bend_factor.w));
+}
+Vec2 Rotate(Vec2 vec, Vec2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
+{
+   return Vec2(vec.x*cos_sin.x - vec.y*cos_sin.y,
+               vec.x*cos_sin.y + vec.y*cos_sin.x);
+}
+Vec2 GetLeafsBend(Vec center, Bool prev=false)
+{
+   Vec4 bend_factor=Sh.BendFactor->getVec4();
+   Flt  offset=Dot(center.xy, Vec2(0.7, 0.8)*LeafBendFreq);
+   return Vec2((1.0*LeafsBendScale)*(Flt)Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*(Flt)Sin(offset+bend_factor.y),
+               (1.0*LeafsBendScale)*(Flt)Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*(Flt)Sin(offset+bend_factor.w));
+}
+void BendLeafs(Vec center, Flt offset, Vec &pos, Bool prev=false)
+{
+   if(center.allZero())return;
+   Vec    delta=pos-center;
+   Vec2   cos_sin, bend=GetLeafsBend(center+offset, prev);
+   if(Kb.ctrl())bend*=delta.length()/2;
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); Vec2 zy=Rotate(delta.zy(), cos_sin); delta.z=zy.x; delta.y=zy.y;
+   pos=center+delta;
+}
+void ProcessVtx(Vec &local_pos, C Vec &hlp, Flt size)
+{
+   if(!Kb.alt())
+   {
+      ULong id=xxHash64Mem(&ObjMatrix, SIZE(ObjMatrix));
+      Randomizer rnd(id, 0);
+      local_pos*=Matrix3().setRotateY(rnd.f(PI2));
+   }
+   if(0)
+   {
+      BendLeafs(hlp, size, local_pos);
+   }else
+   if(Kb.shift())
+   {
+      if(local_pos.y>0)
+      {
+         Flt len2=local_pos.length2();
+         Flt blend=Min(len2, Sqr(local_pos.y*2));
+         Vec2 bend=GetGrassBend(ObjMatrix.pos)*blend;
+         local_pos.x+=bend.x;
+         local_pos.z+=bend.y;
+         if(Flt l2=local_pos.length2())local_pos*=SqrtFast(len2/l2); // local_pos.setLength2(len2);
+      }
+   }else
+   if(Kb.ctrl())
+   {
+      if(local_pos.y>0)
+      {
+         Flt dist=local_pos.length();
+         Flt blend=Sqr(Min(dist, local_pos.y*2));
+         Vec2 bend=GetGrassBend(ObjMatrix.pos)*blend;
+         local_pos.x+=bend.x;
+         local_pos.z+=bend.y;
+         local_pos.setLength(dist);
+      }
+      /*if(Kb.win())
+      {
+         Flt b=local_pos.length();
+         if(local_pos.y<=0)b=0;
+         if(Kb.alt())b*=b;
+         if(Kb.shift())MIN(b, local_pos.y);else
+         if(Kb.b(KB_Z))MIN(b, Sqr(local_pos.y*2));
+         Vec2 bend=GetGrassBend1(ObjMatrix.pos)*(b*1);
+         if(b>0)
+         {
+            Vec n=local_pos;
+            n.x+=bend.x;
+            n.z+=bend.y;
+            n.setLength(local_pos.length());
+            local_pos=n;
+         }
+      }else
+      {
+         Flt b=local_pos.y;
+         Vec2 bend=GetGrassBend1(ObjMatrix.pos)*(b*1);
+         if(b>0)
+         {
+            Flt dist=local_pos.y;
+            Vec n(bend.x, dist, bend.y);
+            if(Kb.shift())
+            {
+            Flt f=2;
+               if(Kb.alt()){n.x*=f; n.z*=f;}
+               n.setLength(dist);
+               if(Kb.alt()){n.x/=f; n.z/=f;}
+            }
+            local_pos.x+=n.x;
+            local_pos.z+=n.z;
+            local_pos.y =n.y;
+         }
+      }*
+   }else
+   {
+      if(local_pos.y>0)
+      {
+         Flt b=Sqr(local_pos.y);
+         Vec2 bend=GetGrassBend(ObjMatrix.pos)*(b*1);
+         local_pos.x+=bend.x;
+         local_pos.z+=bend.y;
+      }
+   }
+}
+void ProcessVtx(Vtx3DFull &vtx) {ProcessVtx(vtx.pos, vtx.hlp, vtx.size);}
 /******************************************************************************/
 void MeshBase::drawAuto(C Material *material)C
 {
@@ -253,6 +375,7 @@ void MeshBase::drawAuto(C Material *material)C
             v[1].color=vtx.color(p.y);
             v[2].color=vtx.color(p.z);
          }
+         //REP(3)ProcessVtx(v[i]);
          VI.face(v[0], v[1], v[2]);
       }
       VI.end();
@@ -356,6 +479,7 @@ void MeshBase::drawAuto(C Material *material)C
             v[2].color=vtx.color(p.z);
             v[3].color=vtx.color(p.w);
          }
+         //REP(4)ProcessVtx(v[i]);
          VI.face(v[0], v[1], v[2], v[3]);
       }
       VI.end  ();
