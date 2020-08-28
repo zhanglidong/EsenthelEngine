@@ -173,7 +173,7 @@ void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box);
 void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box);
 void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool photo=false);
 void AddHue(Image &image, flt hue, C BoxI &box, bool photo=false);
-void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box);
+void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box, bool photo=false);
 void MulRGBH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
 void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
 void MulSat(Image &image, flt mul, C BoxI &box);

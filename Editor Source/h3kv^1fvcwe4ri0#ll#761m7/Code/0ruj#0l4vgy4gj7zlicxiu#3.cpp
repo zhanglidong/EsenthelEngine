@@ -1032,7 +1032,7 @@ bool HighPrecTransform(C Str &name)
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
        || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -1201,7 +1201,7 @@ void AddHue(Image &image, flt hue, C BoxI &box, bool photo=false)
       image.unlock();
    }
 }
-void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box)
+void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box, bool photo=false)
 {
    if(contrast!=1 && image.lock())
    {
@@ -1210,9 +1210,16 @@ void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
+         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          c.y=(c.y-avg_sat)*contrast+avg_sat;
          c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+         }
          image.color3DF(x, y, z, c);
       }
       image.unlock();
@@ -1725,6 +1732,13 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))ContrastSat(image, contrast, avg, box);
       }
    }else
+   if(param.name=="contrastSatPhoto")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))ContrastSat(image, contrast, avg, box, true);
+      }
+   }else
    if(param.name=="medContrastSat")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
@@ -1737,6 +1751,13 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       flt contrast=param.asFlt(); if(contrast!=1)
       {
          flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box))ContrastSat(image, contrast, avg, box);
+      }
+   }else
+   if(param.name=="contrastSatPhotoAlphaWeight")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box))ContrastSat(image, contrast, avg, box, true);
       }
    }else
    if(param.name=="avgLum")
