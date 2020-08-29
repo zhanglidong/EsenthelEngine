@@ -2692,12 +2692,6 @@ Str8 DeviceSerialNumber()
    GetDeviceInfo(); return _DeviceSerialNumber;
 #elif WINDOWS_NEW
  //return Windows::System::Profile::SystemManufacturers::SmbiosInformation::SerialNumber->Data(); this results in Access Denied crash
-#elif ANDROID
-   JNI jni;
-   if(jni && ActivityClass)
-      if(JMethodID method=jni.staticFunc(ActivityClass, "serial", "()Ljava/lang/String;"))
-      if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
-         return str.str();
 #endif
    return S;
 }

@@ -676,7 +676,6 @@ public class EsenthelActivity extends NativeActivity
 
    public static final String manufacturer() {return Build.MANUFACTURER;}
    public static final String model       () {return Build.MODEL;}
-   public static final String serial      () {return Build.SERIAL;}
    public static final String androidID   () {return android_id;}
    public static final String userName    ()
    {

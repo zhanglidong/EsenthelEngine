@@ -281,7 +281,7 @@ Str DecodeXmlString(C Str &str); // decode string back from the                 
 UID   DeviceID          (Bool per_user); // get a unique ID of this device, 'per_user'=if generate a different ID depending on which user is logged in
 Str   DeviceManufacturer(); // get Device Manufacturer , available only on Windows, Android and Apple
 Str   DeviceModel       (); // get Device Model        , available only on Windows, Android
-Str8  DeviceSerialNumber(); // get Device Serial Number, available only on Windows, Android
+Str8  DeviceSerialNumber(); // get Device Serial Number, available only on Windows
 #if EE_PRIVATE
 UID   DeviceUUID        (); // get Device Unique ID    , available only on Windows
 #endif
