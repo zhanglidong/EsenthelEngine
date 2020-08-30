@@ -4,13 +4,9 @@ namespace EE{
 /******************************************************************************/
 #define LEAF_RANDOM_BEND_RANGE 1024
 /******************************************************************************/
-Flt FracDelta(Flt x) // works like 'Frac' but wraps to -0.5 .. 0.5 range
-{
-   x=Frac(x);
-   return (x>0.5) ? x-1 : x;
-}
 static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
 {
+   Vec2 tex_frac=Frac(tex);
    // find face which has tex coords nearest 'tex'
    Flt dist =FLT_MAX;
    Int found=-1;
@@ -21,14 +17,14 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
       {
          VecI4 ind     =mesh.quad.ind(f^SIGN_BIT);
          Quad2 quad    (mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z), mesh.vtx.tex0(ind.w));
-         Vec2  tex_wrap=tex+Round(quad.center()-tex);
+         Vec2  tex_wrap=tex_frac+Floor(quad.center());
          Flt   d       =Dist(tex_wrap, quad);
          if(d<dist){found=f; dist=d;}
       }else
       {
          VecI ind     =mesh.tri.ind(f);
          Tri2 tri     (mesh.vtx.tex0(ind.x), mesh.vtx.tex0(ind.y), mesh.vtx.tex0(ind.z));
-         Vec2 tex_wrap=tex+Round(tri.center()-tex);
+         Vec2 tex_wrap=tex_frac+Floor(tri.center());
          Flt  d       =Dist(tex_wrap, tri);
          if(d<dist){found=f; dist=d;}
       }
@@ -64,8 +60,9 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
       */
       Vec pos;
       Flt u, v;
-      if(Solve(u_dir.x, u_dir.y, v_dir.x, v_dir.y, FracDelta(tex.x-base.x), FracDelta(tex.y-base.y), u, v)!=1)pos=pos_tri.center();
-      else                                                                                                    pos=pos_tri.p[0] + u*(pos_tri.p[1]-pos_tri.p[0]) + v*(pos_tri.p[2]-pos_tri.p[0]);
+      base-=Floor(tex_tri.center()); // wrap
+      if(Solve(u_dir.x, u_dir.y, v_dir.x, v_dir.y, tex_frac.x-base.x, tex_frac.y-base.y, u, v)==1)pos=pos_tri.p[0] + u*(pos_tri.p[1]-pos_tri.p[0]) + v*(pos_tri.p[2]-pos_tri.p[0]);
+      else                                                                                        pos=pos_tri.center();
 
       REPA(faces)
       {
