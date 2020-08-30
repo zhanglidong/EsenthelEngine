@@ -6,7 +6,7 @@ namespace EE{
 /******************************************************************************/
 static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
 {
-   Vec2 tex_frac=Frac(tex);
+   Vec2 tex_frac(tex.x!=1 ? Frac(tex.x) : 1, tex.y!=1 ? Frac(tex.y) : 1); // skip applying frac for 1
    // find face which has tex coords nearest 'tex'
    Flt dist =FLT_MAX;
    Int found=-1;
