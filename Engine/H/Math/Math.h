@@ -136,8 +136,11 @@ inline    VecI2 Sign(C Vec2  &v) {return VecI2(Sign(v.x), Sign(v.y)             
 inline    VecI  Sign(C Vec   &v) {return VecI (Sign(v.x), Sign(v.y), Sign(v.z)           );}
 inline    VecI4 Sign(C Vec4  &v) {return VecI4(Sign(v.x), Sign(v.y), Sign(v.z), Sign(v.w));}
 
-inline Int SignEps(Flt x, Flt eps=EPS ) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
-inline Int SignEps(Dbl x, Dbl eps=EPSD) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
+inline Int   SignEps(  Flt   x, Flt eps=EPS ) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
+inline Int   SignEps(  Dbl   x, Dbl eps=EPSD) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
+inline VecI2 SignEps(C Vec2 &v, Flt eps=EPS ) {return VecI2(SignEps(v.x, eps), SignEps(v.y, eps)                                      );}
+inline VecI  SignEps(C Vec  &v, Flt eps=EPS ) {return VecI (SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps)                   );}
+inline VecI4 SignEps(C Vec4 &v, Flt eps=EPS ) {return VecI4(SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps), SignEps(v.w, eps));}
 
 inline Int CompareEps(C Flt &a, C Flt &b) {return SignEps(a-b);}
 inline Int CompareEps(C Dbl &a, C Dbl &b) {return SignEps(a-b);}
