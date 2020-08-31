@@ -140,6 +140,7 @@
       #define Font         WindowsFont
       #define FontPtr      WindowsFontPtr
       #define _ALLOW_RTCc_IN_STL
+      #define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING // needed for https://github.com/microsoft/DirectXShaderCompiler/issues/3105
    #elif APPLE // Apple
       #define Ptr       ApplePtr
       #define Point     ApplePoint

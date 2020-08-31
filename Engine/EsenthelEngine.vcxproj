@@ -103,6 +103,7 @@
     <RootNamespace>EsenthelEngine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationType>Windows Store</ApplicationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'" Label="Configuration">
@@ -506,7 +507,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -550,7 +551,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -593,8 +594,7 @@
       <UseFullPaths>true</UseFullPaths>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <SDLCheck>false</SDLCheck>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -636,8 +636,7 @@
       <UseFullPaths>true</UseFullPaths>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <SDLCheck>false</SDLCheck>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -681,7 +680,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -728,8 +727,7 @@
       <UseFullPaths>true</UseFullPaths>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <SDLCheck>false</SDLCheck>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -863,8 +861,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -911,8 +911,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -960,7 +962,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1009,7 +1011,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1057,8 +1059,9 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1110,7 +1113,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1246,7 +1249,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1290,7 +1293,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1335,7 +1338,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1425,8 +1428,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1471,8 +1476,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1517,8 +1524,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4244;4312;4521;4703</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

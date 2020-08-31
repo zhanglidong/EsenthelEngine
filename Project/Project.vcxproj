@@ -103,6 +103,7 @@
     <ProjectGuid>{50D7460A-5167-4326-90E0-1B1A17383A51}</ProjectGuid>
     <RootNamespace>Project</RootNamespace>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationType>Windows Store</ApplicationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'" Label="Configuration">
@@ -1059,6 +1060,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1124,6 +1127,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1191,6 +1196,8 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck />
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1258,6 +1265,8 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck />
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1322,6 +1331,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1388,6 +1399,8 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck />
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1847,6 +1860,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1911,6 +1926,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1973,6 +1990,8 @@
       <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <SDLCheck />
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
