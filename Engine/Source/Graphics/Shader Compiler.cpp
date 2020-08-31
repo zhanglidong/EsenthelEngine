@@ -593,18 +593,18 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       MemtN<LPCWSTR, 16> arguments;
       arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a, b) a##b"
       arguments.add(L"-flegacy-resource-reservation"); // will prevent other cbuffers from reusing indexes from explicit buffers
-      arguments.add(L"/Zpc"); // D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
+      arguments.add(DXC_ARG_PACK_MATRIX_COLUMN_MAJOR); // L"/Zpc" D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
       if(model>=SM_6_2)arguments.add(L"-enable-16bit-types");
-      //D3DCOMPILE_IEEE_STRICTNESS     arguments.add(L"/Gis");
-      //D3DCOMPILE_RESOURCES_MAY_ALIAS arguments.add(L"/res_may_alias");
+      //arguments.add(DXC_ARG_IEEE_STRICTNESS    ); // L"-Gis"
+      //arguments.add(DXC_ARG_RESOURCES_MAY_ALIAS); // L"-res_may_alias"
       if(get_default_val)
       {
-         arguments.add(L"/VD"); // skip validation
-         arguments.add(L"/Od"); // skip optimizations
+         arguments.add(DXC_ARG_SKIP_VALIDATION   ); // L"-Vd" skip validation
+         arguments.add(DXC_ARG_SKIP_OPTIMIZATIONS); // L"-Od" skip optimizations
       }else
       {
-         if(SKIP_OPTIMIZATION)arguments.add(L"/Od"); // skip optimizations
-         else                 arguments.add(L"/O3");
+         if(SKIP_OPTIMIZATION)arguments.add(DXC_ARG_SKIP_OPTIMIZATIONS ); // L"-Od" skip optimizations
+         else                 arguments.add(DXC_ARG_OPTIMIZATION_LEVEL3); // L"-O3" lvl3 optimizations
          if(compiler->api!=API_DX)arguments.add(L"-spirv");
       }
 
@@ -647,7 +647,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
             {
                UINT32 part_index;
                if(OK(container_reflection->Load(buffer)))
-               if(OK(container_reflection->FindFirstPartKind(hlsl::DFCC_DXIL, &part_index)))
+               if(OK(container_reflection->FindFirstPartKind(DXC_PART_DXIL, &part_index)))
                {
                   ID3D12ShaderReflection *reflection=null; container_reflection->GetPartReflection(part_index, __uuidof(ID3D12ShaderReflection), (Ptr*)&reflection);
                   if(reflection)
@@ -748,11 +748,11 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               {
                                  if(OK(container_builder->Load(buffer)))
                                  {
-                                    container_builder->RemovePart(hlsl::DFCC_ShaderDebugInfoDXIL);
-                                    container_builder->RemovePart(hlsl::DFCC_ShaderDebugName);
-                                    container_builder->RemovePart(hlsl::DFCC_RootSignature);
-                                    container_builder->RemovePart(hlsl::DFCC_PrivateData);
-                                    container_builder->RemovePart(hlsl::DFCC_ShaderStatistics);
+                                    container_builder->RemovePart(DXC_PART_PDB);
+                                    container_builder->RemovePart(DXC_PART_PDB_NAME);
+                                    container_builder->RemovePart(DXC_PART_ROOT_SIGNATURE);
+                                    container_builder->RemovePart(DXC_PART_PRIVATE_DATA);
+                                    container_builder->RemovePart(DXC_PART_REFLECTION_DATA);
                                     IDxcOperationResult *result=null; container_builder->SerializeContainer(&result); if(result)
                                     {
                                        HRESULT hr; if(OK(result->GetStatus(&hr)))if(OK(hr))

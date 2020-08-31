@@ -601,7 +601,6 @@
    #if     DX_SHADER_COMPILER
       #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/dxcapi.h"
       #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/Support/microcom.h"
-      #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/DxilContainer/DxilContainer.h"
    #endif
 
    // SPIR-V Cross
