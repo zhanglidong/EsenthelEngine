@@ -22,16 +22,6 @@ static HRESULT CreateCompiler           (IDxcCompiler            **ppCompiler  )
 static HRESULT CreateContainerBuilder   (IDxcContainerBuilder    **ppContainer ) {return DxcCreateInstance(CLSID_DxcContainerBuilder   , __uuidof(IDxcContainerBuilder   ), (void**)ppContainer );}
 static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {return DxcCreateInstance(CLSID_DxcContainerReflection, __uuidof(IDxcContainerReflection), (void**)ppReflection);}
 #endif
-
-#define HLSL_CC 0
-#if     HLSL_CC
-#pragma warning(push)
-#pragma warning(disable:4267 4996)
-#include "../../../ThirdPartyLibs/begin.h"
-#include "../../../ThirdPartyLibs/HLSLcc/lib/include/hlslcc.h"
-#include "../../../ThirdPartyLibs/end.h"
-#pragma warning(pop)
-#endif
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
@@ -1066,10 +1056,6 @@ struct ConvertContext
 {
    ShaderCompiler &compiler;
    SyncLock        lock;
-#if HLSL_CC
-   HLSLccSamplerPrecisionInfo sampler_precision;
-   GlExtensions               ext;
-#endif
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
    Mems<ShaderCompiler::Shader*   >  &shaders;
@@ -1112,16 +1098,6 @@ struct ConvertContext
      , shader_datas(shader_datas), shaders(shaders)
    #endif
    {
-   #if HLSL_CC
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF" , REFLECT_RESOURCE_PRECISION_HIGHP));
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF1", REFLECT_RESOURCE_PRECISION_HIGHP));
-
-      Zero(ext);
-      ext.ARB_explicit_uniform_location=true;
-      ext.ARB_explicit_attrib_location=true;
-      ext.ARB_shading_language_420pack=true;
-   #endif
    }
 };
 static void ErrorCallback(void *userdata, const char *error)
@@ -1370,16 +1346,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+' '+ShaderTypeName[type]+'\n'+code);
 #endif
 
-#endif
-
-#if HLSL_CC
-   HLSLccReflection reflection;
-   GLSLShader       converted;
-   TranslateHLSLFromMem((char*)shader_data.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &cc.ext, null, cc.sampler_precision, reflection, &converted); // LANG_330, LANG_ES_300
-   code=converted.sourceCode.c_str();
-   code=Replace(code, "#version 330\n", S);
-   code=Replace(code, "#version 300 es\n", S);
-   code=Replace(code, "in_ATTR", "ATTR", true);
 #endif
 
    if(!code.length()) // this is also needed for null char below
