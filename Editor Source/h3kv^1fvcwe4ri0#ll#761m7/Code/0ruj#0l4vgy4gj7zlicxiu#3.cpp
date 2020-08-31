@@ -2709,7 +2709,7 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
             for(int i=1; i<=num; i++)
             {
                orn.mul(rot, true);
-               anim.keys.orns[i].time=flt(i)/num*anim.length();
+               anim.keys.orns[i].time=((i==num) ? anim.length() : flt(i)/num*anim.length()); // !! have to set precise time for last keyframe to make sure root movement is calculated properly !!
                anim.keys.orns[i].orn =orn;
             }
          }
@@ -2741,7 +2741,7 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
                {
                   if(simple){dir*=rot; pos+=dir;}
                   else      {pos+=dir; dir*=rot; pos+=dir;} // much more precise
-                  anim.keys.poss[i].time=flt(i)/num*anim.length();
+                  anim.keys.poss[i].time=((i==num) ? anim.length() : flt(i)/num*anim.length()); // !! have to set precise time for last keyframe to make sure root movement is calculated properly !!
                   anim.keys.poss[i].pos =pos;
                }
             }
