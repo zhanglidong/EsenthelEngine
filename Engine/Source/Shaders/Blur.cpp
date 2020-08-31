@@ -64,6 +64,7 @@ VecH4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                   +TexLod(Img, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
                   +TexLod(Img, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5)
                   +TexLod(Img, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+   return 0;
 }
 /******************************************************************************/
 VecH4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
@@ -90,6 +91,7 @@ VecH4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                   +TexLod(Img, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
                   +TexLod(Img, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5)
                   +TexLod(Img, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+   return 0;
 }
 /******************************************************************************/
 Half BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
