@@ -9,7 +9,9 @@ void InitPre()
    App.flag|=APP_MEM_LEAKS|APP_BREAKPOINT_ON_ERROR;
 #endif
    DataPath("../Data");
-   //Paks.add("engine.pak");
+#if WINDOWS_NEW
+   Paks.add("Engine.pak");
+#endif
 }
 Bool Init()
 {
