@@ -548,7 +548,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebug32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebug32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -612,7 +612,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebugArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebugArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -803,7 +803,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebug64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebug64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -1068,7 +1068,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngine32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngine32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -1135,7 +1135,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineArm32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -1339,7 +1339,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngine64DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -1609,7 +1609,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebug32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebug32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -1673,7 +1673,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebugArm32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebugArm32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -1736,7 +1736,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineDebug64GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineDebug64GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -1868,7 +1868,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngine32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngine32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -1934,7 +1934,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngineArm32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngineArm32GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -1998,7 +1998,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>../Engine/EsenthelEngine64GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../Engine/EsenthelEngine64GL.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Secur32.lib;Setupapi.lib;Dbghelp.lib;comsupp.lib;concrt.lib;Mscms.lib;Advapi32.lib;User32.lib;Shell32.lib;Ole32.lib;OleAut32.lib;Gdi32.lib;uuid.lib;odbc32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
