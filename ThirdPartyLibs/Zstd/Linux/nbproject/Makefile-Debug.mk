@@ -42,8 +42,12 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/9c382c64/threading.o \
 	${OBJECTDIR}/_ext/9c382c64/zstd_common.o \
 	${OBJECTDIR}/_ext/6f0a339b/fse_compress.o \
+	${OBJECTDIR}/_ext/6f0a339b/hist.o \
 	${OBJECTDIR}/_ext/6f0a339b/huf_compress.o \
 	${OBJECTDIR}/_ext/6f0a339b/zstd_compress.o \
+	${OBJECTDIR}/_ext/6f0a339b/zstd_compress_literals.o \
+	${OBJECTDIR}/_ext/6f0a339b/zstd_compress_sequences.o \
+	${OBJECTDIR}/_ext/6f0a339b/zstd_compress_superblock.o \
 	${OBJECTDIR}/_ext/6f0a339b/zstd_double_fast.o \
 	${OBJECTDIR}/_ext/6f0a339b/zstd_fast.o \
 	${OBJECTDIR}/_ext/6f0a339b/zstd_lazy.o \
@@ -51,7 +55,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/6f0a339b/zstd_opt.o \
 	${OBJECTDIR}/_ext/6f0a339b/zstdmt_compress.o \
 	${OBJECTDIR}/_ext/b34904dc/huf_decompress.o \
+	${OBJECTDIR}/_ext/b34904dc/zstd_ddict.o \
 	${OBJECTDIR}/_ext/b34904dc/zstd_decompress.o \
+	${OBJECTDIR}/_ext/b34904dc/zstd_decompress_block.o \
 	${OBJECTDIR}/_ext/b3c3a42c/cover.o \
 	${OBJECTDIR}/_ext/b3c3a42c/divsufsort.o \
 	${OBJECTDIR}/_ext/b3c3a42c/zdict.o
@@ -118,6 +124,11 @@ ${OBJECTDIR}/_ext/6f0a339b/fse_compress.o: ../lib/compress/fse_compress.c
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/fse_compress.o ../lib/compress/fse_compress.c
 
+${OBJECTDIR}/_ext/6f0a339b/hist.o: ../lib/compress/hist.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/hist.o ../lib/compress/hist.c
+
 ${OBJECTDIR}/_ext/6f0a339b/huf_compress.o: ../lib/compress/huf_compress.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
 	${RM} "$@.d"
@@ -127,6 +138,21 @@ ${OBJECTDIR}/_ext/6f0a339b/zstd_compress.o: ../lib/compress/zstd_compress.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/zstd_compress.o ../lib/compress/zstd_compress.c
+
+${OBJECTDIR}/_ext/6f0a339b/zstd_compress_literals.o: ../lib/compress/zstd_compress_literals.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/zstd_compress_literals.o ../lib/compress/zstd_compress_literals.c
+
+${OBJECTDIR}/_ext/6f0a339b/zstd_compress_sequences.o: ../lib/compress/zstd_compress_sequences.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/zstd_compress_sequences.o ../lib/compress/zstd_compress_sequences.c
+
+${OBJECTDIR}/_ext/6f0a339b/zstd_compress_superblock.o: ../lib/compress/zstd_compress_superblock.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f0a339b/zstd_compress_superblock.o ../lib/compress/zstd_compress_superblock.c
 
 ${OBJECTDIR}/_ext/6f0a339b/zstd_double_fast.o: ../lib/compress/zstd_double_fast.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/6f0a339b
@@ -163,10 +189,20 @@ ${OBJECTDIR}/_ext/b34904dc/huf_decompress.o: ../lib/decompress/huf_decompress.c
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b34904dc/huf_decompress.o ../lib/decompress/huf_decompress.c
 
+${OBJECTDIR}/_ext/b34904dc/zstd_ddict.o: ../lib/decompress/zstd_ddict.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/b34904dc
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b34904dc/zstd_ddict.o ../lib/decompress/zstd_ddict.c
+
 ${OBJECTDIR}/_ext/b34904dc/zstd_decompress.o: ../lib/decompress/zstd_decompress.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/b34904dc
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b34904dc/zstd_decompress.o ../lib/decompress/zstd_decompress.c
+
+${OBJECTDIR}/_ext/b34904dc/zstd_decompress_block.o: ../lib/decompress/zstd_decompress_block.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/b34904dc
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b34904dc/zstd_decompress_block.o ../lib/decompress/zstd_decompress_block.c
 
 ${OBJECTDIR}/_ext/b3c3a42c/cover.o: ../lib/dictBuilder/cover.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/b3c3a42c

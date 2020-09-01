@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -18,8 +18,7 @@ extern "C" {
 /*-****************************************
 *  Dependencies
 ******************************************/
-#include <stddef.h>     /* size_t, ptrdiff_t */
-#include <string.h>     /* memcpy */
+#include "zstd_deps.h"  /* size_t, ptrdiff_t, ZSTD_memcpy */
 
 
 /*-****************************************
@@ -39,31 +38,86 @@ extern "C" {
 #  define MEM_STATIC static  /* this version may generate warnings for unused static functions; disable the relevant warning */
 #endif
 
+#ifndef __has_builtin
+#  define __has_builtin(x) 0  /* compat. with non-clang compilers */
+#endif
+
 /* code only tested on 32 and 64 bits systems */
 #define MEM_STATIC_ASSERT(c)   { enum { MEM_static_assert = 1/(int)(!!(c)) }; }
 MEM_STATIC void MEM_check(void) { MEM_STATIC_ASSERT((sizeof(size_t)==4) || (sizeof(size_t)==8)); }
 
+/* detects whether we are being compiled under msan */
+#if defined (__has_feature)
+#  if __has_feature(memory_sanitizer)
+#    define MEMORY_SANITIZER 1
+#  endif
+#endif
 
-/*-**************************************************************
-*  Basic Types
-*****************************************************************/
-#if  !defined (__VMS) && (defined (__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */) )
-# include <stdint.h>
-  typedef   uint8_t BYTE;
-  typedef  uint16_t U16;
-  typedef   int16_t S16;
-  typedef  uint32_t U32;
-  typedef   int32_t S32;
-  typedef  uint64_t U64;
-  typedef   int64_t S64;
-#else
-  typedef unsigned char      BYTE;
-  typedef unsigned short      U16;
-  typedef   signed short      S16;
-  typedef unsigned int        U32;
-  typedef   signed int        S32;
-  typedef unsigned long long  U64;
-  typedef   signed long long  S64;
+#if defined (MEMORY_SANITIZER)
+/* Not all platforms that support msan provide sanitizers/msan_interface.h.
+ * We therefore declare the functions we need ourselves, rather than trying to
+ * include the header file... */
+
+#define ZS_DEPS_NEED_STDINT
+#include "zstd_deps.h"
+
+/* Make memory region fully initialized (without changing its contents). */
+void __msan_unpoison(const volatile void *a, size_t size);
+
+/* Make memory region fully uninitialized (without changing its contents).
+   This is a legacy interface that does not update origin information. Use
+   __msan_allocated_memory() instead. */
+void __msan_poison(const volatile void *a, size_t size);
+
+/* Returns the offset of the first (at least partially) poisoned byte in the
+   memory range, or -1 if the whole range is good. */
+intptr_t __msan_test_shadow(const volatile void *x, size_t size);
+#endif
+
+/* detects whether we are being compiled under asan */
+#if defined (__has_feature)
+#  if __has_feature(address_sanitizer)
+#    define ADDRESS_SANITIZER 1
+#  endif
+#elif defined(__SANITIZE_ADDRESS__)
+#  define ADDRESS_SANITIZER 1
+#endif
+
+#if defined (ADDRESS_SANITIZER)
+/* Not all platforms that support asan provide sanitizers/asan_interface.h.
+ * We therefore declare the functions we need ourselves, rather than trying to
+ * include the header file... */
+
+/**
+ * Marks a memory region (<c>[addr, addr+size)</c>) as unaddressable.
+ *
+ * This memory must be previously allocated by your program. Instrumented
+ * code is forbidden from accessing addresses in this region until it is
+ * unpoisoned. This function is not guaranteed to poison the entire region -
+ * it could poison only a subregion of <c>[addr, addr+size)</c> due to ASan
+ * alignment restrictions.
+ *
+ * \note This function is not thread-safe because no two threads can poison or
+ * unpoison memory in the same memory region simultaneously.
+ *
+ * \param addr Start of memory region.
+ * \param size Size of memory region. */
+void __asan_poison_memory_region(void const volatile *addr, size_t size);
+
+/**
+ * Marks a memory region (<c>[addr, addr+size)</c>) as addressable.
+ *
+ * This memory must be previously allocated by your program. Accessing
+ * addresses in this region is allowed until this region is poisoned again.
+ * This function could unpoison a super-region of <c>[addr, addr+size)</c> due
+ * to ASan alignment restrictions.
+ *
+ * \note This function is not thread-safe because no two threads can
+ * poison or unpoison memory in the same memory region simultaneously.
+ *
+ * \param addr Start of memory region.
+ * \param size Size of memory region. */
+void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 #endif
 
 
@@ -86,7 +140,7 @@ MEM_STATIC void MEM_check(void) { MEM_STATIC_ASSERT((sizeof(size_t)==4) || (size
 #ifndef MEM_FORCE_MEMORY_ACCESS   /* can be defined externally, on command line for example */
 #  if defined(__GNUC__) && ( defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || defined(__ARM_ARCH_6T2__) )
 #    define MEM_FORCE_MEMORY_ACCESS 2
-#  elif defined(__INTEL_COMPILER) || defined(__GNUC__)
+#  elif defined(__INTEL_COMPILER) || defined(__GNUC__) || defined(__ICCARM__)
 #    define MEM_FORCE_MEMORY_ACCESS 1
 #  endif
 #endif
@@ -147,37 +201,37 @@ MEM_STATIC void MEM_write64(void* memPtr, U64 value) { ((unalign64*)memPtr)->v =
 
 MEM_STATIC U16 MEM_read16(const void* memPtr)
 {
-    U16 val; memcpy(&val, memPtr, sizeof(val)); return val;
+    U16 val; ZSTD_memcpy(&val, memPtr, sizeof(val)); return val;
 }
 
 MEM_STATIC U32 MEM_read32(const void* memPtr)
 {
-    U32 val; memcpy(&val, memPtr, sizeof(val)); return val;
+    U32 val; ZSTD_memcpy(&val, memPtr, sizeof(val)); return val;
 }
 
 MEM_STATIC U64 MEM_read64(const void* memPtr)
 {
-    U64 val; memcpy(&val, memPtr, sizeof(val)); return val;
+    U64 val; ZSTD_memcpy(&val, memPtr, sizeof(val)); return val;
 }
 
 MEM_STATIC size_t MEM_readST(const void* memPtr)
 {
-    size_t val; memcpy(&val, memPtr, sizeof(val)); return val;
+    size_t val; ZSTD_memcpy(&val, memPtr, sizeof(val)); return val;
 }
 
 MEM_STATIC void MEM_write16(void* memPtr, U16 value)
 {
-    memcpy(memPtr, &value, sizeof(value));
+    ZSTD_memcpy(memPtr, &value, sizeof(value));
 }
 
 MEM_STATIC void MEM_write32(void* memPtr, U32 value)
 {
-    memcpy(memPtr, &value, sizeof(value));
+    ZSTD_memcpy(memPtr, &value, sizeof(value));
 }
 
 MEM_STATIC void MEM_write64(void* memPtr, U64 value)
 {
-    memcpy(memPtr, &value, sizeof(value));
+    ZSTD_memcpy(memPtr, &value, sizeof(value));
 }
 
 #endif /* MEM_FORCE_MEMORY_ACCESS */
@@ -186,7 +240,8 @@ MEM_STATIC U32 MEM_swap32(U32 in)
 {
 #if defined(_MSC_VER)     /* Visual Studio */
     return _byteswap_ulong(in);
-#elif defined (__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 403)
+#elif (defined (__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 403)) \
+  || (defined(__clang__) && __has_builtin(__builtin_bswap32))
     return __builtin_bswap32(in);
 #else
     return  ((in << 24) & 0xff000000 ) |
@@ -200,7 +255,8 @@ MEM_STATIC U64 MEM_swap64(U64 in)
 {
 #if defined(_MSC_VER)     /* Visual Studio */
     return _byteswap_uint64(in);
-#elif defined (__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 403)
+#elif (defined (__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 403)) \
+  || (defined(__clang__) && __has_builtin(__builtin_bswap64))
     return __builtin_bswap64(in);
 #else
     return  ((in << 56) & 0xff00000000000000ULL) |

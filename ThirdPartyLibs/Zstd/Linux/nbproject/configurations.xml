@@ -18,6 +18,7 @@
       <itemPath>../lib/common/error_private.c</itemPath>
       <itemPath>../lib/compress/fse_compress.c</itemPath>
       <itemPath>../lib/common/fse_decompress.c</itemPath>
+      <itemPath>../lib/compress/hist.c</itemPath>
       <itemPath>../lib/compress/huf_compress.c</itemPath>
       <itemPath>../lib/decompress/huf_decompress.c</itemPath>
       <itemPath>../lib/common/pool.c</itemPath>
@@ -25,7 +26,12 @@
       <itemPath>../lib/dictBuilder/zdict.c</itemPath>
       <itemPath>../lib/common/zstd_common.c</itemPath>
       <itemPath>../lib/compress/zstd_compress.c</itemPath>
+      <itemPath>../lib/compress/zstd_compress_literals.c</itemPath>
+      <itemPath>../lib/compress/zstd_compress_sequences.c</itemPath>
+      <itemPath>../lib/compress/zstd_compress_superblock.c</itemPath>
+      <itemPath>../lib/decompress/zstd_ddict.c</itemPath>
       <itemPath>../lib/decompress/zstd_decompress.c</itemPath>
+      <itemPath>../lib/decompress/zstd_decompress_block.c</itemPath>
       <itemPath>../lib/compress/zstd_double_fast.c</itemPath>
       <itemPath>../lib/compress/zstd_fast.c</itemPath>
       <itemPath>../lib/compress/zstd_lazy.c</itemPath>
@@ -74,9 +80,26 @@
       </item>
       <item path="../lib/compress/fse_compress.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../lib/compress/hist.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../lib/compress/huf_compress.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../lib/compress/zstd_compress.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_literals.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_sequences.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_superblock.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../lib/compress/zstd_double_fast.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -92,7 +115,14 @@
       </item>
       <item path="../lib/decompress/huf_decompress.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../lib/decompress/zstd_ddict.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../lib/decompress/zstd_decompress.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/decompress/zstd_decompress_block.c"
             ex="false"
             tool="0"
             flavor2="0">
@@ -147,9 +177,26 @@
       </item>
       <item path="../lib/compress/fse_compress.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../lib/compress/hist.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../lib/compress/huf_compress.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../lib/compress/zstd_compress.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_literals.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_sequences.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/compress/zstd_compress_superblock.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../lib/compress/zstd_double_fast.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -165,7 +212,14 @@
       </item>
       <item path="../lib/decompress/huf_decompress.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../lib/decompress/zstd_ddict.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../lib/decompress/zstd_decompress.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../lib/decompress/zstd_decompress_block.c"
             ex="false"
             tool="0"
             flavor2="0">

@@ -11,7 +11,7 @@
    Stream based LZ4 uses custom block separation (not LZ4Frame API, because that one is inefficient, generates UInt chunk sizes instead of cmpUIntV)
 
    Some functions have 'NOINLINE' because they use a lot of stack memory,
-      and some compilers (Apple) when trying to inline them, would cause a crash.
+      and some compilers (Clang) when trying to inline them, would cause a crash.
 
    Some functions use 'MemWrote' for direct decompression, and some use 'dest.skip' with 'MemFinished'.
       LZ4 and ZSTD require the previous content of dest buffer to be still accessible, so encryption needs to be performed at the end.
@@ -1141,7 +1141,7 @@ static UInt ZSTDDictSizeLog2(Long size)
 /******************************************************************************
 static Bool ZSTDCompressFrame(CPtr src, UIntPtr src_size, Ptr dest, UIntPtr &dest_size, Int compression_level) // compress data, 'src'=source buffer, 'src_size'=source size, 'dest'=destination buffer, 'dest_size'=destination size, before calling it should be set to maximum 'dest' buffer capacity, after calling it'll be set to compressed size, false on fail
 {
-   auto size=ZSTD_compress(dest, dest_size, src, src_size, Mid(compression_level, 1, ZSTD_maxCLevel()));
+   auto size=ZSTD_compress(dest, dest_size, src, src_size, Mid(compression_level, ZSTD_minCLevel(), ZSTD_maxCLevel()));
    if(!ZSTD_isError(size)){dest_size=size; return true;}
    return false;
 }
@@ -1189,7 +1189,7 @@ NOINLINE static Bool ZSTDCompressFrame(File &src, File &dest, Int compression_le
    Bool ok=false;
    if(ZSTD_CCtx *ctx=ZSTD_createCCtx_advanced(ZSTDMem))
    {
-      ZSTD_parameters params=ZSTD_getParams(Mid(compression_level, 1, ZSTD_maxCLevel()), src.left(), 0);
+      ZSTD_parameters params=ZSTD_getParams(Mid(compression_level, ZSTD_minCLevel(), ZSTD_maxCLevel()), src.left(), 0);
    #if 0 // don't write anything to speedup processing
       params.fParams.contentSizeFlag=true;
       params.fParams.   noDictIDFlag=true;
@@ -1265,7 +1265,7 @@ NOINLINE static Bool ZSTDCompress(File &src, File &dest, Int compression_level, 
    Bool ok=false;
    if(ZSTD_CCtx *ctx=ZSTD_createCCtx_advanced(ZSTDMem))
    {
-      ZSTD_parameters params=ZSTD_getParams(Mid(compression_level, 1, ZSTD_maxCLevel()), src.left(), 0);
+      ZSTD_parameters params=ZSTD_getParams(Mid(compression_level, ZSTD_minCLevel(), ZSTD_maxCLevel()), src.left(), 0);
    #if 0 // don't write anything to speedup processing (for block-based this is most likely ignored)
       params.fParams.contentSizeFlag=true;
       params.fParams.   noDictIDFlag=true;
@@ -1851,7 +1851,7 @@ VecI2 CompressionLevels(COMPRESS_TYPE type)
    #endif
       case COMPRESS_BROTLI: return VecI2(0, 11); // taken from "enc/encode.h" header
    #if SUPPORT_ZSTD
-      case COMPRESS_ZSTD  : return VecI2(1, ZSTD_maxCLevel()); // 0=never used
+      case COMPRESS_ZSTD  : return VecI2(ZSTD_minCLevel(), ZSTD_maxCLevel());
    #endif
    }
 }
@@ -1894,14 +1894,14 @@ UInt CompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncompr
       {
          if(uncompressed_size<0)uncompressed_size=LONG_MAX; // if size is unknown then use max possible
          U64 srcSize=(uncompressed_size ? uncompressed_size : 1); // don't use zero, because ZSTD treats it as unknown
-         ZSTD_compressionParameters params=ZSTD_getCParams(Mid(compression_level, 1, ZSTD_maxCLevel()), srcSize, 0);
+         ZSTD_compressionParameters params=ZSTD_getCParams(Mid(compression_level, ZSTD_minCLevel(), ZSTD_maxCLevel()), srcSize, 0);
       #if !ZSTD_WINDOWLOG_SAVE
          params.windowLog=ZSTDDictSizeLog2(uncompressed_size);
       #endif
        C Int window_size=1<<params.windowLog;
          return MemtMemUsage(         Min(window_size+ZSTD_BLOCKSIZE_MAX, uncompressed_size) ) // Memt s;
                +MemtMemUsage(ZSTDSize(Min(            ZSTD_BLOCKSIZE_MAX, uncompressed_size))) // Memt d;
-               +ZSTD_estimateCCtxSize_usingCParams(params);                                        // ZSTD_CCtx
+               +ZSTD_estimateCCtxSize_usingCParams(params);                                    // ZSTD_CCtx
       }
    #endif
 
@@ -1970,7 +1970,7 @@ UInt DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncom
          if(uncompressed_size<0)uncompressed_size=LONG_MAX; // if size is unknown then use max possible
       #if ZSTD_WINDOWLOG_SAVE
          U64 srcSize=(uncompressed_size ? uncompressed_size : 1); // don't use zero, because ZSTD treats it as unknown
-         ZSTD_compressionParameters params=ZSTD_getCParams(Mid(compression_level, 1, ZSTD_maxCLevel()), srcSize, 0);
+         ZSTD_compressionParameters params=ZSTD_getCParams(Mid(compression_level, ZSTD_minCLevel(), ZSTD_maxCLevel()), srcSize, 0);
        C Int window_size=1<<params.windowLog;
       #else
        C Int window_size=1<<ZSTDDictSizeLog2(uncompressed_size);

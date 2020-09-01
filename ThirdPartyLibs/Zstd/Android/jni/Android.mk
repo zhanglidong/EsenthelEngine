@@ -15,8 +15,12 @@ LOCAL_SRC_FILES    := \
    ../../lib/common/threading.c \
    ../../lib/common/zstd_common.c \
    ../../lib/compress/fse_compress.c \
+   ../../lib/compress/hist.c \
    ../../lib/compress/huf_compress.c \
    ../../lib/compress/zstd_compress.c \
+   ../../lib/compress/zstd_compress_literals.c \
+   ../../lib/compress/zstd_compress_sequences.c \
+   ../../lib/compress/zstd_compress_superblock.c \
    ../../lib/compress/zstd_double_fast.c \
    ../../lib/compress/zstd_fast.c \
    ../../lib/compress/zstd_lazy.c \
@@ -24,7 +28,9 @@ LOCAL_SRC_FILES    := \
    ../../lib/compress/zstd_opt.c \
    ../../lib/compress/zstdmt_compress.c \
    ../../lib/decompress/huf_decompress.c \
+   ../../lib/decompress/zstd_ddict.c \
    ../../lib/decompress/zstd_decompress.c \
+   ../../lib/decompress/zstd_decompress_block.c \
    ../../lib/dictBuilder/cover.c \
    ../../lib/dictBuilder/divsufsort.c \
    ../../lib/dictBuilder/zdict.c

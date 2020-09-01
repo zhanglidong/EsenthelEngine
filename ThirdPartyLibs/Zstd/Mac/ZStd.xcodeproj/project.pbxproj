@@ -7,6 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		37335EF224FE8C15006045D5 /* hist.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EEE24FE8C15006045D5 /* hist.c */; };
+		37335EF324FE8C15006045D5 /* hist.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EEE24FE8C15006045D5 /* hist.c */; };
+		37335EF424FE8C15006045D5 /* zstd_compress_sequences.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EEF24FE8C15006045D5 /* zstd_compress_sequences.c */; };
+		37335EF524FE8C15006045D5 /* zstd_compress_sequences.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EEF24FE8C15006045D5 /* zstd_compress_sequences.c */; };
+		37335EF624FE8C15006045D5 /* zstd_compress_superblock.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EF024FE8C15006045D5 /* zstd_compress_superblock.c */; };
+		37335EF724FE8C15006045D5 /* zstd_compress_superblock.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EF024FE8C15006045D5 /* zstd_compress_superblock.c */; };
+		37335EF824FE8C15006045D5 /* zstd_compress_literals.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EF124FE8C15006045D5 /* zstd_compress_literals.c */; };
+		37335EF924FE8C15006045D5 /* zstd_compress_literals.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EF124FE8C15006045D5 /* zstd_compress_literals.c */; };
+		37335EFC24FE8C35006045D5 /* zstd_ddict.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EFA24FE8C35006045D5 /* zstd_ddict.c */; };
+		37335EFD24FE8C35006045D5 /* zstd_ddict.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EFA24FE8C35006045D5 /* zstd_ddict.c */; };
+		37335EFE24FE8C35006045D5 /* zstd_decompress_block.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EFB24FE8C35006045D5 /* zstd_decompress_block.c */; };
+		37335EFF24FE8C35006045D5 /* zstd_decompress_block.c in Sources */ = {isa = PBXBuildFile; fileRef = 37335EFB24FE8C35006045D5 /* zstd_decompress_block.c */; };
 		377BAB451F8726AB00AEFCC8 /* entropy_common.c in Sources */ = {isa = PBXBuildFile; fileRef = 377BAB361F87267800AEFCC8 /* entropy_common.c */; };
 		377BAB461F8726AB00AEFCC8 /* error_private.c in Sources */ = {isa = PBXBuildFile; fileRef = 377BAB311F87267700AEFCC8 /* error_private.c */; };
 		377BAB471F8726AB00AEFCC8 /* fse_decompress.c in Sources */ = {isa = PBXBuildFile; fileRef = 377BAB321F87267700AEFCC8 /* fse_decompress.c */; };
@@ -51,6 +63,12 @@
 
 /* Begin PBXFileReference section */
 		0BDA9CC5121EE4C400ED5E97 /* libZstd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libZstd.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		37335EEE24FE8C15006045D5 /* hist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hist.c; path = ../lib/compress/hist.c; sourceTree = "<group>"; };
+		37335EEF24FE8C15006045D5 /* zstd_compress_sequences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_compress_sequences.c; path = ../lib/compress/zstd_compress_sequences.c; sourceTree = "<group>"; };
+		37335EF024FE8C15006045D5 /* zstd_compress_superblock.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_compress_superblock.c; path = ../lib/compress/zstd_compress_superblock.c; sourceTree = "<group>"; };
+		37335EF124FE8C15006045D5 /* zstd_compress_literals.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_compress_literals.c; path = ../lib/compress/zstd_compress_literals.c; sourceTree = "<group>"; };
+		37335EFA24FE8C35006045D5 /* zstd_ddict.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_ddict.c; path = ../lib/decompress/zstd_ddict.c; sourceTree = "<group>"; };
+		37335EFB24FE8C35006045D5 /* zstd_decompress_block.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_decompress_block.c; path = ../lib/decompress/zstd_decompress_block.c; sourceTree = "<group>"; };
 		377BAB311F87267700AEFCC8 /* error_private.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = error_private.c; path = ../lib/common/error_private.c; sourceTree = "<group>"; };
 		377BAB321F87267700AEFCC8 /* fse_decompress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = fse_decompress.c; path = ../lib/common/fse_decompress.c; sourceTree = "<group>"; };
 		377BAB331F87267700AEFCC8 /* pool.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pool.c; path = ../lib/common/pool.c; sourceTree = "<group>"; };
@@ -104,6 +122,12 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				37335EFA24FE8C35006045D5 /* zstd_ddict.c */,
+				37335EFB24FE8C35006045D5 /* zstd_decompress_block.c */,
+				37335EEE24FE8C15006045D5 /* hist.c */,
+				37335EF124FE8C15006045D5 /* zstd_compress_literals.c */,
+				37335EEF24FE8C15006045D5 /* zstd_compress_sequences.c */,
+				37335EF024FE8C15006045D5 /* zstd_compress_superblock.c */,
 				377BAB361F87267800AEFCC8 /* entropy_common.c */,
 				377BAB311F87267700AEFCC8 /* error_private.c */,
 				377BAB321F87267700AEFCC8 /* fse_decompress.c */,
@@ -223,20 +247,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37335EFD24FE8C35006045D5 /* zstd_ddict.c in Sources */,
 				377BAB5D1F8726AC00AEFCC8 /* threading.c in Sources */,
 				377BAB651F8726AC00AEFCC8 /* zstd_ldm.c in Sources */,
 				377BAB5B1F8726AC00AEFCC8 /* fse_decompress.c in Sources */,
+				37335EF524FE8C15006045D5 /* zstd_compress_sequences.c in Sources */,
 				377BAB6A1F8726AC00AEFCC8 /* cover.c in Sources */,
 				377BAB6B1F8726AC00AEFCC8 /* divsufsort.c in Sources */,
+				37335EF724FE8C15006045D5 /* zstd_compress_superblock.c in Sources */,
 				377BAB5C1F8726AC00AEFCC8 /* pool.c in Sources */,
 				377BAB5F1F8726AC00AEFCC8 /* fse_compress.c in Sources */,
 				377BAB5A1F8726AC00AEFCC8 /* error_private.c in Sources */,
+				37335EF324FE8C15006045D5 /* hist.c in Sources */,
 				377BAB671F8726AC00AEFCC8 /* zstdmt_compress.c in Sources */,
 				377BAB621F8726AC00AEFCC8 /* zstd_double_fast.c in Sources */,
 				377BAB6C1F8726AC00AEFCC8 /* zdict.c in Sources */,
 				377BAB691F8726AC00AEFCC8 /* zstd_decompress.c in Sources */,
 				377BAB681F8726AC00AEFCC8 /* huf_decompress.c in Sources */,
+				37335EF924FE8C15006045D5 /* zstd_compress_literals.c in Sources */,
 				377BAB601F8726AC00AEFCC8 /* huf_compress.c in Sources */,
+				37335EFF24FE8C35006045D5 /* zstd_decompress_block.c in Sources */,
 				377BAB591F8726AB00AEFCC8 /* entropy_common.c in Sources */,
 				377BAB641F8726AC00AEFCC8 /* zstd_lazy.c in Sources */,
 				377BAB611F8726AC00AEFCC8 /* zstd_compress.c in Sources */,
@@ -250,20 +280,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37335EFC24FE8C35006045D5 /* zstd_ddict.c in Sources */,
 				377BAB491F8726AB00AEFCC8 /* threading.c in Sources */,
 				377BAB511F8726AB00AEFCC8 /* zstd_ldm.c in Sources */,
 				377BAB471F8726AB00AEFCC8 /* fse_decompress.c in Sources */,
+				37335EF424FE8C15006045D5 /* zstd_compress_sequences.c in Sources */,
 				377BAB561F8726AB00AEFCC8 /* cover.c in Sources */,
 				377BAB571F8726AB00AEFCC8 /* divsufsort.c in Sources */,
+				37335EF624FE8C15006045D5 /* zstd_compress_superblock.c in Sources */,
 				377BAB481F8726AB00AEFCC8 /* pool.c in Sources */,
 				377BAB4B1F8726AB00AEFCC8 /* fse_compress.c in Sources */,
 				377BAB461F8726AB00AEFCC8 /* error_private.c in Sources */,
+				37335EF224FE8C15006045D5 /* hist.c in Sources */,
 				377BAB531F8726AB00AEFCC8 /* zstdmt_compress.c in Sources */,
 				377BAB4E1F8726AB00AEFCC8 /* zstd_double_fast.c in Sources */,
 				377BAB581F8726AB00AEFCC8 /* zdict.c in Sources */,
 				377BAB551F8726AB00AEFCC8 /* zstd_decompress.c in Sources */,
 				377BAB541F8726AB00AEFCC8 /* huf_decompress.c in Sources */,
+				37335EF824FE8C15006045D5 /* zstd_compress_literals.c in Sources */,
 				377BAB4C1F8726AB00AEFCC8 /* huf_compress.c in Sources */,
+				37335EFE24FE8C35006045D5 /* zstd_decompress_block.c in Sources */,
 				377BAB451F8726AB00AEFCC8 /* entropy_common.c in Sources */,
 				377BAB501F8726AB00AEFCC8 /* zstd_lazy.c in Sources */,
 				377BAB4D1F8726AB00AEFCC8 /* zstd_compress.c in Sources */,
