@@ -9,10 +9,12 @@ del Release\*.obj
 del Release\*.log
 del Release\*.tlog
 del Release\*.lastbuildstate
+del Release\*.txt
 rmdir /s /q Release\lz4.tlog
 
 del x64\Release\*.obj
 del x64\Release\*.log
+del x64\Release\*.txt
 rmdir /s /q x64\Release\lz4.tlog
 
 del "ARM\Release\*.obj"
@@ -21,10 +23,13 @@ del "ARM\Release\*.resfiles"
 del "ARM\Release\*.txt"
 del "ARM\Release\*.xml"
 del "ARM\Release\*.intermediate"
+del "ARM\Release\*.recipe"
 rmdir /s /q "ARM\Release\LZ4"
 rmdir /s /q "ARM\Release\lz4.tlog"
+rmdir /s /q "ARM\Release\embed"
 
 del Emscripten\Release\*.o
 del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
+del Emscripten\Release\*.cache
