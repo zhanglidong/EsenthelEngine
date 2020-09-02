@@ -742,7 +742,7 @@ void AnimatedSkeleton::draw(C Color &bone_color, C Color &slot_color)C
 /******************************************************************************/
 // IO
 /******************************************************************************/
-Bool AnimatedSkeleton::save(File &f)C
+Bool AnimatedSkeleton::save(File &f)C // !! if changing file format, then keep backwards compatibility with old save games !!
 {
    f.putMulti(Byte(0), matrix()); // version
    f.putAsset(Skeletons.id(skeleton()));
