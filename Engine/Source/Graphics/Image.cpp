@@ -2348,25 +2348,22 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                            REPAO(rt)=Renderer._cur[i];
                                  ds =Renderer._cur_ds;
 
-                           UInt format=SourceGLFormat(hwType());
-                           Int  pw=PaddedWidth (hwW(), hwH(), mip_map, hwType()),
-                                ph=PaddedHeight(hwW(), hwH(), mip_map, hwType()),
-                                type=SourceGLType(hwType());
-                           Ptr  data=_data;
+                           { // !! here operate on 'src' instead of 'T' !! (because 'T' can be temporarily swapped into 'temp')
+                              ImageRT temp, *src;
+                              if(this== Renderer._cur[0])src= Renderer._cur[0];else
+                              if(this==&Renderer._main  )src=&Renderer._main  ;else
+                                                        {src=&temp; Swap(T, SCAST(Image, temp));} // we can do a swap because on OpenGL 'ImageRT' doesn't have anything extra, this swap is only to allow this method to belong to 'Image' instead of having to use 'ImageRT'
+                              Renderer.set(src, null, false); // put 'this' to FBO
+                              glGetError(); // clear any previous errors
+                              glReadPixels(0, 0, PaddedWidth (src->hwW(), src->hwH(), mip_map, src->hwType()),
+                                                 PaddedHeight(src->hwW(), src->hwH(), mip_map, src->hwType()), SourceGLFormat(src->hwType()), SourceGLType(src->hwType()), src->_data);
+                              if(glGetError()!=GL_NO_ERROR)Free(src->_data); // check for error right after 'glReadPixels' without doing any other operations which could overwrite 'glGetError'
 
-                           ImageRT temp, *src;
-                           if(this== Renderer._cur[0])src= Renderer._cur[0];else
-                           if(this==&Renderer._main  )src=&Renderer._main  ;else
-                                                     {src=&temp; Swap(T, SCAST(Image, temp));} // we can do a swap because on OpenGL 'ImageRT' doesn't have anything extra, this swap is only to allow this method to belong to 'Image' instead of having to use 'ImageRT'
-                           Renderer.set(src, null, false); // put 'this' to FBO
-                           glGetError(); // clear any previous errors
-                           glReadPixels(0, 0, pw, ph, format, type, data);
-                           if(glGetError()!=GL_NO_ERROR)Free(src->_data); // check for error right after 'glReadPixels' without doing any other operations which could overwrite 'glGetError'
+                              // restore settings
+                              Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
 
-                           // restore settings
-                           Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
-
-                           if(src==&temp)Swap(T, SCAST(Image, temp)); // swap after restore
+                              if(src==&temp)Swap(T, SCAST(Image, temp)); // swap back after restore
+                           }
                            if(_data && this==&Renderer._main) // on OpenGL main has to be flipped
                               REPD(y, h()/2)Swap(_data + y*pitch, _data + (h()-1-y)*pitch, pitch);
                         }
