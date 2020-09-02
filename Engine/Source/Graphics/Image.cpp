@@ -1348,21 +1348,18 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(src)
                {
                #if GL_ES
-                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; Bool skip=false;
+                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all;
                #endif
                 C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
-                        if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then skip remaining
+                        if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
                      VecI2 size(Max(1, hwW()>>m), Max(1, hwH()>>m));
                      Int   mip_size=ImageMipSize(size.x, size.y, 0, hwType());
-                  #if GL_ES
-                     if(skip)goto skip;
-                  #endif
                      if(!compressed())glTexImage2D(GL_TEXTURE_2D, m, format, size.x, size.y, 0, gl_format, gl_type, data);
                      else   glCompressedTexImage2D(GL_TEXTURE_2D, m, format, size.x, size.y, 0, mip_size, data);
                   #if GL_ES
-                     skip: if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
+                     if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
                   #endif
                      data+=mip_size;
                   }
@@ -1408,9 +1405,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                 C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
-                     {
-                        if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then skip remaining
-                     }
+                        if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
                      VecI size(Max(1, hwW()>>m), Max(1, hwH()>>m), Max(1, hwD()>>m));
                      Int  mip_size=ImageMipSize(size.x, size.y, size.z, 0, hwType());
                      if(!compressed())glTexImage3D(GL_TEXTURE_3D, m, format, size.x, size.y, size.z, 0, gl_format, gl_type, data);
