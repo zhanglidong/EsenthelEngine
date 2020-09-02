@@ -295,10 +295,14 @@ struct Image // Image (Texture)
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 
    // manage
-   Image& del          (                                                                                             );                                                                       // delete
 #if EE_PRIVATE
-   Bool   createTryEx  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, C Image *src=null);
+   Bool createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, C Image *src=null
+      #if GL_ES
+                   , Bool can_del_src=false // 'can_del_src'=if allow deleting 'src' (always enable if possible, to allow faster creation of images on GL_ES)
+      #endif
+                   );
 #endif
+   Image& del          (                                                                                             );                                                                       // delete
    Bool   createTry    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
    Image& create       (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
    Bool   create2DTry  (Int w, Int h,        IMAGE_TYPE type,                  Int mip_maps=0, Bool rgba_on_fail=true) {return createTry(w, h, 1, type, IMAGE_2D  , mip_maps, rgba_on_fail);} // create hardware 2D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
