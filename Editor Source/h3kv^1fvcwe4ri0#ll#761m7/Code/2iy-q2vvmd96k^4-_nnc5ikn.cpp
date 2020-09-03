@@ -145,20 +145,23 @@ class AnimEditor : Viewport4Region
                   flt dt=Ms.dc().x*anim.length()/rect().w();
                   if(Kb.ctrlCmd()) // all
                   {
-                     if(AnimEdit.sel_bone<0) // entire animation
+                     if(Kb.alt() ? Ms.bp(1) : true) // for alt, slide only one time at the start
                      {
-                        if(AnimEdit.anim.keys.is())dt=(Ms.bp(1) ? -AnimEdit.animTime() : 0); // if have any root keys, then call only one time at the start
-                        AnimEdit.anim.slideTime(dt);
-                     }else
-                     {
-                        REPA(keys.orns  )Slide(keys.orns  [i].time, dt, anim.length());
-                        REPA(keys.poss  )Slide(keys.poss  [i].time, dt, anim.length());
-                        REPA(keys.scales)Slide(keys.scales[i].time, dt, anim.length());
-                        if(AnimEdit.op()==OP_ORN2 && keys_parent)
+                        if(Kb.alt())dt=-AnimEdit.animTime();
+                        if(AnimEdit.sel_bone<0) // entire animation
                         {
-                           REPA(keys_parent.orns  )Slide(keys_parent.orns  [i].time, dt, anim.length());
-                           REPA(keys_parent.poss  )Slide(keys_parent.poss  [i].time, dt, anim.length());
-                           REPA(keys_parent.scales)Slide(keys_parent.scales[i].time, dt, anim.length());
+                           AnimEdit.anim.slideTime(dt);
+                        }else
+                        {
+                           REPA(keys.orns  )Slide(keys.orns  [i].time, dt, anim.length());
+                           REPA(keys.poss  )Slide(keys.poss  [i].time, dt, anim.length());
+                           REPA(keys.scales)Slide(keys.scales[i].time, dt, anim.length());
+                           if(AnimEdit.op()==OP_ORN2 && keys_parent)
+                           {
+                              REPA(keys_parent.orns  )Slide(keys_parent.orns  [i].time, dt, anim.length());
+                              REPA(keys_parent.poss  )Slide(keys_parent.poss  [i].time, dt, anim.length());
+                              REPA(keys_parent.scales)Slide(keys_parent.scales[i].time, dt, anim.length());
+                           }
                         }
                      }
                      AnimEdit.key_time=AnimEdit.animTime();
