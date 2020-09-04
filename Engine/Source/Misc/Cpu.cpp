@@ -11,7 +11,7 @@ CPU Cpu;
 void CPU::set()
 {
    // disable denormals (multiplying denormals on Intel i7-3632QM 2.2 Ghz is 16x slower compared to normal values)
-#if !(WINDOWS && ARM) && !IOS && !ANDROID && !WEB
+#if !(WINDOWS && ARM) && !IOS && !ANDROID && !SWITCH && !WEB
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 #endif
 }

@@ -206,6 +206,9 @@ Bool Application::maximized()C {return WindowMaximized(hwnd());}
 #elif IOS
 Bool Application::minimized()C {return false;}
 Bool Application::maximized()C {return true ;}
+#elif SWITCH
+Bool Application::minimized()C {return false;}
+Bool Application::maximized()C {return true ;}
 #elif WEB
 Bool Application::minimized()C {return false;}
 Bool Application::maximized()C {return _maximized;}
@@ -626,6 +629,8 @@ void Application::showError(CChar *error)
 
      _closed=true; if(EAGLView *view=GetUIView())[view setUpdate]; // disable callback processing and stop updating
       [[NSRunLoop mainRunLoop] run];
+   #elif SWITCH
+      NN_LOG(UTF8(t));
    #elif WEB // on Web display the error as both console output and message box
       fputs(UTF8(error), stdout); // first write to console
       WindowMsgBox(title, error, true);

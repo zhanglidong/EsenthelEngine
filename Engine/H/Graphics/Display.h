@@ -669,7 +669,7 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
       CGLContextObj context;
    #elif LINUX
       GLXContext    context;
-   #elif ANDROID
+   #elif ANDROID || SWITCH
       EGLSurface    surface;
       EGLContext    context;
    #elif IOS

@@ -12,6 +12,7 @@
       IOS             - iOS                           platform
       LINUX           - Linux                         platform
       ANDROID         - Android                       platform
+      SWITCH          - Nintendo Switch               platform
       WEB             - Web                           platform
       DESKTOP         - Windows Desktop, Mac, Linux   platform
       MOBILE          - Windows Phone  , iOS, Android platform
@@ -84,6 +85,13 @@
    #define ANDROID 0
 #endif
 
+// Nintendo Switch
+#ifdef __NINTENDO__
+   #define SWITCH 1
+#else
+   #define SWITCH 0
+#endif
+
 // Linux
 #if defined __linux__ && !ANDROID // Android also has '__linux__' defined
    #define LINUX 1
@@ -105,10 +113,10 @@
 
 #define APPLE (MAC || IOS)
 
-#define DESKTOP (WINDOWS_DESKTOP || MAC || LINUX  )
-#define MOBILE  (WINDOWS_PHONE   || IOS || ANDROID)
+#define DESKTOP (WINDOWS_DESKTOP || MAC || LINUX            )
+#define MOBILE  (WINDOWS_PHONE   || IOS || ANDROID || SWITCH)
 
-#if (WINDOWS+MAC+IOS+LINUX+ANDROID+WEB)!=1
+#if (WINDOWS+MAC+IOS+LINUX+ANDROID+SWITCH+WEB)!=1
    #error Unsupported platform detected
 #endif
 /******************************************************************************/

@@ -521,6 +521,11 @@ UID& UID::randomize()
    }
 #elif LINUX || ANDROID
    if(DR.set(this, SIZE(T)))return T;
+#elif SWITCH
+   nn::util::Uuid uuid=nn::util::GenerateUuid();
+   ASSERT(SIZE(uuid)==SIZE(T));
+   T=(UID&)uuid;
+   return T;
 #elif WEB
    if(EM_ASM_INT(var crypto=window.crypto || window.msCrypto; return typeof(crypto)!=='undefined' && typeof(crypto.getRandomValues)!=='undefined'))
    {
@@ -774,6 +779,8 @@ void Log    (C Str &text)
    #elif ANDROID
       Memc<Str> lines=Split(t, '\n'); // android has limit for too long messages
       FREPA(lines){Str8 line=UTF8(lines[i]); if(line.is())__android_log_write(ANDROID_LOG_INFO, "Esenthel", line.is() ? line : " ");} // '__android_log_write' will crash if text is null or ""
+   #elif SWITCH
+      NN_LOG(UTF8(t));
    #elif WEB
       fputs(UTF8(t), stdout);
    #endif

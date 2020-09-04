@@ -416,53 +416,7 @@ void _ReallocZero(Ptr &data, ULong size_new, ULong size_old)
 /******************************************************************************/
 // ALIGNED
 /******************************************************************************/
-#if WINDOWS && !X64 && !MEM_CUSTOM // Win 32-bit has only 8-byte alignment
-Ptr AlignedAlloc(IntPtr size)
-{
-   if(size>0)
-   {
-      if(Ptr data=_aligned_malloc(size, 16))
-      {
-         AllocInc();
-         return data;
-      }
-      AllocError(size);
-   }
-   return null;
-}
-void AlignedFree(Ptr &data)
-{
-   if(data)
-   {
-      AllocDec    ();
-     _aligned_free(data);
-                   data=null;
-   }
-}
-#elif (LINUX || ANDROID) && !MEM_CUSTOM
-Ptr AlignedAlloc(IntPtr size)
-{
-   if(size>0)
-   {
-      if(Ptr data=memalign(16, size))
-      {
-         AllocInc();
-         return data;
-      }
-      AllocError(size);
-   }
-   return null;
-}
-void AlignedFree(Ptr &data)
-{
-   if(data)
-   {
-      AllocDec();
-      free    (data);
-               data=null;
-   }
-}
-#elif MEM_CUSTOM
+#if MEM_CUSTOM || (WINDOWS && !X64) // Win 32-bit has only 8-byte alignment (for it use this version instead of the one below with '_aligned_malloc/_aligned_free' because it's more efficient)
 typedef Byte AAOffs; // Byte is enough to store the 0..16 offset
 Ptr AlignedAlloc(IntPtr size)
 {
@@ -485,6 +439,52 @@ void AlignedFree(Ptr &data)
       Ptr  original=((Byte*)data)-((AAOffs*)data)[-1];
       Free(original);
       data=null;
+   }
+}
+#elif WINDOWS && !X64 // Win 32-bit has only 8-byte alignment
+Ptr AlignedAlloc(IntPtr size)
+{
+   if(size>0)
+   {
+      if(Ptr data=_aligned_malloc(size, 16))
+      {
+         AllocInc();
+         return data;
+      }
+      AllocError(size);
+   }
+   return null;
+}
+void AlignedFree(Ptr &data)
+{
+   if(data)
+   {
+      AllocDec    ();
+     _aligned_free(data);
+                   data=null;
+   }
+}
+#elif LINUX || ANDROID || SWITCH
+Ptr AlignedAlloc(IntPtr size)
+{
+   if(size>0)
+   {
+      if(Ptr data=memalign(16, size))
+      {
+         AllocInc();
+         return data;
+      }
+      AllocError(size);
+   }
+   return null;
+}
+void AlignedFree(Ptr &data)
+{
+   if(data)
+   {
+      AllocDec();
+      free    (data);
+               data=null;
    }
 }
 #else // PS, XBox, Win64, Apple have 16-byte alignment

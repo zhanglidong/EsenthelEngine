@@ -102,7 +102,7 @@ namespace EE{
 static INLINE Long Seek(Int handle, Long offset, Int mode) {return _lseeki64(handle, offset, mode);}
 #elif APPLE
 static INLINE Long Seek(Int handle, Long offset, Int mode) {return  lseek   (handle, offset, mode);} // on Apple 'lseek' is already 64-bit
-#elif LINUX || ANDROID || WEB
+#elif LINUX || ANDROID || SWITCH || WEB
 static INLINE Long Seek(Int handle, Long offset, Int mode) {return  lseek64 (handle, offset, mode);}
 #endif
 
@@ -331,7 +331,7 @@ Bool File::  readStdTryEx(C Str &name, Cipher *cipher, UInt max_buf_size)
    }
    return false;
 }
-#elif LINUX || WEB
+#elif LINUX || SWITCH || WEB
 Bool File::appendTry     (C Str &name, Cipher *cipher) {close(); if(name.is()){_handle=open64(UnixPathUTF8(name), O_RDWR|O_CREAT|        O_NONBLOCK, S_IRWXU|S_IRWXG|S_IRWXO); if(_handle>=0){_type=FILE_STD_WRITE; if(setBuf(BUF_SIZE)){_writable=true; _path=FILE_CUR; _pos=_size=Max(0, Seek(_handle, 0, SEEK_END)); _cipher=cipher; return true;} _type=FILE_NONE; ::close(_handle); _handle=0;}} return false;}
 Bool File:: writeTry     (C Str &name, Cipher *cipher) {close(); if(name.is()){_handle=open64(UnixPathUTF8(name), O_RDWR|O_CREAT|O_TRUNC|O_NONBLOCK, S_IRWXU|S_IRWXG|S_IRWXO); if(_handle>=0){_type=FILE_STD_WRITE; if(setBuf(BUF_SIZE)){_writable=true; _path=FILE_CUR;                                                _cipher=cipher; return true;} _type=FILE_NONE; ::close(_handle); _handle=0;}} return false;}
 Bool File::  readStdTryEx(C Str &name, Cipher *cipher, UInt max_buf_size)

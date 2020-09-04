@@ -688,7 +688,7 @@ void Thread::resume()
    }
 }
 #if HAS_THREADS && !WINDOWS
-#define PRIORITY_POLICY (APPLE ? SCHED_OTHER : SCHED_RR) // SCHED_OTHER gives better results on Apple but it's not available on Android/Linux, SCHED_RR (Mac/iOS 15..47, Android 1..99), SCHED_OTHER (Mac/iOS 15..47, Android 0..0)
+#define PRIORITY_POLICY ((APPLE || SWITCH) ? SCHED_OTHER : SCHED_RR) // SCHED_OTHER gives better results on Apple but it's not available on Android/Linux, SCHED_RR (Mac/iOS 15..47, Android 1..99), SCHED_OTHER (Mac/iOS 15..47, Android 0..0)
 static const Int PriorityBase =sched_get_priority_min(PRIORITY_POLICY),
                  PriorityRange=sched_get_priority_max(PRIORITY_POLICY)-PriorityBase;
 /* Tested using following program:

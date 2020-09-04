@@ -55,7 +55,7 @@ DisplayClass D;
                      GLXFBConfig           GLConfig;
       static         int                   vid_modes=0;
       static         XF86VidModeModeInfo **vid_mode=null;
-   #elif ANDROID
+   #elif ANDROID || SWITCH
       static EGLConfig  GLConfig;
       static EGLDisplay GLDisplay;
       static Int        GLCtxVer;
@@ -229,6 +229,12 @@ static void glewSafe()
 #undef V
 }
 #endif
+
+#if SWITCH
+static Ptr  NvAlloc  (size_t size, size_t alignment, Ptr userPtr) {return aligned_alloc(alignment, nn::util::align_up(size, alignment));} // 'aligned_alloc' requires 'size' to be aligned
+static void NvFree   (Ptr addr                     , Ptr userPtr) {       free         (addr);}
+static Ptr  NvRealloc(Ptr addr   , size_t newSize  , Ptr userPtr) {return realloc      (addr, newSize);}
+#endif
 /******************************************************************************/
 // GL CONTEXT
 /******************************************************************************/
@@ -241,7 +247,7 @@ static Ptr GetCurrentContext()
    return CGLGetCurrentContext();
 #elif LINUX
    return glXGetCurrentContext();
-#elif ANDROID
+#elif ANDROID || SWITCH
    return eglGetCurrentContext();
 #elif IOS
    return [EAGLContext currentContext];
@@ -265,7 +271,7 @@ GLContext::GLContext()
 #else
    context=null;
 #endif
-#if ANDROID
+#if ANDROID || SWITCH
    surface=null;
 #endif
 }
@@ -279,7 +285,7 @@ void GLContext::del()
       CGLDestroyContext(context); context=null;
    #elif LINUX
       if(XDisplay){glXMakeCurrent(XDisplay, NULL, NULL); glXDestroyContext(XDisplay, context);} context=null;
-   #elif ANDROID
+   #elif ANDROID || SWITCH
       if(GLDisplay){eglMakeCurrent(GLDisplay, null, null, null); eglDestroyContext(GLDisplay, context);} context=null;
    #elif IOS
       [EAGLContext setCurrentContext:null]; [context release]; context=null;
@@ -287,7 +293,7 @@ void GLContext::del()
       emscripten_webgl_destroy_context(context); context=NULL;
    #endif
    }
-#if ANDROID
+#if ANDROID || SWITCH
    if(surface){if(GLDisplay)eglDestroySurface(GLDisplay, surface); surface=null;}
 #endif
 }
@@ -336,7 +342,7 @@ void GLContext::lock()
    if(CGLSetCurrentContext(context)==kCGLNoError)
 #elif LINUX
    if(glXMakeCurrent(XDisplay, App.Hwnd(), context))
-#elif ANDROID
+#elif ANDROID || SWITCH
    if(eglMakeCurrent(GLDisplay, surface, surface, context)==EGL_TRUE)
 #elif IOS
    if([EAGLContext setCurrentContext:context]==YES)
@@ -358,7 +364,7 @@ void GLContext::unlock()
    if(CGLSetCurrentContext(null)==kCGLNoError)
 #elif LINUX
    if(glXMakeCurrent(XDisplay, NULL, NULL))
-#elif ANDROID
+#elif ANDROID || SWITCH
    if(eglMakeCurrent(GLDisplay, null, null, null)==EGL_TRUE)
 #elif IOS
    if([EAGLContext setCurrentContext:null]==YES)
@@ -511,6 +517,8 @@ Bool DisplayClass::smallSize()C
 #elif IOS
    // UI_USER_INTERFACE_IDIOM UIUserInterfaceIdiomPhone UIUserInterfaceIdiomPad 
    return UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPhone;
+#elif SWITCH
+   return true;
 #endif
    return false;
 }
@@ -548,7 +556,7 @@ Ptr DisplayClass::glGetProcAddress(CChar8 *name)
    return null;
 #elif LINUX
    return (Ptr)glXGetProcAddressARB((C GLubyte*)name);
-#elif ANDROID || WEB
+#elif ANDROID || SWITCH || WEB
    return (Ptr)eglGetProcAddress(name);
 #else
    #error
@@ -1073,7 +1081,7 @@ void DisplayClass::del()
    #elif LINUX
       SetDisplayMode(0); // switch back to the desktop
       if(vid_mode){XFree(vid_mode); vid_mode=null;} vid_modes=0; // free after 'SetDisplayMode'
-   #elif ANDROID
+   #elif ANDROID || SWITCH
       if(GLDisplay){eglTerminate(GLDisplay); GLDisplay=null;}
    #endif
    #if APPLE
@@ -1440,6 +1448,9 @@ again:
       Renderer._main   .forceInfo(width, height, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples);
       Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+Renderer._main.hwTypeInfo().name+", ds_type: "+Renderer._main_ds.hwTypeInfo().name);
+   #elif SWITCH
+      nv::SetGraphicsAllocator        (NvAlloc, NvFree, NvRealloc, null); // Set memory allocator for graphics subsystem                          , this must be called before using any graphics API's
+      nv::SetGraphicsDevtoolsAllocator(NvAlloc, NvFree, NvRealloc, null); // Set memory allocator for graphics developer tools and NVN debug layer, this must be called before using any graphics developer features
    #elif IOS
       OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengles"));
 
@@ -1497,7 +1508,7 @@ again:
       REPA(SecondaryContexts)if(!SecondaryContexts[i].createSecondary())
       {
          LogN(S+"Failed to create a Secondary OpenGL Context"
-         #if ANDROID
+         #if ANDROID || SWITCH
             +", error:"+eglGetError()
          #endif
          );
@@ -2231,7 +2242,7 @@ Bool DisplayClass::flip()
          CGLFlushDrawable(MainContext.context); // same as "[[OpenGLView openGLContext] flushBuffer];"
       #elif LINUX
          glXSwapBuffers(XDisplay, App.Hwnd());
-      #elif ANDROID
+      #elif ANDROID || SWITCH
          eglSwapBuffers(GLDisplay, MainContext.surface);
       #elif IOS
          glBindRenderbuffer(GL_RENDERBUFFER, Renderer._main._rb);
@@ -2682,7 +2693,7 @@ void DisplayClass::setSync()
          Int value=sync; CGLSetParameter(MainContext.context, kCGLCPSwapInterval, &value);
       #elif LINUX
          if(glXSwapInterval)glXSwapInterval(XDisplay, App.Hwnd(), sync);
-      #elif ANDROID
+      #elif ANDROID || SWITCH
          eglSwapInterval(GLDisplay, sync);
       #elif WEB
          if(sync)emscripten_set_main_loop_timing(EM_TIMING_RAF       , 1);
