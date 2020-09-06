@@ -90,7 +90,7 @@ again:
          {
             IOFile &elm=IOToRead.lockedElm(0); if(fd.id==elm.id && Equal(fd.name, elm.name, true)) // process only if it matches what we've obtained at the start
             {
-               if(fd.finished || fd.error)IOToRead.remove(0, true);   // remove this element
+               if(fd.finished || fd.error)IOToRead.lockedRemove(0, true);   // remove this element
                else                       elm.offset+=fd.data.elms(); // update this element to note that it was partly processed
             }
          }

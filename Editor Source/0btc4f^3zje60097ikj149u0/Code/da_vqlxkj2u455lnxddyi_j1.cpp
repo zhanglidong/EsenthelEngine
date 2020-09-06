@@ -714,7 +714,7 @@ class Pane
       {
          thread_progress[0]=0; thread_progress[1]=1; // set as in-progress
          Task task;
-         thread_tasks.  lock(); Swap(task, thread_tasks.lockedElm(0)); thread_tasks.remove(0, true);
+         thread_tasks.  lock(); Swap(task, thread_tasks.lockedElm(0)); thread_tasks.lockedRemove(0, true);
          thread_tasks.unlock();
          if(!execute(task, false))return false;
          if(!thread_tasks.elms()) // if processed all tasks

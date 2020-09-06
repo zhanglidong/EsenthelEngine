@@ -13,7 +13,7 @@ again:
       {
          MemcThreadSafeLock lock(IORead);
          if(!IORead.elms())goto again; // element could've been removed
-         Swap(file, IORead.lockedElm(0)); IORead.remove(0, true);
+         Swap(file, IORead.lockedElm(0)); IORead.lockedRemove(0, true);
       }
       if(!file.error && Compressable(GetExt(file.name)))
       {

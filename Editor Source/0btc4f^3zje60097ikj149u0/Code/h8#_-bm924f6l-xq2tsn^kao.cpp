@@ -19,9 +19,9 @@ class SendFileObj
       SendFileObjs.exclude(this);
 
       // remove unprocessed files if any
-      IOToRead.  lock(); REPA(IOToRead)if(IOToRead.lockedElm(i).id==id)IOToRead.remove(i, true);
+      IOToRead.  lock(); REPA(IOToRead)if(IOToRead.lockedElm(i).id==id)IOToRead.lockedRemove(i, true);
       IOToRead.unlock();
-        IORead.  lock(); REPA(  IORead)if(  IORead.lockedElm(i).id==id)  IORead.remove(i, true);
+        IORead.  lock(); REPA(  IORead)if(  IORead.lockedElm(i).id==id)  IORead.lockedRemove(i, true);
         IORead.unlock();
    }
 }
@@ -93,7 +93,7 @@ bool SendFiles(C Memc<Str2> &names, Connection &conn, long &progress, Thread &th
       if(!obj.files.elms()){obj.files_event.wait(4); goto again;} // wait until file is ready (wait a little because we need to keep checking for thread stop)
 
       IOFileData file;
-      obj.files.  lock(); Swap(file, obj.files.lockedElm(0)); obj.files.remove(0, true);
+      obj.files.  lock(); Swap(file, obj.files.lockedElm(0)); obj.files.lockedRemove(0, true);
       obj.files.unlock();
       if(!Equal(file.name, name.src, true))return false; // shouldn't happen
       if(file.error && report_errors){Gui.msgBox(S, S+"Error transferring file:\n\""+file.name+'"'); goto skip;} // if an error occured, then report if it's enabled on this side and and proceed to the next file, otherwise send information that the file failed, so the other side can report the error

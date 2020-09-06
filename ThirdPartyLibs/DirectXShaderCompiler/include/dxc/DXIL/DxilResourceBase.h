@@ -61,7 +61,6 @@ public:
   const char *GetResDimName() const;
   const char *GetResIDPrefix() const;
   const char *GetResBindPrefix() const;
-  const char *GetResKindName() const;
 
 protected:
   void SetClass(Class C);
@@ -77,7 +76,5 @@ private:
   std::string m_Name;             // Unmangled name of the global variable.
   llvm::Value *m_pHandle;         // Cached resource handle for SM5.0- (and maybe SM5.1).
 };
-
-const char *GetResourceKindName(DXIL::ResourceKind K);
 
 } // namespace hlsl

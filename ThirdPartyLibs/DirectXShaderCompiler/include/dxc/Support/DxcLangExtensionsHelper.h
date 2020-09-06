@@ -66,12 +66,6 @@ struct ParsedSemanticDefine{
 };
 typedef std::vector<ParsedSemanticDefine> ParsedSemanticDefineList;
 
-// Confirm that <name> matches the star pattern in <mask>
-inline bool IsMacroMatch(StringRef name, const std::string &mask) {
-  return Unicode::IsStarMatchUTF8(mask.c_str(), mask.size(), name.data(),
-                                  name.size());
-}
-
 // Return the collection of semantic defines parsed by the compiler instance.
 ParsedSemanticDefineList
   CollectSemanticDefinesParsedByCompiler(clang::CompilerInstance &compiler,
