@@ -1,0 +1,88 @@
+# Visual Studio
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+*.VC.opendb
+*.suo
+*.user
+*.ncb
+*.ilk
+*.pdb
+*.pch
+*.obj
+*.pri
+ipch/
+asm/
+
+# Xcode
+build-state.dat
+build-state~.dat
+*.d
+*.dia
+*.LinkFileList
+*.dep
+*.hmap
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.pbxindex
+*.xcworkspace
+xcuserdata/
+xcshareddata/
+Objects-normal/
+
+# NetBeans
+**/nbproject/private/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+
+# Esenthel
+/*
+!/Data
+!/Editor
+!/Editor Data
+!/Editor Data/Code/Windows/Project.vcxproj.user
+!/Editor Source
+!/Engine
+!/Project
+!/ThirdPartyLibs
+/ThirdPartyLibs/PhysX/Externals
+/ThirdPartyLibs/PhysX/PhysX
+/ThirdPartyLibs/PhysX/PxShared
+/ThirdPartyLibs/PhysX/Android/jni/Android.mk
+/ThirdPartyLibs/PhysX/Android/obj
+!/Clean.bat
+!/Esenthel.sln
+
+# Editor
+/Editor/*
+/Editor/Bin/*
+/Editor/Bin/Android/*.a
+/Editor/Projects/*
+!/Editor/Assets
+!/Editor/Bin
+!/Editor/Bin/Android
+!/Editor/Bin/*.dll
+!/Editor/Bin/*.dylib
+!/Editor/Bin/*.so
+!/Editor/Bin/*.exe
+!/Editor/Projects
+!/Editor/Projects/541oob6a_h_5el6-6!zan_50
+
+# Esenthel Builder
+!/Esenthel Builder.exe
+!/Esenthel Builder.app
+!/Esenthel Builder
+/Engine/Esenthel Config.h
+
+# Extra
+!/Extra
+
+!.gitignore

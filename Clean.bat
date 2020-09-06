@@ -27,6 +27,8 @@ rmdir /s /q "Project\Release GL"
 rmdir /s /q "Project\Release Universal DX11"
 rmdir /s /q "Project\x64"
 
+rmdir /s /q "x64"
+
 del "Engine\*.lib"
 del "Project\*.pdb"
 
