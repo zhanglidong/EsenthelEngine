@@ -113,6 +113,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
   _res.zero();
+  _pixel_size.zero(); _pixel_size_inv.zero();
   _taa_offset.zero();
   _clip.zero();
   _mirror_plane.zero();

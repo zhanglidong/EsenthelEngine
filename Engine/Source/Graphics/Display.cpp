@@ -854,6 +854,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _density=127;
   _samples=1;
   _scale=1;
+  _unscaled_size=_size=1; _size2=2; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
   _disp_aspect_ratio=_disp_aspect_ratio_want=0;
   _app_aspect_ratio=1;
   _pixel_aspect=1;
@@ -2603,6 +2604,7 @@ void DisplayClass::sizeChanged()
  C VecI2 &res=((VR.active() && D._allow_stereo) ? VR.guiRes() : D.res());
    D._pixel_size    .set( w2()/res.x,  h2()/res.y); D._pixel_size_2=D._pixel_size*0.5f;
    D._pixel_size_inv.set(res.x/ w2(), res.y/ h2());
+   Renderer.setPixelSize();
 
    // this is used by mouse/touch pointers
    D._window_pixel_to_screen_mul.set( D.w2()/(D.resW()-1),  // div by "resW-1" so we can have full -D.w .. D.w range !! if this is changed for some reason, then adjust 'rect.max' in 'Ms.clipUpdate' !!
@@ -2837,13 +2839,14 @@ DisplayClass& DisplayClass::aspectMode(ASPECT_MODE mode)
    }
    return T;
 }
+static inline Flt SafeAspect(C VecI2 &size) {return size.all() ? size.divF() : 1;}
 void DisplayClass::aspectRatioEx(Bool force, Bool quiet)
 {
    Flt aspect_ratio=_disp_aspect_ratio_want;
 #if DESKTOP || WEB
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size); // calculate based on current monitor, as connected monitors may have different aspects
-   VecI2 size=full.size(); Flt desktop_aspect=(size.y ? Flt(size.x)/size.y : 1);
+   VecI2 size=full.size(); Flt desktop_aspect=SafeAspect(size);
 
    if(aspect_ratio<=EPS)aspect_ratio=desktop_aspect; // if not specified then use default
 #else
@@ -2858,11 +2861,11 @@ void DisplayClass::aspectRatioEx(Bool force, Bool quiet)
       {
          Bool vr=(VR.active() && _allow_stereo);
 	   #if DESKTOP || WEB
-         Flt window_aspect=Flt(resW())/resH(),
+         Flt window_aspect=SafeAspect(res()),
       #else
-         Flt window_aspect=Renderer._main.aspect(),
+         Flt window_aspect=SafeAspect(Renderer._main.size()),
       #endif
-                 vr_aspect=Flt(VR.guiRes().x)/VR.guiRes().y,
+                 vr_aspect=SafeAspect(VR.guiRes()),
                mono_aspect=(D.full() ? aspect_ratio : aspect_ratio*window_aspect/desktop_aspect);
          Vec2     old_size=D.size();
 

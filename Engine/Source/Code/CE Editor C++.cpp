@@ -317,6 +317,7 @@ Bool CodeEditor::verifyBuildPath()
       case EXE_APK  : build_exe=build_path+"Android/bin/"+build_project_name; break;
       case EXE_LINUX: build_exe=build_path+CleanNameForMakefile(build_project_name); break;
       case EXE_WEB  : build_exe=build_path+"Emscripten/"+(build_debug ? "Debug DX11/" : "Release DX11/")+build_project_name+".html"; break; // warning: this must match codes below if(build_exe_type==EXE_WEB)config+=" DX11";
+      default       : build_exe.clear(); return false;
    }
    return true;
 }
