@@ -578,6 +578,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
  C bool android=(PublishExeType==Edit.EXE_APK),
             iOS=(PublishExeType==Edit.EXE_IOS),
             web=(PublishExeType==Edit.EXE_WEB),
+             ns=(PublishExeType==Edit.EXE_NS ),
+         mobile=(android || iOS || ns),
   mtrl_simplify=Proj.materialSimplify(PublishExeType);
 
    // elements
@@ -673,7 +675,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          {
             bool uses_tex_bump=data.usesTexBump(), 
                  uses_tex_glow=data.usesTexGlow();
-            byte downsize  =((android || iOS) ? data.downsize_tex_mobile : 0);
+            byte downsize  =(mobile ? data.downsize_tex_mobile : 0);
             uint flags     =0; // used to set 'dynamic, regenerate'
             UID  base_0_tex=data.base_0_tex,
                  base_1_tex=data.base_1_tex,

@@ -101,7 +101,7 @@ void CodeEditor::saveSettings(TextNode &code)
       conf.nodes.New().set("Debug", config_debug );
     //conf.nodes.New().set("32Bit", config_32_bit);
     //conf.nodes.New().set("API"  , config_api   );
-      conf.nodes.New().set("EXE"  , (config_exe==EXE_EXE) ? "exe" : (config_exe==EXE_DLL) ? "dll" : (config_exe==EXE_LIB) ? "lib" : (config_exe==EXE_NEW) ? "new" : (config_exe==EXE_APK) ? "apk" : (config_exe==EXE_MAC) ? "mac" : (config_exe==EXE_IOS) ? "ios" : (config_exe==EXE_LINUX) ? "linux" : (config_exe==EXE_WEB) ? "web" : "");
+      conf.nodes.New().set("EXE"  , (config_exe==EXE_EXE) ? "exe" : (config_exe==EXE_DLL) ? "dll" : (config_exe==EXE_LIB) ? "lib" : (config_exe==EXE_NEW) ? "new" : (config_exe==EXE_APK) ? "apk" : (config_exe==EXE_MAC) ? "mac" : (config_exe==EXE_IOS) ? "ios" : (config_exe==EXE_LINUX) ? "linux" : (config_exe==EXE_NS) ? "ns" : (config_exe==EXE_WEB) ? "web" : "");
 
    TextNode &sugg=code.nodes.New().setName("SuggestionHistory");
       FREPA(Suggestions)sugg.nodes.New().value=Suggestions[i];
@@ -182,6 +182,7 @@ void CodeEditor::loadSettings(C TextNode &code)
          if(p->value=="mac"  )configEXE(EXE_MAC  );else
          if(p->value=="ios"  )configEXE(EXE_IOS  );else
          if(p->value=="linux")configEXE(EXE_LINUX);else
+         if(p->value=="ns"   )configEXE(EXE_NS   );else
          if(p->value=="web" || p->value=="html" || p->value=="js")configEXE(EXE_WEB);
       }
    }

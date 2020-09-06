@@ -1257,6 +1257,8 @@ OS_VER OSVer()
                      return OS_ANDROID;
 #elif IOS
    return OS_IOS;
+#elif SWITCH
+   return OS_NINTENDO_SWITCH;
 #elif WEB
    switch(EM_ASM_INT
    (
@@ -1265,6 +1267,7 @@ OS_VER OSVer()
       if(navigator.appVersion.indexOf('Android')>=0)return 3; // !! test this before Linux !!
       if(navigator.platform.indexOf('Linux')==0)return 2;
       if(navigator.platform.indexOf('iPhone')==0)return 4;
+      if(navigator.platform.indexOf('Nintendo Switch')==0)return 5;
       return -1;
    ))
    {
@@ -1273,6 +1276,7 @@ OS_VER OSVer()
       case 2: return OS_LINUX;
       case 3: return OS_ANDROID;
       case 4: return OS_IOS;
+      case 5: return OS_NINTENDO_SWITCH;
    }
 #endif
    return OS_UNKNOWN;
@@ -1324,13 +1328,10 @@ CChar8* OSName(OS_VER ver)
       case ANDROID_PIE               : return "Android Pie";*/
 
       case OS_IOS                    : return "iOS";
+
+      case OS_NINTENDO_SWITCH        : return "Nintendo Switch";
    }
 }
-Bool OSWindows(OS_VER ver) {return ver>=WINDOWS_UNKNOWN && ver<=WINDOWS_SERVER_2016;}
-Bool OSMac    (OS_VER ver) {return ver==OS_MAC;}
-Bool OSLinux  (OS_VER ver) {return ver==OS_LINUX;}
-Bool OSAndroid(OS_VER ver) {return ver==OS_ANDROID;}
-Bool OSiOS    (OS_VER ver) {return ver==OS_IOS;}
 /******************************************************************************/
 #if WINDOWS_NEW
 static struct UserNameGetter

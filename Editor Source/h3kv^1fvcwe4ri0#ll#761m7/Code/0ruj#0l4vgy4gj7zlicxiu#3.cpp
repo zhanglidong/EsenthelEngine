@@ -2942,11 +2942,7 @@ bool EmbedObject(C Box &obj_box, C VecI2 &area_xy, flt area_size)
 /******************************************************************************/
 bool SameOS(OS_VER a, OS_VER b)
 {
-   return OSWindows(a) && OSWindows(b)
-       || OSMac    (a) && OSMac    (b)
-       || OSLinux  (a) && OSLinux  (b)
-       || OSAndroid(a) && OSAndroid(b)
-       || OSiOS    (a) && OSiOS    (b);
+   return OSGroup(a)==OSGroup(b);
 }
 /******************************************************************************/
 UID GetFileNameID(Str name)

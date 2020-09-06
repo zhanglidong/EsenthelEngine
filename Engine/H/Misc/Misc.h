@@ -210,16 +210,19 @@ enum OS_VER : Byte // Operating System Version
    OS_ANDROID,
 
    OS_IOS,
+
+   OS_NINTENDO_SWITCH,
 };
-VecI4   OSVerNumber(                  ); // get Operating System version number
-OS_VER  OSVer      (                  ); // get Operating System version
-OS_VER  OSGroup    (OS_VER ver=OSVer()); // get Operating System group, this ignores specific versions and returns just the main groups, such as WINDOWS_UNKNOWN, OS_MAC, OS_LINUX, OS_ANDROID, OS_IOS
-CChar8* OSName     (OS_VER ver=OSVer()); // get Operating System name
-Bool    OSWindows  (OS_VER ver=OSVer()); // if  Operating System is Windows
-Bool    OSMac      (OS_VER ver=OSVer()); // if  Operating System is Mac
-Bool    OSLinux    (OS_VER ver=OSVer()); // if  Operating System is Linux
-Bool    OSAndroid  (OS_VER ver=OSVer()); // if  Operating System is Android
-Bool    OSiOS      (OS_VER ver=OSVer()); // if  Operating System is iOS
+       VecI4   OSVerNumber     (                  ); // get Operating System version number
+       OS_VER  OSVer           (                  ); // get Operating System version
+       OS_VER  OSGroup         (OS_VER ver=OSVer()); // get Operating System group, this ignores specific versions and returns just the main groups, such as WINDOWS_UNKNOWN, OS_MAC, OS_LINUX, OS_ANDROID, OS_IOS, OS_NINTENDO_SWITCH
+       CChar8* OSName          (OS_VER ver=OSVer()); // get Operating System name
+inline Bool    OSWindows       (OS_VER ver=OSVer()) {return ver>=WINDOWS_UNKNOWN && ver<=WINDOWS_SERVER_2016;} // if  Operating System is Windows
+inline Bool    OSMac           (OS_VER ver=OSVer()) {return ver==OS_MAC                                     ;} // if  Operating System is Mac
+inline Bool    OSLinux         (OS_VER ver=OSVer()) {return ver==OS_LINUX                                   ;} // if  Operating System is Linux
+inline Bool    OSAndroid       (OS_VER ver=OSVer()) {return ver==OS_ANDROID                                 ;} // if  Operating System is Android
+inline Bool    OSiOS           (OS_VER ver=OSVer()) {return ver==OS_IOS                                     ;} // if  Operating System is iOS
+inline Bool    OSNintendoSwitch(OS_VER ver=OSVer()) {return ver==OS_NINTENDO_SWITCH                         ;} // if  Operating System is Nintendo Switch
 
 Str OSUserName (Bool short_name=false); // get the user name  of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME
 Str OSUserEmail(                     ); // get the user email of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME, supported only on Android
