@@ -302,21 +302,19 @@ void RendererClass::unmapMain()
   _cur_id[0]=NULL;
 }
 /******************************************************************************/
+void RendererClass::setPixelSize()
+{
+ C VecI2 &res=_res;
+  _pixel_size    .set(D.w2()/res.x , D.h2()/res.y );
+  _pixel_size_inv.set(res.x /D.w2(), res.y /D.h2());
+}
 Rect RendererClass::pixelToScreen(C RectI &pixel)
 {
-   return Rect(pixel.min.x*D.w2()/Renderer.resW()-D.w(), D.h()-pixel.max.y*D.h2()/Renderer.resH(),
-               pixel.max.x*D.w2()/Renderer.resW()-D.w(), D.h()-pixel.min.y*D.h2()/Renderer.resH());
+   return Rect(pixel.min.x*Renderer._pixel_size.x-D.w(), D.h()-pixel.max.y*Renderer._pixel_size.y,
+               pixel.max.x*Renderer._pixel_size.x-D.w(), D.h()-pixel.min.y*Renderer._pixel_size.y);
 }
-Vec2 RendererClass::pixelToScreenSize(Flt pixel)
-{
-   return Vec2(pixel*D.w2()/Renderer.resW(),
-               pixel*D.h2()/Renderer.resH());
-}
-Vec2 RendererClass::screenToPixelSize(C Vec2 &screen)
-{
-   return Vec2(screen.x*Renderer.resW()/D.w2(),
-               screen.y*Renderer.resH()/D.h2());
-}
+Vec2 RendererClass::screenToPixelSize(C Vec2 &screen) {return screen*Renderer._pixel_size_inv;}
+Vec2 RendererClass::pixelToScreenSize(  Flt   pixel ) {return pixel *Renderer._pixel_size    ;}
 /******************************************************************************/
 #if GL
 static void SwitchedFBO()
@@ -579,6 +577,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
       if(Image *main=(t0 ? t0 : ds))
       {
         _res=main->size();
+         setPixelSize();
          Sh.rtSize(*main);
       }
 

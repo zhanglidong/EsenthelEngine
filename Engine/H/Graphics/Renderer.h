@@ -255,6 +255,8 @@ struct RendererClass // handles rendering
    Bool   mapMain();
    void unmapMain();
 
+   void setPixelSize(); // must be called if 'Renderer.res' or 'D.size' changes
+
    inline Rect  screenToPixel     (C Rect  &screen)C {return ScreenToPixel (screen, _res);}
    inline RectI screenToPixelI    (C Rect  &screen)C {return ScreenToPixelI(screen, _res);}
    static Vec2  screenToPixelSize (C Vec2  &screen);
@@ -287,7 +289,7 @@ private:
    UInt                  _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
    Color                 _mesh_highlight;
    VecI2                 _res;
-   Vec2                  _taa_offset;
+   Vec2                  _pixel_size, _pixel_size_inv, _taa_offset;
    Rect                  _clip;
    PlaneM                _mirror_plane;
    Shader               *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;
