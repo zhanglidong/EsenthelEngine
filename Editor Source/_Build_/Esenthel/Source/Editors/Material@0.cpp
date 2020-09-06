@@ -190,11 +190,11 @@ MaterialTech mtrl_techs[]=
          remove.create(Rect_RU(rect.ru(), 0.035f, 0.035f)).func(Remove, T); remove.image="Gui/close.img";
          return T;
       }
-      bool MaterialRegion::Texture::ExploreFiles(Mems<FileParams> &fps)
+      bool MaterialRegion::Texture::ExploreFiles(C Mems<FileParams> &fps)
       {
          FREPA(fps)
          {
-            FileParams &fp=fps[i];
+          C FileParams &fp=fps[i];
             if(fp.name.is())
             {
                UID id; if(id.fromFileName(fp.name))Proj.elmLocate(id, true);else Explore(FFirstUp(fp.name));

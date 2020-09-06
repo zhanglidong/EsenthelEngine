@@ -405,11 +405,11 @@ class Project
       return S;
    }
 
-   bool invalidSrc(Mems<FileParams> &files, Str *invalid=null)C // if specified and is not present
+   bool invalidSrc(C Mems<FileParams> &files, Str *invalid=null)C // if specified and is not present
    {
       REPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
        C Str &name=fp.name; if(name.is())
          {
             UID id; if(DecodeFileName(name, id)) // project element
@@ -435,11 +435,11 @@ class Project
       if(invalid)invalid.clear(); return false; // OK
    }
 
-   bool invalidTexSrc(Mems<FileParams> &files, Str *invalid=null)C // if specified and is not present
+   bool invalidTexSrc(C Mems<FileParams> &files, Str *invalid=null)C // if specified and is not present
    {
       REPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
        C Str &name=fp.name; if(name.is())
          {
             UID id;
@@ -3162,11 +3162,11 @@ class ProjectHierarchy : Project
       }
       return null;
    }
-   static Str ElmSrcFileFirst(Mems<FileParams> &files)
+   static Str ElmSrcFileFirst(C Mems<FileParams> &files)
    {
       FREPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
          Str path=FFirstUp       (fp.name ); if(path.is())return path;
              path=ElmSrcFileFirst(fp.nodes); if(path.is())return path;
       }

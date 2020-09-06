@@ -151,10 +151,10 @@ class Project
    };
    Str idToText(C UID &id, bool *valid=null, ID_MODE id_mode=ID_ALWAYS); // 'valid'=if target is valid (not removed)
 
-   bool invalidSrc(Mems<FileParams> &files, Str *invalid=null)C; // if specified and is not present
+   bool invalidSrc(C Mems<FileParams> &files, Str *invalid=null)C; // if specified and is not present
    bool invalidSrc(C Str &src, Str *invalid=null)C; // if specified and is not present
 
-   bool invalidTexSrc(Mems<FileParams> &files, Str *invalid=null)C; // if specified and is not present
+   bool invalidTexSrc(C Mems<FileParams> &files, Str *invalid=null)C; // if specified and is not present
    bool invalidTexSrc(C Str &src, Str *invalid=null)C; // if specified and is not present
 
    bool invalidTex(C UID &tex_id                     )C; // is specified and is not present

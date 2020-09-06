@@ -52,7 +52,7 @@ class MaterialRegion : Region
       void toGui();
       Texture& create(TEX_TYPE type, C MemberDesc &md_file, C MemberDesc &md_time, Rect rect, C Str &text, MaterialRegion &mr);
 
-      static bool ExploreFiles(Mems<FileParams> &fps);
+      static bool ExploreFiles(C Mems<FileParams> &fps);
       virtual void update(C GuiPC &gpc)override;
       bool draw(C Rect &rect);
       virtual void draw(C GuiPC &gpc)override;

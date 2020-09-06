@@ -355,11 +355,11 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       || id_mode==ID_SKIP_ZERO && id.valid())return id.asCString();
       return S;
    }
-   bool Project::invalidSrc(Mems<FileParams> &files, Str *invalid)C // if specified and is not present
+   bool Project::invalidSrc(C Mems<FileParams> &files, Str *invalid)C // if specified and is not present
    {
       REPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
        C Str &name=fp.name; if(name.is())
          {
             UID id; if(DecodeFileName(name, id)) // project element
@@ -384,11 +384,11 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       if(src.is() && invalidSrc(FileParams::Decode(src), invalid))return true;
       if(invalid)invalid->clear(); return false; // OK
    }
-   bool Project::invalidTexSrc(Mems<FileParams> &files, Str *invalid)C // if specified and is not present
+   bool Project::invalidTexSrc(C Mems<FileParams> &files, Str *invalid)C // if specified and is not present
    {
       REPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
        C Str &name=fp.name; if(name.is())
          {
             UID id;
@@ -3005,11 +3005,11 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       }
       return null;
    }
-   Str ProjectHierarchy::ElmSrcFileFirst(Mems<FileParams> &files)
+   Str ProjectHierarchy::ElmSrcFileFirst(C Mems<FileParams> &files)
    {
       FREPA(files)
       {
-         FileParams &fp=files[i];
+       C FileParams &fp=files[i];
          Str path=FFirstUp       (fp.name ); if(path.is())return path;
              path=ElmSrcFileFirst(fp.nodes); if(path.is())return path;
       }

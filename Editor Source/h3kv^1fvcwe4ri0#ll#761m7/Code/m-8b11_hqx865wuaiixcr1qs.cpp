@@ -191,11 +191,11 @@ class MaterialRegion : Region
          return T;
       }
 
-      static bool ExploreFiles(Mems<FileParams> &fps)
+      static bool ExploreFiles(C Mems<FileParams> &fps)
       {
          FREPA(fps)
          {
-            FileParams &fp=fps[i];
+          C FileParams &fp=fps[i];
             if(fp.name.is())
             {
                UID id; if(id.fromFileName(fp.name))Proj.elmLocate(id, true);else Explore(FFirstUp(fp.name));

@@ -16,7 +16,7 @@ class ProjectHierarchy : Project
    int depth(C Elm *elm)C;
    Elm* firstParent(Elm *elm, ELM_TYPE type);
    Elm* firstVisibleParent(Elm *elm);
-   static Str ElmSrcFileFirst(Mems<FileParams> &files);
+   static Str ElmSrcFileFirst(C Mems<FileParams> &files);
    Str elmSrcFileFirst(C Elm *elm)C;
    virtual Elm* findElmByPath(C Str &path)override;
            Str elmFullName(C UID &elm_id, int max_elms=-1)C;         
