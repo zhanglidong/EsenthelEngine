@@ -22,8 +22,7 @@ const flt           StateFadeTime=0.2,
                     FlushWaterDelay=4,
                     BuyFullVersionTime=10*60, // 10 min
                     AutoSaveTime=5*60, // 5 min
-                    MaxGameViewRange    =2000,
-                    MaxGameViewRangeDemo=400,
+                    MaxGameViewRange=2000,
                     PropElmNameWidth=0.325, // value width of property having element name
                     SendAreasDelay=1.0,
                     VtxDupPosEps=0.0002, 
@@ -41,7 +40,6 @@ const bool          MiscOnTop=false,
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
                     HeightBrushNoiseRes=256,
                     MtrlBrushSlots=14,
-                    MaxDemoProjElms=64,
                     MaxVisibleRadius=(X64 ? 20 : 15),
                     MaxMaterialDownsize=3, // 0=full, 1=half, 2=quarter
                     ClientSendBufSize=3*1024*1024, // 3 MB

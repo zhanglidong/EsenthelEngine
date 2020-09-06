@@ -318,7 +318,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    Str  VideoOptions::EdgeSoft(C VideoOptions &vo          ) {return D.edgeSoften();}
    void VideoOptions::EdgeSoft(  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    Str  VideoOptions::Shadow(C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
-   void VideoOptions::Shadow(  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis(); if(Demo && TextBool(t))Gui.msgBox(S, "Shadows are available only in the full version");}
+   void VideoOptions::Shadow(  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis();}
    Str  VideoOptions::ShadowSize(C VideoOptions &vo          ) {REPA(ShadowSize_t)if(D.shadowMapSize()>=TextInt(ShadowSize_t[i]))return i; return "2";}
    void VideoOptions::ShadowSize(  VideoOptions &vo, C Str &t) {int s=TextInt(t); if(InRange(s, ShadowSize_t))D.shadowMapSize(TextInt(ShadowSize_t[s]));}
    Str  VideoOptions::ShadowNum(C VideoOptions &vo          ) {return D.shadowMapNum()-1;}

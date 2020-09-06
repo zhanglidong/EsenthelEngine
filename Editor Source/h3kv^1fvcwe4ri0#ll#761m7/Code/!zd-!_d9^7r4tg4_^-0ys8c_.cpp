@@ -64,10 +64,10 @@ class ProjectSettings : ClosableWindow
       "Enabled, Slower, Binary+Text",
    };
 
-   static void CipherChanged          (ProjectSettings &ps) {Proj.cipher=(CIPHER_TYPE)ps.cipher_type(); Proj.cipher_time.getUTC(); CodeEdit.makeAuto(); Server.projectSetSettings(); ps.toGui(); if(Demo && ps.cipher_type())Gui.msgBox(S, "Encryption is not available in the demo version");}
+   static void CipherChanged          (ProjectSettings &ps) {Proj.cipher=(CIPHER_TYPE)ps.cipher_type(); Proj.cipher_time.getUTC(); CodeEdit.makeAuto(); Server.projectSetSettings(); ps.toGui();}
    static void EncryptionKeyChanged   (ProjectSettings &ps) {Memc<Str> keys=Split(ps.cipher_key(), ','); if(keys.elms()>=Elms(Proj.cipher_key)){REPAO(Proj.cipher_key)=TextInt(keys[i]); Proj.cipher_key_time.getUTC(); CodeEdit.makeAuto(); Server.projectSetSettings();}}
    static void RandomizeEncryptionKey (ProjectSettings &ps) {REPAO(Proj.cipher_key)=Random(); Proj.cipher_key_time.getUTC(); CodeEdit.makeAuto(); Server.projectSetSettings(); ps.toGui();}
-   static void CompressTypeChanged    (ProjectSettings &ps) {COMPRESS_TYPE type=ps.compressType(); Proj.compress_type    =type              ; Proj.compress_type_time    .getUTC(); Server.projectSetSettings(); ps.toGui(); if(Demo && type)Gui.msgBox(S, "Compression is not available in the demo version");}
+   static void CompressTypeChanged    (ProjectSettings &ps) {COMPRESS_TYPE type=ps.compressType(); Proj.compress_type    =type              ; Proj.compress_type_time    .getUTC(); Server.projectSetSettings(); ps.toGui();}
    static void CompressLevelChanged   (ProjectSettings &ps) {                                      Proj.compress_level   =ps.compressLevel(); Proj.compress_level_time   .getUTC(); Server.projectSetSettings();}
    static void MaterialSimplifyChanged(ProjectSettings &ps) {                                      Proj.material_simplify=ps. mtrlSimplify(); Proj.material_simplify_time.getUTC(); Server.projectSetSettings();}
    static void TextDataChanged        (ProjectSettings &ps) {Proj.textData(ps.text_data()!=0); /*Server.projectSetSettings(); this is local user option*/}

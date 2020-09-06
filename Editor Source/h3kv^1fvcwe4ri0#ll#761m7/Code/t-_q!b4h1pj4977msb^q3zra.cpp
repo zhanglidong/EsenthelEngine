@@ -50,8 +50,7 @@ class Projects
    {
       if(projs.editor_network_interface()) // want to host
       {
-         if(Demo)Gui.msgBox(S, "Editor Network Interface is not available in the demo version."); // can't host
-         else EditServer.create();
+         EditServer.create();
       }else
       {
          EditServer.del();

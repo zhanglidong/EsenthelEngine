@@ -540,13 +540,10 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    }
    void NewWorldClass::display()
    {
-      if(Proj.testElmsNum())
-      {
-         Proj.setMenuListSel();
-         parent_id=(Proj.menu_list_sel.elms() ? Proj.menu_list_sel[0] : UIDZero);
-         name.set(Proj.newElmName(ELM_WORLD, parent_id));
-         super::activate();
-      }
+      Proj.setMenuListSel();
+      parent_id=(Proj.menu_list_sel.elms() ? Proj.menu_list_sel[0] : UIDZero);
+      name.set(Proj.newElmName(ELM_WORLD, parent_id));
+      super::activate();
    }
    void NewWorldClass::update(C GuiPC &gpc)
    {

@@ -207,7 +207,6 @@ SynchronizerClass Synchronizer;
    }
    void SynchronizerClass::sync(Project &local, Project &server)
    {
-      if(!Proj.testElmsNum())return;
       Proj.setListCurSel();
       {
          SyncLocker locker(lock);

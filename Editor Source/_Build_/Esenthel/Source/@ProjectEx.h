@@ -328,7 +328,6 @@ public:
    void create();
 
    // operations
-   bool testElmsNum();
    void explore(Elm &elm);
    Str newElmName(ELM_TYPE type, C UID &parent_id);
    void newElm(ELM_TYPE type);

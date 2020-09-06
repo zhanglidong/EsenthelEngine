@@ -340,11 +340,9 @@ class WorldView : Viewport4Region, WorldData
       flt frac=D.shadowFrac(); D.shadowFrac(frac*1.05*dist/D.viewRange());
 
       Renderer.wire=wire();
-      SHADOW_MODE shd_mode=D.shadowMode(); if(Demo)D.shadowMode(SHADOW_NONE);
       grass_range2=Sqr(D.grassRange());
       obj_blend.clear(); REPAO(obj_palette).clear();
       Renderer(WorldView.Render);
-      D.shadowMode(shd_mode);
       Renderer.wire=false;
 
       // restore settings

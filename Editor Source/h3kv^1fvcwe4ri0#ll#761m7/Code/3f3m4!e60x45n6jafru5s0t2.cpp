@@ -247,7 +247,7 @@ class ServerClass : Connection
                case CS_NEW_ELM: if(proj)
                {
                   Elm elm; UID proj_id; ClientRecvNewElm(data, elm, proj_id);
-                  if(proj_id==proj.id && proj.testElmsNum())
+                  if(proj_id==proj.id)
                   {
                      proj.setListCurSel();
                      Elm &proj_elm=proj.getElm(elm.id); if(!proj_elm.type)Swap(elm, proj_elm); // if just added then swap, otherwise we can't create a new element if it already exists so do nothing
@@ -336,7 +336,7 @@ class ServerClass : Connection
                {
                   Elm elm; UID proj_id; File elm_data, elm_extra;
                   if(ClientRecvSetElmFull(data, elm, elm_data.writeMem(), elm_extra.writeMem(), proj_id))
-                     if(proj_id==proj.id && proj.testElmsNum())
+                     if(proj_id==proj.id)
                   {
                      bool created=false;
                      proj.setListCurSel();

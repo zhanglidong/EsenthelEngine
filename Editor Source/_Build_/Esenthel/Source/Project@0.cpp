@@ -383,7 +383,7 @@ void DrawProject()
    void ProjectEx::UndoElmChange(ProjectEx &proj) {proj.elm_undos.undo();}
    void ProjectEx::RedoElmChange(ProjectEx &proj) {proj.elm_undos.redo();}
    void ProjectEx::Duplicate(ProjectEx &proj) {proj.list.kbSet(); proj.duplicate     (proj.menu_list_sel);}
-   void ProjectEx::CopyTo(ProjectEx &proj) {if(Demo)Gui.msgBox(S, "This option is not available in the demo version.");else CopyElms.display();}
+   void ProjectEx::CopyTo(ProjectEx &proj) {CopyElms.display();}
    void ProjectEx::Expand(ProjectEx &proj) {proj.list.kbSet(); proj.expand        (proj.menu_list_sel, proj.menu_list_sel_item);}
    void ProjectEx::ExpandAll(ProjectEx &proj) {proj.list.kbSet(); proj.expandAll     (proj.menu_list_sel, proj.menu_list_sel_item);}
    void ProjectEx::Collapse(ProjectEx &proj) {proj.list.kbSet(); proj.collapse      (proj.menu_list_sel, proj.menu_list_sel_item);}
@@ -823,17 +823,6 @@ void DrawProject()
       WorldEdit.setMenu(menu, "WE ");
       Gui+=T.menu.create(menu).hide().disabled(true);
    }
-   bool ProjectEx::testElmsNum()
-   {
-      if(Demo && elms.elms()>=MaxDemoProjElms)
-      {
-         Str server;
-         if(Server.loggedIn()){Server.logout(); server="\nYou have been disconnected from the server.";}
-         Gui.msgBox(S, S+"Demo version is limited to "+MaxDemoProjElms+" elements (including removed) in a project."+server);
-         return false;
-      }
-      return true;
-   }
    void ProjectEx::explore(Elm &elm)
    {
       Explore((elm.type==ELM_APP) ? CodeEdit.appPath(elm.name) : elmSrcFileFirst(&elm));
@@ -858,8 +847,7 @@ void DrawProject()
    }
    Elm* ProjectEx::newElm(ELM_TYPE type, C UID &parent_id, C Str *name, bool refresh_elm_list)
    {
-      if(InRange(type, ELM_NUM) && type!=ELM_NONE && type!=ELM_MESH && type!=ELM_SKEL && type!=ELM_PHYS && type!=ELM_SHADER && type!=ELM_WORLD
-      && testElmsNum())
+      if(InRange(type, ELM_NUM) && type!=ELM_NONE && type!=ELM_MESH && type!=ELM_SKEL && type!=ELM_PHYS && type!=ELM_SHADER && type!=ELM_WORLD)
       {
          if(refresh_elm_list)setListCurSel();
          Str  elm_name=(name ? *name : newElmName(type, parent_id));
@@ -4703,7 +4691,6 @@ void DrawProject()
    }
    bool ProjectEx::codeCheck()
    {
-      if(Demo){Gui.msgBox(S, "Demo version doesn't support Code Synchronization"); return false;}
       if(!valid()){Gui.msgBox(S, "Project is empty"); return false;}
       return true;
    }

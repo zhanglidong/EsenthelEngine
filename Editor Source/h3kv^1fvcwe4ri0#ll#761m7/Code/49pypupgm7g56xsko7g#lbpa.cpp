@@ -276,11 +276,6 @@ bool PublishDataNeeded(Edit.EXE_TYPE exe, Edit.BUILD_MODE mode) {return exe==Edi
 /******************************************************************************/
 void PublishDo()
 {
-   if(Demo)
-   {
-      Gui.msgBox(S, "Demo version doesn't allow publishing."); return;
-      if(Proj.cipher || Proj.compress_type){Gui.msgBox(S, "Encryption and Compression are not available in the demo version"); return;}
-   }
    CodeEdit.publish();
 }
 void PublishEsProjAs(C Str &path, ptr user)

@@ -333,7 +333,7 @@ class ProjectEx : ProjectHierarchy
    static void UndoElmChange (ProjectEx &proj) {proj.elm_undos.undo();}
    static void RedoElmChange (ProjectEx &proj) {proj.elm_undos.redo();}
    static void Duplicate     (ProjectEx &proj) {proj.list.kbSet(); proj.duplicate     (proj.menu_list_sel);}
-   static void CopyTo        (ProjectEx &proj) {if(Demo)Gui.msgBox(S, "This option is not available in the demo version.");else CopyElms.display();}
+   static void CopyTo        (ProjectEx &proj) {CopyElms.display();}
    static void Expand        (ProjectEx &proj) {proj.list.kbSet(); proj.expand        (proj.menu_list_sel, proj.menu_list_sel_item);}
    static void ExpandAll     (ProjectEx &proj) {proj.list.kbSet(); proj.expandAll     (proj.menu_list_sel, proj.menu_list_sel_item);}
    static void Collapse      (ProjectEx &proj) {proj.list.kbSet(); proj.collapse      (proj.menu_list_sel, proj.menu_list_sel_item);}
@@ -796,17 +796,6 @@ class ProjectEx : ProjectHierarchy
    }
 
    // operations
-   bool testElmsNum()
-   {
-      if(Demo && elms.elms()>=MaxDemoProjElms)
-      {
-         Str server;
-         if(Server.loggedIn()){Server.logout(); server="\nYou have been disconnected from the server.";}
-         Gui.msgBox(S, S+"Demo version is limited to "+MaxDemoProjElms+" elements (including removed) in a project."+server);
-         return false;
-      }
-      return true;
-   }
    void explore(Elm &elm)
    {
       Explore((elm.type==ELM_APP) ? CodeEdit.appPath(elm.name) : elmSrcFileFirst(&elm));
@@ -831,8 +820,7 @@ class ProjectEx : ProjectHierarchy
    }
    Elm* newElm(ELM_TYPE type, C UID &parent_id, C Str *name=null, bool refresh_elm_list=true)
    {
-      if(InRange(type, ELM_NUM) && type!=ELM_NONE && type!=ELM_MESH && type!=ELM_SKEL && type!=ELM_PHYS && type!=ELM_SHADER && type!=ELM_WORLD
-      && testElmsNum())
+      if(InRange(type, ELM_NUM) && type!=ELM_NONE && type!=ELM_MESH && type!=ELM_SKEL && type!=ELM_PHYS && type!=ELM_SHADER && type!=ELM_WORLD)
       {
          if(refresh_elm_list)setListCurSel();
          Str  elm_name=(name ? *name : newElmName(type, parent_id));
@@ -4787,7 +4775,6 @@ class ProjectEx : ProjectHierarchy
    // External Code Sync
    bool codeCheck()
    {
-      if(Demo){Gui.msgBox(S, "Demo version doesn't support Code Synchronization"); return false;}
       if(!valid()){Gui.msgBox(S, "Project is empty"); return false;}
       return true;
    }

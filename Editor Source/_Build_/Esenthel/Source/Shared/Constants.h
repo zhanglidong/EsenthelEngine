@@ -19,8 +19,7 @@ extern const flt           StateFadeTime,
                     FlushWaterDelay,
                     BuyFullVersionTime, // 10 min
                     AutoSaveTime, // 5 min
-                    MaxGameViewRange    ,
-                    MaxGameViewRangeDemo,
+                    MaxGameViewRange,
                     PropElmNameWidth, // value width of property having element name
                     SendAreasDelay,
                     VtxDupPosEps, 

@@ -90,8 +90,8 @@ bool UpdateGame()
    DrawPhysics  ^=(Kb.alt() && Kb.shift() && !Kb.ctrlCmd() && Kb.bp(KB_B));
    DrawWorldPath^=(Kb.alt() && Kb.shift() && !Kb.ctrlCmd() && Kb.bp(KB_P));
 
-   if(Kb.bp(KB_LBR)){flt range=Mid(D.viewRange()*0.8f, 32.0f, Demo ? MaxGameViewRangeDemo : MaxGameViewRange); D.viewRange(range); Game::World.activeRange(range);}
-   if(Kb.bp(KB_RBR)){flt range=Mid(D.viewRange()/0.8f, 32.0f, Demo ? MaxGameViewRangeDemo : MaxGameViewRange); D.viewRange(range); Game::World.activeRange(range);}
+   if(Kb.bp(KB_LBR)){flt range=Mid(D.viewRange()*0.8f, 32.0f, MaxGameViewRange); D.viewRange(range); Game::World.activeRange(range);}
+   if(Kb.bp(KB_RBR)){flt range=Mid(D.viewRange()/0.8f, 32.0f, MaxGameViewRange); D.viewRange(range); Game::World.activeRange(range);}
 
    UpdateGameCam();
    Game::World.update(ActiveCam.matrix.pos);
@@ -111,9 +111,7 @@ void RenderGame()
 void DrawGame()
 {
    Renderer.wire=Kb.b(KB_TILDE);
-   SHADOW_MODE shd_mode=D.shadowMode(); if(Demo)D.shadowMode(SHADOW_NONE);
    Renderer(RenderGame);
-   D.shadowMode(shd_mode);
    Renderer.wire=false;
 
    if(DrawPhysics || DrawWorldPath)

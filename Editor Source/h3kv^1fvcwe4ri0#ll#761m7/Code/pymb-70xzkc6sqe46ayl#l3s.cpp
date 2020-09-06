@@ -247,7 +247,6 @@ class SynchronizerClass
    }
    void sync(Project &local, Project &server)
    {
-      if(!Proj.testElmsNum())return;
       Proj.setListCurSel();
       {
          SyncLocker locker(lock);

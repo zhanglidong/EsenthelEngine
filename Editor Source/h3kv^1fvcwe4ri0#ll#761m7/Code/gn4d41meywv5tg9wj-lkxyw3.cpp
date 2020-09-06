@@ -469,7 +469,6 @@ class CopyElements : ClosableWindow
 
             if(Proj.valid()) // if there's a project opened, then import into that one
             {
-               if(Demo){Gui.msgBox(S, "Importing projects into existing projects is not available in the demo version."); return;}
                target=Proj;
             }else
             {

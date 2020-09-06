@@ -620,7 +620,6 @@ const uint EditMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL|VTX_TAN_BIN), // 
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
                     HeightBrushNoiseRes=256,
                     MtrlBrushSlots=14,
-                    MaxDemoProjElms=64,
                     MaxVisibleRadius=(X64 ? 20 : 15),
                     MaxMaterialDownsize=3, // 0=full, 1=half, 2=quarter
                     ClientSendBufSize=3*1024*1024, // 3 MB

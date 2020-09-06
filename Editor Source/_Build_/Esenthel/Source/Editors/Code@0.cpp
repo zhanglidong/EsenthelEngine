@@ -402,8 +402,6 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    }
    void CodeView::buildDo(Edit::BUILD_MODE mode)
    {
-      if(Demo && (configEXE()==Edit::EXE_NEW || configEXE()==Edit::EXE_APK || configEXE()==Edit::EXE_IOS) && !configDebug()){Gui.msgBox(S, "Demo version doesn't allow creating Mobile applications in Release configuration."); return;}
-      if(Demo && configEXE()==Edit::EXE_WEB){Gui.msgBox(S, "Demo version doesn't allow creating Web applications."); return;}
       if(PublishDataNeeded(configEXE(), mode))StartPublish(S, configEXE(), mode);else 
       {
          Proj.flush(); // flush in case we want to play with latest data
@@ -417,7 +415,6 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    void CodeView::rebuild() {clean(); rebuildSymbols(); build();}
    void CodeView::openIDE()
    {
-      if(Demo && configEXE()==Edit::EXE_WEB){Gui.msgBox(S, "Demo version doesn't allow creating Web applications."); return;}
       if(PublishDataNeeded(configEXE(), Edit::BUILD_PUBLISH))StartPublish(S, configEXE(), Edit::BUILD_PUBLISH, true, S, true);else // we need to create project data pak first
       {
          Proj.flush(); // flush in case we want to play with latest data
@@ -426,8 +423,6 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    }
    bool CodeView::Export(Edit::EXPORT_MODE mode, bool data)
    {
-      if(Demo && configEXE()==Edit::EXE_WEB){Gui.msgBox(S, "Demo version doesn't allow creating Web applications."); return false;}
-
       bool ok=false;
       makeAuto(true); // before exporting, reset auto header to force EE_PUBLISH as true, important because exported projects are meant to be distributed to other computers, and compiled for publishing (such as EE Editor), in such case they can't be using paths from this computer, therefore publishing will make them use target paths
       if(ok=super::Export(mode))if(data)

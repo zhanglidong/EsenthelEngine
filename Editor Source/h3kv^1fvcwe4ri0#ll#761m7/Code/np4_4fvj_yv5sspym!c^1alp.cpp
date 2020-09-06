@@ -334,7 +334,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    static Str  EdgeSoft   (C VideoOptions &vo          ) {return D.edgeSoften();}
    static void EdgeSoft   (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    static Str  Shadow     (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
-   static void Shadow     (  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis(); if(Demo && TextBool(t))Gui.msgBox(S, "Shadows are available only in the full version");}
+   static void Shadow     (  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis();}
    static Str  ShadowSize (C VideoOptions &vo          ) {REPA(ShadowSize_t)if(D.shadowMapSize()>=TextInt(ShadowSize_t[i]))return i; return "2";} // go from end to check biggest first
    static void ShadowSize (  VideoOptions &vo, C Str &t) {int s=TextInt(t); if(InRange(s, ShadowSize_t))D.shadowMapSize(TextInt(ShadowSize_t[s]));}
    static Str  ShadowNum  (C VideoOptions &vo          ) {return D.shadowMapNum()-1;}
