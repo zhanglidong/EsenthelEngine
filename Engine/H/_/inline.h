@@ -2354,3 +2354,20 @@ T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File&  File::getMulti(TA &a, TB
 }
 #endif
 /******************************************************************************/
+inline void CachesDelayRemove(Flt time) // set amount of time (in seconds) after which unused elements are removed from engine caches (<=0 value specifies immediate unloading), default=0
+{
+   Objects     .delayRemove(time);
+   Meshes      .delayRemove(time);
+   PhysBodies  .delayRemove(time);
+   WaterMtrls  .delayRemove(time);
+   Materials   .delayRemove(time);
+   Fonts       .delayRemove(time);
+   ImageAtlases.delayRemove(time);
+   Images      .delayRemove(time);
+   PanelImages .delayRemove(time);
+   Panels      .delayRemove(time);
+   TextStyles  .delayRemove(time);
+   GuiSkins    .delayRemove(time);
+   Environments.delayRemove(time);
+}
+/******************************************************************************/
