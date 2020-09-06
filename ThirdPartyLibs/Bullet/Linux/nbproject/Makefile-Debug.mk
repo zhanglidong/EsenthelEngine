@@ -89,12 +89,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/8575bec1/btCylinderShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btEmptyShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btHeightfieldTerrainShape.o \
+	${OBJECTDIR}/_ext/8575bec1/btMiniSDF.o \
 	${OBJECTDIR}/_ext/8575bec1/btMinkowskiSumShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btMultiSphereShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btMultimaterialTriangleMeshShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btOptimizedBvh.o \
 	${OBJECTDIR}/_ext/8575bec1/btPolyhedralConvexShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btScaledBvhTriangleMeshShape.o \
+	${OBJECTDIR}/_ext/8575bec1/btSdfCollisionShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btShapeHull.o \
 	${OBJECTDIR}/_ext/8575bec1/btSphereShape.o \
 	${OBJECTDIR}/_ext/8575bec1/btStaticPlaneShape.o \
@@ -131,6 +133,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/6e925355/btSubSimplexConvexCast.o \
 	${OBJECTDIR}/_ext/6e925355/btVoronoiSimplexSolver.o \
 	${OBJECTDIR}/_ext/80780714/btKinematicCharacterController.o \
+	${OBJECTDIR}/_ext/12134e05/btBatchedConstraints.o \
 	${OBJECTDIR}/_ext/12134e05/btConeTwistConstraint.o \
 	${OBJECTDIR}/_ext/12134e05/btContactConstraint.o \
 	${OBJECTDIR}/_ext/12134e05/btFixedConstraint.o \
@@ -143,6 +146,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/12134e05/btNNCGConstraintSolver.o \
 	${OBJECTDIR}/_ext/12134e05/btPoint2PointConstraint.o \
 	${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolver.o \
+	${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolverMt.o \
 	${OBJECTDIR}/_ext/12134e05/btSliderConstraint.o \
 	${OBJECTDIR}/_ext/12134e05/btSolve2LinearConstraint.o \
 	${OBJECTDIR}/_ext/12134e05/btTypedConstraint.o \
@@ -160,19 +164,25 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/cf0245d7/btMultiBodyGearConstraint.o \
 	${OBJECTDIR}/_ext/cf0245d7/btMultiBodyJointLimitConstraint.o \
 	${OBJECTDIR}/_ext/cf0245d7/btMultiBodyJointMotor.o \
+	${OBJECTDIR}/_ext/cf0245d7/btMultiBodyMLCPConstraintSolver.o \
 	${OBJECTDIR}/_ext/cf0245d7/btMultiBodyPoint2Point.o \
 	${OBJECTDIR}/_ext/cf0245d7/btMultiBodySliderConstraint.o \
+	${OBJECTDIR}/_ext/cf0245d7/btMultiBodySphericalJointMotor.o \
 	${OBJECTDIR}/_ext/5f05fc1f/btDantzigLCP.o \
 	${OBJECTDIR}/_ext/5f05fc1f/btLemkeAlgorithm.o \
 	${OBJECTDIR}/_ext/5f05fc1f/btMLCPSolver.o \
 	${OBJECTDIR}/_ext/6f87d9d7/btRaycastVehicle.o \
 	${OBJECTDIR}/_ext/6f87d9d7/btWheelInfo.o \
+	${OBJECTDIR}/_ext/f7612d78/btTaskScheduler.o \
+	${OBJECTDIR}/_ext/f7612d78/btThreadSupportPosix.o \
+	${OBJECTDIR}/_ext/f7612d78/btThreadSupportWin32.o \
 	${OBJECTDIR}/_ext/1408271/btAlignedAllocator.o \
 	${OBJECTDIR}/_ext/1408271/btConvexHull.o \
 	${OBJECTDIR}/_ext/1408271/btConvexHullComputer.o \
 	${OBJECTDIR}/_ext/1408271/btGeometryUtil.o \
 	${OBJECTDIR}/_ext/1408271/btPolarDecomposition.o \
 	${OBJECTDIR}/_ext/1408271/btQuickprof.o \
+	${OBJECTDIR}/_ext/1408271/btReducedVector.o \
 	${OBJECTDIR}/_ext/1408271/btSerializer.o \
 	${OBJECTDIR}/_ext/1408271/btSerializer64.o \
 	${OBJECTDIR}/_ext/1408271/btThreads.o \
@@ -475,6 +485,11 @@ ${OBJECTDIR}/_ext/8575bec1/btHeightfieldTerrainShape.o: ../lib/src/BulletCollisi
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/8575bec1/btHeightfieldTerrainShape.o ../lib/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp
 
+${OBJECTDIR}/_ext/8575bec1/btMiniSDF.o: ../lib/src/BulletCollision/CollisionShapes/btMiniSDF.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/8575bec1
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/8575bec1/btMiniSDF.o ../lib/src/BulletCollision/CollisionShapes/btMiniSDF.cpp
+
 ${OBJECTDIR}/_ext/8575bec1/btMinkowskiSumShape.o: ../lib/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/8575bec1
 	${RM} "$@.d"
@@ -504,6 +519,11 @@ ${OBJECTDIR}/_ext/8575bec1/btScaledBvhTriangleMeshShape.o: ../lib/src/BulletColl
 	${MKDIR} -p ${OBJECTDIR}/_ext/8575bec1
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/8575bec1/btScaledBvhTriangleMeshShape.o ../lib/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
+
+${OBJECTDIR}/_ext/8575bec1/btSdfCollisionShape.o: ../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/8575bec1
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/8575bec1/btSdfCollisionShape.o ../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp
 
 ${OBJECTDIR}/_ext/8575bec1/btShapeHull.o: ../lib/src/BulletCollision/CollisionShapes/btShapeHull.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/8575bec1
@@ -685,6 +705,11 @@ ${OBJECTDIR}/_ext/80780714/btKinematicCharacterController.o: ../lib/src/BulletDy
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/80780714/btKinematicCharacterController.o ../lib/src/BulletDynamics/Character/btKinematicCharacterController.cpp
 
+${OBJECTDIR}/_ext/12134e05/btBatchedConstraints.o: ../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/12134e05
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/12134e05/btBatchedConstraints.o ../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp
+
 ${OBJECTDIR}/_ext/12134e05/btConeTwistConstraint.o: ../lib/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/12134e05
 	${RM} "$@.d"
@@ -744,6 +769,11 @@ ${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolver.o: ../lib/src/Bul
 	${MKDIR} -p ${OBJECTDIR}/_ext/12134e05
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolver.o ../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp
+
+${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolverMt.o: ../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/12134e05
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/12134e05/btSequentialImpulseConstraintSolverMt.o ../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp
 
 ${OBJECTDIR}/_ext/12134e05/btSliderConstraint.o: ../lib/src/BulletDynamics/ConstraintSolver/btSliderConstraint.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/12134e05
@@ -830,6 +860,11 @@ ${OBJECTDIR}/_ext/cf0245d7/btMultiBodyJointMotor.o: ../lib/src/BulletDynamics/Fe
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/cf0245d7/btMultiBodyJointMotor.o ../lib/src/BulletDynamics/Featherstone/btMultiBodyJointMotor.cpp
 
+${OBJECTDIR}/_ext/cf0245d7/btMultiBodyMLCPConstraintSolver.o: ../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/cf0245d7
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/cf0245d7/btMultiBodyMLCPConstraintSolver.o ../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp
+
 ${OBJECTDIR}/_ext/cf0245d7/btMultiBodyPoint2Point.o: ../lib/src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/cf0245d7
 	${RM} "$@.d"
@@ -839,6 +874,11 @@ ${OBJECTDIR}/_ext/cf0245d7/btMultiBodySliderConstraint.o: ../lib/src/BulletDynam
 	${MKDIR} -p ${OBJECTDIR}/_ext/cf0245d7
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/cf0245d7/btMultiBodySliderConstraint.o ../lib/src/BulletDynamics/Featherstone/btMultiBodySliderConstraint.cpp
+
+${OBJECTDIR}/_ext/cf0245d7/btMultiBodySphericalJointMotor.o: ../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/cf0245d7
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/cf0245d7/btMultiBodySphericalJointMotor.o ../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp
 
 ${OBJECTDIR}/_ext/5f05fc1f/btDantzigLCP.o: ../lib/src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/5f05fc1f
@@ -864,6 +904,21 @@ ${OBJECTDIR}/_ext/6f87d9d7/btWheelInfo.o: ../lib/src/BulletDynamics/Vehicle/btWh
 	${MKDIR} -p ${OBJECTDIR}/_ext/6f87d9d7
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6f87d9d7/btWheelInfo.o ../lib/src/BulletDynamics/Vehicle/btWheelInfo.cpp
+
+${OBJECTDIR}/_ext/f7612d78/btTaskScheduler.o: ../lib/src/LinearMath/TaskScheduler/btTaskScheduler.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/f7612d78
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/f7612d78/btTaskScheduler.o ../lib/src/LinearMath/TaskScheduler/btTaskScheduler.cpp
+
+${OBJECTDIR}/_ext/f7612d78/btThreadSupportPosix.o: ../lib/src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/f7612d78
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/f7612d78/btThreadSupportPosix.o ../lib/src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp
+
+${OBJECTDIR}/_ext/f7612d78/btThreadSupportWin32.o: ../lib/src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/f7612d78
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/f7612d78/btThreadSupportWin32.o ../lib/src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp
 
 ${OBJECTDIR}/_ext/1408271/btAlignedAllocator.o: ../lib/src/LinearMath/btAlignedAllocator.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1408271
@@ -894,6 +949,11 @@ ${OBJECTDIR}/_ext/1408271/btQuickprof.o: ../lib/src/LinearMath/btQuickprof.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1408271
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1408271/btQuickprof.o ../lib/src/LinearMath/btQuickprof.cpp
+
+${OBJECTDIR}/_ext/1408271/btReducedVector.o: ../lib/src/LinearMath/btReducedVector.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/1408271
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1408271/btReducedVector.o ../lib/src/LinearMath/btReducedVector.cpp
 
 ${OBJECTDIR}/_ext/1408271/btSerializer.o: ../lib/src/LinearMath/btSerializer.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1408271

@@ -138,6 +138,8 @@
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btMaterial.h</itemPath>
+          <itemPath>../lib/src/BulletCollision/CollisionShapes/btMiniSDF.cpp</itemPath>
+          <itemPath>../lib/src/BulletCollision/CollisionShapes/btMiniSDF.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp</itemPath>
@@ -150,6 +152,8 @@
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h</itemPath>
+          <itemPath>../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp</itemPath>
+          <itemPath>../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btShapeHull.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btShapeHull.h</itemPath>
           <itemPath>../lib/src/BulletCollision/CollisionShapes/btSphereShape.cpp</itemPath>
@@ -217,6 +221,7 @@
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_math.h</itemPath>
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_memory.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_memory.h</itemPath>
+          <itemPath>../lib/src/BulletCollision/Gimpact/gim_pair.h</itemPath>
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_radixsort.h</itemPath>
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_tri_collision.cpp</itemPath>
           <itemPath>../lib/src/BulletCollision/Gimpact/gim_tri_collision.h</itemPath>
@@ -270,6 +275,8 @@
         <logicalFolder name="ConstraintSolver"
                        displayName="ConstraintSolver"
                        projectFiles="true">
+          <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp</itemPath>
+          <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h</itemPath>
@@ -297,6 +304,8 @@
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h</itemPath>
+          <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp</itemPath>
+          <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSliderConstraint.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSliderConstraint.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp</itemPath>
@@ -337,6 +346,7 @@
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyFixedConstraint.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyGearConstraint.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyGearConstraint.h</itemPath>
+          <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyInplaceSolverIslandCallback.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyJointFeedback.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h</itemPath>
@@ -344,11 +354,15 @@
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyJointMotor.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyLink.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyLinkCollider.h</itemPath>
+          <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp</itemPath>
+          <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodySliderConstraint.cpp</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodySliderConstraint.h</itemPath>
           <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodySolverConstraint.h</itemPath>
+          <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp</itemPath>
+          <itemPath>../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.h</itemPath>
         </logicalFolder>
         <logicalFolder name="MLCPSolvers" displayName="MLCPSolvers" projectFiles="true">
           <itemPath>../lib/src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp</itemPath>
@@ -372,6 +386,14 @@
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="LinearMath" displayName="LinearMath" projectFiles="true">
+        <logicalFolder name="TaskScheduler"
+                       displayName="TaskScheduler"
+                       projectFiles="true">
+          <itemPath>../lib/src/LinearMath/TaskScheduler/btTaskScheduler.cpp</itemPath>
+          <itemPath>../lib/src/LinearMath/TaskScheduler/btThreadSupportInterface.h</itemPath>
+          <itemPath>../lib/src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp</itemPath>
+          <itemPath>../lib/src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp</itemPath>
+        </logicalFolder>
         <itemPath>../lib/src/LinearMath/btAabbUtil2.h</itemPath>
         <itemPath>../lib/src/LinearMath/btAlignedAllocator.cpp</itemPath>
         <itemPath>../lib/src/LinearMath/btAlignedAllocator.h</itemPath>
@@ -387,10 +409,12 @@
         <itemPath>../lib/src/LinearMath/btGrahamScan2dConvexHull.h</itemPath>
         <itemPath>../lib/src/LinearMath/btHashMap.h</itemPath>
         <itemPath>../lib/src/LinearMath/btIDebugDraw.h</itemPath>
+        <itemPath>../lib/src/LinearMath/btImplicitQRSVD.h</itemPath>
         <itemPath>../lib/src/LinearMath/btList.h</itemPath>
         <itemPath>../lib/src/LinearMath/btMatrix3x3.h</itemPath>
         <itemPath>../lib/src/LinearMath/btMatrixX.h</itemPath>
         <itemPath>../lib/src/LinearMath/btMinMax.h</itemPath>
+        <itemPath>../lib/src/LinearMath/btModifiedGramSchmidt.h</itemPath>
         <itemPath>../lib/src/LinearMath/btMotionState.h</itemPath>
         <itemPath>../lib/src/LinearMath/btPolarDecomposition.cpp</itemPath>
         <itemPath>../lib/src/LinearMath/btPolarDecomposition.h</itemPath>
@@ -400,6 +424,8 @@
         <itemPath>../lib/src/LinearMath/btQuickprof.cpp</itemPath>
         <itemPath>../lib/src/LinearMath/btQuickprof.h</itemPath>
         <itemPath>../lib/src/LinearMath/btRandom.h</itemPath>
+        <itemPath>../lib/src/LinearMath/btReducedVector.cpp</itemPath>
+        <itemPath>../lib/src/LinearMath/btReducedVector.h</itemPath>
         <itemPath>../lib/src/LinearMath/btScalar.h</itemPath>
         <itemPath>../lib/src/LinearMath/btSerializer.cpp</itemPath>
         <itemPath>../lib/src/LinearMath/btSerializer.h</itemPath>
@@ -1032,6 +1058,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btMiniSDF.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btMiniSDF.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp"
             ex="false"
             tool="1"
@@ -1088,6 +1124,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1417,6 +1463,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletCollision/Gimpact/gim_pair.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletCollision/Gimpact/gim_radixsort.h"
             ex="false"
             tool="3"
@@ -1612,6 +1663,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp"
             ex="false"
             tool="1"
@@ -1743,6 +1804,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1917,6 +1988,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyInplaceSolverIslandCallback.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyJointFeedback.h"
             ex="false"
             tool="3"
@@ -1952,6 +2028,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp"
             ex="false"
             tool="1"
@@ -1973,6 +2059,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySolverConstraint.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2057,6 +2153,26 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btTaskScheduler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportInterface.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../lib/src/LinearMath/btAabbUtil2.h"
             ex="false"
             tool="3"
@@ -2129,6 +2245,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/LinearMath/btImplicitQRSVD.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/LinearMath/btList.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMatrix3x3.h"
@@ -2139,6 +2260,11 @@
       <item path="../lib/src/LinearMath/btMatrixX.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMinMax.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btModifiedGramSchmidt.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMotionState.h"
             ex="false"
@@ -2178,6 +2304,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btRandom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btReducedVector.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btReducedVector.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btScalar.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2840,6 +2976,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btMiniSDF.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btMiniSDF.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp"
             ex="false"
             tool="1"
@@ -2896,6 +3042,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletCollision/CollisionShapes/btSdfCollisionShape.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -3225,6 +3381,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletCollision/Gimpact/gim_pair.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletCollision/Gimpact/gim_radixsort.h"
             ex="false"
             tool="3"
@@ -3420,6 +3581,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btBatchedConstraints.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp"
             ex="false"
             tool="1"
@@ -3551,6 +3722,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -3725,6 +3906,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyInplaceSolverIslandCallback.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyJointFeedback.h"
             ex="false"
             tool="3"
@@ -3760,6 +3946,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp"
             ex="false"
             tool="1"
@@ -3781,6 +3977,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySolverConstraint.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -3865,6 +4071,26 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btTaskScheduler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportInterface.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../lib/src/LinearMath/btAabbUtil2.h"
             ex="false"
             tool="3"
@@ -3937,6 +4163,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../lib/src/LinearMath/btImplicitQRSVD.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/src/LinearMath/btList.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMatrix3x3.h"
@@ -3947,6 +4178,11 @@
       <item path="../lib/src/LinearMath/btMatrixX.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMinMax.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btModifiedGramSchmidt.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btMotionState.h"
             ex="false"
@@ -3986,6 +4222,16 @@
             flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btRandom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btReducedVector.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/src/LinearMath/btReducedVector.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../lib/src/LinearMath/btScalar.h" ex="false" tool="3" flavor2="0">
       </item>

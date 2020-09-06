@@ -10,8 +10,11 @@
     <Filter Include="examples\ThirdPartyLibs">
       <UniqueIdentifier>{487E27CE-B4B5-6F65-BDBF-D3882976965E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="examples\ThirdPartyLibs\Glew">
-      <UniqueIdentifier>{C6F2F453-B2AD-E4FF-5B65-5D4A47FF2E90}</UniqueIdentifier>
+    <Filter Include="examples\ThirdPartyLibs\glad">
+      <UniqueIdentifier>{4F7E0654-3B39-F6FF-E4F0-6E4AD08A4090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\ThirdPartyLibs\stb_image">
+      <UniqueIdentifier>{E2A8EA8A-4E17-400A-9700-FB0903AE35A6}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\Utils">
       <UniqueIdentifier>{E42C601D-D0FA-5323-B98E-C449A5FB2F88}</UniqueIdentifier>
@@ -83,8 +86,11 @@
     <ClCompile Include="..\..\examples\OpenGLWindow\opengl_fontstashcallbacks.cpp">
       <Filter>examples\OpenGLWindow</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\Glew\glew.c">
-      <Filter>examples\ThirdPartyLibs\Glew</Filter>
+    <ClCompile Include="..\..\examples\ThirdPartyLibs\glad\gl.c">
+      <Filter>examples\ThirdPartyLibs\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\ThirdPartyLibs\stb_image\stb_image_write.cpp">
+      <Filter>examples\ThirdPartyLibs\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\Utils\b3Clock.cpp">
       <Filter>examples\Utils</Filter>

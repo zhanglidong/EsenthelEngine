@@ -7,12 +7,6 @@ LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%) -DUSE_PTHREADS -mfpu=neon -mfloat-abi=
 # apply these flags if needed 
 # -ffast-math -funsafe-math-optimizations
 
-# ESENTHEL CHANGED
-LOCAL_CFLAGS       += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
-LOCAL_CPPFLAGS     += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
-LOCAL_CPP_FEATURES := rtti
-LOCAL_ARM_NEON     := true
-
 # apply this to disable optimization
 # TARGET_CFLAGS := $(TARGET_CFLAGS) -O0
 
@@ -31,6 +25,11 @@ TARGET_CFLAGS := $(filter-out -ffpu=vfp,$(TARGET_CFLAGS))
 LOCAL_MODULE := libBullet
 
 LOCAL_C_INCLUDES :=  $(LOCAL_PATH)/src
+
+LOCAL_CFLAGS       += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
+LOCAL_CPPFLAGS     += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
+LOCAL_CPP_FEATURES := rtti
+LOCAL_ARM_NEON     := true
 
 #find all the file recursively under jni/
 FILE_LIST := $(wildcard \

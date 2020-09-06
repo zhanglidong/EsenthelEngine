@@ -204,6 +204,9 @@
     <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btMaterial.h">
       <Filter>CollisionShapes</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btMiniSDF.h">
+      <Filter>CollisionShapes</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btMinkowskiSumShape.h">
       <Filter>CollisionShapes</Filter>
     </ClInclude>
@@ -220,6 +223,9 @@
       <Filter>CollisionShapes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h">
+      <Filter>CollisionShapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btSdfCollisionShape.h">
       <Filter>CollisionShapes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletCollision\CollisionShapes\btShapeHull.h">
@@ -349,6 +355,9 @@
       <Filter>Gimpact</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletCollision\Gimpact\gim_memory.h">
+      <Filter>Gimpact</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BulletCollision\Gimpact\gim_pair.h">
       <Filter>Gimpact</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletCollision\Gimpact\gim_radixsort.h">
@@ -584,6 +593,9 @@
     <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.cpp">
       <Filter>CollisionShapes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btMiniSDF.cpp">
+      <Filter>CollisionShapes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btMinkowskiSumShape.cpp">
       <Filter>CollisionShapes</Filter>
     </ClCompile>
@@ -600,6 +612,9 @@
       <Filter>CollisionShapes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.cpp">
+      <Filter>CollisionShapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btSdfCollisionShape.cpp">
       <Filter>CollisionShapes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletCollision\CollisionShapes\btShapeHull.cpp">

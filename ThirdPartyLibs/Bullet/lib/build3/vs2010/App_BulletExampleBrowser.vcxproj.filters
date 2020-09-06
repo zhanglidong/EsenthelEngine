@@ -22,6 +22,9 @@
     <Filter Include="examples\Benchmarks">
       <UniqueIdentifier>{7150E0E6-DDB1-BDF4-661F-04A7D27FF4B3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="examples\BulletRobotics">
+      <UniqueIdentifier>{E029499A-4C61-9131-556B-F554C121B82A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="examples\Collision">
       <UniqueIdentifier>{9F822512-8B66-E667-F4C6-E0BAE0C9D0E9}</UniqueIdentifier>
     </Filter>
@@ -33,6 +36,9 @@
     </Filter>
     <Filter Include="examples\Constraints">
       <UniqueIdentifier>{4BCF2DDC-375E-B7A5-E07C-CBA0CCEAC74B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\DeformableDemo">
+      <UniqueIdentifier>{E9DE0790-5516-5027-5E20-B44ACAD67620}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\DynamicControlDemo">
       <UniqueIdentifier>{BE3D1D1E-2A4B-4B04-B331-47EF1F3E17BB}</UniqueIdentifier>
@@ -54,6 +60,9 @@
     </Filter>
     <Filter Include="examples\GyroscopicDemo">
       <UniqueIdentifier>{7A1DF151-E654-39E9-EF5E-9D0C5B1560E2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\Heightfield">
+      <UniqueIdentifier>{104A595E-FCD8-E227-A5F7-F6229165F3CD}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\Importers">
       <UniqueIdentifier>{18441830-0428-D985-6D88-D3D8598BC307}</UniqueIdentifier>
@@ -136,26 +145,35 @@
     <Filter Include="examples\SharedMemory">
       <UniqueIdentifier>{A3CE13E6-0F3B-CFE0-D82E-673E445AF148}</UniqueIdentifier>
     </Filter>
+    <Filter Include="examples\SharedMemory\plugins">
+      <UniqueIdentifier>{940A3BA9-0023-22D3-C9CF-B16C35A7B66C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\SharedMemory\plugins\collisionFilterPlugin">
+      <UniqueIdentifier>{C4A5571C-30B7-FFC2-B908-9202251989FC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\SharedMemory\plugins\pdControlPlugin">
+      <UniqueIdentifier>{87032BA8-F373-2D21-BC92-A7A928C26522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\SharedMemory\plugins\tinyRendererPlugin">
+      <UniqueIdentifier>{2D67416C-1910-A99B-42A6-C41A2EAEC3DC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="examples\SoftDemo">
       <UniqueIdentifier>{5419105A-C02F-0EF0-09A7-991175FCDE77}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\ThirdPartyLibs">
       <UniqueIdentifier>{487E27CE-B4B5-6F65-BDBF-D3882976965E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="examples\ThirdPartyLibs\BussIK">
-      <UniqueIdentifier>{A873FD19-9499-C780-7DDF-4C4C69A4EC4C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="examples\ThirdPartyLibs\Glew">
-      <UniqueIdentifier>{C6F2F453-B2AD-E4FF-5B65-5D4A47FF2E90}</UniqueIdentifier>
-    </Filter>
     <Filter Include="examples\ThirdPartyLibs\Wavefront">
       <UniqueIdentifier>{D3E3C355-3F52-19D5-883B-D4D4F4E80E71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples\ThirdPartyLibs\glad">
+      <UniqueIdentifier>{4F7E0654-3B39-F6FF-E4F0-6E4AD08A4090}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\ThirdPartyLibs\stb_image">
       <UniqueIdentifier>{E2A8EA8A-4E17-400A-9700-FB0903AE35A6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="examples\ThirdPartyLibs\tinyxml">
-      <UniqueIdentifier>{4C7B3746-B85E-4686-C161-74C22DC40CD7}</UniqueIdentifier>
+    <Filter Include="examples\ThirdPartyLibs\tinyxml2">
+      <UniqueIdentifier>{FEE4260D-EA35-124F-139A-0011FF49A5B8}</UniqueIdentifier>
     </Filter>
     <Filter Include="examples\TinyRenderer">
       <UniqueIdentifier>{4E934F11-BAFF-0A0C-83F3-A269EF1E2D74}</UniqueIdentifier>
@@ -201,6 +219,9 @@
     <ClInclude Include="..\..\Extras\Serialize\BulletWorldImporter\btBulletWorldImporter.h">
       <Filter>Extras\Serialize\BulletWorldImporter</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Extras\Serialize\BulletWorldImporter\btMultiBodyWorldImporter.h">
+      <Filter>Extras\Serialize\BulletWorldImporter</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Extras\Serialize\BulletWorldImporter\btWorldImporter.h">
       <Filter>Extras\Serialize\BulletWorldImporter</Filter>
     </ClInclude>
@@ -208,6 +229,9 @@
       <Filter>examples\BasicDemo</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\Benchmarks\BenchmarkDemo.h">
+      <Filter>examples\Benchmarks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\Benchmarks\HaltonData.h">
       <Filter>examples\Benchmarks</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\Benchmarks\TaruData.h">
@@ -240,7 +264,13 @@
     <ClInclude Include="..\..\examples\CommonInterfaces\CommonCameraInterface.h">
       <Filter>examples\CommonInterfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\CommonInterfaces\CommonDeformableBodyBase.h">
+      <Filter>examples\CommonInterfaces</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\CommonInterfaces\CommonExampleInterface.h">
+      <Filter>examples\CommonInterfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\CommonInterfaces\CommonFileIOInterface.h">
       <Filter>examples\CommonInterfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\CommonInterfaces\CommonGUIHelperInterface.h">
@@ -276,6 +306,48 @@
     <ClInclude Include="..\..\examples\Constraints\TestHingeTorque.h">
       <Filter>examples\Constraints</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\ClothFriction.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\Collide.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\DeformableClothAnchor.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\DeformableContact.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\DeformableMultibody.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\DeformableRigid.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\DeformableSelfCollision.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\GraspDeformable.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\LargeDeformation.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\MultibodyClothAnchor.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\Pinch.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\PinchFriction.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\SplitImpulse.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\DeformableDemo\VolumetricDeformable.h">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\DynamicControlDemo\MotorDemo.h">
       <Filter>examples\DynamicControlDemo</Filter>
     </ClInclude>
@@ -286,6 +358,9 @@
       <Filter>examples\ExtendedTutorials</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\ExtendedTutorials\Chain.h">
+      <Filter>examples\ExtendedTutorials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\ExtendedTutorials\CompoundBoxes.h">
       <Filter>examples\ExtendedTutorials</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\ExtendedTutorials\InclinedPlane.h">
@@ -329,6 +404,9 @@
     </ClInclude>
     <ClInclude Include="..\..\examples\GyroscopicDemo\GyroscopicSetup.h">
       <Filter>examples\GyroscopicDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\Heightfield\HeightfieldExample.h">
+      <Filter>examples\Heightfield</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\Importers\ImportBsp\BspConverter.h">
       <Filter>examples\Importers\ImportBsp</Filter>
@@ -390,9 +468,6 @@
     <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\ImportURDFSetup.h">
       <Filter>examples\Importers\ImportURDFDemo</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\LinkVisualShapesConverter.h">
-      <Filter>examples\Importers\ImportURDFDemo</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\MultiBodyCreationInterface.h">
       <Filter>examples\Importers\ImportURDFDemo</Filter>
     </ClInclude>
@@ -411,7 +486,13 @@
     <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\URDFJointTypes.h">
       <Filter>examples\Importers\ImportURDFDemo</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\UrdfFindMeshFile.h">
+      <Filter>examples\Importers\ImportURDFDemo</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\UrdfParser.h">
+      <Filter>examples\Importers\ImportURDFDemo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\UrdfRenderingInterface.h">
       <Filter>examples\Importers\ImportURDFDemo</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\Importers\ImportURDFDemo\urdfLexicalCast.h">
@@ -495,6 +576,21 @@
     <ClInclude Include="..\..\examples\RollingFrictionDemo\RollingFrictionDemo.h">
       <Filter>examples\RollingFrictionDemo</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\GraphicsClientExample.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\GraphicsServerExample.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\GraphicsSharedMemoryBlock.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\GraphicsSharedMemoryCommands.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\GraphicsSharedMemoryPublic.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\SharedMemory\IKTrajectoryHelper.h">
       <Filter>examples\SharedMemory</Filter>
     </ClInclude>
@@ -525,6 +621,9 @@
     <ClInclude Include="..\..\examples\SharedMemory\PhysicsServerCommandProcessor.h">
       <Filter>examples\SharedMemory</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\RemoteGUIHelper.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\SharedMemory\SharedMemoryCommandProcessor.h">
       <Filter>examples\SharedMemory</Filter>
     </ClInclude>
@@ -534,8 +633,14 @@
     <ClInclude Include="..\..\examples\SharedMemory\SharedMemoryPublic.h">
       <Filter>examples\SharedMemory</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\SharedMemory\TinyRendererVisualShapeConverter.h">
+    <ClInclude Include="..\..\examples\SharedMemory\b3RobotSimulatorClientAPI_NoDirect.h">
       <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\b3RobotSimulatorClientAPI_NoGUI.h">
+      <Filter>examples\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\SharedMemory\plugins\pdControlPlugin\pdControlPlugin.h">
+      <Filter>examples\SharedMemory\plugins\pdControlPlugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\SoftDemo\BunnyMesh.h">
       <Filter>examples\SoftDemo</Filter>
@@ -546,53 +651,17 @@
     <ClInclude Include="..\..\examples\SoftDemo\TorusMesh.h">
       <Filter>examples\SoftDemo</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\Jacobian.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
+    <ClInclude Include="..\..\examples\SoftDemo\bunny.inl">
+      <Filter>examples\SoftDemo</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR2.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR3.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR4.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\MathMisc.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\MatrixRmn.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\Node.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\Spherical.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\Tree.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\BussIK\VectorRn.h">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
+    <ClInclude Include="..\..\examples\SoftDemo\cube.inl">
+      <Filter>examples\SoftDemo</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\ThirdPartyLibs\Wavefront\tiny_obj_loader.h">
       <Filter>examples\ThirdPartyLibs\Wavefront</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\stb_image\stb_image.h">
-      <Filter>examples\ThirdPartyLibs\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\stb_image\stb_image_write.h">
-      <Filter>examples\ThirdPartyLibs\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\stb_image\stb_truetype.h">
-      <Filter>examples\ThirdPartyLibs\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\tinyxml\tinystr.h">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\ThirdPartyLibs\tinyxml\tinyxml.h">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
+    <ClInclude Include="..\..\examples\ThirdPartyLibs\tinyxml2\tinyxml2.h">
+      <Filter>examples\ThirdPartyLibs\tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\examples\Tutorial\Dof6ConstraintTutorial.h">
       <Filter>examples\Tutorial</Filter>
@@ -632,6 +701,9 @@
     <ClCompile Include="..\..\Extras\Serialize\BulletWorldImporter\btBulletWorldImporter.cpp">
       <Filter>Extras\Serialize\BulletWorldImporter</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Extras\Serialize\BulletWorldImporter\btMultiBodyWorldImporter.cpp">
+      <Filter>Extras\Serialize\BulletWorldImporter</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Extras\Serialize\BulletWorldImporter\btWorldImporter.cpp">
       <Filter>Extras\Serialize\BulletWorldImporter</Filter>
     </ClCompile>
@@ -640,6 +712,15 @@
     </ClCompile>
     <ClCompile Include="..\..\examples\Benchmarks\BenchmarkDemo.cpp">
       <Filter>examples\Benchmarks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\BulletRobotics\BoxStack.cpp">
+      <Filter>examples\BulletRobotics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\BulletRobotics\FixJointBoxes.cpp">
+      <Filter>examples\BulletRobotics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\BulletRobotics\JointLimit.cpp">
+      <Filter>examples\BulletRobotics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\Collision\CollisionSdkC_Api.cpp">
       <Filter>examples\Collision</Filter>
@@ -665,6 +746,48 @@
     <ClCompile Include="..\..\examples\Constraints\TestHingeTorque.cpp">
       <Filter>examples\Constraints</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\ClothFriction.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\Collide.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\DeformableClothAnchor.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\DeformableContact.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\DeformableMultibody.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\DeformableRigid.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\DeformableSelfCollision.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\GraspDeformable.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\LargeDeformation.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\MultibodyClothAnchor.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\Pinch.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\PinchFriction.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\SplitImpulse.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\DeformableDemo\VolumetricDeformable.cpp">
+      <Filter>examples\DeformableDemo</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\examples\DynamicControlDemo\MotorDemo.cpp">
       <Filter>examples\DynamicControlDemo</Filter>
     </ClCompile>
@@ -681,6 +804,9 @@
       <Filter>examples\ExtendedTutorials</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\ExtendedTutorials\Chain.cpp">
+      <Filter>examples\ExtendedTutorials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\ExtendedTutorials\CompoundBoxes.cpp">
       <Filter>examples\ExtendedTutorials</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\ExtendedTutorials\InclinedPlane.cpp">
@@ -724,6 +850,9 @@
     </ClCompile>
     <ClCompile Include="..\..\examples\GyroscopicDemo\GyroscopicSetup.cpp">
       <Filter>examples\GyroscopicDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\Heightfield\HeightfieldExample.cpp">
+      <Filter>examples\Heightfield</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\Importers\ImportBsp\BspConverter.cpp">
       <Filter>examples\Importers\ImportBsp</Filter>
@@ -804,6 +933,9 @@
       <Filter>examples\MultiBody</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\MultiBody\Pendulum.cpp">
+      <Filter>examples\MultiBody</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\MultiBody\SerialChains.cpp">
       <Filter>examples\MultiBody</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\MultiBody\TestJointTorqueSetup.cpp">
@@ -887,6 +1019,12 @@
     <ClCompile Include="..\..\examples\RollingFrictionDemo\RollingFrictionDemo.cpp">
       <Filter>examples\RollingFrictionDemo</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\GraphicsClientExample.cpp">
+      <Filter>examples\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\GraphicsServerExample.cpp">
+      <Filter>examples\SharedMemory</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\examples\SharedMemory\IKTrajectoryHelper.cpp">
       <Filter>examples\SharedMemory</Filter>
     </ClCompile>
@@ -944,13 +1082,13 @@
     <ClCompile Include="..\..\examples\SharedMemory\PosixSharedMemory.cpp">
       <Filter>examples\SharedMemory</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\RemoteGUIHelper.cpp">
+      <Filter>examples\SharedMemory</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\examples\SharedMemory\SharedMemoryCommandProcessor.cpp">
       <Filter>examples\SharedMemory</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\SharedMemory\SharedMemoryInProcessPhysicsC_API.cpp">
-      <Filter>examples\SharedMemory</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\SharedMemory\TinyRendererVisualShapeConverter.cpp">
       <Filter>examples\SharedMemory</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\SharedMemory\Win32SharedMemory.cpp">
@@ -959,56 +1097,38 @@
     <ClCompile Include="..\..\examples\SharedMemory\b3PluginManager.cpp">
       <Filter>examples\SharedMemory</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\b3RobotSimulatorClientAPI_NoDirect.cpp">
+      <Filter>examples\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\b3RobotSimulatorClientAPI_NoGUI.cpp">
+      <Filter>examples\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\plugins\collisionFilterPlugin\collisionFilterPlugin.cpp">
+      <Filter>examples\SharedMemory\plugins\collisionFilterPlugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\plugins\pdControlPlugin\pdControlPlugin.cpp">
+      <Filter>examples\SharedMemory\plugins\pdControlPlugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\plugins\tinyRendererPlugin\TinyRendererVisualShapeConverter.cpp">
+      <Filter>examples\SharedMemory\plugins\tinyRendererPlugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\SharedMemory\plugins\tinyRendererPlugin\tinyRendererPlugin.cpp">
+      <Filter>examples\SharedMemory\plugins\tinyRendererPlugin</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\examples\SoftDemo\SoftDemo.cpp">
       <Filter>examples\SoftDemo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\Jacobian.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR2.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR3.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\LinearR4.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\MatrixRmn.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\Misc.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\Node.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\Tree.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\BussIK\VectorRn.cpp">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\Glew\glew.c">
-      <Filter>examples\ThirdPartyLibs\Glew</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\ThirdPartyLibs\Wavefront\tiny_obj_loader.cpp">
       <Filter>examples\ThirdPartyLibs\Wavefront</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\ThirdPartyLibs\glad\gl.c">
+      <Filter>examples\ThirdPartyLibs\glad</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\examples\ThirdPartyLibs\stb_image\stb_image.cpp">
       <Filter>examples\ThirdPartyLibs\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\tinyxml\tinystr.cpp">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\tinyxml\tinyxml.cpp">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\tinyxml\tinyxmlerror.cpp">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\tinyxml\tinyxmlparser.cpp">
-      <Filter>examples\ThirdPartyLibs\tinyxml</Filter>
+    <ClCompile Include="..\..\examples\ThirdPartyLibs\tinyxml2\tinyxml2.cpp">
+      <Filter>examples\ThirdPartyLibs\tinyxml2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\examples\TinyRenderer\TinyRenderer.cpp">
       <Filter>examples\TinyRenderer</Filter>
@@ -1065,18 +1185,6 @@
     </None>
     <None Include="..\..\examples\OpenCL\broadphase\pairsKernel.cl">
       <Filter>examples\OpenCL\broadphase</Filter>
-    </None>
-    <None Include="..\..\examples\SoftDemo\bunny.inl">
-      <Filter>examples\SoftDemo</Filter>
-    </None>
-    <None Include="..\..\examples\SoftDemo\cube.inl">
-      <Filter>examples\SoftDemo</Filter>
-    </None>
-    <None Include="..\..\examples\ThirdPartyLibs\BussIK\CMakeLists.txt">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
-    </None>
-    <None Include="..\..\examples\ThirdPartyLibs\BussIK\premake4.lua">
-      <Filter>examples\ThirdPartyLibs\BussIK</Filter>
     </None>
   </ItemGroup>
 </Project>

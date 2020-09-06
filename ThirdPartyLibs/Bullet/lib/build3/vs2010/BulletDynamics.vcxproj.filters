@@ -27,6 +27,9 @@
     <ClInclude Include="..\..\src\BulletDynamics\Character\btKinematicCharacterController.h">
       <Filter>Character</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\BulletDynamics\ConstraintSolver\btBatchedConstraints.h">
+      <Filter>ConstraintSolver</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h">
       <Filter>ConstraintSolver</Filter>
     </ClInclude>
@@ -70,6 +73,9 @@
       <Filter>ConstraintSolver</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h">
+      <Filter>ConstraintSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolverMt.h">
       <Filter>ConstraintSolver</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h">
@@ -129,6 +135,9 @@
     <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyGearConstraint.h">
       <Filter>Featherstone</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyInplaceSolverIslandCallback.h">
+      <Filter>Featherstone</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyJointFeedback.h">
       <Filter>Featherstone</Filter>
     </ClInclude>
@@ -144,6 +153,9 @@
     <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyLinkCollider.h">
       <Filter>Featherstone</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyMLCPConstraintSolver.h">
+      <Filter>Featherstone</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyPoint2Point.h">
       <Filter>Featherstone</Filter>
     </ClInclude>
@@ -151,6 +163,9 @@
       <Filter>Featherstone</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodySolverConstraint.h">
+      <Filter>Featherstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BulletDynamics\Featherstone\btMultiBodySphericalJointMotor.h">
       <Filter>Featherstone</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BulletDynamics\MLCPSolvers\btDantzigLCP.h">
@@ -191,6 +206,9 @@
     <ClCompile Include="..\..\src\BulletDynamics\Character\btKinematicCharacterController.cpp">
       <Filter>Character</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BulletDynamics\ConstraintSolver\btBatchedConstraints.cpp">
+      <Filter>ConstraintSolver</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.cpp">
       <Filter>ConstraintSolver</Filter>
     </ClCompile>
@@ -225,6 +243,9 @@
       <Filter>ConstraintSolver</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.cpp">
+      <Filter>ConstraintSolver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolverMt.cpp">
       <Filter>ConstraintSolver</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\ConstraintSolver\btSliderConstraint.cpp">
@@ -278,10 +299,16 @@
     <ClCompile Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyJointMotor.cpp">
       <Filter>Featherstone</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyMLCPConstraintSolver.cpp">
+      <Filter>Featherstone</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\Featherstone\btMultiBodyPoint2Point.cpp">
       <Filter>Featherstone</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\Featherstone\btMultiBodySliderConstraint.cpp">
+      <Filter>Featherstone</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\BulletDynamics\Featherstone\btMultiBodySphericalJointMotor.cpp">
       <Filter>Featherstone</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\BulletDynamics\MLCPSolvers\btDantzigLCP.cpp">

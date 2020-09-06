@@ -7,16 +7,16 @@
     <Filter Include="ThirdPartyLibs">
       <UniqueIdentifier>{9AF1E211-86BF-D617-6F53-473E5BC0B27C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ThirdPartyLibs\Glew">
-      <UniqueIdentifier>{58491725-C4AA-F432-4D18-3BE5B9782BF2}</UniqueIdentifier>
+    <Filter Include="ThirdPartyLibs\glad">
+      <UniqueIdentifier>{E1D42825-4D36-0633-D6A3-4CE542043DF2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\examples\SimpleOpenGL3\main.cpp">
       <Filter>SimpleOpenGL3</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\examples\ThirdPartyLibs\Glew\glew.c">
-      <Filter>ThirdPartyLibs\Glew</Filter>
+    <ClCompile Include="..\..\examples\ThirdPartyLibs\glad\gl.c">
+      <Filter>ThirdPartyLibs\glad</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
