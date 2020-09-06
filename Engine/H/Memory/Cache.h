@@ -201,3 +201,5 @@ C _Cache &_cache;
 #define DEFINE_CACHE_EX(TYPE, cache_name, ptr_name, debug_name, block_elms)   Cache<TYPE> cache_name(debug_name, block_elms);   typedef CacheElmPtr<TYPE, cache_name> ptr_name; // this defines a Cache and a CacheElmPtr in C++ file
 #endif
 /******************************************************************************/
+void CachesDelayRemove(Flt time); // set amount of time (in seconds) after which unused elements are removed from all Engine Caches (<=0 value specifies immediate unloading), default=0
+/******************************************************************************/

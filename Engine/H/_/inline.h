@@ -1760,6 +1760,23 @@ template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmP
 template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>:: CacheElmPtr(C UID         & id  ) {             T._data=(TYPE*)CACHE._Cache::require(    id   , null, true);}
 template<typename TYPE, Cache<TYPE> &CACHE>  CacheElmPtr<TYPE,CACHE>::~CacheElmPtr(                    ) {clear();}
 /******************************************************************************/
+inline void CachesDelayRemove(Flt time) // set amount of time (in seconds) after which unused elements are removed from all Engine Caches (<=0 value specifies immediate unloading), default=0
+{
+   Objects     .delayRemove(time);
+   Meshes      .delayRemove(time);
+   PhysBodies  .delayRemove(time);
+   WaterMtrls  .delayRemove(time);
+   Materials   .delayRemove(time);
+   Fonts       .delayRemove(time);
+   ImageAtlases.delayRemove(time);
+   Images      .delayRemove(time);
+   PanelImages .delayRemove(time);
+   Panels      .delayRemove(time);
+   TextStyles  .delayRemove(time);
+   GuiSkins    .delayRemove(time);
+   Environments.delayRemove(time);
+}
+/******************************************************************************/
 // MAP
 /******************************************************************************/
 T2(KEY, DATA)  Map<KEY, DATA>&  Map<KEY, DATA>::del  () {super::del  (); return T;}
@@ -2353,21 +2370,4 @@ T11(TA, TB, TC, TD, TE, TF, TG, TH, TI, TJ, TK)  File&  File::getMulti(TA &a, TB
    return T;
 }
 #endif
-/******************************************************************************/
-inline void CachesDelayRemove(Flt time) // set amount of time (in seconds) after which unused elements are removed from engine caches (<=0 value specifies immediate unloading), default=0
-{
-   Objects     .delayRemove(time);
-   Meshes      .delayRemove(time);
-   PhysBodies  .delayRemove(time);
-   WaterMtrls  .delayRemove(time);
-   Materials   .delayRemove(time);
-   Fonts       .delayRemove(time);
-   ImageAtlases.delayRemove(time);
-   Images      .delayRemove(time);
-   PanelImages .delayRemove(time);
-   Panels      .delayRemove(time);
-   TextStyles  .delayRemove(time);
-   GuiSkins    .delayRemove(time);
-   Environments.delayRemove(time);
-}
 /******************************************************************************/
