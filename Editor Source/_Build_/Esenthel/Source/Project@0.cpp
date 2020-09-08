@@ -421,6 +421,7 @@ void DrawProject()
    void ProjectEx::MtrlFlipNrmYOff(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
    void ProjectEx::MtrlReloadBaseTex(ProjectEx &proj) {                proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
    void ProjectEx::MtrlSetColorTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit.  color_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetBumpTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexBump     (proj.menu_list_sel, MtrlEdit.edit.   bump_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit. normal_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit. smooth_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlSetReflectTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexReflect  (proj.menu_list_sel, MtrlEdit.edit.reflect_map);else Gui.msgBox(S, "There's no Material opened");}
@@ -1523,6 +1524,20 @@ void DrawProject()
          {
             edit.color_map=color_map; edit.color_map_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexCol");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlSetTexBump(C MemPtr<UID> &elm_ids, C Str &bump_map)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.bump_map, bump_map, true))
+         {
+            edit.bump_map=bump_map; edit.bump_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexBump");
          }
       }
       return ok;
@@ -3980,6 +3995,7 @@ void DrawProject()
                   m.New().create("Set Glow Value to Edited Material"   , MtrlSetGlowCur   , T);
                   m++;
                   m.New().create("Set Color Texture to Edited Material"  , MtrlSetColorTexCur  , T);
+                  m.New().create("Set Bump Texture to Edited Material"   , MtrlSetBumpTexCur   , T);
                   m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
                   m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
                   m.New().create("Set Reflect Texture to Edited Material", MtrlSetReflectTexCur, T);
