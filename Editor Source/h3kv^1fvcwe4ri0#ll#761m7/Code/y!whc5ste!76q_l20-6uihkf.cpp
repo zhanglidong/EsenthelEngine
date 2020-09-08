@@ -20,6 +20,7 @@ class MeshAOClass : ClosableWindow
    TextBlack      ts;
    Button         ok;
    MeshLod        src, processed, baked;
+   Extent         src_ext;
    Thread         thread;
    SyncLock       lock;
 
@@ -33,7 +34,12 @@ class MeshAOClass : ClosableWindow
          {
             ObjEdit.mesh_undos.set("ao");
             Mesh &mesh=ObjEdit.mesh;
-            mesh.setVtxAO(editor.strength, editor.bias, editor.max, editor.ray_length*ObjEdit.posScale(), EPS*ObjEdit.posScale(), 1024, editor.func, &WorkerThreads).setRender();
+         #if 1 // max length
+            flt ray_length=mesh.ext.size().length();
+         #else // custom length
+            flt ray_length=editor.ray_length*ObjEdit.posScale();
+         #endif
+            mesh.setVtxAO(editor.strength, editor.bias, editor.max, ray_length, ObjEdit.posEps(), 1024, editor.func, &WorkerThreads).setRender();
           //Swap(mesh.newLod(), editor.baked);
             ObjEdit.setChangedMesh(true, false);
          }
@@ -60,12 +66,17 @@ class MeshAOClass : ClosableWindow
          flt scale=T.scale;
 
          MeshLod temp; Swap(src, temp);
+      #if 1 // max length
+         flt ray_length=src_ext.size().length();
+      #else // custom length
+         flt ray_length=T.ray_length*scale;
+      #endif
          locker.off();
 
          ThreadMayUseGPUData();
 
          MeshLod processed; processed.create(temp);
-         processed.setVtxAO(strength, bias, max, ray_length*scale, EPS*scale, 256, func, &WorkerThreads).setRender(false);
+         processed.setVtxAO(strength, bias, max, ray_length, EPS*scale, 256, func, &WorkerThreads).setRender(false);
 
          locker.on();
          if(baked_src_id==src_id)
@@ -89,7 +100,7 @@ class MeshAOClass : ClosableWindow
    void createSrc()
    {
       {
-         MeshLod temp; temp.create(ObjEdit.getLod()).setBase().delRender(); SyncLocker locker(lock); Swap(temp, src); src_id++; scale=ObjEdit.posScale(); changedParams(); baked.del(); baked_valid=finished=false;
+         MeshLod temp; temp.create(ObjEdit.getLod()).setBase().delRender(); SyncLocker locker(lock); Swap(temp, src); src_ext=ObjEdit.mesh.ext; src_id++; scale=ObjEdit.posScale(); changedParams(); baked.del(); baked_valid=finished=false;
       }
       startThread();
    }
@@ -106,8 +117,8 @@ class MeshAOClass : ClosableWindow
                     props.New().create("Strength"        , MEMBER(MeshAOClass, strength  )).range(0, 2).mouseEditSpeed(0.4).desc("AO Intensity");
                     props.New().create("Bias"            , MEMBER(MeshAOClass, bias      )).range(0, 1).mouseEditSpeed(0.4).setSlider();
                     props.New().create("Limit"           , MEMBER(MeshAOClass, max       )).range(0, 1).mouseEditSpeed(0.4).setSlider().desc("Max limit for applying AO");
-                    props.New().create("Ray Length"      , MEMBER(MeshAOClass, ray_length)).range(0, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-                    props.New().create("Falloff Function", MEMBER(MeshAOClass, func      )).setEnum(Func_t, Elms(Func_t));
+                  //props.New().create("Ray Length"      , MEMBER(MeshAOClass, ray_length)).range(0, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+                  //props.New().create("Falloff Function", MEMBER(MeshAOClass, func      )).setEnum(Func_t, Elms(Func_t));
               info=&props.New().create(S);
       ts.reset().size=0.045; ts.align.set(1, 0); Rect r=AddProperties(props, T, Vec2(0.02, -0.02), 0.05, 0.22, &ts); REPAO(props).autoData(&MeshAO).changed(ChangedParams); preview_prop.changed(null, null);
       T+=ok.create(Rect_U(r.down()-Vec2(0, 0), 0.25, 0.06), "OK").func(OK, T);

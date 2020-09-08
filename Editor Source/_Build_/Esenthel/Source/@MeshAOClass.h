@@ -14,6 +14,7 @@ class MeshAOClass : ClosableWindow
    TextBlack      ts;
    Button         ok;
    MeshLod        src, processed, baked;
+   Extent         src_ext;
    Thread         thread;
    SyncLock       lock;
 
