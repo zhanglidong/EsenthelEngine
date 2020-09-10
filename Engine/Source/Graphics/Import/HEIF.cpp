@@ -137,7 +137,7 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
                RGBA,
             }type;
           C ImageTypeInfo &type_info=src->typeInfo();
-            if(type_info.channels<=1)type=MONO;else
+          //if(type_info.channels<=1)type=MONO;else dunno how to configure libheif to make this work
             if(type_info.a          )type=RGBA;else
                                      type=RGB ;
 
