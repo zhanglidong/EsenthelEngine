@@ -2571,6 +2571,7 @@
     <ClCompile Include="Source\Graphics\ImageFilterWaifu.cpp" />
     <ClCompile Include="Source\Graphics\Import\BC_Compress.cpp" />
     <ClCompile Include="Source\Graphics\Import\ETC_Compress.cpp" />
+    <ClCompile Include="Source\Graphics\Import\HEIF.cpp" />
     <ClCompile Include="Source\Graphics\Import\PVRTC_Compress.cpp" />
     <ClCompile Include="Source\Graphics\Import\TIF.cpp" />
     <ClCompile Include="Source\Gui\Gui Skin.cpp" />

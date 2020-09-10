@@ -2117,6 +2117,9 @@
     <ClCompile Include="Source\Shaders\TAA.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Import\HEIF.cpp">
+      <Filter>Source\Graphics\Import</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">

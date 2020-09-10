@@ -580,6 +580,7 @@ Bool Image::Export(C Str &name, Flt rgb_quality, Flt alpha_quality, Flt compress
    if(Equal(ext, "png" ))return ExportPNG (name, compression_level);
    if(Equal(ext, "jpg" ))return ExportJPG (name, rgb_quality, sub_sample);
    if(Equal(ext, "webp"))return ExportWEBP(name, rgb_quality, alpha_quality);
+   if(Equal(ext, "heif"))return ExportHEIF(name, rgb_quality);
    if(Equal(ext, "tga" ))return ExportTGA (name);
    if(Equal(ext, "tif" ))return ExportTIF (name, compression_level);
    if(Equal(ext, "dds" ))return ExportDDS (name);
@@ -596,6 +597,7 @@ Bool Image::ImportTry(File &f, Int type, Int mode, Int mip_maps)
    f.resetOK().pos(pos); if(ImportPNG (f))goto ok;
    f.resetOK().pos(pos); if(ImportJPG (f))goto ok;
    f.resetOK().pos(pos); if(ImportWEBP(f))goto ok;
+   f.resetOK().pos(pos); if(ImportHEIF(f))goto ok;
    f.resetOK().pos(pos); if(ImportTIF (f))goto ok; // import after PNG/JPG in case LibTIFF tries to decode them too
    f.resetOK().pos(pos); if(ImportDDS (f, type, mode, mip_maps))goto ok;
    f.resetOK().pos(pos); if(ImportPSD (f))goto ok;

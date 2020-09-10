@@ -1809,9 +1809,9 @@ Bool DecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, UL
 /******************************************************************************/
 Bool Compressable(C Str &ext)
 {
-   if(ext=="jpg" || ext=="jpeg" || ext=="png"  || ext=="webp" || ext=="bpg" || ext=="flif" // image
-   || ext=="mp3" || ext=="wma"  || ext=="ogg"  || ext=="flac" || ext=="m4a" || ext=="opus" || ext=="weba" // sound
-   || ext=="avi" || ext=="mpg"  || ext=="mpeg" || ext=="mp4"  || ext=="m4v" || ext=="mkv" || ext=="wmv" || ext=="rmvb" || ext=="divx" || ext=="ogm" || ext=="ogv" || ext=="theora" || ext=="webm" || ext=="vob" || ext=="flv" // video
+   if(ext=="jpg" || ext=="jpeg" || ext=="png"  || ext=="webp" || ext=="heif" || ext=="heic" || ext=="bpg" || ext=="flif" // image
+   || ext=="mp3" || ext=="wma"  || ext=="ogg"  || ext=="flac" || ext=="m4a"  || ext=="opus" || ext=="weba" // sound
+   || ext=="avi" || ext=="mpg"  || ext=="mpeg" || ext=="mp4"  || ext=="m4v"  || ext=="mkv" || ext=="wmv" || ext=="rmvb" || ext=="divx" || ext=="ogm" || ext=="ogv" || ext=="theora" || ext=="webm" || ext=="vob" || ext=="flv" // video
  /*|| ext=="zip"*/ || ext=="rar"  || ext=="7z"   || ext=="gz"   || ext=="bz2" || ext=="tgz" || ext=="tbz" || ext=="xz" // archives (skip "zip" because compressing it CAN reduce sizes, "tar" itself is not compressed)
    )return false;
     return true;

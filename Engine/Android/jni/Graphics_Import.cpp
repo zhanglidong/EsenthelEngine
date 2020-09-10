@@ -4,6 +4,7 @@
 #include "../../Source/Graphics/Import/DDS.cpp"
 #include "../../Source/Graphics/Import/ETC.cpp"
 //#include "../../Source/Graphics/Import/ETC_Compress.cpp" - don't compile it here, instead specify this in "Android.mk" in case this is not used to don't link it at all
+#include "../../Source/Graphics/Import/HEIF.cpp"
 #include "../../Source/Graphics/Import/ICO.cpp"
 #include "../../Source/Graphics/Import/JPEG.cpp"
 #include "../../Source/Graphics/Import/PNG.cpp"
