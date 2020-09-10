@@ -143,6 +143,17 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
 
             heif_image *image=null; heif_image_create(src->w(), src->h(), (type==MONO) ? heif_colorspace_monochrome : heif_colorspace_RGB, (type==MONO) ? heif_chroma_monochrome : (type==RGB) ? heif_chroma_interleaved_RGB : heif_chroma_interleaved_RGBA, &image); if(image)
             {
+               if(q>=100) // lossless
+               {
+                  heif_color_profile_nclx nclx;
+                  nclx.version                 =1;
+                  nclx.matrix_coefficients     =heif_matrix_coefficients_RGB_GBR;
+                  nclx.transfer_characteristics=heif_transfer_characteristic_unspecified;
+                  nclx.color_primaries         =heif_color_primaries_unspecified;
+                  nclx.full_range_flag         =true;
+                  heif_image_set_nclx_color_profile(image, &nclx);
+               }
+
                heif_image_add_plane(image, heif_channel_interleaved, src->w(), src->h(), 8);
                int stride; if(uint8_t *dest=heif_image_get_plane(image, heif_channel_interleaved, &stride))
                {
