@@ -176,8 +176,8 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
                         REP(src->h())
                         {
                            CopyFast(dest, src_data, copy);
-                           dest+=src->pitch();
-                           src +=stride;
+                           dest    +=stride;
+                           src_data+=src->pitch();
                         }
                      }
                   }else
