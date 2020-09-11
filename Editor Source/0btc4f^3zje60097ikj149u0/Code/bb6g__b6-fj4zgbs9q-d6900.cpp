@@ -1,6 +1,6 @@
 /******************************************************************************/
 const Str  ConnectionName   ="Esenthel File Transfer";
-const uint ConnectionVersion=0;
+const uint ConnectionVersion=1;
 /******************************************************************************/
 enum COMMAND
 {
