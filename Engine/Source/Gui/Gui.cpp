@@ -27,11 +27,11 @@ struct MsgBox : Dialog
    {
       T.id=id;
       Gui+=super::create(title, text, Memt<Str>().add("OK"), text_style).level(65536);
-      buttons[0].func(Close, T);
+      buttons[0].func(Close, T, false); // can't be immediate because we might delete this object inside callback
       if(Gui.window_fade){super::hide(); fadeIn();}
       return T;
    }
-   virtual MsgBox& hide() {Del(T); return T;}
+   virtual MsgBox& hide() {Gui.addFuncCall(Del, T); return T;} // schedule deletion
 };
 Memx<MsgBox> MsgBox::MsgBoxs;
 /******************************************************************************/
