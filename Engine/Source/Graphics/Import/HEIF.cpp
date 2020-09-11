@@ -126,9 +126,10 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
             Int q=RoundPos(quality*100);
             if( q<  0)q=100;else // default to 100=lossless
             if( q>100)q=100;
+            Bool lossless=(q>=100);
 
             heif_encoder_set_lossy_quality(encoder, q);
-            heif_encoder_set_lossless     (encoder, q>=100);
+            heif_encoder_set_lossless     (encoder, lossless);
 
             enum TYPE
             {
@@ -143,7 +144,7 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
 
             heif_image *image=null; heif_image_create(src->w(), src->h(), (type==MONO) ? heif_colorspace_monochrome : heif_colorspace_RGB, (type==MONO) ? heif_chroma_monochrome : (type==RGB) ? heif_chroma_interleaved_RGB : heif_chroma_interleaved_RGBA, &image); if(image)
             {
-               if(q>=100) // lossless
+               if(lossless)
                {
                   heif_color_profile_nclx nclx;
                   nclx.version                 =1;
@@ -152,6 +153,8 @@ Bool Image::ExportHEIF(File &f, Flt quality)C
                   nclx.color_primaries         =heif_color_primaries_unspecified;
                   nclx.full_range_flag         =true;
                   heif_image_set_nclx_color_profile(image, &nclx);
+
+                  heif_encoder_set_parameter_string(encoder, "chroma", "444");
                }
 
                heif_image_add_plane(image, heif_channel_interleaved, src->w(), src->h(), 8);
