@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\x265\lib\build\vc15-x86_64\CMakeFiles\c07d18fe28e8c4ab468521852dd62069\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{790B4230-C98E-3BF9-AE34-2696A72D5FC3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

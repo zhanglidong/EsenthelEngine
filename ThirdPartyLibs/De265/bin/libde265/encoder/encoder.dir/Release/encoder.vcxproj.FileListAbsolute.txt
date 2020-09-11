@@ -1,0 +1,1 @@
+C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\Release\encoder.lib

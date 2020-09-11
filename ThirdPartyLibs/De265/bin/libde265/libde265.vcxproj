@@ -1,0 +1,410 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BE14A142-1753-338D-AF0A-6AAF7DC85DE9}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>libde265</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">libde265.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">libde265</TargetName>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">libde265.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">libde265</TargetName>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">libde265.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">libde265</TargetName>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">libde265.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">libde265</TargetName>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR="Debug";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR=\"Debug\";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/Debug/libde265.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/Debug/libde265.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR="Release";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR=\"Release\";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/Release/libde265.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/Release/libde265.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR="MinSizeRel";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR=\"MinSizeRel\";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/MinSizeRel/libde265.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/MinSizeRel/libde265.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR="RelWithDebInfo";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;HAVE_MALLOC_H;HAVE_STDINT_H;HAVE_STDBOOL_H;LIBDE265_EXPORTS;HAVE_SSE4_1;CMAKE_INTDIR=\"RelWithDebInfo\";libde265_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\De265;C:\Esenthel\ThirdPartyLibs\De265\bin;C:\Esenthel\ThirdPartyLibs\De265\libde265;C:\Esenthel\ThirdPartyLibs\De265\extra;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/RelWithDebInfo/libde265.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/RelWithDebInfo/libde265.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\CMakeLists.txt">
+      <StdOutEncoding>UTF-8</StdOutEncoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/De265/libde265/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/De265 -BC:/Esenthel/ThirdPartyLibs/De265/bin --check-stamp-file C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-ExactVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/De265/libde265/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/De265 -BC:/Esenthel/ThirdPartyLibs/De265/bin --check-stamp-file C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-ExactVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/De265/libde265/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/De265 -BC:/Esenthel/ThirdPartyLibs/De265/bin --check-stamp-file C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-ExactVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/De265/libde265/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/De265 -BC:/Esenthel/ThirdPartyLibs/De265/bin --check-stamp-file C:/Esenthel/ThirdPartyLibs/De265/bin/libde265/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-ExactVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\alloc_pool.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\bitstream.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\cabac.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\configparam.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\contextmodel.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\de265.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\deblock.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\decctx.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\dpb.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\en265.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\fallback-dct.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\fallback-motion.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\fallback.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\image-io.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\image.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\intrapred.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\md5.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\motion.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\nal-parser.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\nal.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\pps.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\quality.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\refpic.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\sao.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\scan.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\sei.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\slice.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\sps.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\threads.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\transform.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\util.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\visualize.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\vps.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\libde265\vui.cc" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\De265\extra\win32cond.c" />
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\De265\extra\win32cond.h" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-core.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-types.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-params.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-context.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-syntax.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-intrapred.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encoder-motion.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\encpicbuf.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.dir\$(Configuration)\sop.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\algo.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\coding-options.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\ctb-qscale.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-split.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-intrapartmode.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-interpartmode.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-skip.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-intra-inter.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\cb-mergeindex.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\tb-split.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\tb-transform.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\tb-intrapredmode.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\tb-rateestim.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.dir\$(Configuration)\pb-mv.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\x86\x86.dir\$(Configuration)\sse.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\x86\x86_sse.dir\$(Configuration)\sse-motion.obj" />
+    <Object Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\x86\x86_sse.dir\$(Configuration)\sse-dct.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\De265\bin\ZERO_CHECK.vcxproj">
+      <Project>{AACB1959-309A-3F0C-ABFB-F9A37D2C39A3}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\algo\algo.vcxproj">
+      <Project>{6418F6C2-3EA2-312F-AACE-98673BCB2A26}</Project>
+      <Name>algo</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\encoder\encoder.vcxproj">
+      <Project>{80AE6B87-F894-3054-884C-B0994A9E121A}</Project>
+      <Name>encoder</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\x86\x86.vcxproj">
+      <Project>{FC2E784F-9F0F-3096-9FA5-AA06D16FFC8F}</Project>
+      <Name>x86</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\De265\bin\libde265\x86\x86_sse.vcxproj">
+      <Project>{0BD0779E-C45B-333D-95C8-4B4377A52CF3}</Project>
+      <Name>x86_sse</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

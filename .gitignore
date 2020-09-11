@@ -13,6 +13,7 @@
 *.pch
 *.obj
 *.pri
+*.tlog
 ipch/
 asm/
 

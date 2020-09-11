@@ -1,0 +1,6 @@
+# CMake generation dependency list for this directory.
+C:/Esenthel/ThirdPartyLibs/Heif/libheif/CMakeLists.txt
+C:/Esenthel/ThirdPartyLibs/Heif/libheif/heif_version.h.in
+C:/Program Files/CMake/share/cmake-3.18/Modules/BasicConfigVersion-ExactVersion.cmake.in
+C:/Program Files/CMake/share/cmake-3.18/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-3.18/Modules/WriteBasicConfigVersionFile.cmake
