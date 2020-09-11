@@ -907,7 +907,7 @@ Skeleton& Skeleton::setBoneTypes()
    }
 
    // set fingers/toes
-   REPA(bones)
+   FREPA(bones)
    {
       SkelBone &bone=bones[i];
       if(bone.type==BONE_UNKNOWN // process unknown bones
