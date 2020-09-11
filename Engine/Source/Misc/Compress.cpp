@@ -1693,7 +1693,7 @@ Bool Compress(File &src, File &dest, COMPRESS_TYPE type, Int compression_level, 
 
 start:
    // save header
-   dest.putByte  (type+1           ); //  compression type +1, because 0 was old version=0
+   dest.putByte  (type             ); //  compression type
    dest.cmpULongV(uncompressed_size); // decompressed size
    Int   compressed_size_bytes;
    ULong compressed_size, compressed_size_pos; if(type) // make room for compressed size to be written later, because we don't know it yet
@@ -1730,7 +1730,50 @@ start:
    return dest.ok();
 }
 /******************************************************************************/
+Bool DecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, ULong &decompressed_size)
+{
+   type=COMPRESS_TYPE(src.decUIntV());
+   decompressed_size=src.decULongV();
+   if(type){compressed_size=0; src.getFast(&compressed_size, ByteHi(decompressed_size));}
+   else     compressed_size=decompressed_size;
+   return src.ok();
+}
 Bool Decompress(File &src, File &dest, Bool memory, DataCallback *callback)
+{
+   COMPRESS_TYPE type; ULong compressed_size, decompressed_size;
+   if(DecompressHeader(src, type, compressed_size, decompressed_size))return DecompressRaw(src, dest, type, compressed_size, decompressed_size, memory, callback);
+   return false;
+}
+/******************************************************************************/
+// DEPRECATED
+/******************************************************************************/
+Bool _OldDecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, ULong &decompressed_size)
+{
+   switch(UInt ver=src.decUIntV())
+   {
+      default:
+      {
+         type=COMPRESS_TYPE(ver-1);
+         decompressed_size=src.decULongV();
+         if(type){compressed_size=0; src.getFast(&compressed_size, ByteHi(decompressed_size));}
+         else     compressed_size=decompressed_size;
+
+         if(src.ok())return true;
+      }break;
+
+      case 0:
+      {
+                      type=COMPRESS_TYPE(src.getByte ());
+         decompressed_size=              src.decUIntV() ;
+           compressed_size=              src.getUInt () ;
+
+         if(src.ok())return true;
+      }break;
+   }
+
+   return false;
+}
+Bool _OldDecompress(File &src, File &dest, Bool memory, DataCallback *callback)
 {
    switch(UInt type=src.decUIntV())
    {
@@ -1778,32 +1821,6 @@ Bool Decompress(File &src, File &dest, Bool memory, DataCallback *callback)
          }
       }break;
    }
-   return false;
-}
-Bool DecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, ULong &decompressed_size)
-{
-   switch(UInt ver=src.decUIntV())
-   {
-      default:
-      {
-         type=COMPRESS_TYPE(ver-1);
-         decompressed_size=src.decULongV();
-         if(type){compressed_size=0; src.getFast(&compressed_size, ByteHi(decompressed_size));}
-         else     compressed_size=decompressed_size;
-
-         if(src.ok())return true;
-      }break;
-
-      case 0:
-      {
-                      type=COMPRESS_TYPE(src.getByte ());
-         decompressed_size=              src.decUIntV() ;
-           compressed_size=              src.getUInt () ;
-
-         if(src.ok())return true;
-      }break;
-   }
-
    return false;
 }
 /******************************************************************************/

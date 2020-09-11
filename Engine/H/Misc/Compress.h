@@ -68,6 +68,10 @@ Bool DecompressRaw(File &src, File &dest, COMPRESS_TYPE type, ULong compressed_s
 
 Bool DecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, ULong &decompressed_size);
 
+// deprecated do not use
+Bool _OldDecompressHeader(File &src, COMPRESS_TYPE &type, ULong &compressed_size, ULong &decompressed_size);
+Bool _OldDecompress      (File &src, File &dest, Bool memory=false, DataCallback *callback=null);
+
 const Int MaxCmpUIntVSize =5,
           MaxCmpULongVSize=9;
       Int     CmpUIntVSize(UInt u); // get number of bytes needed for storing 'u' using 'cmpUIntV' algorithm

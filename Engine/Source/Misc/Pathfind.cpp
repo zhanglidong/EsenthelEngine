@@ -561,14 +561,14 @@ void _PathMesh::preSave()
 }
 Bool _PathMesh::save(File &f)C
 {
-   f.cmpUIntV(0); // version
-   if(data._saveRaw(f))
+   f.cmpUIntV(1); // version
+   if(data.saveRaw(f))
    {
       if(is())
       {
          Mems<Byte> chf_compressed_temp, *chf_compressed=&ConstCast(T.chf_compressed);
          if(!chf_compressed->elms()){chf_compressed=&chf_compressed_temp; SetChfCompressed(chf, *chf_compressed);} // compress into temp so we won't keep it in the memory afterwards
-         if(!chf_compressed->_saveRaw(f))return false;
+         if(!chf_compressed->saveRaw(f))return false;
       }
       return f.ok();
    }
@@ -578,9 +578,30 @@ Bool _PathMesh::load(File &f)
 {
    del(); switch(f.decUIntV()) // version
    {
+      case 1: if(data.loadRaw(f))
+      {
+         if(is())if(!chf_compressed.loadRaw(f))goto error;
+         if(dtMeshHeader *header=(dtMeshHeader*)data.data())
+         {
+            header->userId=(UIntPtr)this; // 'userId' points to memory address of '_PathMesh'
+            xy.set(header->x, header->y);
+         }
+         if(f.ok())return true;
+      }break;
+
       case 0: if(data._loadRaw(f))
       {
-         if(is())if(!chf_compressed._loadRaw(f))goto error;
+         if(is())
+         {
+            if(!chf_compressed._loadRaw(f))goto error;
+            if( chf_compressed.elms()) // if we have 'chf_compressed'
+            {
+               File compressed(chf_compressed.data(), chf_compressed.elms()), decompressed; // read from 'chf_compressed'
+               if(!_OldDecompress(compressed, decompressed, true))goto error; // decompress 'compressed' into 'decompressed'
+               chf_compressed.del(); // no longer needed so release it
+               decompressed.pos(0); if(!chf.load(decompressed))goto error; // load 'chf' from 'decompressed'
+            }
+         }
          if(dtMeshHeader *header=(dtMeshHeader*)data.data())
          {
             header->userId=(UIntPtr)this; // 'userId' points to memory address of '_PathMesh'

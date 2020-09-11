@@ -481,7 +481,7 @@ ok:
             COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
             if((f._cipher && _cipher_per_file) // this can't work
             || !f.pos(p)
-            || !DecompressHeader(f, compress, compressed_size, decompressed_size)){del(); return PAK_LOAD_UNSUPPORTED_VERSION;}
+            || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){del(); return PAK_LOAD_UNSUPPORTED_VERSION;}
             pf.compression         =  compress       ;
             pf.data_size_compressed=  compressed_size;
             pf.data_size           =decompressed_size;
