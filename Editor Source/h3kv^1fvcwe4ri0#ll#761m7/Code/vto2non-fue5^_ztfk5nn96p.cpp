@@ -70,7 +70,7 @@ const Edit.Material.TEX_QUALITY MinMtrlTexQualityBase0 =Edit.Material.LOW   , //
                                 MinMtrlTexQualityLight =Edit.Material.MEDIUM; // minimum texture compression quality for Material Light  Texture (RGB               ) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
 
 const COMPRESS_TYPE ServerNetworkCompression     =COMPRESS_LZ4, ClientNetworkCompression     =COMPRESS_LZMA, EsenthelProjectCompression     =COMPRESS_LZMA;
-const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=5            , EsenthelProjectCompressionLevel=5;
+const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
 const uint          NewElmTime=1; // use 1 instead of 0, so when downloading file, we have no 'param_value' and 'param_value_time' at 0, meaning we need to download the param
 const cchar8       *      AppName="Esenthel Editor",
                    *ServerAppName="Esenthel Server",

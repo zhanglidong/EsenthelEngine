@@ -37,7 +37,7 @@ ASSERT(PM_OBSTACLE==RC_NULL_AREA
 
 /******************************************************************************/
 static const COMPRESS_TYPE CompressType =COMPRESS_LZMA;
-static const Int           CompressLevel=5;
+static const Int           CompressLevel=9;
 
 const UInt PMF_ALL=PMF_WALK|PMF_SWIM;
 const Bool MonotonePartitioning=false, // monotone enabled offers worse region building (partitioning) but faster building time (0.28 seconds vs 2.72 seconds on average world 11x11 areas), keep this disabled because when enabled generates considerably worse results

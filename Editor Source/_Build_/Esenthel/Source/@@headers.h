@@ -644,7 +644,7 @@ const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE;
 const uint          NewElmTime=1;
 const uint ProjectVersion     =72, // !! increase this by one if any of engine/editor asset formats have changed !!
            ClientServerVersion=72;
-const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=5            , EsenthelProjectCompressionLevel=5;
+const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
 /******************************************************************************/
 // TYPEDEFS
 /******************************************************************************/
