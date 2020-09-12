@@ -23,11 +23,11 @@ Bool Image::ImportBMPRaw(File &f, Bool ico)
 {
    BitmapInfoHeader bmih; f>>bmih;
    if(Unaligned(bmih.planes)==1)
-      if(Unaligned(bmih.bitCount)==8 || Unaligned(bmih.bitCount)==24 || Unaligned(bmih.bitCount)==32)
+      if(Unaligned(bmih.bitCount)==8 || Unaligned(bmih.bitCount)==16 || Unaligned(bmih.bitCount)==24 || Unaligned(bmih.bitCount)==32)
    {
       if(ico)Unaligned(bmih.height, Unaligned(bmih.height)/2); // ICO files have height 2x bigger
       MemtN<Color, 256> palette; if(Unaligned(bmih.bitCount)==8){f.getN(palette.setNum(256).data(), 256); REPA(palette)Swap(palette[i].r, palette[i].b); if(ico)REPAO(palette).a=(i ? 255 : 0);} // load palette, setup alpha for ICO
-      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==32) ? IMAGE_R8G8B8A8_SRGB : ico ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB)) // ICO has alpha channel, BMP uses BGRA order, we could use IMAGE_B8G8R8A8_SRGB, however it's an engine private type and can't be saved
+      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==16) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==32) ? IMAGE_R8G8B8A8_SRGB : ico ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB)) // ICO has alpha channel, BMP uses BGRA order, we could use IMAGE_B8G8R8A8_SRGB, however it's an engine private type and can't be saved
       {
          Int zeros=Ceil4(pitch())-pitch();
          REPD(y, T.h())
@@ -36,6 +36,8 @@ Bool Image::ImportBMPRaw(File &f, Bool ico)
             switch(Unaligned(bmih.bitCount))
             {
                case 8: FREPD(x, T.w())color(x, y, palette[f.getByte()]); break;
+
+               case 16: FREPD(x, T.w()){U16 d=f.getUShort(); color(x, y, Color(U5ToByte((d>>11)&0x1F), U6ToByte((d>>5)&0x3F), U5ToByte(d&0x1F)));} break;
 
                case 24:
                {
