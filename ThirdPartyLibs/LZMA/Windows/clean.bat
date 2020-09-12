@@ -15,9 +15,12 @@ rmdir /s /q x64\Release\lzma.tlog
 
 del ARM\Release\*.obj
 del ARM\Release\*.log
+del ARM\Release\*.recipe
+del ARM\Release\*.txt
 rmdir /s /q ARM\Release\lzma.tlog
 
 del Emscripten\Release\*.o
 del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
+del Emscripten\Release\*.cache

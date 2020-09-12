@@ -34,6 +34,12 @@
     <ClCompile Include="..\lzma\C\Threads.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\lzma\C\Lzma2DecMt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lzma\C\MtDec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lzma\C\LzFind.h">
@@ -58,6 +64,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lzma\C\Threads.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lzma\C\Lzma2DecMt.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lzma\C\MtDec.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
