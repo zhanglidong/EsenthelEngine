@@ -245,15 +245,17 @@ NOINLINE static Bool ZLIBDecompress(File &src, File &dest, Long compressed_size,
 // LZMA
 /******************************************************************************/
 #if SUPPORT_LZMA
-static ISzAlloc LzmaMem={CompressAlloc, CompressFree};
+static Ptr  LzmaCompressAlloc(ISzAllocPtr p, size_t size) {return Alloc(size);}
+static void LzmaCompressFree (ISzAllocPtr p, Ptr    data) {       Free (data);}
+static ISzAlloc LzmaMem={LzmaCompressAlloc, LzmaCompressFree};
 /******************************************************************************/
 struct StreamIn : ISeqInStream
 {
    File         &file;
    DataCallback *callback;
 
-   static SRes Get(Ptr stream, Ptr data, size_t *size) {return ((StreamIn*)stream)->get(data, size);}
-          SRes get(            Ptr data, size_t *size) {*size=file.getReturnSize(data, *size); if(callback)callback->data(data, *size); return SZ_OK;}
+   static SRes Get(const ISeqInStream *stream, Ptr data, size_t *size) {return ((StreamIn*)stream)->get(data, size);}
+          SRes get(                            Ptr data, size_t *size) {*size=file.getReturnSize(data, *size); if(callback)callback->data(data, *size); return SZ_OK;}
 
    StreamIn(File &file, DataCallback *callback) : file(file), callback(callback) {Read=Get;}
 };
@@ -261,8 +263,8 @@ struct StreamOut : ISeqOutStream
 {
    File &file;
 
-   static size_t Put(Ptr stream, CPtr data, size_t size) {return ((StreamOut*)stream)->put(data, size);}
-          size_t put(            CPtr data, Int    size) {return file.putReturnSize(data, size);}
+   static size_t Put(const ISeqOutStream *stream, CPtr data, size_t size) {return ((StreamOut*)stream)->put(data, size);}
+          size_t put(                             CPtr data, Int    size) {return file.putReturnSize(data, size);}
 
    StreamOut(File &file) : file(file) {Write=Put;}
 };
