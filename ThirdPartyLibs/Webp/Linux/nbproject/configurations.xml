@@ -40,13 +40,12 @@
         <itemPath>../src/dsp/alpha_processing_neon.c</itemPath>
         <itemPath>../src/dsp/alpha_processing_sse2.c</itemPath>
         <itemPath>../src/dsp/alpha_processing_sse41.c</itemPath>
-        <itemPath>../src/dsp/argb.c</itemPath>
-        <itemPath>../src/dsp/argb_mips_dsp_r2.c</itemPath>
-        <itemPath>../src/dsp/argb_sse2.c</itemPath>
         <itemPath>../src/dsp/common_sse2.h</itemPath>
+        <itemPath>../src/dsp/common_sse41.h</itemPath>
         <itemPath>../src/dsp/cost.c</itemPath>
         <itemPath>../src/dsp/cost_mips32.c</itemPath>
         <itemPath>../src/dsp/cost_mips_dsp_r2.c</itemPath>
+        <itemPath>../src/dsp/cost_neon.c</itemPath>
         <itemPath>../src/dsp/cost_sse2.c</itemPath>
         <itemPath>../src/dsp/cpu.c</itemPath>
         <itemPath>../src/dsp/dec.c</itemPath>
@@ -59,7 +58,6 @@
         <itemPath>../src/dsp/dec_sse41.c</itemPath>
         <itemPath>../src/dsp/dsp.h</itemPath>
         <itemPath>../src/dsp/enc.c</itemPath>
-        <itemPath>../src/dsp/enc_avx2.c</itemPath>
         <itemPath>../src/dsp/enc_mips32.c</itemPath>
         <itemPath>../src/dsp/enc_mips_dsp_r2.c</itemPath>
         <itemPath>../src/dsp/enc_msa.c</itemPath>
@@ -88,6 +86,7 @@
         <itemPath>../src/dsp/mips_macro.h</itemPath>
         <itemPath>../src/dsp/msa_macro.h</itemPath>
         <itemPath>../src/dsp/neon.h</itemPath>
+        <itemPath>../src/dsp/quant.h</itemPath>
         <itemPath>../src/dsp/rescaler.c</itemPath>
         <itemPath>../src/dsp/rescaler_mips32.c</itemPath>
         <itemPath>../src/dsp/rescaler_mips_dsp_r2.c</itemPath>
@@ -101,22 +100,24 @@
         <itemPath>../src/dsp/upsampling_msa.c</itemPath>
         <itemPath>../src/dsp/upsampling_neon.c</itemPath>
         <itemPath>../src/dsp/upsampling_sse2.c</itemPath>
+        <itemPath>../src/dsp/upsampling_sse41.c</itemPath>
         <itemPath>../src/dsp/yuv.c</itemPath>
         <itemPath>../src/dsp/yuv.h</itemPath>
         <itemPath>../src/dsp/yuv_mips32.c</itemPath>
         <itemPath>../src/dsp/yuv_mips_dsp_r2.c</itemPath>
+        <itemPath>../src/dsp/yuv_neon.c</itemPath>
         <itemPath>../src/dsp/yuv_sse2.c</itemPath>
+        <itemPath>../src/dsp/yuv_sse41.c</itemPath>
       </logicalFolder>
       <logicalFolder name="enc" displayName="enc" projectFiles="true">
         <itemPath>../src/enc/alpha_enc.c</itemPath>
         <itemPath>../src/enc/analysis_enc.c</itemPath>
+        <itemPath>../src/enc/backward_references_cost_enc.c</itemPath>
         <itemPath>../src/enc/backward_references_enc.c</itemPath>
         <itemPath>../src/enc/backward_references_enc.h</itemPath>
         <itemPath>../src/enc/config_enc.c</itemPath>
         <itemPath>../src/enc/cost_enc.c</itemPath>
         <itemPath>../src/enc/cost_enc.h</itemPath>
-        <itemPath>../src/enc/delta_palettization_enc.c</itemPath>
-        <itemPath>../src/enc/delta_palettization_enc.h</itemPath>
         <itemPath>../src/enc/filter_enc.c</itemPath>
         <itemPath>../src/enc/frame_enc.c</itemPath>
         <itemPath>../src/enc/histogram_enc.c</itemPath>
@@ -208,6 +209,11 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+          </incDir>
+        </ccTool>
         <archiverTool>
         </archiverTool>
       </compileType>
@@ -263,19 +269,17 @@
             tool="0"
             flavor2="0">
       </item>
-      <item path="../src/dsp/argb.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/argb_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/argb_sse2.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../src/dsp/common_sse2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../src/dsp/common_sse41.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../src/dsp/cost.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_mips32.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/dsp/cost_neon.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_sse2.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -300,8 +304,6 @@
       <item path="../src/dsp/dsp.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../src/dsp/enc.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/enc_avx2.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/enc_mips32.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -362,6 +364,8 @@
       </item>
       <item path="../src/dsp/neon.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../src/dsp/quant.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../src/dsp/rescaler.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/rescaler_mips32.c" ex="false" tool="0" flavor2="0">
@@ -391,6 +395,8 @@
       </item>
       <item path="../src/dsp/upsampling_sse2.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../src/dsp/upsampling_sse41.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../src/dsp/yuv.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/yuv.h" ex="false" tool="3" flavor2="0">
@@ -399,11 +405,20 @@
       </item>
       <item path="../src/dsp/yuv_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../src/dsp/yuv_neon.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../src/dsp/yuv_sse2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/dsp/yuv_sse41.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/alpha_enc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/analysis_enc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/enc/backward_references_cost_enc.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../src/enc/backward_references_enc.c"
             ex="false"
@@ -420,16 +435,6 @@
       <item path="../src/enc/cost_enc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/cost_enc.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../src/enc/delta_palettization_enc.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../src/enc/delta_palettization_enc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../src/enc/filter_enc.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -576,6 +581,9 @@
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <architecture>2</architecture>
+          <incDir>
+            <pElem>..</pElem>
+          </incDir>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
@@ -641,19 +649,17 @@
             tool="0"
             flavor2="0">
       </item>
-      <item path="../src/dsp/argb.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/argb_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/argb_sse2.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../src/dsp/common_sse2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../src/dsp/common_sse41.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../src/dsp/cost.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_mips32.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/dsp/cost_neon.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/cost_sse2.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -678,8 +684,6 @@
       <item path="../src/dsp/dsp.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../src/dsp/enc.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../src/dsp/enc_avx2.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/enc_mips32.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -740,6 +744,8 @@
       </item>
       <item path="../src/dsp/neon.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../src/dsp/quant.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../src/dsp/rescaler.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/rescaler_mips32.c" ex="false" tool="0" flavor2="0">
@@ -769,6 +775,8 @@
       </item>
       <item path="../src/dsp/upsampling_sse2.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../src/dsp/upsampling_sse41.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../src/dsp/yuv.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/dsp/yuv.h" ex="false" tool="3" flavor2="0">
@@ -777,11 +785,20 @@
       </item>
       <item path="../src/dsp/yuv_mips_dsp_r2.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../src/dsp/yuv_neon.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../src/dsp/yuv_sse2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/dsp/yuv_sse41.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/alpha_enc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/analysis_enc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../src/enc/backward_references_cost_enc.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../src/enc/backward_references_enc.c"
             ex="false"
@@ -798,16 +815,6 @@
       <item path="../src/enc/cost_enc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../src/enc/cost_enc.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../src/enc/delta_palettization_enc.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../src/enc/delta_palettization_enc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../src/enc/filter_enc.c" ex="false" tool="0" flavor2="0">
       </item>

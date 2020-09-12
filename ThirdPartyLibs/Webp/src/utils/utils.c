@@ -13,11 +13,11 @@
 
 #include <stdlib.h>
 #include <string.h>  // for memcpy()
-#include "../webp/decode.h"
-#include "../webp/encode.h"
-#include "../webp/format_constants.h"  // for MAX_PALETTE_SIZE
-#include "./color_cache_utils.h"
-#include "./utils.h"
+#include "src/webp/decode.h"
+#include "src/webp/encode.h"
+#include "src/webp/format_constants.h"  // for MAX_PALETTE_SIZE
+#include "src/utils/color_cache_utils.h"
+#include "src/utils/utils.h"
 
 // If PRINT_MEM_INFO is defined, extra info (like total memory used, number of
 // alloc/free etc) is printed. For debugging/tuning purpose only (it's slow,
@@ -216,9 +216,14 @@ void WebPSafeFree(void* const ptr) {
   free(ptr);
 }
 
-// Public API function.
+// Public API functions.
+
+void* WebPMalloc(size_t size) {
+  return WebPSafeMalloc(1, size);
+}
+
 void WebPFree(void* ptr) {
-  free(ptr);
+  WebPSafeFree(ptr);
 }
 
 //------------------------------------------------------------------------------
@@ -226,7 +231,7 @@ void WebPFree(void* ptr) {
 void WebPCopyPlane(const uint8_t* src, int src_stride,
                    uint8_t* dst, int dst_stride, int width, int height) {
   assert(src != NULL && dst != NULL);
-  assert(src_stride >= width && dst_stride >= width);
+  assert(abs(src_stride) >= width && abs(dst_stride) >= width);
   while (height-- > 0) {
     memcpy(dst, src, width);
     src += src_stride;

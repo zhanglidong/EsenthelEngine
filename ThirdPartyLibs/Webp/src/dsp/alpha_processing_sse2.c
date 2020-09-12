@@ -11,16 +11,16 @@
 //
 // Author: Skal (pascal.massimino@gmail.com)
 
-#include "./dsp.h"
+#include "src/dsp/dsp.h"
 
 #if defined(WEBP_USE_SSE2)
 #include <emmintrin.h>
 
 //------------------------------------------------------------------------------
 
-static int DispatchAlpha(const uint8_t* alpha, int alpha_stride,
-                         int width, int height,
-                         uint8_t* dst, int dst_stride) {
+static int DispatchAlpha_SSE2(const uint8_t* alpha, int alpha_stride,
+                              int width, int height,
+                              uint8_t* dst, int dst_stride) {
   // alpha_and stores an 'and' operation of all the alpha[] values. The final
   // value is not 0xff if any of the alpha[] is not equal to 0xff.
   uint32_t alpha_and = 0xff;
@@ -72,9 +72,9 @@ static int DispatchAlpha(const uint8_t* alpha, int alpha_stride,
   return (alpha_and != 0xff);
 }
 
-static void DispatchAlphaToGreen(const uint8_t* alpha, int alpha_stride,
-                                 int width, int height,
-                                 uint32_t* dst, int dst_stride) {
+static void DispatchAlphaToGreen_SSE2(const uint8_t* alpha, int alpha_stride,
+                                      int width, int height,
+                                      uint32_t* dst, int dst_stride) {
   int i, j;
   const __m128i zero = _mm_setzero_si128();
   const int limit = width & ~15;
@@ -98,9 +98,9 @@ static void DispatchAlphaToGreen(const uint8_t* alpha, int alpha_stride,
   }
 }
 
-static int ExtractAlpha(const uint8_t* argb, int argb_stride,
-                        int width, int height,
-                        uint8_t* alpha, int alpha_stride) {
+static int ExtractAlpha_SSE2(const uint8_t* argb, int argb_stride,
+                             int width, int height,
+                             uint8_t* alpha, int alpha_stride) {
   // alpha_and stores an 'and' operation of all the alpha[] values. The final
   // value is not 0xff if any of the alpha[] is not equal to 0xff.
   uint32_t alpha_and = 0xff;
@@ -210,6 +210,82 @@ static void ApplyAlphaMultiply_SSE2(uint8_t* rgba, int alpha_first,
 #undef MULTIPLIER
 #undef PREMULTIPLY
 
+//------------------------------------------------------------------------------
+// Alpha detection
+
+static int HasAlpha8b_SSE2(const uint8_t* src, int length) {
+  const __m128i all_0xff = _mm_set1_epi8((char)0xff);
+  int i = 0;
+  for (; i + 16 <= length; i += 16) {
+    const __m128i v = _mm_loadu_si128((const __m128i*)(src + i));
+    const __m128i bits = _mm_cmpeq_epi8(v, all_0xff);
+    const int mask = _mm_movemask_epi8(bits);
+    if (mask != 0xffff) return 1;
+  }
+  for (; i < length; ++i) if (src[i] != 0xff) return 1;
+  return 0;
+}
+
+static int HasAlpha32b_SSE2(const uint8_t* src, int length) {
+  const __m128i alpha_mask = _mm_set1_epi32(0xff);
+  const __m128i all_0xff = _mm_set1_epi8((char)0xff);
+  int i = 0;
+  // We don't know if we can access the last 3 bytes after the last alpha
+  // value 'src[4 * length - 4]' (because we don't know if alpha is the first
+  // or the last byte of the quadruplet). Hence the '-3' protection below.
+  length = length * 4 - 3;   // size in bytes
+  for (; i + 64 <= length; i += 64) {
+    const __m128i a0 = _mm_loadu_si128((const __m128i*)(src + i +  0));
+    const __m128i a1 = _mm_loadu_si128((const __m128i*)(src + i + 16));
+    const __m128i a2 = _mm_loadu_si128((const __m128i*)(src + i + 32));
+    const __m128i a3 = _mm_loadu_si128((const __m128i*)(src + i + 48));
+    const __m128i b0 = _mm_and_si128(a0, alpha_mask);
+    const __m128i b1 = _mm_and_si128(a1, alpha_mask);
+    const __m128i b2 = _mm_and_si128(a2, alpha_mask);
+    const __m128i b3 = _mm_and_si128(a3, alpha_mask);
+    const __m128i c0 = _mm_packs_epi32(b0, b1);
+    const __m128i c1 = _mm_packs_epi32(b2, b3);
+    const __m128i d  = _mm_packus_epi16(c0, c1);
+    const __m128i bits = _mm_cmpeq_epi8(d, all_0xff);
+    const int mask = _mm_movemask_epi8(bits);
+    if (mask != 0xffff) return 1;
+  }
+  for (; i + 32 <= length; i += 32) {
+    const __m128i a0 = _mm_loadu_si128((const __m128i*)(src + i +  0));
+    const __m128i a1 = _mm_loadu_si128((const __m128i*)(src + i + 16));
+    const __m128i b0 = _mm_and_si128(a0, alpha_mask);
+    const __m128i b1 = _mm_and_si128(a1, alpha_mask);
+    const __m128i c  = _mm_packs_epi32(b0, b1);
+    const __m128i d  = _mm_packus_epi16(c, c);
+    const __m128i bits = _mm_cmpeq_epi8(d, all_0xff);
+    const int mask = _mm_movemask_epi8(bits);
+    if (mask != 0xffff) return 1;
+  }
+  for (; i <= length; i += 4) if (src[i] != 0xff) return 1;
+  return 0;
+}
+
+static void AlphaReplace_SSE2(uint32_t* src, int length, uint32_t color) {
+  const __m128i m_color = _mm_set1_epi32(color);
+  const __m128i zero = _mm_setzero_si128();
+  int i = 0;
+  for (; i + 8 <= length; i += 8) {
+    const __m128i a0 = _mm_loadu_si128((const __m128i*)(src + i + 0));
+    const __m128i a1 = _mm_loadu_si128((const __m128i*)(src + i + 4));
+    const __m128i b0 = _mm_srai_epi32(a0, 24);
+    const __m128i b1 = _mm_srai_epi32(a1, 24);
+    const __m128i c0 = _mm_cmpeq_epi32(b0, zero);
+    const __m128i c1 = _mm_cmpeq_epi32(b1, zero);
+    const __m128i d0 = _mm_and_si128(c0, m_color);
+    const __m128i d1 = _mm_and_si128(c1, m_color);
+    const __m128i e0 = _mm_andnot_si128(c0, a0);
+    const __m128i e1 = _mm_andnot_si128(c1, a1);
+    _mm_storeu_si128((__m128i*)(src + i + 0), _mm_or_si128(d0, e0));
+    _mm_storeu_si128((__m128i*)(src + i + 4), _mm_or_si128(d1, e1));
+  }
+  for (; i < length; ++i) if ((src[i] >> 24) == 0) src[i] = color;
+}
+
 // -----------------------------------------------------------------------------
 // Apply alpha value to rows
 
@@ -238,7 +314,7 @@ static void MultARGBRow_SSE2(uint32_t* const ptr, int width, int inverse) {
     }
   }
   width -= x;
-  if (width > 0) WebPMultARGBRowC(ptr + x, width, inverse);
+  if (width > 0) WebPMultARGBRow_C(ptr + x, width, inverse);
 }
 
 static void MultRow_SSE2(uint8_t* const ptr, const uint8_t* const alpha,
@@ -261,7 +337,7 @@ static void MultRow_SSE2(uint8_t* const ptr, const uint8_t* const alpha,
     }
   }
   width -= x;
-  if (width > 0) WebPMultRowC(ptr + x, alpha + x, width, inverse);
+  if (width > 0) WebPMultRow_C(ptr + x, alpha + x, width, inverse);
 }
 
 //------------------------------------------------------------------------------
@@ -273,9 +349,13 @@ WEBP_TSAN_IGNORE_FUNCTION void WebPInitAlphaProcessingSSE2(void) {
   WebPMultARGBRow = MultARGBRow_SSE2;
   WebPMultRow = MultRow_SSE2;
   WebPApplyAlphaMultiply = ApplyAlphaMultiply_SSE2;
-  WebPDispatchAlpha = DispatchAlpha;
-  WebPDispatchAlphaToGreen = DispatchAlphaToGreen;
-  WebPExtractAlpha = ExtractAlpha;
+  WebPDispatchAlpha = DispatchAlpha_SSE2;
+  WebPDispatchAlphaToGreen = DispatchAlphaToGreen_SSE2;
+  WebPExtractAlpha = ExtractAlpha_SSE2;
+
+  WebPHasAlpha8b = HasAlpha8b_SSE2;
+  WebPHasAlpha32b = HasAlpha32b_SSE2;
+  WebPAlphaReplace = AlphaReplace_SSE2;
 }
 
 #else  // !WEBP_USE_SSE2

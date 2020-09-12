@@ -13,6 +13,8 @@ rmdir /s /q x64\Release\webp.tlog
 
 del ARM\Release\*.obj
 del ARM\Release\*.log
+del ARM\Release\*.recipe
+del ARM\Release\*.txt
 rmdir /s /q ARM\Release\webp.tlog
 
 del Emscripten\Release\*.o

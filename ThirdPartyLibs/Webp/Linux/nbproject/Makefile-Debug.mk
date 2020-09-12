@@ -52,12 +52,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/275491c7/alpha_processing_neon.o \
 	${OBJECTDIR}/_ext/275491c7/alpha_processing_sse2.o \
 	${OBJECTDIR}/_ext/275491c7/alpha_processing_sse41.o \
-	${OBJECTDIR}/_ext/275491c7/argb.o \
-	${OBJECTDIR}/_ext/275491c7/argb_mips_dsp_r2.o \
-	${OBJECTDIR}/_ext/275491c7/argb_sse2.o \
 	${OBJECTDIR}/_ext/275491c7/cost.o \
 	${OBJECTDIR}/_ext/275491c7/cost_mips32.o \
 	${OBJECTDIR}/_ext/275491c7/cost_mips_dsp_r2.o \
+	${OBJECTDIR}/_ext/275491c7/cost_neon.o \
 	${OBJECTDIR}/_ext/275491c7/cost_sse2.o \
 	${OBJECTDIR}/_ext/275491c7/cpu.o \
 	${OBJECTDIR}/_ext/275491c7/dec.o \
@@ -69,7 +67,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/275491c7/dec_sse2.o \
 	${OBJECTDIR}/_ext/275491c7/dec_sse41.o \
 	${OBJECTDIR}/_ext/275491c7/enc.o \
-	${OBJECTDIR}/_ext/275491c7/enc_avx2.o \
 	${OBJECTDIR}/_ext/275491c7/enc_mips32.o \
 	${OBJECTDIR}/_ext/275491c7/enc_mips_dsp_r2.o \
 	${OBJECTDIR}/_ext/275491c7/enc_msa.o \
@@ -106,16 +103,19 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/275491c7/upsampling_msa.o \
 	${OBJECTDIR}/_ext/275491c7/upsampling_neon.o \
 	${OBJECTDIR}/_ext/275491c7/upsampling_sse2.o \
+	${OBJECTDIR}/_ext/275491c7/upsampling_sse41.o \
 	${OBJECTDIR}/_ext/275491c7/yuv.o \
 	${OBJECTDIR}/_ext/275491c7/yuv_mips32.o \
 	${OBJECTDIR}/_ext/275491c7/yuv_mips_dsp_r2.o \
+	${OBJECTDIR}/_ext/275491c7/yuv_neon.o \
 	${OBJECTDIR}/_ext/275491c7/yuv_sse2.o \
+	${OBJECTDIR}/_ext/275491c7/yuv_sse41.o \
 	${OBJECTDIR}/_ext/275494e0/alpha_enc.o \
 	${OBJECTDIR}/_ext/275494e0/analysis_enc.o \
+	${OBJECTDIR}/_ext/275494e0/backward_references_cost_enc.o \
 	${OBJECTDIR}/_ext/275494e0/backward_references_enc.o \
 	${OBJECTDIR}/_ext/275494e0/config_enc.o \
 	${OBJECTDIR}/_ext/275494e0/cost_enc.o \
-	${OBJECTDIR}/_ext/275494e0/delta_palettization_enc.o \
 	${OBJECTDIR}/_ext/275494e0/filter_enc.o \
 	${OBJECTDIR}/_ext/275494e0/frame_enc.o \
 	${OBJECTDIR}/_ext/275494e0/histogram_enc.o \
@@ -262,21 +262,6 @@ ${OBJECTDIR}/_ext/275491c7/alpha_processing_sse41.o: ../src/dsp/alpha_processing
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/alpha_processing_sse41.o ../src/dsp/alpha_processing_sse41.c
 
-${OBJECTDIR}/_ext/275491c7/argb.o: ../src/dsp/argb.c
-	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/argb.o ../src/dsp/argb.c
-
-${OBJECTDIR}/_ext/275491c7/argb_mips_dsp_r2.o: ../src/dsp/argb_mips_dsp_r2.c
-	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/argb_mips_dsp_r2.o ../src/dsp/argb_mips_dsp_r2.c
-
-${OBJECTDIR}/_ext/275491c7/argb_sse2.o: ../src/dsp/argb_sse2.c
-	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/argb_sse2.o ../src/dsp/argb_sse2.c
-
 ${OBJECTDIR}/_ext/275491c7/cost.o: ../src/dsp/cost.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
 	${RM} "$@.d"
@@ -291,6 +276,11 @@ ${OBJECTDIR}/_ext/275491c7/cost_mips_dsp_r2.o: ../src/dsp/cost_mips_dsp_r2.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/cost_mips_dsp_r2.o ../src/dsp/cost_mips_dsp_r2.c
+
+${OBJECTDIR}/_ext/275491c7/cost_neon.o: ../src/dsp/cost_neon.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/cost_neon.o ../src/dsp/cost_neon.c
 
 ${OBJECTDIR}/_ext/275491c7/cost_sse2.o: ../src/dsp/cost_sse2.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
@@ -346,11 +336,6 @@ ${OBJECTDIR}/_ext/275491c7/enc.o: ../src/dsp/enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/enc.o ../src/dsp/enc.c
-
-${OBJECTDIR}/_ext/275491c7/enc_avx2.o: ../src/dsp/enc_avx2.c
-	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/enc_avx2.o ../src/dsp/enc_avx2.c
 
 ${OBJECTDIR}/_ext/275491c7/enc_mips32.o: ../src/dsp/enc_mips32.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
@@ -532,6 +517,11 @@ ${OBJECTDIR}/_ext/275491c7/upsampling_sse2.o: ../src/dsp/upsampling_sse2.c
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/upsampling_sse2.o ../src/dsp/upsampling_sse2.c
 
+${OBJECTDIR}/_ext/275491c7/upsampling_sse41.o: ../src/dsp/upsampling_sse41.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/upsampling_sse41.o ../src/dsp/upsampling_sse41.c
+
 ${OBJECTDIR}/_ext/275491c7/yuv.o: ../src/dsp/yuv.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
 	${RM} "$@.d"
@@ -547,10 +537,20 @@ ${OBJECTDIR}/_ext/275491c7/yuv_mips_dsp_r2.o: ../src/dsp/yuv_mips_dsp_r2.c
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/yuv_mips_dsp_r2.o ../src/dsp/yuv_mips_dsp_r2.c
 
+${OBJECTDIR}/_ext/275491c7/yuv_neon.o: ../src/dsp/yuv_neon.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/yuv_neon.o ../src/dsp/yuv_neon.c
+
 ${OBJECTDIR}/_ext/275491c7/yuv_sse2.o: ../src/dsp/yuv_sse2.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/yuv_sse2.o ../src/dsp/yuv_sse2.c
+
+${OBJECTDIR}/_ext/275491c7/yuv_sse41.o: ../src/dsp/yuv_sse41.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/275491c7
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275491c7/yuv_sse41.o ../src/dsp/yuv_sse41.c
 
 ${OBJECTDIR}/_ext/275494e0/alpha_enc.o: ../src/enc/alpha_enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
@@ -561,6 +561,11 @@ ${OBJECTDIR}/_ext/275494e0/analysis_enc.o: ../src/enc/analysis_enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275494e0/analysis_enc.o ../src/enc/analysis_enc.c
+
+${OBJECTDIR}/_ext/275494e0/backward_references_cost_enc.o: ../src/enc/backward_references_cost_enc.c
+	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275494e0/backward_references_cost_enc.o ../src/enc/backward_references_cost_enc.c
 
 ${OBJECTDIR}/_ext/275494e0/backward_references_enc.o: ../src/enc/backward_references_enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
@@ -576,11 +581,6 @@ ${OBJECTDIR}/_ext/275494e0/cost_enc.o: ../src/enc/cost_enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275494e0/cost_enc.o ../src/enc/cost_enc.c
-
-${OBJECTDIR}/_ext/275494e0/delta_palettization_enc.o: ../src/enc/delta_palettization_enc.c
-	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/275494e0/delta_palettization_enc.o ../src/enc/delta_palettization_enc.c
 
 ${OBJECTDIR}/_ext/275494e0/filter_enc.o: ../src/enc/filter_enc.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/275494e0

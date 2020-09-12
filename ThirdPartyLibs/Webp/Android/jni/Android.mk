@@ -3,8 +3,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE       := webp
-LOCAL_CFLAGS       := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -DHAVE_MALLOC_H -DHAVE_PTHREAD -DWEBP_USE_THREAD -finline-functions -frename-registers -s -I../../src/webp
-LOCAL_CPPFLAGS     := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -DHAVE_MALLOC_H -DHAVE_PTHREAD -DWEBP_USE_THREAD -finline-functions -frename-registers -s -I../../src/webp
+LOCAL_CFLAGS       := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -DHAVE_MALLOC_H -DHAVE_PTHREAD -DWEBP_USE_THREAD -finline-functions -frename-registers -s -I..
+LOCAL_CPPFLAGS     := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -DHAVE_MALLOC_H -DHAVE_PTHREAD -DWEBP_USE_THREAD -finline-functions -frename-registers -s -I..
 LOCAL_CPP_FEATURES := # rtti exceptions
 LOCAL_ARM_NEON     := true # force NEON usage for all files
 
@@ -26,12 +26,10 @@ LOCAL_SRC_FILES := \
    ../../src/dsp/alpha_processing_neon.c \
    ../../src/dsp/alpha_processing_sse2.c \
    ../../src/dsp/alpha_processing_sse41.c \
-   ../../src/dsp/argb.c \
-   ../../src/dsp/argb_mips_dsp_r2.c \
-   ../../src/dsp/argb_sse2.c \
    ../../src/dsp/cost.c \
    ../../src/dsp/cost_mips_dsp_r2.c \
    ../../src/dsp/cost_mips32.c \
+   ../../src/dsp/cost_neon.c \
    ../../src/dsp/cost_sse2.c \
    ../../src/dsp/cpu.c \
    ../../src/dsp/dec.c \
@@ -43,7 +41,6 @@ LOCAL_SRC_FILES := \
    ../../src/dsp/dec_sse2.c \
    ../../src/dsp/dec_sse41.c \
    ../../src/dsp/enc.c \
-   ../../src/dsp/enc_avx2.c \
    ../../src/dsp/enc_mips_dsp_r2.c \
    ../../src/dsp/enc_mips32.c \
    ../../src/dsp/enc_msa.c \
@@ -80,16 +77,19 @@ LOCAL_SRC_FILES := \
    ../../src/dsp/upsampling_msa.c \
    ../../src/dsp/upsampling_neon.c \
    ../../src/dsp/upsampling_sse2.c \
+   ../../src/dsp/upsampling_sse41.c \
    ../../src/dsp/yuv.c \
    ../../src/dsp/yuv_mips_dsp_r2.c \
    ../../src/dsp/yuv_mips32.c \
+   ../../src/dsp/yuv_neon.c \
    ../../src/dsp/yuv_sse2.c \
+   ../../src/dsp/yuv_sse41.c \
    ../../src/enc/alpha_enc.c \
    ../../src/enc/analysis_enc.c \
+   ../../src/enc/backward_references_cost_enc.c \
    ../../src/enc/backward_references_enc.c \
    ../../src/enc/config_enc.c \
    ../../src/enc/cost_enc.c \
-   ../../src/enc/delta_palettization_enc.c \
    ../../src/enc/filter_enc.c \
    ../../src/enc/frame_enc.c \
    ../../src/enc/histogram_enc.c \
@@ -123,18 +123,6 @@ LOCAL_SRC_FILES := \
    ../../src/utils/rescaler_utils.c \
    ../../src/utils/thread_utils.c \
    ../../src/utils/utils.c
-
-LOCAL_STATIC_LIBRARIES := cpufeatures
-ifeq ($(TARGET_ARCH_ABI), $(filter $(TARGET_ARCH_ABI), armeabi-v7a arm64-v8a))
-   LOCAL_SRC_FILES += ../../src/dsp/alpha_processing_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/dec_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/enc_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/filters_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/lossless_enc_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/lossless_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/rescaler_neon.c.neon
-   LOCAL_SRC_FILES += ../../src/dsp/upsampling_neon.c.neon
-endif
 
 include $(BUILD_STATIC_LIBRARY)
 $(call import-module,android/cpufeatures)

@@ -38,34 +38,34 @@
     <ProjectGuid>{EDE355DB-F1F0-4596-8400-E14A9ABAA33D}</ProjectGuid>
     <RootNamespace>WebP</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -77,12 +77,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -151,6 +151,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -164,6 +165,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -179,6 +181,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">
@@ -193,6 +196,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -215,6 +219,7 @@
       <DebugInformationFormat />
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -239,6 +244,7 @@
       </DebugInformationFormat>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -265,6 +271,7 @@
       <DebugInformationFormat />
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">
@@ -289,6 +296,7 @@
       <DebugInformationFormat>
       </DebugInformationFormat>
       <OptimizationLevel>Os</OptimizationLevel>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -309,12 +317,10 @@
     <ClCompile Include="..\src\dsp\alpha_processing_neon.c" />
     <ClCompile Include="..\src\dsp\alpha_processing_sse2.c" />
     <ClCompile Include="..\src\dsp\alpha_processing_sse41.c" />
-    <ClCompile Include="..\src\dsp\argb.c" />
-    <ClCompile Include="..\src\dsp\argb_mips_dsp_r2.c" />
-    <ClCompile Include="..\src\dsp\argb_sse2.c" />
     <ClCompile Include="..\src\dsp\cost.c" />
     <ClCompile Include="..\src\dsp\cost_mips32.c" />
     <ClCompile Include="..\src\dsp\cost_mips_dsp_r2.c" />
+    <ClCompile Include="..\src\dsp\cost_neon.c" />
     <ClCompile Include="..\src\dsp\cost_sse2.c" />
     <ClCompile Include="..\src\dsp\cpu.c" />
     <ClCompile Include="..\src\dsp\dec.c" />
@@ -326,7 +332,6 @@
     <ClCompile Include="..\src\dsp\dec_sse2.c" />
     <ClCompile Include="..\src\dsp\dec_sse41.c" />
     <ClCompile Include="..\src\dsp\enc.c" />
-    <ClCompile Include="..\src\dsp\enc_avx2.c" />
     <ClCompile Include="..\src\dsp\enc_mips32.c" />
     <ClCompile Include="..\src\dsp\enc_mips_dsp_r2.c" />
     <ClCompile Include="..\src\dsp\enc_msa.c" />
@@ -363,16 +368,19 @@
     <ClCompile Include="..\src\dsp\upsampling_msa.c" />
     <ClCompile Include="..\src\dsp\upsampling_neon.c" />
     <ClCompile Include="..\src\dsp\upsampling_sse2.c" />
+    <ClCompile Include="..\src\dsp\upsampling_sse41.c" />
     <ClCompile Include="..\src\dsp\yuv.c" />
     <ClCompile Include="..\src\dsp\yuv_mips32.c" />
     <ClCompile Include="..\src\dsp\yuv_mips_dsp_r2.c" />
+    <ClCompile Include="..\src\dsp\yuv_neon.c" />
     <ClCompile Include="..\src\dsp\yuv_sse2.c" />
+    <ClCompile Include="..\src\dsp\yuv_sse41.c" />
     <ClCompile Include="..\src\enc\alpha_enc.c" />
     <ClCompile Include="..\src\enc\analysis_enc.c" />
+    <ClCompile Include="..\src\enc\backward_references_cost_enc.c" />
     <ClCompile Include="..\src\enc\backward_references_enc.c" />
     <ClCompile Include="..\src\enc\config_enc.c" />
     <ClCompile Include="..\src\enc\cost_enc.c" />
-    <ClCompile Include="..\src\enc\delta_palettization_enc.c" />
     <ClCompile Include="..\src\enc\filter_enc.c" />
     <ClCompile Include="..\src\enc\frame_enc.c" />
     <ClCompile Include="..\src\enc\histogram_enc.c" />
@@ -415,16 +423,17 @@
     <ClInclude Include="..\src\dec\vp8_dec.h" />
     <ClInclude Include="..\src\dec\webpi_dec.h" />
     <ClInclude Include="..\src\dsp\common_sse2.h" />
+    <ClInclude Include="..\src\dsp\common_sse41.h" />
     <ClInclude Include="..\src\dsp\dsp.h" />
     <ClInclude Include="..\src\dsp\lossless.h" />
     <ClInclude Include="..\src\dsp\lossless_common.h" />
     <ClInclude Include="..\src\dsp\mips_macro.h" />
     <ClInclude Include="..\src\dsp\msa_macro.h" />
     <ClInclude Include="..\src\dsp\neon.h" />
+    <ClInclude Include="..\src\dsp\quant.h" />
     <ClInclude Include="..\src\dsp\yuv.h" />
     <ClInclude Include="..\src\enc\backward_references_enc.h" />
     <ClInclude Include="..\src\enc\cost_enc.h" />
-    <ClInclude Include="..\src\enc\delta_palettization_enc.h" />
     <ClInclude Include="..\src\enc\histogram_enc.h" />
     <ClInclude Include="..\src\enc\vp8i_enc.h" />
     <ClInclude Include="..\src\enc\vp8li_enc.h" />
