@@ -149,6 +149,7 @@ VecI2 GetSize(C Str &name, C Str &value, C VecI &src);
 int GetFilter(C Str &name);
 bool GetClampWrap(C Str &name, bool default_clamp);
 bool GetAlphaWeight(C Str &name);
+bool GetKeepEdges  (C Str &name);
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, bool env, C VecI2 &custom_size=0, C int *force_type=null);
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type=null);
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines=false);

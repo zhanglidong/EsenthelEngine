@@ -397,11 +397,11 @@ class MtrlImages
    {
       VecI2 size=0; // if >0 then image should be resized
       int   filter=-1;
-      bool  clamp =false, alpha_weight=false;
+      bool  clamp =false, alpha_weight=false, keep_edges=false;
 
       ImageResize& clearParams()
       {
-         size.zero(); filter=-1; clamp=alpha_weight=false; return T;
+         size.zero(); filter=-1; clamp=alpha_weight=keep_edges=false; return T;
       }
       ImageResize& del()
       {
@@ -426,12 +426,13 @@ class MtrlImages
             filter      =GetFilter     (param.name);
             clamp       =GetClampWrap  (param.name, false);
             alpha_weight=GetAlphaWeight(param.name);
+            keep_edges  =GetKeepEdges  (param.name);
          }
          return T;
       }
       void apply()
       {
-         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (clamp ? IC_CLAMP : IC_WRAP)|(alpha_weight ? IC_ALPHA_WEIGHT : 0));
+         copyTry(T, (size.x>0) ? size.x : -1, (size.y>0) ? size.y : -1, -1, -1, -1, -1, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (clamp ? IC_CLAMP : IC_WRAP)|(alpha_weight ? IC_ALPHA_WEIGHT : 0)|(keep_edges ? IC_KEEP_EDGES : 0));
       }
       operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    }

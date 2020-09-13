@@ -721,7 +721,8 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ReloadElmClass::Select(C Str &name, ReloadElmClass &re) {re.path.set(name);}
    void ReloadElmClass::Select(ReloadElmClass &re) {SetPath(re.win_io.activate(), re.path(), true);}
    void ReloadElmClass::Reload(ReloadElmClass &re) {re.reload();}
-          void ReloadElmClass::reload()
+   void ReloadElmClass::SetSrc(ReloadElmClass &re) {re.reload(false);}
+          void ReloadElmClass::reload(bool reload)
    {
       if(path.visible() && elms.elms()==1) // single element
          if(Elm *elm=Proj.findElm(elms[0]))
@@ -736,8 +737,8 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
                if(set_end_frame  ())files[0].getParam(  "end_frame").value=  end_frame();
                if(set_speed      ())files[0].getParam("speed"      ).value=speed      ();
                if(set_optimize   ())files[0].getParam("optimize"   ).value=optimize   ();
-               if(mirror         ())files[0].getParam("mirror"     ); // uses TextBool1 so no need to specify =1
-               if(del_end_keys   ())files[0].getParam("delEndKeys" ); // uses TextBool1 so no need to specify =1
+               if(mirror         ())files[0].getParam("mirror"     ); // uses 'TextBool1' so no need to specify =1
+               if(del_end_keys   ())files[0].getParam("delEndKeys" ); // uses 'TextBool1' so no need to specify =1
             }
             if(elm->type==ELM_ANIM || elm->type==ELM_MTRL)
             {
@@ -748,12 +749,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          Server.setElmShort(elm->id);
       }
 
-      Proj.elmReload(elms); // reload all elements
+      if(reload)Proj.elmReload(elms); // reload all elements
       hide();
    }
    void ReloadElmClass::activate(Memc<UID> &elms) // multiple elements
    {
-      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=yes_src_only; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       rect(Rect_C(0, 0, 1, 0.36f)); T+=text_all; T+=yes_all;
       Swap(elms, T.elms);
       super::activate();
@@ -762,7 +763,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    {
       elms.clear().add(elm_id);
       T-=text_all; T-=yes_all;
-      rect(Rect_C(0, 0, 1.4f, 0.544f)); T+=text; T+=yes; T+=path; T+=path_sel; T+=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      rect(Rect_C(0, 0, 1.4f, 0.544f)); T+=text; T+=path; T+=path_sel; T+=yes; T+=yes_src_only;  T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       path.clear();
       if(Elm *elm=Proj.findElm(elm_id))if(elm->type!=ELM_FOLDER && elm->type!=ELM_LIB && elm->type!=ELM_APP)
       {
@@ -827,6 +828,7 @@ set_optimize      .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"
       del_end_keys.create(Rect_LU(mirror.rect().ru()+Vec2(0.02f, 0), 0.25f, 0.0475f), "Del End Keys");                        del_end_keys   .mode=BUTTON_TOGGLE;
       yes_all     .create(Rect_C(0.5f , -0.22f , 0.29f, 0.07f), "Yes").func(Reload, T).focusable(false);
       yes         .create(Rect_C(0.7f , -0.408f, 0.29f, 0.07f), "Yes").func(Reload, T).focusable(false);
+      yes_src_only.create(Rect_C(1.12f, -0.408f, 0.44f, 0.05f), "Set source without reload").func(SetSrc, T).focusable(false).desc("This option will only set the source path for the element, but without actually reloading it");
       win_io      .create(S, S, S, Select, Select, T);
    }
    void ReloadElmClass::update(C GuiPC &gpc)

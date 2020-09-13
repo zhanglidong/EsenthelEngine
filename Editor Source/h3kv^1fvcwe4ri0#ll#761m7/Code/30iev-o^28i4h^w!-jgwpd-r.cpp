@@ -559,14 +559,15 @@ class ReloadElmClass : ClosableWindow
 {
    TextNoTest text, text_all, t_name;
    TextLine   path, name, start_frame, end_frame, speed, optimize;
-   Button     path_sel, yes, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror, del_end_keys;
+   Button     path_sel, yes, yes_src_only, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror, del_end_keys;
    WindowIO   win_io;
    Memc<UID>  elms;
 
    static void Select(C Str &name, ReloadElmClass &re) {re.path.set(name);}
    static void Select(ReloadElmClass &re) {SetPath(re.win_io.activate(), re.path(), true);}
    static void Reload(ReloadElmClass &re) {re.reload();}
-          void reload()
+   static void SetSrc(ReloadElmClass &re) {re.reload(false);}
+          void reload(bool reload=true)
    {
       if(path.visible() && elms.elms()==1) // single element
          if(Elm *elm=Proj.findElm(elms[0]))
@@ -581,8 +582,8 @@ class ReloadElmClass : ClosableWindow
                if(set_end_frame  ())files[0].getParam(  "end_frame").value=  end_frame();
                if(set_speed      ())files[0].getParam("speed"      ).value=speed      ();
                if(set_optimize   ())files[0].getParam("optimize"   ).value=optimize   ();
-               if(mirror         ())files[0].getParam("mirror"     ); // uses TextBool1 so no need to specify =1
-               if(del_end_keys   ())files[0].getParam("delEndKeys" ); // uses TextBool1 so no need to specify =1
+               if(mirror         ())files[0].getParam("mirror"     ); // uses 'TextBool1' so no need to specify =1
+               if(del_end_keys   ())files[0].getParam("delEndKeys" ); // uses 'TextBool1' so no need to specify =1
             }
             if(elm.type==ELM_ANIM || elm.type==ELM_MTRL)
             {
@@ -593,12 +594,12 @@ class ReloadElmClass : ClosableWindow
          Server.setElmShort(elm.id);
       }
 
-      Proj.elmReload(elms); // reload all elements
+      if(reload)Proj.elmReload(elms); // reload all elements
       hide();
    }
    void activate(Memc<UID> &elms) // multiple elements
    {
-      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=yes_src_only; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       rect(Rect_C(0, 0, 1, 0.36)); T+=text_all; T+=yes_all;
       Swap(elms, T.elms);
       super.activate();
@@ -607,7 +608,7 @@ class ReloadElmClass : ClosableWindow
    {
       elms.clear().add(elm_id);
       T-=text_all; T-=yes_all;
-      rect(Rect_C(0, 0, 1.4, 0.544)); T+=text; T+=yes; T+=path; T+=path_sel; T+=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      rect(Rect_C(0, 0, 1.4, 0.544)); T+=text; T+=path; T+=path_sel; T+=yes; T+=yes_src_only;  T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       path.clear();
       if(Elm *elm=Proj.findElm(elm_id))if(elm.type!=ELM_FOLDER && elm.type!=ELM_LIB && elm.type!=ELM_APP)
       {
@@ -674,6 +675,7 @@ set_optimize      .create(Rect_L(0.98, -0.328, 0.25, 0.0475), "Set Optimize"   )
       del_end_keys.create(Rect_LU(mirror.rect().ru()+Vec2(0.02, 0), 0.25, 0.0475), "Del End Keys");                        del_end_keys   .mode=BUTTON_TOGGLE;
       yes_all     .create(Rect_C(0.5 , -0.22 , 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
       yes         .create(Rect_C(0.7 , -0.408, 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
+      yes_src_only.create(Rect_C(1.12, -0.408, 0.44, 0.05), "Set source without reload").func(SetSrc, T).focusable(false).desc("This option will only set the source path for the element, but without actually reloading it");
       win_io      .create(S, S, S, Select, Select, T);
    }
    virtual void update(C GuiPC &gpc)override
