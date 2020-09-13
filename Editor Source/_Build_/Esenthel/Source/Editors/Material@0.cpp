@@ -365,7 +365,7 @@ MaterialTech mtrl_techs[]=
    {
       mr.undos.set("brightness");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.brightness){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
-      Vec &rgb=mr.edit.color_s.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} mr.mouse_edit_delta+=d.sum()*0.75f;
+      Vec &rgb=mr.edit.color_s.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.red)d_sum*=mr.red->mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
       flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
       Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
       if(mr.red  ){mr.red  ->set(v.x, QUIET); rgb.x=mr.red  ->asFlt();}
