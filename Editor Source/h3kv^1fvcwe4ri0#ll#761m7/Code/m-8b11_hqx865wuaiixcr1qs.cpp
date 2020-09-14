@@ -1131,30 +1131,32 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          Texture &tex=texs[i];
          Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().name=CodeEdit.importPaths(names[i]);
          bool append=(Kb.ctrl() && tex.file.is());
-         if(images.elms()>1 || append)
+         if(images.elms())
          {
-            REPA(images) // detect if there are any special maps
-            {
-               ImageSource &image=images[i]; image.i=i;
-               Str base=GetBaseNoExt(image.name);
-               REPA(base)if(CharFlag(base[i])&(CHARF_DIG|CHARF_UNDER))base.setChar(i, ' '); // replace _ and digits with space so whole words can work OK, because _ is treated as char and "_ao1" fails
-               if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
-               if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
-               if(                                                           Contains(base, "illumination")    ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
-            }
-            images.sort(Compare); // sort by order
-         }
-         if(!append && images.elms()) // process in special way
-         {
-            if(Kb.shift())
+            if(Kb.shift()) // Unity (Metal Smoothness)
             {
                if(tex.type==TEX_COLOR  )images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
                if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"  ); // get smooth from alpha channel (Unity style)
                if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"  ); // convert from metal map
-            }
-            if(Kb.alt())
+            }else
+            if(Kb.alt()) // Unreal - RMA (Roughness Metal AO)
             {
-               if(tex.type==TEX_SMOOTH)images[0].params.New().set("inverseRGB"); // get smooth from roughness (inverse)
+               if(tex.type==TEX_COLOR  ){Mems<TextParam> &params=images[0].params; params.New().set("channel"  , "bbb"); params.New().set("mode", "mulRGB"); append=true;} // AO
+               if(tex.type==TEX_SMOOTH ){Mems<TextParam> &params=images[0].params; params.New().set("channel"  , "r"  ); params.New().set("inverseRGB");                 } // roughness
+               if(tex.type==TEX_REFLECT){Mems<TextParam> &params=images[0].params; params.New().set("channel"  , "g"  ); params.New().set("metalToReflect");             } // metalness
+            }else
+            if(images.elms()>1 || append) // multiple images
+            {
+               REPA(images) // detect if there are any special maps
+               {
+                  ImageSource &image=images[i]; image.i=i;
+                  Str base=GetBaseNoExt(image.name);
+                  REPA(base)if(CharFlag(base[i])&(CHARF_DIG|CHARF_UNDER))base.setChar(i, ' '); // replace _ and digits with space so whole words can work OK, because _ is treated as char and "_ao1" fails
+                  if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
+                  if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
+                  if(                                                           Contains(base, "illumination")    ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
+               }
+               images.sort(Compare); // sort by order
             }
          }
          Str drop=FileParams.Encode(SCAST(Memc<FileParams>, images));
