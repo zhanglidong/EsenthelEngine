@@ -635,7 +635,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             pfd.data.set(mini_map_game_path_src+"Settings");
 
             IMAGE_TYPE dest_type=IMAGE_NONE;
-            if(android || iOS) // convert for mobile, desktop/web already has IMAGE_BC1 chosen
+            if(android || iOS) // convert for mobile, desktop/web/switch already has IMAGE_BC1 chosen
             {
                dest_type=(android ? IMAGE_ETC2_RGB_SRGB : IMAGE_PVRTC1_4_SRGB);
                mini_map_formats_path=Proj.formatPath(elm.id, FormatSuffix(dest_type));
@@ -755,7 +755,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing images for target platform
          if(elm.type==ELM_IMAGE) // image
-            if(android || iOS || web) // desktop platform already has the best format chosen through 'EditToGameImage' and 'ImageProps'
+            if(android || iOS || web) // desktop/switch platform already has the best format chosen through 'EditToGameImage' and 'ImageProps'
                if(ElmImage *data=elm.imageData())
                   if(IMAGE_TYPE dest_type=(android ? data.androidType() : iOS ? data.iOSType() : data.webType())) // want to use custom type
          {
@@ -769,7 +769,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing icons for target platform
          if(elm.type==ELM_ICON) // icon
-            if(android || iOS || web) // desktop platform already has the best format chosen through 'EditToGameImage' and 'ImageProps'
+            if(android || iOS || web) // desktop/switch platform already has the best format chosen through 'EditToGameImage' and 'ImageProps'
                if(ElmIcon *data=elm.iconData())
                   if(IMAGE_TYPE dest_type=(android ? data.androidType(&Proj) : iOS ? data.iOSType(&Proj) : data.webType(&Proj))) // want to use custom type
          {
@@ -783,7 +783,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing atlases for target platform
          if(elm.type==ELM_IMAGE_ATLAS) // image atlas
-            if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
+            if(android || iOS || (web && !WebBC7)) // desktop/switch platform already has the best format chosen during image atlas creation
                if(ElmImageAtlas *data=elm.imageAtlasData())
                   if(data.compress())
                      if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_RGBA_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
@@ -798,7 +798,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing fonts for target platform
          if(elm.type==ELM_FONT) // font
-            if(android || iOS || web) // desktop platform already has the best format chosen during font creation
+            if(android || iOS || web) // desktop/switch platform already has the best format chosen during font creation
                if(ElmFont *data=elm.fontData())
                   if(IMAGE_TYPE dest_type=IMAGE_ETC2_RG) // #FontImageLayout
          {
@@ -812,7 +812,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing panel images for target platform
          if(elm.type==ELM_PANEL_IMAGE) // panel image
-            if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
+            if(android || iOS || (web && !WebBC7)) // desktop/switch platform already has the best format chosen during image atlas creation
                if(ElmPanelImage *data=elm.panelImageData())
                   if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_RGBA_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
