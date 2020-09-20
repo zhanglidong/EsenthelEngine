@@ -963,6 +963,17 @@ bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_ma
    return false;
 }
 /******************************************************************************/
+char IndexChannel(int i)
+{
+   switch(i)
+   {
+      case  0: return 'r';
+      case  1: return 'g';
+      case  2: return 'b';
+      case  3: return 'a';
+      default: return '\0';
+   }
+}
 int ChannelIndex(char c)
 {
    switch(c)

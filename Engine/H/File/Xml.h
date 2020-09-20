@@ -16,8 +16,10 @@ struct TextParam
 
    TextParam& setValue(C Str   &value=S) {T.value=         value           ; return T;}   void getValue(Str   &value)C {value=asText ();}
    TextParam& setValue(C Str8  &value  ) {T.value=         value           ; return T;}   void getValue(Str8  &value)C {value=asText ();}
-   TextParam& setValue(CChar   *value  ) {T.value=         value           ; return T;}
-   TextParam& setValue(CChar8  *value  ) {T.value=         value           ; return T;}
+   TextParam& setValue( CChar  *value  ) {T.value=         value           ; return T;}
+   TextParam& setValue( CChar8 *value  ) {T.value=         value           ; return T;}
+   TextParam& setValue(  Char   value  ) {T.value=         value           ; return T;}
+   TextParam& setValue(  Char8  value  ) {T.value=         value           ; return T;}
    TextParam& setValue(  Int    value  ) {T.value=         value           ; return T;}   void getValue(Int   &value)C {value=asInt  ();}
    TextParam& setValue(  UInt   value  ) {T.value=         value           ; return T;}   void getValue(UInt  &value)C {value=asUInt ();}
    TextParam& setValue(  Long   value  ) {T.value=         value           ; return T;}   void getValue(Long  &value)C {value=asLong ();}   
@@ -47,8 +49,10 @@ struct TextParam
 
    TextParam& set(C Str &name, C Str   &value=S) {return setName(name).setValue(value);}
    TextParam& set(C Str &name, C Str8  &value  ) {return setName(name).setValue(value);}
-   TextParam& set(C Str &name, CChar   *value  ) {return setName(name).setValue(value);}
-   TextParam& set(C Str &name, CChar8  *value  ) {return setName(name).setValue(value);}
+   TextParam& set(C Str &name,  CChar  *value  ) {return setName(name).setValue(value);}
+   TextParam& set(C Str &name,  CChar8 *value  ) {return setName(name).setValue(value);}
+   TextParam& set(C Str &name,   Char   value  ) {return setName(name).setValue(value);}
+   TextParam& set(C Str &name,   Char8  value  ) {return setName(name).setValue(value);}
    TextParam& set(C Str &name,   Int    value  ) {return setName(name).setValue(value);}
    TextParam& set(C Str &name,   UInt   value  ) {return setName(name).setValue(value);}
    TextParam& set(C Str &name,   Long   value  ) {return setName(name).setValue(value);}

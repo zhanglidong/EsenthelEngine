@@ -157,6 +157,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest);
 void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex, bool old_light_map);
 void AdjustMaterialParams(EditWaterMtrl &edit, WaterMtrl &game, uint old_base_tex, uint new_base_tex, bool old_light_map);
 bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_maps=-1, bool decompress=false);
+char IndexChannel(int i);
 int ChannelIndex(char c);
 bool ChannelMonoTransform(C Str &value);
 bool PartialTransform   (C TextParam &p   );

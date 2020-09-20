@@ -179,6 +179,7 @@ class Project
       APPLY_MUL_RGB_SAT,
       APPLY_MUL_RGB_LIN,
       APPLY_MUL_A,
+      APPLY_MUL_LUM,
       APPLY_MUL_SAT,
       APPLY_MUL_SAT_PHOTO,
       APPLY_DIV,

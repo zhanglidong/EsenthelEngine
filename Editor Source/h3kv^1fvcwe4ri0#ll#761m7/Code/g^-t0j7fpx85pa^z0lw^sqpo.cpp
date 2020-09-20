@@ -669,6 +669,7 @@ class Project
       APPLY_MUL_RGB_SAT,
       APPLY_MUL_RGB_LIN,
       APPLY_MUL_A,
+      APPLY_MUL_LUM,
       APPLY_MUL_SAT,
       APPLY_MUL_SAT_PHOTO,
       APPLY_DIV,
@@ -734,6 +735,7 @@ class Project
                if(p.value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
                if(p.value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
                if(p.value=="mulA"                                               )mode=APPLY_MUL_A;else
+               if(p.value=="mulLum"                                             )mode=APPLY_MUL_LUM;else
                if(p.value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
                if(p.value=="mulSatPhoto"                                        )mode=APPLY_MUL_SAT_PHOTO;else
                if(p.value=="div"                                                )mode=APPLY_DIV;else
@@ -810,6 +812,7 @@ class Project
                            case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
                            case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
                            case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
+                           case APPLY_MUL_LUM       : c.set(base.xyz*l.xyz.max(), base.w); break;
                            case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                            case APPLY_DIV           : c=base/l; break;
                            case APPLY_ADD           : c=base+l; break;

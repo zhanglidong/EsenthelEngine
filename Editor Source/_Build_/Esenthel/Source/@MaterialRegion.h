@@ -354,6 +354,24 @@ public:
    ImageSource();
    };
    static int Compare(C ImageSource &a, C ImageSource &b);
+   enum TEX_CHANNEL_TYPE : byte
+   {
+      TC_ROUGH,
+      TC_METAL,
+      TC_AO   ,
+      TC_NUM  ,
+   };
+   class TexChannel
+   {
+      TEX_CHANNEL_TYPE type;
+      int              pos;
+
+      TexChannel&set (TEX_CHANNEL_TYPE type);   
+      TexChannel&find(C Str &name, C Str &text);
+      void fix();                      
+
+      static int Compare(C TexChannel &a, C TexChannel &b);
+   };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
