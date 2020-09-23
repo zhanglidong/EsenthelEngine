@@ -65,7 +65,7 @@
             <pElem>../../ThirdPartyLibs/Bullet/lib/src</pElem>
             <pElem>../../ThirdPartyLibs</pElem>
           </incDir>
-          <commandLine>-std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h</commandLine>
+          <commandLine>-std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h</commandLine>
           <preprocessorList>
             <Elem>DEBUG=1</Elem>
           </preprocessorList>
@@ -247,7 +247,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-static-libstdc++ -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
+          <commandLine>-static-libstdc++ -nopie -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
         </linkerTool>
       </compileType>
       <item path="../Source/Esenthel Builder.cpp" ex="false" tool="1" flavor2="0">
@@ -300,7 +300,7 @@
             <pElem>../../ThirdPartyLibs/Bullet/lib/src</pElem>
             <pElem>../../ThirdPartyLibs</pElem>
           </incDir>
-          <commandLine>-std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h</commandLine>
+          <commandLine>-std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h</commandLine>
           <preprocessorList>
             <Elem>DEBUG=0</Elem>
           </preprocessorList>
@@ -489,7 +489,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-static-libstdc++ -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
+          <commandLine>-static-libstdc++ -nopie -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
         </linkerTool>
       </compileType>
       <item path="../Source/Esenthel Builder.cpp" ex="false" tool="1" flavor2="0">

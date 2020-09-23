@@ -334,8 +334,8 @@ OBJECTFILES= \
 CFLAGS=-m64
 
 # CC Compiler Flags
-CCFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h
-CXXFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h
+CCFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h
+CXXFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h
 
 # Fortran Compiler Flags
 FFLAGS=

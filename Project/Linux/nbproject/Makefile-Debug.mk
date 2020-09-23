@@ -42,8 +42,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h
-CXXFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h
+CCFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h
+CXXFLAGS=-m64 -std=c++17 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include ../stdafx.h
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -110,7 +110,7 @@ LDLIBSOPTIONS=-L../../ThirdPartyLibs/PhysX/PhysX/Bin/linux64 -L../../ThirdPartyL
 
 ../Project: ${OBJECTFILES}
 	${MKDIR} -p ..
-	clang++ -o ../Project ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++ -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group
+	clang++ -o ../Project ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++ -nopie -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group
 
 ${OBJECTDIR}/_ext/98fc376a/Esenthel_Builder.o: ../Source/Esenthel\ Builder.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/98fc376a

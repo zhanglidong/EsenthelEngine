@@ -41,8 +41,8 @@ EE_OBJ_FILES
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
-CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
+CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
+CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -60,7 +60,7 @@ LDLIBSOPTIONS=EE_LIB_PATH EXTERNAL_LIBS -Wl,-rpath,Bin -lpthread -ldl -lX11 -lXi
 EE_APP_NAME: EE_LIB_PATH EXTERNAL_LIBS
 
 EE_APP_NAME: ${OBJECTFILES}
-	clang++ -o EE_APP_NAME ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++
+	clang++ -o EE_APP_NAME ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++ -nopie
 
 EE_CPP_FILES
 

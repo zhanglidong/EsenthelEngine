@@ -154,8 +154,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
-CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
+CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
+CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -fms-extensions -fno-pic -fno-pie -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -173,7 +173,7 @@ LDLIBSOPTIONS=../../../Editor/Bin/EsenthelEngine.a  -Wl,-rpath,Bin -lpthread -ld
 Esenthel: ../../../Editor/Bin/EsenthelEngine.a 
 
 Esenthel: ${OBJECTFILES}
-	clang++ -o Esenthel ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++
+	clang++ -o Esenthel ${OBJECTFILES} ${LDLIBSOPTIONS} -static-libstdc++ -nopie
 
 ${OBJECTDIR}/Auto.o: Source/Auto.cpp
 	${MKDIR} -p ${OBJECTDIR}
