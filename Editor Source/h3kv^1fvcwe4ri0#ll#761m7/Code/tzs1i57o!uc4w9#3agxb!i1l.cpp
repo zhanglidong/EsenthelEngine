@@ -180,7 +180,7 @@ class LodRegion : Region
 class NewLodClass : ClosableWindow
 {
    bool           preview=true, simplified_valid=false, processed_ready=false, keep_border=false, draw_at_distance=false, finished=false, stop=false;
-   flt            intensity=0.5, max_distance=1, max_uv=1, max_color=1, max_material=1, max_skin=1, max_normal=PI, draw_distance=2, scale=1;
+   flt            intensity=0.5, max_distance=1, max_uv=1, max_color=1, max_material=1, max_skin=1, max_normal=90, draw_distance=2, scale=1;
    uint           src_id=0, simplified_src_id=0, change_id=0, simplified_change_id=0;
    Property      *quality=null, *preview_prop=null, *draw_at_distance_prop=null;
    Memx<Property> props;
@@ -299,7 +299,7 @@ class NewLodClass : ClosableWindow
          locker.off();
 
          ThreadMayUseGPUData();
-         MeshLod processed; temp.simplify(intensity, dist, max_uv, max_color, max_material, max_skin, max_normal, keep_border, SIMPLIFY_QUADRIC, EPS*scale, &processed, &stop);
+         MeshLod processed; temp.simplify(intensity, dist, max_uv, max_color, max_material, max_skin, DegToRad(max_normal), keep_border, SIMPLIFY_QUADRIC, EPS*scale, &processed, &stop);
          if(!stop)processed.setRender(false);
          locker.on();
          if(simplified_src_id==src_id)
@@ -340,13 +340,13 @@ class NewLodClass : ClosableWindow
 draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass, draw_at_distance)).desc("Draw LOD at specified distance\nKeyboard Shortcut: Alt+D");
    draw_distance_prop=&props.New().create("Draw Distance"   , MEMBER(NewLodClass, draw_distance   )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5);
                        props.New();
-                       props.New().create("Intensity"       , MEMBER(NewLodClass, intensity       )).range(0, 1).mouseEditSpeed(0.4).desc("How much to simplify\n0..1\n0=no simplification\n1=full simplification");
-                       props.New().create("Max Distance"    , MEMBER(NewLodClass, max_distance    )).min  (0   ).mouseEditSpeed(0.01).precision(4).desc("Max distance between elements to merge them");
-                       props.New().create("Max UV"          , MEMBER(NewLodClass, max_uv          )).range(0, 1).mouseEditSpeed(0.01).precision(4).desc("Max allowed vertex texture UV deviations (0..1)");
-                       props.New().create("Max Color"       , MEMBER(NewLodClass, max_color       )).range(0, 1).mouseEditSpeed(0.1).desc("Max allowed vertex color deviations (0..1)");
-                     //props.New().create("Max Material"    , MEMBER(NewLodClass, max_material    )).range(0, 1).mouseEditSpeed(0.1).desc("Max allowed vertex material deviations (0..1)");  // this is not used since most likely there won't be any models with per-vertex materials over here
-                       props.New().create("Max Skin"        , MEMBER(NewLodClass, max_skin        )).range(0, 1).mouseEditSpeed(0.1).desc("Max allowed vertex skin deviations (0..1)");
-                       props.New().create("Max Normal"      , MEMBER(NewLodClass, max_normal      )).range(0, PI).mouseEditSpeed(0.1).precision(4).desc("Max allowed vertex normal angle deviations (0..PI)");
+                       props.New().create("Intensity"       , MEMBER(NewLodClass, intensity       )).range(0,  1).mouseEditSpeed(0.4).desc("How much to simplify\n0..1\n0=no simplification\n1=full simplification");
+                       props.New().create("Max Distance"    , MEMBER(NewLodClass, max_distance    )).min  (0    ).mouseEditSpeed(0.01).precision(4).desc("Max distance between elements to merge them");
+                       props.New().create("Max UV"          , MEMBER(NewLodClass, max_uv          )).range(0,  1).mouseEditSpeed(0.01).precision(4).desc("Max allowed vertex texture UV deviations (0..1)");
+                       props.New().create("Max Color"       , MEMBER(NewLodClass, max_color       )).range(0,  1).mouseEditSpeed(0.1).desc("Max allowed vertex color deviations (0..1)");
+                     //props.New().create("Max Material"    , MEMBER(NewLodClass, max_material    )).range(0,  1).mouseEditSpeed(0.1).desc("Max allowed vertex material deviations (0..1)");  // this is not used since most likely there won't be any models with per-vertex materials over here
+                       props.New().create("Max Skin"        , MEMBER(NewLodClass, max_skin        )).range(0,  1).mouseEditSpeed(0.1).desc("Max allowed vertex skin deviations (0..1)");
+                       props.New().create("Max Normal"      , MEMBER(NewLodClass, max_normal      )).range(0, 90).mouseEditSpeed(5.5).desc("Max allowed vertex normal angle deviations (0..90)");
                        props.New().create("Keep Border"     , MEMBER(NewLodClass, keep_border     )).desc("If always keep border edges (edges that have faces only on one side)");
               quality=&props.New().create(S);
       ts.reset().size=0.045; ts.align.set(1, 0); Rect r=AddProperties(props, T, Vec2(0.02, -0.02), 0.05, 0.2, &ts); REPAO(props).autoData(&NewLod).changed(ChangedParams); preview_prop.changed(null, null); draw_at_distance_prop.changed(null, null); draw_distance_prop.changed(null, null);
