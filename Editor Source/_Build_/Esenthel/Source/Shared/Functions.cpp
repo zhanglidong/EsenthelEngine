@@ -1038,8 +1038,8 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool p
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
-         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
-       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+       //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+         flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          flt d_hue=HueDelta(avg_hue, c.x);
          d_hue*=contrast;
@@ -1048,8 +1048,8 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool p
          c.xyz=HsbToRgb(c.xyz);
          if(photo)
          {
-            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
          }
          image.color3DF(x, y, z, c);
       }
@@ -1066,15 +1066,15 @@ void AddHue(Image &image, flt hue, C BoxI &box, bool photo)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
-         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
-       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+       //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+         flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          c.x +=hue;
          c.xyz=HsbToRgb(c.xyz);
          if(photo)
          {
-            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
          }
          image.color3DF(x, y, z, c);
       }
@@ -1090,15 +1090,15 @@ void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box, bool phot
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
-         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
-       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+       //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+         flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          c.y=(c.y-avg_sat)*contrast+avg_sat;
          c.xyz=HsbToRgb(c.xyz);
          if(photo)
          {
-            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
          }
          image.color3DF(x, y, z, c);
       }
@@ -1163,7 +1163,8 @@ void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, f
    for(int x=box.min.x; x<box.max.x; x++)
    {
       Vec4 c=image.color3DF(x, y, z);
-      flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+    //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+      flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
       Vec  hsb=RgbToHsb(c.xyz);
       flt  hue=hsb.x*6; int hue_i=Trunc(hue); flt hue_frac=hue-hue_i;
       flt  sat_mul=Lerp(mul[hue_i], mul[hue_i+1], hue_frac);
@@ -1172,9 +1173,8 @@ void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, f
       c.xyz=HsbToRgb(hsb);
       if(photo)
       {
-         c.xyz=SRGBToLinear(c.xyz);
-         if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
-         c.xyz=LinearToSRGB(c.xyz);
+       //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                    if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
       }
       image.color3DF(x, y, z, c);
    }
@@ -1713,15 +1713,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            flt  lin_lum=LinearLumOfSRGBColor(c.xyz);
+          //flt  lin_lum=LinearLumOfSRGBColor(c.xyz);
+            flt      lum=  SRGBLumOfSRGBColor(c.xyz);
 
             c.xyz=RgbToHsb(c.xyz);
             c.y*=sat;
             c.xyz=HsbToRgb(c.xyz);
 
-            c.xyz=SRGBToLinear(c.xyz);
-            if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
-            c.xyz=LinearToSRGB(c.xyz);
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
 
             image.color3DF(x, y, z, c);
          }
@@ -1797,12 +1797,12 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            if(flt l=SRGBLumOfSRGBColor(c.xyz))
+            if(flt lum=SRGBLumOfSRGBColor(c.xyz))
             {
                Vec hsb=RgbToHsb(c.xyz);
                hsb.x=hue;
                c.xyz=HsbToRgb(hsb);
-               c.xyz*=l/SRGBLumOfSRGBColor(c.xyz);
+               c.xyz*=lum/SRGBLumOfSRGBColor(c.xyz);
                image.color3DF(x, y, z, c);
             }
          }
@@ -1832,14 +1832,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec2 hue_sat=param.asVec2();
          Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
-              rgb=SRGBToLinear(rgb);
+       //Vec  lin_rgb=SRGBToLinear(rgb);
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-          //c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
-            c.xyz=LinearToSRGB(rgb*LinearLumOfSRGBColor(c.xyz));
+          //c.xyz=LinearToSRGB(lin_rgb*LinearLumOfSRGBColor(c.xyz));
+            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz); // prefer multiplications in sRGB space
             image.color3DF(x, y, z, c);
          }
          image.unlock();
