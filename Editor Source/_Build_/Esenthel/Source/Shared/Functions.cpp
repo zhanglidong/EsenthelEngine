@@ -1049,7 +1049,7 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool p
          if(photo)
          {
           //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
          }
          image.color3DF(x, y, z, c);
       }
@@ -1074,7 +1074,7 @@ void AddHue(Image &image, flt hue, C BoxI &box, bool photo)
          if(photo)
          {
           //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
          }
          image.color3DF(x, y, z, c);
       }
@@ -1098,7 +1098,7 @@ void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box, bool phot
          if(photo)
          {
           //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
          }
          image.color3DF(x, y, z, c);
       }
@@ -1174,7 +1174,7 @@ void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, f
       if(photo)
       {
        //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                    if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
+                                    if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
       }
       image.color3DF(x, y, z, c);
    }
@@ -1721,7 +1721,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             c.xyz=HsbToRgb(c.xyz);
 
           //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
 
             image.color3DF(x, y, z, c);
          }
@@ -1839,7 +1839,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          {
             Vec4 c=image.color3DF(x, y, z);
           //c.xyz=LinearToSRGB(lin_rgb*LinearLumOfSRGBColor(c.xyz));
-            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz); // prefer multiplications in sRGB space
+            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz); // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
             image.color3DF(x, y, z, c);
          }
          image.unlock();
