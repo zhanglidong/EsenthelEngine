@@ -237,7 +237,6 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
          #endif
           C MeshRender &render=mesh.render.set();
           C Bool        instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
-            Sh.VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
@@ -368,7 +367,6 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
          #if MULTI_MATERIAL_INSTANCING
           C Bool                 instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
          #endif
-            Sh.VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {

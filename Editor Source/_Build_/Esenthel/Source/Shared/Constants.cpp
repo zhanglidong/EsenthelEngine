@@ -17,7 +17,6 @@ const Str    NullName      ="<None>",
              EsenthelStoreURL="https://esenthel.com/store.php";
 const flt    StateFadeTime=0.2f,
              SkelSlotSize=0.2f,
-             HeightmapTexScale=6,
              WaypointRadius=0.5f,
              FlushWaypointsDelay=4,
              FlushWaterDelay=4,

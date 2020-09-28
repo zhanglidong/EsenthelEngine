@@ -334,7 +334,6 @@ void MeshPart::zero    ()
 {
    name[0]=0;
    part_flag=0;
-  _vtx_heightmap=0;
   _draw_mask=IndexToFlag(0);
   _draw_mask_enum_id=0;
   _umm=null;
@@ -380,7 +379,6 @@ void MeshPart::copyParams(C MeshPart &src, Bool copy_shaders)
      _draw_mask        =src._draw_mask;
      _draw_mask_enum_id=src._draw_mask_enum_id;
       part_flag        =src. part_flag;
-     _vtx_heightmap    =src._vtx_heightmap;
      _umm              =src._umm;
       REPAO(_materials)=src._materials[i];
      _variation        =src._variation ;       _variation  .unlink();
@@ -392,10 +390,7 @@ void MeshPart::copyParams(C MeshPart &src, Bool copy_shaders)
       }
    }
 }
-void MeshPart::scaleParams(Flt scale)
-{
-   if(scale)_vtx_heightmap/=scale;
-}
+void MeshPart::scaleParams(Flt scale) {}
 MeshPart& MeshPart::include (UInt flag) {                                     Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.include(flag);                                                     return T;} // don't create 'render' from uninitialized data
 MeshPart& MeshPart::exclude (UInt flag) {if((base.flag()|render.flag())&flag){Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.exclude(flag); if(render.is())setRender(); if(!base_is)delBase();} return T;}
 MeshPart& MeshPart::keepOnly(UInt flag) {return exclude(~flag);}
@@ -703,12 +698,12 @@ void MeshPart::variationRemap(C Mesh &src, C Mesh &dest)
 /******************************************************************************/
 // HEIGHTMAP
 /******************************************************************************/
-MeshPart& MeshPart::heightmap(Flt tex_scale, Int lod_index)
+MeshPart& MeshPart::heightmap(Bool heightmap, Int lod_index)
 {
-   MAX(tex_scale, 0); if(tex_scale!=_vtx_heightmap)
+   if(T.heightmap()!=heightmap)
    {
-     _vtx_heightmap=tex_scale;
-      if(heightmap())exclude(VTX_TEX_ALL|VTX_TAN_BIN); // if enabled heightmap, then delete tex/tan/bin as they're no longer needed
+      part_flag^=MSHP_HEIGHTMAP;
+      if(heightmap)exclude(VTX_TEX_ALL|VTX_TAN_BIN); // if enabled heightmap, then delete tex/tan/bin as they're no longer needed
       setShader(lod_index);
    }
    return T;

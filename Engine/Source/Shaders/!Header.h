@@ -386,7 +386,6 @@ BUFFER(ViewToViewPrev)
 BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
-   Flt   VtxHeightmap;
    Bool  VtxSkinning;
    VecH4 Highlight; // this can be modified by engine's 'SetHighlight' function
 BUFFER_END
@@ -1151,9 +1150,9 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Flt   posZ     (                                        ) {return _pos.z                                                                ;} // vertex position Z
    VecH  hlp      (                                        ) {return _hlp                                                                  ;} // helper position
    VecH  tan      (                                        ) {return _tan.xyz                                                              ;} // helper position
-   Vec2  tex      (                    Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
-   Vec2  tex1     (                                        ) {return                                                         _tex1         ;} // tex coords 1
-   Vec2  tex2     (                                        ) {return                                                         _tex2         ;} // tex coords 2
+   Vec2  tex      (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _tex                              ;} // tex coords 0
+   Vec2  tex1     (                                        ) {return                                     _tex1                             ;} // tex coords 1
+   Vec2  tex2     (                                        ) {return                                     _tex2                             ;} // tex coords 2
 #if GL
    VecU  bone     (                                        ) {return VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #else

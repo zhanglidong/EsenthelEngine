@@ -290,8 +290,9 @@ struct BlendInstance
    void setViewZ(Flt z) {T.z=z;}
    void setZ    (C VecD &pos);
 
-   void setViewMatrix(C Matrix  &view_matrix                             ) {T.s.view_matrix.cur=view_matrix;                                        setViewZ(view_matrix.pos.z);} // here 'view_matrix_prev' is ignored because it's assumed to be unused
-   void setViewMatrix(C Matrix  &view_matrix, C Matrix  &view_matrix_prev) {T.s.view_matrix.cur=view_matrix; T.s.view_matrix.prev=view_matrix_prev; setViewZ(view_matrix.pos.z);}
+   void viewMatrixChanged() {setViewZ(s.view_matrix.cur.pos.z);}
+   void setViewMatrix(C Matrix  &view_matrix                             ) {s.view_matrix.cur=view_matrix;                                      viewMatrixChanged();} // here 's.view_matrix.prev' is ignored because it's assumed to be unused
+   void setViewMatrix(C Matrix  &view_matrix, C Matrix  &view_matrix_prev) {s.view_matrix.cur=view_matrix; s.view_matrix.prev=view_matrix_prev; viewMatrixChanged();}
    void setMatrix    (C MatrixM &     matrix);
    void setMatrix    (C MatrixM &     matrix, C MatrixM &matrix_prev);
 

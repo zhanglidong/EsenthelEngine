@@ -865,7 +865,7 @@ void Build(Heightmap &hm, Mesh &mesh, flt area_size, C VecI2 &area_xy, Heightmap
    if(rf && !Equal(rf.height(   0,    0), hm.height(res1, res1)))rf=null;
 
    // build
-   hm.build(mesh, 0, HeightmapTexScale, HM_AO, l, r, b, f, lb, lf, rb, rf);
+   hm.build(mesh, 0, HM_AO, l, r, b, f, lb, lf, rb, rf);
    mesh.scaleMove(area_size, (area_xy*area_size).x0y());
 }
 void Simplify(Mesh &mesh)

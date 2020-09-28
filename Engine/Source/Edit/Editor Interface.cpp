@@ -137,6 +137,7 @@ Material& Material::reset()
    glow=0;
    normal=0;
    bump=0;
+   tex_scale=1;
     color_map.clear();   alpha_map.clear();
      bump_map.clear();  normal_map.clear();
    smooth_map.clear(); reflect_map.clear();
@@ -152,7 +153,7 @@ Material& Material::reset()
 void Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump
+   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump<<tex_scale
     <<Encode( color_map)<<Encode(  alpha_map)
     <<Encode(  bump_map)<<Encode( normal_map)
     <<Encode(smooth_map)<<Encode(reflect_map)
@@ -170,7 +171,7 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump;
+         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump>>tex_scale;
          Decode(f,  color_map); Decode(f,   alpha_map);
          Decode(f,   bump_map); Decode(f,  normal_map);
          Decode(f, smooth_map); Decode(f, reflect_map);

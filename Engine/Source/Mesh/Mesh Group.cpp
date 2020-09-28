@@ -361,6 +361,19 @@ MeshGroup& MeshGroup::simplify(Flt intensity, Flt max_distance, Flt max_uv, Flt 
 /******************************************************************************/
 // DRAW
 /******************************************************************************/
+void MeshGroup::draw()C
+{
+   switch(meshes.elms())
+   {
+      case 0 : return;                  // if           no  meshes then return
+      case 1 : break ;                  // if only      one mesh   then continue but skip MeshGroup.ext frustum checking because it won't be needed (it's equal to meshes[0].ext which is checked later)
+      default: if(!Frustum(ext))return; // if more than one meshes then check         the MeshGroup.ext
+   }
+   FREPA(meshes)
+   {
+    C Mesh &mesh=meshes[i]; if(Frustum(mesh))mesh.draw();
+   }
+}
 void MeshGroup::draw(C MatrixM &matrix)C
 {
    switch(meshes.elms())
@@ -372,6 +385,20 @@ void MeshGroup::draw(C MatrixM &matrix)C
    FREPA(meshes)
    {
     C Mesh &mesh=meshes[i]; if(Frustum(mesh, matrix))mesh.draw(matrix);
+   }
+}
+/******************************************************************************/
+void MeshGroup::drawShadow()C
+{
+   switch(meshes.elms())
+   {
+      case 0 : return;                  // if           no  meshes then return
+      case 1 : break ;                  // if only      one mesh   then continue but skip MeshGroup.ext frustum checking because it won't be needed (it's equal to meshes[0].ext which is checked later)
+      default: if(!Frustum(ext))return; // if more than one meshes then check         the MeshGroup.ext
+   }
+   FREPA(meshes)
+   {
+    C Mesh &mesh=meshes[i]; if(Frustum(mesh))mesh.drawShadow();
    }
 }
 void MeshGroup::drawShadow(C MatrixM &matrix)C

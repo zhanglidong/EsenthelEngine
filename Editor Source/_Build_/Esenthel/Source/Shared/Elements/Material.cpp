@@ -177,6 +177,7 @@
       dest.glow=glow;
       dest.normal=normal;
       dest.bump=bump;
+      dest.tex_scale=tex_scale;
       dest.    color_map=FileParams::Decode(color_map);
       dest.    alpha_map=FileParams::Decode(alpha_map);
       dest.     bump_map=FileParams::Decode(bump_map);
@@ -202,13 +203,14 @@
       changed|=              SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_BASE            ); // set CHANGED_BASE too because this should trigger reloading base textures
       changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
 
-      changed|=CHANGED_PARAM*SyncByValueEqual(  color_time, time, color_s, src.color_s);
-      changed|=CHANGED_PARAM*SyncByValueEqual(ambient_time, time, ambient, src.ambient);
-      changed|=CHANGED_PARAM*SyncByValueEqual( smooth_time, time,  smooth, src. smooth);
-      changed|=CHANGED_PARAM*SyncByValueEqual(reflect_time, time, reflect, src.reflect);
-      changed|=CHANGED_PARAM*SyncByValueEqual(   glow_time, time,    glow, src.   glow);
-      changed|=CHANGED_PARAM*SyncByValueEqual( normal_time, time,  normal, src. normal);
-      changed|=CHANGED_PARAM*SyncByValueEqual(   bump_time, time,    bump, src.   bump);
+      changed|=CHANGED_PARAM*SyncByValueEqual(    color_time, time,   color_s, src.  color_s);
+      changed|=CHANGED_PARAM*SyncByValueEqual(  ambient_time, time,   ambient, src.  ambient);
+      changed|=CHANGED_PARAM*SyncByValueEqual(   smooth_time, time,    smooth, src.   smooth);
+      changed|=CHANGED_PARAM*SyncByValueEqual(  reflect_time, time,   reflect, src.  reflect);
+      changed|=CHANGED_PARAM*SyncByValueEqual(     glow_time, time,      glow, src.     glow);
+      changed|=CHANGED_PARAM*SyncByValueEqual(   normal_time, time,    normal, src.   normal);
+      changed|=CHANGED_PARAM*SyncByValueEqual(     bump_time, time,      bump, src.     bump);
+      changed|=CHANGED_PARAM*SyncByValueEqual(tex_scale_time, time, tex_scale, src.tex_scale);
 
       changed|=CHANGED_BASE *SyncByValue(  color_map_time, time,   color_map  , FileParams::Encode(ConstCast(src.  color_map  )));
       changed|=CHANGED_BASE *SyncByValue(  alpha_map_time, time,   alpha_map  , FileParams::Encode(ConstCast(src.  alpha_map  )));
@@ -277,9 +279,9 @@
       changed|=Sync(   smooth_time, src.   smooth_time, smooth   , src.smooth   )*CHANGED_PARAM;
       changed|=Sync(  reflect_time, src.  reflect_time, reflect  , src.reflect  )*CHANGED_PARAM;
       changed|=Sync(     glow_time, src.     glow_time, glow     , src.glow     )*CHANGED_PARAM;
-      changed|=Sync(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale)*CHANGED_PARAM;
       changed|=Sync(   normal_time, src.   normal_time, normal   , src.normal   )*CHANGED_PARAM;
       changed|=Sync(     bump_time, src.     bump_time, bump     , src.bump     )*CHANGED_PARAM;
+      changed|=Sync(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale)*CHANGED_PARAM;
       if(Sync(detail_time, src.detail_time))
       {
          changed|=CHANGED_PARAM;
@@ -339,9 +341,9 @@
       changed|=Undo(   smooth_time, src.   smooth_time, smooth   , src.smooth   )*CHANGED_PARAM;
       changed|=Undo(  reflect_time, src.  reflect_time, reflect  , src.reflect  )*CHANGED_PARAM;
       changed|=Undo(     glow_time, src.     glow_time, glow     , src.glow     )*CHANGED_PARAM;
-      changed|=Undo(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale)*CHANGED_PARAM;
       changed|=Undo(   normal_time, src.   normal_time, normal   , src.normal   )*CHANGED_PARAM;
       changed|=Undo(     bump_time, src.     bump_time, bump     , src.bump     )*CHANGED_PARAM;
+      changed|=Undo(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale)*CHANGED_PARAM;
       if(Undo(detail_time, src.detail_time))
       {
          changed|=CHANGED_PARAM;

@@ -1,6 +1,6 @@
 /******************************************************************************/
-const uint ProjectVersion     =72, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=72; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
+const uint ProjectVersion     =73, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=73; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str  ClientServerString ="Esenthel Editor";
 /******************************************************************************/
 const cchar8       *WorldVerSuffix     ="\\Data",
@@ -16,7 +16,6 @@ const Str           NullName      ="<None>",
                     EsenthelStoreURL="https://esenthel.com/store.php";
 const flt           StateFadeTime=0.2,
                     SkelSlotSize=0.2,
-                    HeightmapTexScale=6,
                     WaypointRadius=0.5,
                     FlushWaypointsDelay=4,
                     FlushWaterDelay=4,

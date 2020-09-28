@@ -353,8 +353,7 @@ void MainShaderClass::getTechniques()
    Color[1]  =GetShaderParam("Color[1]"  );
    BehindBias=GetShaderParam("BehindBias");
 
-   VtxSkinning =GetShaderParamBool("VtxSkinning" );
-   VtxHeightmap=GetShaderParam    ("VtxHeightmap");
+   VtxSkinning=GetShaderParamBool("VtxSkinning");
 
    LightMapScale=GetShaderParam("LightMapScale");
 

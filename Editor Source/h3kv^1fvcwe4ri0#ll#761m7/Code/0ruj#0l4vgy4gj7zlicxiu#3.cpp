@@ -1042,9 +1042,9 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="avgHuePhoto" || name=="medHue" || name=="medHuePhoto" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -1269,7 +1269,7 @@ void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, 
       image.color3DF(x, y, z, c);
    }
 }
-void MulSat(Image &image, flt mul, C BoxI &box)
+void MulSat(Image &image, flt mul, C BoxI &box, bool photo=false)
 {
    if(mul!=1 && image.lock())
    {
@@ -1278,9 +1278,17 @@ void MulSat(Image &image, flt mul, C BoxI &box)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
+       //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+         flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+
          c.xyz=RgbToHsb(c.xyz);
          c.y*=mul;
          c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
+         }
          image.color3DF(x, y, z, c);
       }
       image.unlock();
@@ -1791,19 +1799,19 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="addHue"     )AddHue(image, param.asFlt(), box);else
    if(param.name=="addHuePhoto")AddHue(image, param.asFlt(), box, true);else
-   if(param.name=="avgHue")
+   if(param.name=="avgHue" || param.name=="avgHuePhoto")
    {
       if(image.lock()) // lock for writing because we will use this lock for applying hue too
       {
-         Vec4 col; if(image.stats(null, null, &col, null, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box);
+         Vec4 col; if(image.stats(null, null, &col, null, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box, param.name=="avgHuePhoto");
          image.unlock();
       }
    }else
-   if(param.name=="medHue")
+   if(param.name=="medHue" || param.name=="medHuePhoto")
    {
       if(image.lock()) // lock for writing because we will use this lock for applying hue too
       {
-         Vec4 col; if(image.stats(null, null, null, &col, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box);
+         Vec4 col; if(image.stats(null, null, null, &col, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box, param.name=="medHuePhoto");
          image.unlock();
       }
    }else
@@ -1824,41 +1832,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.unlock();
       }
    }else
-   if(param.name=="mulSat")
+   if(param.name=="mulSat"     )MulSat(image, param.asFlt(), box);else
+   if(param.name=="mulSatPhoto")MulSat(image, param.asFlt(), box, true);else
+   if(param.name=="avgSat" || param.name=="avgSatPhoto")
    {
-      MulSat(image, param.asFlt(), box);
+      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg)MulSat(image, param.asFlt()/avg, box, param.name=="avgSatPhoto");
    }else
-   if(param.name=="avgSat")
+   if(param.name=="medSat" || param.name=="medSatPhoto")
    {
-      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg)MulSat(image, param.asFlt()/avg, box);
-   }else
-   if(param.name=="medSat")
-   {
-      flt med; if(image.statsSat(null, null, null, &med, null, null, &box))if(med)MulSat(image, param.asFlt()/med, box);
-   }else
-   if(param.name=="mulSatPhoto")
-   {
-      flt sat=param.asFlt(); if(sat!=1 && image.lock())
-      {
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-          //flt  lin_lum=LinearLumOfSRGBColor(c.xyz);
-            flt      lum=  SRGBLumOfSRGBColor(c.xyz);
-
-            c.xyz=RgbToHsb(c.xyz);
-            c.y*=sat;
-            c.xyz=HsbToRgb(c.xyz);
-
-          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
-                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
-
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
-      }
+      flt med; if(image.statsSat(null, null, null, &med, null, null, &box))if(med)MulSat(image, param.asFlt()/med, box, param.name=="medSatPhoto");
    }else
    if(param.name=="mulSatH"
    || param.name=="mulSatHS")

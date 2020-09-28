@@ -178,7 +178,7 @@ void AddHue(Image &image, flt hue, C BoxI &box, bool photo=false);
 void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box, bool photo=false);
 void MulRGBH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
 void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, C BoxI &box);
-void MulSat(Image &image, flt mul, C BoxI &box);
+void MulSat(Image &image, flt mul, C BoxI &box, bool photo=false);
 void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, bool sat, bool photo, C BoxI &box);
 flt HueDelta(flt a, flt b);
 Vec2  LerpToMad(flt from, flt to);

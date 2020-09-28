@@ -275,7 +275,7 @@ Vec HmNormalAvg(C Heightmap &hm, flt area_size, C VecI2 &area_xy, C Matrix &matr
          if(hm && Frustum(hm->mesh))
          {
             bool lit=(WorldEdit.mode()==WorldView::HEIGHTMAP && WorldEdit.hm_add_rem() && WorldEdit.cur.valid() && Cuts(xy, RectI(WorldEdit.cur.xz()).extend(WorldEdit.hm_sel_size)));
-            SetHighlight(lit ? Color(32, 32, 32, 0) : TRANSPARENT); SetStencilValue(true ); hm->mesh.draw(MatrixIdentity);
+            SetHighlight(lit ? Color(32, 32, 32, 0) : TRANSPARENT); SetStencilValue(true ); hm->mesh.draw();
             SetHighlight(                             TRANSPARENT); SetStencilValue(false);
             if(WorldEdit.hm_use_shader)scheduleDrawBlend(hm->mesh.ext.center);
          }
@@ -286,7 +286,7 @@ Vec HmNormalAvg(C Heightmap &hm, flt area_size, C VecI2 &area_xy, C Matrix &matr
    }
    void Area::drawShadow()
    {
-      if(hm && Frustum(hm->mesh))hm->mesh.drawShadow(MatrixIdentity);
+      if(hm && Frustum(hm->mesh))hm->mesh.drawShadow();
    }
    void Area::drawBlend()
 {

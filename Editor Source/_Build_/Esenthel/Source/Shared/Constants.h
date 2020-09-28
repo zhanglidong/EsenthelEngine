@@ -13,7 +13,6 @@ extern const Str           NullName      ,
                     EsenthelStoreURL;
 extern const flt           StateFadeTime,
                     SkelSlotSize,
-                    HeightmapTexScale,
                     WaypointRadius,
                     FlushWaypointsDelay,
                     FlushWaterDelay,

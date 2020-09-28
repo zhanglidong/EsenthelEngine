@@ -630,8 +630,8 @@ Bool MeshRender::load(C Str &name)
 /******************************************************************************/
 Bool MeshPart::saveData(File &f, CChar *path)C
 {
-   f.cmpUIntV(7);
-   f.putStr(name).putMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+   f.cmpUIntV(8);
+   f.putStr(name).putMulti(part_flag, _draw_mask, _draw_mask_enum_id);
    f.putAsset(_materials[0].id());
    f.putAsset(_materials[1].id());
    f.putAsset(_materials[2].id());
@@ -650,11 +650,25 @@ static void SetOldFlag(MeshPart &part, Byte flag)
 }
 Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 {
+   Flt uv_scale;
    del(); switch(f.decUIntV()) // version
    {
+      case 8:
+      {
+         f.getStr(name).getMulti(part_flag, _draw_mask, _draw_mask_enum_id);
+        _materials[0].require(f.getAssetID(), path);
+        _materials[1].require(f.getAssetID(), path);
+        _materials[2].require(f.getAssetID(), path);
+         if(_variation .load(f, path))
+         if(_variations.load(f, path))
+         if( base      .loadData(f))
+         if( render    .loadData(f))
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
+      }break;
+
       case 7:
       {
-         f.getStr(name).getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+         f.getStr(name).getMulti(part_flag, uv_scale, _draw_mask, _draw_mask_enum_id); if(uv_scale)part_flag|=MSHP_HEIGHTMAP;
         _materials[0].require(f.getAssetID(), path);
         _materials[1].require(f.getAssetID(), path);
         _materials[2].require(f.getAssetID(), path);
@@ -667,7 +681,7 @@ Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 
       case 6:
       {
-         f._getStr1(name).getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+         f._getStr1(name).getMulti(part_flag, uv_scale, _draw_mask, _draw_mask_enum_id); if(uv_scale)part_flag|=MSHP_HEIGHTMAP;
         _materials[0].require(f.getAssetID(), path);
         _materials[1].require(f.getAssetID(), path);
         _materials[2].require(f.getAssetID(), path);
@@ -680,7 +694,7 @@ Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 
       case 5:
       {
-         f>>name; f.getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+         f>>name; f.getMulti(part_flag, uv_scale, _draw_mask, _draw_mask_enum_id); if(uv_scale)part_flag|=MSHP_HEIGHTMAP;
         _materials[0].require(f.getAssetID(), path);
         _materials[1].require(f.getAssetID(), path);
         _materials[2].require(f.getAssetID(), path);
@@ -693,7 +707,7 @@ Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 
       case 4:
       {
-         f>>name; f.getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+         f>>name; f.getMulti(part_flag, uv_scale, _draw_mask, _draw_mask_enum_id); if(uv_scale)part_flag|=MSHP_HEIGHTMAP;
         _variation.material    .require(f._getStr(), path);
                   _materials[0].require(f._getStr(), path);
                   _materials[1].require(f._getStr(), path);
@@ -705,7 +719,7 @@ Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 
       case 3:
       {
-         f>>name; f.skip(1); SetOldFlag(T, f.getByte()); f>>_vtx_heightmap;
+         f>>name; f.skip(1); SetOldFlag(T, f.getByte()); f>>uv_scale; if(uv_scale)part_flag|=MSHP_HEIGHTMAP;
         _variation.material    .require(f._getStr(), path);
                   _materials[0].require(f._getStr(), path);
                   _materials[1].require(f._getStr(), path);
@@ -717,7 +731,7 @@ Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 
       case 2:
       {
-         f>>name; f.skip(1); SetOldFlag(T, f.getByte()); f.skip(1); f>>_vtx_heightmap; f.skip(20);
+         f>>name; f.skip(1); SetOldFlag(T, f.getByte()); f.skip(1); f>>uv_scale; if(uv_scale)part_flag|=MSHP_HEIGHTMAP; f.skip(20);
         _variation.material    .require(f._getStr(), path);
                   _materials[0].require(f._getStr(), path);
                   _materials[1].require(f._getStr(), path);

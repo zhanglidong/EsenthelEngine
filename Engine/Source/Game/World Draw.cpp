@@ -100,7 +100,7 @@ inline void Area::drawObjAndTerrain()
          SetVariation();
 
          // terrain mesh
-         SetEarlyZ(WorldManager::use_early_z_for_terrain); _data->mesh.draw(MatrixIdentity);
+         SetEarlyZ(WorldManager::use_early_z_for_terrain); _data->mesh.draw();
          SetEarlyZ();
 
          SetStencilValue();
@@ -155,7 +155,7 @@ inline void Area::drawTerrainShadow()
       SetVariation();
 
       // terrain mesh
-      data()->mesh.drawShadow(MatrixIdentity);
+      data()->mesh.drawShadow();
 
       // custom
       data()->customDrawShadow();

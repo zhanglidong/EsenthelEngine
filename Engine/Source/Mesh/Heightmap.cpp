@@ -1519,7 +1519,7 @@ struct Builder
 };
 /******************************************************************************/
 // use NOINLINE to avoid compilers inlining because of big stack usage
-NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt flag, BuildMemSoft /* !! Warning: this may be only 'BuildMem' !! */ &mem, C Heightmap *h_l, C Heightmap *h_r, C Heightmap *h_b, C Heightmap *h_f, C Heightmap *h_lb, C Heightmap *h_lf, C Heightmap *h_rb, C Heightmap *h_rf) // this function should be multi-threaded safe
+NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, UInt flag, BuildMemSoft /* !! Warning: this may be only 'BuildMem' !! */ &mem, C Heightmap *h_l, C Heightmap *h_r, C Heightmap *h_b, C Heightmap *h_f, C Heightmap *h_lb, C Heightmap *h_lf, C Heightmap *h_rb, C Heightmap *h_rf) // this function should be multi-threaded safe
 {
    Int res=resolution();
 
@@ -1966,7 +1966,7 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt f
             MtrlCombo &mtrl_combo=builder.mtrl_combos[i];
             VecB4     &mtrl_index=mtrl_combo.mtrl_index;
          #if VTX_HEIGHTMAP
-            part._vtx_heightmap=tex_scale; // !! set before calling 'multiMaterial' because this value affects the shader !!
+            part.part_flag|=MSHP_HEIGHTMAP; // !! set before calling 'multiMaterial' because this value affects the shader !!
          #endif
             part.multiMaterial(_materials[mtrl_index.c[0]], _materials[mtrl_index.c[1]], _materials[mtrl_index.c[2]], _materials[mtrl_index.c[3]], soft ? -1 : l); // set shaders only for hardware mode
          }
@@ -1979,12 +1979,12 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt f
    }
    return true;
 }
-Bool Heightmap::buildEx(Mesh &mesh, Int quality, Flt tex_scale, UInt flag, BuildMemSoft &mem, C Heightmap *h_l, C Heightmap *h_r, C Heightmap *h_b, C Heightmap *h_f, C Heightmap *h_lb, C Heightmap *h_lf, C Heightmap *h_rb, C Heightmap *h_rf) // this function should be multi-threaded safe
+Bool Heightmap::buildEx(Mesh &mesh, Int quality, UInt flag, BuildMemSoft &mem, C Heightmap *h_l, C Heightmap *h_r, C Heightmap *h_b, C Heightmap *h_f, C Heightmap *h_lb, C Heightmap *h_lf, C Heightmap *h_rb, C Heightmap *h_rf) // this function should be multi-threaded safe
 {
    if(is())
    {
       // buildEx2 was separated because it uses a very big stack
-      if(buildEx2(mesh, quality, tex_scale, flag, mem, h_l, h_r, h_b, h_f, h_lb, h_lf, h_rb, h_rf))
+      if(buildEx2(mesh, quality, flag, mem, h_l, h_r, h_b, h_f, h_lb, h_lf, h_rb, h_rf))
       {
          // remove empty lods
          REPD(l, mesh.lods())if(l && !mesh.lod(l).is())mesh.removeLod(l);
@@ -1996,14 +1996,14 @@ Bool Heightmap::buildEx(Mesh &mesh, Int quality, Flt tex_scale, UInt flag, Build
    mesh.del(); return false;
 }
 /******************************************************************************/
-void Heightmap::build(Mesh &dest_mesh, Int quality, Flt tex_scale, UInt flag, C Heightmap *l, C Heightmap *r, C Heightmap *b, C Heightmap *f, C Heightmap *lb, C Heightmap *lf, C Heightmap *rb, C Heightmap *rf, Mems<Byte> *temp_mem)
+void Heightmap::build(Mesh &dest_mesh, Int quality, UInt flag, C Heightmap *l, C Heightmap *r, C Heightmap *b, C Heightmap *f, C Heightmap *lb, C Heightmap *lf, C Heightmap *rb, C Heightmap *rf, Mems<Byte> *temp_mem)
 {
    if(is())
    {
       // !! prefer 'Mems' because 'Memc' for example will round up memory size to nearest Pow2
       Int build_mem_size=((flag&HM_SOFT) ? SIZE(BuildMemSoft) : SIZE(BuildMem));
       Ptr build_mem; if(temp_mem)build_mem=temp_mem->setNum(build_mem_size).data();else build_mem=Alloc(build_mem_size);
-      buildEx(dest_mesh, quality, tex_scale, flag, *(BuildMemSoft*)build_mem, l, r, b, f, lb, lf, rb, rf);
+      buildEx(dest_mesh, quality, flag, *(BuildMemSoft*)build_mem, l, r, b, f, lb, lf, rb, rf);
       if(!temp_mem)Free(build_mem);
    }else dest_mesh.del();
 }

@@ -83,8 +83,6 @@ struct MainShaderClass
       *Color[2]  ={&Dummy, &Dummy},
       *BehindBias= &Dummy,
 
-      *VtxHeightmap,
-
       *FontShadow  ,
       *FontLum     ,
       *FontContrast,

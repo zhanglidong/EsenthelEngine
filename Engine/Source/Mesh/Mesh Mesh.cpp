@@ -272,6 +272,15 @@ Mesh& Mesh::keepOnly(UInt flag) {REP(lods())lod(i).keepOnly(flag); return T;}
 UInt Mesh::flag    ()C {UInt flag=0; REP(lods())flag|=lod(i).flag    (); return flag;}
 UInt Mesh::memUsage()C {UInt size=0; REP(lods())size+=lod(i).memUsage(); return size;}
 
+C MeshLod& Mesh::getDrawLod()C
+{
+   if(_lods.elms())
+   {
+      Flt dist2=GetLodDist2(lod_center);
+      REPA(_lods){C MeshLod &test=_lods[i]; if(dist2>=test.dist2)return test;} // go from the end because most likely there will be more objects far from camera with higher LOD
+   }
+   return T;
+}
 C MeshLod& Mesh::getDrawLod(C Matrix &matrix)C
 {
    if(_lods.elms())
@@ -289,6 +298,15 @@ C MeshLod& Mesh::getDrawLod(C MatrixM &matrix)C
       REPA(_lods){C MeshLod &test=_lods[i]; if(dist2>=test.dist2)return test;} // go from the end because most likely there will be more objects far from camera with higher LOD
    }
    return T;
+}
+Int Mesh::getDrawLodI()C
+{
+   if(_lods.elms())
+   {
+      Flt dist2=GetLodDist2(lod_center);
+      REPA(_lods)if(dist2>=_lods[i].dist2)return i+1; // go from the end because most likely there will be more objects far from camera with higher LOD
+   }
+   return 0;
 }
 Int Mesh::getDrawLodI(C Matrix &matrix)C
 {

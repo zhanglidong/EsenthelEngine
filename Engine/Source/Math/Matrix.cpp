@@ -3617,6 +3617,12 @@ void SetProjMatrix(Flt proj_offset)
 /******************************************************************************/
 // LOD
 /******************************************************************************/
+Flt GetLodDist2(C Vec &lod_center)
+{
+   Flt dist2=D._lod_current_factor;
+   if(FovPerspective(D.viewFovMode()))dist2*=Dist2(lod_center, ActiveCam.matrix.pos); // has to be 'ActiveCam.matrix' and not 'CamMatrix' because we need the same LOD for shadows as for normal
+   return dist2;
+}
 Flt GetLodDist2(C Vec &lod_center, C Matrix &matrix)
 {
    Flt dist2=D._lod_current_factor/matrix.x.length2(); // Warning: only 'matrix.x' length is used (ignoring Y and Z)

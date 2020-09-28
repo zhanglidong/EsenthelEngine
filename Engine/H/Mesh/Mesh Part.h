@@ -13,8 +13,9 @@ struct LeafAttachment
 /******************************************************************************/
 enum MSHP_FLAG // Mesh Part Flag
 {
-   MSHP_NO_PHYS_BODY=0x01, // if no physical body will be made out of this part (this flag is checked when creating a physical body from Mesh and ignoring all parts that have this flag enabled)
-   MSHP_HIDDEN      =0x02, // if hidden (this flag is checked in 'Sweep' functions, it is not used however for rendering, for preventing mesh parts from being rendered please use 'MeshPart.drawGroup' and 'SetDrawMask')
+   MSHP_NO_PHYS_BODY=1<<0, // if no physical body will be made out of this part (this flag is checked when creating a physical body from Mesh and ignoring all parts that have this flag enabled)
+   MSHP_HIDDEN      =1<<1, // if hidden (this flag is checked in 'Sweep' functions, it is not used however for rendering, for preventing mesh parts from being rendered please use 'MeshPart.drawGroup' and 'SetDrawMask')
+   MSHP_HEIGHTMAP   =1<<2, // if this is a heightmap (affects shader)
 };
 struct MeshPart // Mesh Base + Mesh Render
 {
@@ -74,7 +75,6 @@ struct MeshPart // Mesh Base + Mesh Render
    MeshPart& variations(Int variations                                         );   Int          variations(             )C; // set/get number of variations (mesh parts always have at least 1 variation), variations allow for specifying different materials for mesh parts, active variation for rendering can be specified using 'SetVariation' function
    MeshPart& variation (Int variation, C MaterialPtr &material, Int lod_index=0); C MaterialPtr& variation (Int variation)C; // set/get material for specified variation (calling this method with index=0 is the same as calling 'material' methods), 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader, if it's <0 then shader will not be reset)
 
-   MeshPart& heightmap(Flt tex_scale, Int lod_index=0); // set as heightmap with 'tex_scale' (use 0 to disable heightmap mode), 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader)
 #if EE_PRIVATE
  C MaterialPtr& variationNull(Int variation)C; // set/get material for specified variation (calling this method with index=0 is the same as calling 'material' methods), if index is out of range, then null is returned
 
@@ -82,12 +82,13 @@ struct MeshPart // Mesh Base + Mesh Render
    void variationKeep  (Int variation               );
    void variationMove  (Int variation, Int new_index);
    void variationRemap (C Mesh &src, C Mesh &dest   ); // remap variations that were originally set to 'src' mesh, into 'dest' mesh
-
-   Bool heightmap()C {return _vtx_heightmap!=0;}
 #endif
 
    MeshPart&    multiMaterial(C MaterialPtr &m0, C MaterialPtr &m1, C MaterialPtr &m2, C MaterialPtr &m3, Int lod_index=0); // set multi materials, multi materials are used for terrain meshes allowing to blend triangles smoothly between multiple terrain materials, 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader, if it's <0 then shader will not be reset), materials must point to object in constant memory address (mesh will store only the pointer to the material and later use it if needed)
  C MaterialPtr& multiMaterial(Int i)C; // get i-th multi material
+
+   MeshPart& heightmap(Bool heightmap, Int lod_index=0); // set as heightmap (use false to disable heightmap mode), 'lod_index'=index of the LOD in the mesh (used to determine quality of the shader)
+   Bool      heightmap()C {return FlagTest(part_flag, MSHP_HEIGHTMAP);} // if this is a heightmap
 
    // transform
    MeshPart& move         (              C Vec &move         ); //           move
@@ -195,7 +196,6 @@ private:
    #endif
       Variation();
    };
-   Flt             _vtx_heightmap;
    UInt            _draw_mask, _draw_mask_enum_id;
         Variation  _variation;
    Mems<Variation> _variations;
