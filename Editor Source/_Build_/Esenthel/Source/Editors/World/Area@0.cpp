@@ -78,7 +78,7 @@ Vec HmNormalAvg(C Heightmap &hm, flt area_size, C VecI2 &area_xy, C Matrix &matr
 /******************************************************************************/
 
 /******************************************************************************/
-   bool Heightmap2::builded()C {return mesh.is();}
+   bool Heightmap2::built()C {return mesh.is();}
    bool Heightmap2::invalidRefs()C
    {
       REP(materials())if(Proj.invalidRef(material(i).id()))return true;

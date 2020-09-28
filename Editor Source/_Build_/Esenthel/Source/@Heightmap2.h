@@ -8,7 +8,7 @@ class Heightmap2 : Heightmap
    Image     height_map, mtrl_map;
    Memc<UID> mtrls;
 
-   bool builded()C;
+   bool built()C;
 
    bool invalidRefs()C;
 

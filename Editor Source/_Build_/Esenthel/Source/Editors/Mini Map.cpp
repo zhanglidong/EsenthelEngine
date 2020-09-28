@@ -44,7 +44,7 @@ bool UpdateMiniMap()
       if(Builder.finished(&MiniMapEdit.worldID()))
       {
          MiniMapBuilding=false;
-         WorldEdit.flush(); // flush any world areas that were builded
+         WorldEdit.flush(); // flush any world areas that were built
          if(ElmMiniMap *data=MiniMapEdit.data()) // start creating mini maps
          {
             FDelInside(Proj.gamePath(MiniMapEdit.elm_id));

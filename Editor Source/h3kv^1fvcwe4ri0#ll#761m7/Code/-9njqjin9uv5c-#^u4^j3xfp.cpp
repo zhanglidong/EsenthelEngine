@@ -532,7 +532,7 @@ class BuilderClass
 
    // get
    bool processing(                    ) {return areas.elms()>0;} // if we're currently processing some areas
-   bool finished  (C UID *world_id=null) {return !processing() && !Proj.worldAreasToRebuild(world_id);} // if builded all areas for rebuilt
+   bool finished  (C UID *world_id=null) {return !processing() && !Proj.worldAreasToRebuild(world_id);} // if built all areas for rebuilt
 
    // operations
    void stop()

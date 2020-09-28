@@ -24,7 +24,7 @@ class BuilderClass
 
    // get
    bool processing(                    ); // if we're currently processing some areas
-   bool finished  (C UID *world_id=null); // if builded all areas for rebuilt
+   bool finished  (C UID *world_id=null); // if built all areas for rebuilt
 
    // operations
    void stop();

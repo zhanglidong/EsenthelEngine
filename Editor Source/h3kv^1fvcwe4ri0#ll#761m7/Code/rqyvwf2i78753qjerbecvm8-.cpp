@@ -82,7 +82,7 @@ class Heightmap2 : Heightmap
    Image     height_map, mtrl_map;
    Memc<UID> mtrls;
 
-   bool builded()C {return mesh.is();}
+   bool built()C {return mesh.is();}
 
    bool invalidRefs()C
    {

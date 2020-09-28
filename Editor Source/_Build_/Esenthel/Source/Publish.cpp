@@ -923,7 +923,7 @@ bool UpdatePublish()
          Builder.update(false);
          if(Builder.finished())
          {
-            WorldEdit.flush(); // flush any world areas that were builded
+            WorldEdit.flush(); // flush any world areas that were built
             SetPublishFiles(PublishFiles, PublishGenerate, PublishConvert, PublishFileData);
             UpdateThread.create(PublishFunc);
          }
