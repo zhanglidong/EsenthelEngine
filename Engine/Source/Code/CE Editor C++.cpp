@@ -1561,17 +1561,17 @@ static void SetGroups(Node<BuildFileElm> &node, Str &str)
 //      };
    if(!node.bf) // group
    {
-      str+=S+"      "+XcodeID(node.id)+" /* "+Replace(node.base_name, '*', '\0')+" */ = {\n";
-      str+=S+"         isa = PBXGroup;\n";
-      str+=S+"         children = (\n";
+      str+=S+"\t\t"+XcodeID(node.id)+" /* "+Replace(node.base_name, '*', '\0')+" */ = {\n";
+      str+=S+"\t\t\tisa = PBXGroup;\n";
+      str+=S+"\t\t\tchildren = (\n";
       FREPA(node.children) // keep order
       {
-         str+=S+"            "+XcodeID(node.children[i].id)+" /* "+Replace(node.children[i].base_name, '*', '\0')+" */,\n";
+         str+=S+"\t\t\t\t"+XcodeID(node.children[i].id)+" /* "+Replace(node.children[i].base_name, '*', '\0')+" */,\n";
       }
-      str+=S+"         );\n";
-      str+=S+"         name = \""+CString(node.base_name)+"\";\n";
-      str+=S+"         sourceTree = \"<group>\";\n";
-      str+=S+"      };\n";
+      str+=S+"\t\t\t);\n";
+      str+=S+"\t\t\tname = \""+CString(node.base_name)+"\";\n";
+      str+=S+"\t\t\tsourceTree = \"<group>\";\n";
+      str+=S+"\t\t};\n";
    }
    FREPA(node.children)SetGroups(node.children[i], str);
 }
@@ -1876,7 +1876,7 @@ Bool CodeEditor::generateXcodeProj()
          bf.xcode_file_id=file_id++;
          bf.xcode_mac_id =file_id++;
          bf.xcode_ios_id =file_id++;
-         add+=S+"      "+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = \""+CString(GetBase(bf.dest_proj_path))+"\"; path = \""+CString(UnixPath(bf.dest_proj_path))+"\"; sourceTree = \"<group>\"; };\n";
+         add+=S+"\t\t"+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = \""+CString(GetBase(bf.dest_proj_path))+"\"; path = \""+CString(UnixPath(bf.dest_proj_path))+"\"; sourceTree = \"<group>\"; };\n";
          BuildTree(tree, bf, bf.dest_proj_path);
       }
    }
@@ -1886,21 +1886,21 @@ Bool CodeEditor::generateXcodeProj()
       file.file =file_id++;
       file.build=file_id++;
       file.copy =file_id++;
-      add+=S+"      "+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = \"compiled.mach-o.dylib\"; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
+      add+=S+"\t\t"+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = \"compiled.mach-o.dylib\"; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
    }
    REPA(mac_assets)
    {
       XcodeFile &file=mac_assets[i];
       file.file =file_id++;
       file.build=file_id++;
-      add+=S+"      "+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = file; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<group>\"; };\n";
+      add+=S+"\t\t"+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = file; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<group>\"; };\n";
    }
    REPA(ios_images)
    {
       XcodeFile &file=ios_images[i];
       file.file =file_id++;
       file.build=file_id++;
-      add+=S+"      "+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<group>\"; };\n";
+      add+=S+"\t\t"+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<group>\"; };\n";
    }
    FREPA(libs_mac)
    {
@@ -1908,7 +1908,7 @@ Bool CodeEditor::generateXcodeProj()
       file.name =libs_mac[i];
       file.file =file_id++;
       file.build=file_id++;
-      add+=S+"      "+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
+      add+=S+"\t\t"+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
    }
    FREPA(libs_ios)
    {
@@ -1916,7 +1916,7 @@ Bool CodeEditor::generateXcodeProj()
       file.name =libs_ios[i];
       file.file =file_id++;
       file.build=file_id++;
-      add+=S+"      "+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
+      add+=S+"\t\t"+XcodeID(file.file)+" /* "+file.name+" */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = \""+CString(GetBase(file.name))+"\"; path = \""+CString(UnixPath(file.name))+"\"; sourceTree = \"<absolute>\"; };\n";
    }
    str.insert(pos, add);
 
@@ -1928,35 +1928,35 @@ Bool CodeEditor::generateXcodeProj()
    {
       BuildFile &bf=build_files[i]; if(bf.mode==BuildFile::SOURCE)
       {
-         add+=S+"      "+XcodeID(bf.xcode_mac_id)+" /* Mac: "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */; };\n";
-         add+=S+"      "+XcodeID(bf.xcode_ios_id)+" /* iOS: "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */; };\n";
+         add+=S+"\t\t"+XcodeID(bf.xcode_mac_id)+" /* Mac: "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */; };\n";
+         add+=S+"\t\t"+XcodeID(bf.xcode_ios_id)+" /* iOS: "+Replace(bf.dest_proj_path, '*', '\0')+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(bf.xcode_file_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */; };\n";
       }
    }
    REPA(mac_assets)
    {
       XcodeFile &file=mac_assets[i];
-      add+=S+"      "+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
+      add+=S+"\t\t"+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
    }
    REPA(ios_images)
    {
       XcodeFile &file=ios_images[i];
-      add+=S+"      "+XcodeID(file.build)+" /* iOS: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
+      add+=S+"\t\t"+XcodeID(file.build)+" /* iOS: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
    }
    REPA(mac_dylibs)
    {
       XcodeFile &file=mac_dylibs[i];
-      add+=S+"      "+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
-      add+=S+"      "+XcodeID(file.copy )+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
+      add+=S+"\t\t"+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
+      add+=S+"\t\t"+XcodeID(file.copy )+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
    }
    REPA(mac_frameworks)
    {
       XcodeFile &file=mac_frameworks[i];
-      add+=S+"      "+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
+      add+=S+"\t\t"+XcodeID(file.build)+" /* Mac: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
    }
    REPA(ios_frameworks)
    {
       XcodeFile &file=ios_frameworks[i];
-      add+=S+"      "+XcodeID(file.build)+" /* iOS: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
+      add+=S+"\t\t"+XcodeID(file.build)+" /* iOS: "+file.name+" */ = {isa = PBXBuildFile; fileRef = "+XcodeID(file.file)+" /* "+file.name+" */; };\n";
    }
    str.insert(pos, add);
 
