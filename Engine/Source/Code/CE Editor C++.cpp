@@ -1967,13 +1967,13 @@ Bool CodeEditor::generateXcodeProj()
    {
       XcodeFile &file=mac_frameworks[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.build)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.build)+" /* "+file.name+" */,\n";
    }
    REPA(mac_dylibs)
    {
       XcodeFile &file=mac_dylibs[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.build)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.build)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -1983,7 +1983,7 @@ Bool CodeEditor::generateXcodeProj()
    {
       XcodeFile &file=ios_frameworks[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.build)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.build)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -1993,19 +1993,19 @@ Bool CodeEditor::generateXcodeProj()
    {
       XcodeFile &file=mac_frameworks[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.file)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.file)+" /* "+file.name+" */,\n";
    }
    REPA(mac_dylibs)
    {
       XcodeFile &file=mac_dylibs[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.file)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.file)+" /* "+file.name+" */,\n";
    }
    REPA(ios_frameworks)
    {
       XcodeFile &file=ios_frameworks[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.file)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.file)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2016,7 +2016,7 @@ Bool CodeEditor::generateXcodeProj()
    {
       XcodeFile &file=mac_dylibs[i];
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.copy)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.copy)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2035,7 +2035,7 @@ Bool CodeEditor::generateXcodeProj()
 // Sample:
 //            0B80AFFF1238566900C08944 /* Main.cpp */,
       Node<BuildFileElm> &node=tree.children[i];
-      add+=S+"            "+XcodeID(node.id)+" /* "+Replace(node.base_name, '*', '\0')+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(node.id)+" /* "+Replace(node.base_name, '*', '\0')+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2048,12 +2048,12 @@ Bool CodeEditor::generateXcodeProj()
    REPA(mac_assets)
    {
       XcodeFile &file=mac_assets[i];
-      add+=S+"            "+XcodeID(file.file)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.file)+" /* "+file.name+" */,\n";
    }
    REPA(ios_images)
    {
       XcodeFile &file=ios_images[i];
-      add+=S+"            "+XcodeID(file.file)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.file)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2064,7 +2064,7 @@ Bool CodeEditor::generateXcodeProj()
       XcodeFile &file=mac_assets[i];
 // Sample:
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.build)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.build)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2075,7 +2075,7 @@ Bool CodeEditor::generateXcodeProj()
       XcodeFile &file=ios_images[i];
 // Sample:
 //            0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
-      add+=S+"            "+XcodeID(file.build)+" /* "+file.name+" */,\n";
+      add+=S+"\t\t\t\t"+XcodeID(file.build)+" /* "+file.name+" */,\n";
    }
    str.insert(pos, add);
 
@@ -2087,7 +2087,7 @@ Bool CodeEditor::generateXcodeProj()
       {
 // Sample:
 //            0B9F063216CD7D29006A0106 /* Main.cpp in Sources */,
-         add+=S+"            "+XcodeID(bf.xcode_mac_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */,\n";
+         add+=S+"\t\t\t\t"+XcodeID(bf.xcode_mac_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */,\n";
       }
    }
    str.insert(pos, add);
@@ -2100,7 +2100,7 @@ Bool CodeEditor::generateXcodeProj()
       {
 // Sample:
 //            0B9F063216CD7D29006A0106 /* Main.cpp in Sources */,
-         add+=S+"            "+XcodeID(bf.xcode_ios_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */,\n";
+         add+=S+"\t\t\t\t"+XcodeID(bf.xcode_ios_id)+" /* "+Replace(bf.dest_proj_path, '*', '\0')+" */,\n";
       }
    }
    str.insert(pos, add);
