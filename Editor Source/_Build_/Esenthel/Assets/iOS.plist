@@ -15,9 +15,9 @@
 		<key>CFBundleSignature</key>
 		<string>????</string>
 		<key>CFBundleVersion</key>
-		<string>60</string>
+		<string>65</string>
 		<key>CFBundleShortVersionString</key>
-		<string>60</string>
+		<string>65</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSMainNibFile</key>
@@ -46,6 +46,8 @@
 		<string></string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string></string>
+		<key>NSCalendarsUsageDescription</key>
+		<string>Unknown</string>
 		<key>FacebookAppID</key>
 		<string>0</string>
 		<key>FacebookDisplayName</key>
