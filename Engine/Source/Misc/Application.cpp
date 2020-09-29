@@ -978,7 +978,7 @@ void Break()
    __debugbreak();
 #elif LINUX
      asm("int3");
-#elif !(MOBILE && !IOS_SIMULATOR) && !WEB // everything except MobileDevice and Web
+#elif !MOBILE && !WEB // everything except Mobile and Web
    __asm{int 3};
 #endif
 }
