@@ -1006,7 +1006,6 @@
 		37AE675918E53AD400319BDA /* IAPManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 37ABC65E18BD32CF00F9F630 /* IAPManager.mm */; };
 		37AE675A18E53AF900319BDA /* IAPManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 37ABC65D18BD32CF00F9F630 /* IAPManager.h */; };
 		37B2FF89193987D300A63FAD /* libvpx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B2FF88193987D300A63FAD /* libvpx.a */; };
-		37B2FF9019399A5200A63FAD /* libvpx_armv7.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B2FF8E19399A5200A63FAD /* libvpx_armv7.a */; };
 		37BC9F551A1A158A00B50C55 /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37BC9F541A1A158A00B50C55 /* Hash.cpp */; };
 		37BCA0261A1A188700B50C55 /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37BC9F541A1A158A00B50C55 /* Hash.cpp */; };
 		37BCA0271A1A188700B50C55 /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37BC9F541A1A158A00B50C55 /* Hash.cpp */; };
@@ -1714,7 +1713,6 @@
 		37AE2BDA1D30F185004D8A41 /* libZStd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libZStd.a; path = "../ThirdPartyLibs/Zstd/Mac/Build/Release-iphoneos/libZStd.a"; sourceTree = "<group>"; };
 		37AE2BDC1D30F194004D8A41 /* libZStd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libZStd.a; path = "../ThirdPartyLibs/Zstd/Mac/Build/Release-iphonesimulator/libZStd.a"; sourceTree = "<group>"; };
 		37B2FF88193987D300A63FAD /* libvpx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx.a; path = ../ThirdPartyLibs/VP/Mac/libvpx.a; sourceTree = "<group>"; };
-		37B2FF8E19399A5200A63FAD /* libvpx_armv7.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_armv7.a; path = ../ThirdPartyLibs/VP/Mac/libvpx_armv7.a; sourceTree = "<group>"; };
 		37BC9F521A1A157300B50C55 /* Hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hash.h; sourceTree = "<group>"; };
 		37BC9F541A1A158A00B50C55 /* Hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Hash.cpp; sourceTree = "<group>"; };
 		37CD66A91EB8007C00B31285 /* libispc_texcomp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libispc_texcomp.a; path = ../ThirdPartyLibs/BC/Mac/libispc_texcomp.a; sourceTree = "<group>"; };
@@ -1852,7 +1850,6 @@
 				37AE2BDB1D30F185004D8A41 /* libZStd.a in Frameworks */,
 				3716E2D81BB8EC270037177D /* libTiff.a in Frameworks */,
 				3778B76D21F71218001D764E /* FBSDKLoginKit.a in Frameworks */,
-				37B2FF9019399A5200A63FAD /* libvpx_armv7.a in Frameworks */,
 				376EDCE71FB4177100B77302 /* libLowLevelCloth.a in Frameworks */,
 				3716E2961BB8EA510037177D /* libLZ4.a in Frameworks */,
 				3716E2921BB8EA1D0037177D /* libJpegTurbo.a in Frameworks */,
@@ -3005,7 +3002,6 @@
 				3716E2D11BB8EC060037177D /* libTheora.a */,
 				3716E2D71BB8EC270037177D /* libTiff.a */,
 				3716E2DD1BB8EC510037177D /* libVorbis.a */,
-				37B2FF8E19399A5200A63FAD /* libvpx_armv7.a */,
 				37D2A26119E6591400F1092B /* libvpx_arm64.a */,
 				37834C5523A520F700AE51F1 /* libWaifu2x.a */,
 				3716E2E31BB8EC7E0037177D /* libWebP.a */,
