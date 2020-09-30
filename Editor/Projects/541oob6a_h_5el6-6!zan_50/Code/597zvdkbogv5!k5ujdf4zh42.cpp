@@ -11,7 +11,7 @@ void Build(Heightmap &heightmap, Mesh &mesh, PhysPart &phys, Actor &actor) // bu
    actor.del();
 
    // build mesh
-   heightmap.build(mesh, 0, 6, HM_AO|HM_SOFT, null, null, null, null, null, null, null, null);
+   heightmap.build(mesh, 0, HM_AO|HM_SOFT, null, null, null, null, null, null, null, null);
 
    // adjust mesh scale and position
    flt scale=32;
