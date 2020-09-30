@@ -78,7 +78,7 @@ void LoadSettings()
    TextData d; if(d.load(SettingsPath))
    {
       if(TextNode *n=d.findNode("HostPath"))Host.path.set(n.asText());
-      if(TextNode *n=d.findNode("HostPass"))Host.pass.set(n.asText());
+      if(TextNode *n=d.findNode("HostPass"))Host.pass.set(n.asText()).selectAll();
       if(TextNode *n=d.findNode("Left" ))                                             LeftPane    .load(*n);
       if(TextNode *n=d.findNode("Right"))if(RightPanes.elms() && RightPanes[0].local)RightPanes[0].load(*n);
       for(int i=0; TextNode *r=d.findNode("Remote", i); i++)
