@@ -2661,17 +2661,22 @@ void SetDrawGroup(Mesh &mesh, MeshLod &lod, int part, int group, Enum *draw_grou
 bool DisableLQLODs(Mesh &mesh)
 {
    bool changed=false, disable=false;
+   int  last_tris=INT_MAX;
    FREP(mesh.lods())
    {
       MeshLod &lod=mesh.lod(i);
       if(!NegativeSB(lod.dist2)) // not disabled
       {
-         if(disable)
+         int tris=VisibleTrisTotal(lod);
+         if(disable || tris+128>=last_tris) // reached low tris, or there's only 128 tri difference between this and previous LOD
          {
             CHSSB(lod.dist2); // disable
             changed=true;
          }else
-         if(VisibleTrisTotal(lod)<=256)disable=true; // disable next LODs
+         {
+            last_tris=tris;
+            if(tris<=256)disable=true; // disable next LODs
+         }
       }
    }
    return changed;
