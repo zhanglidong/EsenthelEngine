@@ -325,7 +325,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    Tabs            vtx_face_sel_mode, lod_tabs, variation_tabs, skin_tabs, bone_move_tabs;
    Text            vtx_face_sel_text, background_alpha_t, bone_root_t;
    Slider          background_alpha;
-   ComboBox        mesh_ops, skin_ops, slot_ops, bone_ops, phys_ops, bone_root, bone_children, bone_children_rot;
+   ComboBox        lod_ops, mesh_ops, skin_ops, slot_ops, bone_ops, phys_ops, bone_root, bone_children, bone_children_rot;
    Memc<BoneRoot>  bone_root_data;
    TextWhite       ts;
    MeshParts       mesh_parts;
@@ -949,6 +949,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
    static void MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
    static void MeshRemVtxSkin (ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
+   static void MeshDisableLODs(ObjView &editor) {editor.meshDisableLODs();}   void meshDisableLODs();
 
    void modeS(int i)
    {
@@ -1311,6 +1312,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void setMenu()
    {
       super   .setMenu(selected());
+       lod_ops.menu.enabled(selected() && mode()==LOD  );
       mesh_ops.menu.enabled(selected() && mode()==MESH );
       skin_ops.menu.enabled(selected() && mode()==SKIN );
       slot_ops.menu.enabled(selected() && mode()==SLOTS);
@@ -1513,6 +1515,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             rem.New().create("Vertex TexCoord0"  , MeshRemVtxTex0 , T);
          }
          mode.tab(MESH)+=mesh_ops.create(Rect_LU(vtx_face_sel_mode.rect().max.x+h, mode.rect().min.y-0.01, 0.25, 0.055), n).focusable(false); mesh_ops.text="Operations"; mesh_ops.flag|=COMBOBOX_CONST_TEXT;
+      }
+
+      {
+         Node<MenuElm> n;
+         n.New().create("Auto Disable LODs", MeshDisableLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
+         mode.tab(LOD)+=lod_ops.create(Rect_RU(mode.rect().ld()-0.01, 0.25*0.9, 0.055*0.9), n).focusable(false); lod_ops.text="Operations"; lod_ops.flag|=COMBOBOX_CONST_TEXT;
       }
 
       // SKIN
@@ -2518,14 +2526,20 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void eraseLOD(int i)
    {
       mesh_undos.set("lod");
-      mesh.removeLod(i).setBox();
-      setChangedMesh(true); lod.toGui();
+      if(InRange(i, mesh.lods()))
+      {
+         mesh.removeLod(i).setBox();
+         setChangedMesh(true); lod.toGui();
+      }
    }
    void disableLOD(int i)
    {
       mesh_undos.set("lod");
-      if(InRange(i, mesh.lods()))CHSSB(mesh.lod(i).dist2);
-      setChangedMesh(true); lod.toGui();
+      if(InRange(i, mesh.lods()))
+      {
+         CHSSB(mesh.lod(i).dist2);
+         setChangedMesh(true, false); lod.toGui();
+      }
    }
    void updateMesh()
    {

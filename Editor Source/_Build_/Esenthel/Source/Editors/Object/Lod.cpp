@@ -149,7 +149,7 @@ NewLodClass NewLod;
                   Swap(dest, src.lod(i));
                   ObjEdit.lodDist(dest, ObjEdit.absLodDist(dest)+dist_add);
                }
-               ObjEdit.setChangedMesh(true); ObjEdit.lod.toGui();
+               ObjEdit.setChangedMesh(true, false); ObjEdit.lod.toGui();
             }
             break;
          }
@@ -176,7 +176,7 @@ NewLodClass NewLod;
             Mesh &mesh=ObjEdit.mesh;
             ObjEdit.lodDist(nl.simplified, nl.draw_at_distance ? nl.draw_distance : NextLodDist(ObjEdit.lodDist(mesh.lod(mesh.lods()-1))));
             Swap(mesh.newLod(), nl.simplified);
-            ObjEdit.setChangedMesh(true);
+            ObjEdit.setChangedMesh(true, false);
             ObjEdit.lod.toGui();
             ObjEdit.selLod(mesh.lods()-1);
          }
@@ -239,7 +239,7 @@ NewLodClass NewLod;
 
             // store lod in mesh and finalize
             Swap(mesh.newLod(lod_index), lod);
-            ObjEdit.setChangedMesh(true);
+            ObjEdit.setChangedMesh(true, false);
             ObjEdit.lod.toGui();
             Proj.setList();
          }

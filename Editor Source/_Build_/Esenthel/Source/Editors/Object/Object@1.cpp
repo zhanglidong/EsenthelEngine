@@ -849,6 +849,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
    void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
    void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
+   void ObjView::MeshDisableLODs(ObjView &editor) {editor.meshDisableLODs();}
    void ObjView::modeS(int i)
    {
       switch(mode())
@@ -1201,6 +1202,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::setMenu()
    {
       super   ::setMenu(selected());
+       lod_ops.menu.enabled(selected() && mode()==LOD  );
       mesh_ops.menu.enabled(selected() && mode()==MESH );
       skin_ops.menu.enabled(selected() && mode()==SKIN );
       slot_ops.menu.enabled(selected() && mode()==SLOTS);
@@ -1403,6 +1405,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             rem.New().create("Vertex TexCoord0"  , MeshRemVtxTex0 , T);
          }
          mode.tab(MESH)+=mesh_ops.create(Rect_LU(vtx_face_sel_mode.rect().max.x+h, mode.rect().min.y-0.01f, 0.25f, 0.055f), n).focusable(false); mesh_ops.text="Operations"; mesh_ops.flag|=COMBOBOX_CONST_TEXT;
+      }
+
+      {
+         Node<MenuElm> n;
+         n.New().create("Auto Disable LODs", MeshDisableLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
+         mode.tab(LOD)+=lod_ops.create(Rect_RU(mode.rect().ld()-0.01f, 0.25f*0.9f, 0.055f*0.9f), n).focusable(false); lod_ops.text="Operations"; lod_ops.flag|=COMBOBOX_CONST_TEXT;
       }
 
       // SKIN
@@ -2395,14 +2403,20 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::eraseLOD(int i)
    {
       mesh_undos.set("lod");
-      mesh.removeLod(i).setBox();
-      setChangedMesh(true); lod.toGui();
+      if(InRange(i, mesh.lods()))
+      {
+         mesh.removeLod(i).setBox();
+         setChangedMesh(true); lod.toGui();
+      }
    }
    void ObjView::disableLOD(int i)
    {
       mesh_undos.set("lod");
-      if(InRange(i, mesh.lods()))CHSSB(mesh.lod(i).dist2);
-      setChangedMesh(true); lod.toGui();
+      if(InRange(i, mesh.lods()))
+      {
+         CHSSB(mesh.lod(i).dist2);
+         setChangedMesh(true, false); lod.toGui();
+      }
    }
    void ObjView::updateMesh()
    {

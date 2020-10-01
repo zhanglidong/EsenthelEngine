@@ -360,7 +360,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       mtrl_ids.clear();
       REPD(l, mesh.lods())
       {
-       C MeshLod &lod=mesh.lod(l); REPA(lod)if(!NegativeSB(lod.dist2)) // LOD not disabled
+       C MeshLod &lod=mesh.lod(l); if(!NegativeSB(lod.dist2))REPA(lod) // LOD not disabled
          {
           C MeshPart &part=lod.parts[i];
             if(!(part.part_flag&MSHP_HIDDEN)) // skip hidden parts

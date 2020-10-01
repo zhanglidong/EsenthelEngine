@@ -183,7 +183,7 @@ public:
    Tabs            vtx_face_sel_mode, lod_tabs, variation_tabs, skin_tabs, bone_move_tabs;
    Text            vtx_face_sel_text, background_alpha_t, bone_root_t;
    Slider          background_alpha;
-   ComboBox        mesh_ops, skin_ops, slot_ops, bone_ops, phys_ops, bone_root, bone_children, bone_children_rot;
+   ComboBox        lod_ops, mesh_ops, skin_ops, slot_ops, bone_ops, phys_ops, bone_root, bone_children, bone_children_rot;
    Memc<BoneRoot>  bone_root_data;
    TextWhite       ts;
    MeshParts       mesh_parts;
@@ -316,12 +316,13 @@ public:
    static void  GotoGroups    (ObjView &editor); 
    static void ClearGroups    (ObjView &editor); 
    static void ClearBack      (ObjView &editor); 
-   static void MeshRemVtxTex0 (ObjView &editor); 
-   static void MeshRemVtxTex1 (ObjView &editor); 
-   static void MeshRemVtxTex2 (ObjView &editor); 
-   static void MeshRemVtxTex12(ObjView &editor); 
-   static void MeshRemVtxColor(ObjView &editor); 
-   static void MeshRemVtxSkin (ObjView &editor); 
+   static void MeshRemVtxTex0 (ObjView &editor);            
+   static void MeshRemVtxTex1 (ObjView &editor);            
+   static void MeshRemVtxTex2 (ObjView &editor);            
+   static void MeshRemVtxTex12(ObjView &editor);            
+   static void MeshRemVtxColor(ObjView &editor);            
+   static void MeshRemVtxSkin (ObjView &editor);            
+   static void MeshDisableLODs(ObjView &editor); void meshDisableLODs();
 
    void modeS(int i);
 
