@@ -138,7 +138,7 @@ Image& Image::normalize(Bool red, Bool green, Bool blue, Bool alpha, C BoxI *box
       Int        mip_maps;
       if(Decompress(T, type, mode, mip_maps))
       {
-         Vec4 min, max; if(stats(&min, &max, null, null, null, null, box))
+         Vec4 min, max; if(stats(&min, &max, null, null, null, null, null, box))
          {
             Flt d; Vec4 mul, add;
             if(red   && (d=max.x-min.x)){mul.x=1.0f/d; add.x=-min.x*mul.x;}else{mul.x=1; add.x=0;}
@@ -1901,9 +1901,20 @@ static Flt Median(Long (&v)[256], Long p, Bool exact)
    }
    return 1;
 }
-Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *avg_alpha_weight, C BoxI *box_ptr)C
+static Int CompareX(C Vec2 &a, C Vec2 &b) {return Compare(a.x, b.x);} // ignore 'y' alpha weight
+static Flt Median(Vec2 *val_alpha, Long pixels, Dbl alpha_stop)
 {
-   if(!min && !max && !avg && !med && !mod && !avg_alpha_weight)return true; // nothing to calculate
+   Dbl alpha=0; for(Long i=0; i<pixels; i++)
+   {
+      alpha+=val_alpha[i].y;
+      if(Equal(alpha, alpha_stop) && InRange(i+1, pixels))return Avg(val_alpha[i].x, val_alpha[i+1].x); // if falls down exactly at the end, then take average of this and next value
+      if(      alpha>=alpha_stop                         )return     val_alpha[i].x;
+   }
+   return pixels ? val_alpha[pixels-1].x : 0; // if didn't found inside the loop, then return the last value
+}
+Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *avg_alpha_weight, Vec *med_alpha_weight, C BoxI *box_ptr)C
+{
+   if(!min && !max && !avg && !med && !mod && !avg_alpha_weight && !med_alpha_weight)return true; // nothing to calculate
    if(is())
    {
     C Image *src=this; Image temp;
@@ -1915,7 +1926,9 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
          Vec4 _avg, _med;
          Long  r[256], g[256], b[256], a[256]; // channel 8-bit histogram
          Flt  *rf, *gf, *bf, *af;
-         Memt<Flt> hist; // channels are listed separately, all reds, followed by all greens, followed by all blues, followed by all alphas
+         Vec2 *raf, *gaf, *baf;
+         Memt<Flt > hist             ; // channels are listed separately, all reds, followed by all greens, followed by all blues, followed by all alphas
+         Memt<Vec2> hist_alpha_weight; // channels are listed separately, all reds (with alpha), followed by all greens (with alpha), followed by all blues (with alpha)
          if(mod) // to calculate mode, we need to have average and median
          { // if not specified then operate on temp
             if(!avg)avg=&_avg;
@@ -1939,6 +1952,15 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
                bf=gf+pixels;
                af=bf+pixels;
             }
+         }
+         if(med_alpha_weight)
+         {
+            hist_alpha_weight.setNum(pixels*3); // 3 channels
+            raf=hist_alpha_weight.data();
+            gaf=raf+pixels;
+            baf=gaf+pixels;
+            // to calculate 'med_alpha_weight', we need to have 'sum' which will be calculated if we want 'avg'
+            if(!avg)avg=&_avg; // if not specified then operate on temp
          }
 
          for(Int z=box.min.z; z<box.max.z; z++)
@@ -1965,6 +1987,12 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
                   *bf++=color.z;
                   *af++=color.w;
                }
+            }
+            if(med_alpha_weight)
+            {
+               (raf++)->set(color.x, color.w);
+               (gaf++)->set(color.y, color.w);
+               (baf++)->set(color.z, color.w);
             }
          }
 
@@ -1993,6 +2021,15 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
                }
             }
          }
+         if(med_alpha_weight)
+         {
+            // go back at the start of the array, and sort
+            raf-=pixels; Sort(raf, pixels, CompareX);
+            gaf-=pixels; Sort(gaf, pixels, CompareX);
+            baf-=pixels; Sort(baf, pixels, CompareX);
+            Dbl alpha_stop=sum.w/2;
+            med_alpha_weight->set(Median(raf, pixels, alpha_stop), Median(gaf, pixels, alpha_stop), Median(baf, pixels, alpha_stop));
+         }
          if(mod)*mod=3*(*med) - 2*(*avg); // Mode = 3*Median - 2*Mean
 
          return true;
@@ -2006,11 +2043,12 @@ error:
    if(med)med->zero();
    if(mod)mod->zero();
    if(avg_alpha_weight)avg_alpha_weight->zero();
+   if(med_alpha_weight)med_alpha_weight->zero();
    return false;
 }
-Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_alpha_weight, C BoxI *box_ptr)C
+Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_alpha_weight, Flt *med_alpha_weight, C BoxI *box_ptr)C
 {
-   if(!min && !max && !avg && !med && !mod && !avg_alpha_weight)return true; // nothing to calculate
+   if(!min && !max && !avg && !med && !mod && !avg_alpha_weight && !med_alpha_weight)return true; // nothing to calculate
    if(is())
    {
     C Image *src=this; Image temp;
@@ -2018,11 +2056,13 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
          if(copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else goto error;
       if(src->lockRead())
       {
-         Dbl  sum=0; Vec2 sum_alpha_weight=0;
-         Flt _avg, _med;
-         Long v[256]; // 8-bit histogram
-         Flt *vf;
-         Memt<Flt> hist;
+         Dbl   sum=0, sum_alpha=0; VecD2 sum_alpha_weight=0;
+         Flt  _avg, _med;
+         Long  v[256]; // 8-bit histogram
+         Flt  *vf;
+         Vec2 *vaf;
+         Memt<Flt > hist;
+         Memt<Vec2> hist_alpha_weight;
          if(mod) // to calculate mode, we need to have average and median
          { // if not specified then operate on temp
             if(!avg)avg=&_avg;
@@ -2036,6 +2076,10 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
          if(med)
          {
             if(med_fast)Zero(v);else vf=hist.setNum(pixels).data();
+         }
+         if(med_alpha_weight)
+         {
+            vaf=hist_alpha_weight.setNum(pixels).data();
          }
 
          for(Int z=box.min.z; z<box.max.z; z++)
@@ -2052,6 +2096,11 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
             {
                if(med_fast)v[FltToByte(s)]++;
                else       *vf++=s;
+            }
+            if(med_alpha_weight)
+            {
+               (vaf++)->set(s, c.w);
+               sum_alpha+=c.w;
             }
          }
 
@@ -2074,6 +2123,13 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
               *med=(exact ? vf[p] : Avg(vf[p-1], vf[p]));
             }
          }
+         if(med_alpha_weight)
+         {
+            // go back at the start of the array, and sort
+            vaf-=pixels; Sort(vaf, pixels, CompareX);
+            Dbl alpha_stop=sum_alpha/2;
+           *med_alpha_weight=Median(vaf, pixels, alpha_stop);
+         }
          if(mod)*mod=3*(*med) - 2*(*avg); // Mode = 3*Median - 2*Mean
 
          return true;
@@ -2087,6 +2143,7 @@ error:
    if(med)*med=0;
    if(mod)*mod=0;
    if(avg_alpha_weight)*avg_alpha_weight=0;
+   if(med_alpha_weight)*med_alpha_weight=0;
    return false;
 }
 /******************************************************************************/
