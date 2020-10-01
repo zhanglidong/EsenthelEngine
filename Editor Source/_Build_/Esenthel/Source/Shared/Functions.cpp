@@ -2526,6 +2526,24 @@ void SetDrawGroup(Mesh &mesh, MeshLod &lod, int part, int group, Enum *draw_grou
       if(InRange(part, lod))lod.parts[part].drawGroup(group, draw_group_enum);
    }
 }
+bool DisableLQLODs(Mesh &mesh)
+{
+   bool changed=false, disable=false;
+   FREP(mesh.lods())
+   {
+      MeshLod &lod=mesh.lod(i);
+      if(!NegativeSB(lod.dist2)) // not disabled
+      {
+         if(disable)
+         {
+            CHSSB(lod.dist2); // disable
+            changed=true;
+         }else
+         if(VisibleTrisTotal(lod)<=256)disable=true; // disable next LODs
+      }
+   }
+   return changed;
+}
 /******************************************************************************/
 // SKELETON
 /******************************************************************************/

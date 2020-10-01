@@ -849,7 +849,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
    void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
    void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
-   void ObjView::MeshDisableLODs(ObjView &editor) {editor.meshDisableLODs();}
+   void ObjView::MeshDisableLQLODs(ObjView &editor) {editor.meshDisableLQLODs();}
    void ObjView::modeS(int i)
    {
       switch(mode())
@@ -1409,7 +1409,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       {
          Node<MenuElm> n;
-         n.New().create("Auto Disable LODs", MeshDisableLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
+         n.New().create("Auto Disable LODs", MeshDisableLQLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
          mode.tab(LOD)+=lod_ops.create(Rect_RU(mode.rect().ld()-0.01f, 0.25f*0.9f, 0.055f*0.9f), n).focusable(false); lod_ops.text="Operations"; lod_ops.flag|=COMBOBOX_CONST_TEXT;
       }
 

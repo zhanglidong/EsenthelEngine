@@ -836,24 +836,10 @@ void ObjView::meshCopyParts()
       if(changed)setChangedMesh(true);
    }
 }
-void ObjView::meshDisableLODs()
+void ObjView::meshDisableLQLODs()
 {
-   mesh_undos.set("disableLODs");
-   bool changed=false, disable=false;
-   FREP(mesh.lods())
-   {
-      MeshLod &lod=mesh.lod(i);
-      if(!NegativeSB(lod.dist2)) // not disabled
-      {
-         if(disable)
-         {
-            CHSSB(lod.dist2); // disable
-            changed=true;
-         }else
-         if(lod.trisTotal()<=256)disable=true; // disable next LODs
-      }
-   }
-   if(changed){setChangedMesh(true, false); lod.toGui();}
+   mesh_undos.set("disableLQLODs");
+   if(DisableLQLODs(mesh)){setChangedMesh(true, false); lod.toGui();}
 }
 void ObjView::meshSkinFull()
 {

@@ -863,93 +863,93 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          editor.variation_tabs.move(editor.lod_tabs.rect().down()-Vec2(0, 0.01)-editor.variation_tabs.rect().up());
       }
    }
-   static void Mode1          (ObjView &editor) {editor.mode.toggle(0);}
-   static void Mode2          (ObjView &editor) {editor.mode.toggle(1);}
-   static void Mode3          (ObjView &editor) {editor.mode.toggle(2);}
-   static void Mode4          (ObjView &editor) {editor.mode.toggle(3);}
-   static void Mode5          (ObjView &editor) {editor.mode.toggle(4);}
-   static void Mode6          (ObjView &editor) {editor.mode.toggle(5);}
-   static void Mode7          (ObjView &editor) {editor.mode.toggle(6);}
-   static void Mode8          (ObjView &editor) {editor.mode.toggle(7);}
-   static void Mode9          (ObjView &editor) {editor.mode.toggle(8);}
-   static void Mode0          (ObjView &editor) {editor.mode.toggle(9);}
-   static void ModeS0         (ObjView &editor) {editor.modeS(0);}
-   static void ModeS1         (ObjView &editor) {editor.modeS(1);}
-   static void ModeS2         (ObjView &editor) {editor.modeS(2);}
-   static void ModeS3         (ObjView &editor) {editor.modeS(3);}
-   static void ModeS4         (ObjView &editor) {editor.modeS(4);}
-   static void ModeS5         (ObjView &editor) {editor.modeS(5);}
-   static void ModeS6         (ObjView &editor) {editor.modeS(6);}
-   static void ModeS7         (ObjView &editor) {editor.modeS(7);}
-   static void ModeS8         (ObjView &editor) {editor.modeS(8);}
-   static void ModeS9         (ObjView &editor) {editor.modeS(9);}
-   static void ModeS10        (ObjView &editor) {editor.modeS(10);}
-   static void ModeS11        (ObjView &editor) {editor.modeS(11);}
-   static void Identity       (ObjView &editor) {editor.axis.push();}
-   static void LightMode      (ObjView &editor) {editor.light_dir.push();}
-   static void PrevObj        (ObjView &editor) {Proj.elmNext(editor.obj_id, -1);}
-   static void NextObj        (ObjView &editor) {Proj.elmNext(editor.obj_id);}
-   static void ShowBox        (ObjView &editor) {editor.box .push();}
-   static void ShowCur        (ObjView &editor) {editor.show_cur_pos.push();}
-   static void VtxsChanged    (ObjView &editor) {editor.vtxs_front.visible(editor.vtxs()); editor.vtxs_normals.visible(editor.vtxs());}
-   static void MeshDelete     (ObjView &editor) {editor.meshDelete     ();}   void meshDelete   ();
-   static void MeshSplit      (ObjView &editor) {editor.meshSplit      ();}   void meshSplit    ();
-   static void MeshAlignXZ    (ObjView &editor) {editor.meshAlign      (true );}   void meshAlign(bool xz);
-   static void MeshAlign      (ObjView &editor) {editor.meshAlign      (false);}
-   static void MeshWeldPos    (ObjView &editor) {editor.meshWeldPos    ();}   void meshWeldPos   ();   void meshWeldPos(flt pos_eps);
-   static void MeshSetPos     (ObjView &editor) {editor.meshSetPos     ();}   void meshSetPos    ();
-   static void MeshReverse    (ObjView &editor) {editor.meshReverse    ();}   void meshReverse   ();
-   static void MeshReverseNrm (ObjView &editor) {editor.meshReverseNrm ();}   void meshReverseNrm();
-   static void MeshSetNormalFa(ObjView &editor) {editor.meshSetNrmFace (        );}   void meshSetNrmFace();
-   static void MeshSetNormalN (ObjView &editor) {editor.meshSetNrm     (VTX_NRM );}   void meshSetNrm    (uint vtx_test);
-   static void MeshSetNormalP (ObjView &editor) {editor.meshSetNrm     (VTX_POS );}
-   static void MeshSetNormalT (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
-   static void MeshSetNormal  (ObjView &editor) {editor.meshSetNrm     (       0);}
-   static void MeshSetNormalH (ObjView &editor) {editor.meshSetNrmH    (        );}   void meshSetNrmH();
-   static void MeshNormalY    (ObjView &editor) {editor.meshNrmY       ();}   void meshNrmY       ();
-   static void MeshSetVtxAO   (ObjView &editor) {MeshAO.activate();}
-   static void MeshCreateFace (ObjView &editor) {editor.meshCreateFace ();}   void meshCreateFace ();
-   static void MeshMergeFaces (ObjView &editor) {editor.meshMergeFaces ();}   void meshMergeFaces ();
-   static void MeshRotQuads   (ObjView &editor) {editor.meshRotQuads   ();}   void meshRotQuads   ();
-   static void MeshQuadToTri  (ObjView &editor) {editor.meshQuadToTri  ();}   void meshQuadToTri  ();
-   static void MeshTesselate  (ObjView &editor) {editor.meshTesselate  ();}   void meshTesselate  ();
-   static void MeshSubdivide  (ObjView &editor) {editor.meshSubdivide  ();}   void meshSubdivide  ();
-   static void MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn();}   void meshColorBrghtn();
-   static void MeshColorDarken(ObjView &editor) {editor.meshColorDarken();}   void meshColorDarken();
-   static void MeshDelDblSide (ObjView &editor) {editor.meshDelDblSide ();}   void meshDelDblSide ();
-   static void MeshCopyLods   (ObjView &editor) {editor.meshCopyLods   ();}   void meshCopyLods   ();
-   static void MeshReplaceLods(ObjView &editor) {editor.meshReplaceLods();}   void meshReplaceLods();
-   static void MeshSeparate1  (ObjView &editor) {editor.meshSeparate1  ();}   void meshSeparate1  ();
-   static void MeshSeparateN  (ObjView &editor) {editor.meshSeparateN  ();}   void meshSeparateN  ();
-   static void MeshCopyParts  (ObjView &editor) {editor.meshCopyParts  ();}   void meshCopyParts  ();
-   static void SetBody        (ObjView &editor) {Proj.objSetBody(editor.menu_ids, ObjEdit.mesh_elm ? ObjEdit.mesh_elm.id : UIDZero);}
-   static void AnimTargetObj  (ObjView &editor) {editor.animTargetObj  ();}
-   static void MeshSkinFull   (ObjView &editor) {editor.meshSkinFull   ();}   void meshSkinFull   ();
-   static void MeshSkinFullP  (ObjView &editor) {editor.meshSkinFullP  ();}   void meshSkinFullP  ();
-   static void MeshSkinFullU  (ObjView &editor) {editor.meshSkinFullU  ();}   void meshSkinFullU  ();
-   static void MeshSkinAuto   (ObjView &editor) {editor.meshSkinAuto   ();}   void meshSkinAuto   ();
-   static void MeshEditSel    (ObjView &editor) {editor.mesh_parts.edit_selected.push();}
-   static void MeshVFS0       (ObjView &editor) {editor.vtx_face_sel_mode.toggle(0);}
-   static void MeshVFS1       (ObjView &editor) {editor.vtx_face_sel_mode.toggle(1);}
-   static void MeshVFS2       (ObjView &editor) {editor.vtx_face_sel_mode.toggle(2);}
-   static void MeshVFS3       (ObjView &editor) {editor.vtx_face_sel_mode.toggle(3);}
-   static void ShowVtxs       (ObjView &editor) {editor.vtxs        .push();}
-   static void ShowVtxsF      (ObjView &editor) {editor.vtxs_front  .push();}
-   static void ShowVtxsN      (ObjView &editor) {editor.vtxs_normals.push();}
-   static void  GotoPhMtrl    (ObjView &editor) {editor.gotoPhysMtrl();}
-   static void ClearPhMtrl    (ObjView &editor) {editor. setPhysMtrl(UIDZero);}
-   static void  GotoBody      (ObjView &editor) {editor.gotoBody    ();}
-   static void ClearBody      (ObjView &editor) {editor. setBody    (UIDZero);}
-   static void  GotoGroups    (ObjView &editor) {editor.gotoDrawGroupEnum();}
-   static void ClearGroups    (ObjView &editor) {editor. setDrawGroupEnum(UIDZero);}
-   static void ClearBack      (ObjView &editor) {editor.back_meshes.clear();}
-   static void MeshRemVtxTex0 (ObjView &editor) {editor.remVtx(VTX_TEX0         , true);}
-   static void MeshRemVtxTex1 (ObjView &editor) {editor.remVtx(VTX_TEX1         , true);}
-   static void MeshRemVtxTex2 (ObjView &editor) {editor.remVtx(         VTX_TEX2, true);}
-   static void MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
-   static void MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
-   static void MeshRemVtxSkin (ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
-   static void MeshDisableLODs(ObjView &editor) {editor.meshDisableLODs();}   void meshDisableLODs();
+   static void Mode1            (ObjView &editor) {editor.mode.toggle(0);}
+   static void Mode2            (ObjView &editor) {editor.mode.toggle(1);}
+   static void Mode3            (ObjView &editor) {editor.mode.toggle(2);}
+   static void Mode4            (ObjView &editor) {editor.mode.toggle(3);}
+   static void Mode5            (ObjView &editor) {editor.mode.toggle(4);}
+   static void Mode6            (ObjView &editor) {editor.mode.toggle(5);}
+   static void Mode7            (ObjView &editor) {editor.mode.toggle(6);}
+   static void Mode8            (ObjView &editor) {editor.mode.toggle(7);}
+   static void Mode9            (ObjView &editor) {editor.mode.toggle(8);}
+   static void Mode0            (ObjView &editor) {editor.mode.toggle(9);}
+   static void ModeS0           (ObjView &editor) {editor.modeS(0);}
+   static void ModeS1           (ObjView &editor) {editor.modeS(1);}
+   static void ModeS2           (ObjView &editor) {editor.modeS(2);}
+   static void ModeS3           (ObjView &editor) {editor.modeS(3);}
+   static void ModeS4           (ObjView &editor) {editor.modeS(4);}
+   static void ModeS5           (ObjView &editor) {editor.modeS(5);}
+   static void ModeS6           (ObjView &editor) {editor.modeS(6);}
+   static void ModeS7           (ObjView &editor) {editor.modeS(7);}
+   static void ModeS8           (ObjView &editor) {editor.modeS(8);}
+   static void ModeS9           (ObjView &editor) {editor.modeS(9);}
+   static void ModeS10          (ObjView &editor) {editor.modeS(10);}
+   static void ModeS11          (ObjView &editor) {editor.modeS(11);}
+   static void Identity         (ObjView &editor) {editor.axis.push();}
+   static void LightMode        (ObjView &editor) {editor.light_dir.push();}
+   static void PrevObj          (ObjView &editor) {Proj.elmNext(editor.obj_id, -1);}
+   static void NextObj          (ObjView &editor) {Proj.elmNext(editor.obj_id);}
+   static void ShowBox          (ObjView &editor) {editor.box .push();}
+   static void ShowCur          (ObjView &editor) {editor.show_cur_pos.push();}
+   static void VtxsChanged      (ObjView &editor) {editor.vtxs_front.visible(editor.vtxs()); editor.vtxs_normals.visible(editor.vtxs());}
+   static void MeshDelete       (ObjView &editor) {editor.meshDelete     ();}   void meshDelete   ();
+   static void MeshSplit        (ObjView &editor) {editor.meshSplit      ();}   void meshSplit    ();
+   static void MeshAlignXZ      (ObjView &editor) {editor.meshAlign      (true );}   void meshAlign(bool xz);
+   static void MeshAlign        (ObjView &editor) {editor.meshAlign      (false);}
+   static void MeshWeldPos      (ObjView &editor) {editor.meshWeldPos    ();}   void meshWeldPos   ();   void meshWeldPos(flt pos_eps);
+   static void MeshSetPos       (ObjView &editor) {editor.meshSetPos     ();}   void meshSetPos    ();
+   static void MeshReverse      (ObjView &editor) {editor.meshReverse    ();}   void meshReverse   ();
+   static void MeshReverseNrm   (ObjView &editor) {editor.meshReverseNrm ();}   void meshReverseNrm();
+   static void MeshSetNormalFa  (ObjView &editor) {editor.meshSetNrmFace (        );}   void meshSetNrmFace();
+   static void MeshSetNormalN   (ObjView &editor) {editor.meshSetNrm     (VTX_NRM );}   void meshSetNrm    (uint vtx_test);
+   static void MeshSetNormalP   (ObjView &editor) {editor.meshSetNrm     (VTX_POS );}
+   static void MeshSetNormalT   (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
+   static void MeshSetNormal    (ObjView &editor) {editor.meshSetNrm     (       0);}
+   static void MeshSetNormalH   (ObjView &editor) {editor.meshSetNrmH    (        );}   void meshSetNrmH();
+   static void MeshNormalY      (ObjView &editor) {editor.meshNrmY       ();}   void meshNrmY       ();
+   static void MeshSetVtxAO     (ObjView &editor) {MeshAO.activate();}
+   static void MeshCreateFace   (ObjView &editor) {editor.meshCreateFace ();}   void meshCreateFace ();
+   static void MeshMergeFaces   (ObjView &editor) {editor.meshMergeFaces ();}   void meshMergeFaces ();
+   static void MeshRotQuads     (ObjView &editor) {editor.meshRotQuads   ();}   void meshRotQuads   ();
+   static void MeshQuadToTri    (ObjView &editor) {editor.meshQuadToTri  ();}   void meshQuadToTri  ();
+   static void MeshTesselate    (ObjView &editor) {editor.meshTesselate  ();}   void meshTesselate  ();
+   static void MeshSubdivide    (ObjView &editor) {editor.meshSubdivide  ();}   void meshSubdivide  ();
+   static void MeshColorBrghtn  (ObjView &editor) {editor.meshColorBrghtn();}   void meshColorBrghtn();
+   static void MeshColorDarken  (ObjView &editor) {editor.meshColorDarken();}   void meshColorDarken();
+   static void MeshDelDblSide   (ObjView &editor) {editor.meshDelDblSide ();}   void meshDelDblSide ();
+   static void MeshCopyLods     (ObjView &editor) {editor.meshCopyLods   ();}   void meshCopyLods   ();
+   static void MeshReplaceLods  (ObjView &editor) {editor.meshReplaceLods();}   void meshReplaceLods();
+   static void MeshSeparate1    (ObjView &editor) {editor.meshSeparate1  ();}   void meshSeparate1  ();
+   static void MeshSeparateN    (ObjView &editor) {editor.meshSeparateN  ();}   void meshSeparateN  ();
+   static void MeshCopyParts    (ObjView &editor) {editor.meshCopyParts  ();}   void meshCopyParts  ();
+   static void SetBody          (ObjView &editor) {Proj.objSetBody(editor.menu_ids, ObjEdit.mesh_elm ? ObjEdit.mesh_elm.id : UIDZero);}
+   static void AnimTargetObj    (ObjView &editor) {editor.animTargetObj  ();}
+   static void MeshSkinFull     (ObjView &editor) {editor.meshSkinFull   ();}   void meshSkinFull   ();
+   static void MeshSkinFullP    (ObjView &editor) {editor.meshSkinFullP  ();}   void meshSkinFullP  ();
+   static void MeshSkinFullU    (ObjView &editor) {editor.meshSkinFullU  ();}   void meshSkinFullU  ();
+   static void MeshSkinAuto     (ObjView &editor) {editor.meshSkinAuto   ();}   void meshSkinAuto   ();
+   static void MeshEditSel      (ObjView &editor) {editor.mesh_parts.edit_selected.push();}
+   static void MeshVFS0         (ObjView &editor) {editor.vtx_face_sel_mode.toggle(0);}
+   static void MeshVFS1         (ObjView &editor) {editor.vtx_face_sel_mode.toggle(1);}
+   static void MeshVFS2         (ObjView &editor) {editor.vtx_face_sel_mode.toggle(2);}
+   static void MeshVFS3         (ObjView &editor) {editor.vtx_face_sel_mode.toggle(3);}
+   static void ShowVtxs         (ObjView &editor) {editor.vtxs        .push();}
+   static void ShowVtxsF        (ObjView &editor) {editor.vtxs_front  .push();}
+   static void ShowVtxsN        (ObjView &editor) {editor.vtxs_normals.push();}
+   static void  GotoPhMtrl      (ObjView &editor) {editor.gotoPhysMtrl();}
+   static void ClearPhMtrl      (ObjView &editor) {editor. setPhysMtrl(UIDZero);}
+   static void  GotoBody        (ObjView &editor) {editor.gotoBody    ();}
+   static void ClearBody        (ObjView &editor) {editor. setBody    (UIDZero);}
+   static void  GotoGroups      (ObjView &editor) {editor.gotoDrawGroupEnum();}
+   static void ClearGroups      (ObjView &editor) {editor. setDrawGroupEnum(UIDZero);}
+   static void ClearBack        (ObjView &editor) {editor.back_meshes.clear();}
+   static void MeshRemVtxTex0   (ObjView &editor) {editor.remVtx(VTX_TEX0         , true);}
+   static void MeshRemVtxTex1   (ObjView &editor) {editor.remVtx(VTX_TEX1         , true);}
+   static void MeshRemVtxTex2   (ObjView &editor) {editor.remVtx(         VTX_TEX2, true);}
+   static void MeshRemVtxTex12  (ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
+   static void MeshRemVtxColor  (ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
+   static void MeshRemVtxSkin   (ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
+   static void MeshDisableLQLODs(ObjView &editor) {editor.meshDisableLQLODs();}   void meshDisableLQLODs();
 
    void modeS(int i)
    {
@@ -1519,7 +1519,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       {
          Node<MenuElm> n;
-         n.New().create("Auto Disable LODs", MeshDisableLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
+         n.New().create("Auto Disable LODs", MeshDisableLQLODs, T).kbsc(KbSc(KB_D, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will disable LODs which are too low quality");
          mode.tab(LOD)+=lod_ops.create(Rect_RU(mode.rect().ld()-0.01, 0.25*0.9, 0.055*0.9), n).focusable(false); lod_ops.text="Operations"; lod_ops.flag|=COMBOBOX_CONST_TEXT;
       }
 

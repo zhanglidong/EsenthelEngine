@@ -235,6 +235,7 @@ bool FixVtxNrm(MeshBase &base);
 void FixMesh(Mesh &mesh);
 bool SamePartInAllLods(C Mesh &mesh, int part);
 void SetDrawGroup(Mesh &mesh, MeshLod &lod, int part, int group, Enum *draw_group_enum);
+bool DisableLQLODs(Mesh &mesh);
 Str BoneNeutralName(C Str &name);
 bool OverrideMeshSkel(C Mesh *mesh, C Skeleton *skel);
 bool OverridePhys    (C PhysBody *body              );
