@@ -686,7 +686,7 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb) // return t
          || Abs(c.g-cm.g)>col_eps
          || Abs(c.b-cm.b)>col_eps)return true;
       }
-      const Flt tex_eps2=Sqr(0.01f);
+      const Flt tex_eps2=Sqr(1.0f/1024);
       if(mshb.vtx.tex0() && Dist2(Lerp(mshb.vtx.tex0(pa), mshb.vtx.tex0(pb), step), mshb.vtx.tex0(mid))>tex_eps2)return true;
       if(mshb.vtx.tex1() && Dist2(Lerp(mshb.vtx.tex1(pa), mshb.vtx.tex1(pb), step), mshb.vtx.tex1(mid))>tex_eps2)return true;
       if(mshb.vtx.tex2() && Dist2(Lerp(mshb.vtx.tex2(pa), mshb.vtx.tex2(pb), step), mshb.vtx.tex2(mid))>tex_eps2)return true;
