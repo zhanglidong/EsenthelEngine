@@ -701,8 +701,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
    Bool  vtx_value_test=(vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.material() || vtx.color()),
        face_length_test=(max_face_length>=0); max_face_length*=max_face_length; // it's now squared
  C Vec *pos=vtx.pos();
-   Memt<Bool>  tri_is;  tri_is.setNum(tris ()); SetMemN( tri_is.data(), 1,  tri_is.elms());
-   Memt<Bool> quad_is; quad_is.setNum(quads()); SetMemN(quad_is.data(), 1, quad_is.elms());
+   Memt<Bool>  tri_is;  tri_is.setNum(tris ()); SetMemN( tri_is.data(), true,  tri_is.elms());
+   Memt<Bool> quad_is; quad_is.setNum(quads()); SetMemN(quad_is.data(), true, quad_is.elms());
 
    // Find these triangles : "/|\"
    for(Int i=0; i<tris(); )if(!tri_is[i])i++;else // for each tri
@@ -755,7 +755,7 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
             }
 
             // remove face
-            tri_is[face]=0;
+            tri_is[face]=false;
             found=true;
             break;
          }
@@ -870,8 +870,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
             }
 
             // remove face
-            if(face&SIGN_BIT)quad_is[face^SIGN_BIT]=0;
-            else              tri_is[face         ]=0;
+            if(face&SIGN_BIT)quad_is[face^SIGN_BIT]=false;
+            else              tri_is[face         ]=false;
             found=true;
             break;
          }

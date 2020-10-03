@@ -806,28 +806,29 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshSetNormalT(ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
    void ObjView::MeshSetNormal(ObjView &editor) {editor.meshSetNrm     (       0);}
    void ObjView::MeshSetNormalH(ObjView &editor) {editor.meshSetNrmH    (        );}
-   void ObjView::MeshNormalY(ObjView &editor) {editor.meshNrmY       ();}
+   void ObjView::MeshNormalY(ObjView &editor) {editor.meshNrmY         ();}
    void ObjView::MeshSetVtxAO(ObjView &editor) {MeshAO.activate();}
-   void ObjView::MeshCreateFace(ObjView &editor) {editor.meshCreateFace ();}
-   void ObjView::MeshMergeFaces(ObjView &editor) {editor.meshMergeFaces ();}
-   void ObjView::MeshRotQuads(ObjView &editor) {editor.meshRotQuads   ();}
-   void ObjView::MeshQuadToTri(ObjView &editor) {editor.meshQuadToTri  ();}
-   void ObjView::MeshTesselate(ObjView &editor) {editor.meshTesselate  ();}
-   void ObjView::MeshSubdivide(ObjView &editor) {editor.meshSubdivide  ();}
-   void ObjView::MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn();}
-   void ObjView::MeshColorDarken(ObjView &editor) {editor.meshColorDarken();}
-   void ObjView::MeshDelDblSide(ObjView &editor) {editor.meshDelDblSide ();}
-   void ObjView::MeshCopyLods(ObjView &editor) {editor.meshCopyLods   ();}
-   void ObjView::MeshReplaceLods(ObjView &editor) {editor.meshReplaceLods();}
-   void ObjView::MeshSeparate1(ObjView &editor) {editor.meshSeparate1  ();}
-   void ObjView::MeshSeparateN(ObjView &editor) {editor.meshSeparateN  ();}
-   void ObjView::MeshCopyParts(ObjView &editor) {editor.meshCopyParts  ();}
+   void ObjView::MeshCreateFace(ObjView &editor) {editor.meshCreateFace   ();}
+   void ObjView::MeshMergeFaces(ObjView &editor) {editor.meshMergeFaces   ();}
+   void ObjView::MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCopFaces();}
+   void ObjView::MeshRotQuads(ObjView &editor) {editor.meshRotQuads     ();}
+   void ObjView::MeshQuadToTri(ObjView &editor) {editor.meshQuadToTri    ();}
+   void ObjView::MeshTesselate(ObjView &editor) {editor.meshTesselate    ();}
+   void ObjView::MeshSubdivide(ObjView &editor) {editor.meshSubdivide    ();}
+   void ObjView::MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn  ();}
+   void ObjView::MeshColorDarken(ObjView &editor) {editor.meshColorDarken  ();}
+   void ObjView::MeshDelDblSide(ObjView &editor) {editor.meshDelDblSide   ();}
+   void ObjView::MeshCopyLods(ObjView &editor) {editor.meshCopyLods     ();}
+   void ObjView::MeshReplaceLods(ObjView &editor) {editor.meshReplaceLods  ();}
+   void ObjView::MeshSeparate1(ObjView &editor) {editor.meshSeparate1    ();}
+   void ObjView::MeshSeparateN(ObjView &editor) {editor.meshSeparateN    ();}
+   void ObjView::MeshCopyParts(ObjView &editor) {editor.meshCopyParts    ();}
    void ObjView::SetBody(ObjView &editor) {Proj.objSetBody(editor.menu_ids, ObjEdit.mesh_elm ? ObjEdit.mesh_elm->id : UIDZero);}
-   void ObjView::AnimTargetObj(ObjView &editor) {editor.animTargetObj  ();}
-   void ObjView::MeshSkinFull(ObjView &editor) {editor.meshSkinFull   ();}
-   void ObjView::MeshSkinFullP(ObjView &editor) {editor.meshSkinFullP  ();}
-   void ObjView::MeshSkinFullU(ObjView &editor) {editor.meshSkinFullU  ();}
-   void ObjView::MeshSkinAuto(ObjView &editor) {editor.meshSkinAuto   ();}
+   void ObjView::AnimTargetObj(ObjView &editor) {editor.animTargetObj    ();}
+   void ObjView::MeshSkinFull(ObjView &editor) {editor.meshSkinFull     ();}
+   void ObjView::MeshSkinFullP(ObjView &editor) {editor.meshSkinFullP    ();}
+   void ObjView::MeshSkinFullU(ObjView &editor) {editor.meshSkinFullU    ();}
+   void ObjView::MeshSkinAuto(ObjView &editor) {editor.meshSkinAuto     ();}
    void ObjView::MeshEditSel(ObjView &editor) {editor.mesh_parts.edit_selected.push();}
    void ObjView::MeshVFS0(ObjView &editor) {editor.vtx_face_sel_mode.toggle(0);}
    void ObjView::MeshVFS1(ObjView &editor) {editor.vtx_face_sel_mode.toggle(1);}
@@ -1356,43 +1357,44 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       {
          Node<MenuElm> n;
-         n.New().create("Delete"                        , MeshDelete     , T).kbsc(KbSc(KB_DEL                                 )).desc("This option will delete selected vertexes/faces");
-         n.New().create("Split"                         , MeshSplit      , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD                    )).desc("This option will split selected vertexes/faces into new Mesh Parts");
-         n.New().create("Weld Vertex Positions"         , MeshWeldPos    , T).kbsc(KbSc(KB_W, KBSC_CTRL_CMD                    )).desc("This option will weld positions of selected vertexes making them share one position");
-         n.New().create("Set Vertex Positions"          , MeshSetPos     , T).kbsc(KbSc(KB_W, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set positions of selected vertexes to the same position as the highlighted vertex.\nTo use:\n-Select vertexes\n-Highlight target vertex\n-Press Keyboard shortcut for this option");
-         n.New().create("Reverse"                       , MeshReverse    , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD                    )).desc("This option will reverse the selected faces");
-         n.New().create("Reverse Normals"               , MeshReverseNrm , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will reverse normals of selected vertexes/faces");
-         n.New().create("Set Normals (Normal)"          , MeshSetNormalN , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD                    )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on existing normal vertex connections");
-         n.New().create("Set Normals (Position)"        , MeshSetNormalP , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on vertex connections");
-         n.New().create("Set Normals (Face Normal)"     , MeshSetNormalFa, T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on face normals");
-         n.New().create("Set Normals (UV)"              , MeshSetNormalT , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
-         n.New().create("Set Normals (None)"            , MeshSetNormal  , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL                    )).desc("This option will set normals of selected vertexes/faces");
-         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
-         n.New().create("Align Normals Up"              , MeshNormalY    , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
-         n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ    , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");
-         n.New().create("Align To Vertex Round"         , MeshAlign      , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align the object so that the highlighted vertex position will be an integer.");
-         n.New().create("Set Vertex Ambient Occlusion"  , MeshSetVtxAO   , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will calculate Ambient Occlusion for each vertex and store it as vertex color.");
-         n.New().create("Create Face"                   , MeshCreateFace , T).kbsc(KbSc(KB_F, KBSC_CTRL_CMD                    )).desc("This option will create 1 face from selected vertexes");
-         n.New().create("Merge Faces"                   , MeshMergeFaces , T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD                    )).desc("This option will merge 2 selected/highlighted faces if they share 2 vertexes");
-         n.New().create("Rotate Quads"                  , MeshRotQuads   , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
-         n.New().create("Convert Quads To Tris"         , MeshQuadToTri  , T);
-         n.New().create("Tesselate"                     , MeshTesselate  , T).kbsc(KbSc(KB_T, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, keeping original vertexes in place");
-         n.New().create("Subdivide"                     , MeshSubdivide  , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, repositioning original vertexes");
-         n.New().create("Delete Double Side Faces"      , MeshDelDblSide , T).desc("This option will remove double sided faces");
+         n.New().create("Delete"                        , MeshDelete       , T).kbsc(KbSc(KB_DEL                                 )).desc("This option will delete selected vertexes/faces");
+         n.New().create("Split"                         , MeshSplit        , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD                    )).desc("This option will split selected vertexes/faces into new Mesh Parts");
+         n.New().create("Weld Vertex Positions"         , MeshWeldPos      , T).kbsc(KbSc(KB_W, KBSC_CTRL_CMD                    )).desc("This option will weld positions of selected vertexes making them share one position");
+         n.New().create("Set Vertex Positions"          , MeshSetPos       , T).kbsc(KbSc(KB_W, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set positions of selected vertexes to the same position as the highlighted vertex.\nTo use:\n-Select vertexes\n-Highlight target vertex\n-Press Keyboard shortcut for this option");
+         n.New().create("Reverse"                       , MeshReverse      , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD                    )).desc("This option will reverse the selected faces");
+         n.New().create("Reverse Normals"               , MeshReverseNrm   , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will reverse normals of selected vertexes/faces");
+         n.New().create("Set Normals (Normal)"          , MeshSetNormalN   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD                    )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on existing normal vertex connections");
+         n.New().create("Set Normals (Position)"        , MeshSetNormalP   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on vertex connections");
+         n.New().create("Set Normals (Face Normal)"     , MeshSetNormalFa  , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on face normals");
+         n.New().create("Set Normals (UV)"              , MeshSetNormalT   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
+         n.New().create("Set Normals (None)"            , MeshSetNormal    , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL                    )).desc("This option will set normals of selected vertexes/faces");
+         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH   , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
+         n.New().create("Align Normals Up"              , MeshNormalY      , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
+         n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ      , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");
+         n.New().create("Align To Vertex Round"         , MeshAlign        , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align the object so that the highlighted vertex position will be an integer.");
+         n.New().create("Set Vertex Ambient Occlusion"  , MeshSetVtxAO     , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will calculate Ambient Occlusion for each vertex and store it as vertex color.");
+         n.New().create("Create Face"                   , MeshCreateFace   , T).kbsc(KbSc(KB_F, KBSC_CTRL_CMD                    )).desc("This option will create 1 face from selected vertexes");
+         n.New().create("Merge Faces"                   , MeshMergeFaces   , T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD                    )).desc("This option will merge 2 selected/highlighted faces if they share 2 vertexes");
+         n.New().create("Merge Coplanar Faces"          , MeshMergeCopFaces, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will merge all coplanar faces");
+         n.New().create("Rotate Quads"                  , MeshRotQuads     , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
+         n.New().create("Convert Quads To Tris"         , MeshQuadToTri    , T);
+         n.New().create("Tesselate"                     , MeshTesselate    , T).kbsc(KbSc(KB_T, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, keeping original vertexes in place");
+         n.New().create("Subdivide"                     , MeshSubdivide    , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, repositioning original vertexes");
+         n.New().create("Delete Double Side Faces"      , MeshDelDblSide   , T).desc("This option will remove double sided faces");
          n++;
-         n.New().create("Brighten Vertex Colors"        , MeshColorBrghtn, T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT         |KBSC_REPEAT)).desc("This option will brighten vertex colors");
-         n.New().create("Darken Vertex Colors"          , MeshColorDarken, T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT|KBSC_REPEAT)).desc("This option will darken vertex colors");
+         n.New().create("Brighten Vertex Colors"        , MeshColorBrghtn  , T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT         |KBSC_REPEAT)).desc("This option will brighten vertex colors");
+         n.New().create("Darken Vertex Colors"          , MeshColorDarken  , T).kbsc(KbSc(KB_C, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT|KBSC_REPEAT)).desc("This option will darken vertex colors");
          n++;
-         n.New().create("Copy all Lods to Memory"       , MeshCopyLods   , T);
-         n.New().create("Replace all Lods from Memory"  , MeshReplaceLods, T);
+         n.New().create("Copy all Lods to Memory"       , MeshCopyLods     , T);
+         n.New().create("Replace all Lods from Memory"  , MeshReplaceLods  , T);
          n++;
-         n.New().create("Separate into 1 Object"        , MeshSeparate1  , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will separate selected parts into 1 new object");
-         n.New().create("Separate into Multiple Objects", MeshSeparateN  , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will separate selected parts into multiple new objects (1 per part)");
-         n.New().create("Edit Selected"                 , MeshEditSel    , T).kbsc(KbSc(KB_E, KBSC_CTRL_CMD      )).flag(MENU_HIDDEN);
-         n.New().create("VFS0"                          , MeshVFS0       , T).kbsc(KbSc(KB_1, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
-         n.New().create("VFS1"                          , MeshVFS1       , T).kbsc(KbSc(KB_2, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
-         n.New().create("VFS2"                          , MeshVFS2       , T).kbsc(KbSc(KB_3, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
-         n.New().create("VFS3"                          , MeshVFS3       , T).kbsc(KbSc(KB_4, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("Separate into 1 Object"        , MeshSeparate1    , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will separate selected parts into 1 new object");
+         n.New().create("Separate into Multiple Objects", MeshSeparateN    , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will separate selected parts into multiple new objects (1 per part)");
+         n.New().create("Edit Selected"                 , MeshEditSel      , T).kbsc(KbSc(KB_E, KBSC_CTRL_CMD      )).flag(MENU_HIDDEN);
+         n.New().create("VFS0"                          , MeshVFS0         , T).kbsc(KbSc(KB_1, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS1"                          , MeshVFS1         , T).kbsc(KbSc(KB_2, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS2"                          , MeshVFS2         , T).kbsc(KbSc(KB_3, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS3"                          , MeshVFS3         , T).kbsc(KbSc(KB_4, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
          n.New().create("MeshAO Preview"                , MeshAOClass::PreviewToggle, MeshAO).kbsc(KbSc(KB_P, KBSC_ALT)).flag(MENU_HIDDEN);
          n++;
          {
