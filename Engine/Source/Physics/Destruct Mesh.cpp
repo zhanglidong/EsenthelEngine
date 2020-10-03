@@ -11,7 +11,7 @@ Cache<DestructMesh> DestructMeshes("Destruct Mesh");
 Bool DestructMesh::Part::create(Mesh &src, Int vtx_limit)
 {
    // optimize
-   mesh.create(src).triToQuad().weldCoplanarFaces(EPS_COL_COS, -1, false).setAutoTanBin().setRender();
+   mesh.create(src).triToQuad().weldCoplanarFaces(EPS_COL8_COS, -1, false).setAutoTanBin().setRender();
 
    // phys
    if(!vtx_limit)phys.del();else

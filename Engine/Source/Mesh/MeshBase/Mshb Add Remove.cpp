@@ -660,13 +660,21 @@ MeshBase& MeshBase::weldInlineEdges(Flt cos_edge, Flt cos_vtx, Bool z_test)
    return T;
 }
 /******************************************************************************/
-static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb) // return true if shouldn't be welded
+static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb, Flt cos_vtx) // return true if shouldn't be welded
 {
    Flt length=Dist(mshb.vtx.pos(pa), mshb.vtx.pos(pb));
    if( length>EPS)
    {
       Flt step=Dist(mshb.vtx.pos(mid), mshb.vtx.pos(pa))/length;
-      if( mshb.vtx.material())
+
+      if(mshb.vtx.nrm() && CosBetween(Lerp(mshb.vtx.nrm(pa), mshb.vtx.nrm(pb), step), mshb.vtx.nrm(mid))<cos_vtx)return true;
+
+      const Flt tex_eps2=Sqr(1.0f/1024);
+      if(mshb.vtx.tex0() && Dist2(Lerp(mshb.vtx.tex0(pa), mshb.vtx.tex0(pb), step), mshb.vtx.tex0(mid))>tex_eps2)return true;
+      if(mshb.vtx.tex1() && Dist2(Lerp(mshb.vtx.tex1(pa), mshb.vtx.tex1(pb), step), mshb.vtx.tex1(mid))>tex_eps2)return true;
+      if(mshb.vtx.tex2() && Dist2(Lerp(mshb.vtx.tex2(pa), mshb.vtx.tex2(pb), step), mshb.vtx.tex2(mid))>tex_eps2)return true;
+
+      if(mshb.vtx.material())
       {
          VecB4 m =Lerp(mshb.vtx.material(pa ), mshb.vtx.material(pb), step),
                mm=     mshb.vtx.material(mid);
@@ -676,6 +684,7 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb) // return t
          || Abs(m.z-mm.z)>mtrl_eps
          || Abs(m.w-mm.w)>mtrl_eps)return true;
       }
+
       if(mshb.vtx.color())
       {
          Color c =Lerp(mshb.vtx.color(pa ), mshb.vtx.color(pb), step),
@@ -686,10 +695,6 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb) // return t
          || Abs(c.g-cm.g)>col_eps
          || Abs(c.b-cm.b)>col_eps)return true;
       }
-      const Flt tex_eps2=Sqr(1.0f/1024);
-      if(mshb.vtx.tex0() && Dist2(Lerp(mshb.vtx.tex0(pa), mshb.vtx.tex0(pb), step), mshb.vtx.tex0(mid))>tex_eps2)return true;
-      if(mshb.vtx.tex1() && Dist2(Lerp(mshb.vtx.tex1(pa), mshb.vtx.tex1(pb), step), mshb.vtx.tex1(mid))>tex_eps2)return true;
-      if(mshb.vtx.tex2() && Dist2(Lerp(mshb.vtx.tex2(pa), mshb.vtx.tex2(pb), step), mshb.vtx.tex2(mid))>tex_eps2)return true;
    }
    return false;
 }
@@ -698,7 +703,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
    setAdjacencies(true, false);
    setFaceNormals();
    exclude       (EDGE_ADJ_FACE|FACE_ADJ_EDGE);
-   Bool  vtx_value_test=(vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.material() || vtx.color()),
+   Bool    vtx_nrm_test=(cos_vtx>-1 && vtx.nrm()),
+         vtx_value_test=(vtx_nrm_test || vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.material() || vtx.color()),
        face_length_test=(max_face_length>=0); max_face_length*=max_face_length; // it's now squared
  C Vec *pos=vtx.pos();
    Memt<Bool>  tri_is;  tri_is.setNum(tris ()); SetMemN( tri_is.data(), true,  tri_is.elms());
@@ -726,7 +732,7 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
             if(p[vi]!=p2[(vi2+1)%3] || p[(vi+1)%3]!=p2[vi2])continue;
 
             // vertex normal test
-            if(cos_vtx>-1 && vtx.nrm() && Dot(vtx.nrm(p[(vi+2)%3]), vtx.nrm(p2[(vi2+2)%3]))<cos_vtx)continue;
+            if(vtx_nrm_test && Dot(vtx.nrm(p[(vi+2)%3]), vtx.nrm(p2[(vi2+2)%3]))<cos_vtx)continue;
 
             // safety test (faces without other neighbors)
             if(safe)if(af[(vi+1)%3]!=-1 || af2[(vi2+2)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
@@ -740,7 +746,7 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
                || Dist2(pos[p[(vi+2)%3]], pos[p2[(vi2+2)%3]])>max_face_length)continue;
 
             // vertex values test
-            if(vtx_value_test)if(VertexValueTest(T, p[(vi+1)%3], p[(vi+2)%3], p2[(vi2+2)%3]))continue;
+            if(vtx_value_test)if(VertexValueTest(T, p[(vi+1)%3], p[(vi+2)%3], p2[(vi2+2)%3], cos_vtx))continue;
 
             // remap points & adj
              p[(vi+1)%3]= p2[(vi2+2)%3];
@@ -787,7 +793,7 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
             if(p[vi]!=p2[(vi2+1)%vtxs] || p[(vi+1)%4]!=p2[vi2])continue;
 
             // vertex normal test
-            if(cos_vtx>-1 && vtx.nrm())
+            if(vtx_nrm_test)
             {
              C Vec &n_2 =vtx.nrm(p [(vi +2)%   4]),
                    &n_3 =vtx.nrm(p [(vi +3)%   4]),
@@ -828,8 +834,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
                // vertex values test
                if(vtx_value_test)
                {
-                  if(VertexValueTest(T, p [vi ], p[(vi+3)%4], p2[(vi2+2)%4])
-                  || VertexValueTest(T, p2[vi2], p[(vi+2)%4], p2[(vi2+3)%4]))continue;
+                  if(VertexValueTest(T, p [vi ], p[(vi+3)%4], p2[(vi2+2)%4], cos_vtx)
+                  || VertexValueTest(T, p2[vi2], p[(vi+2)%4], p2[(vi2+3)%4], cos_vtx))continue;
                }
 
                // remap points & adj

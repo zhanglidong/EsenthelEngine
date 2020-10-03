@@ -504,7 +504,7 @@ void ObjView.meshMergeCopFaces()
    REPA(lod)if(partOp(i))
    {
       MeshPart &part=lod.parts[i];
-      part.base.weldCoplanarFaces(EPS_COL_COS, -1, false);
+      part.base.weldCoplanarFaces(EPS_COL8_COS, EPS_COL8_COS, false);
       part.setRender();
    }
    setChangedMesh(true, false);
