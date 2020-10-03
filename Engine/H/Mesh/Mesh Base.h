@@ -494,7 +494,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    MeshBase& removeDoubleSideFaces(Bool remove_unused_vtxs=true);
 
-   MeshBase& mergeFaces(Int a, Int b); // this method will merge 2 faces together, but only if they share exactly 2 vertexes
+   Int mergeFaces(Int a, Int b); // this method will merge 2 faces together, but only if they share exactly 2 vertexes, upon success index of merged face is returned, -1 on fail
 
    // optimize
 #if EE_PRIVATE

@@ -480,10 +480,13 @@ void ObjView.meshMergeFaces()
       if(MeshPart *part=getPart(faces[0].x))
       {
          mesh_undos.set("meshMergeFace");
-         part.base.mergeFaces(faces[0].y, faces[1].y);
-         part.setRender();
-         setChangedMesh(true, false);
-         litSelVFClear();
+         int merged_face=part.base.mergeFaces(faces[0].y, faces[1].y);
+         if( merged_face!=-1) // !=-1 and not >=0 because of SIGN_BIT for quads
+         {
+            part.setRender();
+            setChangedMesh(true, false);
+            litSelVFClear(); selVFSet(faces[0].x, -1, merged_face);
+         }
       }else Gui.msgBox(S, "Invalid Mesh Part");
    }
 }

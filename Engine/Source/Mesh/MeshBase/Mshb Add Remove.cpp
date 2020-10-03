@@ -363,8 +363,9 @@ MeshBase& MeshBase::removeDoubleSideFaces(Bool remove_unused_vtxs)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::mergeFaces(Int a, Int b)
+Int MeshBase::mergeFaces(Int a, Int b)
 {
+   Int merged=-1;
    if(a!=b)
    {
       Bool a_quad=FlagTest(a, SIGN_BIT), a_in_range; Int ai=a; if(a_quad){ai^=SIGN_BIT; a_in_range=InRange(ai, quad);}else a_in_range=InRange(ai, tri);
@@ -398,14 +399,20 @@ MeshBase& MeshBase::mergeFaces(Int a, Int b)
                          C Vec &p0=vtx.pos(q.c[i]), &p1=vtx.pos(q.c[(i+1)%4]), &p2=vtx.pos(q.c[(i+2)%4]);
                            if(DistPointStr(p1, p0, !(p2-p0))<=EPS)
                            {
+                              merged=tris(); // triangle
                               addTri(VecI(q.c[i], q.c[(i+2)%4], q.c[(i+3)%4]));
                               goto added;
                            }
                         }
+                        merged=quads()^SIGN_BIT; // quad
                         addQuad(q);
                         added:;
                      }else
-                     if(a_quad && b_quad)addQuad(VecI4(a_ind.c[(a_ofs+2)%a_inds], a_ind.c[(a_ofs+3)%a_inds], b_ind.c[(b_ofs+1)%b_inds], b_ind.c[(b_ofs+2)%b_inds]));else // 2 quads
+                     if(a_quad && b_quad)
+                     {
+                        merged=quads()^SIGN_BIT; // quad
+                        addQuad(VecI4(a_ind.c[(a_ofs+2)%a_inds], a_ind.c[(a_ofs+3)%a_inds], b_ind.c[(b_ofs+1)%b_inds], b_ind.c[(b_ofs+2)%b_inds]));
+                     }else // 2 quads
                      { // one triangle and one quad
                         if(b_quad) // put quad to 'a'
                         {
@@ -428,19 +435,20 @@ MeshBase& MeshBase::mergeFaces(Int a, Int b)
                            if(a1>area){face=f1; area=a1;}
                            if(a2>area){face=f2; area=a2;}
                         }
+                        merged=quads()^SIGN_BIT; // quad
                         addQuad(face);
                      }
 
                      // remove unused vtxs
                      removeUnusedVtxs();
-                     return T;
+                     return merged;
                   }
                }
             }
          }
       }
    }
-   return T;
+   return merged;
 }
 /******************************************************************************/
 // OPTIMIZE
