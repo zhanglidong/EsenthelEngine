@@ -810,7 +810,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshSetVtxAO(ObjView &editor) {MeshAO.activate();}
    void ObjView::MeshCreateFace(ObjView &editor) {editor.meshCreateFace   ();}
    void ObjView::MeshMergeFaces(ObjView &editor) {editor.meshMergeFaces   ();}
-   void ObjView::MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCopFaces();}
+   void ObjView::MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCoplanarFaces(false);}
    void ObjView::MeshRotQuads(ObjView &editor) {editor.meshRotQuads     ();}
    void ObjView::MeshQuadToTri(ObjView &editor) {editor.meshQuadToTri    ();}
    void ObjView::MeshTesselate(ObjView &editor) {editor.meshTesselate    ();}

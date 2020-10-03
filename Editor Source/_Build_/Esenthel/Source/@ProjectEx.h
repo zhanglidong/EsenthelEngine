@@ -274,13 +274,14 @@ public:
    static void TransformCenterXZ  (ProjectEx &proj);
    static void TransformRotYMinBox(ProjectEx &proj);
 
-   static void MeshRemVtxTex1   (ProjectEx &proj);
-   static void MeshRemVtxTex2   (ProjectEx &proj);
-   static void MeshRemVtxTex12  (ProjectEx &proj);
-   static void MeshRemVtxCol    (ProjectEx &proj);
-   static void MeshRemVtxSkin   (ProjectEx &proj);
-   static void MeshDisableLQLODs(ProjectEx &proj);
-   static void SetBody          (ProjectEx &proj);
+   static void MeshRemVtxTex1        (ProjectEx &proj);
+   static void MeshRemVtxTex2        (ProjectEx &proj);
+   static void MeshRemVtxTex12       (ProjectEx &proj);
+   static void MeshRemVtxCol         (ProjectEx &proj);
+   static void MeshRemVtxSkin        (ProjectEx &proj);
+   static void MeshDisableLQLODs     (ProjectEx &proj);
+   static void MeshMergeCoplanarFaces(ProjectEx &proj);
+   static void SetBody               (ProjectEx &proj);
                                     
    void columnVisible(int column, bool visible);
 
@@ -360,6 +361,7 @@ public:
    void cancelReload(C MemPtr<UID> &elm_ids);
    void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag);
    void disableLQLODs(C MemPtr<UID> &elm_ids);
+   void meshMergeCoplanarFaces(C MemPtr<UID> &elm_ids);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time);
    void imageMipMap(C MemPtr<UID> &elm_ids, bool on);

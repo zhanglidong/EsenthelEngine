@@ -497,18 +497,25 @@ void ObjView.meshMergeFaces()
       }else Gui.msgBox(S, "Invalid Mesh Part");
    }
 }
-void ObjView.meshMergeCopFaces()
+void ObjView.meshMergeCoplanarFaces(bool all)
 {
+   bool changed=false;
    mesh_undos.set("meshMergeFace");
-   MeshLod &lod=getLod();
-   REPA(lod)if(partOp(i))
+   if(all)
    {
-      MeshPart &part=lod.parts[i];
-      part.base.weldCoplanarFaces(EPS_COL8_COS, EPS_COL8_COS, false);
-      part.setRender();
+      if(mesh.weldCoplanarFaces()){mesh.setRender(); changed=true;}
+   }else
+   {
+      MeshLod &lod=getLod(); REPA(lod)if(partOp(i))
+      {
+         MeshPart &part=lod.parts[i]; if(part.base.weldCoplanarFaces()){part.setRender(); changed=true;}
+      }
    }
-   setChangedMesh(true, false);
-   litSelVFClear();
+   if(changed)
+   {
+      setChangedMesh(true, false);
+      litSelVFClear();
+   }
 }
 void ObjView.meshRotQuads()
 {

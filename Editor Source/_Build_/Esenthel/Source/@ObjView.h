@@ -283,7 +283,7 @@ public:
    static void MeshSetVtxAO     (ObjView &editor);
    static void MeshCreateFace   (ObjView &editor);void meshCreateFace   ();
    static void MeshMergeFaces   (ObjView &editor);void meshMergeFaces   ();
-   static void MeshMergeCopFaces(ObjView &editor);void meshMergeCopFaces();
+   static void MeshMergeCopFaces(ObjView &editor);          void meshMergeCoplanarFaces(bool all);
    static void MeshRotQuads     (ObjView &editor);void meshRotQuads     ();
    static void MeshQuadToTri    (ObjView &editor);void meshQuadToTri    ();
    static void MeshTesselate    (ObjView &editor);void meshTesselate    ();

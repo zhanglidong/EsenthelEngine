@@ -910,7 +910,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void MeshSetVtxAO     (ObjView &editor) {MeshAO.activate();}
    static void MeshCreateFace   (ObjView &editor) {editor.meshCreateFace   ();}   void meshCreateFace   ();
    static void MeshMergeFaces   (ObjView &editor) {editor.meshMergeFaces   ();}   void meshMergeFaces   ();
-   static void MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCopFaces();}   void meshMergeCopFaces();
+   static void MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCoplanarFaces(false);}   void meshMergeCoplanarFaces(bool all);
    static void MeshRotQuads     (ObjView &editor) {editor.meshRotQuads     ();}   void meshRotQuads     ();
    static void MeshQuadToTri    (ObjView &editor) {editor.meshQuadToTri    ();}   void meshQuadToTri    ();
    static void MeshTesselate    (ObjView &editor) {editor.meshTesselate    ();}   void meshTesselate    ();

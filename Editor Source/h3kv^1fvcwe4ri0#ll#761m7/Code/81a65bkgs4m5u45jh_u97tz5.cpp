@@ -409,13 +409,14 @@ class ProjectEx : ProjectHierarchy
    static void TransformCenterXZ  (ProjectEx &proj) {proj.transformCenterXZ  (proj.menu_list_sel);}
    static void TransformRotYMinBox(ProjectEx &proj) {proj.transformRotYMinBox(proj.menu_list_sel);}
 
-   static void MeshRemVtxTex1   (ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX1 );}
-   static void MeshRemVtxTex2   (ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX2 );}
-   static void MeshRemVtxTex12  (ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
-   static void MeshRemVtxCol    (ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_COLOR);}
-   static void MeshRemVtxSkin   (ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_SKIN );}
-   static void MeshDisableLQLODs(ProjectEx &proj) {proj.disableLQLODs(proj.menu_list_sel);}
-   static void SetBody          (ProjectEx &proj) {proj.objSetBody   (proj.menu_list_sel, ObjEdit.mesh_elm ? ObjEdit.mesh_elm.id : UIDZero);}
+   static void MeshRemVtxTex1        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1 );}
+   static void MeshRemVtxTex2        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX2 );}
+   static void MeshRemVtxTex12       (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
+   static void MeshRemVtxCol         (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_COLOR);}
+   static void MeshRemVtxSkin        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_SKIN );}
+   static void MeshDisableLQLODs     (ProjectEx &proj) {proj.disableLQLODs         (proj.menu_list_sel);}
+   static void MeshMergeCoplanarFaces(ProjectEx &proj) {proj.meshMergeCoplanarFaces(proj.menu_list_sel);}
+   static void SetBody               (ProjectEx &proj) {proj.objSetBody            (proj.menu_list_sel, ObjEdit.mesh_elm ? ObjEdit.mesh_elm.id : UIDZero);}
                                     
    void columnVisible(int column, bool visible)
    {
@@ -1315,6 +1316,30 @@ class ProjectEx : ProjectHierarchy
          }else
          {
             Mesh mesh; if(Load(mesh, editPath(mesh_elm.id), game_path) && DisableLQLODs(mesh))
+            {
+               Save(mesh, editPath(mesh_elm.id), game_path);
+               makeGameVer(*mesh_elm);
+               if(ElmMesh *mesh_data=mesh_elm.meshData())
+               {
+                  mesh_data.newVer();
+                  mesh_data.file_time.getUTC();
+               }
+               meshChanged(*mesh_elm);
+               Server.setElmLong(mesh_elm.id);
+            }
+         }
+      }
+   }
+   void meshMergeCoplanarFaces(C MemPtr<UID> &elm_ids)
+   {
+      REPA(elm_ids)if(Elm *obj_elm=findElm(elm_ids[i], ELM_OBJ))if(ElmObj *obj_data=obj_elm.objData())if(Elm *mesh_elm=findElm(obj_data.mesh_id, ELM_MESH))
+      {
+         if(elm_ids[i]==ObjEdit.obj_id) // if this is currently edited object
+         {
+            ObjEdit.meshMergeCoplanarFaces(true);
+         }else
+         {
+            Mesh mesh; if(Load(mesh, editPath(mesh_elm.id), game_path) && mesh.weldCoplanarFaces())
             {
                Save(mesh, editPath(mesh_elm.id), game_path);
                makeGameVer(*mesh_elm);
@@ -4151,6 +4176,10 @@ class ProjectEx : ProjectHierarchy
                   {
                      Node<MenuElm> &d=(m+="Disable");
                      d.New().create("Low Quality LODs", MeshDisableLQLODs, T);
+                  }
+                  {
+                     Node<MenuElm> &o=(m+="Optimize");
+                     o.New().create("Merge Coplanar Faces", MeshMergeCoplanarFaces, T);
                   }
                }
                Node<MenuElm> &obj=(o+="Object");

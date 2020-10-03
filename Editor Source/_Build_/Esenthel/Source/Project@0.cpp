@@ -450,13 +450,14 @@ void DrawProject()
    void ProjectEx::TransformCenter(ProjectEx &proj) {proj.transformCenter    (proj.menu_list_sel);}
    void ProjectEx::TransformCenterXZ(ProjectEx &proj) {proj.transformCenterXZ  (proj.menu_list_sel);}
    void ProjectEx::TransformRotYMinBox(ProjectEx &proj) {proj.transformRotYMinBox(proj.menu_list_sel);}
-   void ProjectEx::MeshRemVtxTex1(ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX1 );}
-   void ProjectEx::MeshRemVtxTex2(ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX2 );}
-   void ProjectEx::MeshRemVtxTex12(ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
-   void ProjectEx::MeshRemVtxCol(ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_COLOR);}
-   void ProjectEx::MeshRemVtxSkin(ProjectEx &proj) {proj.removeMeshVtx(proj.menu_list_sel, VTX_SKIN );}
-   void ProjectEx::MeshDisableLQLODs(ProjectEx &proj) {proj.disableLQLODs(proj.menu_list_sel);}
-   void ProjectEx::SetBody(ProjectEx &proj) {proj.objSetBody   (proj.menu_list_sel, ObjEdit.mesh_elm ? ObjEdit.mesh_elm->id : UIDZero);}
+   void ProjectEx::MeshRemVtxTex1(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1 );}
+   void ProjectEx::MeshRemVtxTex2(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX2 );}
+   void ProjectEx::MeshRemVtxTex12(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
+   void ProjectEx::MeshRemVtxCol(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_COLOR);}
+   void ProjectEx::MeshRemVtxSkin(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_SKIN );}
+   void ProjectEx::MeshDisableLQLODs(ProjectEx &proj) {proj.disableLQLODs         (proj.menu_list_sel);}
+   void ProjectEx::MeshMergeCoplanarFaces(ProjectEx &proj) {proj.meshMergeCoplanarFaces(proj.menu_list_sel);}
+   void ProjectEx::SetBody(ProjectEx &proj) {proj.objSetBody            (proj.menu_list_sel, ObjEdit.mesh_elm ? ObjEdit.mesh_elm->id : UIDZero);}
    void ProjectEx::columnVisible(int column, bool visible)
    {
       flt col_width=list.columnWidth(column); // get column width before it's hidden, because after it's hidden, its width may be unavailable
@@ -1335,6 +1336,30 @@ void DrawProject()
          }else
          {
             Mesh mesh; if(Load(mesh, editPath(mesh_elm->id), game_path) && DisableLQLODs(mesh))
+            {
+               Save(mesh, editPath(mesh_elm->id), game_path);
+               makeGameVer(*mesh_elm);
+               if(ElmMesh *mesh_data=mesh_elm->meshData())
+               {
+                  mesh_data->newVer();
+                  mesh_data->file_time.getUTC();
+               }
+               meshChanged(*mesh_elm);
+               Server.setElmLong(mesh_elm->id);
+            }
+         }
+      }
+   }
+   void ProjectEx::meshMergeCoplanarFaces(C MemPtr<UID> &elm_ids)
+   {
+      REPA(elm_ids)if(Elm *obj_elm=findElm(elm_ids[i], ELM_OBJ))if(ElmObj *obj_data=obj_elm->objData())if(Elm *mesh_elm=findElm(obj_data->mesh_id, ELM_MESH))
+      {
+         if(elm_ids[i]==ObjEdit.obj_id) // if this is currently edited object
+         {
+            ObjEdit.meshMergeCoplanarFaces(true);
+         }else
+         {
+            Mesh mesh; if(Load(mesh, editPath(mesh_elm->id), game_path) && mesh.weldCoplanarFaces())
             {
                Save(mesh, editPath(mesh_elm->id), game_path);
                makeGameVer(*mesh_elm);
@@ -4081,6 +4106,10 @@ void DrawProject()
                   {
                      Node<MenuElm> &d=(m+="Disable");
                      d.New().create("Low Quality LODs", MeshDisableLQLODs, T);
+                  }
+                  {
+                     Node<MenuElm> &o=(m+="Optimize");
+                     o.New().create("Merge Coplanar Faces", MeshMergeCoplanarFaces, T);
                   }
                }
                Node<MenuElm> &obj=(o+="Object");

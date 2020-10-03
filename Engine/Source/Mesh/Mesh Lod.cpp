@@ -651,7 +651,7 @@ MeshLod& MeshLod::removeDegenerateFaces(Flt  eps                                
 Bool     MeshLod::removeUnusedVtxs     (Bool include_edge_references                              ) {Bool changed=false; REPA(T)changed|=parts[i].base.removeUnusedVtxs     (include_edge_references                 ); return changed;}
 MeshLod& MeshLod::removeSingleFaces    (Flt  fraction                                             ) {                    REPA(T)         parts[i].base.removeSingleFaces    (fraction                                ); return       T;}
 MeshLod& MeshLod::weldInlineEdges      (Flt  cos_edge, Flt cos_vtx, Bool z_test                   ) {                    REPA(T)         parts[i].base.weldInlineEdges      (cos_edge, cos_vtx, z_test               ); return       T;}
-MeshLod& MeshLod::weldCoplanarFaces    (Flt  cos_face, Flt cos_vtx, Bool safe, Flt max_face_length) {                    REPA(T)         parts[i].base.weldCoplanarFaces    (cos_face, cos_vtx, safe, max_face_length); return       T;}
+Bool     MeshLod::weldCoplanarFaces    (Flt  cos_face, Flt cos_vtx, Bool safe, Flt max_face_length) {Bool changed=false; REPA(T)changed|=parts[i].base.weldCoplanarFaces    (cos_face, cos_vtx, safe, max_face_length); return changed;}
 
 static Bool HasMaterial(MeshPart &part, Material *mtrl)
 {

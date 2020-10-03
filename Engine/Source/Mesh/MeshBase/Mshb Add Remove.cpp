@@ -698,8 +698,9 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb, Flt cos_vtx
    }
    return false;
 }
-MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_face_length)
+Bool MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_face_length)
 {
+   Bool changed=false;
    setAdjacencies(true, false);
    setFaceNormals();
    exclude       (EDGE_ADJ_FACE|FACE_ADJ_EDGE);
@@ -762,7 +763,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
 
             // remove face
             tri_is[face]=false;
-            found=true;
+            found  =true;
+            changed=true;
             break;
          }
       }
@@ -878,7 +880,8 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
             // remove face
             if(face&SIGN_BIT)quad_is[face^SIGN_BIT]=false;
             else              tri_is[face         ]=false;
-            found=true;
+            found  =true;
+            changed=true;
             break;
          }
       }
@@ -889,7 +892,7 @@ MeshBase& MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt 
    keepTris        ( tri_is);
    keepQuads       (quad_is);
    removeUnusedVtxs(       );
-   return T;
+   return changed;
 }
 /******************************************************************************/
 }
