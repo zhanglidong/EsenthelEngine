@@ -678,7 +678,7 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb, Flt cos_vtx
       {
          VecB4 m =Lerp(mshb.vtx.material(pa ), mshb.vtx.material(pb), step),
                mm=     mshb.vtx.material(mid);
-                const Int mtrl_eps=5;
+                const Int mtrl_eps=3;
          if(Abs(m.x-mm.x)>mtrl_eps
          || Abs(m.y-mm.y)>mtrl_eps
          || Abs(m.z-mm.z)>mtrl_eps
@@ -704,7 +704,7 @@ Bool MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_f
    setAdjacencies(true, false);
    setFaceNormals();
    exclude       (EDGE_ADJ_FACE|FACE_ADJ_EDGE);
-   Bool    vtx_nrm_test=(cos_vtx>-1 && vtx.nrm()),
+   Bool    vtx_nrm_test=(vtx.nrm() && cos_vtx>-1),
          vtx_value_test=(vtx_nrm_test || vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.material() || vtx.color()),
        face_length_test=(max_face_length>=0); max_face_length*=max_face_length; // it's now squared
  C Vec *pos=vtx.pos();
@@ -716,53 +716,59 @@ Bool MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_f
    {
       Bool  found=false;
     C Vec  &nrm  =tri.nrm    (i);
-      Int  *af   =tri.adjFace(i).c;
+      Int  *p    =tri.ind    (i).c,
+           *af   =tri.adjFace(i).c;
       REPD(vi, 3) // for each tris adjacent tri
       {
-         Int face =af[vi];
-         if( face!=-1 && !(face&SIGN_BIT)) // compare to -1 and not >=0 because it can have SIGN_BIT
+         Int face1 =af[vi];
+         if( face1!=-1 && !(face1&SIGN_BIT)) // compare to -1 and not >=0 because it can have SIGN_BIT
          {
             // co-planar test
-            if(Dot(tri.nrm(face), nrm)<cos_face)continue;
+            if(Dot(nrm, tri.nrm(face1))<cos_face)continue;
 
             // same vertex test
-            Int *af2=tri.adjFace(face).c,
-                *p  =tri.ind    (i   ).c,
-                *p2 =tri.ind    (face).c;
-            Int vi2; for(vi2=3; --vi2>=0; )if(af2[vi2]==i)break; if(vi2<0)continue;
-            if(p[vi]!=p2[(vi2+1)%3] || p[(vi+1)%3]!=p2[vi2])continue;
-
-            // vertex normal test
-            if(vtx_nrm_test && Dot(vtx.nrm(p[(vi+2)%3]), vtx.nrm(p2[(vi2+2)%3]))<cos_vtx)continue;
+            Int *p1 =tri.ind    (face1).c,
+                *af1=tri.adjFace(face1).c;
+            Int vi1; for(vi1=3; --vi1>=0; )if(af1[vi1]==i)break; if(vi1<0)continue;
+            /*        F0V0 F1V1
+                         /|\
+                        / | \
+                       /  |  \
+                      /   |   \
+                     /    |    \
+               F0V2 <-----|-----> F1V2
+                      F0V1 F1V0
+            */
+            Int  F0V0=p[ vi     ], F1V1=p1[(vi1+1)%3]; if(F0V0!=F1V1)continue;
+            Int &F0V1=p[(vi+1)%3], F1V0=p1[ vi1     ]; if(F0V1!=F1V0)continue; // !! need & for 'F0V1' because we change it later !!
 
             // safety test (faces without other neighbors)
-            if(safe)if(af[(vi+1)%3]!=-1 || af2[(vi2+2)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+            if(safe)if(af[(vi+1)%3]!=-1 || af1[(vi1+2)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
 
             // edges inline test
-            if(DistPointEdge(pos[p[(vi+1)%3]], pos[p[(vi+2)%3]], pos[p2[(vi2+2)%3]])>EPS)continue;
+            Int F0V2=p[(vi+2)%3], F1V2=p1[(vi1+2)%3];
+            if(DistPointEdge(pos[F0V1], pos[F0V2], pos[F1V2])>EPS)continue;
 
             // face length test
-            if(face_length_test)
-               if(Dist2(pos[p[ vi     ]], pos[p2[(vi2+2)%3]])>max_face_length
-               || Dist2(pos[p[(vi+2)%3]], pos[p2[(vi2+2)%3]])>max_face_length)continue;
+            if(face_length_test && Dist2(pos[F0V2], pos[F1V2])>max_face_length)continue;
 
             // vertex values test
-            if(vtx_value_test)if(VertexValueTest(T, p[(vi+1)%3], p[(vi+2)%3], p2[(vi2+2)%3], cos_vtx))continue;
+            if(vtx_value_test && VertexValueTest(T, F0V1, F0V2, F1V2, cos_vtx))continue;
 
             // remap points & adj
-             p[(vi+1)%3]= p2[(vi2+2)%3];
-            af[ vi     ]=af2[(vi2+1)%3];
+            F0V1  =F1V2;
+            af[vi]=af1[(vi1+1)%3];
 
             // fix adjacency
-            REPD(a, 3)if(af2[a]!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
+            REPD(a, 3)if(af1[a]!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
             {
-               Int face3=af2[a];
-               if( face3&SIGN_BIT){REPD(j, 4)if(quad.adjFace(face3^SIGN_BIT).c[j]==face)quad.adjFace(face3^SIGN_BIT).c[j]=i;}
-               else               {REPD(j, 3)if(tri .adjFace(face3         ).c[j]==face)tri .adjFace(face3         ).c[j]=i;}
+               Int face2=af1[a];
+               if( face2&SIGN_BIT){REPD(j, 4)if(quad.adjFace(face2^SIGN_BIT).c[j]==face1)quad.adjFace(face2^SIGN_BIT).c[j]=i;}
+               else               {REPD(j, 3)if(tri .adjFace(face2         ).c[j]==face1)tri .adjFace(face2         ).c[j]=i;}
             }
 
             // remove face
-            tri_is[face]=false;
+            tri_is[face1]=false;
             found  =true;
             changed=true;
             break;
@@ -774,112 +780,113 @@ Bool MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_f
    // quads
    for(Int i=0; i<quads(); )if(!quad_is[i])i++;else // for each quad
    {
-    C Vec  &nrm  =quad.nrm(i);
       Bool  found=false;
-      Int  *af   =quad.adjFace(i).c;
+    C Vec  &nrm  =quad.nrm    (i);
+      Int  *p    =quad.ind    (i).c,
+           *af   =quad.adjFace(i).c;
       REPD(vi, 4) // for each quads adjacent face
       {
-         Int face =af[vi];
-         if( face!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
+         Int face1 =af[vi];
+         if( face1!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
          {
             // co-planar test
-            Int vtxs;
-            if(face&SIGN_BIT){if(Dot(quad.nrm(face^SIGN_BIT), nrm)<cos_face)continue; vtxs=4;}
-            else             {if(Dot(tri .nrm(face         ), nrm)<cos_face)continue; vtxs=3;}
+            Int *p1, *af1, vtxs;
+            if(face1&SIGN_BIT){if(Dot(nrm, quad.nrm(face1^SIGN_BIT))<cos_face)continue; p1=quad.ind(face1^SIGN_BIT).c; af1=quad.adjFace(face1^SIGN_BIT).c; vtxs=4;}
+            else              {if(Dot(nrm, tri .nrm(face1         ))<cos_face)continue; p1=tri .ind(face1         ).c; af1=tri .adjFace(face1         ).c; vtxs=3;}
 
             // same vertex test
-            Int *af2, *p2,   *p =quad.ind(i            ).c;
-            if(face&SIGN_BIT){p2=quad.ind(face^SIGN_BIT).c; af2=quad.adjFace(face^SIGN_BIT).c;}
-            else             {p2=tri .ind(face         ).c; af2=tri .adjFace(face         ).c;}
-            Int vi2; for(vi2=vtxs; --vi2>=0; )if(af2[vi2]==(i^SIGN_BIT))break; if(vi2<0)continue;
-            if(p[vi]!=p2[(vi2+1)%vtxs] || p[(vi+1)%4]!=p2[vi2])continue;
-
-            // vertex normal test
-            if(vtx_nrm_test)
-            {
-             C Vec &n_2 =vtx.nrm(p [(vi +2)%   4]),
-                   &n_3 =vtx.nrm(p [(vi +3)%   4]),
-                   &n2_2=vtx.nrm(p2[(vi2+2)%vtxs]);
-               if(Dot(n_2, n2_2)<cos_vtx
-               || Dot(n_3, n2_2)<cos_vtx)continue;
-               if(face&SIGN_BIT)
-               {
-                C Vec &n2_3=vtx.nrm(p2[(vi2+3)%4]);
-                  if(Dot(n_2, n2_3)<cos_vtx
-                  || Dot(n_3, n2_3)<cos_vtx)continue;
-               }
-            }
+            Int vi1; for(vi1=vtxs; --vi1>=0; )if(af1[vi1]==(i^SIGN_BIT))break; if(vi1<0)continue;
+            /*           F0V0 F1V1                            F0V0 F1V1                           F0V0 F1V1
+               F0V3 <--------+-------> F1V2         F0V3 <--------+\                    F0V3 <--------+------> F1V2
+                    |        |       |                   |        | \                        |        |     /
+                    |        |       |                   |        |  \                       |        |    /
+                    |        |       |                   |        |   \                      |        |   /
+                    |        |       |                   |        |    \                     |        |  /
+                    |        |       |                   |        |     \                    |        | /  
+               F0V2 <--------+-------> F1V3         F0V2 <--------+------> F1V2         F0V2 <--------+/
+                         F0V1 F1V0                            F0V1 F1V0                           F0V1 F1V0
+            */
+            Int &F0V0=p[ vi     ], F1V1=p1[(vi1+1)%vtxs]; if(F0V0!=F1V1)continue; // !! need & for 'F0V0' because we change it later !!
+            Int &F0V1=p[(vi+1)%4], F1V0=p1[ vi1        ]; if(F0V1!=F1V0)continue; // !! need & for 'F0V1' because we change it later !!
 
             // safety test (faces without other neighbors)
             if(safe)
             {
-                                if(af [(vi +1)%4]!=-1 || af [(vi +3)%4]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
-               if(face&SIGN_BIT)if(af2[(vi2+1)%4]!=-1 || af2[(vi2+3)%4]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+                                 if(af [(vi +1)%4]!=-1 || af [(vi +3)%4]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+               if(face1&SIGN_BIT)if(af1[(vi1+1)%4]!=-1 || af1[(vi1+3)%4]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
             }
+
+            Int F0V2=p[(vi+2)%4], F0V3=p[(vi+3)%4], F1V2=p1[(vi1+2)%vtxs], F1V3=p1[(vi1+3)%vtxs];
 
             // face length test
             if(face_length_test)
             {
-               if(Dist2(pos[p[(vi+2)%4]], pos[p2[(vi2+2)%vtxs]])>max_face_length
-               || Dist2(pos[p[(vi+3)%4]], pos[p2[(vi2+2)%vtxs]])>max_face_length)continue;
-               if(face&SIGN_BIT)
-                  if(Dist2(pos[p[(vi+2)%4]], pos[p2[(vi2+3)%4]])>max_face_length
-                  || Dist2(pos[p[(vi+3)%4]], pos[p2[(vi2+3)%4]])>max_face_length)continue;
+               if(Dist2(pos[F0V2], pos[F1V2])>max_face_length
+               || Dist2(pos[F0V3], pos[F1V2])>max_face_length)continue;
+               if(face1&SIGN_BIT)
+                  if(Dist2(pos[F0V2], pos[F1V3])>max_face_length
+                  || Dist2(pos[F0V3], pos[F1V3])>max_face_length)continue;
             }
 
             // edges inline test
-            if(face&SIGN_BIT)
+            if(face1&SIGN_BIT)
             {
-               if(DistPointEdge(pos[p [vi ]], pos[p[(vi+3)%4]], pos[p2[(vi2+2)%4]])>EPS)continue;
-               if(DistPointEdge(pos[p2[vi2]], pos[p[(vi+2)%4]], pos[p2[(vi2+3)%4]])>EPS)continue;
+               if(DistPointEdge(pos[F0V0], pos[F0V3], pos[F1V2])>EPS)continue;
+               if(DistPointEdge(pos[F0V1], pos[F0V2], pos[F1V3])>EPS)continue;
 
                // vertex values test
                if(vtx_value_test)
                {
-                  if(VertexValueTest(T, p [vi ], p[(vi+3)%4], p2[(vi2+2)%4], cos_vtx)
-                  || VertexValueTest(T, p2[vi2], p[(vi+2)%4], p2[(vi2+3)%4], cos_vtx))continue;
+                  if(VertexValueTest(T, F0V0, F0V3, F1V2, cos_vtx)
+                  || VertexValueTest(T, F0V1, F0V2, F1V3, cos_vtx))continue;
                }
 
                // remap points & adj
-                p[ vi     ]= p2[(vi2+2)%4];
-                p[(vi+1)%4]= p2[(vi2+3)%4];
-               af[ vi     ]=af2[(vi2+2)%4];
+               F0V0  =F1V2;
+               F0V1  =F1V3;
+               af[vi]=af1[(vi1+2)%4];
             }else
             {
-               if(DistPointEdge (pos[p[vi]], pos[p[(vi+3)%4]], pos[p2[(vi2+2)%3]])<=EPS
-               && DistPointPlane(pos[p2[(vi2+2)%3]], pos[p2[vi2]], CrossN(nrm, pos[p2[vi2]]-pos[p[(vi+2)%4]]))<=EPS)
+               if(DistPointEdge (pos[F0V1], pos[F0V2], pos[F1V2])<=EPS
+               && DistPointPlane(pos[F1V2], pos[F0V0], CrossN(nrm, pos[F0V3]-pos[F0V0]))<=EPS) // make sure quad won't be concave
                {
-                  if(safe)if(af2[(vi2+1)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+                  if(safe && af1[(vi1+2)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+
+                  // vertex values test
+                  if(vtx_value_test && VertexValueTest(T, F0V1, F0V2, F1V2, cos_vtx))continue;
 
                   // remap points & adj
-                   p[vi]= p2[(vi2+2)%3];
-                  af[vi]=af2[(vi2+2)%3];
+                  F0V1  =F1V2;
+                  af[vi]=af1[(vi1+1)%3];
                }else
-               if(DistPointEdge (pos[p2[vi2]], pos[p[(vi+2)%4]], pos[p2[(vi2+2)%3]])<=EPS
-               && DistPointPlane(pos[p2[(vi2+2)%3]], pos[p[vi]], CrossN(nrm, pos[p[(vi+3)%4]]-pos[p[vi]]))<=EPS)
+               if(DistPointEdge (pos[F0V0], pos[F0V3], pos[F1V2])<=EPS
+               && DistPointPlane(pos[F1V2], pos[F0V1], CrossN(nrm, pos[F0V1]-pos[F0V2]))<=EPS) // make sure quad won't be concave
                {
-                  if(safe)if(af2[(vi2+2)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+                  if(safe && af1[(vi1+1)%3]!=-1)continue; // compare to -1 and not >=0 because it can have SIGN_BIT
+
+                  // vertex values test
+                  if(vtx_value_test && VertexValueTest(T, F0V0, F0V3, F1V2, cos_vtx))continue;
 
                   // remap points & adj
-                   p[(vi+1)%4]= p2[(vi2+2)%3];
-                  af[ vi     ]=af2[(vi2+1)%3];
+                  F0V0  =F1V2;
+                  af[vi]=af1[(vi1+2)%3];
                }else continue;
             }
 
             // fix adjacency
             REPD(a, vtxs)
             {
-               Int face3 =af2[a];
-               if( face3!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
+               Int face2 =af1[a];
+               if( face2!=-1) // compare to -1 and not >=0 because it can have SIGN_BIT
                {
-                  if( face3&SIGN_BIT){REPD(j, 4)if(quad.adjFace(face3^SIGN_BIT).c[j]==face)quad.adjFace(face3^SIGN_BIT).c[j]=(i^SIGN_BIT);}
-                  else               {REPD(j, 3)if(tri .adjFace(face3         ).c[j]==face)tri .adjFace(face3         ).c[j]=(i^SIGN_BIT);}
+                  if(face2&SIGN_BIT){REPD(j, 4)if(quad.adjFace(face2^SIGN_BIT).c[j]==face1)quad.adjFace(face2^SIGN_BIT).c[j]=(i^SIGN_BIT);}
+                  else              {REPD(j, 3)if(tri .adjFace(face2         ).c[j]==face1)tri .adjFace(face2         ).c[j]=(i^SIGN_BIT);}
                }
             }
 
             // remove face
-            if(face&SIGN_BIT)quad_is[face^SIGN_BIT]=false;
-            else              tri_is[face         ]=false;
+            if(face1&SIGN_BIT)quad_is[face1^SIGN_BIT]=false;
+            else               tri_is[face1         ]=false;
             found  =true;
             changed=true;
             break;
