@@ -10,7 +10,7 @@ DEFINE_CACHE(Environment, Environments, EnvironmentPtr, "Environment");
 /******************************************************************************/
 void Environment::Ambient::set  ()C {D.ambientColorS(on ? color_s : VecZero); D.nightShadeColorS(on ? night_shade_color_s : VecZero);}
 void Environment::Ambient::get  ()  {color_s=D.ambientColorS(); night_shade_color_s=D.nightShadeColorS(); on=(color_s.any() || night_shade_color_s.any());}
-void Environment::Ambient::reset()  {on=true; color_s=0.4f; night_shade_color_s.zero();}
+void Environment::Ambient::reset()  {on=true; color_s=0.366f; night_shade_color_s.zero();} // #DefaultAmbientValue
 
 Bool Environment::Ambient::save(File &f, CChar *path)C
 {
@@ -263,7 +263,8 @@ void Environment::Sun::get()
 }
 void Environment::Sun::reset()
 {
-   on=true; glow=128; size=0.15; highlight_front=0.20f; highlight_back=0.15f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color_s=0.7f; rays_color=0.12f; image_color=1; image=null;
+   on=true; glow=128; size=0.15; highlight_front=0.20f; highlight_back=0.15f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); rays_color=0.12f; image_color=1; image=null;
+   light_color_s=0.950f; // #DefaultAmbientValue
 }
 
 Bool Environment::Sun::save(File &f, CChar *path)C

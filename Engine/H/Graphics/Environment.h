@@ -9,8 +9,8 @@ struct Environment
    struct Ambient
    {
       Bool on                 ; // if enabled                  ,     true/false    , default=true
-      Vec  color_s            , // ambient     color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.4, 0.4, 0.4)
-           night_shade_color_s; // night shade color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.0, 0.0, 0.0)
+      Vec  color_s            , // ambient     color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.366, 0.366, 0.366)
+           night_shade_color_s; // night shade color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.000, 0.000, 0.000)
 
       // set / get
       void set  ()C; // apply these settings to graphics
@@ -125,8 +125,8 @@ struct Environment
                highlight_front, // highlight on atmospheric sky,           0..Inf          , default=0.20
                highlight_back ; // highlight on atmospheric sky,           0..Inf          , default=0.15
       Vec      pos            , // position on sky sphere      , its length must be equal 1, default=!Vec(-1, 1, -1)
-               light_color_s  , // light color sRGB gamma      ,     (0,0,0)..(1,1,1)      , default=(0.7, 0.7, 0.7), value of (0, 0, 0) disables light casting
-                rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.12, 0.12, 0.12)
+               light_color_s  , // light color sRGB gamma      ,     (0,0,0)..(1,1,1)      , default=(0.950, 0.950, 0.950), value of (0, 0, 0) disables light casting
+                rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.120, 0.120, 0.120)
       Vec4     image_color    ; // image color                 ,   (0,0,0,0)..(1,1,1,1)    , default=(1, 1, 1, 1)
       ImagePtr image          ; // image                                                   , default=null
 
