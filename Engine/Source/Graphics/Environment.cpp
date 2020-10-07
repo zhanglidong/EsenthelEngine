@@ -205,8 +205,8 @@ void Environment::Sky::reset()
    skybox=null;
    atmospheric_density_exponent=1;
    atmospheric_horizon_exponent=3.5f;
-   atmospheric_horizon_color_s=LinearToSRGB(Vec4(SRGBToLinear(Vec(0.32f, 0.46f, 0.58f))*1.05f, 1.0f));
-   atmospheric_sky_color_s    =LinearToSRGB(Vec4(SRGBToLinear(Vec(0.16f, 0.36f, 0.54f))*1.05f, 1.0f));
+   atmospheric_sky_color_s    =LinearToSRGB(Vec4(0.032f, 0.113f, 0.240f, 1.0f)); // #DefaultSkyValue
+   atmospheric_horizon_color_s=LinearToSRGB(Vec4(0.093f, 0.202f, 0.374f, 1.0f)); // #DefaultSkyValue
    atmospheric_stars            =null;
    atmospheric_stars_orientation.identity();
 }
