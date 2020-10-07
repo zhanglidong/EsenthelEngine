@@ -87,9 +87,9 @@ VideoOptions VidOpt;
       };
       cchar8 *VideoOptions::Advanced::ColorSpace_t[]=
       {
-         "Disable", // 0
-         "sRGB"   , // 1
-         "DCI-P3" , // 2
+         "Disable"  , // 0
+         "sRGB"     , // 1
+         "DisplayP3", // 2
       };
    cchar8 *VideoOptions::Render_t[]=
    {

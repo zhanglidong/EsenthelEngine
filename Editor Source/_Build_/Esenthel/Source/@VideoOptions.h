@@ -26,7 +26,7 @@ class VideoOptions : PropWin
       static cchar8 *ShadowReduceFlicker_t[]
 ;
       static cchar8 *ColorSpace_t[]
-; ASSERT(COLOR_SPACE_NONE==0 && COLOR_SPACE_SRGB==1 && COLOR_SPACE_DCI_P3==2 && COLOR_SPACE_NUM==3);
+; ASSERT(COLOR_SPACE_NONE==0 && COLOR_SPACE_SRGB==1 && COLOR_SPACE_DISPLAY_P3==2 && COLOR_SPACE_NUM==3);
 
       static Str  Fov          (C Advanced &adv             );
       static void Fov          (  Advanced &adv, C Str &text);

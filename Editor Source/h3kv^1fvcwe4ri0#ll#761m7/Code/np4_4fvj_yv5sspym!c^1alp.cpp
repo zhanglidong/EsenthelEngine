@@ -86,10 +86,10 @@ class VideoOptions : PropWin
       };
       static cchar8 *ColorSpace_t[]=
       {
-         "Disable", // 0
-         "sRGB"   , // 1
-         "DCI-P3" , // 2
-      }; ASSERT(COLOR_SPACE_NONE==0 && COLOR_SPACE_SRGB==1 && COLOR_SPACE_DCI_P3==2 && COLOR_SPACE_NUM==3);
+         "Disable"  , // 0
+         "sRGB"     , // 1
+         "DisplayP3", // 2
+      }; ASSERT(COLOR_SPACE_NONE==0 && COLOR_SPACE_SRGB==1 && COLOR_SPACE_DISPLAY_P3==2 && COLOR_SPACE_NUM==3);
 
       static Str  Fov          (C Advanced &adv             ) {return RadToDeg(adv.fov);}
       static void Fov          (  Advanced &adv, C Str &text) {adv.setFov(DegToRad(TextFlt(text)));}

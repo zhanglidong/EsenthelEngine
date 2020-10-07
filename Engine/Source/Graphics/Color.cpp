@@ -519,9 +519,11 @@ static CChar8* ColorSpaceFileName(COLOR_SPACE color_space)
 {
    switch(color_space)
    {
-      case COLOR_SPACE_SRGB  : return "Color/sRGB.icm";
-      case COLOR_SPACE_DCI_P3: return "Color/DCI-P3.icm";
-      default                : return null;
+      case COLOR_SPACE_SRGB      : return "Color/sRGB.icc";
+      case COLOR_SPACE_DISPLAY_P3: return "Color/DisplayP3.icc";
+    //case COLOR_SPACE_DCI_P3    : return "Color/DCI-P3-D65.icc";
+    //case COLOR_SPACE_BT_2020   : return "Color/ITU-R_BT2020(beta).icc";
+      default                    : return null;
    }
 }
 
