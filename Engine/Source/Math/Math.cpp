@@ -300,8 +300,8 @@ Dbl AbsSinBetween(C VecD  &a, C VecD  &b) {if(Dbl l2=a.length2()*b.length2())ret
 
 Flt    AngleBetween (C Vec2  &a, C Vec2  &b) {return AngleDelta(Angle(a), Angle(b));}
 Dbl    AngleBetween (C VecD2 &a, C VecD2 &b) {return AngleDelta(Angle(a), Angle(b));}
-Flt AbsAngleBetween (C Vec   &a, C Vec   &b) {return Angle  (CosBetweenN(a, b), AbsSinBetweenN(a, b));} // we don't need to do any scaling because 'CosBetweenN' and 'AbsSinBetweenN' will have proportional lengths, and we use 'Angle' which doesn't require lengthts to be normalized
-Dbl AbsAngleBetween (C VecD  &a, C VecD  &b) {return Angle  (CosBetweenN(a, b), AbsSinBetweenN(a, b));} // we don't need to do any scaling because 'CosBetweenN' and 'AbsSinBetweenN' will have proportional lengths, and we use 'Angle' which doesn't require lengthts to be normalized
+Flt AbsAngleBetween (C Vec   &a, C Vec   &b) {return Angle  (CosBetweenN(a, b), AbsSinBetweenN(a, b));} // we don't need to do any scaling because 'CosBetweenN' and 'AbsSinBetweenN' will have proportional lengths, and we use 'Angle' which doesn't require lengths to be normalized
+Dbl AbsAngleBetween (C VecD  &a, C VecD  &b) {return Angle  (CosBetweenN(a, b), AbsSinBetweenN(a, b));} // we don't need to do any scaling because 'CosBetweenN' and 'AbsSinBetweenN' will have proportional lengths, and we use 'Angle' which doesn't require lengths to be normalized
 Flt AbsAngleBetweenN(C Vec   &a, C Vec   &b) {return ACosSin(CosBetweenN(a, b), AbsSinBetweenN(a, b));}
 Dbl AbsAngleBetweenN(C VecD  &a, C VecD  &b) {return ACosSin(CosBetweenN(a, b), AbsSinBetweenN(a, b));}
 
