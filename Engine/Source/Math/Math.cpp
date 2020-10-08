@@ -305,8 +305,13 @@ Dbl AbsAngleBetween (C VecD  &a, C VecD  &b) {return Angle  (CosBetweenN(a, b), 
 Flt AbsAngleBetweenN(C Vec   &a, C Vec   &b) {return ACosSin(CosBetweenN(a, b), AbsSinBetweenN(a, b));}
 Dbl AbsAngleBetweenN(C VecD  &a, C VecD  &b) {return ACosSin(CosBetweenN(a, b), AbsSinBetweenN(a, b));}
 
+#if 0
 Flt AngleBetween(C Vec  &a, C Vec  &b, C Vec  &z) {Flt angle=AbsAngleBetween(a, b); if(Dot(Cross(a, b), z)<0)CHS(angle); return angle;}
 Dbl AngleBetween(C VecD &a, C VecD &b, C VecD &z) {Dbl angle=AbsAngleBetween(a, b); if(Dot(Cross(a, b), z)<0)CHS(angle); return angle;}
+#else // optimized
+Flt AngleBetween(C Vec  &a, C Vec  &b, C Vec  &z) {Vec  cross_ab=Cross(a, b); Flt abs_sin=cross_ab.length(), angle=Angle(CosBetweenN(a, b), abs_sin); if(Dot(cross_ab, z)<0)CHS(angle); return angle;}
+Dbl AngleBetween(C VecD &a, C VecD &b, C VecD &z) {VecD cross_ab=Cross(a, b); Dbl abs_sin=cross_ab.length(), angle=Angle(CosBetweenN(a, b), abs_sin); if(Dot(cross_ab, z)<0)CHS(angle); return angle;}
+#endif
 /******************************************************************************
 Vec DequantizeNormal(C Vec &n) // improve precision of normal, assuming it was generated from 8-bit values
 {
