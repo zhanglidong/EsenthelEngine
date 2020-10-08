@@ -2305,29 +2305,29 @@ Matrix & Matrix ::setPosDir   (C Vec  &pos, C Vec  &dir, C Vec  &up, C Vec  &rig
 MatrixM& MatrixM::setPosDir   (C VecD &pos, C Vec  &dir, C Vec  &up, C Vec  &right) {     z=dir; y=up; x=right; T.pos=pos; return T;}
 MatrixD& MatrixD::setPosDir   (C VecD &pos, C VecD &dir, C VecD &up, C VecD &right) {     z=dir; y=up; x=right; T.pos=pos; return T;}
 /******************************************************************************/
-Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to)
+Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    Vec cross=Cross(dir_from, dir_to); if(Flt sin=cross.normalize())setRotateCosSin(cross, Dot(dir_from, dir_to), sin);else identity();
    return T;
 }
-MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to)
+MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    VecD cross=Cross(dir_from, dir_to); if(Dbl sin=cross.normalize())setRotateCosSin(cross, Dot(dir_from, dir_to), sin);else identity();
    return T;
 }
 
-Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to, Flt blend)
+Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to, Flt blend) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    Vec cross=Cross(dir_from, dir_to); if(Flt sin=cross.normalize())setRotate(cross, ACosSin(Dot(dir_from, dir_to), sin)*blend);else identity();
    return T;
 }
-MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to, Dbl blend)
+MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to, Dbl blend) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    VecD cross=Cross(dir_from, dir_to); if(Dbl sin=cross.normalize())setRotate(cross, ACosSin(Dot(dir_from, dir_to), sin)*blend);else identity();
    return T;
 }
 
-Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to, Flt blend, Flt roll)
+Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to, Flt blend, Flt roll) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    Vec cross=Cross(dir_from, dir_to); Flt sin=cross.normalize();
    if(roll)
@@ -2340,7 +2340,7 @@ Matrix3& Matrix3::setRotation(C Vec &dir_from, C Vec &dir_to, Flt blend, Flt rol
    }
    return T;
 }
-MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to, Dbl blend, Dbl roll)
+MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to, Dbl blend, Dbl roll) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    VecD cross=Cross(dir_from, dir_to); Dbl sin=cross.normalize();
    if(roll)
@@ -2354,7 +2354,7 @@ MatrixD3& MatrixD3::setRotation(C VecD &dir_from, C VecD &dir_to, Dbl blend, Dbl
    return T;
 }
 
-Matrix& Matrix::setRotation(C Vec &pos, C Vec &dir_from, C Vec &dir_to, Flt blend)
+Matrix& Matrix::setRotation(C Vec &pos, C Vec &dir_from, C Vec &dir_to, Flt blend) // !! Warning: this will give identity if directions are opposite "dir_from==-dir_to" !!
 {
    Vec cross=Cross(dir_from, dir_to); if(Flt sin=cross.normalize()){orn().setRotate(cross, ACosSin(Dot(dir_from, dir_to), sin)*blend); anchor(pos);}else identity();
    return T;
