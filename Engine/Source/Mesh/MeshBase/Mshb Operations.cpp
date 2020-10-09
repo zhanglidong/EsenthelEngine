@@ -1783,49 +1783,66 @@ MeshBase& MeshBase::extr(Flt length)
    Swap(T, temp); return T;
 }
 /******************************************************************************/
-static void BoneRemap(VecB4 &m, C MemPtr<Byte, 256> &old_to_new)
+static void FixMatrixWeight(VecB4 &matrix, C VecB4 &blend)
 {
-   REPA(m.c)
+   REP(4-1) // 4 components -1 because we compare against next one below
    {
-      Byte &b=m.c[i];
-   #if VIRTUAL_ROOT_BONE
-      if(b)
+   again:
+      if(blend .c[i]==blend .c[i+1]) // if have same weight
+      if(matrix.c[i]< matrix.c[i+1]) // matrix order is wrong #SkinMatrixOrder
       {
-         if(InRange(b-1, old_to_new))
+         Swap(matrix.c[i], matrix.c[i+1]);
+         if(i<2){i++; goto again;} // check again pair from previous step
+      }
+   }
+}
+static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, C VecB4 *blend=null)
+{
+   REPA(matrix.c)
+   {
+      Byte &m=matrix.c[i];
+   #if VIRTUAL_ROOT_BONE
+      if(m)
+      {
+         if(InRange(m-1, old_to_new))
          {
-            b=old_to_new[b-1];
-            if(b==0xFF)b=0;else b++;
+            m=old_to_new[m-1];
+            if(m==0xFF)m=0;else m++;
          }else
          {
-            b=0;
+            m=0;
          }
       }
    #else
-      if(InRange(b, old_to_new))
+      if(InRange(m, old_to_new))
       {
-         b=old_to_new[b];
-         if(b==0xFF)b=0;
+         m=old_to_new[m];
+         if(m==0xFF)m=0;
       }else
       {
-         b=0;
+         m=0;
       }
    #endif
    }
+   if(blend)FixMatrixWeight(matrix, *blend);
 }
 MeshBase& MeshBase::boneRemap(C MemPtr<Byte, 256> &old_to_new)
 {
-   if(VecB4 *matrix=vtx.matrix())REP(vtxs())BoneRemap(matrix[i], old_to_new);
+   if(VecB4 *matrix=vtx.matrix()){C VecB4 *blend=vtx.blend(); REP(vtxs())BoneRemap(matrix[i], old_to_new, blend ? &blend[i] : null);}
    return T;
 }
 void MeshRender::boneRemap(C MemPtr<Byte, 256> &old_to_new)
 {
-   Int ofs =vtxOfs(VTX_MATRIX);
-   if( ofs>=0)if(Byte *vtx=vtxLock())
+   Int matrix_ofs =vtxOfs(VTX_MATRIX);
+   if( matrix_ofs>=0)if(Byte *vtx=vtxLock())
    {
-      vtx+=ofs; REP(vtxs())
+      Int    blend_ofs=vtxOfs(VTX_BLEND);
+      Byte *vtx_matrix=vtx+matrix_ofs, *vtx_blend=((blend_ofs>=0) ? vtx+blend_ofs : null);
+      REP(vtxs())
       {
-         BoneRemap(*(VecB4*)vtx, old_to_new);
-         vtx+=vtxSize();
+         BoneRemap(*(VecB4*)vtx_matrix, old_to_new, (VecB4*)vtx_blend);
+                      vtx_matrix+=vtxSize();
+         if(vtx_blend)vtx_blend +=vtxSize();
       }
       vtxUnlock();
    }

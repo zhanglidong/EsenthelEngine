@@ -489,7 +489,7 @@ struct IndexWeight
 inline Int Compare(C IndexWeight &a, C IndexWeight &b)
 {
    if(Int c=Compare(b.weight, a.weight))return c; // first compare by weight, reverse order to list most important first
-   return   Compare(b.index , a.index )         ; // next  compare by matrix, reverse order to list children       first, and parents last (especially zero last), if weights are the same then compare by index, this is needed to generate the same results no matter in what order 'IndexWeight' elements are given (for example generating skin at the center of A B vtxs should give the same results as B A vtxs, needed for tesselation and others)
+   return   Compare(b.index , a.index )         ; // next  compare by matrix, reverse order to list children       first, and parents last (especially zero last), if weights are the same then compare by index, this is needed to generate the same results no matter in what order 'IndexWeight' elements are given (for example generating skin at the center of A B vtxs should give the same results as B A vtxs, needed for tesselation and others) #SkinMatrixOrder
 }
 /******************************************************************************/
 struct TextPatch

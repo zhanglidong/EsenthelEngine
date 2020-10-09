@@ -142,7 +142,7 @@ void MeshBase::copyQuads(C MeshBase &src, C MemPtr<Bool> &is)
 static Int CompareMatrixWeight(C VecB2 &matrix_weight_a, C VecB2 &matrix_weight_b)
 {
    if(Int c=Compare(matrix_weight_b.y, matrix_weight_a.y))return c; // first compare by weight, reverse order to list most important first
-   return   Compare(matrix_weight_b.x, matrix_weight_a.x)         ; // next  compare by matrix, reverse order to list children       first, and parents last (especially zero last)
+   return   Compare(matrix_weight_b.x, matrix_weight_a.x)         ; // next  compare by matrix, reverse order to list children       first, and parents last (especially zero last) #SkinMatrixOrder
 }
 void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C Skeleton *skeleton)
 {
