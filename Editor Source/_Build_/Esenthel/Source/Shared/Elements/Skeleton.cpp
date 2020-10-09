@@ -166,7 +166,7 @@
        C Bone &bone=bones[i];
          FREPAD(w, bone)if(bone[w].index==node_i) // if bone is linked to this node
          {
-            if(bone_i>=0 || bone.elms()!=1)return -1; // we need direct mapping
+            if(bone_i>=0 || bone.elms()!=1)return -1; // we need direct mapping (so fail if there was already another bone found, or this bone has more than 1 weights)
             bone_i=i;
          }
       }
@@ -199,16 +199,19 @@
          {
           C Bone &bone=bones[b]; REPA(bone)if(bone[i].index==n)
             {
-               int        anim_bone=anim_skel.findBoneI(bone.name)+1; // +root
-               if(InRange(anim_bone, matrixes))
+               int anim_bone=anim_skel.findBoneI(bone.name); if(anim_bone>=0)
                {
-                  processed=true;
-                  temp+=(orient_pos*matrixes[anim_bone])*bone[i].weight;
+                  int matrix=anim_bone+VIRTUAL_ROOT_BONE; if(InRange(matrix, matrixes))
+                  {
+                     processed=true;
+                     temp+=(orient_pos*matrixes[matrix])*bone[i].weight;
+                  }
                }
             }
          }
          if(processed){temp.fix(); orient_pos=temp;}
       }
+      // TODO: should if(InRange(root, nodes) && matrixes.elms())nodes[root] be transformed by matrixes[0] for VIRTUAL_ROOT_BONE?
    }
       void EditSkeleton::NodePtr::set(int node_i, C EditSkeleton &skel) {if(is=InRange(node_i, skel.nodes))name=skel.nodes[node_i].name;}
    void EditSkeleton::add(C EditSkeleton &src_skel, bool replace) // assumes that 'bones' names are unique in both skeletons, but 'nodes' names can overlap

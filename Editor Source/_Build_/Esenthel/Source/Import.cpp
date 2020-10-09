@@ -854,7 +854,7 @@ ImporterClass Importer;
                         bool remove=false; // if we've found any bone that isn't present in EditSkeleton and needs to be removed
                         REPA(import.skel.bones)
                         {
-                           int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i)); // use 'bone_names' if available
+                           int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i));
                            if( node>=0)*skel_to_node(import.skel.bones[i].name)=node;else remove=true; // set only those that were found, others will be removed below
                         }
                         if(remove) // if we need to remove some bones
@@ -1225,7 +1225,7 @@ ImporterClass Importer;
             bool remove=false; // if we've found any bone that isn't present in EditSkeleton and needs to be removed
             REPA(import.skel.bones)
             {
-               int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i)); // use 'bone_names' if available
+               int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i));
                if( node>=0)*skel_to_node(import.skel.bones[i].name)=node;else remove=true; // set only those that were found, others will be removed below
             }
             if(remove) // if we need to remove some bones
