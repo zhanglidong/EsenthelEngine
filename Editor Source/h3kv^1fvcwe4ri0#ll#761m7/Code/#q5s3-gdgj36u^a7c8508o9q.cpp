@@ -188,7 +188,22 @@ class EditSkeleton
    void removeBone (C Str &name)  {bones.remove(findBoneI(name), true);}
    void renameBone (C Str &old_name, C Str &new_name) {if(Bone *bone=findBone(old_name))bone.name=new_name;}
 
-   int nodeToBone(int node_i)C // will return only direct mapping (if 1 weight and 1 bone link) only
+   int nodeToBone(int node_i)C
+   {
+      int bone_i=-1; flt weight;
+      if( node_i>=0)FREPA(bones) // go from the start to prefer the first parent linked with this node
+      {
+       C Bone &bone=bones[i]; FREPAD(w, bone)
+         {
+          C IndexWeight &bw=bone[w]; if(bw.index==node_i && (bone_i<0 || bw.weight>weight)) // if bone is linked to this node
+            {
+               bone_i=i; weight=bw.weight;
+            }
+         }
+      }
+      return bone_i;
+   }
+   int nodeToBoneDirect(int node_i)C // will return only direct mapping (if 1 weight and 1 bone link) only
    {
       int bone_i=-1;
       if( node_i>=0)FREPA(bones) // go from the start to find the first parent linked with this node

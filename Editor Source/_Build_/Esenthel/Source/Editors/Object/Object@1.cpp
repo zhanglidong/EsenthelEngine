@@ -2987,7 +2987,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       if(mesh_skel)
       {
-         int bone_index=edit_skel.nodeToBone(edit_skel.root);
+         int bone_index=edit_skel.nodeToBoneDirect(edit_skel.root);
          if(C EditSkeleton::Bone *bone=edit_skel.bones.addr(bone_index))delBone(mesh_skel->findBoneI(bone->name));
       }
       Gui.closeMsgBox(del_root_bone_dialog_id);
@@ -3018,7 +3018,7 @@ cur_skel_to_saved_skel.removeBone(bone->name);
       editor.setBoneRootTextSize();
       editor.setChangedSkel(false);
 
-      int bone_index=editor.edit_skel.nodeToBone(editor.edit_skel.root);
+      int bone_index=editor.edit_skel.nodeToBoneDirect(editor.edit_skel.root);
       if(editor.mesh_skel && InRange(bone_index, editor.mesh_skel->bones) && editor.mesh_skel->bones[bone_index].parent!=0xFF)bone_index=-1; // don't ask to delete if has a parent
       if(bone_index>=0)
       {

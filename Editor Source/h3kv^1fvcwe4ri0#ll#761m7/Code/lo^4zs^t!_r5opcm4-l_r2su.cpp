@@ -1381,18 +1381,18 @@ class ImporterClass
                obj_data.setSrcFile(FileParams.Merge(obj_data.src_file, import.file)); // add to file list
 
                if(import.mesh.is())Proj.getObjMeshElm(elm.id, false, false); // need to have mesh     element to insert mesh
-               if(import.skel.is())Proj.getObjSkelElm(elm.id, false, false); // need to have skeleton element to insert skeleton
+             //if(import.skel.is())Proj.getObjSkelElm(elm.id, false, false); // need to have skeleton element to insert skeleton
 
                // update
                if(Elm *mesh_elm=Proj.findElm(obj_data.mesh_id))
                   if(ElmMesh *mesh_data=mesh_elm.meshData())
                {
                   // update skeleton
-                  Elm *skel_elm=null; // currently this is not done
+                //Elm *skel_elm=null; // currently this is not done
 
                               Proj.elmChanging(*     elm);
                   if(mesh_elm)Proj.elmChanging(*mesh_elm);
-                  if(skel_elm)Proj.elmChanging(*skel_elm);
+                //if(skel_elm)Proj.elmChanging(*skel_elm);
 
                   // first setup materials
                   FileParams fp=import.file;
@@ -1443,27 +1443,51 @@ class ImporterClass
                         pmi++;
                      }
                   }
-                  Str  edit_path=Proj.editPath(mesh_elm.id);
-                  Mesh old_mesh; if(Load(old_mesh, edit_path, Proj.game_path))
+
+                  // skeleton and bone mapping
+                  Skeleton *mesh_skel, *body_skel; Proj.getMeshSkels(mesh_data, &mesh_skel, &body_skel);
+                  if(mesh_skel && import.skel.is())
                   {
-                     old_mesh.add(import.mesh);
-                     Swap(old_mesh, import.mesh);
+                     EditSkeleton edit_skel; if(edit_skel.load(Proj.editPath(mesh_data.skel_id)))
+                     {
+                        byte old_to_new[256]; int bones=Min(Elms(old_to_new), import.skel.bones.elms());
+                        FREP(bones) // process from the start
+                        {
+                           int edit_bone=edit_skel.nodeToBone(edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i))); // find imported bone/node in current edit skeleton
+                           if(InRange(edit_bone, edit_skel.bones))
+                           {
+                              int bone=mesh_skel.findBoneI(edit_skel.bones[edit_bone].name); // find edit bone in mesh skel
+                              if(InRange(bone, 256)){old_to_new[i]=bone; goto bone_set;}
+                           }
+                           byte parent_index=import.skel.bones[i].parent;
+                           old_to_new[i]=(InRange(parent_index, i) ? old_to_new[parent_index] : 0xFF); // set "new bone" as the same as "old parents new bone", use 'i' for range check to check for 'old_to_new' that was already set
+                        bone_set:;
+                        }
+                        import.mesh.boneRemap(MemPtr<byte, 256>(old_to_new, bones), false); // limit pointer to only those elements that we've set
+                        goto bone_map_set;
+                     }
                   }
-                  Save(import.mesh, edit_path, Proj.game_path); // save
+                  import.mesh.exclude(VTX_SKIN); // if didn't process then remove
+               bone_map_set:;
+
+                  Str  edit_path=Proj.editPath(mesh_elm.id);
+                  Mesh mesh; Load(mesh, edit_path, Proj.game_path); // load current mesh
+                  mesh.skeleton(mesh_skel).skeleton(null); // make sure bone mapping is set
+                  mesh.add(import.mesh);
+                  Save(mesh, edit_path, Proj.game_path); // save
 
                   // game mesh
-                  Skeleton *body_skel; Proj.getMeshSkels(mesh_data, null, &body_skel);
-                  Mesh game_mesh; EditToGameMesh(import.mesh, game_mesh, body_skel, Proj.getEnum(mesh_data.draw_group_id), &mesh_data.transform());
+                  Mesh game_mesh; EditToGameMesh(mesh, game_mesh, body_skel, Proj.getEnum(mesh_data.draw_group_id), &mesh_data.transform());
                   Save(game_mesh, Proj.gamePath(mesh_elm.id)); Proj.savedGame(*mesh_elm); // save
                   mesh_data.from(game_mesh);
 
                   // notify about change
                               Proj.elmChanged(*     elm);
                   if(mesh_elm)Proj.elmChanged(*mesh_elm);
-                  if(skel_elm)Proj.elmChanged(*skel_elm);
+                //if(skel_elm)Proj.elmChanged(*skel_elm);
 
                   // send to server
-                  Server.setElmFull(obj_data.mesh_id); Server.setElmFull(mesh_data.skel_id); Server.setElmShort(elm.id);
+                  Server.setElmFull(obj_data.mesh_id); /*Server.setElmFull(mesh_data.skel_id);*/ Server.setElmShort(elm.id);
                }
                Proj.setList(); // refresh because object may have added new elements
             }

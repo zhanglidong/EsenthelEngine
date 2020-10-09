@@ -67,7 +67,8 @@ public:
    void removeBone (C Str &name);                    
    void renameBone (C Str &old_name, C Str&new_name);
 
-   int nodeToBone(int node_i)C; // will return only direct mapping (if 1 weight and 1 bone link) only
+   int nodeToBone(int node_i)C;
+   int nodeToBoneDirect(int node_i)C; // will return only direct mapping (if 1 weight and 1 bone link) only
    int boneToNode(int bone_i)C; // find the first node with highest weight
    int boneToNode(C Str &name)C; // find the first node with highest weight
 
