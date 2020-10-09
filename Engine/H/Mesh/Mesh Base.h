@@ -410,9 +410,9 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    void splitVtxs (MeshBase &dest, C MemPtr<Bool> & vtx_is,                                                  UInt flag_and=~0); // split by moving selected vertexes to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
    void splitFaces(MeshBase &dest, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is, UInt flag_and=~0); // split by moving selected faces    to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
 
-   void      copyVtx   (Int i, MeshBase &dest, Int dest_i )C; // copy i-th vertex to 'dest' dest_i-th vertex
-   MeshBase& splitEdges(Flt  length=1      , Bool *is=null) ; // split edges, 'length'=maximum length of edge, 'is'=only selected edges
-   MeshBase& splitEdges(Flt  length, Flt d , Bool *is=null) ; // split edges, 'length'=minimum length of edge to part, 'd'=length of added edges on left & right side, 'is'=only selected edges
+   void      copyVtx   (Int i, MeshBase &dest, Int dest_i)C; // copy i-th vertex to 'dest' dest_i-th vertex
+   MeshBase& splitEdges(Flt length=1      , Bool *is=null) ; // split edges, 'length'=maximum length of edge, 'is'=only selected edges
+   MeshBase& splitEdges(Flt length, Flt d , Bool *is=null) ; // split edges, 'length'=minimum length of edge to part, 'd'=length of added edges on left & right side, 'is'=only selected edges
 
    // join / split
    void split    (MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, UInt flag_and=~0)C; // split to container of meshes by boxes                                        , copy only elements included in 'flag_and' MESH_BASE_FLAG
