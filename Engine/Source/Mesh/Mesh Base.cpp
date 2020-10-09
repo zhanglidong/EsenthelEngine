@@ -179,7 +179,7 @@ void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C S
       Int bone=temp[i].index-VIRTUAL_ROOT_BONE,
           min_distance=0xFF+1,
           closest=0;
-      REPD(j, i-1) // get all closest bones
+      REPD(j, i) // get all closest bones
       {
          Int distance =skeleton->hierarchyDistance(bone, temp[j].index-VIRTUAL_ROOT_BONE);
          if( distance< min_distance){min_distance=distance; closest=1;}else // if found smaller distance than previous then set it, and set closest bones to 1
@@ -187,7 +187,7 @@ void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C S
       }
       if(closest)
       {
-         Flt weight=temp[i].weight/closest; REPD(j, i-1)if(skeleton->hierarchyDistance(bone, temp[j].index-VIRTUAL_ROOT_BONE)==min_distance)temp[j].weight+=weight; // add weight from this bone to all closest bones equally
+         Flt weight=temp[i].weight/closest; REPD(j, i)if(skeleton->hierarchyDistance(bone, temp[j].index-VIRTUAL_ROOT_BONE)==min_distance)temp[j].weight+=weight; // add weight from this bone to all closest bones equally
       }
       temp.removeLast(); if(closest)temp.sort(Compare); // remove last element and re-sort if any weights were modified
    }
