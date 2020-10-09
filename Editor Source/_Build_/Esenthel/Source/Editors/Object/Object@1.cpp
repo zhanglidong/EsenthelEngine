@@ -2660,7 +2660,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
                         VecB4 &matrix=base.vtx.matrix(vtx.y);
                         VecB4 &blend =base.vtx.blend (vtx.y);
-                        IndexWeight skin[3]; Int skins=0;
+                        IndexWeight skin[4]; Int skins=0;
                         if(add)skin[skins++].set(bone, 0); // when adding, reserve room for 'bone' as it's required to be present
                         int sum=0; // actual weight of bones other than 'bone'
                         FREPA(blend)if(blend.c[i]) // start with most important bones
@@ -2675,7 +2675,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                         if(sum && rest!=sum){flt mul=flt(rest)/sum; REP(skins)skin[i].weight*=mul;} // rescale from 'sum' to 'rest'
                         if(add)skin[0].weight=d;else // if increasing, readjust the weight that may have changed during the loop
                         { // decreasing
-                           if(!skins)skin[skins++].set(parent, rest); // if there are no other bones, then we need to set root bone
+                           if(!skins)skin[skins++].set(parent, rest); // if there are no other bones, then we need to set parent bone
                            if(d && InRange(skins, skin))skin[skins++].set(bone, d); // if still have room for 'bone'
                         }
                         SetSkin(MemPtrN<IndexWeight, 256>(skin, skins), matrix, blend, mesh_skel);

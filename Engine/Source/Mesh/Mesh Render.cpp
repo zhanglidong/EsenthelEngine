@@ -14,8 +14,29 @@ Int BoneSplit::realToSplit (Int bone)C
    return -1;
 }
 /******************************************************************************/
-T1(TYPE) static INLINE void Set(Byte *&v, Int i, C TYPE *t) {if(t){*(TYPE*)v=t[i]; v+=SIZE(TYPE);}}
-T1(TYPE) static INLINE void Set(Byte *&v,        C TYPE &t) {      *(TYPE*)v=t   ; v+=SIZE(TYPE); }
+T1(TYPE) static INLINE void Set(Byte *&v, Int i, C TYPE *s) {if(s){*(TYPE*)v=s[i]; v+=SIZE(TYPE);}}
+T1(TYPE) static INLINE void Set(Byte *&v,        C TYPE &s) {      *(TYPE*)v=s   ; v+=SIZE(TYPE); }
+/******************************************************************************/
+static INLINE void BlendSet(Byte *&v, Int i, C VecB4 *s)
+{
+#if 1 // limit to first 3 bones (bones are already sorted in 'SetSkin')
+   if(s)
+   {
+      VecB4 &d=*(VecB4*)v;
+      if(!s->w)d=*s;else
+      if(Int sum=s->xyz.sum())
+      {
+         Flt mul=255.0f/sum;
+         Byte w0=    RoundPos(s->x*mul),
+              w1=Mid(RoundPos(s->y*mul), 0, 255-w0); // limit to "255-w0" because we can't have "w0+w1>255"
+         d.set(w0, w1, 255-w0-w1, 0); // sum must be exactly equal to 255 !!
+      }else d.set(255, 0, 0, 0);
+      v+=SIZE(VecB4);
+   }
+#else
+   Set(v, i, s);
+#endif
+}
 /******************************************************************************/
 void MeshRender::zero()
 {
@@ -200,7 +221,7 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
                   Set(v, i, vtx_tex1    );
                   Set(v, i, vtx_tex2    );
                   Set(v, i, vtx_matrix  );
-                  Set(v, i, vtx_blend   );
+             BlendSet(v, i, vtx_blend   );
                   Set(v, i, vtx_size    );
                   Set(v, i, vtx_material);
                   Set(v, i, vtx_color   );
@@ -233,7 +254,7 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
                Set(v, i, vtx_tex1    );
                Set(v, i, vtx_tex2    );
                Set(v, i, vtx_matrix  );
-               Set(v, i, vtx_blend   );
+          BlendSet(v, i, vtx_blend   );
                Set(v, i, vtx_size    );
                Set(v, i, vtx_material);
                Set(v, i, vtx_color   );
