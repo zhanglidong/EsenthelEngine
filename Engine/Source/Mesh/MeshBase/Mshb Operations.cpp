@@ -1783,20 +1783,7 @@ MeshBase& MeshBase::extr(Flt length)
    Swap(T, temp); return T;
 }
 /******************************************************************************/
-static void FixMatrixWeight(VecB4 &matrix, C VecB4 &blend)
-{
-   REP(4-1) // 4 components -1 because we compare against next one below
-   {
-   again:
-      if(blend .c[i]==blend .c[i+1]) // if have same weight
-      if(matrix.c[i]< matrix.c[i+1]) // matrix order is wrong #SkinMatrixOrder
-      {
-         Swap(matrix.c[i], matrix.c[i+1]);
-         if(i<2){i++; goto again;} // check again pair from previous step
-      }
-   }
-}
-static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, C VecB4 *blend=null)
+static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, VecB4 *blend=null)
 {
    REPA(matrix.c)
    {
@@ -1828,7 +1815,7 @@ static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, C VecB4 *b
 }
 MeshBase& MeshBase::boneRemap(C MemPtr<Byte, 256> &old_to_new)
 {
-   if(VecB4 *matrix=vtx.matrix()){C VecB4 *blend=vtx.blend(); REP(vtxs())BoneRemap(matrix[i], old_to_new, blend ? &blend[i] : null);}
+   if(VecB4 *matrix=vtx.matrix()){VecB4 *blend=vtx.blend(); REP(vtxs())BoneRemap(matrix[i], old_to_new, blend ? &blend[i] : null);}
    return T;
 }
 void MeshRender::boneRemap(C MemPtr<Byte, 256> &old_to_new)

@@ -98,6 +98,8 @@ enum MESH_AO_FUNC : Byte
 void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C Skeleton *skeleton); // set 'matrix' and 'blend' skinning values from 'skin' and 'skeleton' (optional)
 /******************************************************************************/
 #if EE_PRIVATE
+void FixMatrixWeight(VecB4 &matrix, VecB4 &blend);
+
 struct VtxDup
 {
    Vec pos;

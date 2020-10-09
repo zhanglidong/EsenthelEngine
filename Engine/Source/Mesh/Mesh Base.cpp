@@ -139,10 +139,41 @@ void MeshBase::copyQuads(C MeshBase &src, C MemPtr<Bool> &is)
    CopyIs(quad.id     (), src.quad.id     (), is);
 }
 /******************************************************************************/
-static Int CompareMatrixWeight(C VecB2 &matrix_weight_a, C VecB2 &matrix_weight_b)
+void FixMatrixWeight(VecB4 &matrix, VecB4 &blend)
 {
-   if(Int c=Compare(matrix_weight_b.y, matrix_weight_a.y))return c; // first compare by weight, reverse order to list most important first
-   return   Compare(matrix_weight_b.x, matrix_weight_a.x)         ; // next  compare by matrix, reverse order to list children       first, and parents last (especially zero last) #SkinMatrixOrder
+   // merge duplicates (can happen due to bone remap)
+   for(Int i=3; ; )
+   {
+      if(Int b=blend.c[i])
+      {
+         Int m=matrix.c[i]; REPD(j, i)if(matrix.c[j]==m) // if same matrix, no need to check if this one has blend
+         {
+            blend .c[j]+=b; // merge into element closer to the start (because they should be sorted by weight)
+            blend .c[i] =0; // clear
+            matrix.c[i] =0; // clear
+            break;
+         }
+      }
+      if(i<=1)break; // no need to process #0 because inside the loop we compare it against previous elements only
+      i--;
+   }
+   // sort
+   REP(4-1) // 4 components -1 because we compare against next one below
+   {
+   again:
+      if(blend.c[i]<blend.c[i+1]) // weight order is wrong
+      {
+         Swap(blend .c[i], blend .c[i+1]);
+         Swap(matrix.c[i], matrix.c[i+1]);
+         if(i<2){i++; goto again;} // check again pair from previous step
+      }else
+      if(blend .c[i]==blend .c[i+1]) // if have same weight
+      if(matrix.c[i]< matrix.c[i+1]) // matrix order is wrong #SkinMatrixOrder
+      {
+         Swap(matrix.c[i], matrix.c[i+1]);
+         if(i<2){i++; goto again;} // check again pair from previous step
+      }
+   }
 }
 void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C Skeleton *skeleton)
 {
@@ -233,7 +264,7 @@ void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C S
       }
       REPA(blend)if(!blend.c[i])matrix.c[i]=0; // clear bones to 0 if they have no weight
       // sort matrix/weight to list most important first, and in case weights are the same, then sort by matrix index (this is needed because even though 'temp' is already sorted, we need to sort again because weights now in byte format can be the same, and in which case we need to sort by matrix index), we do this, so in the future we can compare 2 matrix weights using fast checks like "matrix0==matrix1 && weight0==weight1" instead of checking each matrix index component separately (for cases where they are listed in different order)
-      if(temp.elms()>=3) // need to check this only for 3 or more bones, because 1 and 2 will never have this (1 has always "255,0,0,0" weights, and 2 has always "w,255-w,0,0" weights, which means they are always different, because "Byte w" is always different than "255-w")
+      if(temp.elms()>=3)FixMatrixWeight(matrix, blend); // need to check this only for 3 or more bones, because 1 and 2 will never have this (1 has always "255,0,0,0" weights, and 2 has always "w,255-w,0,0" weights, which means they are always different, because "Byte w" is always different than "255-w")
       {
          VecB2 matrix_weight[]={VecB2(matrix.x, blend.x), VecB2(matrix.y, blend.y), VecB2(matrix.z, blend.z), VecB2(matrix.w, blend.w)};
          Sort( matrix_weight, Elms(matrix_weight), CompareMatrixWeight);
