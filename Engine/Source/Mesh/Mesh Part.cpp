@@ -792,13 +792,8 @@ MeshPart& MeshPart::animate(C AnimatedSkeleton &skel)
 /******************************************************************************/
 MeshPart& MeshPart::boneRemap(C MemPtr<Byte, 256> &old_to_new)
 {
-   Bool base_is=base.is();
-   if( !base_is)base.create(render);
-
-   base.boneRemap(old_to_new);
-
-   if(render.is())render.create(base);
-   if( !base_is  )delBase();
+   base  .boneRemap(old_to_new);
+   render.boneRemap(old_to_new);
    return T;
 }
 void MeshPart::    setUsedBones(Bool (&bones)[256])C {Zero(bones); includeUsedBones(bones);}

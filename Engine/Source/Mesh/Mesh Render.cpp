@@ -863,10 +863,10 @@ void MeshRender::texMove(C Vec2 &move, Byte tex_index)
 {
    if(InRange(tex_index, 3) && move.any())
    {
-      Int pos =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
-      if( pos>=0)if(Byte *vtx=vtxLock())
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      if( ofs>=0)if(Byte *vtx=vtxLock())
       {
-         vtx+=pos; REP(vtxs()){*(Vec2*)vtx+=move; vtx+=vtxSize();}
+         vtx+=ofs; REP(vtxs()){*(Vec2*)vtx+=move; vtx+=vtxSize();}
          vtxUnlock();
       }
    }
@@ -875,10 +875,10 @@ void MeshRender::texScale(C Vec2 &scale, Byte tex_index)
 {
    if(InRange(tex_index, 3) && scale!=1)
    {
-      Int pos =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
-      if( pos>=0)if(Byte *vtx=vtxLock())
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      if( ofs>=0)if(Byte *vtx=vtxLock())
       {
-         vtx+=pos; REP(vtxs()){*(Vec2*)vtx*=scale; vtx+=vtxSize();}
+         vtx+=ofs; REP(vtxs()){*(Vec2*)vtx*=scale; vtx+=vtxSize();}
          vtxUnlock();
       }
    }
@@ -887,11 +887,11 @@ void MeshRender::texRotate(Flt angle, Byte tex_index)
 {
    if(InRange(tex_index, 3) && angle)
    {
-      Int pos =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
-      if( pos>=0)if(Byte *vtx=vtxLock())
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      if( ofs>=0)if(Byte *vtx=vtxLock())
       {
          Flt cos, sin; CosSin(cos, sin, angle);
-         vtx+=pos; REP(vtxs()){((Vec2*)vtx)->rotateCosSin(cos, sin); vtx+=vtxSize();}
+         vtx+=ofs; REP(vtxs()){((Vec2*)vtx)->rotateCosSin(cos, sin); vtx+=vtxSize();}
          vtxUnlock();
       }
    }
@@ -1025,49 +1025,6 @@ void MeshRender::adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C
 
          vtxUnlock();
       }
-   }
-}
-void MeshRender::    setUsedBones(Bool (&bones)[256])C {Zero(bones); includeUsedBones(bones);}
-void MeshRender::includeUsedBones(Bool (&bones)[256])C
-{
-   Int matrix_ofs =vtxOfs(VTX_MATRIX);
-   if( matrix_ofs>=0)if(C Byte *vtx=vtxLockRead())
-   {
-      Int    blend_ofs=vtxOfs(VTX_BLEND);
-    C Byte *vtx_matrix=vtx+matrix_ofs, *vtx_blend=((blend_ofs>=0) ? vtx+blend_ofs : null);
-    /*if(_bone_split && storageBoneSplit())FREP(_bone_splits)
-      {
-       C MeshRender::BoneSplit &split=_bone_split[i];
-         FREP(split.vtxs)
-         {
-            REP(4) // 4 bytes in VecB4
-            {
-               Byte bone=split.split_to_real[vtx_matrix[i]];
-               if(  bone)
-               {
-                  bone--;
-                  if(vtx_blend ? vtx_blend[i] : true)bones[bone]=true;
-               }
-            }
-                         vtx_matrix+=vtxSize();
-            if(vtx_blend)vtx_blend +=vtxSize();
-         }
-      }else*/
-      REP(vtxs())
-      {
-         REP(4) // 4 bytes in VecB4
-         {
-            Byte bone=vtx_matrix[i];
-            if(  bone)
-            {
-               bone--;
-               if(vtx_blend ? vtx_blend[i] : true)bones[bone]=true;
-            }
-         }
-                      vtx_matrix+=vtxSize();
-         if(vtx_blend)vtx_blend +=vtxSize();
-      }
-      vtxUnlock();
    }
 }
 /******************************************************************************/

@@ -1783,40 +1783,56 @@ MeshBase& MeshBase::extr(Flt length)
    Swap(T, temp); return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+static void BoneRemap(VecB4 &m, C MemPtr<Byte, 256> &old_to_new)
 {
-   if(VecB4 *matrix=vtx.matrix())REP(vtxs())
+   REPA(m.c)
    {
-      VecB4 &m=matrix[i]; REPA(m.c)
+      Byte &b=m.c[i];
+   #if VIRTUAL_ROOT_BONE
+      if(b)
       {
-         Byte &b=m.c[i];
-      #if VIRTUAL_ROOT_BONE
-         if(b)
+         if(InRange(b-1, old_to_new))
          {
-            if(InRange(b-1, old_to_new))
-            {
-               b=old_to_new[b-1];
-               if(b==0xFF)b=0;else b++;
-            }else
-            {
-               b=0;
-            }
-         }
-      #else
-         if(InRange(b, old_to_new))
-         {
-            b=old_to_new[b];
-            if(b==0xFF)b=0;
+            b=old_to_new[b-1];
+            if(b==0xFF)b=0;else b++;
          }else
          {
             b=0;
          }
-      #endif
       }
+   #else
+      if(InRange(b, old_to_new))
+      {
+         b=old_to_new[b];
+         if(b==0xFF)b=0;
+      }else
+      {
+         b=0;
+      }
+   #endif
    }
+}
+MeshBase& MeshBase::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+{
+   if(VecB4 *matrix=vtx.matrix())REP(vtxs())BoneRemap(matrix[i], old_to_new);
    return T;
 }
-void MeshBase::    setUsedBones(Bool (&bones)[256])C {Zero(bones); includeUsedBones(bones);}
+void MeshRender::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+{
+   Int ofs =vtxOfs(VTX_MATRIX);
+   if( ofs>=0)if(Byte *vtx=vtxLock())
+   {
+      vtx+=ofs; REP(vtxs())
+      {
+         BoneRemap(*(VecB4*)vtx, old_to_new);
+         vtx+=vtxSize();
+      }
+      vtxUnlock();
+   }
+}
+void MeshBase  ::setUsedBones(Bool (&bones)[256])C {Zero(bones); includeUsedBones(bones);}
+void MeshRender::setUsedBones(Bool (&bones)[256])C {Zero(bones); includeUsedBones(bones);}
+
 void MeshBase::includeUsedBones(Bool (&bones)[256])C
 {
    if(C VecB4 *matrix=vtx.matrix())
@@ -1839,6 +1855,52 @@ void MeshBase::includeUsedBones(Bool (&bones)[256])C
          #endif
          }
       }
+   }
+}
+void MeshRender::includeUsedBones(Bool (&bones)[256])C
+{
+   Int matrix_ofs =vtxOfs(VTX_MATRIX);
+   if( matrix_ofs>=0)if(C Byte *vtx=vtxLockRead())
+   {
+      Int    blend_ofs=vtxOfs(VTX_BLEND);
+    C Byte *vtx_matrix=vtx+matrix_ofs, *vtx_blend=((blend_ofs>=0) ? vtx+blend_ofs : null);
+    /*if(_bone_split && storageBoneSplit())FREP(_bone_splits)
+      {
+       C MeshRender::BoneSplit &split=_bone_split[i];
+         FREP(split.vtxs)
+         {
+            REP(4) // 4 bytes in VecB4
+            {
+               Byte bone=split.split_to_real[vtx_matrix[i]];
+               if(  bone)
+               {
+                  bone--;
+                  if(vtx_blend ? vtx_blend[i] : true)bones[bone]=true;
+               }
+            }
+                         vtx_matrix+=vtxSize();
+            if(vtx_blend)vtx_blend +=vtxSize();
+         }
+      }else*/
+      REP(vtxs())
+      {
+         REP(4) // 4 bytes in VecB4
+         {
+            Byte bone=vtx_matrix[i];
+         #if VIRTUAL_ROOT_BONE
+            if(bone)
+            {
+               bone--;
+               if(vtx_blend ? vtx_blend[i] : true)bones[bone]=true;
+            }
+         #else
+            if(vtx_blend ? vtx_blend[i] : true)bones[bone]=true;
+         #endif
+         }
+                      vtx_matrix+=vtxSize();
+         if(vtx_blend)vtx_blend +=vtxSize();
+      }
+      vtxUnlock();
    }
 }
 /******************************************************************************/

@@ -192,8 +192,8 @@ ClothMesh& ClothMesh::skeleton(Skeleton *skeleton)
 
 void ClothMesh::boneRemap(C MemPtr<Byte, 256> &old_to_new, Bool remap_names)
 {
-                                       _phys.boneRemap(old_to_new);
-   if(_skin.is()){MeshBase temp(_skin); temp.boneRemap(old_to_new); _skin.create(temp);}
+  _phys.boneRemap(old_to_new);
+  _skin.boneRemap(old_to_new);
    if(remap_names)_bone_map.remap(old_to_new);
 }
 void ClothMesh::setShader()

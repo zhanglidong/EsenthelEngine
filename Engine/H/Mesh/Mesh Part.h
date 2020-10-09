@@ -107,9 +107,9 @@ struct MeshPart // Mesh Base + Mesh Render
    MeshPart& texRotate(  Flt   angle, Byte tex_index=0); // rotate texture UV's
 
    // operations
-   MeshPart& boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
-   void          setUsedBones(Bool (&bones)[256])C;
-   void      includeUsedBones(Bool (&bones)[256])C;
+   MeshPart&   boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
+   void     setUsedBones(Bool (&bones)[256])C;
+   void includeUsedBones(Bool (&bones)[256])C;
 
    MeshPart& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
