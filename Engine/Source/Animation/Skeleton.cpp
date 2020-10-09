@@ -1391,8 +1391,8 @@ void BoneMap::setRemap(C Skeleton &skeleton, MemPtr<Byte, 256> old_to_new, Bool 
    old_to_new.clear();
    FREP(_bones) // process in order
    {
-    C Bone &bone=_bone[i];
-      Int skel_bone=(by_name ? skeleton.findBoneI(name(i)) : skeleton.findBoneI(name(i), bone.type, bone.type_index, bone.type_sub)); // find i-th bone in skeleton
+    C Bone &bone=_bone[i]; auto bone_name=name(i);
+      Int skel_bone=(by_name ? skeleton.findBoneI(bone_name) : skeleton.findBoneI(bone_name, bone.type, bone.type_index, bone.type_sub)); // find i-th bone in skeleton
       if( skel_bone<0) // not found
       {
          Byte parent_index=_bone[i].parent;

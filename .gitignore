@@ -61,6 +61,7 @@ Desktop.ini
 /ThirdPartyLibs/PhysX/Android/obj
 !/Clean.bat
 !/Esenthel.sln
+Lock
 
 # Editor
 /Editor/*
