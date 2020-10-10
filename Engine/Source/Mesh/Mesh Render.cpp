@@ -22,6 +22,7 @@ static INLINE void BlendSet(Byte *&v, Int i, C VecB4 *s)
 #if 1 // limit to first 3 bones (bones are already sorted in 'SetSkin')
    if(s)
    {
+      s+=i;
       VecB4 &d=*(VecB4*)v;
       if(!s->w)d=*s;else
       if(Int sum=s->xyz.sum())
