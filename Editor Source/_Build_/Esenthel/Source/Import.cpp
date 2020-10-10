@@ -1382,8 +1382,8 @@ ImporterClass Importer;
                   {
                      EditSkeleton edit_skel; if(edit_skel.load(Proj.editPath(mesh_data->skel_id)))
                      {
-                        byte old_to_new[256]; int bones=Min(Elms(old_to_new), import.skel.bones.elms());
-                        FREP(bones) // process from the start
+                        Memt<byte, 256> old_to_new; old_to_new.setNum(import.skel.bones.elms());
+                        FREPA(old_to_new) // process from the start
                         {
                            int edit_bone=edit_skel.nodeToBone(edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i))); // find imported bone/node in current edit skeleton
                            if(InRange(edit_bone, edit_skel.bones))
@@ -1395,7 +1395,7 @@ ImporterClass Importer;
                            old_to_new[i]=(InRange(parent_index, i) ? old_to_new[parent_index] : 0xFF); // set "new bone" as the same as "old parents new bone", use 'i' for range check to check for 'old_to_new' that was already set
                         bone_set:;
                         }
-                        import.mesh.boneRemap(MemPtr<byte, 256>(old_to_new, bones), false); // limit pointer to only those elements that we've set
+                        import.mesh.clearSkeleton().boneRemap(old_to_new, false);
                         goto bone_map_set;
                      }
                   }
