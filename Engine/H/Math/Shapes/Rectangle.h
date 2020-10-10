@@ -410,8 +410,8 @@ struct Rects // Rectangles, allows space partitioning divided into "cells.x * ce
    RectI coords (C Rect  &rect)C; // get cell coordinates of 'rect' world rectangle, coordinates are automatically clamped to 0..cells-1 range
    Rect  getRect(C VecI2 &cell)C; // get world rectangle from 'cell' coordinates
    Int   index  (C VecI2 &pos )C {return pos.x + cells.x*pos.y;} // get cell index of cell  position
-   Int   index  (C Vec2  &pos )C {return index(coords(pos))   ;} // get cell index of world position
-   Int   num    (             )C {return cells.x*cells.y      ;} // get total number of cells
+   Int   index  (C Vec2  &pos )C {return index(coords(pos));   } // get cell index of world position
+   Int   num    (             )C {return cells.mul();          } // get total number of cells
 
    // draw
    void draw(C Color &grid_color, C Color &back_color=TRANSPARENT)C;

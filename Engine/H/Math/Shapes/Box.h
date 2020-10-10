@@ -467,7 +467,7 @@ struct Boxes // Boxes, allows space partitioning divided into "cells.x * cells.y
    Box  getBox(C VecI &cell)C; // get world box from 'cell' coordinates
    Int  index (C VecI &pos )C {return pos.x + cells.x*(pos.y + cells.y*pos.z);} // get cell index of cell  position
    Int  index (C Vec  &pos )C {return index(coords(pos));                     } // get cell index of world position
-   Int  num   (            )C {return cells.x*cells.y*cells.z;                } // get total number of cells
+   Int  num   (            )C {return cells.mul();                            } // get total number of cells
 
    // draw
    void draw(C Color &color=WHITE)C; // this relies on active object matrix which can be set using 'SetMatrix' function
