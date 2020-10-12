@@ -1021,6 +1021,7 @@ start:
    mode(RM_PREPARE); AstroPrepare(); // !! call after obtaining '_col', '_ds' and '_ds_1s' because we rely on having them, and after RM_PREPARE because we may add lights !!
   _eye=0; if(_stereo)SetCam(EyeMatrix[_eye], EyeMatrixPrev[_eye]); // start with the first eye and set camera so we can calculate view_matrix for instances, this is important, because precalculated view_matrix is assumed to be for the first eye, so when rendering instances we need to adjust the projection matrix for next eye, this affects 'BeginPrecomputedViewMatrix', 'Frustum' remains the same
   _render(); // we can call '_render' only once for RM_PREPARE
+   UpdateLights(); // update lights after RM_PREPARE to have knowledge of active lights ASAP
    Bool clear_ds=true; // if need to clear depth
 
 #if SUPPORT_EARLY_Z
@@ -1144,10 +1145,6 @@ void RendererClass::solid()
 
       case RT_FORWARD:
       {
-         // Lights + Solid
-         LimitLights();
-          SortLights();
-
          // find initial light
          Int first_light=-1;
          if(Lights.elms() && (D.aoAll() || !hasAO())) // if we do "AO && !aoAll" then first we need to draw without lights (ambient only)
@@ -1418,9 +1415,7 @@ void RendererClass::light()
       if(hasAO())ao();
 
       // add dynamic lights
-      LimitLights();
-       SortLights();
-       DrawLights();
+      DrawLights();
 
       getLumRT();
 
@@ -1677,7 +1672,7 @@ void RendererClass::blend()
    Sky.setFracMulAdd();
 
    // set main light parameters for *BLEND_LIGHT* and 'Mesh.drawBlend'
-   if(Lights.elms() && Lights[0].type==LIGHT_DIR) // use 0 index as it has already been set in 'SortLights'
+   if(Lights.elms() && Lights[0].type==LIGHT_DIR) // use 0 index as it has already been set in 'UpdateLights'
    {
       Lights[0].dir.set();
      _blst_light_offset=OFFSET(BLST, dir[Lights[0].shadow ? D.shadowMapNumActual() : 0]);

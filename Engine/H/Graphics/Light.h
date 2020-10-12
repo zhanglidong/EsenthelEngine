@@ -142,15 +142,16 @@ struct Light
 }extern
    CurrentLight; // this contains information about the light which is currently rendered
 /******************************************************************************/
+Flt GetLightFade(CPtr src); // get fade value of a light for specified 'Light.src' parameter, this can be called after RM_PREPARE
+/******************************************************************************/
 #if EE_PRIVATE
 #define SHADOW_MAP_DIR_RANGE_MUL 8
 
 extern Memc<Light> Lights;
 
-void  ShutLight ();
-void  InitLight ();
-void LimitLights();
-void  SortLights();
-void  DrawLights();
+void   ShutLight ();
+void   InitLight ();
+void UpdateLights();
+void   DrawLights();
 #endif
 /******************************************************************************/

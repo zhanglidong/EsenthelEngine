@@ -50,16 +50,15 @@ static inline Bool NeedBackgroundLum() {return !Sky.isActual() || Renderer.stage
       Try to don't slow down Deferred renderer when implementing this.
 
 /******************************************************************************/
-static Matrix           ShdMatrix    [2]; //           [Eye]
-static Matrix4          ShdMatrix4[6][2]; // [MapIndex][Eye]
-static Matrix4          HsmMatrix, HsmMatrixCone;
-static Memc<FloatIndex> LightImportance;
-       Memc<Light>      Lights;
-            Light       CurrentLight;
-static Bool             CurrentLightOn  [2];
-static Rect             CurrentLightRect[2];
-static Vec2             CurrentLightZRange; // Current Light Z range, relative to Camera position, to be used for 'OMSetDepthBounds'. Dbl precision not required since it's relative to Camera
-static MeshRender       LightMeshBall, LightMeshCone;
+static Matrix      ShdMatrix    [2]; //           [Eye]
+static Matrix4     ShdMatrix4[6][2]; // [MapIndex][Eye]
+static Matrix4     HsmMatrix, HsmMatrixCone;
+       Memc<Light> Lights;
+            Light  CurrentLight;
+static Bool        CurrentLightOn  [2];
+static Rect        CurrentLightRect[2];
+static Vec2        CurrentLightZRange; // Current Light Z range, relative to Camera position, to be used for 'OMSetDepthBounds'. Dbl precision not required since it's relative to Camera
+static MeshRender  LightMeshBall, LightMeshCone;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
 static inline Int      HsmY        (DIR_ENUM dir) {return dir>>1;}
@@ -1846,12 +1845,14 @@ struct LightFade
    Flt  fade;
    CPtr src ;
 };
-static LightFade LightFades[2][MAX_LIGHTS];
-static Int       LightFadesNum=0;
-static Bool      LightFadeIndex=false;
+static LightFade        LightFades[2][MAX_LIGHTS];
+static Int              LightFadesNum=0;
+static Bool             LightFadeIndex=false;
+static Memc<FloatIndex> LightImportance;
 
-void LimitLights()
+void UpdateLights()
 {
+   // limit
    if(Lights.elms() && D._max_lights)
    {
       MIN(D._max_lights, MAX_LIGHTS);
@@ -1901,9 +1902,8 @@ void LimitLights()
       }
       LightFadeIndex^=1;
    }
-}
-void SortLights()
-{
+
+   // sort
    // put main directional light at start (this is needed for RM_BLEND_LIGHT* and RT_FORWARD)
    if(Lights.elms()>1)
    {
@@ -1931,6 +1931,17 @@ void DrawLights()
 
       D.depthClip(true); // restore default
    }
+}
+/******************************************************************************/
+Flt GetLightFade(CPtr src)
+{
+   if(D.maxLights() && src)
+   {
+      LightFade (&fades)[MAX_LIGHTS]=LightFades[LightFadeIndex];
+      REPA(fades)if(fades[i].src==src)return fades[i].fade;
+      return 0;
+   }
+   return 1;
 }
 /******************************************************************************/
 void ShutLight() {Lights.del(); LightImportance.del(); LightMeshBall.del(); LightMeshCone.del();}
