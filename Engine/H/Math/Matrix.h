@@ -373,7 +373,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    void    inverseNonOrthogonal(Matrix &dest)C;                                    // inverse self to 'dest', this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
    Matrix& inverseNonOrthogonal(            ) {inverseNonOrthogonal(T); return T;} // inverse self          , this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
 
-   Matrix& normalize(            ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 'scale'
+   Matrix& normalize(            ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 1
    Matrix& normalize(  Flt  scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale'
    Matrix& normalize(C Vec &scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale.x' 'scale.y' 'scale.z'
 
@@ -576,7 +576,7 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    void     inverseNonOrthogonal(MatrixM &dest)C;                                    // inverse self to 'dest', this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
    MatrixM& inverseNonOrthogonal(             ) {inverseNonOrthogonal(T); return T;} // inverse self          , this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
 
-   MatrixM& normalize(            ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 'scale'
+   MatrixM& normalize(            ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 1
    MatrixM& normalize(  Flt  scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale'
    MatrixM& normalize(C Vec &scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale.x' 'scale.y' 'scale.z'
 
@@ -715,7 +715,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
    void     inverseNonOrthogonal(MatrixD &dest)C;                                    // inverse self to 'dest', this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
    MatrixD& inverseNonOrthogonal(             ) {inverseNonOrthogonal(T); return T;} // inverse self          , this method is slower than 'inverse' however it properly handles non-orthogonal matrixes
 
-   MatrixD& normalize(             ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 'scale'
+   MatrixD& normalize(             ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 1
    MatrixD& normalize(  Dbl   scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale'
    MatrixD& normalize(C VecD &scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale.x' 'scale.y' 'scale.z'
 
