@@ -583,15 +583,13 @@ struct WinColorTransform
          dest.y=d.rgb.green/65535.0f;
          dest.z=d.rgb.blue /65535.0f;
 
+         Int delta=Max(Abs(s.rgb.red  -d.rgb.red  ),
+                       Abs(s.rgb.green-d.rgb.green),
+                       Abs(s.rgb.blue -d.rgb.blue ));
+         different=(delta>384); // 1.5 on 255 scale
       #if COLOR_TRANSFOR_MAX_DELTA
-         MAX(MaxDelta, Abs(s.rgb.red  -d.rgb.red  ));
-         MAX(MaxDelta, Abs(s.rgb.green-d.rgb.green));
-         MAX(MaxDelta, Abs(s.rgb.blue -d.rgb.blue ));
+         MAX(MaxDelta, delta);
       #endif
-
-         different=(s.rgb.red  !=d.rgb.red
-                 || s.rgb.green!=d.rgb.green
-                 || s.rgb.blue !=d.rgb.blue);
          return true;
       }
       dest=src; different=false;
@@ -654,13 +652,11 @@ struct QCMSColorTransform
          qcms_transform_data(transform, &s, &d, 1); d.a=s.a;
          dest=d;
 
+         Int delta=ColorDiffMax(s, d);
+         different=(delta>1);
       #if COLOR_TRANSFOR_MAX_DELTA
-         MAX(MaxDelta, ColorDiffSum(s, d));
+         MAX(MaxDelta, delta);
       #endif
-
-         different=(s.r!=d.r
-                 || s.g!=d.g
-                 || s.b!=d.b);
          return true;
       }
       dest=src; different=false;
@@ -675,7 +671,7 @@ Bool SetColorLUT(COLOR_SPACE src_color_space, C Str &dest_color_space, Image &lu
    #if WINDOWS_OLD
       WinColorTransform ct; if(ct.create(src_color_space, dest_color_space))
       {
-         // here we can't use any SRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
+         // here we can't use any sRGB format (or store using 'color3DS' to image) to get a free conversion to dest, because if for example 'res' is 2 (from black to white) then results still have to be converted to linear space to get perceptual smoothness
          const Int res=64;
          Bool prec16=(Renderer._main.precision()>=IMAGE_PRECISION_16); // can ignore dither because we always set at least 10-bits
          if(!(prec16 && lut.create3DTry(res, res, res, IMAGE_F16_3      , 1, false)))
