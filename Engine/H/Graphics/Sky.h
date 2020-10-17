@@ -6,9 +6,10 @@
 struct SkyClass
 {
    // manage
-   SkyClass& clear(        );                                // disable sky rendering
-   SkyClass& frac (Flt frac);   Flt  frac()C {return _frac;} // set/get sky fraction (fraction of the Viewport range where the sky starts), 0..1, default=0.8, (1 is the fastest)
-                                Bool is  ()C {return _is  ;} // if      sky rendering is enabled
+   SkyClass& clear     (             );                                             // disable sky rendering
+   SkyClass& frac      (Flt frac     );   Flt  frac      ()C {return _frac       ;} // set/get sky fraction (fraction of the Viewport range where the sky starts), 0..1, default=0.8, (1 is the fastest)
+   SkyClass& nightLight(Flt intensity);   Flt  nightLight()C {return _night_light;} // set/get sky night light (blue filter) intensity, 0..1, default=0
+                                          Bool is        ()C {return _is         ;} // if      sky rendering is enabled
 
    // atmospheric sky
    SkyClass& atmospheric                (                     );                                                                 // enable  drawing sky as atmospheric sky
@@ -26,8 +27,8 @@ struct SkyClass
    SkyClass& atmosphericColorL(C Vec4 &horizon_color_l, C Vec4 &sky_color_l) {return atmosphericHorizonColorL(horizon_color_l).atmosphericSkyColorL(sky_color_l);} // set atmospheric horizon and sky color linear gamma
 
    // sky from skybox
-   SkyClass& skybox     (C ImagePtr &image           ); C ImagePtr &skybox     ()C {return _image[0] ;} // enable drawing sky as skybox
-   SkyClass& skybox     (C ImagePtr &a, C ImagePtr &b); C ImagePtr &skybox2    ()C {return _image[1] ;} // enable drawing sky as blend between 2 skyboxes
+   SkyClass& skybox     (C ImagePtr &image           ); C ImagePtr& skybox     ()C {return _image[0] ;} // enable drawing sky as skybox
+   SkyClass& skybox     (C ImagePtr &a, C ImagePtr &b); C ImagePtr& skybox2    ()C {return _image[1] ;} // enable drawing sky as blend between 2 skyboxes
    SkyClass& skyboxBlend(  Flt       blend           );   Flt       skyboxBlend()C {return _box_blend;} // set/get blend factor between 2 skyboxes, 0..1, default=0.5
 
 #if EE_PRIVATE
@@ -37,6 +38,13 @@ struct SkyClass
    Bool      wantDepth    ()C;
    void      draw         ();
    void      setFracMulAdd();
+   #if LINEAR_GAMMA
+      INLINE C Vec4& atmosphericHorizonColorD()C {return atmosphericHorizonColorL();}
+      INLINE C Vec4& atmosphericSkyColorD    ()C {return atmosphericSkyColorL    ();}
+   #else
+      INLINE   Vec4  atmosphericHorizonColorD()C {return atmosphericHorizonColorS();}
+      INLINE   Vec4  atmosphericSkyColorD    ()C {return atmosphericSkyColorS    ();}
+   #endif
 #endif
 
    SkyClass();
@@ -45,7 +53,7 @@ struct SkyClass
 private:
 #endif
    Bool       _is, _precision;
-   Flt        _frac, _dns_exp, _hor_exp, _box_blend;
+   Flt        _frac, _night_light, _dns_exp, _hor_exp, _box_blend;
    Vec4       _hor_col_l, _sky_col_l;
    Matrix3    _stars_m;
    MeshRender _mshr;

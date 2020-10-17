@@ -100,7 +100,7 @@ void LayeredClouds::commit()
    {
       Layer &l=layer[i];
       GpuCloudLayer cl;
-      cl.color   =(LINEAR_GAMMA ? l.colorL() : l.colorS());
+      cl.color   =l.colorD();
       cl.scale   =l.scale/LCScale;
    #if MOBILE
       cl.position=Frac(l.position); // mobile devices can have low precision for tex coords, so use fraction to always keep in 0..1 range

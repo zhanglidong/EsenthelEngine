@@ -40,6 +40,13 @@ struct MaterialParams // Material Parameters
 
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
+#if EE_PRIVATE
+   #if LINEAR_GAMMA
+      INLINE C Vec4& colorD()C {return colorL();}
+   #else
+      INLINE   Vec4  colorD()C {return colorS();}
+   #endif
+#endif
 };
 struct Material : MaterialParams // Mesh Rendering Material - contains render parameters and textures
 {

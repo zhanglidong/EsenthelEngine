@@ -11,6 +11,13 @@ struct LayeredClouds
 
     C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
       Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
+#if EE_PRIVATE
+   #if LINEAR_GAMMA
+      INLINE C Vec4& colorD()C {return colorL();}
+   #else
+      INLINE   Vec4  colorD()C {return colorS();}
+   #endif
+#endif
    };
 
    Bool  merge_with_sky, // if draw clouds together with the sky, this can result in better performance, but supports only up to 1 layer of clouds and Sky.frac() must be set to 1, this also results in drawing astronomical objects on top of clouds, default=false (true for Mobile)

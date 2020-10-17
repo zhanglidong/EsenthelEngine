@@ -26,7 +26,7 @@ void FogClass::Draw(Bool after_sky)
          Int multi=(Renderer._ds->multiSample() ? (Renderer._cur_type==RT_DEFERRED ? 1 : 2) : 0);
          Renderer.set(Renderer._col, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
          Renderer.setMainViewportCam();
-         Sh.FogColor  ->set(LINEAR_GAMMA ? colorL() : colorS());
+         Sh.FogColor  ->set(colorD());
          Sh.FogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
          D .alpha(ALPHA_BLEND_DEC);
          if(multi && Sh.Fog[multi])

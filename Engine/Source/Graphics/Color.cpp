@@ -431,6 +431,13 @@ Flt LinearLumOfSRGBColor  (C Vec &s) {return              Dot(SRGBToLinear(s), C
 Flt   SRGBLumOfLinearColor(C Vec &l) {return LinearToSRGB(Dot(      l        , ColorLumWeight2));}
 Flt   SRGBLumOfSRGBColor  (C Vec &s) {return LinearToSRGB(Dot(SRGBToLinear(s), ColorLumWeight2));}
 /******************************************************************************/
+Vec NightLightFactor(Flt intensity)
+{
+   return Vec(1,                                                    // red
+              Lerp(1-Sqr(intensity), Sqrt(1-intensity), intensity), // green, "1-Sqr(intensity)" is better at the start and "Sqrt(1-intensity)" is better at the end, so do interpolation between them
+              1-intensity);                                         // blue
+}
+/******************************************************************************/
 Byte  LinearToByteSRGB(  Flt   l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
 Byte  SRGBToLinearByte(  Flt   s) {return SRGBToLinearByteArray[Mid(RoundPos(s*(Elms(SRGBToLinearByteArray)-1)), 0, Elms(SRGBToLinearByteArray)-1)];}
 VecB  LinearToSVecB   (C Vec  &l) {return VecB (LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z));}

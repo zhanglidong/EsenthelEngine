@@ -130,6 +130,8 @@ Flt LinearLumOfLinearColor(C Vec &l); // get linear photometric luminance (as pe
 Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as perceived by human eye) of srgb   color
 Flt   SRGBLumOfLinearColor(C Vec &l); // get srgb   photometric luminance (as perceived by human eye) of linear color
 Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as perceived by human eye) of srgb   color
+
+Vec NightLightFactor(Flt intensity); // get color multiplier for "Night Light / Blue Filter" effect, to be used for colors in sRGB space, example "Flt intensity=0.5f; Vec night_light_color=srgb_color*NightLightFactor(intensity);"
 #if EE_PRIVATE
 Flt SignSRGBToLinear(Flt s); // convert -1..1 srgb   to -1..1 linear
 Flt SignLinearToSRGB(Flt l); // convert -1..1 linear to -1..1 srgb

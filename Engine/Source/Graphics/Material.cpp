@@ -273,7 +273,7 @@ Material& Material::validate() // #MaterialTextureLayout
 
    // set multi
    {
-     _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
+     _multi.color    =colorD();
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -368,9 +368,8 @@ void Material::setAmbient()C
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
 
-      // textures needed for alpha-test
+      // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]  ->set(base_0   ());
-      Sh.Ext[0]  ->set(base_2   ());
       Sh.Lum     ->set(light_map());
       Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
    #if !LINEAR_GAMMA
@@ -431,10 +430,9 @@ void Material::setOutline()C
    {
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in outline mode
-      // textures needed for alpha-test
+      // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Sh.Ext[0]->set(base_2());
-      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used for potential alpha-testing
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for potential alpha-testing
    }
 }
 void Material::setBehind()C
@@ -443,10 +441,9 @@ void Material::setBehind()C
    {
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in behind mode
-      // textures needed for alpha-test
+      // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Sh.Ext[0]->set(base_2());
-      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used
    }
 }
 void Material::setShadow()C
@@ -455,10 +452,9 @@ void Material::setShadow()C
    {
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials don't have alpha test and don't need to set values in shadow mode
-      // textures needed for alpha-test
+      // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Sh.Ext[0]->set(base_2());
-      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used
    }
 }
 void Material::setMulti(Int i)C

@@ -15,6 +15,11 @@ struct FogClass
 
 #if EE_PRIVATE
    void Draw(Bool after_sky);
+   #if LINEAR_GAMMA
+      INLINE C Vec& colorD()C {return colorL();}
+   #else
+      INLINE   Vec  colorD()C {return colorS();}
+   #endif
 
    FogClass();
 #endif
