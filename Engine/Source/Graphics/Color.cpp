@@ -586,7 +586,7 @@ struct WinColorTransform
          Int delta=Max(Abs(s.rgb.red  -d.rgb.red  ),
                        Abs(s.rgb.green-d.rgb.green),
                        Abs(s.rgb.blue -d.rgb.blue ));
-         different=(delta>384); // 1.5 on 255 scale
+         different=(delta>384); // 1.5 on 255 scale (use this value because when using sRGB profile -> sRGB target, 'WinColorTransform' still gives 334 error)
       #if COLOR_TRANSFOR_MAX_DELTA
          MAX(MaxDelta, delta);
       #endif
