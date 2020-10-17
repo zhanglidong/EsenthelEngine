@@ -165,8 +165,21 @@ class VideoOptions : PropWin
       static void MaterialBlend(  Advanced &adv, C Str &text) {       D.materialBlend(TextBool(text));}
       static Str  TexMipMin    (C Advanced &adv             ) {return D.texMipMin();}
       static void TexMipMin    (  Advanced &adv, C Str &text) {       D.texMipMin(TextInt(text));}
+      static Str  SkyNightLightIntensity(C Advanced &adv             ) {return adv.skyNightLightIntensity();}
+      static void SkyNightLightIntensity(  Advanced &adv, C Str &text) {       adv.skyNightLightIntensity(TextFlt(text));}
+      static Str  SkyNightLightSchedule (C Advanced &adv             ) {return adv.skyNightLightSchedule ();}
+      static void SkyNightLightSchedule (  Advanced &adv, C Str &text) {       adv.skyNightLightSchedule (text);}
 
-      flt fov;
+      enum MODE
+      {
+         AUTO,
+         OFF ,
+         ON  ,
+      }
+      flt  fov,
+           sky_night_light_intensity=0.5;
+      int  sky_night_light_start=20*60+30; // in minutes
+      MODE sky_night_light_mode=AUTO;
       Property *diffuse=null;
 
       void setFov(flt fov)
@@ -178,6 +191,34 @@ class VideoOptions : PropWin
             AnimEdit.v4.perspFov(fov);
            WorldEdit.v4.perspFov(fov);
          TexDownsize.v4.perspFov(fov);
+      }
+      flt  skyNightLightIntensity(             )C {return sky_night_light_intensity;}
+      void skyNightLightIntensity(flt intensity)  {       sky_night_light_intensity=intensity;}
+      Str  skyNightLightSchedule()C
+      {
+         return InRange(sky_night_light_start, 25*60) ? S+(sky_night_light_start/60)+':'+TextInt(sky_night_light_start%60, 2) : S; // 25*60 to allow times such as "24:30"
+      }
+      void skyNightLightSchedule(Str text)
+      {
+         text.replace(' ', '\0');
+         Memt<Str> t; if(text.is())Split(t, text, ':');
+         if(!t.elms())sky_night_light_start=-1;else // disable
+         {
+            sky_night_light_start=TextInt(t[0])*60;
+            if(t.elms()>=2)sky_night_light_start+=TextInt(t[1]);
+         }
+      }
+      void skyNightLightSet()
+      {
+         MODE mode=sky_night_light_mode;
+         if(mode==AUTO && sky_night_light_start>=0)
+         {
+            DateTime dt; dt.getLocal(); int time=dt.hour*60+dt.minute, end=7*60; // end at 7:00
+            if(sky_night_light_start>end ? (time>=sky_night_light_start || time<end) // if start is after  7:00, example 20:00, then start at 20:00 until 24:00, OR from 0:00 until 7:00
+                                         : (time>=sky_night_light_start && time<end) // if start is before 7:00, example  1:00, then start at  1:00 until  7:00
+              )mode=ON;
+         }
+         Sky.nightLight((mode==ON) ? sky_night_light_intensity : 0);
       }
       void ctor()
       {
@@ -200,7 +241,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
       #endif
          props.New().create("Pixel Density"        , MemberDesc(         ).setFunc(Density      , Density      )).setEnum(Density_t      , Elms(Density_t      )).desc("Set Rendering Pixel Density");
          props.New().create("Upscale Filtering"    , MemberDesc(         ).setFunc(DensityFilter, DensityFilter)).setEnum(DensityFilter_t, Elms(DensityFilter_t)).desc("Set Pixel Density Filtering when Upscaling");
-         props.New().create(MLTC(u"Grass Range", PL, u"Zasięg Trawy", DE, u"Gras Reichweite", RU, u"Диапазон травы", PO, u"Alcance da relva"), MemberDesc(DATA_INT ).setFunc(GrassRange  , GrassRange  )).range(0, 1000).desc("Set visible grass range\nvalue of 0 hides grass objects");
+         props.New().create(MLTC(u"Grass Range", PL, u"Zasięg Trawy", DE, u"Gras Reichweite", RU, u"Диапазон травы", PO, u"Alcance da relva"), MemberDesc(DATA_INT ).setFunc(GrassRange  , GrassRange  )).range(0, 2000).desc("Set visible grass range\nvalue of 0 hides grass objects");
        //props.New().create("Grass Density"        , MemberDesc(DATA_REAL).setFunc(GrassDensity, GrassDensity)).range(0, 1).desc("Set visible grass density");
          props.New().create("Soft Particles"       , MemberDesc(DATA_BOOL).setFunc(SoftParticle, SoftParticle)).desc("Enable Soft Particles");
          // TODO: use ELM ID IMAGE for color palette
@@ -230,6 +271,8 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
       #if WINDOWS
          props.New().create("Min Tex Mip"                , MemberDesc(DATA_INT ).setFunc(TexMipMin    , TexMipMin    )).desc("Minimum Texture Mip usage").range(0, 14).mouseEditSpeed(1);
       #endif
+         props.New().create("Sky Night Light Intensity"  , MemberDesc(DATA_REAL).setFunc(SkyNightLightIntensity, SkyNightLightIntensity)).desc("Blue Light Filter Intensity for Sky").range(0, 1).setSlider();
+         props.New().create("Sky Night Light Schedule"   , MemberDesc(DATA_STR ).setFunc(SkyNightLightSchedule , SkyNightLightSchedule )).desc("Blue Light Filter Schedule for Sky.\nEnter time in HH:MM format when it should start, or set empty to disable");
 
          super.create("Advanced Video Options"); autoData(this); button[2].show();
       }
@@ -465,6 +508,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    {
       super.update(gpc);
       if(visible())setTitle(S+"Video Options - "+TextReal(Time.fps(), 1)+" Fps");
+      advanced.skyNightLightSet();
    }
 }
 VideoOptions VidOpt;

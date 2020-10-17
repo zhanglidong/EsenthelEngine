@@ -52,61 +52,79 @@ class VideoOptions : PropWin
     //static void ColorPalette (  Advanced &adv, C Str &text) {Renderer.color_palette.get(ImageName(text));}
     //static Str  ColorPalette1(C Advanced &adv             ) {return Renderer.color_palette1.name();}
     //static void ColorPalette1(  Advanced &adv, C Str &text) {Renderer.color_palette1.get(ImageName(text));}
-      static Str  VolLight     (C Advanced &adv             );
-      static void VolLight     (  Advanced &adv, C Str &text);
-      static Str  MaxLights    (C Advanced &adv             );
-      static void MaxLights    (  Advanced &adv, C Str &text);
-      static Str  EdgeDetect   (C Advanced &adv             );
-      static void EdgeDetect   (  Advanced &adv, C Str &text);
-      static Str  Stage        (C Advanced &adv             );
-      static void Stage        (  Advanced &adv, C Str &text);
-      static Str  EyeAdaptBrigh(C Advanced &adv             );
-      static void EyeAdaptBrigh(  Advanced &adv, C Str &text);
-      static Str  Exclusive    (C Advanced &adv             );
-      static void Exclusive    (  Advanced &adv, C Str &text);
-      static Str  ColorSpace   (C Advanced &adv             );
-      static void ColorSpace   (  Advanced &adv, C Str &text);
-      static Str  DiffuseMode  (C Advanced &adv             );
-      static void DiffuseMode  (  Advanced &adv, C Str &text);
-      static Str  MonitorPrec  (C Advanced &adv             );
-      static void MonitorPrec  (  Advanced &adv, C Str &text);
-      static Str  Dither       (C Advanced &adv             );
-      static void Dither       (  Advanced &adv, C Str &text);
-      static Str  ColRTPrec    (C Advanced &adv             );
-      static void ColRTPrec    (  Advanced &adv, C Str &text);
-      static Str  NrmRTPrec    (C Advanced &adv             );
-      static void NrmRTPrec    (  Advanced &adv, C Str &text);
-      static Str  LumRTPrec    (C Advanced &adv             );
-      static void LumRTPrec    (  Advanced &adv, C Str &text);
-      static Str  LitColRTPrec (C Advanced &adv             );
-      static void LitColRTPrec (  Advanced &adv, C Str &text);
-      static Str  BloomScale   (C Advanced &adv             );
-      static void BloomScale   (  Advanced &adv, C Str &text);
-      static Str  AmbLight     (C Advanced &adv             );
-      static void AmbLight     (  Advanced &adv, C Str &text);
-      static Str  AOContrast   (C Advanced &adv             );
-      static void AOContrast   (  Advanced &adv, C Str &text);
-      static Str  AORange      (C Advanced &adv             );
-      static void AORange      (  Advanced &adv, C Str &text);
-      static Str  ShadowFlicker(C Advanced &adv             );
-      static void ShadowFlicker(  Advanced &adv, C Str &text);
-      static Str  ShadowFrac   (C Advanced &adv             );
-      static void ShadowFrac   (  Advanced &adv, C Str &text);
-      static Str  ShadowFade   (C Advanced &adv             );
-      static void ShadowFade   (  Advanced &adv, C Str &text);
-      static Str  AllowGlow    (C Advanced &adv             );
-      static void AllowGlow    (  Advanced &adv, C Str &text);
-      static Str  ForwardPrec  (C Advanced &adv             );
-      static void ForwardPrec  (  Advanced &adv, C Str &text);
-      static Str  MaterialBlend(C Advanced &adv             );
-      static void MaterialBlend(  Advanced &adv, C Str &text);
-      static Str  TexMipMin    (C Advanced &adv             );
-      static void TexMipMin    (  Advanced &adv, C Str &text);
+      static Str  VolLight     (C Advanced &adv             );        
+      static void VolLight     (  Advanced &adv, C Str &text);        
+      static Str  MaxLights    (C Advanced &adv             );        
+      static void MaxLights    (  Advanced &adv, C Str &text);        
+      static Str  EdgeDetect   (C Advanced &adv             );        
+      static void EdgeDetect   (  Advanced &adv, C Str &text);        
+      static Str  Stage        (C Advanced &adv             );        
+      static void Stage        (  Advanced &adv, C Str &text);        
+      static Str  EyeAdaptBrigh(C Advanced &adv             );        
+      static void EyeAdaptBrigh(  Advanced &adv, C Str &text);        
+      static Str  Exclusive    (C Advanced &adv             );        
+      static void Exclusive    (  Advanced &adv, C Str &text);        
+      static Str  ColorSpace   (C Advanced &adv             );        
+      static void ColorSpace   (  Advanced &adv, C Str &text);        
+      static Str  DiffuseMode  (C Advanced &adv             );        
+      static void DiffuseMode  (  Advanced &adv, C Str &text);        
+      static Str  MonitorPrec  (C Advanced &adv             );        
+      static void MonitorPrec  (  Advanced &adv, C Str &text);        
+      static Str  Dither       (C Advanced &adv             );        
+      static void Dither       (  Advanced &adv, C Str &text);        
+      static Str  ColRTPrec    (C Advanced &adv             );        
+      static void ColRTPrec    (  Advanced &adv, C Str &text);        
+      static Str  NrmRTPrec    (C Advanced &adv             );        
+      static void NrmRTPrec    (  Advanced &adv, C Str &text);        
+      static Str  LumRTPrec    (C Advanced &adv             );        
+      static void LumRTPrec    (  Advanced &adv, C Str &text);        
+      static Str  LitColRTPrec (C Advanced &adv             );        
+      static void LitColRTPrec (  Advanced &adv, C Str &text);        
+      static Str  BloomScale   (C Advanced &adv             );        
+      static void BloomScale   (  Advanced &adv, C Str &text);        
+      static Str  AmbLight     (C Advanced &adv             );        
+      static void AmbLight     (  Advanced &adv, C Str &text);        
+      static Str  AOContrast   (C Advanced &adv             );        
+      static void AOContrast   (  Advanced &adv, C Str &text);        
+      static Str  AORange      (C Advanced &adv             );        
+      static void AORange      (  Advanced &adv, C Str &text);        
+      static Str  ShadowFlicker(C Advanced &adv             );        
+      static void ShadowFlicker(  Advanced &adv, C Str &text);        
+      static Str  ShadowFrac   (C Advanced &adv             );        
+      static void ShadowFrac   (  Advanced &adv, C Str &text);        
+      static Str  ShadowFade   (C Advanced &adv             );        
+      static void ShadowFade   (  Advanced &adv, C Str &text);        
+      static Str  AllowGlow    (C Advanced &adv             );        
+      static void AllowGlow    (  Advanced &adv, C Str &text);        
+      static Str  ForwardPrec  (C Advanced &adv             );        
+      static void ForwardPrec  (  Advanced &adv, C Str &text);        
+      static Str  MaterialBlend(C Advanced &adv             );        
+      static void MaterialBlend(  Advanced &adv, C Str &text);        
+      static Str  TexMipMin    (C Advanced &adv             );        
+      static void TexMipMin    (  Advanced &adv, C Str &text);        
+      static Str  SkyNightLightIntensity(C Advanced &adv            );
+      static void SkyNightLightIntensity(  Advanced &adv, C Str&text);
+      static Str  SkyNightLightSchedule (C Advanced &adv            );
+      static void SkyNightLightSchedule (  Advanced &adv, C Str&text);
 
-      flt fov;
+      enum MODE
+      {
+         AUTO,
+         OFF ,
+         ON  ,
+      };
+      flt  fov,
+           sky_night_light_intensity;
+      int  sky_night_light_start; // in minutes
+      MODE sky_night_light_mode;
       Property *diffuse;
 
       void setFov(flt fov);
+      flt  skyNightLightIntensity(             )C;
+      void skyNightLightIntensity(flt intensity); 
+      Str  skyNightLightSchedule()C;
+      void skyNightLightSchedule(Str text);
+      void skyNightLightSet();
       void ctor();
       void create();
       virtual Advanced& hide()override;

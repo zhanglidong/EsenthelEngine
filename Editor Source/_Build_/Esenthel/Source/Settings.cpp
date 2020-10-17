@@ -126,6 +126,8 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("AllowGlow"               , D.glowAllow());
       video.nodes.New().set("ForwardPerPixel"         , Renderer.forwardPrecision());
       video.nodes.New().set("MaterialBlendPerPixel"   , D.materialBlend());
+      video.nodes.New().set("SkyNightLightIntensity"  , VidOpt.advanced.skyNightLightIntensity());
+      video.nodes.New().set("SkyNightLightSchedule"   , VidOpt.advanced.skyNightLightSchedule ());
    }
 
    TextNode &theater=data.getNode("Theater");
@@ -190,6 +192,8 @@ void ApplyVideoSettings(C TextData &data)
       if(C TextParam *p=video->findNode("AllowGlow"               ))D.glowAllow(p->asBool());
       if(C TextParam *p=video->findNode("ForwardPerPixel"         ))Renderer.forwardPrecision(p->asBool());
       if(C TextParam *p=video->findNode("MaterialBlendPerPixel"   ))D.materialBlend(p->asBool());
+      if(C TextParam *p=video->findNode("SkyNightLightIntensity"  ))VidOpt.advanced.skyNightLightIntensity(p->asFlt ());
+      if(C TextParam *p=video->findNode("SkyNightLightSchedule"   ))VidOpt.advanced.skyNightLightSchedule (p->asText());
       D.mode(x, y, full);
 
       // following needs to be called after setting resolution
