@@ -25,6 +25,9 @@ struct Randomizer // Randomizer is multi-threaded safe
    Vec   vec       (Flt x           ); // return random Vec   in range       (0,0,0)..(x,x,x)
    Vec   vec       (Flt min, Flt max); // return random Vec   in range (min,min,min)..(max,max,max)
 
+   Ptr      pointer(); // return random pointer
+   Ptr validPointer(); // return random pointer, that's not null
+
    Vec  dir(C Vec &dir, Flt a           ); // return random direction based on 'dir', and   0..a   angle difference, 'dir' must be normalized
    Vec  dir(C Vec &dir, Flt min, Flt max); // return random direction based on 'dir', and min..max angle difference, 'dir' must be normalized
 

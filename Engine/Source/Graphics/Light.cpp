@@ -1839,26 +1839,18 @@ void Light::drawForward(ALPHA_MODE alpha)
    Renderer._shd_ms.clear();
 }
 /******************************************************************************/
-#define MAX_LIGHTS 255 // max amount of lights allowed when limiting lights
-struct LightFade
-{
-   Flt  fade;
-   CPtr src ;
-};
-static LightFade        LightFades[2][MAX_LIGHTS];
-static Int              LightFadesNum=0;
-static Bool             LightFadeIndex=false;
+static Bool CreateLightFade(Flt &fade, C CPtr &key, Ptr user) {fade=0; return true;}
+static Map <CPtr, Flt > LightFades(Compare, CreateLightFade);
 static Memc<FloatIndex> LightImportance;
+static Memc<Light     > LightsTemp;
 
 void UpdateLights()
 {
    // limit
-   if(Lights.elms() && D._max_lights)
+   if(D.maxLights())
    {
-      MIN(D._max_lights, MAX_LIGHTS);
-
       // limit number of lights
-      if(Lights.elms()>D._max_lights)
+      if(Lights.elms()>D.maxLights())
       {
          LightImportance.setNum(Lights.elms());
          REPA(Lights)
@@ -1879,28 +1871,35 @@ void UpdateLights()
             }
          }
          LightImportance.sort(FloatIndex::Compare);
-         Light LightTemp[MAX_LIGHTS];
-         REP(D._max_lights)LightTemp[i]=Lights[LightImportance[i].i];
-         Lights.setNum(D._max_lights); REPAO(Lights)=LightTemp[i];
+         LightsTemp.setNum(D.maxLights()); FREPAO(LightsTemp)=Lights[LightImportance[i].i]; // always copy first maxLights
+         if(D.maxLightsSoft())for(Int i=D.maxLights(); i<Lights.elms(); i++) // for soft/relaxed copy remaining lights conditionally
+         {
+          C Light &light=Lights[LightImportance[i].i]; if(light.src)LightsTemp.add(light); // only if has 'src' which means we can fade it
+         }
+         Swap(Lights, LightsTemp);
       }
 
-      // fade in
-      Int         old_fades=LightFadesNum; LightFadesNum=0;
-      LightFade (&old_fade)[MAX_LIGHTS]=LightFades[ LightFadeIndex],
-                (&new_fade)[MAX_LIGHTS]=LightFades[!LightFadeIndex];
-      Flt fade_inc=Time.rd()*3;
+      // fade (fade in active lights, and all remaining fade out)
+      Flt fade_dec=Time.rd()*4, fade_inc=fade_dec*2; // for simplicity we fade out all lights, so fade in has to be 2x bigger (to cancel out its fade out)
+      Int fade_in_lights=Min(Lights.elms(), D.maxLights());
+      REP(fade_in_lights) // fade in active lights
+      {
+         Light &l=Lights[i]; if(l.src)*LightFades(l.src)+=fade_inc;
+      }
+      REPA(LightFades) // fade out all lights
+      {
+         Flt &fade=LightFades[i]; fade-=fade_dec; if(fade<=0)LightFades.remove(i);
+      }
       REPA(Lights)
       {
-         Light &l=Lights[i];
-         if(l.src)
+         Light &l=Lights[i]; if(l.src)
          {
-            LightFade &lf=new_fade[LightFadesNum++];
-            lf.src =l.src;
-            lf.fade=fade_inc; REP(old_fades)if(old_fade[i].src==l.src){lf.fade+=old_fade[i].fade; break;} SAT(lf.fade);
-            l.fade(lf.fade);
+            if(Flt *fade=LightFades.find(l.src))
+            {
+               if(*fade>=1)*fade=1;else l.fade(*fade);
+            }else Lights.remove(i); // if didn't found fade then delete this light
          }
       }
-      LightFadeIndex^=1;
    }
 
    // sort
@@ -1937,8 +1936,7 @@ Flt GetLightFade(CPtr src)
 {
    if(D.maxLights() && src)
    {
-      LightFade (&fades)[MAX_LIGHTS]=LightFades[LightFadeIndex];
-      REPA(fades)if(fades[i].src==src)return fades[i].fade;
+      if(Flt *fade=LightFades.find(src))return *fade;
       return 0;
    }
    return 1;

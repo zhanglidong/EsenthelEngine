@@ -81,6 +81,17 @@ inline void   SupportFilterWaifu() {ResizeWaifu=_ResizeWaifu;}
 inline Char * TextPos(Char  *src, Char  c) {return ConstCast(TextPos((CChar *)src, c));}
 inline Char8* TextPos(Char8 *src, Char8 c) {return ConstCast(TextPos((CChar8*)src, c));}
 /******************************************************************************/
+// MATH
+/******************************************************************************/
+inline Ptr Randomizer::pointer()
+{
+#if X64
+   return Ptr(l());
+#else
+   return Ptr(T());
+#endif
+}
+/******************************************************************************/
 // MATRIX
 /******************************************************************************/
 inline void Matrix3::mul(C RevMatrix3 &matrix, Matrix3 &dest)C {matrix.mul(T, dest);}

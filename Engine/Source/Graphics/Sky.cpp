@@ -11,8 +11,10 @@ static void SetSkyCol() {if(!Sky.nightLight())Sh.SkySkyCol->set(Sky.atmosphericS
 /******************************************************************************/
 SkyClass::SkyClass()
 {
-   frac(0.8f); // !! if changing default value, then also change in 'Environment.Sky' !!
+#if 0 // there's only one 'SkyClass' global 'Sky' and it doesn't need clearing members to zero
   _night_light=0;
+#endif
+   frac(0.8f); // !! if changing default value, then also change in 'Environment.Sky' !!
   _dns_exp=1;
   _hor_exp=3.5f; // !! if changing default value, then also change in 'Environment.Sky' !!
   _sky_col_l.set(0.032f, 0.113f, 0.240f, 1.0f); // #DefaultSkyValue

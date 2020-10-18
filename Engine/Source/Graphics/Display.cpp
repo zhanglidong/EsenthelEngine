@@ -820,13 +820,14 @@ void DisplayClass::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_cl
 /******************************************************************************/
 DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 {
+   // there's only one 'DisplayClass' global 'D' and it doesn't need clearing members to zero
   _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
   _sync            =true;
   _exclusive       =true;
   _color_space     =COLOR_SPACE_NONE;
-  _hp_col_rt       =false;
-  _hp_nrm_rt       =false;
-  _hp_lum_rt       =false;
+//_hp_col_rt       =false;
+//_hp_nrm_rt       =false;
+//_hp_lum_rt       =false;
   _dither          =true;
   _mtrl_blend      =true;
   _device_mem      =-1;
@@ -837,18 +838,18 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _tex_mip_filter  =true;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
-  _tex_mip_min     =0;
-  _tex_mip_bias    =0;
+//_tex_mip_min     =0;
+//_tex_mip_bias    =0;
   _tex_macro       =true;
-  _tex_detail_lod  =false;
+//_tex_detail_lod  =false;
   _font_sharpness  =0.75f;
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-  _taa             =_taa_dual=false;
+//_taa             =_taa_dual=false;
 
-  _initialized=false;
-  _resetting  =false;
+//_initialized=false;
+//_resetting  =false;
 
   _allow_stereo=true;
   _density=127;
@@ -858,9 +859,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _disp_aspect_ratio=_disp_aspect_ratio_want=0;
   _app_aspect_ratio=1;
   _pixel_aspect=1;
-  _pixel_size=_pixel_size_2=_pixel_size_inv=0;
+//_pixel_size=_pixel_size_2=_pixel_size_inv=0;
   _window_pixel_to_screen_mul=1; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
-  _window_pixel_to_screen_add=0;
+//_window_pixel_to_screen_add=0;
   _window_pixel_to_screen_scale=1;
 
   _ao_all      =true;
@@ -874,23 +875,23 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _amb_range   =0.4f;
   _amb_color_l =SRGBToLinear(0.366f); // #DefaultAmbientValue
 
-  _ns_color_l.zero();
+//_ns_color_l.zero();
 
   _env_color=1;
 
-  _vol_light=false;
-  _vol_add  =false;
+//_vol_light=false;
+//_vol_add  =false;
   _vol_max  =1;
 
   _shd_mode           =(MOBILE ? SHADOW_NONE : SHADOW_MAP);
-  _shd_soft           =0;
-  _shd_jitter         =false;
-  _shd_reduce         =false;
+//_shd_soft           =0;
+//_shd_jitter         =false;
+//_shd_reduce         =false;
   _shd_frac           =1;
   _shd_fade           =1;
   _shd_map_num        =6;
   _shd_map_size       =1024;
-  _shd_map_size_actual=0;
+//_shd_map_size_actual=0;
   _shd_map_size_l     =1;
   _shd_map_size_c     =1;
   _shd_map_split      .set(2, 1);
@@ -905,13 +906,13 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _mtn_scale =1;
   _mtn_res   =FltToByteScale(1.0f/3);
 
-  _dof_mode     =DOF_NONE;
-  _dof_foc_mode =false;
+//_dof_mode     =DOF_NONE;
+//_dof_foc_mode =false;
 //_dof_focus    =0;
   _dof_range    =30;
   _dof_intensity=1;
 
-  _eye_adapt           =false;
+//_eye_adapt           =false;
   _eye_adapt_brightness=0.7f;
   _eye_adapt_exp       =0.5f;
   _eye_adapt_max_dark  =0.5f;
@@ -921,14 +922,14 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
   _grass_range  =50;
   _grass_density=(MOBILE ? 0.5f : 1);
-  _grass_shadow =false;
-  _grass_mirror =false;
+//_grass_shadow =false;
+//_grass_mirror =false;
 
   _bloom_original=1.0f;
   _bloom_scale   =0.4f;
   _bloom_cut     =0.3f;
   _bloom_blurs   =1;
-  _bloom_max     =false;
+//_bloom_max     =false;
   _bloom_half    =!MOBILE;
   _bloom_samples =!MOBILE;
           _bloom_allow=!MOBILE;
@@ -938,9 +939,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _lod_factor       =1;
   _lod_factor_mirror=2;
 
-  _tesselation          =false;
+//_tesselation          =false;
   _tesselation_allow    =true;
-  _tesselation_heightmap=false;
+//_tesselation_heightmap=false;
   _tesselation_density  =60;
 
   _outline_mode=EDGE_DETECT_THIN;
@@ -952,7 +953,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
   _eye_dist=0.064f; _eye_dist_2=_eye_dist/2;
 
-  _view_square_pixel =false;
+//_view_square_pixel =false;
   _view_main.fov_mode=FOV_Y;
   _view_fov          =
   _view_main.fov.x   =
@@ -962,6 +963,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
   _smaa_threshold=0.1f;
+
+//_max_lights     =0;
+  _max_lights_soft=true;
 }
 void DisplayClass::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
@@ -2706,16 +2710,17 @@ void DisplayClass::setSync()
 }
 DisplayClass& DisplayClass::sync(Bool sync) {if(T._sync!=sync){T._sync=sync; setSync();} return T;}
 /******************************************************************************/
-DisplayClass& DisplayClass::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ;             } return T;}
-DisplayClass& DisplayClass::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
-DisplayClass& DisplayClass::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
-DisplayClass& DisplayClass::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
-DisplayClass& DisplayClass::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
-DisplayClass& DisplayClass::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
-DisplayClass& DisplayClass::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
-DisplayClass& DisplayClass::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
-DisplayClass& DisplayClass::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
-DisplayClass& DisplayClass::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}
+DisplayClass& DisplayClass::dither             (Bool             dither   ) {                                                                    /*if(T._dither          !=dither   )*/{T._dither          =dither   ;             } return T;}
+DisplayClass& DisplayClass::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 /*if(T._max_lights      !=max      )*/{T._max_lights      =max      ;             } return T;}
+DisplayClass& DisplayClass::maxLightsSoft      (Bool             on       ) {                                                                    /*if(T._max_lights_soft !=on       )*/{T._max_lights_soft =on       ;             } return T;}
+DisplayClass& DisplayClass::texMacro           (Bool             use      ) {                                                                      if(T._tex_macro       !=use      )  {T._tex_macro       =use      ; setShader();} return T;}
+DisplayClass& DisplayClass::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));          if(T._tex_detail      !=usage    )  {T._tex_detail      =usage    ; setShader();} return T;}
+DisplayClass& DisplayClass::texDetailLOD       (Bool             on       ) {                                                                      if(T._tex_detail_lod  !=on       )  {T._tex_detail_lod  =on       ; setShader();} return T;}
+DisplayClass& DisplayClass::materialBlend      (Bool             per_pixel) {                                                                      if(T._mtrl_blend      !=per_pixel)  {T._mtrl_blend      =per_pixel; setShader();} return T;}
+DisplayClass& DisplayClass::bendLeafs          (Bool             on       ) {                                                                      if(T._bend_leafs      !=on       )  {T._bend_leafs      =on       ; setShader();} return T;}
+DisplayClass& DisplayClass::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); /*if(T._outline_mode    !=mode     )*/{T._outline_mode    =mode     ;             } return T;}
+DisplayClass& DisplayClass::particlesSoft      (Bool             on       ) {                                                                    /*if(T._particles_soft  !=on       )*/{T._particles_soft  =on       ;             } return T;}
+DisplayClass& DisplayClass::particlesSmoothAnim(Bool             on       ) {                                                                    /*if(T._particles_smooth!=on       )*/{T._particles_smooth=on       ;             } return T;}
 
 DisplayClass& DisplayClass::eyeDistance(Flt dist)
 {

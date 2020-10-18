@@ -201,6 +201,8 @@ Vec2 Randomizer::vec2      (Flt min, Flt max) {return Vec2(f(min, max), f(min, m
 Vec  Randomizer::vec       (                ) {return Vec (f(        ), f(        ), f(        ));}
 Vec  Randomizer::vec       (Flt x           ) {return Vec (f(x       ), f(x       ), f(x       ));}
 Vec  Randomizer::vec       (Flt min, Flt max) {return Vec (f(min, max), f(min, max), f(min, max));}
+
+Ptr  Randomizer::validPointer() {Ptr p=pointer(); return p ? p : Ptr(1);}
 /******************************************************************************/
 UInt Randomizer::align (UInt n ,          Flt (&func)(Flt x)) {if(!n)return 0; UInt u=TruncU(alignF(func)*n); if(u==n)u--; return u;}
 Int  Randomizer::align (Int min, Int max, Flt (&func)(Flt x)) {return min+align(max-min+1, func);}
