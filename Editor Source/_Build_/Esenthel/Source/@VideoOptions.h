@@ -102,6 +102,8 @@ class VideoOptions : PropWin
       static void MaterialBlend(  Advanced &adv, C Str &text);        
       static Str  TexMipMin    (C Advanced &adv             );        
       static void TexMipMin    (  Advanced &adv, C Str &text);        
+      static Str  SkyNightLight         (C Advanced &adv            );
+      static void SkyNightLight         (  Advanced &adv, C Str&text);
       static Str  SkyNightLightIntensity(C Advanced &adv            );
       static void SkyNightLightIntensity(  Advanced &adv, C Str&text);
       static Str  SkyNightLightSchedule (C Advanced &adv            );
@@ -113,18 +115,24 @@ class VideoOptions : PropWin
          OFF ,
          ON  ,
       };
-      flt  fov,
-           sky_night_light_intensity;
-      int  sky_night_light_start; // in minutes
-      MODE sky_night_light_mode;
-      Property *diffuse;
+      flt  fov;
+      bool sky_night_light_on;
+      int  sky_night_light_last_check, // -1/false/true
+           sky_night_light_start; // in minutes
+      flt  sky_night_light_intensity;
+      Property *diffuse, *sky_night_light;
 
       void setFov(flt fov);
+
+      // SKY NIGHT LIGHT
+      void skyNightLight(bool on);
       flt  skyNightLightIntensity(             )C;
       void skyNightLightIntensity(flt intensity); 
       Str  skyNightLightSchedule()C;
       void skyNightLightSchedule(Str text);
-      void skyNightLightSet();
+      bool skyNightLightOn(int time)C; // if should be enabled for specified time
+      void skyNightLightUpdate();
+
       void ctor();
       void create();
       virtual Advanced& hide()override;

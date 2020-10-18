@@ -165,6 +165,8 @@ class VideoOptions : PropWin
       static void MaterialBlend(  Advanced &adv, C Str &text) {       D.materialBlend(TextBool(text));}
       static Str  TexMipMin    (C Advanced &adv             ) {return D.texMipMin();}
       static void TexMipMin    (  Advanced &adv, C Str &text) {       D.texMipMin(TextInt(text));}
+      static Str  SkyNightLight         (C Advanced &adv             ) {return adv.sky_night_light_on;}
+      static void SkyNightLight         (  Advanced &adv, C Str &text) {       adv.skyNightLight(TextBool(text));}
       static Str  SkyNightLightIntensity(C Advanced &adv             ) {return adv.skyNightLightIntensity();}
       static void SkyNightLightIntensity(  Advanced &adv, C Str &text) {       adv.skyNightLightIntensity(TextFlt(text));}
       static Str  SkyNightLightSchedule (C Advanced &adv             ) {return adv.skyNightLightSchedule ();}
@@ -176,11 +178,12 @@ class VideoOptions : PropWin
          OFF ,
          ON  ,
       }
-      flt  fov,
-           sky_night_light_intensity=0.5;
-      int  sky_night_light_start=20*60+30; // in minutes
-      MODE sky_night_light_mode=AUTO;
-      Property *diffuse=null;
+      flt  fov;
+      bool sky_night_light_on=false;
+      int  sky_night_light_last_check=-1, // -1/false/true
+           sky_night_light_start=20*60+30; // in minutes
+      flt  sky_night_light_intensity=0.5;
+      Property *diffuse=null, *sky_night_light=null;
 
       void setFov(flt fov)
       {
@@ -192,8 +195,19 @@ class VideoOptions : PropWin
            WorldEdit.v4.perspFov(fov);
          TexDownsize.v4.perspFov(fov);
       }
+
+      // SKY NIGHT LIGHT
+      void skyNightLight(bool on)
+      {
+         if(sky_night_light_on!=on)
+         {
+            sky_night_light_on=on;
+            Sky.nightLight(on ? sky_night_light_intensity : 0);
+            if(sky_night_light)sky_night_light.toGui();
+         }
+      }
       flt  skyNightLightIntensity(             )C {return sky_night_light_intensity;}
-      void skyNightLightIntensity(flt intensity)  {       sky_night_light_intensity=intensity;}
+      void skyNightLightIntensity(flt intensity)  {       sky_night_light_intensity=intensity; if(sky_night_light_on)Sky.nightLight(intensity);}
       Str  skyNightLightSchedule()C
       {
          return InRange(sky_night_light_start, 25*60) ? S+(sky_night_light_start/60)+':'+TextInt(sky_night_light_start%60, 2) : S; // 25*60 to allow times such as "24:30"
@@ -208,18 +222,23 @@ class VideoOptions : PropWin
             if(t.elms()>=2)sky_night_light_start+=TextInt(t[1]);
          }
       }
-      void skyNightLightSet()
+      bool skyNightLightOn(int time)C // if should be enabled for specified time
       {
-         MODE mode=sky_night_light_mode;
-         if(mode==AUTO && sky_night_light_start>=0)
-         {
-            DateTime dt; dt.getLocal(); int time=dt.hour*60+dt.minute, end=7*60; // end at 7:00
-            if(sky_night_light_start>end ? (time>=sky_night_light_start || time<end) // if start is after  7:00, example 20:00, then start at 20:00 until 24:00, OR from 0:00 until 7:00
-                                         : (time>=sky_night_light_start && time<end) // if start is before 7:00, example  1:00, then start at  1:00 until  7:00
-              )mode=ON;
-         }
-         Sky.nightLight((mode==ON) ? sky_night_light_intensity : 0);
+         const int end=7*60; // end at 7:00
+         return sky_night_light_start>=0 // enabled
+            && (sky_night_light_start>end ? (time>=sky_night_light_start || time<end)   // if start is after  7:00, example 20:00, then start at 20:00 until 24:00, OR from 0:00 until 7:00
+                                          : (time>=sky_night_light_start && time<end)); // if start is before 7:00, example  1:00, then start at  1:00 until  7:00
       }
+      void skyNightLightUpdate()
+      {
+         DateTime dt; dt.getLocal(); int time=dt.hour*60+dt.minute;
+         bool on=skyNightLightOn(time); if((int)on!=sky_night_light_last_check)
+         {
+            sky_night_light_last_check=on;
+            skyNightLight(on);
+         }
+      }
+
       void ctor()
       {
          fov=DefaultFOV; // initialize here in case it gets initialized before DefaultFov, this may help on Linux where it's by default zero
@@ -271,8 +290,9 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
       #if WINDOWS
          props.New().create("Min Tex Mip"                , MemberDesc(DATA_INT ).setFunc(TexMipMin    , TexMipMin    )).desc("Minimum Texture Mip usage").range(0, 14).mouseEditSpeed(1);
       #endif
-         props.New().create("Sky Night Light Intensity"  , MemberDesc(DATA_REAL).setFunc(SkyNightLightIntensity, SkyNightLightIntensity)).desc("Blue Light Filter Intensity for Sky").range(0, 1).setSlider();
-         props.New().create("Sky Night Light Schedule"   , MemberDesc(DATA_STR ).setFunc(SkyNightLightSchedule , SkyNightLightSchedule )).desc("Blue Light Filter Schedule for Sky.\nEnter time in HH:MM format when it should start, or set empty to disable.");
+sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DATA_BOOL).setFunc(SkyNightLight         , SkyNightLight         )).desc("Manually Toggle Blue Light Filter for Sky");
+                 props.New().create("Sky Night Light Intensity"  , MemberDesc(DATA_REAL).setFunc(SkyNightLightIntensity, SkyNightLightIntensity)).desc("Blue Light Filter Intensity for Sky").range(0, 1).setSlider();
+                 props.New().create("Sky Night Light Schedule"   , MemberDesc(DATA_STR ).setFunc(SkyNightLightSchedule , SkyNightLightSchedule )).desc("Blue Light Filter Schedule for Sky.\nEnter time in HH:MM format when it should start, or set empty to disable.");
 
          super.create("Advanced Video Options"); autoData(this); button[2].show();
       }
@@ -471,7 +491,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
 
       Rect r=super.create("Video Options", Vec2(0.02, -0.02), 0.041, 0.050, 0.27); autoData(this); button[2].show();
       skin.set(skinIndex(Gui.skin.id()), QUIET); // call after 'autoData'
-      T+=advanced_show.create(Rect_U(clientWidth()/2, r.min.y-0.015, 0.3, 0.055), "Advanced").func(ShowAdvanced, T); advanced_show.mode=BUTTON_TOGGLE;
+      T+=advanced_show.create(Rect_U(clientWidth()/2, r.min.y-0.015, 0.3, 0.055), "Advanced").func(ShowAdvanced, T).desc("Keyboard Shortcut: Ctrl+F12"); advanced_show.mode=BUTTON_TOGGLE;
       super.resize(Vec2(0, 0.07));
       pos(Vec2(D.w()-rect().w(), D.h()));
 
@@ -508,7 +528,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    {
       super.update(gpc);
       if(visible())setTitle(S+"Video Options - "+TextReal(Time.fps(), 1)+" Fps");
-      advanced.skyNightLightSet();
+      advanced.skyNightLightUpdate();
    }
 }
 VideoOptions VidOpt;

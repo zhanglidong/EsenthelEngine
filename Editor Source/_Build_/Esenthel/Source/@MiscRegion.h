@@ -73,6 +73,7 @@ class MiscRegion : Region
    static void   Mode4        (MiscRegion &mr);             
    static void   Mode5        (MiscRegion &mr);             
    static void VidOpt         (MiscRegion &mr);             
+   static void VidOptAdv      (MiscRegion &mr);             
    static void BuyLicense     (ptr           );             
    static void Help           (MiscRegion &mr);             
    static void Fullscreen     (MiscRegion &mr);             
