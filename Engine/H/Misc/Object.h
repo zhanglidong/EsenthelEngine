@@ -98,10 +98,12 @@ struct Object // Object Parameters - they're created in the Editor and are used 
 #endif
 
    // io
-   Bool save(C Str &name)C; // save, false on fail
-   Bool load(C Str &name) ; // load, false on fail
-   Bool save(File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool load(File &f, CChar *path=null) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   void operator=(C Str &name) ; // load, Exit  on fail
+   void operator=(C UID &id  ) ; // load, Exit  on fail
+   Bool save     (C Str &name)C; // save, false on fail
+   Bool load     (C Str &name) ; // load, false on fail
+   Bool save     (File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool load     (File &f, CChar *path=null) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
 #if EE_PRIVATE
    Bool saveData(File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
    Bool loadData(File &f, CChar *path=null) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail

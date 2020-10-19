@@ -1,4 +1,4 @@
-/******************************************************************************/
+﻿/******************************************************************************/
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
@@ -482,6 +482,13 @@ Bool Object::load(C Str &name)
 {
    File f; if(f.readTry(name))return load(f, _GetPath(name));
    del(); return false;
+}
+/******************************************************************************/
+void Object::operator=(C UID &id  ) {T=_EncodeFileName(id);}
+void Object::operator=(C Str &name)
+{
+   if(!load(name))Exit(MLT(S+"Can't load Object \""        +name+"\"",
+                       PL,S+u"Nie można wczytać Obiektu \""+name+"\""));
 }
 /******************************************************************************/
 Bool Object::operator==(C Object &obj)C
