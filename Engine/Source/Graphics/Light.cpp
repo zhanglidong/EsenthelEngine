@@ -309,7 +309,12 @@ LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color_l, Flt vo
 /******************************************************************************/
 Flt LightPoint::range()C
 {
-   return Sqrt(power/(LINEAR_GAMMA ? 1.0f/512 : 1.0f/256));
+   return Sqrt(power/(LINEAR_GAMMA ? 1.0f/1024 : 1.0f/256));
+/* Use 1024 for LINEAR_GAMMA, because with that value, sRGB at light range is ~3.2 on 0..255 scale
+   LightPoint lp(1, 0);
+   Flt  light_range=lp.range();
+   Flt  light_intensity=lp.power/Sqr(light_range), expected_light_intensity=1.0f/1024;
+   Flt  albedo=1, srgb_col=LinearToSRGB(light_intensity*albedo)*255; */
 }
 /******************************************************************************/
 void LightDir   ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()>EPS_COL8_LINEAR                                        && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
