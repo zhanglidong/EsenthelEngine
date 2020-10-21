@@ -1821,16 +1821,17 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       if(image.lock())
       {
          Vec2 hue_sat=param.asVec2();
-         Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
-       //Vec  lin_rgb=SRGBToLinear(rgb);
+         Vec  rgb=HsbToRgb(Vec(hue_sat, 1)); rgb/=SRGBLumOfSRGBColor(rgb);
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-          //c.xyz=LinearToSRGB(lin_rgb*LinearLumOfSRGBColor(c.xyz));
-            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz); // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
-            image.color3DF(x, y, z, c);
+            if(flt lum=SRGBLumOfSRGBColor(c.xyz))
+            {
+               c.xyz=rgb*lum;
+               image.color3DF(x, y, z, c);
+            }
          }
          image.unlock();
       }
