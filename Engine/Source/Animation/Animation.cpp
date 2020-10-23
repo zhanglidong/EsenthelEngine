@@ -2344,7 +2344,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          anim_out.keys.orns.setNumDiscard(orn_times.elms()); REPA(anim_out.keys.orns)
          {
             AnimKeys::Orn &orn=anim_out.keys.orns[i];
-            old_askel.clear().animateEx(old_skela, orn.time=orn_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+            old_askel.clear().animateEx(old_skela, orn.time=orn_times[i]).updateMatrixParents(MatrixMIdentity, old_skel_bone_as_root);
             OrientD o=old_abon.matrix(); o.fix(); // root bone world orientation (identity transformed by bone transform) at the current time
             orn.orn=o;
          }
@@ -2354,7 +2354,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       anim_out.keys.scales.setNumDiscard(scale_times.elms()); REPA(anim_out.keys.scales)
       { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
          AnimKeys::Scale &scale=anim_out.keys.scales[i];
-         old_askel.clear().animateEx(old_skela, scale.time=scale_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+         old_askel.clear().animateEx(old_skela, scale.time=scale_times[i]).updateMatrixParents(MatrixMIdentity, old_skel_bone_as_root);
          Vec old_scale(old_abon.matrix().x.length(),
                        old_abon.matrix().y.length(),
                        old_abon.matrix().z.length());
@@ -2379,7 +2379,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
             anim_out.keys.poss.setNumDiscard(pos_times.elms()); REPA(anim_out.keys.poss)
             {
                AnimKeys::Pos &pos=anim_out.keys.poss[i];
-               old_askel.clear().animateEx(old_skela, pos.time=pos_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
+               old_askel.clear().animateEx(old_skela, pos.time=pos_times[i]).updateMatrixParents(MatrixMIdentity, old_skel_bone_as_root);
                pos.pos=(root_zero ?          old_abon.matrix().pos   // desired mesh transform offset
                                   : root_pos*old_abon.matrix()    ); // desired bone position
             }
@@ -2744,8 +2744,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.orns.setNumDiscard(orn_times.elms()); REPA(anim.orns)
                   {
                      AnimKeys::Orn &orn=anim.orns[i]; orn.time=orn_times[i];
-                     old_askel.clear().animateEx(old_skela, orn.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateEx(new_skela, orn.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i        );
+                     old_askel.clear().animateEx(old_skela, orn.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixMIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, orn.time);                        new_askel.updateMatrixParents(MatrixMIdentity, new_bone_i        );
 
                      MatrixD3 new_bone_transformed=new_bone_m; new_bone_transformed*=BoneWeightOrn(old_bones); // bone world orientation at the current time
                      if(new_parent)
@@ -2768,8 +2768,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.scales.setNumDiscard(scale_times.elms()); REPA(anim.scales)
                   { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
                      AnimKeys::Scale &scale=anim.scales[i]; scale.time=scale_times[i];
-                     old_askel.clear().animateEx(old_skela, scale.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateEx(new_skela, scale.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
+                     old_askel.clear().animateEx(old_skela, scale.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixMIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, scale.time);                        new_askel.updateMatrixParents(MatrixMIdentity, new_bone_i);
 
                      Matrix3 old_abon_matrix___orn=BoneWeightOrn(old_bones);
                      Vec new_bone_cross=new_bone.cross(),
@@ -2794,8 +2794,8 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   anim.poss.setNumDiscard(pos_times.elms()); REPA(anim.poss)
                   {
                      AnimKeys::Pos &pos=anim.poss[i]; pos.time=pos_times[i];
-                     old_askel.clear().animateEx(old_skela, pos.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
-                     new_askel.clear().animateEx(new_skela, pos.time);                        new_askel.updateMatrixParents(MatrixIdentity, new_bone_i);
+                     old_askel.clear().animateEx(old_skela, pos.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixMIdentity, old_bones[0].index);else old_askel.updateMatrix();
+                     new_askel.clear().animateEx(new_skela, pos.time);                        new_askel.updateMatrixParents(MatrixMIdentity, new_bone_i);
 
                      pos.pos=BoneWeightPos(old_bones) // desired mesh transform offset
                             -new_abon.matrix().pos;   // current mesh transform offset
