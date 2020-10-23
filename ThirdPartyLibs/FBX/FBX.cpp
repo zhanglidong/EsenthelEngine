@@ -1144,8 +1144,8 @@ struct FBX
                                  anim.x=anim_matrix.z;
                                  anim.y=anim_matrix.y;
                                  anim.z=anim_matrix.x;
-                                 anim*=local_to_world;
-                                 if(sbon.parent!=0xFF)anim*=parent_matrix_inv;
+                                 anim*=local_to_world; // convert to world space
+                                 if(sbon.parent!=0xFF)anim*=parent_matrix_inv; // convert to local space (relative to skeleton parent bone)
 
                                  OrientD o=anim; o.fix();
                                  AnimKeys::Orn &orn=abon.orns[index]; orn.time=t; orn.orn=o;
@@ -1155,8 +1155,8 @@ struct FBX
                               if(pos_times.binarySearch(time, index, CompareTime))
                               {
                                  VecD p=anim_matrix.pos-node_local.pos;
-                                 if(Node *parent=animated_node_ancestor->parent)p*=parent->global.orn();
-                                 if(sbon.parent!=0xFF)p*=parent_matrix_inv;
+                                 if(Node *parent=animated_node_ancestor->parent)p*=parent->global.orn(); // convert to world space
+                                 if(sbon.parent!=0xFF)p*=parent_matrix_inv; // convert to local space (relative to skeleton parent bone)
                                  AnimKeys::Pos &pos=abon.poss[index]; pos.time=t; pos.pos=p;
                               }
 
