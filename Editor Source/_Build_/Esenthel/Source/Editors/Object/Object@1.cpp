@@ -2131,7 +2131,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       if(mesh_skel && skel_elm)
       {
-         flushMeshSkel(); // save any unsaved changes, after this call 'saved_skel' is the same as 'mesh_skel'
+         flushMeshSkel(); // save any unsaved changes, after this call, 'saved_skel' is the same as 'mesh_skel'
          mesh_undos.del(); undoVis(); // we're modifying 'saved_skel' so we can't go back
 
          MemtN<MatrixM, 256> matrixes; anim_skel.getMatrixes(matrixes); MatrixD mesh_matrix_d=mesh_matrix; REPAO(matrixes)=mesh_matrix_d*matrixes[i]/mesh_matrix_d;
