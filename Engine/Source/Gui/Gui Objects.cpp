@@ -356,6 +356,17 @@ GuiObj& GuiObjs::get(C Str &name, GUI_OBJ_TYPE type)
    return *go;
 }
 /******************************************************************************/
+Str GuiObjs::name(C GuiObj *go)C {return go ? name(*go) : S;}
+Str GuiObjs::name(C GuiObj &go)C
+{
+   GUI_OBJ_TYPE type=go.type();
+   if(C Memb<GuiObj> *objs=T.objects(type))REPA(_objs)
+   {
+    C Obj &goi=_objs[i]; if(goi.type==type && InRange(goi.index, *objs) && &(*objs)[goi.index]==&go)return T._names.data()+goi.name_offset;
+   }
+   return S;
+}
+/******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
 GuiObjs& GuiObjs::hide()

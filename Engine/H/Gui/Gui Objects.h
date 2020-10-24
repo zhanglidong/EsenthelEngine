@@ -5,6 +5,9 @@ struct GuiObjs // Set of Gui Objects
    GuiObj* find(C Str &name, GUI_OBJ_TYPE type); // find Gui Object of 'name' and 'type', null on fail
    GuiObj& get (C Str &name, GUI_OBJ_TYPE type); //  get Gui Object of 'name' and 'type', Exit on fail
 
+   Str name(C GuiObj &go)C; //  get name of a Gui Object, if object was not found then "" is returned
+   Str name(C GuiObj *go)C; //  get name of a Gui Object, if object was not found then "" is returned
+
    Button   * findButton  (C Str &name) {return ( Button   *)find(name, GO_BUTTON  );} // find Gui Object, null on fail
    CheckBox * findCheckBox(C Str &name) {return ( CheckBox *)find(name, GO_CHECKBOX);} // find Gui Object, null on fail
    ComboBox * findComboBox(C Str &name) {return ( ComboBox *)find(name, GO_COMBOBOX);} // find Gui Object, null on fail
