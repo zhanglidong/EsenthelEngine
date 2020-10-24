@@ -45,23 +45,19 @@ struct FBX
 
    struct Node
    {
-      Node       *parent;
+      Node       *parent=null;
       Memc<Node*> children;
-      FbxNode    *node;
-      Bool        bone, mesh, has_skin;
+      FbxNode    *node=null;
+      Bool        bone=false, mesh=false, has_skin=false;
       Str         full_name, ee_name;
       MatrixD     local, global;
-      Int         bone_index, // points to the bone index in the skeleton
-                  nearest_bone_index; // this points to the nearest bone index in the skeleton (for example, if this node doesn't have a corresponding bone in the skeleton, then it will point to the bone index of one of its parents)
+      Int         bone_index=-1, // points to the bone index in the skeleton
+          nearest_bone_index=-1; // this points to the nearest bone index in the skeleton (for example, if this node doesn't have a corresponding bone in the skeleton, then it will point to the bone index of one of its parents)
 
       Node()
       {
-         bone  =mesh=has_skin=false;
-         parent=null;
-         node  =null;
          local .identity();
          global.identity();
-         bone_index=nearest_bone_index=-1;
       }
 
       Bool hasAnimFast(FbxAnimLayer *anim_layer)C
@@ -119,14 +115,14 @@ struct FBX
       }
    };
 
-   FbxManager               *manager;
-   FbxScene                 *scene;
-   FbxImporter              *importer;
-   FbxGlobalSettings        *global_settings;
-   Int                       sdk_major, sdk_minor, sdk_revision;
+   FbxManager               *manager        =null;
+   FbxScene                 *scene          =null;
+   FbxImporter              *importer       =null;
+   FbxGlobalSettings        *global_settings=null;
+   Int                       sdk_major=0, sdk_minor=0, sdk_revision=0;
    Memc<Node>                nodes;
    Memc<FbxSurfaceMaterial*> ee_mtrl_to_fbx_mtrl; // this will point from EE Material 'materials' container index to FBX Material pointer
-   Flt                       scale;
+   Flt                       scale=1.0f;
    Str                       app_name;
 
    Int   findNodeI(FbxNode *node)C {REPA(nodes)if(nodes[i].node==node)return i; return -1;}
@@ -140,16 +136,6 @@ struct FBX
       if(importer){importer->Destroy(); importer=null;}
       if(scene   ){scene   ->Destroy(); scene   =null;}
       if(manager ){manager ->Destroy(); manager =null;}
-   }
-   FBX()
-   {
-    //SyncLocker locker(Lock); not needed because we don't use FBX SDK here
-      manager        =null;
-      scene          =null;
-      importer       =null;
-      global_settings=null;
-      scale          =1.0f;
-      sdk_major=sdk_minor=sdk_revision=0;
    }
    Bool init()
    {
