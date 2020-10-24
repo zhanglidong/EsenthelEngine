@@ -187,6 +187,7 @@ struct OrientP : Orient // Positioned Orientation
    CONVERSION OrientP(C Matrix3    &m);
    CONVERSION OrientP(C Matrix     &m);
    CONVERSION OrientP(C MatrixM    &m);
+   CONVERSION OrientP(C MatrixD    &m);
    CONVERSION OrientP(C Quaternion &q);
 };
 /******************************************************************************/

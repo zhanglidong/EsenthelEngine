@@ -182,6 +182,7 @@ OrientD::OrientD(C MatrixD3 &matrix) {dir=matrix.z; perp=matrix.y;}
 OrientP::OrientP(C Matrix3  &matrix) {dir=matrix.z; perp=matrix.y; pos.zero();}
 OrientP::OrientP(C Matrix   &matrix) {dir=matrix.z; perp=matrix.y; pos=matrix.pos;}
 OrientP::OrientP(C MatrixM  &matrix) {dir=matrix.z; perp=matrix.y; pos=matrix.pos;}
+OrientP::OrientP(C MatrixD  &matrix) {dir=matrix.z; perp=matrix.y; pos=matrix.pos;}
 OrientM::OrientM(C Matrix3  &matrix) {dir=matrix.z; perp=matrix.y; pos.zero();}
 OrientM::OrientM(C Matrix   &matrix) {dir=matrix.z; perp=matrix.y; pos=matrix.pos;}
 OrientM::OrientM(C MatrixM  &matrix) {dir=matrix.z; perp=matrix.y; pos=matrix.pos;}
