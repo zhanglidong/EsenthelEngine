@@ -263,7 +263,7 @@ struct FBX
              C Node &test=nodes[j]; if(test.bone && node.ee_name==test.ee_name)
                {
                   Int  index=1;
-                  Char separator='@';
+                  Char separator='#';
                   REPA(node.ee_name)if(node.ee_name[i]==separator) // find if this name already has a separator
                      {index=TextInt(node.ee_name()+i+1)+1; node.ee_name.clip(i); break;} // get the index value, increase by one, and remove the separator
                   node.ee_name+=separator;
