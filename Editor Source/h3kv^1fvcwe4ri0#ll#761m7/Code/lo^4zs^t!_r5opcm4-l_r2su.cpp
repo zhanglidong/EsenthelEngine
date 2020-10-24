@@ -230,7 +230,7 @@ class ImporterClass
       {
          Mems<FileParams> files=FileParams.Decode(T.file);
          Str file; if(files.elms())file=files[0].name;
-         bool all_nodes_as_bones=(type==ELM_ANIM || mode==ANIM); // when importing animations we have to treat all nodes as potential bones, because it's possible that asset developer used helper/dummies to animate nodes which in the base object mesh model got imported as bones due to mesh skinning, however animations don't need the mesh and without the mesh and thus skinning, the nodes would not get detected as bones, to workaround this we force all nodes as bones, and later we just remove them depending if they're present in the already existing object mesh skeleton from before, removing happens in 'removeExtraBones' which is called in processing the animation later.
+         bool all_nodes_as_bones=(type==ELM_ANIM || mode==ANIM); // when importing animations we have to treat all nodes as potential bones, because it's possible that asset developer used helper/dummies to animate nodes which in the base object mesh model got imported as bones due to mesh skinning, however animations don't need the mesh and without the mesh and thus skinning, the nodes would not get detected as bones. Some could get detected as bones if they had animations, but there could be nodes that don't have movement, and are just rotated with 1 keyframe, which would make them different than original bone, but still not detected as a bone), to workaround this we force all nodes as bones, and later we just remove them depending if they're present in the already existing object mesh skeleton from before
 
          // import
          switch(type)
