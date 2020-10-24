@@ -22,7 +22,7 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
  C MeshLod& lod (Int i)C {return i ? _lods[i-1] : SCAST(C MeshLod, T);} // return  i-th  Level of Detail
 
    Skeleton*  skeleton(                                      )C {return _skeleton;} // get Skeleton linked with this Mesh
-   Mesh&      skeleton(Skeleton *skeleton, Bool by_name=false);                     // link  Mesh with specified Skeleton file, avoid calling this realtime as it requires adjusting the vertex skinning information (bone indexes) and re-creating the hardware mesh version, 'by_name'=if remap by bone name only and ignore type/indexes
+   Mesh&      skeleton(Skeleton *skeleton, Bool by_name=false);                     // link  Mesh with specified Skeleton file, avoid calling this realtime as it requires adjusting the vertex skinning information (bone indexes), 'by_name'=if remap by bone name only and ignore type/indexes
    Mesh& clearSkeleton(                                      );                     // clear Mesh link to skeleton and remove all information related to vertex bone mapping
 
    Enum*   drawGroupEnum(                                       )C {return _draw_group_enum;} // get enum used for specifying draw groups in all parts for this Mesh, you should pass this value to 'MeshPart.drawGroup' method
