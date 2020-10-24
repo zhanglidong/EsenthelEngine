@@ -94,6 +94,7 @@ struct  SkeletonBone : OrientP, BoneID // Skeleton Bone
 
    SkeletonBone& operator+=(C Vec     &v);
    SkeletonBone& operator-=(C Vec     &v);
+   SkeletonBone& operator*=(  Flt      f);
    SkeletonBone& operator*=(C Vec     &v);
    SkeletonBone& operator*=(C Matrix3 &m);
    SkeletonBone& operator/=(C Matrix3 &m);
@@ -133,6 +134,11 @@ struct  SkeletonSlot : OrientP // Skeleton Slot
          bone1   ; // secondary bone index to which slot belongs, 0xFF=none, for best performance this should be set to the same value as 'bone' (to have only one parent), if this is different than 'bone' then slot will be set as average based on 2 bone parents
 
    void setParent(Byte bone) {T.bone=T.bone1=bone;}
+
+   SkeletonSlot& operator*=(  Flt      f);
+   SkeletonSlot& operator*=(C Vec     &v) {super::operator*=(v); return T;}
+   SkeletonSlot& operator*=(C Matrix3 &m) {super::operator*=(m); return T;}
+   SkeletonSlot& operator*=(C Matrix  &m) {super::operator*=(m); return T;}
 #if EE_PRIVATE
    SkeletonSlot& operator=(C OrientP &ornp) {SCAST(OrientP, T)=ornp; return T;}
 #endif
@@ -203,6 +209,7 @@ struct Skeleton // Animation Skeleton - base skeleton used by 'AnimatedSkeleton'
    Skeleton& operator*=(C Matrix  &matrix) {return T.transform(matrix);} // transform by matrix
 
    Skeleton& move     (                           C Vec &move); // move
+   Skeleton& scale    (  Flt               scale             ); // scale
    Skeleton& scale    (C Vec              &scale             ); // scale
    Skeleton& scaleMove(C Vec              &scale, C Vec &move); // scale and move
    Skeleton& transform(C Matrix3          &matrix            ); // transform by matrix

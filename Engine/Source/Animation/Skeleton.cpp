@@ -75,6 +75,11 @@ SkelSlot::SkeletonSlot()
    name[0]=0;
    setParent(0xFF);
 }
+SkelSlot& SkelSlot::operator*=(Flt f)
+{
+   pos*=f;
+   return T;
+}
 void SkelSlot::save(TextNode &node, C Skeleton *owner)C
 {
    node.set(name);
@@ -159,6 +164,14 @@ SkelBone& SkelBone::operator-=(C Vec &v)
 {
    pos  -=v;
    shape-=v;
+   return T;
+}
+SkelBone& SkelBone::operator*=(Flt f)
+{
+   pos   *=f;
+   length*=f;
+   offset*=f;
+   shape *=f;
    return T;
 }
 SkelBone& SkelBone::operator*=(C Vec &v)
@@ -287,6 +300,12 @@ Skeleton& Skeleton::move(C Vec &move)
 {
    REPAO(bones)+=move;
    REPAO(slots)+=move;
+   return T;
+}
+Skeleton& Skeleton::scale(Flt scale)
+{
+   REPAO(bones)*=scale;
+   REPAO(slots)*=scale;
    return T;
 }
 Skeleton& Skeleton::scale(C Vec &scale)
