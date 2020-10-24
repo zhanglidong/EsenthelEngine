@@ -544,7 +544,7 @@ struct FBX
             Node &node=nodes[i];
             if(InRange(node.bone_index, skeleton->bones)) // if this node is a bone
                for(Node *parent=node.parent; parent; parent=parent->parent) // iterate all parents
-                  if(InRange(parent->bone_index, skeleton->bones)) // if the parent is a bone
+                  if(parent->bone) // if the parent is a bone
             {
                skeleton->bones[node.bone_index].parent=parent->bone_index; // set skel bone parent
                break; // stop searching
@@ -576,8 +576,8 @@ struct FBX
             Node &node=nodes[i];
             for(Node *parent=&node; parent; parent=parent->parent) // iterate all parents, starting from this node inclusive
             {
-               if(InRange(parent->        bone_index, skeleton->bones)){node.nearest_bone_index=parent->        bone_index; break;}
-               if(InRange(parent->nearest_bone_index, skeleton->bones)){node.nearest_bone_index=parent->nearest_bone_index; break;}
+               if(parent->bone                 ){node.nearest_bone_index=parent->        bone_index; break;}
+               if(parent->nearest_bone_index>=0){node.nearest_bone_index=parent->nearest_bone_index; break;}
             }
          }
          if(bone_names)
@@ -725,11 +725,10 @@ struct FBX
                         }
                      }
 
-                     for(Node *cur=&node; cur; cur=cur->parent)if(InRange(cur->bone_index, skeleton->bones)) // find first parent that's a bone
+                     if(node.nearest_bone_index>=0) // if this or any parent is a bone
                      {
                         force_skin=true; // if any parent is a bone, then always set skinning
-                        vtx_matrix.x=cur->bone_index+VIRTUAL_ROOT_BONE;
-                        break;
+                        vtx_matrix.x=node.nearest_bone_index+VIRTUAL_ROOT_BONE;
                      }
                   }
 
