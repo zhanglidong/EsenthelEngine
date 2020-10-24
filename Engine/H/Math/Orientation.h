@@ -53,12 +53,12 @@ struct Orient // Orientation
    Orient& rotateToDir(C Vec &dir           ); // rotate current orientation to 'dir' vector, 'dir' must be normalized
    Orient& rotateToDir(C Vec &dir, Flt blend); // rotate current orientation to 'dir' vector, 'dir' must be normalized, 'blend'=how much to rotate (0=no rotation, 0.5=half rotation, 1.0=full rotation)
 
-   // operations
    Orient& inverse(              ) ; // inverse orientation
    void    inverse(Orient   &dest)C; // inverse orientation and store it in 'dest'
    void    inverse(Matrix3  &dest)C; // inverse orientation and store it in 'dest' matrix
    void    inverse(MatrixD3 &dest)C; // inverse orientation and store it in 'dest' matrix
 
+   // operations
    Orient& normalize(); // normalize vectors
    Orient& fixPerp  (); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
    Bool    fix      (); // normalize and fix perpendicular, false on fail
@@ -107,11 +107,11 @@ struct OrientD // Orientation (double precision)
    OrientD& mul(C MatrixD3 &matrix, Bool normalized=false); // transform by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
    OrientD& div(C MatrixD3 &matrix, Bool normalized=false); // divide    by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
 
-   // operations
    OrientD& inverse(              ) ; // inverse orientation
    void     inverse(OrientD  &dest)C; // inverse orientation and store it in 'dest'
    void     inverse(MatrixD3 &dest)C; // inverse orientation and store it in 'dest' matrix
 
+   // operations
    OrientD& normalize(); // normalize vectors
    OrientD& fixPerp  (); // fix perpendicular, use when 'dir' or 'perp' has changed, this method aligns 'perp' so it's perpendicular to 'dir' and normalized
    Bool     fix      (); // normalize and fix perpendicular, false on fail
@@ -168,6 +168,11 @@ struct OrientP : Orient // Positioned Orientation
    OrientP& div(C Matrix3 &matrix, Bool normalized=false); // divide    by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
    OrientP& div(C Matrix  &matrix, Bool normalized=false); // divide    by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
    OrientP& div(C MatrixM &matrix, Bool normalized=false); // divide    by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
+
+   void inverse(Matrix3  &dest)C {super::inverse(dest);} // inverse orientation and store it in 'dest' matrix
+   void inverse(MatrixD3 &dest)C {super::inverse(dest);} // inverse orientation and store it in 'dest' matrix
+   void inverse(Matrix   &dest)C;                        // inverse orientation and store it in 'dest' matrix
+   void inverse(MatrixD  &dest)C;                        // inverse orientation and store it in 'dest' matrix
 
    // draw
    void draw(C Color &color, Flt size=0.2f)C; // this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
@@ -241,6 +246,17 @@ struct OrientM : Orient // Positioned Orientation (mixed precision)
    CONVERSION OrientM(C Matrix     &m);
    CONVERSION OrientM(C MatrixM    &m);
    CONVERSION OrientM(C Quaternion &q);
+};
+/******************************************************************************/
+struct OrientPD : OrientD // Positioned Orientation (double precision)
+{
+   VecD pos; // position
+
+   void inverse(MatrixD &dest)C; // inverse orientation and store it in 'dest' matrix
+
+              OrientPD() {}
+              OrientPD(C VecD    &pos, C VecD &dir, C VecD &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
+   CONVERSION OrientPD(C OrientP &o);
 };
 /******************************************************************************/
 struct AxisRoll // Axis+Roll based rotation

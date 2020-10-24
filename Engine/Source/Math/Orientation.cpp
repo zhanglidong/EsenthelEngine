@@ -168,11 +168,12 @@ OrientM& OrientM::div(C MatrixM &matrix, Bool normalized)
    return T;
 }
 /******************************************************************************/
-Orient ::Orient (C OrientD &orn) {dir=orn.dir; perp=orn.perp;}
-OrientD::OrientD(C Orient  &orn) {dir=orn.dir; perp=orn.perp; fix();} // call 'fix' to get high precision
-OrientP::OrientP(C Orient  &orn) {dir=orn.dir; perp=orn.perp; pos.zero();}
-OrientP::OrientP(C OrientM &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
-OrientM::OrientM(C OrientP &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
+Orient  ::Orient  (C OrientD &orn) {dir=orn.dir; perp=orn.perp;}
+OrientD ::OrientD (C Orient  &orn) {dir=orn.dir; perp=orn.perp; fix();} // call 'fix' to get high precision
+OrientP ::OrientP (C Orient  &orn) {dir=orn.dir; perp=orn.perp; pos.zero();}
+OrientP ::OrientP (C OrientM &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
+OrientM ::OrientM (C OrientP &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos;}
+OrientPD::OrientPD(C OrientP &orn) {dir=orn.dir; perp=orn.perp; pos=orn.pos; fix();} // call 'fix' to get high precision
 
 Orient ::Orient (C Matrix3  &matrix) {dir=matrix.z; perp=matrix.y;}
 Orient ::Orient (C MatrixD3 &matrix) {dir=matrix.z; perp=matrix.y;}
@@ -328,8 +329,9 @@ Orient& Orient::rotateToDir(C Vec &dir, Flt blend)
    return T;
 }
 /******************************************************************************/
-void Orient::inverse(MatrixD3 &dest)C {OrientD(T).inverse(dest);} // use 'OrientD' to get high precision
-void Orient::inverse(Matrix3  &dest)C
+void Orient ::inverse(MatrixD3 &dest)C {OrientD (T).inverse(dest);} // use 'OrientD'  to get high precision
+void OrientP::inverse(MatrixD  &dest)C {OrientPD(T).inverse(dest);} // use 'OrientPD' to get high precision
+void Orient ::inverse(Matrix3  &dest)C
 {
    Vec cross=T.cross();
 
@@ -402,6 +404,22 @@ OrientD& OrientD::inverse()
    dir .x=cross.z;
    Swap(perp.z, dir.y);
    return T;
+}
+void OrientP::inverse(Matrix &dest)C
+{
+   super::inverse(dest.orn());
+   Flt x=pos.x, y=pos.y, z=pos.z;
+   dest.pos.x=-(x*dest.x.x + y*dest.y.x + z*dest.z.x);
+   dest.pos.y=-(x*dest.x.y + y*dest.y.y + z*dest.z.y);
+   dest.pos.z=-(x*dest.x.z + y*dest.y.z + z*dest.z.z);
+}
+void OrientPD::inverse(MatrixD &dest)C
+{
+   super::inverse(dest.orn());
+   Dbl x=pos.x, y=pos.y, z=pos.z;
+   dest.pos.x=-(x*dest.x.x + y*dest.y.x + z*dest.z.x);
+   dest.pos.y=-(x*dest.x.y + y*dest.y.y + z*dest.z.y);
+   dest.pos.z=-(x*dest.x.z + y*dest.y.z + z*dest.z.z);
 }
 /******************************************************************************/
 void OrientP::draw(C Color &color, Flt size)C
