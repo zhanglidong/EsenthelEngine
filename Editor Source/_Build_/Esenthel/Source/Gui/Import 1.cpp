@@ -504,7 +504,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                   // skeleton
                   if(edit_mesh.skeleton())
                   {
-                     Skeleton skel=*edit_mesh.skeleton(); EditSkeleton edit_skel; edit_skel.create(skel, null); skel.transform(matrix);
+                     Skeleton skel=*edit_mesh.skeleton(); EditSkeleton edit_skel; edit_skel.create(skel); skel.transform(matrix);
                      Elm &skel_elm=Proj.Project::newElm(ElmNameSkel, mesh_elm.id, ELM_SKEL); mesh_elm.meshData()->skel_id=skel_elm.id;
                      ElmSkel *skel_data=skel_elm.skelData();
                      skel_data->newData();
@@ -608,7 +608,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                   skel_data->newData();
                   skel_data->src_file=MakeFullPath(Skeletons.name(edit_mesh.skeleton()), FILE_DATA);
                   skel_data->mesh_id=mesh_elm.id;
-                  EditSkeleton edit_skel; edit_skel.create(*edit_mesh.skeleton(), null);
+                  EditSkeleton edit_skel; edit_skel.create(*edit_mesh.skeleton());
                   Save( edit_skel           , Proj.editPath(skel_elm));
                   Save(*edit_mesh.skeleton(), Proj.gamePath(skel_elm));
                   edit_mesh.skeleton(null);

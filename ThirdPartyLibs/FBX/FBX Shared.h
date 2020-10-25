@@ -21,36 +21,30 @@
 #define FBX_ANIM               0x04
 #define FBX_MTRL               0x08
 #define FBX_PMI                0x10
-#define FBX_BONE_NAMES         0x20
+#define FBX_XSKEL              0x20
 #define FBX_ALL_NODES_AS_BONES 0x40
 
-inline Bool SaveFBXData(File &f, C Mesh &mesh, C Skeleton &skeleton, C MemPtr<XAnimation> &animations, C MemPtr<XMaterial> &materials, C MemPtr<Int> &part_material_index, C MemPtr<Str> &bone_names)
+inline Bool SaveFBXData(File &f, C Mesh *mesh, C Skeleton *skeleton, C MemPtr<XAnimation> &animations, C MemPtr<XMaterial> &materials, C MemPtr<Int> &part_material_index, C XSkeleton *xskeleton)
 {
-   f.cmpUIntV(0);
-   mesh               .save   (f);
-   skeleton           .save   (f);
-   animations         .save   (f);
-   materials          .save   (f);
-   bone_names         .save   (f);
-   part_material_index.saveRaw(f);
-   return f.ok();
+   return
+      (!mesh                || mesh              ->save   (f))
+   && (!skeleton            || skeleton          ->save   (f))
+   && (!animations          || animations         .save   (f))
+   && (!materials           || materials          .save   (f))
+   && (!xskeleton           || xskeleton         ->save   (f))
+   && (!part_material_index || part_material_index.saveRaw(f))
+   && f.ok();
 }
-inline Bool LoadFBXData(File &f, Mesh &mesh, Skeleton &skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, MemPtr<Str> bone_names)
+inline Bool LoadFBXData(File &f, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, XSkeleton *xskeleton) // !! Warning: pointers validity must be the same as for save !!
 {
-   switch(f.decUIntV())
-   {
-      case 0:
-      {
-         if(mesh               .load   (f))
-         if(skeleton           .load   (f))
-         if(animations         .load   (f))
-         if(materials          .load   (f))
-         if(bone_names         .load   (f))
-         if(part_material_index.loadRaw(f))
-            if(f.ok())return true;
-      }break;
-   }
-   return false;
+   return
+      (!mesh                || mesh              ->load   (f))
+   && (!skeleton            || skeleton          ->load   (f))
+   && (!animations          || animations         .load   (f))
+   && (!materials           || materials          .load   (f))
+   && (!xskeleton           || xskeleton         ->load   (f))
+   && (!part_material_index || part_material_index.loadRaw(f))
+   && f.ok();
 }
 #endif
 /******************************************************************************/

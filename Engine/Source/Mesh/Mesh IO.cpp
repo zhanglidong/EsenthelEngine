@@ -9,6 +9,8 @@ namespace EE{
 #define CC4_MESH CC4('M','E','S','H')
 #define CC4_MSHG CC4('M','S','H','G')
 /******************************************************************************/
+// XMATERIAL
+/******************************************************************************/
 XMaterial::XMaterial()
 {
    cull         =true;
@@ -119,6 +121,73 @@ Bool XMaterial::load(File &f)
           >>name;
          if(f.ok())return true;
       }break;
+   }
+   del(); return false;
+}
+/******************************************************************************/
+// XSKELETON
+/******************************************************************************/
+Bool XSkeleton::Node::save(File &f)C
+{
+   f.cmpUIntV(0); // version
+   f<<name<<parent<<orient_pos;
+   return f.ok();
+}
+Bool XSkeleton::Node::load(File &f)
+{
+   switch(f.decUIntV())
+   {
+      case 0:
+      {
+         f>>name>>parent>>orient_pos;
+         if(f.ok())return true;
+      }break;
+   }
+   return false;
+}
+/******************************************************************************/
+Bool XSkeleton::Bone::save(File &f)C
+{
+   f.cmpUIntV(0); // version
+   f<<name<<node;
+   return f.ok();
+}
+Bool XSkeleton::Bone::load(File &f)
+{
+   switch(f.decUIntV())
+   {
+      case 0:
+      {
+         f>>name>>node;
+         if(f.ok())return true;
+      }break;
+   }
+   return false;
+}
+/******************************************************************************/
+void XSkeleton::del()
+{
+   nodes.del();
+   bones.del();
+}
+void XSkeleton::mirrorX()
+{
+   REPAO(nodes).orient_pos.mirrorX();
+}
+void XSkeleton::scale(Flt scale)
+{
+   REPAO(nodes).orient_pos.pos*=scale;
+}
+Bool XSkeleton::save(File &f)C
+{
+   f.cmpUIntV(0); // version
+   return nodes.save(f) && bones.save(f);
+}
+Bool XSkeleton::load(File &f)
+{
+   switch(f.decUIntV())
+   {
+      case 0: if(nodes.load(f) && bones.load(f))return true; break;
    }
    del(); return false;
 }
@@ -1346,17 +1415,17 @@ void MeshGroup ::operator=(C Str &name) {if(!load(name))Exit(MLT(S+"Can't load m
 /******************************************************************************/
 // IMPORT
 /******************************************************************************/
-Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, MemPtr<Str> bone_names, Bool all_nodes_as_bones)
+Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, XSkeleton *xskeleton, Bool all_nodes_as_bones)
 {
-   if(mesh    )mesh    ->del();
-   if(skeleton)skeleton->del();
+   if( mesh    ) mesh    ->del();
+   if( skeleton) skeleton->del();
+   if(xskeleton)xskeleton->del();
    animations         .clear();
    materials          .clear();
    part_material_index.clear();
-   bone_names         .clear();
 
    Str ext=GetExt(name);
-   if(ext=="fbx"  )return ImportFBX(name, mesh, skeleton, animations, materials, part_material_index, bone_names, all_nodes_as_bones);
+   if(ext=="fbx"  )return ImportFBX(name, mesh, skeleton, animations, materials, part_material_index, xskeleton, all_nodes_as_bones);
    if(ext=="obj"  )return ImportOBJ(name, mesh,                       materials, part_material_index);
    if(ext=="mesh" || ext=="mshb" || ext=="mshr" || ext=="mshg")
    {
@@ -1439,6 +1508,7 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
    return false;
 }
 /******************************************************************************
+void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C MemPtr<Animation*> &animations); // !! does not change mesh bone names !!
 void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C MemPtr<Animation*> &animations)
 {
    Memt<Byte, 256> old_to_new;

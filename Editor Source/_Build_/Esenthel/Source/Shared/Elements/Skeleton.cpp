@@ -35,6 +35,7 @@
          }
          return false;
       }
+      void EditSkeleton::Node::operator=(C XSkeleton::Node &src) {name=src.name; parent=src.parent; orient_pos=src.orient_pos;}
       uint EditSkeleton::Bone::memUsage()C {return name.memUsage()+super::memUsage();}
       void EditSkeleton::Bone::init(C Str &name, int node) {T.name=name; super::setNum(1)[0].set(node, 1);}
       void EditSkeleton::Bone::addWeight(int index, flt weight)
@@ -58,6 +59,7 @@
       bool EditSkeleton::Bone::save(File &f)C {f<<name; return super::saveRaw(f);}
       bool EditSkeleton::Bone::load(File &f)  {f>>name; return super::loadRaw(f);}
       bool EditSkeleton::Bone::loadOld(File &f) {name=GetStr2(f); return super::loadRaw(f);}
+      void EditSkeleton::Bone::operator=(C XSkeleton::Bone &src) {init(src.name, src.node);}
    uint EditSkeleton::memUsage()C
    {
       uint mem=0;
@@ -71,18 +73,25 @@
       nodes.del();
       bones.del();
    }
-   void EditSkeleton::create(C Skeleton &skel, C MemPtr<Str> &node_names)
+   void EditSkeleton::create(C Skeleton &skel, C XSkeleton *xskel)
    {
       root=-1;
-      nodes.setNum(skel.bones.elms()); REPA(nodes)
+      if(xskel && xskel->is()) // need to check if has any data, in case some importers didn't set it
       {
-         Node     &node =     nodes[i];
-       C SkelBone &bone =skel.bones[i];
-         node.name      =(InRange(i, node_names) ? node_names[i] : Str(bone.name)); // remember that 'node_names' are allowed to be empty strings
-         node.parent    =skel.boneParent(i);
-         node.orient_pos=bone;
+         nodes.setNum(xskel->nodes.elms()); REPAO(nodes)=xskel->nodes[i];
+         bones.setNum(xskel->bones.elms()); REPAO(bones)=xskel->bones[i];
+      }else // create only from 'skel'
+      {
+         nodes.setNum(skel.bones.elms()); REPA(nodes)
+         {
+            Node     &node =     nodes[i];
+          C SkelBone &bone =skel.bones[i];
+            node.name      =bone.name;
+            node.parent    =skel.boneParent(i);
+            node.orient_pos=bone;
+         }
+         bones.setNum(nodes.elms()); REPAO(bones).init(skel.bones[i].name, i); // have to use 'SkelBone' name
       }
-      bones.setNum(nodes.elms()); REPAO(bones).init(skel.bones[i].name, i); // have to use 'SkelBone' name
    }
    void EditSkeleton::set(Skeleton &skel)C
    {
@@ -120,17 +129,18 @@
          }else weight.clear();
       }
    }
-   Str EditSkeleton::nodeUID(int i)C // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
+   void EditSkeleton::sortBoneWeights() {REPAO(bones).sort();}
+   Str EditSkeleton::nodeUID(int node_i)C // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
    {
-      Str path; Memt<int> parents; for(; InRange(i, nodes) && parents.include(i); )
+      Str uid; Memt<int> parents; for(; InRange(node_i, nodes) && parents.include(node_i); )
       {
-       C Node &node=nodes[i];
-         path+=node.name; // node name
-         int parent=node.parent, child_index=0; REPD(j, i)if(nodes[j].parent==parent && nodes[j].name==node.name)child_index++; if(child_index){path+=CharAlpha; path+=child_index;} // node child index in parent (only children with same names are counted)
-         path+='/'; // separator
-         i=parent;
+       C Node &node=nodes[node_i];
+         uid+=node.name; // node name
+         int parent=node.parent, child_index=0; REP(node_i)if(nodes[i].parent==parent && nodes[i].name==node.name)child_index++; if(child_index){uid+=CharAlpha; uid+=child_index;} // node child index in parent (only children with same names are counted)
+         uid+='/'; // separator
+         node_i=parent;
       }
-      return path;
+      return uid;
    }
    bool     EditSkeleton::rootZero(          )C {return rootZero(root);}
    bool     EditSkeleton::rootZero(int node_i)C {return InRange(node_i, nodes) && nodes[node_i].rootZero();}
@@ -139,15 +149,15 @@
       if(bone_i<0)return rootZero(); // if unspecified, then have to check default (this behavior is expected by codes using this method)
       return rootZero(boneToNode(bone_i));
    }
-   bool   EditSkeleton::hasNode(C Str &name)  {return findNodeI(name)>=0;}
-   ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name)  {return nodes.addr(findNodeI(name));}
- C ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name)C {return ConstCast(T).findNode(name);}
-   int   EditSkeleton::findNodeI(C Str &name, C Str &path)C
+   bool   EditSkeleton::hasNode(C Str &name              )  {return              findNodeI(name)>=0;}
+   ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name, C Str &uid)  {return   nodes.addr(findNodeI(name, uid));}
+ C ::EditSkeleton::Node* EditSkeleton::findNode(C Str &name, C Str &uid)C {return ConstCast(T).findNode (name, uid) ;}
+   int   EditSkeleton::findNodeI(C Str &name, C Str &uid)C
    {
       int index=-1, difference=INT_MAX;
       REPA(nodes)if(nodes[i].name==name) // always check even if 'name' is empty (because original full name can be empty)
       {
-         int d=Difference(path, nodeUID(i));
+         int d=Difference(uid, nodeUID(i));
          if(!d)return i; // exact match
          if( d<difference){difference=d; index=i;}
       }
@@ -228,7 +238,7 @@
       }
       // TODO: should if(InRange(root, nodes) && matrixes.elms())nodes[root] be transformed by matrixes[0] for VIRTUAL_ROOT_BONE?
    }
-      void EditSkeleton::NodePtr::set(int node_i, C EditSkeleton &skel) {if(is=InRange(node_i, skel.nodes))name=skel.nodes[node_i].name;}
+      void EditSkeleton::NodePtr::set(int node_i, C EditSkeleton &skel) {if(is=InRange(node_i, skel.nodes)){name=skel.nodes[node_i].name; uid=skel.nodeUID(node_i);}}
    void EditSkeleton::add(C EditSkeleton &src_skel, bool replace) // assumes that 'bones' names are unique in both skeletons, but 'nodes' names can overlap
    {
       if(this==&src_skel)return;
@@ -238,17 +248,21 @@
       FREPA(src_skel.nodes) // add 'src_skel' nodes in order
       {
        C Node &src_node  =src_skel.nodes[i];
-         int       node_i=findNodeI(src_node.name); // check if that node already exists in this skeleton
+         int       node_i=findNodeI(src_node.name, src_skel.nodeUID(i)); // check if that node already exists in this skeleton
          if(node_i<0){nodes.add    (src_node); parents.New()  .set(src_node.parent, src_skel);}else // if not found
          if(replace ){nodes[node_i]=src_node ; parents[node_i].set(src_node.parent, src_skel);}     // found and replace
       }
       // add rest after all nodes have been copied
 
       // parents
-      REPA(parents)nodes[i].parent=(parents[i].is ? findNodeI(parents[i].name) : -1);
+      REPA(parents)
+      {
+       C NodePtr &parent=parents[i];
+         nodes[i].parent=(parent.is ? findNodeI(parent.name, parent.uid) : -1);
+      }
 
       // root
-      if(InRange(src_skel.root, src_skel.nodes) && (replace || root<0))root=findNodeI(src_skel.nodes[src_skel.root].name);
+      if(InRange(src_skel.root, src_skel.nodes) && (replace || root<0))root=findNodeI(src_skel.nodes[src_skel.root].name, src_skel.nodeUID(src_skel.root));
 
       // bones
       int offset=bones.addNum(src_skel.bones.elms()); REPA(src_skel.bones)
@@ -257,7 +271,7 @@
          {
             IndexWeight &weight=dest[i]; if(InRange(weight.index, src_skel.nodes))
             {
-                  weight.index=findNodeI(src_skel.nodes[weight.index].name); // find src node in this skeleton
+                  weight.index=findNodeI(src_skel.nodes[weight.index].name, src_skel.nodeUID(weight.index)); // find src node in this skeleton
                if(weight.index>=0)continue; // if found this node then continue
             }
             dest.remove(i, true); // for some reason didn't find a node, so remove this weight

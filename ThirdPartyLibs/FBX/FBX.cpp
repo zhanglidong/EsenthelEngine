@@ -48,11 +48,13 @@ struct FBX
       Node       *parent=null;
       Memc<Node*> children;
       FbxNode    *node=null;
-      Bool        bone=false, mesh=false, has_skin=false;
+      Bool        dummy=false, bone=false, mesh=false, has_skin=false,
+                  has_bones=false; // if this or any children is a bone
       Str         full_name, ee_name;
       MatrixD     local, global;
       Int         bone_index=-1, // points to the bone index in the skeleton
-          nearest_bone_index=-1; // this points to the nearest bone index in the skeleton (for example, if this node doesn't have a corresponding bone in the skeleton, then it will point to the bone index of one of its parents)
+          nearest_bone_index=-1, // this points to the nearest bone index in the skeleton (for example, if this node doesn't have a corresponding bone in the skeleton, then it will point to the bone index of one of its parents, but NOT children)
+            xskel_node_index=-1; // points to 'XSkeleton.nodes'
 
       Node()
       {
@@ -112,6 +114,13 @@ struct FBX
          if(bone_index>=0xFF)bone_index=-1;
           T.bone_index=bone_index;
          if(bone_index<0)bone=false; // if we're clearing bone index, then it means we don't want this as a bone
+      }
+      void setBone(OrientP &bone)C
+      {
+         bone.pos =global.pos;
+         bone.dir =global.x;
+         bone.perp=global.y;
+         bone.fix();
       }
    };
 
@@ -200,12 +209,12 @@ struct FBX
                   node.ee_name=node.full_name=FromUTF8(node.node->GetName());
 
                   // type
-                  if(FbxNodeAttribute *attrib=node.node->GetNodeAttribute())
+                  if(FbxNodeAttribute *attrib=node.node->GetNodeAttribute()) // this will be null for the identity "RootNode"
                      switch(attrib->GetAttributeType())
                   {
-                     case FbxNodeAttribute::eNull    : node.bone=all_nodes_as_bones; break;
-                     case FbxNodeAttribute::eSkeleton: node.bone=              true; break;
-                     case FbxNodeAttribute::eMesh    : node.mesh=              true; break;
+                     case FbxNodeAttribute::eNull    : node.dummy=true; node.bone=all_nodes_as_bones; break;
+                     case FbxNodeAttribute::eSkeleton: node.bone =true; break;
+                     case FbxNodeAttribute::eMesh    : node.mesh =true; break;
                   }
 
                   // matrix
@@ -517,7 +526,7 @@ struct FBX
          Node &node=nodes[i]; node.adjustBoneIndex(InRange(node.bone_index, old_to_new) ? old_to_new[node.bone_index] : 0xFF);
       }
    }
-   void set(Skeleton *skeleton, MemPtr<Str> bone_names)
+   void set(Skeleton *skeleton, XSkeleton *xskeleton)
    {
       if(skeleton)
       {
@@ -531,10 +540,7 @@ struct FBX
                node.bone_index=skeleton->bones.elms();
                SkelBone  &sbon=skeleton->bones.New ();
                Set(sbon.name, node.ee_name);
-               sbon.pos =node.global.pos;
-               sbon.dir =node.global.x;
-               sbon.perp=node.global.y;
-               sbon.fix();
+               node.setBone(sbon);
             }
          }
 
@@ -570,7 +576,7 @@ struct FBX
             }
          }
 
-         // after skeleton bones are ready, link nearest bone and setup original full names
+         // after skeleton bones are ready, link nearest bone and setup xskeleton
          FREPA(nodes)
          {
             Node &node=nodes[i];
@@ -579,13 +585,38 @@ struct FBX
                if(parent->bone                 ){node.nearest_bone_index=parent->        bone_index; break;}
                if(parent->nearest_bone_index>=0){node.nearest_bone_index=parent->nearest_bone_index; break;}
             }
+            if(node.bone)for(Node *parent=&node; parent && !parent->has_bones; parent=parent->parent)parent->has_bones=true; // if this node is a bone, then enable its and all of its parents 'has_bones'
          }
-         if(bone_names)
+         if(xskeleton)
          {
-            bone_names.setNum(skeleton->bones.elms());
-            FREPA(nodes)
+            xskeleton->bones.setNum(skeleton->bones.elms());
+            REPA(xskeleton->bones)
             {
-             C Node &node=nodes[i]; if(InRange(node.bone_index, bone_names))bone_names[node.bone_index]=node.full_name;
+               XSkeleton::Bone &xbone=xskeleton->bones[i];
+              C SkeletonBone   &sbone= skeleton->bones[i];
+               xbone.name=sbone.name;
+               xbone.node=-1; // clear at start in case no nodes are linked with this bone (however shouldn't happen)
+            }
+            FREPA(nodes) // list in order
+            {
+               Node &node=nodes[i]; if(node.has_bones && (node.bone || node.dummy)) // in XSkeleton store only nodes that have any bones (or their children have), AND store only bones/dummies (without MESH, CAMERA, .., "RootNode" root node which would cause issues because it's MatrixIdentity however because of Bones having swapped XZ and 'mirrorX' creating transformation that should be an identity but isn't)
+               {
+                  node.xskel_node_index =xskeleton->nodes.elms();
+                  XSkeleton::Node &xnode=xskeleton->nodes.New();
+                   node.setBone(xnode.orient_pos);
+                  xnode.name  =node.full_name;
+                  xnode.parent=-1; // clear at start in case no parent was found to be stored in xskel nodes 
+               }
+            }
+            // after 'xskel_node_index' was set for all nodes
+            REPA(nodes)
+            {
+               Node &node=nodes[i]; if(InRange(node.xskel_node_index, xskeleton->nodes))
+               {
+                  XSkeleton::Node &xnode=xskeleton->nodes[node.xskel_node_index];
+                  for(Node *parent=node.parent; parent; parent=parent->parent){Int parent_xskel_node_index=parent->xskel_node_index; if(parent_xskel_node_index>=0){xnode.parent=parent_xskel_node_index; break;}} // find first parent that is stored inside xskel nodes
+                  if(InRange(node.bone_index, xskeleton->bones))xskeleton->bones[node.bone_index].node=node.xskel_node_index; // link skel bone with this node
+               }
             }
          }
       }
@@ -1192,18 +1223,18 @@ struct FBX
    }
 };
 /******************************************************************************/
-Bool _ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, MemPtr<Str> bone_names, Bool all_nodes_as_bones, C Str8 &password)
+Bool _ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, XSkeleton *xskeleton, Bool all_nodes_as_bones, C Str8 &password)
 {
-   if(mesh    )mesh    ->del();
-   if(skeleton)skeleton->del();
+   if( mesh    ) mesh    ->del();
+   if( skeleton) skeleton->del();
+   if(xskeleton)xskeleton->del();
    animations         .clear();
    materials          .clear();
    part_material_index.clear();
-   bone_names         .clear();
 
    FBX fbx; if(fbx.init() && fbx.load(name, all_nodes_as_bones, password))
    {
-      Skeleton temp, *skel=(skeleton ? skeleton : (mesh || animations) ? &temp : null); // if skel not specified, but we want mesh or animations, then we have to process it (mesh requires it for skinning: bone names and types, animations require for skeleton bone transforms, parents, etc.)
+      Skeleton temp, *skel=(skeleton ? skeleton : (mesh || xskeleton || animations) ? &temp : null); // if skel not specified, but we want mesh, xskeleton or animations, then we have to process it (mesh requires it for skinning: bone names and types, animations require for skeleton bone transforms, parents, etc.)
       {
          SyncLocker locker(Lock);
          fbx.set(materials); // !! call before creating meshes to setup 'ee_mtrl_to_fbx_mtrl' !!
@@ -1270,23 +1301,25 @@ Bool _ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> 
           //Memc<Str> shorten; shorten.add(); fbx.shortenBoneNames(shorten);
             fbx.makeBoneNamesUnique();
             fbx.shortenBoneNames();
-            fbx.set(skel, bone_names);
+            fbx.set(skel, xskeleton);
             fbx.set(mesh, skel, part_material_index);
             fbx.set(skel, animations);
          }
       }
 
       REPAO(materials ).fixPath(GetPath(name));
-         if(skel      ) skel->mirrorX().setBoneTypes(); // call 'setBoneTypes' after 'mirrorX' !!
-         if(mesh      ){mesh->mirrorX().skeleton(skel).skeleton(null).setBox(); CleanMesh(*mesh);} // !! link with skeleton after calling 'setBoneTypes' !!
-      REPAO(animations).anim .mirrorX().setBoneTypeIndexesFromSkeleton(*skel); // !! call this after 'setBoneTypes' !!
-         if(skeleton  ){skel->setBoneShapes(); if(skeleton!=skel)Swap(*skeleton, *skel);} // !! 'skel' is now invalid !!
+         if(xskeleton )xskeleton->mirrorX();
+         if( skel     ) skel    ->mirrorX().setBoneTypes(); // call 'setBoneTypes' after 'mirrorX' !!
+         if(mesh      ){mesh    ->mirrorX().skeleton(skel).skeleton(null).setBox(); CleanMesh(*mesh);} // !! link with skeleton after calling 'setBoneTypes' !!
+      REPAO(animations).anim     .mirrorX().setBoneTypeIndexesFromSkeleton(*skel); // !! call this after 'setBoneTypes' !!
+         if(skeleton  ){skel    ->setBoneShapes();} // here process things that are needed only if we want to import skeleton (and not just operating on temporary local that will get discarded)
 
       if(!Equal(fbx.scale, 1))
       {
-            if(mesh      )mesh    ->scale(fbx.scale);
-            if(skeleton  )skeleton->scale(fbx.scale);
-         REPAO(animations).anim    .scale(fbx.scale);
+            if( mesh     ) mesh    ->scale(fbx.scale);
+            if( skeleton ) skeleton->scale(fbx.scale);
+            if(xskeleton )xskeleton->scale(fbx.scale);
+         REPAO(animations).anim     .scale(fbx.scale);
       }
       if(mesh) // set LOD distances after scale
       {
@@ -1312,16 +1345,16 @@ extern "C" __declspec(dllexport) Int  __cdecl ImportFBXVer (                    
 extern "C" __declspec(dllexport) void __cdecl ImportFBXFree(CPtr   data                      ) {Free(data);}
 extern "C" __declspec(dllexport) CPtr __cdecl ImportFBXData(CChar *name, Int &size, UInt flag)
 {
-   Mesh             mesh ;
-   Skeleton         skel ;
-   Memc<XAnimation> anims; MemPtr<XAnimation> a; if(flag&FBX_ANIM      )a.point(anims);
-   Memc<XMaterial > mtrls; MemPtr<XMaterial > m; if(flag&FBX_MTRL      )m.point(mtrls);
-   Memc<Int       > pmi  ; MemPtr<Int       > p; if(flag&FBX_PMI       )p.point(pmi  );
-   Memc<Str       > names; MemPtr<Str       > n; if(flag&FBX_BONE_NAMES)n.point(names);
+   Mesh              mesh , * mesh_ptr=(flag&FBX_MESH ) ? & mesh : null;
+   Skeleton          skel , * skel_ptr=(flag&FBX_SKEL ) ? & skel : null;
+  XSkeleton         xskel , *xskel_ptr=(flag&FBX_XSKEL) ? &xskel : null;
+   Memc<XAnimation>  anims; MemPtr<XAnimation> anims_ptr; if(flag&FBX_ANIM)anims_ptr.point(anims);
+   Memc<XMaterial >  mtrls; MemPtr<XMaterial > mtrls_ptr; if(flag&FBX_MTRL)mtrls_ptr.point(mtrls);
+   Memc<Int       >  pmi  ; MemPtr<Int       >   pmi_ptr; if(flag&FBX_PMI )  pmi_ptr.point(pmi  );
 
-   if(_ImportFBX(name, (flag&FBX_MESH) ? &mesh : null, (flag&FBX_SKEL) ? &skel : null, a, m, p, n, FlagTest(flag, FBX_ALL_NODES_AS_BONES), S8))
+   if(_ImportFBX(name, mesh_ptr, skel_ptr, anims_ptr, mtrls_ptr, pmi_ptr, xskel_ptr, FlagTest(flag, FBX_ALL_NODES_AS_BONES), S8))
    {
-      File f; f.writeMem(); SaveFBXData(f, mesh, skel, anims, mtrls, pmi, names); // save data to file
+      File f; f.writeMem(); SaveFBXData(f, mesh_ptr, skel_ptr, anims_ptr, mtrls_ptr, pmi_ptr, xskel_ptr); // save data to file
       Ptr    data=Alloc(f.size()); f.pos(0); f.get(data, size=f.size()); // copy file to memory
       return data; // return that memory
    }

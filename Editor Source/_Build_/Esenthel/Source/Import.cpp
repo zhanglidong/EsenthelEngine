@@ -125,18 +125,41 @@ ImporterClass Importer;
                mtrl._adjustParams(~bt, bt);
             }
          }
-      Str ImporterClass::Import::nodeName(int i)C {return InRange(i, bone_names) ? bone_names[i] : InRange(i, skel.bones) ? (Str)skel.bones[i].name : S;}
-      Str ImporterClass::Import::nodeUID(int i)C // unique string identifying a node !! needs to be the same as 'EditSkeleton.nodeUID' !!
+      Str ImporterClass::Import::nodeName(int bone_i)C
       {
-         Str path; for(; InRange(i, skel.bones); )
+         if(InRange(bone_i, xskel.bones)) // use 'xskel' if available
          {
-            Str node_name=nodeName(i);
-            path+=node_name; // node name
-            int parent=skel.boneParent(i), child_index=0; REPD(j, i)if(skel.boneParent(j)==parent && nodeName(j)==node_name)child_index++; if(child_index){path+=CharAlpha; path+=child_index;} // node child index in parent (only children with same names are counted)
-            path+='/'; // separator
-            i=parent;
+          C XSkeleton::Bone &bone=xskel.bones[bone_i];
+            return InRange(bone.node, xskel.nodes) ? xskel.nodes[bone.node].name : S;
          }
-         return path;
+         if(InRange(bone_i, skel.bones))return skel.bones[bone_i].name; // use 'skel'
+         return S;
+      }
+      Str ImporterClass::Import::nodeUID(int bone_i)C // unique string identifying bone's node !! needs to be the same as 'EditSkeleton.nodeUID' !!
+      {
+         Str uid;
+         if(InRange(bone_i, xskel.bones)) // use 'xskel' if available
+         {
+            int node_i=xskel.bones[bone_i].node; Memt<int> parents; for(; InRange(node_i, xskel.nodes) && parents.include(node_i); )
+            {
+             C XSkeleton::Node &node=xskel.nodes[node_i];
+               uid+=node.name; // node name
+               int parent=node.parent, child_index=0; REP(node_i)if(xskel.nodes[i].parent==parent && xskel.nodes[i].name==node.name)child_index++; if(child_index){uid+=CharAlpha; uid+=child_index;} // node child index in parent (only children with same names are counted)
+               uid+='/'; // separator
+               node_i=parent;
+            }
+         }else // use 'skel'
+         {
+            for(; InRange(bone_i, skel.bones); )
+            {
+               Str node_name=nodeName(bone_i);
+               uid+=node_name; // node name
+               int parent=skel.boneParent(bone_i), child_index=0; REP(bone_i)if(skel.boneParent(i)==parent && nodeName(i)==node_name)child_index++; if(child_index){uid+=CharAlpha; uid+=child_index;} // node child index in parent (only children with same names are counted)
+               uid+='/'; // separator
+               bone_i=parent;
+            }
+         }
+         return uid;
       }
       ::ImporterClass::Import& ImporterClass::Import::set(C UID &elm_id, C UID &parent_id, C Str &file, MODE mode, ELM_TYPE type, C Str &force_name, bool remember_result)
       {
@@ -191,7 +214,7 @@ ImporterClass Importer;
       {
          Mems<FileParams> files=FileParams::Decode(T.file);
          Str file; if(files.elms())file=files[0].name;
-         bool all_nodes_as_bones=(type==ELM_ANIM || mode==ANIM); // when importing animations we have to treat all nodes as potential bones, because it's possible that asset developer used helper/dummies to animate nodes which in the base object mesh model got imported as bones due to mesh skinning, however animations don't need the mesh and without the mesh and thus skinning, the nodes would not get detected as bones, to workaround this we force all nodes as bones, and later we just remove them depending if they're present in the already existing object mesh skeleton from before, removing happens in 'removeExtraBones' which is called in processing the animation later.
+         bool all_nodes_as_bones=(type==ELM_ANIM || mode==ANIM); // when importing animations we have to treat all nodes as potential bones, because it's possible that asset developer used helper/dummies to animate nodes which in the base object mesh model got imported as bones due to mesh skinning, however animations don't need the mesh and without the mesh and thus skinning, the nodes would not get detected as bones. Some could get detected as bones if they had animations, but there could be nodes that don't have movement, and are just rotated with 1 keyframe, which would make them different than original bone, but still not detected as a bone), to workaround this we force all nodes as bones, and later we just remove them depending if they're present in the already existing object mesh skeleton from before
 
          // import
          switch(type)
@@ -200,7 +223,7 @@ ImporterClass Importer;
             {
                MemPtr<XAnimation> anims; if(mode!=CLOTH && mode!=ADD && !ignore_anims)anims.point(T.anims);
                MemPtr<XMaterial > mtrls; if(mode!=ANIM                               )mtrls.point(T.mtrls);
-               if(EE::Import(file, (mode!=ANIM) ? &mesh : null, &skel, anims, mtrls, part_mtrl_index, bone_names, all_nodes_as_bones))
+               if(EE::Import(file, (mode!=ANIM) ? &mesh : null, &skel, anims, mtrls, part_mtrl_index, &xskel, all_nodes_as_bones))
                {
                   FixMesh(mesh);
                   mesh.keepOnly(EditMeshFlagAnd); // call after 'FixMesh' which may need/generate some of removed data
@@ -343,7 +366,7 @@ ImporterClass Importer;
                   XAnimation &xanim=anims.New();
                   if(xanim.anim.load(file)){xanim.name=GetBaseNoExt(file); return true;}
                }else // anim inside mesh
-               if(EE::Import(file, null, &skel, anims, null, null, bone_names, all_nodes_as_bones)) // skeleton is needed for anims
+               if(EE::Import(file, null, &skel, anims, null, null, &xskel, all_nodes_as_bones)) // skeleton is needed for anims
                   if(anims.elms()>=1) // at least 1 anim
                {
                   if(anims.elms()>1)
@@ -852,6 +875,7 @@ ImporterClass Importer;
                         This is only for few special cases where Animation FBX files have more bones detected than the base Mesh+Skel FBX */
                         Map<Str8, int> skel_to_node(CompareCI); // map that converts SkelBone name -> EditSkeleton node index
                         bool remove=false; // if we've found any bone that isn't present in EditSkeleton and needs to be removed
+                        // remove bones which nodes are not found in EditSkeleton
                         REPA(import.skel.bones)
                         {
                            int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i));
@@ -863,6 +887,7 @@ ImporterClass Importer;
                            anim.adjustForSameTransformWithDifferentSkeleton(import.skel, temp); // this will also remove 'anim.bones' not found in skeleton
                            Swap(temp.bones, import.skel.bones);
                         }
+                        // convert to EditSkeleton from nodes (with bone names set as node index)
                         {
                            // rename from skel bone names to name set from node index to match what we will set in 'temp' skeleton, for example name "leg" gets renamed to "1" if the node index==1
                            REPA(import.skel.bones){SkelBone &bone=import.skel.bones[i]; Set(bone.name, TextInt(*skel_to_node(bone.name)));}
@@ -970,7 +995,8 @@ ImporterClass Importer;
 
                      Str          skel_game_path=Proj.gamePath(skel_elm->id), skel_edit_path=Proj.editPath(skel_elm->id);
                      Skeleton    *old_skel=Skeletons(skel_game_path);
-                     EditSkeleton old_edit_skel, new_edit_skel; old_edit_skel.load(skel_edit_path); new_edit_skel.create(new_skel, import.bone_names); // !! create before transform is applied !!
+                     EditSkeleton old_edit_skel, new_edit_skel; old_edit_skel.load(skel_edit_path); new_edit_skel.create(new_skel, &import.xskel); // !! create before transform is applied !!
+                     old_edit_skel.sortBoneWeights(); // needed because we want to search bone weights by importance
                      new_skel.transform(m); // !! transform after creating 'EditSkeleton' !!
 
                      // keep Skeleton params and set bone weights from new to old
@@ -981,61 +1007,64 @@ ImporterClass Importer;
                         {
                            SkelSlot &slot=new_skel.slots[i];
 
-                           slot.bone=0xFF; for(int old_bone_i=slot.bone; C SkelBone *old_bone=old_skel->bones.addr(old_bone_i); old_bone_i=old_skel->boneParent(old_bone_i)) // iterate bone and its parents
+                           for(int old_bone_i=slot.bone; C SkelBone *old_bone=old_skel->bones.addr(old_bone_i); old_bone_i=old_skel->boneParent(old_bone_i)) // iterate bone and its parents
                               if(C EditSkeleton::Bone *old_edit_bone=old_edit_skel.findBone(old_bone->name))
-                                 FREPA(*old_edit_bone) // iterate all Bone->Node links
+                                 FREPA(*old_edit_bone) // iterate all Bone->Node links, starting from most important (requires 'sortBoneWeights' above)
                            {
                                                  int  old_edit_node_i=(*old_edit_bone)[i].index;
                               if(C EditSkeleton::Node *old_edit_node  =  old_edit_skel.nodes.addr(old_edit_node_i))
                               {
-                                 int new_node_bone =new_edit_skel.findNodeI(old_edit_node->name, old_edit_skel.nodeUID(old_edit_node_i)); // 'new_edit_skel' nodes have the same order/indexes as bones
-                                 if( new_node_bone>=0){slot.bone=new_node_bone; goto found;}
+                                 int new_bone =new_edit_skel.nodeToBone(new_edit_skel.findNodeI(old_edit_node->name, old_edit_skel.nodeUID(old_edit_node_i)));
+                                 if( new_bone>=0){slot.bone=new_bone; goto found;}
                               }
                            }
+                           slot.bone=0xFF; // not found
                         found:;
 
-                           slot.bone1=0xFF; for(int old_bone_i=slot.bone1; C SkelBone *old_bone=old_skel->bones.addr(old_bone_i); old_bone_i=old_skel->boneParent(old_bone_i)) // iterate bone and its parents
+                           for(int old_bone_i=slot.bone1; C SkelBone *old_bone=old_skel->bones.addr(old_bone_i); old_bone_i=old_skel->boneParent(old_bone_i)) // iterate bone and its parents
                               if(C EditSkeleton::Bone *old_edit_bone=old_edit_skel.findBone(old_bone->name))
-                                 FREPA(*old_edit_bone) // iterate all Bone->Node links
+                                 FREPA(*old_edit_bone) // iterate all Bone->Node links, starting from most important (requires 'sortBoneWeights' above)
                            {
                                                  int  old_edit_node_i=(*old_edit_bone)[i].index;
                               if(C EditSkeleton::Node *old_edit_node  =  old_edit_skel.nodes.addr(old_edit_node_i))
                               {
-                                 int new_node_bone =new_edit_skel.findNodeI(old_edit_node->name, old_edit_skel.nodeUID(old_edit_node_i)); // 'new_edit_skel' nodes have the same order/indexes as bones
-                                 if( new_node_bone>=0){slot.bone1=new_node_bone; goto found1;}
+                                 int new_bone =new_edit_skel.nodeToBone(new_edit_skel.findNodeI(old_edit_node->name, old_edit_skel.nodeUID(old_edit_node_i)));
+                                 if( new_bone>=0){slot.bone1=new_bone; goto found1;}
                               }
                            }
+                           slot.bone1=0xFF; // not found
                         found1:;
                         }
                         // bones
-                        REPA(new_skel.bones)
-                           if(InRange(i, new_edit_skel.nodes)) // 'new_edit_skel' nodes have the same order/indexes as bones
+                        REPAD(new_skel_bone_i, new_skel.bones)
                         {
-                           int old_node_i =old_edit_skel.findNodeI(new_edit_skel.nodes[i].name, new_edit_skel.nodeUID(i));
-                           if( old_node_i>=0)
+                           int new_node_i=new_edit_skel.boneToNode(new_skel_bone_i); if(new_node_i>=0)
                            {
-                              int best_old_skel_bone_i=-1; flt weight; REPAD(b, old_edit_skel.bones)
+                              int old_node_i=old_edit_skel.findNodeI(new_edit_skel.nodes[new_node_i].name, new_edit_skel.nodeUID(new_node_i)); if(old_node_i>=0)
                               {
-                               C EditSkeleton::Bone &bone=old_edit_skel.bones[b]; REPAD(bw, bone)
+                                 int best_old_skel_bone_i=-1; flt weight; REPAD(b, old_edit_skel.bones)
                                  {
-                                  C IndexWeight &iw=bone[bw]; if(iw.index==old_node_i)
+                                  C EditSkeleton::Bone &old_edit_skel_bone=old_edit_skel.bones[b]; REPAD(bw, old_edit_skel_bone)
                                     {
-                                       int old_skel_bone_i=old_skel->findBoneI(bone.name); if(old_skel_bone_i>=0)
+                                     C IndexWeight &iw=old_edit_skel_bone[bw]; if(iw.index==old_node_i)
                                        {
-                                          bone_weights[i].New().set(old_skel_bone_i, iw.weight);
-                                          if(best_old_skel_bone_i<0 || iw.weight>weight){best_old_skel_bone_i=old_skel_bone_i; weight=iw.weight;}
+                                          int old_skel_bone_i=old_skel->findBoneI(old_edit_skel_bone.name); if(old_skel_bone_i>=0)
+                                          {
+                                             bone_weights[new_skel_bone_i].New().set(old_skel_bone_i, iw.weight);
+                                             if(best_old_skel_bone_i<0 || iw.weight>weight){best_old_skel_bone_i=old_skel_bone_i; weight=iw.weight;}
+                                          }
                                        }
                                     }
                                  }
-                              }
-                              if(best_old_skel_bone_i>=0) // copy 'SkelBone' params from an old bone with highest weight
-                              {
-                               C SkelBone & src_bone=old_skel->bones[best_old_skel_bone_i];
-                                 SkelBone &dest_bone=new_skel.bones[i];
-                                 dest_bone.width=src_bone.width;
-                               //dest_bone.frac =src_bone.frac ;
-                                 dest_bone.flag =src_bone.flag ;
-                              }
+                                 if(best_old_skel_bone_i>=0) // copy 'SkelBone' params from an old bone with highest weight
+                                 {
+                                  C SkelBone & src_bone=old_skel->bones[best_old_skel_bone_i];
+                                    SkelBone &dest_bone=new_skel.bones[     new_skel_bone_i];
+                                    dest_bone.width=src_bone.width;
+                                  //dest_bone.frac =src_bone.frac ;
+                                    dest_bone.flag =src_bone.flag ;
+                                 }
+                              }  
                            }
                         }
                      }
@@ -1223,6 +1252,7 @@ ImporterClass Importer;
 
             Map<Str8, int> skel_to_node(CompareCI); // map that converts SkelBone name -> EditSkeleton node index
             bool remove=false; // if we've found any bone that isn't present in EditSkeleton and needs to be removed
+            // remove bones which nodes are not found in EditSkeleton
             REPA(import.skel.bones)
             {
                int node=edit_skel.findNodeI(import.nodeName(i), import.nodeUID(i));
@@ -1234,6 +1264,7 @@ ImporterClass Importer;
                REPAO(import.anims).anim.adjustForSameTransformWithDifferentSkeleton(import.skel, temp); // this will also remove 'anim.bones' not found in skeleton
                Swap(temp.bones, import.skel.bones);
             }
+            // convert to EditSkeleton from nodes (with bone names set as node index)
             {
                // rename from skel bone names to name set from node index to match what we will set in 'temp' skeleton, for example name "leg" gets renamed to "1" if the node index==1
                                                                         REPA(import.skel.bones){SkelBone &bone=import.skel.bones[i]; Set(bone.name, TextInt(*skel_to_node(bone.name)));}

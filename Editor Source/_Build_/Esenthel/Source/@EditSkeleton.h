@@ -13,6 +13,7 @@ class EditSkeleton
       bool save(File &f)C;
       bool load(File &f);
       bool loadOld(File &f);
+      void operator=(C XSkeleton::Node &src);
 
 public:
    Node();
@@ -31,7 +32,8 @@ public:
       bool save(File &f)C;
       bool load(File &f); 
 
-      bool loadOld(File &f);
+      bool loadOld(File &f);                
+      void operator=(C XSkeleton::Bone&src);
    };
 
    int        root; // root node index, -1=none
@@ -40,7 +42,7 @@ public:
 
    uint memUsage()C;
    void del();
-   void create(C Skeleton &skel, C MemPtr<Str> &node_names=null);
+   void create(C Skeleton &skel, C XSkeleton *xskel=null);
    void set(Skeleton &skel)C;
    enum MAPPING
    {
@@ -48,18 +50,19 @@ public:
       BONE_NAME_IS_NODE_INDEX,
       BONE_NAME_IS_NODE_NAME ,
    };
-   void set(Mems<Mems<IndexWeight>> &weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C;
+   void set(Mems<Mems<IndexWeight>>&weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C;
+   void sortBoneWeights();                     
 
-   Str nodeUID(int i)C; // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
+   Str nodeUID(int node_i)C; // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
 
    bool     rootZero(          )C;
    bool     rootZero(int node_i)C;
    bool boneRootZero(int bone_i)C; // if this bone is a rootZero
 
-   bool   hasNode (C Str &name);               
-   Node* findNode (C Str &name);               
- C Node* findNode (C Str &name)C;              
-   int   findNodeI(C Str &name, C Str&path=S)C;
+   bool   hasNode (C Str &name              ); 
+   Node* findNode (C Str &name, C Str &uid=S); 
+ C Node* findNode (C Str &name, C Str &uid=S)C;
+   int   findNodeI(C Str &name, C Str &uid=S)C;
 
    int    findBoneI(C Str &name)C;                   
    Bone*  findBone (C Str &name);                    
@@ -79,7 +82,7 @@ public:
    class NodePtr
    {
       bool is; // have to use 'is' instead of doing "name.is() ? " because names are allowed to be empty
-      Str  name;
+      Str  name, uid;
 
       void set(int node_i, C EditSkeleton &skel);
 

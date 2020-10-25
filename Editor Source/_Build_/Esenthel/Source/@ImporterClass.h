@@ -41,18 +41,18 @@ public:
       Str              file, force_name;
       Mesh             mesh;
       Skeleton         skel;
+     XSkeleton        xskel;
       Memc<XAnimation> anims;
       Memc<MaterialEx> mtrls;
       Memc<int>        part_mtrl_index;
-      Memc<Str>        bone_names;
       Memc<ImageEx>    images;
       File             raw;
       EditFont         edit_font;
       Font             font;
       Str              code;
 
-      Str nodeName(int i)C;
-      Str nodeUID (int i)C; // unique string identifying a node !! needs to be the same as 'EditSkeleton.nodeUID' !!
+      Str nodeName(int bone_i)C;
+      Str nodeUID(int bone_i)C; // unique string identifying bone's node !! needs to be the same as 'EditSkeleton.nodeUID' !!
 
       Import& set(C UID &elm_id, C UID &parent_id, C Str &file, MODE mode, ELM_TYPE type, C Str &force_name, bool remember_result);
 

@@ -65,12 +65,52 @@ struct XAnimation // Animation stored in external formats
 #endif
 };
 /******************************************************************************/
-// Collada - DAE
-Bool ImportDAE(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animation, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index); // import data from Collada .dae 'name' file, false on fail
+struct XSkeleton // contains information about imported skeleton bones and their mapping to original nodes
+{
+   struct Node // original node
+   {
+      Str     name; // original node name (can be an empty string)
+      Int     parent; // parent node index, -1=none
+      OrientP orient_pos; // original node orientation and position
 
+   #if EE_PRIVATE
+      Bool save(File &f)C;
+      Bool load(File &f);
+   #endif
+   };
+   struct Bone // links 'SkelBone' -> 'Node'
+   {
+      Str8 name; // 'SkelBone' name
+      Int  node; // node index
+
+   #if EE_PRIVATE
+      Bool save(File &f)C;
+      Bool load(File &f);
+   #endif
+   };
+
+   Mems<Node> nodes;
+   Mems<Bone> bones;
+
+   Bool is()C {return nodes.elms() || bones.elms();} // if has any data
+
+#if EE_PRIVATE
+   void del();
+
+   void mirrorX();
+   void scale(Flt scale);
+
+   Bool save(File &f)C;
+   Bool load(File &f);
+#endif
+};
+/******************************************************************************/
 // Autodesk FilmBox - FBX
 void SetFbxDllPath(C Str &dll_32, C Str &dll_64); // set custom path to FBX DLL files (including path and file name) for 32-bit and 64-bit dll versions (default="Bin/FBX32.dll" and "Bin/FBX64.dll"), this function is used only on Windows platform
-Bool ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, MemPtr<Str> bone_names, Bool all_nodes_as_bones=false); // import data from FBX .fbx 'name' file, false on fail
+Bool ImportFBX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, XSkeleton *xskeleton, Bool all_nodes_as_bones=false); // import data from FBX .fbx 'name' file, false on fail
+
+// Collada - DAE
+Bool ImportDAE(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animation, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index); // import data from Collada .dae 'name' file, false on fail
 
 // Microsoft DirectX - X
 Bool ImportX(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index); // import data from DirectX .x 'name' file, false on fail
@@ -103,10 +143,9 @@ Bool ImportPSA(C Str &name, Skeleton *skeleton, MemPtr<XAnimation> animations); 
 // Xna Posing Studio - XPS
 Bool ImportXPS(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index); // import data from XPS 'name' file, false on fail
 
-Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, MemPtr<Str> bone_names=null, Bool all_nodes_as_bones=false); // import data according to file extension, false on fail
+Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> animations, MemPtr<XMaterial> materials, MemPtr<Int> part_material_index, XSkeleton *xskeleton=null, Bool all_nodes_as_bones=false); // import data according to file extension, false on fail
 
 #if EE_PRIVATE
-void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C MemPtr<Animation*> &animations); // !! does not change mesh bone names !!
-void CleanMesh     (Mesh &mesh);
+void CleanMesh(Mesh &mesh);
 #endif
 /******************************************************************************/

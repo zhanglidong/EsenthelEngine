@@ -1368,7 +1368,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                      {
                         // create skeleton edit version
                         if(ElmSkel *skel_data=elm->skelData())skel.transform(~skel_data->transform()); // !! transform after saving game version, and before creating edit version !!
-                        EditSkeleton edit; edit.create(skel, null);
+                        EditSkeleton edit; edit.create(skel);
                         edit.save(f.writeMem()); src=&f; src->pos(0);
                         if(compress_skel)if(Compress(*src, temp.writeMem(), ClientNetworkCompression, ClientNetworkCompressionLevel)){src=&temp; src->pos(0);}else src=null;
                         if(src)SafeOverwrite(*src, editPath(*elm));
