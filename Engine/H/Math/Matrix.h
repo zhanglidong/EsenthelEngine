@@ -154,6 +154,7 @@ struct Matrix3 // Matrix 3x3 (orientation + scale)
    CONVERSION Matrix3(C Matrix     &m);
    CONVERSION Matrix3(C Matrix4    &m);
    CONVERSION Matrix3(C Orient     &o);
+   CONVERSION Matrix3(C OrientD    &o);
    CONVERSION Matrix3(C Quaternion &q);
 };
 /******************************************************************************/
@@ -480,6 +481,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    CONVERSION Matrix(C Matrix4  &m);
    CONVERSION Matrix(C OrientP  &o);
    CONVERSION Matrix(C OrientM  &o);
+   CONVERSION Matrix(C OrientPD &o);
 };extern Matrix
    const MatrixIdentity; // identity
 #if EE_PRIVATE
@@ -644,19 +646,20 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM&    transformAtPos(C VecD &pos, C MatrixM &matrix); //        transform      at position
 
               MatrixM() {}
-              MatrixM(  Flt      scale                  ) {setScale   (scale       );}
-              MatrixM(C Vec     &pos                    ) {setPos     (pos         );}
-              MatrixM(C VecD    &pos                    ) {setPos     (pos         );}
-              MatrixM(C VecD    &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
-              MatrixM(  Flt      scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
-              MatrixM(C Vec     &scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
-              MatrixM(C Matrix3 &orn  , C VecD    &pos  ) {T.orn()=orn;    T.pos=pos;}
-              MatrixM(C VecD    &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
-   CONVERSION MatrixM(C Matrix3 &m);
-   CONVERSION MatrixM(C Matrix  &m);
-   CONVERSION MatrixM(C MatrixD &m);
-   CONVERSION MatrixM(C OrientP &o);
-   CONVERSION MatrixM(C OrientM &o);
+              MatrixM(  Flt       scale                  ) {setScale   (scale       );}
+              MatrixM(C Vec      &pos                    ) {setPos     (pos         );}
+              MatrixM(C VecD     &pos                    ) {setPos     (pos         );}
+              MatrixM(C VecD     &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
+              MatrixM(  Flt       scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
+              MatrixM(C Vec      &scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
+              MatrixM(C Matrix3  &orn  , C VecD    &pos  ) {T.orn()=orn;    T.pos=pos;}
+              MatrixM(C VecD     &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
+   CONVERSION MatrixM(C Matrix3  &m);
+   CONVERSION MatrixM(C Matrix   &m);
+   CONVERSION MatrixM(C MatrixD  &m);
+   CONVERSION MatrixM(C OrientP  &o);
+   CONVERSION MatrixM(C OrientM  &o);
+   CONVERSION MatrixM(C OrientPD &o);
 };extern MatrixM
    const MatrixMIdentity; // identity
 /******************************************************************************/
@@ -808,6 +811,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
    CONVERSION MatrixD(C MatrixM  &m);
    CONVERSION MatrixD(C OrientP  &o);
    CONVERSION MatrixD(C OrientM  &o);
+   CONVERSION MatrixD(C OrientPD &o);
 };
 /******************************************************************************/
 struct Matrix4 // Matrix 4x4

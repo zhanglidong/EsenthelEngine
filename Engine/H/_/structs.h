@@ -75,6 +75,7 @@ struct Orient;
 struct OrientD;
 struct OrientP;
 struct OrientM;
+struct OrientPD;
 
 struct Quaternion;
 struct QuaternionD;
