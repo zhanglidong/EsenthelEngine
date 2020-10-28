@@ -89,9 +89,7 @@ struct JOINT
 
       if(adjust)
       {
-         Matrix3 m; m.setRotation(sbon.dir, !(end-pos));
-         sbon.dir  *=m;
-         sbon.perp *=m;
+         sbon.rotateToDir(!(end-pos));
          sbon.length=Max(0.02f, Dist(end, sbon.pos));
       }
 
