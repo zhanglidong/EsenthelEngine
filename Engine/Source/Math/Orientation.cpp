@@ -320,6 +320,24 @@ Orient& Orient::rotateToDir(C Vec &dir)
 {
    T.perp*=Matrix3().setRotation(T.dir, dir);
    T.dir  =dir;
+   fixPerp();
+   /* call 'fixPerp' because 'setRotation' is complex and for 32 bit floats loses a lot of precision, and for rare cases when 'dir' is nearly opposite to 'T.dir' it will produce 'perp' that's not fully perpendicular.
+      Example:
+         T.dir  = {x=-0.831954479 y=-0.393524706 z=0.391139448}
+         T.perp = {x=0.254074186 y=-0.896902621 z=-0.361955792}
+           dir  = {x=0.831955016 y=0.393524468 z=-0.391138524}
+      Gives:
+         T.perp = {x=0.237798706 y=-0.906631291 z=-0.348527282}
+      But should be (after 'fixPerp'):
+         T.perp = {x=0.256684333 y=-0.897959173 z=-0.357466877}
+      Dot of those 2 vector gives 0.999744058 which is quite big
+   */
+   return T;
+}
+OrientD& OrientD::rotateToDir(C VecD &dir)
+{
+   T.perp*=MatrixD3().setRotation(T.dir, dir);
+   T.dir  =dir;
    return T;
 }
 Orient& Orient::rotateToDir(C Vec &dir, Flt blend)

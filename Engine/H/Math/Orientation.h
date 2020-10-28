@@ -107,6 +107,8 @@ struct OrientD // Orientation (double precision)
    OrientD& mul(C MatrixD3 &matrix, Bool normalized=false); // transform by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
    OrientD& div(C MatrixD3 &matrix, Bool normalized=false); // divide    by matrix, if 'matrix' is normalized set 'normalized' to true for more performance
 
+   OrientD& rotateToDir(C VecD &dir); // rotate current orientation to 'dir' vector, 'dir' must be normalized
+
    OrientD& inverse(              ) ; // inverse orientation
    void     inverse(OrientD  &dest)C; // inverse orientation and store it in 'dest'
    void     inverse(MatrixD3 &dest)C; // inverse orientation and store it in 'dest' matrix
