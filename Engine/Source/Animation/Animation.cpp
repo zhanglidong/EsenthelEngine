@@ -2624,7 +2624,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          #endif
             {
                OrientD  new_bone_d=new_bone;
-               MatrixD3 old_bone_m=old_bone, old_bone_m_inv, old_parent_m, new_parent_m_inv; old_bone.inverse(old_bone_m_inv);
+               MatrixD3 old_bone_m=old_bone, old_bone_m_inv, old_parent_m, new_parent_m_inv; old_bone.inverse(old_bone_m_inv); // in the fast path we HAVE TO ignore positions of bones and process only orientations, yes this was tested
                if(old_parent)old_parent_m=*old_parent;
                if(new_parent)new_parent->inverse(new_parent_m_inv);
                AnimBone &new_anim=anim_out.bones.New(); new_anim=*old_anim; new_anim.id()=new_bone;
@@ -2645,11 +2645,22 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   new_anim.orns[i].orn=orn;
                }
 
+               // position
+               Bool     pos_transform=(old_parent || new_parent); // if transform pos
+               MatrixD3 pos_matrix;
+               if(old_parent && new_parent)old_parent_m.mul(new_parent_m_inv, pos_matrix);else // both present, pos_matrix=old_parent_m*new_parent_m_inv
+               if(old_parent              )pos_matrix=old_parent_m    ;else                    // only old_parent
+               if(              new_parent)pos_matrix=new_parent_m_inv;                        // only new_parent
+             //if(!new_anim.poss.elms()){AnimKeys::Pos &pos=new_anim.poss.New(); pos.pos.zero(); pos.time=0;} any code like that is not needed, because we operate only on rotating existing positions here in the fast path
                REPA(new_anim.poss) // position
                {
                   VecD pos=new_anim.poss[i].pos;
+               #if 0
                   if(old_parent)pos*=old_parent_m    ; // convert to world space from old parent space
                   if(new_parent)pos*=new_parent_m_inv; // convert to new parent space
+               #else // optimized
+                  if(pos_transform)pos*=pos_matrix;
+               #endif
                   new_anim.poss[i].pos=pos;
                }
 
