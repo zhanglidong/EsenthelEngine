@@ -2049,14 +2049,27 @@ Animation& Animation::removeClones()
    return T;
 }
 /******************************************************************************/
-static Bool SameBone(C SkelBone *a, C SkelBone *b)
+static Bool SameBone(C SkelBone *a, C SkelBone *b, C MemPtr< Mems<IndexWeight> > &new_to_old_weights=null, Int old_i=-1, Int new_i=-1)
 {
-   return !a && !b
-        || a &&  b && Equal(a->name, b->name);
+   if(!a && !b)return true; // both are null
+   if( a &&  b)             // both are valid
+   {
+      if(new_to_old_weights) // if have weights
+      {
+         if(InRange(new_i, new_to_old_weights))
+         {
+          C Mems<IndexWeight> &weights=new_to_old_weights[new_i]; return weights.elms()==1 && weights[0].index==old_i;
+         }
+      }else
+      {
+         return Equal(a->name, b->name); // check by name only
+      }
+   }
+   return false;
 }
-static Bool SameSet(C SkelBone &a_child, C SkelBone &b_child, C SkelBone *a_parent, C SkelBone *b_parent) // this assumes that 'a_child' and 'b_child' are the same "SameBone(a_child, b_child)", and checks if their parents are the same, and children positions relative to their parents are also the same
+static Bool SameSet(C SkelBone &a_child, C SkelBone &b_child, C SkelBone *a_parent, C SkelBone *b_parent, C MemPtr< Mems<IndexWeight> > &new_to_old_weights, Int old_parent_i, Int new_parent_i) // this assumes that 'a_child' and 'b_child' are the same "SameBone(a_child, b_child)", and checks if their parents are the same, and children positions relative to their parents are also the same
 {
-   if(SameBone(a_parent, b_parent))
+   if(SameBone(a_parent, b_parent, new_to_old_weights, old_parent_i, new_parent_i))
       return a_parent ? Equal(a_child.pos-a_parent->pos, b_child.pos-b_parent->pos)
                       : Equal(a_child.pos              , b_child.pos              );
    return false;
@@ -2601,7 +2614,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          #endif
          }else // we can do the simple version only if
          if(old_bones.elms()==1 // bone maps to only 1 old bone
-         && SameSet(old_bone, new_bone, old_parent, new_parent) // it has the same set of bones/parents
+         && SameSet(old_bone, new_bone, old_parent, new_parent, weights, old_bone.parent, new_bone.parent) // it has the same set of bones/parents
          && (old_parent || root_not_changed)) // and there are parents or (when there are no parents, which means that parent is root) we preserve root animations
          {
          #if FIND_ANIM_BY_NAME_ONLY

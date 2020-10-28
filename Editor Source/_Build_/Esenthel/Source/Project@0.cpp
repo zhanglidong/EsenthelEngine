@@ -2745,7 +2745,7 @@ void DrawProject()
          Elm &anim_elm=elms[i]; if(ElmAnim *anim_data=anim_elm.animData())if(anim_data->skel_id==skel_id) // process animations using this skeleton
          {
             Animation temp, *anim=getAnim(anim_elm.id, temp);
-            if(anim->is()) // process if has any data (this also skips animations that haven't finished downloading from the server)
+            if(anim->is()) // process only if has any data (this also skips animations that haven't finished downloading from the server)
             {
                if(difference==1) // if difference is only in name/types
                   REPA(anim->bones)
