@@ -2763,7 +2763,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                      MatrixD3 new_bone_transformed=new_bone_m; new_bone_transformed*=BoneWeightOrn(old_bones); // bone world orientation at the current time
                      if(new_parent)
                      {
-                        MatrixD3 new_parent_transformed=new_parent_m; new_parent_transformed*=new_askel.bones[new_bone.parent].matrix(); // parent bone world orientation at the current time
+                        MatrixD3 new_parent_transformed; new_parent_m.mul(new_askel.bones[new_bone.parent].matrix(), new_parent_transformed); // parent bone world orientation at the current time, new_parent_transformed=new_parent_m*new_askel.bones[new_bone.parent].matrix()
                         new_bone_transformed*=new_parent_transformed.inverseNonOrthogonal(); // new_bone_transformed/=new_parent_transformed with non-orthogonal support (needed because of possible scale keyframes)
                      }else
                      if(root_has_orn_scale)new_bone_transformed/=new_askel.root.matrix().orn();
@@ -2814,7 +2814,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                             -new_abon.matrix().pos;   // current mesh transform offset
                      if(new_parent)
                      {
-                        MatrixD3 new_parent_transformed=new_parent_m; new_parent_transformed*=new_askel.bones[new_bone.parent].matrix(); // parent bone world orientation at the current time
+                        MatrixD3 new_parent_transformed; new_parent_m.mul(new_askel.bones[new_bone.parent].matrix(), new_parent_transformed); // parent bone world orientation at the current time, new_parent_transformed=new_parent_m*new_askel.bones[new_bone.parent].matrix()
                         pos.pos*=new_parent_transformed.inverseNonOrthogonal(); // pos.pos/=new_parent_transformed with non-orthogonal support (needed because of possible scale keyframes)
                      }else
                      if(root_has_orn_scale)pos.pos/=new_askel.root.matrix().orn();
