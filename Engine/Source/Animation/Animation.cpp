@@ -2833,7 +2833,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   pos_times.clear();
                   // add positions to the animation only after everything was setup
                   anim.setTangents(loop(), length()); if(added)Swap(anim.poss, added->poss);else{added=&anim_out.bones.New(); Swap(anim, *added);}
-                //new_skela.create(new_skel, anim_out); // need to re-create because we have added orientations, won't be used for anything
+                //new_skela.create(new_skel, anim_out); // need to re-create because we have added positions, won't be used for anything
                }
             }
          }
