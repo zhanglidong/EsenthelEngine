@@ -2112,10 +2112,6 @@ Animation& Animation::adjustForSameSkeletonWithDifferentPose(C Skeleton &source,
          }
       }
 
-      // animate skeletons before modifying animation
-      AnimatedSkeleton skel_source; SkelAnim sa_source(source, T); skel_source.create(&source).clear().animateEx(sa_source, 0).updateMatrix();
-      AnimatedSkeleton skel_target; SkelAnim sa_target(target, T); skel_target.create(&target).clear().animateEx(sa_target, 0).updateMatrix();
-
       // adjust per-bone position offsets (needed because some skeletons may have bones repositioned already in the skeleton, not only in keyframes)
       // this will offset existing position keyframes if skeleton bone positions are different (if there are no keyfames then 1 is added)
       REPA(target.bones) // for each bone in target skeleton
@@ -2129,8 +2125,8 @@ Animation& Animation::adjustForSameSkeletonWithDifferentPose(C Skeleton &source,
                      * new_parent=target.bones.addr(bone_target.parent);
             if(SameBone(old_parent, new_parent))
             {
-               VecD pos_target=bone_target.pos; pos_target*=skel_target.bones[            i].matrix(); pos_target/=skel_target.boneRoot(bone_target.parent).matrix(); if(new_parent)pos_target.divNormalized(MatrixD(*new_parent)); // get transformed bone position, divide by parent animation matrix, divide by parent bone matrix
-               VecD pos_source=bone_source.pos; pos_source*=skel_source.bones[bone_source_i].matrix(); pos_source/=skel_source.boneRoot(bone_source.parent).matrix(); if(old_parent)pos_source.divNormalized(MatrixD(*old_parent)); // get transformed bone position, divide by parent animation matrix, divide by parent bone matrix
+               VecD pos_target=bone_target.pos; if(new_parent)pos_target.divNormalized(MatrixD(*new_parent));
+               VecD pos_source=bone_source.pos; if(old_parent)pos_source.divNormalized(MatrixD(*old_parent));
                Vec  delta     =pos_source-pos_target;
                if(  delta.length2()>Sqr(EPS_ANIM_POS)) // if calculated delta is significant, then apply it to the animation bone
                {
