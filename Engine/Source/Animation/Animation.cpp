@@ -2135,16 +2135,16 @@ Animation& Animation::adjustForSameSkeletonWithDifferentPose(C Skeleton &source,
                if(  delta.length2()>Sqr(EPS_ANIM_POS)) // if calculated delta is significant, then apply it to the animation bone
                {
                   AnimBone &abon=getBone(bone_target.name, bone_target.type, bone_target.type_index, bone_target.type_sub);
-                  if(!abon.poss.elms()) // if no position keyframes exist, then create an empty one
+                  REPA(abon.poss)abon.poss[i].pos+=delta; // apply delta
+                  if( !abon.poss.elms()) // if no position keyframes exist, then create one
                   {
                      AnimKeys::Pos &pos=abon.poss.New();
                      pos.time=0;
-                     pos.pos.zero();
+                     pos.pos =delta;
                   #if HAS_ANIM_TANGENT
                      pos.tan.zero();
                   #endif
                   }
-                  REPA(abon.poss)abon.poss[i].pos+=delta; // apply delta
                }
             }
          }
