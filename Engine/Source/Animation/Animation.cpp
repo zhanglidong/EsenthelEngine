@@ -2624,7 +2624,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          #endif
             {
                OrientD  new_bone_d=new_bone;
-               MatrixD3 old_bone_m=old_bone, old_bone_m_inv, old_parent_m, new_parent_m_inv; old_bone.inverse(old_bone_m_inv); // in the fast path we HAVE TO ignore positions of bones and process only orientations, yes this was tested
+               MatrixD3 old_bone_m=old_bone, old_bone_m_inv, old_parent_m, new_parent_m_inv; old_bone.inverse(old_bone_m_inv); // in the simple version we HAVE TO ignore positions of bones and process only orientations, yes this was tested
                if(old_parent)old_parent_m=*old_parent;
                if(new_parent)new_parent->inverse(new_parent_m_inv);
                AnimBone &new_anim=anim_out.bones.New(); new_anim=*old_anim; new_anim.id()=new_bone;
@@ -2644,27 +2644,32 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                   if(new_parent)orn.mul(new_parent_m_inv, true); // convert to new parent space
                   new_anim.orns[i].orn=orn;
                }
+             //if(!new_anim.orns.elms()).. any code like that is not needed, because here we preserve transformations, so if source keyframe is not found, then it means transformation was identity
 
                // position
-               Bool     pos_transform=(old_parent || new_parent); // if transform pos
-               MatrixD3 pos_matrix;
-               if(old_parent && new_parent)old_parent_m.mul(new_parent_m_inv, pos_matrix);else // both present, pos_matrix=old_parent_m*new_parent_m_inv
-               if(old_parent              )pos_matrix=old_parent_m    ;else                    // only old_parent
-               if(              new_parent)pos_matrix=new_parent_m_inv;                        // only new_parent
-             //if(!new_anim.poss.elms()){AnimKeys::Pos &pos=new_anim.poss.New(); pos.pos.zero(); pos.time=0;} any code like that is not needed, because we operate only on rotating existing positions here in the fast path
-               REPA(new_anim.poss) // position
+             //if(!new_anim.poss.elms()){AnimKeys::Pos &pos=new_anim.poss.New(); pos.pos.zero(); pos.time=0;} any code like that is not needed, because we operate only on rotating existing positions here in the simple version
+               if( new_anim.poss.elms())
                {
-                  VecD pos=new_anim.poss[i].pos;
-               #if 0
-                  if(old_parent)pos*=old_parent_m    ; // convert to world space from old parent space
-                  if(new_parent)pos*=new_parent_m_inv; // convert to new parent space
-               #else // optimized
-                  if(pos_transform)pos*=pos_matrix;
-               #endif
-                  new_anim.poss[i].pos=pos;
+                  Bool     pos_transform=(old_parent || new_parent); // if transform pos
+                  MatrixD3 pos_matrix;
+                  if(old_parent && new_parent)old_parent_m.mul(new_parent_m_inv, pos_matrix);else // both present, pos_matrix=old_parent_m*new_parent_m_inv
+                  if(old_parent              )pos_matrix=old_parent_m    ;else                    // only old_parent
+                  if(              new_parent)pos_matrix=new_parent_m_inv;                        // only new_parent
+                  REPA(new_anim.poss) // position
+                  {
+                     VecD pos=new_anim.poss[i].pos;
+                  #if 0
+                     if(old_parent)pos*=old_parent_m    ; // convert to world space from old parent space
+                     if(new_parent)pos*=new_parent_m_inv; // convert to new parent space
+                  #else // optimized
+                     if(pos_transform)pos*=pos_matrix;
+                  #endif
+                     new_anim.poss[i].pos=pos;
+                  }
                }
 
                // scale
+               if(new_anim.scales.elms())
                { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
                   MatrixD3 new_bone_in_old_bone_space=new_bone_d; // get the new bone
                   new_bone_in_old_bone_space.divNormalized(old_bone_m); // put it into old bone space
@@ -2678,7 +2683,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                }
                new_anim.setTangents(loop(), length());
             }
-         }else
+         }else // complex/advanced
          {
             REPA(old_bones)
             for(Int old_parent_i=old_bones[i].index; ; ) // iterate all old parents until one of them is an ancestor of new bone
@@ -2754,6 +2759,10 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
             // step 2
             IncludeTimes(  orn_times, pos_times); // parent orientations affect this position
             IncludeTimes(scale_times, pos_times); // parent scales       affect this position
+
+            // step 3, make sure we have at least 1 keyframe to process (after including orn times in pos times, in case orn is empty, but pos has something, in which case we would always add a useless key at time 0 for pos since it already has another)
+            if(!orn_times.elms())orn_times.add(0);
+            if(!pos_times.elms())pos_times.add(0);
 
             if(orn_times.elms() || pos_times.elms() || scale_times.elms())
             {
