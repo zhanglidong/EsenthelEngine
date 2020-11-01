@@ -356,18 +356,19 @@ public:
    static int Compare(C ImageSource &a, C ImageSource &b);
    enum TEX_CHANNEL_TYPE : byte
    {
-      TC_ROUGH,
-      TC_METAL,
-      TC_AO   ,
-      TC_NUM  ,
+      TC_ROUGH ,
+      TC_METAL ,
+      TC_AO    ,
+      TC_HEIGHT,
+      TC_NUM   ,
    };
    class TexChannel
    {
       TEX_CHANNEL_TYPE type;
       int              pos;
 
-      TexChannel&set (TEX_CHANNEL_TYPE type);   
-      TexChannel&find(C Str &name, C Str &text);
+      TexChannel&set (TEX_CHANNEL_TYPE type);                              
+      TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false);
       void fix();                      
 
       static int Compare(C TexChannel &a, C TexChannel &b);

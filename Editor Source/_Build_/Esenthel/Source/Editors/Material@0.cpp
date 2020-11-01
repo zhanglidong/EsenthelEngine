@@ -1014,7 +1014,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       return   ::Compare(a.i    , b.i    );
    }
       ::MaterialRegion::TexChannel& MaterialRegion::TexChannel::set(TEX_CHANNEL_TYPE type) {T.type=type; T.pos=-1; return T;}
-      ::MaterialRegion::TexChannel& MaterialRegion::TexChannel::find(C Str &name, C Str &text) {if(pos<0)pos=TextPosI(name, text); return T;}
+      ::MaterialRegion::TexChannel& MaterialRegion::TexChannel::find(C Str &name, C Str &text, bool case_sensitive) {if(pos<0)pos=TextPosI(name, text, case_sensitive); return T;}
       void MaterialRegion::TexChannel::fix() {if(pos<0)pos=INT_MAX;}
       int MaterialRegion::TexChannel::Compare(C TexChannel &a, C TexChannel &b) {return ::Compare(a.pos, b.pos);}
    void MaterialRegion::drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos)
@@ -1035,7 +1035,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             if(Kb.alt()) // Unreal - RMA (Roughness Metal AO)
             {
                bool multi_channel=false;
-               byte tc_channel[TC_NUM];
+               byte tc_channel[TC_NUM]; SetMem(tc_channel, 0xFF);
              C Str &name=images[0].name;
                if(Contains(name, "RMA", true, true))
                {
@@ -1046,17 +1046,18 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                }else
                {
                   TexChannel tc[TC_NUM];
-                  tc[0].set(TC_ROUGH).find(name, "roughness").find(name, "rough");
-                  tc[1].set(TC_METAL).find(name, "metalness").find(name, "metallic");
-                  tc[2].set(TC_AO   ).find(name, "occlusion").find(name, "occl");
+                  tc[0].set(TC_ROUGH ).find(name, "roughness").find(name, "rough");
+                  tc[1].set(TC_METAL ).find(name, "metalness").find(name, "metallic").find(name, "metal");
+                  tc[2].set(TC_AO    ).find(name, "occlusion").find(name, "occl").find(name, "AO", true);
+                  tc[3].set(TC_HEIGHT).find(name, "height"   );
                   int channels=0; REPA(tc)if(tc[i].pos>=0)channels++; multi_channel=(channels>1);
                   REPAO(tc).fix(); // fix for sorting, so unspecified channels are at the end
                   Sort(tc, Elms(tc), TexChannel::Compare);
-                  REPA(tc)tc_channel[tc[i].type]=i;
+                  REPA(tc)if(InRange(tc[i].pos, INT_MAX))tc_channel[tc[i].type]=i;
                }
-               if(tex.type==TEX_COLOR  ){Mems<TextParam> &params=images[0].params; if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO   ])); params.New().set("mode", "mulLum"); append=true;} // AO
-               if(tex.type==TEX_SMOOTH ){Mems<TextParam> &params=images[0].params; if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH])); params.New().set("inverseRGB");                 } // roughness
-               if(tex.type==TEX_REFLECT){Mems<TextParam> &params=images[0].params; if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_METAL])); params.New().set("metalToReflect");             } // metalness
+               if(tex.type==TEX_COLOR  ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_AO   ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_AO   ])); params.New().set("mode", "mulLum"); append=true;} // AO
+               if(tex.type==TEX_SMOOTH ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_ROUGH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH])); params.New().set("inverseRGB");                 } // roughness
+               if(tex.type==TEX_REFLECT){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_METAL], 4))params.New().set("channel", IndexChannel(tc_channel[TC_METAL])); params.New().set("metalToReflect");             } // metalness
             }else
             if(images.elms()>1 || append) // multiple images
             {

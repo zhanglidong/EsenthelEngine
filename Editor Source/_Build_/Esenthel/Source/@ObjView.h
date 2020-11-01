@@ -510,7 +510,9 @@ public:
 
    static void SkelCopy (ObjView &editor);
    static void SkelPaste(ObjView &editor);
-   static void SkelReplace(ObjView &editor);
+   static void SkelReplace      (ObjView &editor );
+   static void SkelReplaceByName(ObjView &editor );
+          void skelReplace      (bool     by_name);
    static void SkelSetSelMirror(ObjView &editor);
    static void SkelSetMirrorSel(ObjView &editor);
           void skelSetSelMirror(bool set_other);

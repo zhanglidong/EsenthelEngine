@@ -3217,19 +3217,21 @@ cur_skel_to_saved_skel.removeBone(bone.name);
          editor.setChangedSkel(true);
       }
    }
-   static void SkelReplace(ObjView &editor)
+   static void SkelReplace      (ObjView &editor ) {editor.skelReplace(false);}
+   static void SkelReplaceByName(ObjView &editor ) {editor.skelReplace(true );}
+          void skelReplace      (bool     by_name)
    {
-      if(editor.getSkelElm()) // create skel if needed
-         if(Skeleton *dest=editor.mesh_skel)
+      if(getSkelElm()) // create skel if needed
+         if(Skeleton *dest=mesh_skel)
       {
        C Skeleton &src=Proj.skel_mem;
-         editor.mesh_undos.set("skel");
+         mesh_undos.set("skel");
          dest.bones=src.bones;
-         editor.edit_skel=Proj.edit_skel_mem;
-         editor.clearBones();
-         editor.mesh.skeleton(dest).skeleton(null);
-         editor.setChangedMesh(true, false);
-         editor.setChangedSkel(true);
+         edit_skel=Proj.edit_skel_mem;
+         clearBones();
+         mesh.skeleton(dest, by_name).skeleton(null);
+         setChangedMesh(true, false);
+         setChangedSkel(true);
       }
    }
    static void SkelSetSelMirror(ObjView &editor) {editor.skelSetSelMirror(false);}
@@ -3395,9 +3397,10 @@ cur_skel_to_saved_skel.bones.del();
 
       {
          Node<MenuElm> n;
-         n.New().create("Copy to Memory"     , SkelCopy   , T).desc(   "Copy Skeleton Bones into memory, so they can be pasted into another object");
-         n.New().create("Paste from Memory"  , SkelPaste  , T).desc(  "Paste Skeleton Bones from memory");
-         n.New().create("Replace from Memory", SkelReplace, T).desc("Replace Skeleton Bones from memory").kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT));
+         n.New().create("Copy to Memory"               , SkelCopy         , T).desc(   "Copy Skeleton Bones into memory, so they can be pasted into another object");
+         n.New().create("Paste from Memory"            , SkelPaste        , T).desc(  "Paste Skeleton Bones from memory");
+         n.New().create("Replace from Memory"          , SkelReplace      , T).desc("Replace Skeleton Bones from memory").kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT));
+         n.New().create("Replace from Memory (by Name)", SkelReplaceByName, T).desc("Replace Skeleton Bones from memory and remap bones by their names only, ignoring type/indexes").kbsc(KbSc(KB_R, KBSC_WIN_CTRL|KBSC_SHIFT));
          n++;
          n.New().create("Set Mirrored from Selection", SkelSetMirrorSel, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD           )).desc("This option will set bone transformation from the other side as mirrored version of the selected bone");
          n.New().create("Set Selection from Mirrored", SkelSetSelMirror, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will set selected bone transformation as mirrored version of the bone from the other side");

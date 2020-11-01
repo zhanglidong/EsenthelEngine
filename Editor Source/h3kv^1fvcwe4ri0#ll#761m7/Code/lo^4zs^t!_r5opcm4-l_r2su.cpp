@@ -963,6 +963,7 @@ class ImporterClass
                            Skeleton temp; edit_skel.set(temp); temp.transform(m);
 
                            // adjust skeleton pose
+                           // TODO: what about if edit_skel/temp have more bones than import.skel? Or if they have different parents
                            anim.adjustForSameSkeletonWithDifferentPose(import.skel, temp);
                            Swap(temp.bones, import.skel.bones);
                         }
@@ -1340,6 +1341,7 @@ class ImporterClass
                Skeleton temp; edit_skel.set(temp); temp.transform(m);
 
                // adjust skeleton pose
+               // TODO: what about if edit_skel/temp have more bones than import.skel? Or if they have different parents
                REPAO(import.anims).anim.adjustForSameSkeletonWithDifferentPose(import.skel, temp);
                Swap(temp.bones, import.skel.bones);
             }
