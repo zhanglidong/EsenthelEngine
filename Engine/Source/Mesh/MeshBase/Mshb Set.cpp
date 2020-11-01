@@ -369,7 +369,9 @@ MeshBase& MeshBase::setTanBin()
          if(vtx.dup() && vtx.dup(i)!=i)continue; // skip for duplicates
          if(set_tan)
          {
-            Vec &tan=vtx.tan(i); if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
+            Vec &tan=vtx.tan(i);
+            if(vtx.nrm())tan=PointOnPlane(tan, vtx.nrm(i)); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps
+            if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
             {
                if(vtx.nrm())tan=PerpN(vtx.nrm(i));
                else         tan.set(1, 0, 0);
