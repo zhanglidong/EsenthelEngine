@@ -224,7 +224,7 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                   mesh.exclude(VTX_MATERIAL); // remove no longer needed vertex material
                }
             }
-            mesh.setNormals();
+            mesh.setNormals(); // before 'setTanBin'
             if(mesh.vtx.dup())
             {
                mesh.exclude(VTX_DUP);
