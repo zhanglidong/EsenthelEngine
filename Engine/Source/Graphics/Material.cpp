@@ -1095,7 +1095,7 @@ error:
    return ret;
 }
 /******************************************************************************/
-Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range, Flt max_blur_range)
+Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range, Flt max_blur_range, Bool clamp)
 {
    Image color_temp; C Image *color_src=&color; if(color_src->compressed())if(color_src->copyTry(color_temp, -1, -1, -1, ImageTypeUncompressed(color_src->type()), IMAGE_SOFT, 1))color_src=&color_temp;else goto error;
    {
@@ -1114,7 +1114,7 @@ Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range, Flt ma
             Image bump_step;
             for(Flt blur=max_blur_range; ; ) // start with max range, because it's the most important, so we want it to be precise, and then we will go with half steps down
             {
-               bump_temp.blur(first ? bump : bump_step, blur, false); // always set the first blur into 'bump' to set it as base, or in case we finish after one step
+               bump_temp.blur(first ? bump : bump_step, blur, clamp); // always set the first blur into 'bump' to set it as base, or in case we finish after one step
                if(!first)
                {
                   REPD(y, bump.h())

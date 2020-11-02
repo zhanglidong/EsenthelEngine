@@ -993,7 +993,7 @@ bool ChannelMonoTransform(C Str &value)
 bool PartialTransform   (C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
 bool  ResizeTransformAny(C Str       &name) {return Starts(name, "resize") || Starts(name, "maxSize");}
 bool  ResizeTransform   (C Str       &name) {return ResizeTransformAny(name) && !Contains(name, "NoStretch");} // skip "NoStretch" because it's more like "crop"
-bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
+bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
 bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
 {
    int values=Occurrences(p.value, ',');
@@ -1035,7 +1035,7 @@ bool HighPrecTransform(C Str &name)
        || name=="scale" || name=="scaleXY"
        || name=="lerpRGB" || name=="iLerpRGB"
        || name=="blur" || name=="sharpen"
-       || name=="bump"
+       || name=="bump" || name=="bumpClamp"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
        || name=="gamma" || name=="gammaLum"
@@ -1053,7 +1053,7 @@ bool SizeDependentTransform(C TextParam &p)
 {
    return p.name=="blur" // range depends on size
        || p.name=="sharpen" // range depends on size
-       || p.name=="bump" // range depends on size
+       || p.name=="bump" || p.name=="bumpClamp" // range depends on size
        || p.name=="crop" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
        || p.name=="tile" // tile range depends on size
@@ -2186,7 +2186,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       image.alphaFromBrightness();
    }else
-   if(param.name=="bump")
+   if(param.name=="bump" || param.name=="bumpClamp")
    {
       Vec2 blur=-1; // x=min, y=max, -1=auto
       if(param.value.is())
@@ -2204,7 +2204,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             blur.y=ConvertUnitType(blur.y, full, unit);
          }
       }
-      CreateBumpFromColor(image, image, blur.x, blur.y);
+      CreateBumpFromColor(image, image, blur.x, blur.y, param.name=="bumpClamp");
    }else
    if(param.name=="bumpToNormal")
    {
