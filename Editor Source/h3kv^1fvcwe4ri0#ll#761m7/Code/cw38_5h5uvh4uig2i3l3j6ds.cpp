@@ -1048,9 +1048,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          {
             REPAD(p, lod)
             {
-               C MeshPart &part=lod.parts[p]; if(partVisible(p, part))if(part.base.vtx.pos())REPA(part.base.vtx)
+             C MeshPart &part=lod.parts[p]; if(partVisible(p, part))if(part.base.vtx.pos())REPA(part.base.vtx)
                {
-                  C Vec &pos=part.base.vtx.pos(i); if(!vtxs_front() || frontFace(pos, part.base.vtx.nrm() ? &part.base.vtx.nrm(i) : null, cam))
+                C Vec &pos=part.base.vtx.pos(i); if(!vtxs_front() || frontFace(pos, part.base.vtx.nrm() ? &part.base.vtx.nrm(i) : null, cam))
                   {
                      Vec world_pos=pos*matrix; Vec2 s; if(PosToScreen(world_pos, s))
                      {

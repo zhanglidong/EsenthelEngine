@@ -209,7 +209,7 @@ void ObjView::meshReverseNrm()
       REPA(changed_parts)
       {
          MeshPart &part=lod.parts[changed_parts[i]];
-         /*part.base.setTanBin(); not affected by normals*/ part.setRender();
+         /*part.base.setTanBin(); changing normal sign doesn't affect tan/bin */ part.setRender();
          changed=true;
       }
    }else
@@ -218,7 +218,7 @@ void ObjView::meshReverseNrm()
       {
          MeshPart &part=lod.parts[i];
          Chs(part.base.vtx.nrm(), part.base.vtxs());
-         /*part.base.setTanBin(); not affected by normals*/ part.setRender();
+         /*part.base.setTanBin(); changing normal sign doesn't affect tan/bin */ part.setRender();
          changed=true;
       }
    }
@@ -333,7 +333,7 @@ void ObjView::meshSetNrmH()
                      changed_part=true;
                   }
                }
-               if(changed_part){/*base.setTanBin(); not affected by normals*/ part.setRender(); changed=true;}
+               if(changed_part){base.setTanBin(); part.setRender(); changed=true;} // reset tan/bin as they may depend on normals and duplicates
             }
          }
       }
@@ -368,7 +368,7 @@ void ObjView::meshNrmY()
                changed=true;
             }
          }
-         lod./*setTanBin(). not affected by normals*/setRender();
+         lod.setTanBin().setRender(); // reset tan/bin as they may depend on normals and duplicates
       }
    }else
    {
@@ -378,7 +378,7 @@ void ObjView::meshNrmY()
          MeshBase &base=part.base; if(base.vtx.nrm())
          {
             REPA(base.vtx)AlignVtxNormal(base.vtx.nrm(i), dest);
-            /*base.setTanBin(); not affected by normals*/ part.setRender();
+            base.setTanBin(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
             changed=true;
          }
       }
