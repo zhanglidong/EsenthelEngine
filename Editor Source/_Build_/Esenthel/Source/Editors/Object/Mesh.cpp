@@ -239,8 +239,10 @@ void ObjView::meshSetNrmFace()
       {
          MeshPart &part=lod.parts[i];
          MeshBase &base=part.base;
-         base.setNormalsAuto(PI_2*0.75f, pos_eps);
-         base.setTanBin(); part.setRender(); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
+         base.setNormalsAuto(EPS_NRM_AUTO, pos_eps)
+             .setTanBin() // reset tan/bin as they may depend on normals and duplicates
+             .weldVtx(VTX_ALL, pos_eps, EPS_COL_COS, -1);
+         part.setRender();
          changed=true;
       }
    }
@@ -274,7 +276,7 @@ void ObjView::meshSetNrm(uint vtx_test)
                changed=true;
             }
          }
-         lod.setTanBin().setRender().exclude(VTX_DUP); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
+         lod.setTanBin().setRender().exclude(VTX_DUP); // reset tan/bin as they may depend on normals and duplicates
       }
    }else
    {
@@ -285,7 +287,7 @@ void ObjView::meshSetNrm(uint vtx_test)
          if(vtx_test)base.setVtxDup(vtx_test, pos_eps);else base.exclude(VTX_DUP);
          base.setNormals();
          if(avg)REPA(base.vtx)base.vtx.nrm(i)=!Avg(base.vtx.nrm(i), temp.vtx.nrm(i));
-         base.setTanBin(); part.setRender(); // reset tan/bin as even though they don't depend on normals, they may depend on duplicates
+         base.setTanBin(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
          changed=true;
       }
       lod.exclude(VTX_DUP);

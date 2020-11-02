@@ -209,11 +209,12 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                mesh.transform(m).reverse();
             }
 
-            if(mesh.tri_smooth_groups.elms())
+            if(!mesh.vtx.nrm())
             {
-               mesh.explodeVtxs(); // explode so each face has its unique vertexes, this is needed because in 3DS, 2 faces sharing the exact same vertex, can have different smoothing groups
-               if(C VecI *tri=mesh.tri.ind())
+             C VecI *tri=mesh.tri.ind();
+               if(mesh.tri_smooth_groups.elms() && tri)
                {
+                  mesh.explodeVtxs(); // explode so each face has its unique vertexes, this is needed because in 3DS, 2 faces sharing the exact same vertex, can have different smoothing groups
                   mesh.include(VTX_MATERIAL); // for simplification, we're applying smoothing groups onto vertexes, no need to initially clear the vtx material because we've used 'explodeVtxs', making all tris have their own unique vertexes
                   REPA(mesh.tri) // iterate all faces
                   {
@@ -222,15 +223,15 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                   }
                   mesh.setVtxDupEx(0, EPSD, EPS_COL_COS, EPS_TAN_COS, EPS_BIN_COS, false, true); // generate vertex duplicates based on smoothing groups, use small pos epsilon in case mesh is scaled down
                   mesh.exclude(VTX_MATERIAL); // remove no longer needed vertex material
+                  mesh.setNormals(); // for smooth groups we use 'setNormals' (which operates on duplicates based on smooth groups) instead of 'setNormalsAuto', call before 'setTanBin' as it depends on normals
+                  mesh.exclude(VTX_DUP);
+               }else
+               {
+                  mesh.setNormalsAuto(EPS_NRM_AUTO, EPSD); // use small pos epsilon in case mesh is scaled down, call before 'setTanBin' as it depends on normals
                }
             }
-            mesh.setNormals(); // before 'setTanBin'
-            if(mesh.vtx.dup())
-            {
-               mesh.exclude(VTX_DUP);
-               if(!mesh.vtx.tan() || !mesh.vtx.bin())mesh.setTanBin(); //if(!mesh.vtx.tan())mesh.setTangents(); if(!mesh.vtx.bin())mesh.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
-               mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, having duplicates means that we called explode vertexes, which now we need to weld, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
-            }
+            if(!mesh.vtx.tan() || !mesh.vtx.bin())mesh.setTanBin(); //if(!mesh.vtx.tan())mesh.setTangents(); if(!mesh.vtx.bin())mesh.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+            mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
          }
 
          Memc<MeshPart> parts; // parts after splitting materials

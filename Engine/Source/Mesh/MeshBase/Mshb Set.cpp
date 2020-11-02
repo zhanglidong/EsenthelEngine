@@ -257,7 +257,6 @@ MeshBase& MeshBase::setNormalsAuto(Flt angle, Flt pos_eps)
    } // <- releases temp memory
 
    Normalize(vtx.nrm(), vtxs());
-   weldVtx(VTX_ALL, pos_eps, EPS_COL_COS, -1);
 
    return T;
 }

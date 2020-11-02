@@ -270,11 +270,11 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                }
                (quad++)->set(vtxs, vtxs+1, vtxs+2, vtxs+3); vtxs+=4;
             }
+            if(!base.vtx.nrm())base.setNormalsAuto(EPS_NRM_AUTO, EPSD); // use small pos epsilon in case mesh is scaled down, call before 'setTanBin' as it depends on normals
             if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
             base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
          }
          mesh->mirrorX().setBox();
-         REPA(*mesh)if(!mesh->parts[i].base.vtx.nrm())mesh->parts[i].base.setNormals();
          CleanMesh(*mesh);
       }
 

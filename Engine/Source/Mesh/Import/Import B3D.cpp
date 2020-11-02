@@ -290,7 +290,6 @@ static void ProcessNodes(Memx<NODE> &nodes, Memc<MeshPart> &parts, MemPtr<Int> p
                if(invalid)mshb.removeDegenerateFaces(0);
 
                mshb.removeUnusedVtxs();
-               if(!mshb.vtx.nrm())mshb.setNormals();
 
                if(Memc<Int> *tex_id=(InRange(tris.brush, brus) ? &brus[tris.brush].tex_id : null))
                {
@@ -305,6 +304,9 @@ static void ProcessNodes(Memx<NODE> &nodes, Memc<MeshPart> &parts, MemPtr<Int> p
                      case 2: if(tx[0]->second_tex && !tx[1]->second_tex)Swap(mshb.vtx._tex0, mshb.vtx._tex1); break;
                   }
                }
+               if(!mshb.vtx.nrm())mshb.setNormalsAuto(EPS_NRM_AUTO, EPSD); // use small pos epsilon in case mesh is scaled down, call before 'setTanBin' as it depends on normals
+               if(!mshb.vtx.tan() || !mshb.vtx.bin())mshb.setTanBin(); //if(!mshb.vtx.tan())mshb.setTangents(); if(!mshb.vtx.bin())mshb.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
+               mshb.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
             }
          }
       }

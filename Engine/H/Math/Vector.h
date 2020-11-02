@@ -59,6 +59,7 @@
 #define EPS_COL_COS       (1-EPS_COL)       // Color Cos          Epsilon (Dot product of 2 directional vectors giving 10-bit color precision)
 #define EPS_COS           0.9999995f        // Cos Flt            Epsilon (Smallest Dot product of the same normalized directional Vec  vector)
 #define EPSD_COS          0.999999999999999 // Cos Dbl            Epsilon (Smallest Dot product of the same normalized directional VecD vector)
+#define EPS_NRM_AUTO      PI_3              // Normal Angle       Epsilon (used for calculating vertex normals)
 
 #if EE_PRIVATE
 #define EPS_COL8_LINEAR        (EPS_COL8/12.92f)                           // EPS_COL8 in linear Gamma, Warning: "/12.92f" is valid only for small values

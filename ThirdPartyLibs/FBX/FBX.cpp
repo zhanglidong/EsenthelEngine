@@ -966,10 +966,10 @@ struct FBX
                   }
 
                   // finalize base
+                  if(animate)base.animate(bone_matrix);else base.transform(matrix); // 'bone_matrix' was already transformed by 'matrix'
+                  if(!base.vtx.nrm())base.setNormalsAuto(EPS_NRM_AUTO, EPSD); // use small pos epsilon in case mesh is scaled down, call before 'setTanBin'
                   if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // need to call before 'weldVtx' to don't remove too many vertexes
                   base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
-                  if(animate)base.animate(bone_matrix);else base.transform(matrix); // 'bone_matrix' was already transformed by 'matrix'
-                  if(!base.vtx.nrm())base.setNormals();
 
                   // extract LOD index from name
                   Int lod_i=-1; // -1=unspecified
