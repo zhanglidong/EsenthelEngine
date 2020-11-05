@@ -337,7 +337,7 @@ Str Symbol::fullCppName()
 }
 Str Symbol::shortName()
 {
-   Str    name=cppName(); if(Starts(name, "operator", true, true))name=_SkipStart(name, "operator");
+   Str    name=cppName(); if(Starts(name, "operator", true, WHOLE_WORD_STRICT))name=_SkipStart(name, "operator");
    return name;
 }
 /******************************************************************************/

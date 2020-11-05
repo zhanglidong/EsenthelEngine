@@ -214,7 +214,7 @@ class SplitAnimation : ClosableWindow
                anim.from.set(S+TextInt(tokens[i]));
                anim.to  .set(S+TextInt(tokens[i+1+sep_tokens.elms()]));
                anim.name.set(name.replace('_', ' '));
-               anim.loop.set(Contains(name, "loop", false, true) || Contains(name, "looped", false, true));
+               anim.loop.set(Contains(name, "loop", false, WHOLE_WORD_ALPHA) || Contains(name, "looped", false, WHOLE_WORD_ALPHA));
                break; // stop looking
             }
          different:; // keep looking

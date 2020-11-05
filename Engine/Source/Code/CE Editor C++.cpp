@@ -1272,8 +1272,8 @@ Bool CodeEditor::generateVSProj(Int version)
    {
       if(!src.read("Code/Web/Page.html"))return ErrorRead("Code/Web/Page.html");
       Str page; src.getAll(page);
-      page=Replace(page, "EE_PAGE_TITLE"  , XmlString   (build_project_name)      , true, true);
-      page=Replace(page, "EE_JS_FILE_NAME", GetBaseNoExt(build_exe         )+".js", true, true);
+      page=Replace(page, "EE_PAGE_TITLE"  , XmlString   (build_project_name)      , true, WHOLE_WORD_STRICT);
+      page=Replace(page, "EE_JS_FILE_NAME", GetBaseNoExt(build_exe         )+".js", true, WHOLE_WORD_STRICT);
       SetFile(src, page, UTF_8_NAKED);
       FCreateDirs(GetPath(build_exe));
       if(!OverwriteOnChangeLoud(src, GetExtNot(build_exe)+".Esenthel.html"))return false; // use custom suffix name because Emscripten uses GetExtNot(build_exe)+".html"
@@ -1470,7 +1470,7 @@ Bool CodeEditor::generateVSProj(Int version)
                dest.insert(0, S+'"'+bin_path+lib+"\";");
             }
             XmlParam *condition=item->findParam("Condition");
-            if(condition && Contains(condition->value, "Emscripten", false, true))
+            if(condition && Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))
             {
                // Web
             }else
@@ -1485,7 +1485,7 @@ Bool CodeEditor::generateVSProj(Int version)
          {
             Str dest; FREPA(directories->data)dest.space()+=directories->data[i];
             XmlParam *condition=item->findParam("Condition");
-            if(condition && Contains(condition->value, "Emscripten", false, true))
+            if(condition && Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))
             {
                // Web
             }else
@@ -1516,7 +1516,7 @@ Bool CodeEditor::generateVSProj(Int version)
             Bool      keep     =(condition && Contains(condition->value, "Emscripten"));
             if(!keep) // keep default value
             {
-               Bool winXP=(condition && Contains(condition->value, "Win32", false, true) && ContainsAny(condition->value, u"GL DX9", false, true)); // only Win32 DX9/GL is for WinXP
+               Bool winXP=(condition && Contains(condition->value, "Win32", false, WHOLE_WORD_STRICT) && ContainsAny(condition->value, u"GL DX9", false, WHOLE_WORD_STRICT)); // only Win32 DX9/GL is for WinXP
                XmlNode &PlatformToolset=prop->getNode("PlatformToolset");
                PlatformToolset.data.setNum(1)[0]=(winXP ? platform_toolset_xp : platform_toolset);
             }
@@ -2234,11 +2234,11 @@ Bool CodeEditor::generateAndroidProj()
 
       FileText ft; if(!ft.read("Code/Android/Android.mk"))return ErrorRead("Code/Android/Android.mk");
       Str data=ft.getAll();
-      data=Replace(data, "ESENTHEL_LIB_PATH"        , lib_path            , true, true);
-      data=Replace(data, "EXTERNAL_LIBS"            , ext_libs            , true, true);
-      data=Replace(data, "EXTERNAL_STATIC_LIB_NAMES", ext_static_lib_names, true, true);
-      data=Replace(data, "EXTERNAL_SHARED_LIB_NAMES", ext_shared_lib_names, true, true);
-      data=Replace(data, "INCLUDE_DIRS"             , include_dirs        , true, true);
+      data=Replace(data, "ESENTHEL_LIB_PATH"        , lib_path            , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EXTERNAL_LIBS"            , ext_libs            , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EXTERNAL_STATIC_LIB_NAMES", ext_static_lib_names, true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EXTERNAL_SHARED_LIB_NAMES", ext_shared_lib_names, true, WHOLE_WORD_STRICT);
+      data=Replace(data, "INCLUDE_DIRS"             , include_dirs        , true, WHOLE_WORD_STRICT);
       SetFile(ft, data, UTF_8_NAKED); // does not support UTF
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/jni/Android.mk"))return false;
    }
@@ -2249,8 +2249,8 @@ Bool CodeEditor::generateAndroidProj()
       for(Str s; !src.end(); )
       {
          src.fullLine(s);
-         s=Replace(s, "RELEASE_CONDITION", build_debug ? "ifeq (false, true)" : "ifeq (true, true)", true, true);
-         s=Replace(s, "ABI", "armeabi-v7a arm64-v8a", true, true); // #AndroidArchitecture arm64-v8a x86
+         s=Replace(s, "RELEASE_CONDITION", build_debug ? "ifeq (false, true)" : "ifeq (true, true)", true, WHOLE_WORD_STRICT);
+         s=Replace(s, "ABI", "armeabi-v7a arm64-v8a", true, WHOLE_WORD_STRICT); // #AndroidArchitecture arm64-v8a x86
          ft.putLine(s);
       }
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/jni/Application.mk"))return false;
@@ -2439,7 +2439,7 @@ Bool CodeEditor::generateAndroidProj()
       Str path=android_libs_path+"facebook-core/AndroidManifest.xml";
       FileText ft; if(!ft.read(path))return ErrorRead(path);
       Str data=ft.getAll();
-      data=Replace(data, "${applicationId}", CString(app_package), true, true);
+      data=Replace(data, "${applicationId}", CString(app_package), true, WHOLE_WORD_STRICT);
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, path))return false;
    }
@@ -2463,23 +2463,23 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/EsenthelActivity.java"))return ErrorRead("Code/Android/EsenthelActivity.java");
       Str data=ft.getAll(), s;
-      data=Replace(data, "EE_PACKAGE"              , app_package             , true, true);
-      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName()), true, true);
+      data=Replace(data, "EE_PACKAGE"              , app_package             , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName()), true, WHOLE_WORD_STRICT);
       s=cei().appGooglePlayLicenseKey();
-      data=Replace(data, "EE_LICENSE_KEY"          , s                 , true, true);
-      data=Replace(data, "LICENSE_KEY_BEGIN"       , s.is() ? "" : "/*", true, true);
-      data=Replace(data, "LICENSE_KEY_END"         , s.is() ? "" : "*/", true, true);
+      data=Replace(data, "EE_LICENSE_KEY"          , s                 , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "LICENSE_KEY_BEGIN"       , s.is() ? "" : "/*", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "LICENSE_KEY_END"         , s.is() ? "" : "*/", true, WHOLE_WORD_STRICT);
       s=cei().appAdMobAppIDGooglePlay();
-      data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, true);
-      data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, true);
-      data=Replace(data, "ADMOB_END"               , s.is()     ? "" : "*/", true, true);
-      data=Replace(data, "CHARTBOOST_BEGIN"        , chartboost ? "" : "/*", true, true);
-      data=Replace(data, "CHARTBOOST_END"          , chartboost ? "" : "*/", true, true);
-      data=Replace(data, "CHARTBOOST_APP_ID"       , CString(cei().appChartboostAppIDGooglePlay       ()), true, true);
-      data=Replace(data, "CHARTBOOST_APP_SIGNATURE", CString(cei().appChartboostAppSignatureGooglePlay()), true, true);
-      data=Replace(data, "FACEBOOK_BEGIN"          , facebook   ? "" : "/*", true, true);
-      data=Replace(data, "FACEBOOK_END"            , facebook   ? "" : "*/", true, true);
-      data=Replace(data, "EE_LOAD_LIBRARIES"       , load_libraries        , true, true);
+      data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "ADMOB_END"               , s.is()     ? "" : "*/", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "CHARTBOOST_BEGIN"        , chartboost ? "" : "/*", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "CHARTBOOST_END"          , chartboost ? "" : "*/", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "CHARTBOOST_APP_ID"       , CString(cei().appChartboostAppIDGooglePlay       ()), true, WHOLE_WORD_STRICT);
+      data=Replace(data, "CHARTBOOST_APP_SIGNATURE", CString(cei().appChartboostAppSignatureGooglePlay()), true, WHOLE_WORD_STRICT);
+      data=Replace(data, "FACEBOOK_BEGIN"          , facebook   ? "" : "/*", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "FACEBOOK_END"            , facebook   ? "" : "*/", true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EE_LOAD_LIBRARIES"       , load_libraries        , true, WHOLE_WORD_STRICT);
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/src/EsenthelActivity.java"))return false;
    }
@@ -2487,9 +2487,9 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/LoaderActivity.java"))return ErrorRead("Code/Android/LoaderActivity.java");
       Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"           , app_package                    , true, true);
-      data=Replace(data, "EE_LICENSE_KEY"       , cei().appGooglePlayLicenseKey(), true, true);
-      data=Replace(data, "EE_DOWNLOAD_EXPANSION", TextBool(cei().appAndroidExpansion() && cei().appGooglePlayLicenseKey().is()), true, true); // require license key provided, because otherwise the Java codes will crash throwing an exception
+      data=Replace(data, "EE_PACKAGE"           , app_package                    , true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EE_LICENSE_KEY"       , cei().appGooglePlayLicenseKey(), true, WHOLE_WORD_STRICT);
+      data=Replace(data, "EE_DOWNLOAD_EXPANSION", TextBool(cei().appAndroidExpansion() && cei().appGooglePlayLicenseKey().is()), true, WHOLE_WORD_STRICT); // require license key provided, because otherwise the Java codes will crash throwing an exception
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/src/LoaderActivity.java"))return false;
    }
@@ -2546,36 +2546,36 @@ Bool CodeEditor::generateLinuxMakeProj()
    }
 
    if(!f.read("Code/Linux/Makefile"))return ErrorRead("Code/Linux/Makefile"); f.getAll(s);
-   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH, true, true); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"Makefile"))return false;
+   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH, true, WHOLE_WORD_STRICT); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"Makefile"))return false;
 
    if(!f.read("Code/Linux/nbproject/Makefile-impl.mk"))return ErrorRead("Code/Linux/nbproject/Makefile-impl.mk"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, true); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-impl.mk"))return false;
+   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, WHOLE_WORD_STRICT); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-impl.mk"))return false;
 
    if(!f.read("Code/Linux/nbproject/Makefile-variables.mk"))return ErrorRead("Code/Linux/nbproject/Makefile-variables.mk"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, true); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-variables.mk"))return false;
+   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, WHOLE_WORD_STRICT); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-variables.mk"))return false;
 
    if(!f.read("Code/Linux/nbproject/Package-Debug.bash"))return ErrorRead("Code/Linux/nbproject/Package-Debug.bash"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, true); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Package-Debug.bash"))return false;
+   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, WHOLE_WORD_STRICT); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Package-Debug.bash"))return false;
 
    if(!f.read("Code/Linux/nbproject/Package-Release.bash"))return ErrorRead("Code/Linux/nbproject/Package-Release.bash"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, true); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Package-Release.bash"))return false;
+   s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, WHOLE_WORD_STRICT); SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Package-Release.bash"))return false;
 
    if(!f.read("Code/Linux/nbproject/Makefile-Debug.mk"))return ErrorRead("Code/Linux/nbproject/Makefile-Debug.mk"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME       , true, true);
-   s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH       , true, true);
-   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH    , true, true);
-   s=Replace(s, "EE_OBJ_FILES"  , EE_OBJ_FILES      , true, true);
-   s=Replace(s, "EE_CPP_FILES"  , EE_CPP_FILES_Debug, true, true);
-   s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS     , true, true);
+   s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME       , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH       , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH    , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_OBJ_FILES"  , EE_OBJ_FILES      , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_CPP_FILES"  , EE_CPP_FILES_Debug, true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS     , true, WHOLE_WORD_STRICT);
    SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-Debug.mk"))return false;
 
    if(!f.read("Code/Linux/nbproject/Makefile-Release.mk"))return ErrorRead("Code/Linux/nbproject/Makefile-Release.mk"); f.getAll(s);
-   s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME         , true, true);
-   s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH         , true, true);
-   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH      , true, true);
-   s=Replace(s, "EE_OBJ_FILES"  , EE_OBJ_FILES        , true, true);
-   s=Replace(s, "EE_CPP_FILES"  , EE_CPP_FILES_Release, true, true);
-   s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS       , true, true);
+   s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME         , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH         , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH      , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_OBJ_FILES"  , EE_OBJ_FILES        , true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EE_CPP_FILES"  , EE_CPP_FILES_Release, true, WHOLE_WORD_STRICT);
+   s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS       , true, WHOLE_WORD_STRICT);
    SetFile(f, s, UTF_8_NAKED); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/Makefile-Release.mk"))return false;
 
 #if LINUX // do this only on Linux because only on Linux SDK the *.so files are available
@@ -2688,16 +2688,16 @@ Bool CodeEditor::generateLinuxNBProj()
       FREPA(dirs)EE_HEADER_PATH+=S+"<pElem>"+XmlString(dirs[i])+"</pElem>\n";
 
       if(!f.read("Code/Linux/nbproject/configurations.xml"))return ErrorRead("Code/Linux/nbproject/configurations.xml"); f.getAll(s);
-      s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME_SAFE, true, true);
-      s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH     , true, true);
-      s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH  , true, true);
-      s=Replace(s, "EE_APP_ITEMS"  , EE_APP_ITEMS    , true, true);
-      s=Replace(s, "EE_APP_FILES"  , EE_APP_FILES    , true, true);
-      s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS   , true, true);
+      s=Replace(s, "EE_APP_NAME"   , EE_APP_NAME_SAFE, true, WHOLE_WORD_STRICT);
+      s=Replace(s, "EE_LIB_PATH"   , EE_LIB_PATH     , true, WHOLE_WORD_STRICT);
+      s=Replace(s, "EE_HEADER_PATH", EE_HEADER_PATH  , true, WHOLE_WORD_STRICT);
+      s=Replace(s, "EE_APP_ITEMS"  , EE_APP_ITEMS    , true, WHOLE_WORD_STRICT);
+      s=Replace(s, "EE_APP_FILES"  , EE_APP_FILES    , true, WHOLE_WORD_STRICT);
+      s=Replace(s, "EXTERNAL_LIBS" , EXTERNAL_LIBS   , true, WHOLE_WORD_STRICT);
       SetFile(f, s); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/configurations.xml"))return false;
 
       if(!f.read("Code/Linux/nbproject/project.xml"))return ErrorRead("Code/Linux/nbproject/project.xml"); f.getAll(s);
-      s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, true);
+      s=Replace(s, "EE_APP_NAME", EE_APP_NAME, true, WHOLE_WORD_STRICT);
       SetFile(f, s); if(!OverwriteOnChangeLoud(f, build_path+"nbproject/project.xml"))return false;
 
       return true;

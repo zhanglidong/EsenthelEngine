@@ -306,7 +306,7 @@ Bool has_func_param=false; REPA(func.params)if(func.params[i]->type==Symbol::FUN
             Bool has_result  =func.hasResult(),
                  has_this    =func.isClassNonStaticFunc(),
                   is_virtual =func.isVirtualFunc(),
-                  is_operator=Starts(func_name, "operator", true, true); if(is_operator)op_name=SkipWhiteChars(SkipStart(func_name, "operator"));
+                  is_operator=Starts(func_name, "operator", true, WHOLE_WORD_STRICT); if(is_operator)op_name=SkipWhiteChars(SkipStart(func_name, "operator"));
             if(has_result  && !result
             || has_this    && !Class
             || is_operator && (op_name=="new" || op_name=="delete")

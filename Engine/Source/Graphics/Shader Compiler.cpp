@@ -797,7 +797,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          macro.Name      =APIName[i];
          macro.Definition=((compiler->api==i) ? "1" : "0");
       }
-      Bool amd=Contains(compiler->dest, "4 AMD", true, true); // #ShaderAMD
+      Bool amd=Contains(compiler->dest, "4 AMD", true, WHOLE_WORD_STRICT); // #ShaderAMD
       if(amd)
       {
          auto &macro=macros.NewAt(macros.elms()-1);
@@ -1337,8 +1337,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    FREPA(buffer_instances)
    {
       Str8 &inst=buffer_instances[i];
-      code=Replace(code, inst+'.', S, true, true);
-      code=Replace(code, inst    , S, true, true);
+      code=Replace(code, inst+'.', S, true, WHOLE_WORD_STRICT);
+      code=Replace(code, inst    , S, true, WHOLE_WORD_STRICT);
    }
 
 #if FORCE_LOG_SHADER_CODE

@@ -93,7 +93,7 @@ class StoreClass : ClosableWindow
             }
          }
          if(out.last()=='\n')out.removeLast();
-         out=Replace(out, "&nbsp;", " ", true, true);
+         out=Replace(out, "&nbsp;", " ", true, WHOLE_WORD_STRICT);
          return DecodeXmlString(out);
       }
 
@@ -691,13 +691,13 @@ class StoreClass : ClosableWindow
             if(StartsPath(df.file, "http://") || StartsPath(df.file, "https://")) // check if this is a link to item in App Stores
             {
                Str s=GetStart(SkipStart(TextPos(df.file, ':')+3, "www."));
-               if(Contains(s, "steampowered.com", false, true)
-               || Contains(s,    "microsoft.com", false, true)
-               || Contains(s,       "google.com", false, true)
-               || Contains(s,        "apple.com", false, true)
-               || Contains(s,       "amazon.com", false, true)
-               || Contains(s,      "samsung.com", false, true)
-               || Contains(s,       "github.com", false, true)
+               if(Contains(s, "steampowered.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,    "microsoft.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,       "google.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,        "apple.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,       "amazon.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,      "samsung.com", false, WHOLE_WORD_STRICT)
+               || Contains(s,       "github.com", false, WHOLE_WORD_STRICT)
                ){Explore(df.file); return;}
             }
          #if 0

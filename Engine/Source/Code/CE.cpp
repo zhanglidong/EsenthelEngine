@@ -1301,10 +1301,10 @@ void CodeEditor::update(Bool active)
                if(!Contains(line, "manifest authoring warning 81010002:"))
             {
                BuildResult &br=buildNew().set(line);
-               if(Contains(line,   "warning:", false, true)
-               || Contains(line, ": warning" , false, true))br.setWarning();else
-               if(Contains(line,   "error:"  , false, true)
-               || Contains(line, ": error "  , false, true))br.setError  ();
+               if(Contains(line,   "warning:", false, WHOLE_WORD_STRICT)
+               || Contains(line, ": warning" , false, WHOLE_WORD_STRICT))br.setWarning();else
+               if(Contains(line,   "error:"  , false, WHOLE_WORD_STRICT)
+               || Contains(line, ": error "  , false, WHOLE_WORD_STRICT))br.setError  ();
 
                // count sources compiled
                if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB)
@@ -1333,16 +1333,16 @@ void CodeEditor::update(Bool active)
                }else
                if(build_exe_type==EXE_MAC || build_exe_type==EXE_IOS)
                {
-                  if(Starts(line, "CompileC", true, true)
-                  || Starts(line, "Ld"      , true, true))build_step++;
-                  if(Starts(line, "Undefined symbols", true, true)
-                  || Starts(line, "ld: framework not found"      ))br.setError();
+                  if(Starts(line, "CompileC"         , true, WHOLE_WORD_STRICT)
+                  || Starts(line, "Ld"               , true, WHOLE_WORD_STRICT))build_step++;
+                  if(Starts(line, "Undefined symbols", true, WHOLE_WORD_STRICT)
+                  || Starts(line, "ld: framework not found"                   ))br.setError();
                }else
                if(build_exe_type==EXE_LINUX)
                {
-                  if(Starts(line, "g++"                     , true, true)
-                  || Starts(line, "clang++"                 , true, true))build_step++;
-                  if(Starts(line, "/usr/bin/ld: cannot find", true, true))br.setError();
+                  if(Starts(line, "g++"                     , true, WHOLE_WORD_STRICT)
+                  || Starts(line, "clang++"                 , true, WHOLE_WORD_STRICT))build_step++;
+                  if(Starts(line, "/usr/bin/ld: cannot find", true, WHOLE_WORD_STRICT))br.setError();
                }
             }
          }
@@ -2012,7 +2012,7 @@ Bool GetVisualStudioInstallations(MemPtr<VisualStudioInstallation> installs)
             if(OK(instance->GetInstallationPath(path.GetAddress())))
             if(OK(instance->GetProduct(&product)))
             if(OK(product->GetId(product_id.GetAddress())))
-            if(Starts(WChar(product_id.operator const wchar_t*()), "Microsoft.VisualStudio.Product.", true, true))
+            if(Starts(WChar(product_id.operator const wchar_t*()), "Microsoft.VisualStudio.Product.", true, WHOLE_WORD_STRICT))
             {
             #if 0
                bstr_t desc, engine, install_name, product_path, branch, type, version;

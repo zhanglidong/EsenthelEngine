@@ -496,7 +496,7 @@ void Source::update(C GuiPC &gpc)
                   {
                      Int bottom_level=0, level=0;
                      if(!TextType(prev.Type(cur.x)))
-                        if(!Contains(prev, "for", true, true)) // 'for' is the only keyword that allows ';' inside "()" brackets
+                        if(!Contains(prev, "for", true, WHOLE_WORD_STRICT)) // 'for' is the only keyword that allows ';' inside "()" brackets
                            for(Int i=cur.x; i<prev.length(); i++)
                      {
                         if((prev[i]=='(' || prev[i]=='[') && prev.Type(i)==TOKEN_OPERATOR)level++;
@@ -636,8 +636,8 @@ void Source::update(C GuiPC &gpc)
                         if(Type(p)==TOKEN_KEYWORD)
                         {
                            CChar *s=lines[p.y]()+p.x;
-                           if(Starts(s, "case"   , true, true)
-                           || Starts(s, "default", true, true))
+                           if(Starts(s, "case"   , true, WHOLE_WORD_STRICT)
+                           || Starts(s, "default", true, WHOLE_WORD_STRICT))
                            {
                               if(prev.Type(cur.x+1)!=TOKEN_NONE)prev.insert(cur.x+1, ' '); cur.x++; // after  ':'
                               break;
@@ -676,9 +676,9 @@ void Source::update(C GuiPC &gpc)
                   {
                      Int    start=prev  .start();
                      CChar *s    =prev()+start  ;
-                     if(Starts(s, "public"   , true, true)
-                     || Starts(s, "protected", true, true)
-                     || Starts(s, "private"  , true, true))
+                     if(Starts(s, "public"   , true, WHOLE_WORD_STRICT)
+                     || Starts(s, "protected", true, WHOLE_WORD_STRICT)
+                     || Starts(s, "private"  , true, WHOLE_WORD_STRICT))
                      {
                         if(prev[cur.x-2]==' '){prev.remove(cur.x-2); cur.x--;} // remove any space between keyword and ':' ("private :|" -> "private:|")
                         Int rem=Min(start, TabLength); prev.remove(0, rem); start-=rem; start+=TabLength;
@@ -826,9 +826,10 @@ void Source::update(C GuiPC &gpc)
 /******************************************************************************/
 static void HighlightFind(C Str &str, C Rect &rect, C GuiPC &gpc)
 {
+   WHOLE_WORD whole_word=(CE.find.whole_word() ? WHOLE_WORD_STRICT : WHOLE_WORD_NO);
    for(Int offset=0; ; )
    {
-      Int match_length, i=TextPosSkipSpaceI(str()+offset, CE.find.text(), match_length, CE.find.case_sensitive(), CE.find.whole_word()); if(i<0)break; offset+=i;
+      Int match_length, i=TextPosSkipSpaceI(str()+offset, CE.find.text(), match_length, CE.find.case_sensitive(), whole_word); if(i<0)break; offset+=i;
       Rect_LU(rect.lu()+gpc.offset+Vec2(offset*CE.ts.colWidth(), 0), match_length*CE.ts.colWidth(), CE.ts.lineHeight()).draw(ColorAlpha(YELLOW, LINEAR_GAMMA ? Sqr(0.5f) : 0.5f)); offset+=match_length;
    }
 }

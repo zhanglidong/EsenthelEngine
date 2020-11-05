@@ -1163,7 +1163,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                bool multi_channel=false;
                byte tc_channel[TC_NUM]; SetMem(tc_channel, 0xFF);
              C Str &name=images[0].name;
-               if(Contains(name, "RMA", true, true))
+               if(Contains(name, "RMA", true, WHOLE_WORD_ALPHA))
                {
                   tc_channel[TC_ROUGH]=0;
                   tc_channel[TC_METAL]=1;
@@ -1191,10 +1191,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                {
                   ImageSource &image=images[i]; image.i=i;
                   Str base=GetBaseNoExt(image.name);
-                  REPA(base)if(CharFlag(base[i])&(CHARF_DIG|CHARF_UNDER))base.setChar(i, ' '); // replace _ and digits with space so whole words can work OK, because _ is treated as char and "_ao1" fails
-                  if(tex.type==TEX_COLOR && (                                   Contains(base, "ms", false, true) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
-                  if(                        Contains(base, "O", true, true) || Contains(base, "ao", false, true) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
-                  if(                                                           Contains(base, "illumination")    ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
+                  if(tex.type==TEX_COLOR && (                                               Contains(base, "ms", false, WHOLE_WORD_ALPHA) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
+                  if(                        Contains(base, "O", true, WHOLE_WORD_ALPHA) || Contains(base, "ao", false, WHOLE_WORD_ALPHA) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
+                  if(                                                                       Contains(base, "illumination")                ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
                }
                images.sort(Compare); // sort by order
             }

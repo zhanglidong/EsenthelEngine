@@ -48,7 +48,7 @@ void CodeEditor::parseHeaderEx(Str h, C Str &parent_path, Bool try_system, Memc<
                {
                #if 0
                   Int base;
-                  if((base=TextPosI(line, "STRUCT(", true, true))>=0)
+                  if((base=TextPosI(line, "STRUCT(", true, WHOLE_WORD_STRICT))>=0)
                   {
                      line.remove(base, 7).insert(base, "struct ");
                      Int i=TextPosI(line()+base, ','); if(i>=0){i+=base; line.remove(i).insert(i, ":", TOKEN_OPERATOR);}
@@ -56,7 +56,7 @@ void CodeEditor::parseHeaderEx(Str h, C Str &parent_path, Bool try_system, Memc<
                      line.setType(line.starts_with_comment, line.starts_with_preproc);
                      if(InRange(l+1, s->lines)){Line &line=s->lines[l+1]; line=Replace(line, "//{", "{"); line.setType(line.starts_with_comment, line.starts_with_preproc);}
                   }else
-                  if((base=TextPosI(line, "STRUCT_PRIVATE(", true, true))>=0)
+                  if((base=TextPosI(line, "STRUCT_PRIVATE(", true, WHOLE_WORD_STRICT))>=0)
                   {
                      line.remove(base, 15).insert(base, "struct ");
                      Int i=TextPosI(line()+base, ','); if(i>=0){i+=base; line.remove(i).insert(i, ":", TOKEN_OPERATOR).insert(i+1, " ", TOKEN_NONE).insert(i+2, "private", TOKEN_KEYWORD);}
@@ -67,7 +67,7 @@ void CodeEditor::parseHeaderEx(Str h, C Str &parent_path, Bool try_system, Memc<
                #endif
                }else
                {
-                  if(Starts(_SkipWhiteChars(line), "#define const_mem_addr", true, true)) // for generation of the EE header we need to remove definition of 'const_mem_addr' as a macro, because in Code Editor it is used as a keyword
+                  if(Starts(_SkipWhiteChars(line), "#define const_mem_addr", true, WHOLE_WORD_STRICT)) // for generation of the EE header we need to remove definition of 'const_mem_addr' as a macro, because in Code Editor it is used as a keyword
                   {
                      s->lines.removeValid(l, true);
                      if(InRange(l, s->lines) && !Is(_SkipWhiteChars(s->lines[l])))s->lines.removeValid(l, true); // if the next line is empty then remove it

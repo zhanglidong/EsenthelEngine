@@ -388,7 +388,7 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
                if(hasAddrsHeader())
                {
                   // example header = "HTTP/1.1 200 OK"
-                  if(!Starts(_header, "HTTP/1.1", false, true))return error();
+                  if(!Starts(_header, "HTTP/1.1", false, WHOLE_WORD_STRICT))return error();
 
                   if(CChar8 *t=TextPos(_header, "Location:")) // check if it's a redirect (check this as first before all other data)
                   {

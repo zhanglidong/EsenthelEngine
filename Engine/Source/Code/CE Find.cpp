@@ -14,7 +14,7 @@ Bool Find::FilterScope(Source *source, UInt scope)
    return false;
 }
 /******************************************************************************/
-static Bool FilterText(C Str &t, Memc<Str> &texts, Bool case_sensitive, Bool whole_word)
+static Bool FilterText(C Str &t, Memc<Str> &texts, Bool case_sensitive, WHOLE_WORD whole_word)
 {
    REPA(texts)if(!TextPos(t, texts[i], case_sensitive, whole_word))return false;
    return true;
@@ -38,36 +38,39 @@ void Find::findPrev()
    {
       Memc<Source*> sources; Int offset=CE.curI(); FREPA(CE.sources){Source &s=CE.sources[Mod(i+offset, CE.sources.elms())]; if(FilterScope(&s, scope()))sources.add(&s);} // list all possible sources
       if(sources.elms())
-         for(Int s=sources.elms(); s>=0; s--)
       {
-         Source &src      =*sources[Mod(s, sources.elms())];
-         Bool    cur      =(CE.cur()==&src),
-                 cur_start=(cur && s==sources.elms()), // if we're starting search
-                 cur_end  =(cur && s==             0); // if we're ending   search
-         Int       y_from =(cur_start ? src.cur.y : src.lines.elms()-1),
-                   y_to   =(cur_end   ? src.cur.y :                  0);
-         for(Int y=y_from; y>=y_to; y--)if(InRange(y, src.lines))
+         WHOLE_WORD whole_word=(T.whole_word() ? WHOLE_WORD_STRICT : WHOLE_WORD_NO);
+         for(Int s=sources.elms(); s>=0; s--)
          {
-            res.clear();
-            CChar *line=src.lines[y]; for(Int offset=0; ; )
+            Source &src      =*sources[Mod(s, sources.elms())];
+            Bool    cur      =(CE.cur()==&src),
+                    cur_start=(cur && s==sources.elms()), // if we're starting search
+                    cur_end  =(cur && s==             0); // if we're ending   search
+            Int       y_from =(cur_start ? src.cur.y : src.lines.elms()-1),
+                      y_to   =(cur_end   ? src.cur.y :                  0);
+            for(Int y=y_from; y>=y_to; y--)if(InRange(y, src.lines))
             {
-               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word());
-               if(pos<0)break; offset+=pos; res.add(VecI2(offset, match_length)); offset+=match_length; // add all results to container
-            }
-            REPA(res) // go from last one
-            {
-               VecI2 r=res[i];
-               if(cur_start && y==src.cur.y) // if we're starting search
+               res.clear();
+               CChar *line=src.lines[y]; for(Int offset=0; ; )
                {
-                  Int cur_x=((src.sel.y==src.cur.y && src.sel.x>=0) ? src.sel.x : src.cur.x); // use 'sel' instead of 'cur' if possible
-                  if(r.x>=cur_x)continue; // if result is completely after cursor then ignore
+                  Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word);
+                  if(pos<0)break; offset+=pos; res.add(VecI2(offset, match_length)); offset+=match_length; // add all results to container
                }
-               src.sel.set(r.x    , y);
-               src.cur.set(r.x+r.y, y);
-               if(!CE.view_mode())src.makeCurVisible(true, !cur);
-               else               src.highlight     (y   , !cur);
-               CE.cur(&src);
-               return;
+               REPA(res) // go from last one
+               {
+                  VecI2 r=res[i];
+                  if(cur_start && y==src.cur.y) // if we're starting search
+                  {
+                     Int cur_x=((src.sel.y==src.cur.y && src.sel.x>=0) ? src.sel.x : src.cur.x); // use 'sel' instead of 'cur' if possible
+                     if(r.x>=cur_x)continue; // if result is completely after cursor then ignore
+                  }
+                  src.sel.set(r.x    , y);
+                  src.cur.set(r.x+r.y, y);
+                  if(!CE.view_mode())src.makeCurVisible(true, !cur);
+                  else               src.highlight     (y   , !cur);
+                  CE.cur(&src);
+                  return;
+               }
             }
          }
       }
@@ -81,28 +84,31 @@ void Find::findNext()
    {
       Memc<Source*> sources; Int offset=CE.curI(); FREPA(CE.sources){Source &s=CE.sources[Mod(i+offset, CE.sources.elms())]; if(FilterScope(&s, scope()))sources.add(&s);} // list all possible sources
       if(sources.elms())
-         for(Int s=0; s<sources.elms()+1; s++)
       {
-         Source &src      =*sources[Mod(s, sources.elms())];
-         Bool    cur      =(CE.cur()==&src),
-                 cur_start=(cur && s==             0), // if we're starting search
-                 cur_end  =(cur && s==sources.elms()); // if we're ending   search
-         Int       y_from =(cur_start ? src.cur.y :                  0),
-                   y_to   =(cur_end   ? src.cur.y : src.lines.elms()-1);
-         for(Int y=y_from; y<=y_to; y++)if(InRange(y, src.lines))
+         WHOLE_WORD whole_word=(T.whole_word() ? WHOLE_WORD_STRICT : WHOLE_WORD_NO);
+         for(Int s=0; s<sources.elms()+1; s++)
          {
-            CChar *line=src.lines[y]; for(Int offset=0; ; )
+            Source &src      =*sources[Mod(s, sources.elms())];
+            Bool    cur      =(CE.cur()==&src),
+                    cur_start=(cur && s==             0), // if we're starting search
+                    cur_end  =(cur && s==sources.elms()); // if we're ending   search
+            Int       y_from =(cur_start ? src.cur.y :                  0),
+                      y_to   =(cur_end   ? src.cur.y : src.lines.elms()-1);
+            for(Int y=y_from; y<=y_to; y++)if(InRange(y, src.lines))
             {
-               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word());
-               if(pos<0)break; offset+=pos;
-               if(cur_start && y==src.cur.y) // if we're starting search
-                  if(offset+match_length<=src.cur.x){offset+=match_length; continue;} // if result is completely before cursor then ignore
-               src.sel.set(offset             , y);
-               src.cur.set(offset+match_length, y);
-               if(!CE.view_mode())src.makeCurVisible(true, !cur);
-               else               src.highlight     (y   , !cur);
-               CE.cur(&src);
-               return;
+               CChar *line=src.lines[y]; for(Int offset=0; ; )
+               {
+                  Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word);
+                  if(pos<0)break; offset+=pos;
+                  if(cur_start && y==src.cur.y) // if we're starting search
+                     if(offset+match_length<=src.cur.x){offset+=match_length; continue;} // if result is completely before cursor then ignore
+                  src.sel.set(offset             , y);
+                  src.cur.set(offset+match_length, y);
+                  if(!CE.view_mode())src.makeCurVisible(true, !cur);
+                  else               src.highlight     (y   , !cur);
+                  CE.cur(&src);
+                  return;
+               }
             }
          }
       }
@@ -341,6 +347,8 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
    data.clear();
    Str  t        =SymbolToPath(Replace(Replace(text, "::", "."), DIV, '\0'));
    Bool full_name=Contains    (t, SEP);
+   WHOLE_WORD whole_word_strict =(whole_word ? WHOLE_WORD_STRICT : WHOLE_WORD_NO),
+              whole_word_relaxed=(whole_word ? WHOLE_WORD_YES    : WHOLE_WORD_NO);
 
    if(mode==EXACT)
    {
@@ -351,7 +359,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
       if(texts.elms())
       {
          // files
-         temp.clear(); FREPA(CE.sources)if(FilterScope(&CE.sources[i], scope) && FilterText(CE.sources[i].loc.base_name, texts, case_sensitive, whole_word))
+         temp.clear(); FREPA(CE.sources)if(FilterScope(&CE.sources[i], scope) && FilterText(CE.sources[i].loc.base_name, texts, case_sensitive, whole_word_relaxed))
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="FILES:"; data.New();}
             temp.New().setText(CE.sources[i].loc.asText(), CE.sources[i].loc);
@@ -366,7 +374,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.clear(); FREPA(ProjectMacros)
          {
             Macro &macro=ProjectMacros[i];
-            if(FilterScope(macro.source, scope) && FilterText(macro.name, texts, case_sensitive, whole_word))
+            if(FilterScope(macro.source, scope) && FilterText(macro.name, texts, case_sensitive, whole_word_strict))
             {
                if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="MACROS:"; data.New();}
                temp.New().setText(macro.name, macro.source ? macro.source->loc : SourceLoc(), macro.line);
@@ -375,7 +383,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResultAlphabet); FREPA(temp)Swap(data.New(), temp[i]);
 
          // typedefs
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::TYPEDEF && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::TYPEDEF && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="TYPEDEFS:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -383,7 +391,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // enums
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if((symbol.type==Symbol::ENUM || symbol.type==Symbol::ENUM_ELM) && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if((symbol.type==Symbol::ENUM || symbol.type==Symbol::ENUM_ELM) && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="ENUMS:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -391,7 +399,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // namespaces
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::NAMESPACE && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::NAMESPACE && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="NAMESPACES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -399,7 +407,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // classes
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word))
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict))
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="CLASSES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -409,7 +417,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          // classes extending
          temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope))
          {
-            FREPA(symbol.base)if(FilterText(full_name ? symbol.base[i]->full_name : *symbol.base[i], texts, case_sensitive, whole_word))
+            FREPA(symbol.base)if(FilterText(full_name ? symbol.base[i]->full_name : *symbol.base[i], texts, case_sensitive, whole_word_strict))
             {
                if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text=S+"CLASSES EXTENDING \""+text+"\":"; data.New();}
                temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -419,7 +427,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // functions
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::FUNC_LIST && !(symbol.modifiers&Symbol::MODIF_CTOR_DTOR) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::FUNC_LIST && !(symbol.modifiers&Symbol::MODIF_CTOR_DTOR) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict) && !symbol.insideFunc())
          {
             FREPA(symbol.funcs)if(FilterScope(symbol.funcs[i]->source, scope)) // if at least one function is in scope
             {
@@ -444,7 +452,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // variables
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::VAR && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::VAR && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word_strict) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="VARIABLES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -508,7 +516,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word,
       {
          Source &s=CE.sources[i]; if(FilterScope(&s, scope))FREPA(s.lines)
          {
-            if(Contains(s.lines[i], text, case_sensitive, whole_word))
+            if(Contains(s.lines[i], text, case_sensitive, whole_word_strict))
             {
                if(last_source!=&s){last_source=&s; if(data.elms())data.New(); data.New().setText(S+'"'+s.loc.asText()+"\":", s.loc);} // add "FILE:"
                data.New().setText(S+"  "+SkipWhiteChars(s.lines[i]), s.loc, i);
@@ -550,7 +558,7 @@ void ReplaceText::process()
             src->writeAll(end  , max     , VecI2(src->lines.last().length(), src->lines.elms()-1));
             if(InRange(max.y, src->lines))last_line_length=src->lines[max.y].length();
          }else text=src->asText();
-         text=Replace(text, T.src(), T.dest(), case_sensitive(), whole_word());
+         text=Replace(text, T.src(), T.dest(), case_sensitive(), whole_word() ? WHOLE_WORD_STRICT : WHOLE_WORD_NO);
          src->setUndo();
          src->fromText(start+text+end);
 

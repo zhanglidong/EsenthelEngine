@@ -202,7 +202,7 @@ void CodeEditor::findAllReferences(C Str &text)
       FREPA(source.lines)
       {
          Line &line=source.lines[i];
-         if(Contains(line, text, true, true))
+         if(Contains(line, text, true, WHOLE_WORD_STRICT))
          {
             if(!found){found=true; buildNew().set(S+"\""+source.loc.asText()+"\":", &source);}
             buildNew().set(S+"   "+line, &line);
