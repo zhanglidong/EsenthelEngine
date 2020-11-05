@@ -828,7 +828,7 @@ static void HighlightFind(C Str &str, C Rect &rect, C GuiPC &gpc)
 {
    for(Int offset=0; ; )
    {
-      Int match_length, i=TextPosSkipSpaceI(str()+offset, CE.find.text(), match_length, CE.find.case_sensitive(), CE.find.whole_words()); if(i<0)break; offset+=i;
+      Int match_length, i=TextPosSkipSpaceI(str()+offset, CE.find.text(), match_length, CE.find.case_sensitive(), CE.find.whole_word()); if(i<0)break; offset+=i;
       Rect_LU(rect.lu()+gpc.offset+Vec2(offset*CE.ts.colWidth(), 0), match_length*CE.ts.colWidth(), CE.ts.lineHeight()).draw(ColorAlpha(YELLOW, LINEAR_GAMMA ? Sqr(0.5f) : 0.5f)); offset+=match_length;
    }
 }

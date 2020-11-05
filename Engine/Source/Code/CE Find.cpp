@@ -14,9 +14,9 @@ Bool Find::FilterScope(Source *source, UInt scope)
    return false;
 }
 /******************************************************************************/
-static Bool FilterText(C Str &t, Memc<Str> &texts, Bool case_sensitive, Bool whole_words)
+static Bool FilterText(C Str &t, Memc<Str> &texts, Bool case_sensitive, Bool whole_word)
 {
-   REPA(texts)if(!TextPos(t, texts[i], case_sensitive, whole_words))return false;
+   REPA(texts)if(!TextPos(t, texts[i], case_sensitive, whole_word))return false;
    return true;
 }
 /******************************************************************************/
@@ -27,7 +27,7 @@ static void FindClose  (Find &find) {find.hide    ();}
 /******************************************************************************/
 void Find::find()
 {
-   result.find(visible() ? text() : S, case_sensitive(), whole_words(), (MODE)mode(), scope(), skip_ee());
+   result.find(visible() ? text() : S, case_sensitive(), whole_word(), (MODE)mode(), scope(), skip_ee());
 }
 /******************************************************************************/
 void Find::findPrev()
@@ -51,7 +51,7 @@ void Find::findPrev()
             res.clear();
             CChar *line=src.lines[y]; for(Int offset=0; ; )
             {
-               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_words());
+               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word());
                if(pos<0)break; offset+=pos; res.add(VecI2(offset, match_length)); offset+=match_length; // add all results to container
             }
             REPA(res) // go from last one
@@ -93,7 +93,7 @@ void Find::findNext()
          {
             CChar *line=src.lines[y]; for(Int offset=0; ; )
             {
-               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_words());
+               Int match_length, pos=TextPosSkipSpaceI(line+offset, text(), match_length, case_sensitive(), whole_word());
                if(pos<0)break; offset+=pos;
                if(cur_start && y==src.cur.y) // if we're starting search
                   if(offset+match_length<=src.cur.x){offset+=match_length; continue;} // if result is completely before cursor then ignore
@@ -125,7 +125,7 @@ void Find::create()
    T+=next          .create(">").func(FindNext   , T).focusable(false).desc(S+"Next Search Result\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+D"          );
    T+=close         .create(   ).func(FindClose  , T).focusable(false); close.image="Gui/close.img"; close.skin=&EmptyGuiSkin;
    T+=case_sensitive.create("case sensitive"       ).func(FindChanged, T).focusable(false).desc("Keyboard Shortcut: Alt+C"                                             ); case_sensitive.mode=BUTTON_TOGGLE;
-   T+=whole_words   .create("whole words"          ).func(FindChanged, T).focusable(false).desc("Keyboard Shortcut: Alt+W"                                             ); whole_words   .mode=BUTTON_TOGGLE;
+   T+=whole_word    .create("whole word"           ).func(FindChanged, T).focusable(false).desc("Keyboard Shortcut: Alt+W"                                             ); whole_word    .mode=BUTTON_TOGGLE;
    T+=mode          .create(mode_t,    Elms(mode_t)).set(0).valid(true).func(FindChanged, T); mode.tab(0).desc("Keyboard Shortcut: Alt+S"); mode.tab(1).desc("Keyboard Shortcut: Alt+N"); mode.tab(2).desc("Keyboard Shortcut: Alt+T");
    T+=cur_file      .create("Current File"         ).func(FindChanged, T).focusable(false).desc("If perform the search in current file\nKeyboard Shortcut: Alt+F"      ); cur_file      .mode=BUTTON_TOGGLE; cur_file  .set(true, QUIET);
    T+=active_app    .create("Active Application"   ).func(FindChanged, T).focusable(false).desc("If perform the search in active application\nKeyboard Shortcut: Alt+A"); active_app    .mode=BUTTON_TOGGLE; active_app.set(true, QUIET);
@@ -149,7 +149,7 @@ void Find::resize()
    prev          .rect(Rect_RU(next .rect().min.x  , -b, h*0.9f, h));
    text          .rect(Rect   (b, -b-h, prev.rect().min.x-b, -b));
    case_sensitive.rect(Rect   (b, -b-h-b-h, rect().w()/2-b/2, -b-h-b));
-   whole_words   .rect(Rect   (rect().w()/2+b/2, -b-h-b-h, rect().w()-b, -b-h-b));
+   whole_word    .rect(Rect   (rect().w()/2+b/2, -b-h-b-h, rect().w()-b, -b-h-b));
    mode          .rect(Rect   (b, -b-h-b-h-b-h, rect().w()-b, -b-h-b-h-b), 0, true);
    cur_file      .rect(Rect   (b, -b-h-b-h-b-h-b-h, rect().w()*0.3f, -b-h-b-h-b-h-b));
    engine        .rect(Rect   (rect().w()*0.76f, -b-h-b-h-b-h-b-h, rect().w()-b, -b-h-b-h-b-h-b));
@@ -251,7 +251,7 @@ void Find::update(C GuiPC &gpc)
          if(Kb.k(KB_UP  ))historySet(+1);else
          if(Kb.k(KB_DOWN))historySet(-1);
          if(Kb.k(KB_C) && Kb.k.alt()){case_sensitive.push(); Kb.eatKey();}
-         if(Kb.k(KB_W) && Kb.k.alt()){whole_words   .push(); Kb.eatKey();}
+         if(Kb.k(KB_W) && Kb.k.alt()){whole_word    .push(); Kb.eatKey();}
          if(Kb.k(KB_S) && Kb.k.alt()){mode          .set(0); Kb.eatKey();}
          if(Kb.k(KB_N) && Kb.k.alt()){mode          .set(1); Kb.eatKey();}
          if(Kb.k(KB_T) && Kb.k.alt()){mode          .set(2); Kb.eatKey();}
@@ -336,7 +336,7 @@ void Find::ResultRegion::setData()
    list.setDataNode(data, visible);
 }
 /******************************************************************************/
-void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words, MODE mode, UInt scope, Bool skip_ee)
+void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_word, MODE mode, UInt scope, Bool skip_ee)
 {
    data.clear();
    Str  t        =SymbolToPath(Replace(Replace(text, "::", "."), DIV, '\0'));
@@ -351,7 +351,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
       if(texts.elms())
       {
          // files
-         temp.clear(); FREPA(CE.sources)if(FilterScope(&CE.sources[i], scope) && FilterText(CE.sources[i].loc.base_name, texts, case_sensitive, whole_words))
+         temp.clear(); FREPA(CE.sources)if(FilterScope(&CE.sources[i], scope) && FilterText(CE.sources[i].loc.base_name, texts, case_sensitive, whole_word))
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="FILES:"; data.New();}
             temp.New().setText(CE.sources[i].loc.asText(), CE.sources[i].loc);
@@ -366,7 +366,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.clear(); FREPA(ProjectMacros)
          {
             Macro &macro=ProjectMacros[i];
-            if(FilterScope(macro.source, scope) && FilterText(macro.name, texts, case_sensitive, whole_words))
+            if(FilterScope(macro.source, scope) && FilterText(macro.name, texts, case_sensitive, whole_word))
             {
                if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="MACROS:"; data.New();}
                temp.New().setText(macro.name, macro.source ? macro.source->loc : SourceLoc(), macro.line);
@@ -375,7 +375,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResultAlphabet); FREPA(temp)Swap(data.New(), temp[i]);
 
          // typedefs
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::TYPEDEF && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::TYPEDEF && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="TYPEDEFS:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -383,7 +383,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // enums
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if((symbol.type==Symbol::ENUM || symbol.type==Symbol::ENUM_ELM) && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if((symbol.type==Symbol::ENUM || symbol.type==Symbol::ENUM_ELM) && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="ENUMS:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -391,7 +391,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // namespaces
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::NAMESPACE && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::NAMESPACE && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="NAMESPACES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -399,7 +399,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // classes
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words))
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word))
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="CLASSES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -409,7 +409,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          // classes extending
          temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS && !(symbol.modifiers&Symbol::MODIF_NAMELESS) && FilterScope(symbol.source, scope))
          {
-            FREPA(symbol.base)if(FilterText(full_name ? symbol.base[i]->full_name : *symbol.base[i], texts, case_sensitive, whole_words))
+            FREPA(symbol.base)if(FilterText(full_name ? symbol.base[i]->full_name : *symbol.base[i], texts, case_sensitive, whole_word))
             {
                if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text=S+"CLASSES EXTENDING \""+text+"\":"; data.New();}
                temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -419,7 +419,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // functions
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::FUNC_LIST && !(symbol.modifiers&Symbol::MODIF_CTOR_DTOR) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::FUNC_LIST && !(symbol.modifiers&Symbol::MODIF_CTOR_DTOR) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
          {
             FREPA(symbol.funcs)if(FilterScope(symbol.funcs[i]->source, scope)) // if at least one function is in scope
             {
@@ -444,7 +444,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(SymbolGetPath(temp[i].text), SymbolGetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
 
          // variables
-         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::VAR && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_words) && !symbol.insideFunc())
+         temp.clear(); FREPA(Symbols){Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::VAR && FilterScope(symbol.source, scope) && FilterText(full_name ? symbol.full_name : symbol, texts, case_sensitive, whole_word) && !symbol.insideFunc())
          {
             if(!temp.elms()){if(data.elms())data.New(); data.New().text=RESULT_SEPARATOR; data.New(); data.New().text="VARIABLES:"; data.New();}
             temp.New().set(skip_ee, symbol.full_name, &symbol);
@@ -508,7 +508,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
       {
          Source &s=CE.sources[i]; if(FilterScope(&s, scope))FREPA(s.lines)
          {
-            if(Contains(s.lines[i], text, case_sensitive, whole_words))
+            if(Contains(s.lines[i], text, case_sensitive, whole_word))
             {
                if(last_source!=&s){last_source=&s; if(data.elms())data.New(); data.New().setText(S+'"'+s.loc.asText()+"\":", s.loc);} // add "FILE:"
                data.New().setText(S+"  "+SkipWhiteChars(s.lines[i]), s.loc, i);
@@ -550,7 +550,7 @@ void ReplaceText::process()
             src->writeAll(end  , max     , VecI2(src->lines.last().length(), src->lines.elms()-1));
             if(InRange(max.y, src->lines))last_line_length=src->lines[max.y].length();
          }else text=src->asText();
-         text=Replace(text, T.src(), T.dest(), case_sensitive(), whole_words());
+         text=Replace(text, T.src(), T.dest(), case_sensitive(), whole_word());
          src->setUndo();
          src->fromText(start+text+end);
 
@@ -564,7 +564,7 @@ void ReplaceText::process()
    }else Gui.msgBox(S, "No file opened");
 }
 static void CaseSensitive(ReplaceText &r) {r.case_sensitive.push();}
-static void WholeWords   (ReplaceText &r) {r.whole_words   .push();}
+static void WholeWords   (ReplaceText &r) {r.whole_word    .push();}
 void ReplaceText::create()
 {
    Flt y=-0.04f, h=0.055f, s=h+0.01f;
@@ -573,7 +573,7 @@ void ReplaceText::create()
    T+=t_dest .create(Vec2(0.09f, y), "Replace"); T+=dest .create(Rect_L(0.18f, y, 0.82f, h)); y-=s;
    T+=t_scope.create(Vec2(0.09f, y), "Scope"  ); T+=scope.create(Rect_L(0.18f, y, 0.82f, h), scope_t, Elms(scope_t)); y-=s;
    T+=case_sensitive.create(Rect_R(clientWidth()/2-0.03f, y, 0.3f, h), "case sensitive").desc("Keyboard Shortcut: Alt+C"); case_sensitive.mode=BUTTON_TOGGLE;
-   T+=whole_words   .create(Rect_L(clientWidth()/2+0.03f, y, 0.3f, h), "whole words"   ).desc("Keyboard Shortcut: Alt+W"); whole_words   .mode=BUTTON_TOGGLE; y-=s;
+   T+=whole_word    .create(Rect_L(clientWidth()/2+0.03f, y, 0.3f, h), "whole word"    ).desc("Keyboard Shortcut: Alt+W"); whole_word    .mode=BUTTON_TOGGLE; y-=s;
    y-=s/2;
    T+=replace       .create(Rect_C(clientWidth()*1.0f/4, y, 0.3f, 0.06f), "Replace All").func(ReplaceProcess, T).desc("Keyboard Shortcut: Enter");
    T+=cancel        .create(Rect_C(clientWidth()*3.0f/4, y, 0.3f, 0.06f), "Cancel").func(button[2].func(), button[2].funcUser()); y-=s;

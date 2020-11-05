@@ -100,36 +100,36 @@ inline Int CompareNumberCS(C Str &a, C Str &b) {return CompareNumber(a, b, true 
 inline Int ComparePathNumberCI(C Str &a, C Str &b) {return ComparePathNumber(a, b, false);} // compare paths using 'ComparePathNumber' Case-Insensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
 inline Int ComparePathNumberCS(C Str &a, C Str &b) {return ComparePathNumber(a, b, true );} // compare paths using 'ComparePathNumber' Case-  Sensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
 
-Bool Starts    (CChar  *t, CChar  *start, Bool case_sensitive=false, Bool whole_words=false); // if 't' starts with 'start'
-Bool Starts    (CChar  *t, CChar8 *start, Bool case_sensitive=false, Bool whole_words=false); // if 't' starts with 'start'
-Bool Starts    (CChar8 *t, CChar  *start, Bool case_sensitive=false, Bool whole_words=false); // if 't' starts with 'start'
-Bool Starts    (CChar8 *t, CChar8 *start, Bool case_sensitive=false, Bool whole_words=false); // if 't' starts with 'start'
-Bool Ends      (CChar  *t, CChar  *end  , Bool case_sensitive=false                        ); // if 't' ends   with 'end'
-Bool Ends      (CChar  *t, CChar8 *end  , Bool case_sensitive=false                        ); // if 't' ends   with 'end'
-Bool Ends      (CChar8 *t, CChar  *end  , Bool case_sensitive=false                        ); // if 't' ends   with 'end'
-Bool Ends      (CChar8 *t, CChar8 *end  , Bool case_sensitive=false                        ); // if 't' ends   with 'end'
-Bool StartsPath(CChar  *t, CChar  *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
-Bool StartsPath(CChar  *t, CChar8 *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
-Bool StartsPath(CChar8 *t, CChar  *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
-Bool StartsPath(CChar8 *t, CChar8 *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
+Bool Starts    (CChar  *t, CChar  *start, Bool case_sensitive=false, Bool whole_word=false); // if 't' starts with 'start'
+Bool Starts    (CChar  *t, CChar8 *start, Bool case_sensitive=false, Bool whole_word=false); // if 't' starts with 'start'
+Bool Starts    (CChar8 *t, CChar  *start, Bool case_sensitive=false, Bool whole_word=false); // if 't' starts with 'start'
+Bool Starts    (CChar8 *t, CChar8 *start, Bool case_sensitive=false, Bool whole_word=false); // if 't' starts with 'start'
+Bool Ends      (CChar  *t, CChar  *end  , Bool case_sensitive=false                       ); // if 't' ends   with 'end'
+Bool Ends      (CChar  *t, CChar8 *end  , Bool case_sensitive=false                       ); // if 't' ends   with 'end'
+Bool Ends      (CChar8 *t, CChar  *end  , Bool case_sensitive=false                       ); // if 't' ends   with 'end'
+Bool Ends      (CChar8 *t, CChar8 *end  , Bool case_sensitive=false                       ); // if 't' ends   with 'end'
+Bool StartsPath(CChar  *t, CChar  *start                                                  ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
+Bool StartsPath(CChar  *t, CChar8 *start                                                  ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
+Bool StartsPath(CChar8 *t, CChar  *start                                                  ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
+Bool StartsPath(CChar8 *t, CChar8 *start                                                  ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
 
-Bool Contains   (C Str  &src,  Char   c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (C Str  &src,  Char8  c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (C Str8 &src,  Char   c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (C Str8 &src,  Char8  c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (CChar  *src,  Char   c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (CChar  *src,  Char8  c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (CChar8 *src,  Char   c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (CChar8 *src,  Char8  c                                                   ); // if 'src' contains 'c' character
-Bool Contains   (CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
-Bool Contains   (CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
-Bool Contains   (CChar8 *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
-Bool Contains   (CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
-Bool ContainsAny(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains any words from 't' (words are separated by spaces)
-Bool ContainsAll(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains all words from 't' (words are separated by spaces)
-Bool ContainsAll(CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains all words from 't' (words are separated by spaces)
-Bool ContainsAll(CChar8 *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains all words from 't' (words are separated by spaces)
-Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains all words from 't' (words are separated by spaces)
+Bool Contains   (C Str  &src,  Char   c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (C Str  &src,  Char8  c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (C Str8 &src,  Char   c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (C Str8 &src,  Char8  c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (CChar  *src,  Char   c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (CChar  *src,  Char8  c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (CChar8 *src,  Char   c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (CChar8 *src,  Char8  c                                                  ); // if 'src' contains 'c' character
+Bool Contains   (CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains 't' text
+Bool Contains   (CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains 't' text
+Bool Contains   (CChar8 *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains 't' text
+Bool Contains   (CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains 't' text
+Bool ContainsAny(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains any words from 't' (words are separated by spaces)
+Bool ContainsAll(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains all words from 't' (words are separated by spaces)
+Bool ContainsAll(CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains all words from 't' (words are separated by spaces)
+Bool ContainsAll(CChar8 *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains all words from 't' (words are separated by spaces)
+Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // if 'src' contains all words from 't' (words are separated by spaces)
 
 #if EE_PRIVATE
 inline CChar * _SkipChar           (CChar  *t               ) {return Is(t)          ? t+1 : null;} // return next character in the text
@@ -159,8 +159,8 @@ Str SkipEnd       (C Str &t, C Str &end  ); // if 't' ends   with 'end'        t
 Char * ReplaceSelf(Char  *text, Char  from, Char  to);
 Char8* ReplaceSelf(Char8 *text, Char8 from, Char8 to);
 #endif
-Str Replace(C Str &text, Char   from, Char   to                                                   ); // replace 'from' -> 'to' in 'text', Sample Usage: Replace("abcde", 'd', '7') -> "abc7e"
-Str Replace(C Str &text, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_words=false); // replace 'from' -> 'to' in 'text', Sample Usage: Replace("This is not a cat", "not ", "") -> "This is a cat"
+Str Replace(C Str &text, Char   from, Char   to                                                  ); // replace 'from' -> 'to' in 'text', Sample Usage: Replace("abcde", 'd', '7') -> "abc7e"
+Str Replace(C Str &text, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_word=false); // replace 'from' -> 'to' in 'text', Sample Usage: Replace("This is not a cat", "not ", "") -> "This is a cat"
 
 Str  Trim(C Str  &text, Int pos, Int length); // trim string by removing start and end, to keep only the part starting at 'pos' of 'length' length
 Str8 Trim(C Str8 &text, Int pos, Int length); // trim string by removing start and end, to keep only the part starting at 'pos' of 'length' length
@@ -180,23 +180,23 @@ CChar8* TextPos (CChar8 *src, Char8 c); // get pointer to position of first 'c' 
  Char * TextPos ( Char  *src, Char  c); // get pointer to position of first 'c' character in 'src' text (null if none)
  Char8* TextPos ( Char8 *src, Char8 c); // get pointer to position of first 'c' character in 'src' text (null if none)
 
-Int     TextPosI(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // get            position of first 't' text in 'src' text (-1   if none)
-Int     TextPosI(CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // get            position of first 't' text in 'src' text (-1   if none)
-Int     TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // get            position of first 't' text in 'src' text (-1   if none)
-CChar * TextPos (CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // get pointer to position of first 't' text in 'src' text (null if none)
-CChar * TextPos (CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // get pointer to position of first 't' text in 'src' text (null if none)
-CChar8* TextPos (CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // get pointer to position of first 't' text in 'src' text (null if none)
+Int     TextPosI(CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // get            position of first 't' text in 'src' text (-1   if none)
+Int     TextPosI(CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // get            position of first 't' text in 'src' text (-1   if none)
+Int     TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // get            position of first 't' text in 'src' text (-1   if none)
+CChar * TextPos (CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_word=false); // get pointer to position of first 't' text in 'src' text (null if none)
+CChar * TextPos (CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // get pointer to position of first 't' text in 'src' text (null if none)
+CChar8* TextPos (CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_word=false); // get pointer to position of first 't' text in 'src' text (null if none)
 
 #if EE_PRIVATE
 Int TextPosIN(CChar  *src, Char  c, Int i); // get position of i-th 'c' character in 'src' text (-1 if none)
 Int TextPosIN(CChar8 *src, Char8 c, Int i); // get position of i-th 'c' character in 'src' text (-1 if none)
 
-Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive=false, Bool whole_words=false); // get position of i-th 't' text in 'src' text (-1 if none)
+Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive=false, Bool whole_word=false); // get position of i-th 't' text in 'src' text (-1 if none)
 
-Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive=false, Bool whole_words=false); // get position of 't' text in 'src' text (-1 if none)
+Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive=false, Bool whole_word=false); // get position of 't' text in 'src' text (-1 if none)
 #endif
 
-Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_words=false); // get part of the string located between 'from' and 'to' strings, "" is returned if not found
+Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_word=false); // get part of the string located between 'from' and 'to' strings, "" is returned if not found
 
 // convert from value to text, 'digits'=number of digits to generate (-1=autodetect), 'separate'=number of digits to be separated with a space ' ', 'prefix'=if insert a prefix ("0b" for binary and "0x" for hexadecimal)
    CChar8* TextBool(Bool  b                                                     ); // return b ? "true" : "false";

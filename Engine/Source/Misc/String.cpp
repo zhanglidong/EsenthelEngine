@@ -1015,7 +1015,7 @@ Int ComparePathNumber(CChar8 *a, CChar8 *b, Bool case_sensitive)
                 return  0;
 }
 /****************************************************************************/
-Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
+Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(start))return true;
    if(t)
@@ -1027,7 +1027,7 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCSFast(*t, *start))return false; last_start=*start;
@@ -1036,7 +1036,7 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCIFast(*t, *start))return false; last_start=*start;
@@ -1044,7 +1044,7 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
+Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(start))return true;
    if(t)
@@ -1056,7 +1056,7 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCSFast(*t, *start))return false; last_start=*start;
@@ -1065,7 +1065,7 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCIFast(*t, *start))return false; last_start=*start;
@@ -1073,7 +1073,7 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
+Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(start))return true;
    if(t)
@@ -1085,7 +1085,7 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCSFast(*t, *start))return false; last_start=*start;
@@ -1094,7 +1094,7 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCIFast(*t, *start))return false; last_start=*start;
@@ -1102,7 +1102,7 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
+Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(start))return true;
    if(t)
@@ -1114,7 +1114,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCSFast(*t, *start))return false; last_start=*start;
@@ -1123,7 +1123,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR)return CharTypeFast(t[0])!=CHART_CHAR;
             return true;
          }
          if(!EqualCIFast(*t, *start))return false; last_start=*start;
@@ -1132,7 +1132,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, Bool whole_words=false)
+Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, Bool whole_word=false)
 {
    if(!Is(start))return true;
    if(t)
@@ -1145,7 +1145,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR && CharTypeFast(t[0])==CHART_CHAR)return false;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR && CharTypeFast(t[0])==CHART_CHAR)return false;
             match_length=t-t_start;
             return true;
          }
@@ -1170,7 +1170,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
       {
          if(!start[0])
          {
-            if(whole_words && CharTypeFast(last_start)==CHART_CHAR && CharTypeFast(t[0])==CHART_CHAR)return false;
+            if(whole_word && CharTypeFast(last_start)==CHART_CHAR && CharTypeFast(t[0])==CHART_CHAR)return false;
             match_length=t-t_start;
             return true;
          }
@@ -1318,7 +1318,7 @@ Bool Contains(CChar  *src, Char  c) {                                           
 Bool Contains(CChar  *src, Char8 c) {Char  a=Char8To16Fast(c);                        if(src)for(;;){Char8 s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized
 Bool Contains(CChar8 *src, Char  c) {Char8 a=Char16To8Fast(c); if(Char8To16Fast(a)==c)if(src)for(;;){Char  s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized, 'Char16To8Fast' may not support all characters, so we have to check if it's a direct mapping in both ways
 /****************************************************************************/
-Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(t))return true;
    if(src)
@@ -1327,11 +1327,11 @@ Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
             t_length=Length(t);
-      Bool  dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool  dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(;;)
       {
          Char8 c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
          {
             return true;
          }
@@ -1341,7 +1341,7 @@ Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(t))return true;
    if(src)
@@ -1350,11 +1350,11 @@ Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
            t_length=Length(t);
-      Bool dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(;;)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
          {
             return true;
          }
@@ -1364,7 +1364,7 @@ Bool Contains(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(t))return true;
    if(src)
@@ -1373,11 +1373,11 @@ Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
            t_length=Length(t);
-      Bool dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(;;)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
          {
             return true;
          }
@@ -1387,7 +1387,7 @@ Bool Contains(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
    }
    return false;
 }
-Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_word)
 {
    if(!Is(t))return true;
    if(src)
@@ -1396,11 +1396,11 @@ Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
             t_length=Length(t);
-      Bool  dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool  dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(;;)
       {
          Char8 c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
          {
             return true;
          }
@@ -1411,7 +1411,7 @@ Bool Contains(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
+Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_word) // always return true if 't' is null or has no words
 {
    Bool ok=true; // assume ok at the start if there are no words to test
    if(t)
@@ -1425,7 +1425,7 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) //
             {
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
-               if(Contains(src, word.data(), case_sensitive, whole_words))return true;
+               if(Contains(src, word.data(), case_sensitive, whole_word))return true;
                ok=false; // encountered a word to test, but it failed
             }
             if(c=='\0')break;
@@ -1436,7 +1436,7 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) //
    return ok;
 }
 /****************************************************************************/
-Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
+Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_word) // always return true if 't' is null or has no words
 {
    if(t)
    {
@@ -1449,7 +1449,7 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) //
             {
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
-               if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
+               if(!Contains(src, word.data(), case_sensitive, whole_word))return false;
             }
             if(c=='\0')break;
             start=t;
@@ -1458,7 +1458,7 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words) //
    }
    return true;
 }
-Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
+Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_word) // always return true if 't' is null or has no words
 {
    if(t)
    {
@@ -1471,7 +1471,7 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words) /
             {
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
-               if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
+               if(!Contains(src, word.data(), case_sensitive, whole_word))return false;
             }
             if(c=='\0')break;
             start=t;
@@ -1480,7 +1480,7 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words) /
    }
    return true;
 }
-Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
+Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_word) // always return true if 't' is null or has no words
 {
    if(t)
    {
@@ -1493,7 +1493,7 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words) /
             {
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
-               if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
+               if(!Contains(src, word.data(), case_sensitive, whole_word))return false;
             }
             if(c=='\0')break;
             start=t;
@@ -1502,7 +1502,7 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words) /
    }
    return true;
 }
-Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words) // always return true if 't' is null or has no words
+Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_word) // always return true if 't' is null or has no words
 {
    if(t)
    {
@@ -1515,7 +1515,7 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words) 
             {
                word.setNumDiscard(len_1);
                Set(word.data(), start, word.elms());
-               if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
+               if(!Contains(src, word.data(), case_sensitive, whole_word))return false;
             }
             if(c=='\0')break;
             start=t;
@@ -1680,18 +1680,18 @@ Str Replace(C Str &text, Char from, Char to)
    return s;
 }
 /****************************************************************************/
-Str Replace(C Str &text, C Str &from, C Str &to, Bool case_sensitive, Bool whole_words)
+Str Replace(C Str &text, C Str &from, C Str &to, Bool case_sensitive, Bool whole_word)
 {
    if(text.is() && from.is())
    {
       I();
-      Bool   dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(from.first())!=CHART_CHAR); dont_check[1]=(CharTypeFast(from.last())!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool   dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(from.first())!=CHART_CHAR); dont_check[1]=(CharTypeFast(from.last())!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       Char   last='\0';
       CChar *t   =text;
       Str    out;
       for(;;)
       {
-         if(Starts(t, from, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(t[from.length()])!=CHART_CHAR) : true))
+         if(Starts(t, from, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(t[from.length()])!=CHART_CHAR) : true))
          {
             out +=to;
             t   +=from.length();
@@ -1808,7 +1808,7 @@ Int TextPosIN(CChar *src, Char c, Int i)
    return -1;
 }
 /****************************************************************************/
-Int TextPosI(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
+Int TextPosI(CChar *src, CChar *t, Bool case_sensitive, Bool whole_word)
 {
    if(src && Is(t))
    {
@@ -1816,18 +1816,18 @@ Int TextPosI(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
            t_length=Length(t);
-      Bool dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
          last=c;
          src++;
       }
    }
    return -1;
 }
-Int TextPosI(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Int TextPosI(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_word)
 {
    if(src && Is(t))
    {
@@ -1835,18 +1835,18 @@ Int TextPosI(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
            t_length=Length(t);
-      Bool dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
          last=c;
          src++;
       }
    }
    return -1;
 }
-Int TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
+Int TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_word)
 {
    if(src && Is(t))
    {
@@ -1854,11 +1854,11 @@ Int TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
             t_length=Length(t);
-      Bool  dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool  dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(Int pos=0; ; pos++)
       {
          Char8 c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
          last=c;
          src++;
       }
@@ -1866,7 +1866,7 @@ Int TextPosI(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
    return -1;
 }
 /****************************************************************************/
-Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive, Bool whole_words)
+Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive, Bool whole_word)
 {
    if(src && Is(t))
    {
@@ -1874,11 +1874,11 @@ Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive, Bool whole_wor
       Char8 last    ='\0';
       Int   order   =CharOrderFast(*t),
             t_length=Length(t);
-      Bool  dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool  dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(Int found=0, pos=0; ; pos++)
       {
          Char8 c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
+         if(CharOrderFast(c)==order && Starts(src, t, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))
          {
             if(found==i)return pos;
                found++;
@@ -1890,7 +1890,7 @@ Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive, Bool whole_wor
    return -1;
 }
 /****************************************************************************/
-Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive, Bool whole_words)
+Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive, Bool whole_word)
 {
    if(src && Is(t))
    {
@@ -1898,11 +1898,11 @@ Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensiti
       Char last    ='\0';
       Int  order   =CharOrderFast(*t),
            t_length=Length(t);
-      Bool dont_check[2]; if(whole_words){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_words=false;}
+      Bool dont_check[2]; if(whole_word){dont_check[0]=(CharTypeFast(t[0])!=CHART_CHAR); dont_check[1]=(CharTypeFast(t[t_length-1])!=CHART_CHAR); if(dont_check[0] && dont_check[1])whole_word=false;}
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive) && (whole_words ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
+         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive) && (whole_word ? (dont_check[0] || CharTypeFast(last)!=CHART_CHAR) && (dont_check[1] || CharTypeFast(src[t_length])!=CHART_CHAR) : true))return pos;
          last=c;
          src++;
       }
@@ -1910,18 +1910,18 @@ Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensiti
    return -1;
 }
 /****************************************************************************/
-CChar * TextPos(CChar  *src,  Char   c                                       ) {Int p=TextPosI(src, c                             ); return (p<0) ? null : &src[p];}
-CChar8* TextPos(CChar8 *src,  Char8  c                                       ) {Int p=TextPosI(src, c                             ); return (p<0) ? null : &src[p];}
-CChar * TextPos(CChar  *src, CChar  *t, Bool case_sensitive, Bool whole_words) {Int p=TextPosI(src, t, case_sensitive, whole_words); return (p<0) ? null : &src[p];}
-CChar * TextPos(CChar  *src, CChar8 *t, Bool case_sensitive, Bool whole_words) {Int p=TextPosI(src, t, case_sensitive, whole_words); return (p<0) ? null : &src[p];}
-CChar8* TextPos(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words) {Int p=TextPosI(src, t, case_sensitive, whole_words); return (p<0) ? null : &src[p];}
+CChar * TextPos(CChar  *src,  Char   c                                      ) {Int p=TextPosI(src, c                            ); return (p<0) ? null : &src[p];}
+CChar8* TextPos(CChar8 *src,  Char8  c                                      ) {Int p=TextPosI(src, c                            ); return (p<0) ? null : &src[p];}
+CChar * TextPos(CChar  *src, CChar  *t, Bool case_sensitive, Bool whole_word) {Int p=TextPosI(src, t, case_sensitive, whole_word); return (p<0) ? null : &src[p];}
+CChar * TextPos(CChar  *src, CChar8 *t, Bool case_sensitive, Bool whole_word) {Int p=TextPosI(src, t, case_sensitive, whole_word); return (p<0) ? null : &src[p];}
+CChar8* TextPos(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_word) {Int p=TextPosI(src, t, case_sensitive, whole_word); return (p<0) ? null : &src[p];}
 /******************************************************************************/
-Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive, Bool whole_words)
+Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive, Bool whole_word)
 {
-   if(CChar *inside=TextPos(str, from, case_sensitive, whole_words))
+   if(CChar *inside=TextPos(str, from, case_sensitive, whole_word))
    {
       inside+=from.length();
-      Int length=TextPosI(inside, to, case_sensitive, whole_words);
+      Int length=TextPosI(inside, to, case_sensitive, whole_word);
       if( length>0)
       {
          Str s; s.reserve(length); FREP(length)s+=inside[i];

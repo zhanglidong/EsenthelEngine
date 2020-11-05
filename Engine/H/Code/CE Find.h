@@ -40,7 +40,7 @@ struct Find : Region
 
               void create ();
               void resize ();
-              void find   (C Str &t, Bool case_sensitive, Bool whole_words, MODE mode, UInt scope, Bool skip_ee);
+              void find   (C Str &t, Bool case_sensitive, Bool whole_word, MODE mode, UInt scope, Bool skip_ee);
               void setData();
       virtual void update (C GuiPC &gpc);
    };
@@ -50,7 +50,7 @@ struct Find : Region
    Int          history_pos;
    Memc<Str>    history;
    TextLine     text;
-   Button       prev, next, close, case_sensitive, whole_words, cur_file, active_app, engine, skip_ee;
+   Button       prev, next, close, case_sensitive, whole_word, cur_file, active_app, engine, skip_ee;
    Tabs         mode;
    ResultRegion result;
 
@@ -76,7 +76,7 @@ struct ReplaceText : ClosableWindow
    Text   t_src, t_dest, t_scope;
    TextLine src,   dest;
    ComboBox scope;
-   Button   case_sensitive, whole_words, replace, cancel;
+   Button   case_sensitive, whole_word, replace, cancel;
    Menu     menu;
 
            void         create ();
