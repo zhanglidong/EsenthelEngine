@@ -196,7 +196,7 @@ Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive=false, Bool who
 Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive=false, Bool whole_words=false); // get position of 't' text in 'src' text (-1 if none)
 #endif
 
-Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_words=false); // get part of the string located between 'from' and 'to' strings, 'S' is returned if not found
+Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, Bool whole_words=false); // get part of the string located between 'from' and 'to' strings, "" is returned if not found
 
 // convert from value to text, 'digits'=number of digits to generate (-1=autodetect), 'separate'=number of digits to be separated with a space ' ', 'prefix'=if insert a prefix ("0b" for binary and "0x" for hexadecimal)
    CChar8* TextBool(Bool  b                                                     ); // return b ? "true" : "false";
