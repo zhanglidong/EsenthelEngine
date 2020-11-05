@@ -37,6 +37,9 @@ constexpr UInt CC4(Byte a, Byte b, Byte c, Byte d) {return a | (b<<8) | (c<<16) 
 
 Bool WhiteChar(Char c); // if char is a white char - ' ', '\t', '\n', '\r'
 
+constexpr Byte   Unsigned(Char8  x) {return x;}
+constexpr UShort Unsigned(Char   x) {return x;}
+
 Char8 Char16To8(Char  c); // convert 16-bit to  8-bit character
 Char  Char8To16(Char8 c); // convert  8-bit to 16-bit character
 
@@ -62,8 +65,8 @@ Bool EqualCS(Char8 a, Char8 b); // if characters are the same, case sensitive
 
 Char RemoveAccent(Char c); // convert accented character to one without an accent, for example RemoveAccent('ą') -> 'a', if character is not accented then it will be returned without any modifications, RemoveAccent('a') -> 'a'
 
-inline Bool HasUnicode(Char  c) {return U16(c)>=128;} // if character is a unicode character
-inline Bool HasUnicode(Char8 c) {return U8 (c)>=128;} // if character is a unicode character
+inline Bool HasUnicode(Char  c) {return Unsigned(c)>=128;} // if character is a unicode character
+inline Bool HasUnicode(Char8 c) {return Unsigned(c)>=128;} // if character is a unicode character
 /******************************************************************************/
 const Char8 CharNull      ='\0',
             CharTab       ='\t',
@@ -101,10 +104,10 @@ extern U16 _CharFlag[];
 
 extern const Char8 Digits16[]; // '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 
-INLINE Char  Char8To16Fast(Char8 c) {return WINDOWS ? _Char8To16[U8 (c)] : Char(U8(c));} // only Windows uses code pages, other platforms always have direct mapping
-INLINE Char8 Char16To8Fast(Char  c) {return           _Char16To8[U16(c)]              ;}
+INLINE Char  Char8To16Fast(Char8 c) {return WINDOWS ? _Char8To16[Unsigned(c)] : Char(Unsigned(c));} // only Windows uses code pages, other platforms always have direct mapping
+INLINE Char8 Char16To8Fast(Char  c) {return           _Char16To8[Unsigned(c)]                    ;}
 
-INLINE UInt CharFlagFast(Char  c) {return _CharFlag[U16(c)];}
+INLINE UInt CharFlagFast(Char  c) {return _CharFlag[Unsigned(c)];}
 INLINE UInt CharFlagFast(Char8 c) {return  CharFlagFast(Char8To16Fast(c));}
 
 Int CharInt(Char c); // get character as integer, '0'->0, '1'->1, .., 'a/A'->10, 'b/B'->11, .., ?->-1

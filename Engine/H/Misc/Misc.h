@@ -144,8 +144,6 @@ constexpr Int   Signed(UInt   x) {return x;}
 constexpr Long  Signed(Long   x) {return x;}
 constexpr Long  Signed(ULong  x) {return x;}
 
-constexpr Byte   Unsigned(Char8  x) {return x;}
-constexpr UShort Unsigned(Char   x) {return x;}
 constexpr Byte   Unsigned(SByte  x) {return x;}
 constexpr Byte   Unsigned(Byte   x) {return x;}
 constexpr UShort Unsigned(Short  x) {return x;}

@@ -76,8 +76,8 @@ static struct CharReplace
 
    void set(Char src, Char8 dest) {T.src=src; T.dest=dest;}
 
-   static Int Compare(C CharReplace &a, C CharReplace &b) {return ::Compare(U16(a.src), U16(b.src));}
-   static Int Compare(C CharReplace &a, C Char        &b) {return ::Compare(U16(a.src), U16(b    ));}
+   static Int Compare(C CharReplace &a, C CharReplace &b) {return ::Compare(Unsigned(a.src), Unsigned(b.src));}
+   static Int Compare(C CharReplace &a, C Char        &b) {return ::Compare(Unsigned(a.src), Unsigned(b    ));}
 }CharReplaces[]=
 {
    // !! This must be sorted !! codes for creation of this array are located in 'InitStr'
@@ -161,14 +161,14 @@ static struct CharReplace
 /******************************************************************************/
 // CHARACTER
 /******************************************************************************/
-INLINE Int CharOrderFast(Char8 c) {return CharOrder8 [U8 (c)];}
-INLINE Int CharOrderFast(Char  c) {return CharOrder16[U16(c)];}
+INLINE Int CharOrderFast(Char8 c) {return CharOrder8 [Unsigned(c)];}
+INLINE Int CharOrderFast(Char  c) {return CharOrder16[Unsigned(c)];}
 
 UInt CharFlagFast(Char8 a, Char8 b) {return CharFlagFast(a)|CharFlagFast(b);}
 UInt CharFlagFast(Char  a, Char  b) {return CharFlagFast(a)|CharFlagFast(b);}
 
-INLINE Char  CaseDownFast(Char  c) {return _CaseDown[U16(c)];}
-INLINE Char  CaseUpFast  (Char  c) {return _CaseUp  [U16(c)];}
+INLINE Char  CaseDownFast(Char  c) {return _CaseDown[Unsigned(c)];}
+INLINE Char  CaseUpFast  (Char  c) {return _CaseUp  [Unsigned(c)];}
 INLINE Char8 CaseDownFast(Char8 c) {return  CaseDownFast(Char8To16Fast(c));}
 INLINE Char8 CaseUpFast  (Char8 c) {return  CaseUpFast  (Char8To16Fast(c));}
 
@@ -227,10 +227,10 @@ Bool WhiteChar(Char c)
    }
 }
 
-Int CompareCS(Char8 a, Char8 b) {return U8 (          a )-U8 (          b );}
-Int CompareCS(Char8 a, Char  b) {return U16(Char8To16(a))-U16(          b );}
-Int CompareCS(Char  a, Char8 b) {return U16(          a )-U16(Char8To16(b));}
-Int CompareCS(Char  a, Char  b) {return U16(          a )-U16(          b );}
+Int CompareCS(Char8 a, Char8 b) {return Unsigned(          a )-Unsigned(          b );}
+Int CompareCS(Char8 a, Char  b) {return Unsigned(Char8To16(a))-Unsigned(          b );}
+Int CompareCS(Char  a, Char8 b) {return Unsigned(          a )-Unsigned(Char8To16(b));}
+Int CompareCS(Char  a, Char  b) {return Unsigned(          a )-Unsigned(          b );}
 
 Int CompareCI(Char8 a, Char8 b) {I(); return CharOrderFast(a)-CharOrderFast(b);}
 Int CompareCI(Char8 a, Char  b) {I(); return CharOrderFast(a)-CharOrderFast(b);}
@@ -822,7 +822,7 @@ Int CompareNumber(CChar *a, CChar *b, Bool case_sensitive)
             || a!=a_start && IsDigit(a[-1]) && IsDigit(b[-1])) // if both were digits in previous step
                if(Int c=CompareNumberLength(a, b))return c;
 
-            return (U16(ac)<U16(bc)) ? -1 : +1;
+            return (Unsigned(ac)<Unsigned(bc)) ? -1 : +1;
          }
          if(!ac)return 0;
       }else
@@ -862,7 +862,7 @@ Int CompareNumber(CChar8 *a, CChar8 *b, Bool case_sensitive)
             || a!=a_start && IsDigit(a[-1]) && IsDigit(b[-1])) // if both were digits in previous step
                if(Int c=CompareNumberLength(a, b))return c;
 
-            return (U8(ac)<U8(bc)) ? -1 : +1;
+            return (Unsigned(ac)<Unsigned(bc)) ? -1 : +1;
          }
          if(!ac)return 0;
       }else
@@ -916,7 +916,7 @@ Int ComparePathNumber(CChar *a, CChar *b, Bool case_sensitive)
                if(!b[1] && !ac)return 0; // treat "c:" and "c:/" as the same
                return +1; // needed only for case sensitive as CharOrder has slashes first
             }
-            return (U16(ac)<U16(bc)) ? -1 : +1;
+            return (Unsigned(ac)<Unsigned(bc)) ? -1 : +1;
          }
          if(!ac)return 0;
       }else
@@ -979,7 +979,7 @@ Int ComparePathNumber(CChar8 *a, CChar8 *b, Bool case_sensitive)
                if(!b[1] && !ac)return 0; // treat "c:" and "c:/" as the same
                return +1; // needed only for case sensitive as CharOrder has slashes first
             }
-            return (U8(ac)<U8(bc)) ? -1 : +1;
+            return (Unsigned(ac)<Unsigned(bc)) ? -1 : +1;
          }
          if(!ac)return 0;
       }else
@@ -3995,14 +3995,14 @@ static void InitStr()
          wchar_t w;
          MultiByteToWideChar(CP_ACP, 0, &c, 1, &w, 1);
          // many 'c' characters can point to the same 'w', however we need "Char16To8(Char8To16(c))==c", so the characters that get repeated, we need to store them as original, these are:
-         if(w=='?'        // occurs in Chinese Traditional
-         || U16(w)==12539 // occurs in Japanese
+         if(w=='?'             // occurs in Chinese Traditional
+         || Unsigned(w)==12539 // occurs in Japanese
          )w=c;
-        _Char8To16[U8 (c)]=w;
-        _Char16To8[U16(w)]=c;
+        _Char8To16[Unsigned(c)]=w;
+        _Char16To8[Unsigned(w)]=c;
       #else // on other platforms accented characters use UTF8 (one accented character may use multiple chars, so single char of value >=128 does not have a code page like on Windows), just use direct copy, this is needed for 'CreateShortcut' Linux version where UTF8 is saved using 'Str'
-        _Char8To16[U8(c)]=c;
-        _Char16To8[U8(c)]=c;
+        _Char8To16[Unsigned(c)]=c;
+        _Char16To8[Unsigned(c)]=c;
       #endif
       }
    }
@@ -4018,15 +4018,15 @@ static void InitStr()
       REPA ( DownUps ){U16 d=DownUps[i][0], u=DownUps[i][1]; _CaseDown[u]=d; _CaseUp[d]=u;}
    #endif
 
-   #define SET(l, h) {_CaseDown[U16(u##h)]=u##l; _CaseUp[U16(u##l)]=u##h;}
+   #define SET(l, h) {_CaseDown[Unsigned(u##h)]=u##l; _CaseUp[Unsigned(u##l)]=u##h;}
       SET('ß', 'ẞ');
    #undef SET
    }
 
    // Character Order - do not make any changes to the character order as it should remain frozen! because this order affects the sort order of how files are stored in PAK files
    {
-   #define SET( x   ) CharOrder16[U16(u##x)]=o;                           o++
-   #define SET2(l, h) CharOrder16[U16(u##l)]=o; CharOrder16[U16(u##h)]=o; o++
+   #define SET( x   ) CharOrder16[Unsigned(u##x)]=o;                                o++
+   #define SET2(l, h) CharOrder16[Unsigned(u##l)]=o; CharOrder16[Unsigned(u##h)]=o; o++
       U16 o=0;
       SET('\0');
       SET('\r');
@@ -4142,7 +4142,7 @@ static void InitStr()
    // Char Flag
    {
       // set custom
-   #define SET(c, f) _CharFlag[U16(c)]|=f;
+   #define SET(c, f) _CharFlag[Unsigned(c)]|=f;
                                  SET(' '           , CHARF_SPACE);
                                  SET(Nbsp          , CHARF_SPACE);
                                  SET(FullWidthSpace, CHARF_SPACE);
@@ -4158,7 +4158,7 @@ static void InitStr()
    #undef  SET
 
       // set sign
-   #define SET(c) _CharFlag[U16(c)]|=CHARF_SIGN;
+   #define SET(c) _CharFlag[Unsigned(c)]|=CHARF_SIGN;
       SET('_');
       SET('`');
       SET('~');
@@ -4206,7 +4206,7 @@ static void InitStr()
    #undef SET
 
       // set sign2
-   #define SET(c) _CharFlag[U16(c)]|=CHARF_SIGN2;
+   #define SET(c) _CharFlag[Unsigned(c)]|=CHARF_SIGN2;
       SET(CharCopyright);
       SET(CharRegTM);
       SET(CharTrademark);
@@ -4314,7 +4314,7 @@ Font& Font::removeAccent(Bool permanent)
 #if APPLE
 static Bool HasUnicode(NSString *str)
 {
-   if(str)REP([str length])if(U16([str characterAtIndex:i])>=128)return true;
+   if(str)REP([str length])if(Unsigned([str characterAtIndex:i])>=128)return true;
    return false;
 }
 /******************************************************************************/
