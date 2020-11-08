@@ -785,7 +785,7 @@ void CreateEditorPak()
 /******************************************************************************/
 void CompileVS(C Str &project, C Str &config, C Str &platform, void func()=null, void pre()=null)
 {
-   if(Contains(platform, "Web", false, true)) // WEB requires VS 2010
+   if(Contains(platform, "Web", false, WHOLE_WORD_STRICT)) // WEB requires VS 2010
    {
       Str devenv=DevEnvPath(VSPath2010);
       if(!devenv.is())Gui.msgBox("Error", "Compiling Web requires Visual C++ 2010");else
@@ -980,12 +980,12 @@ static Bool PatchPhysXProject(C Str &path)
          if(r)s.replace('\r', '\0');
 
          // VS 2017
-         s=Replace(s, "<PlatformToolset>v140</PlatformToolset>"                         , "<PlatformToolset>v141_xp</PlatformToolset>"           , true, true);
-         s=Replace(s, "<TreatWarningAsError>true</TreatWarningAsError>"                 , "<TreatWarningAsError>false</TreatWarningAsError>"     , true, true);
+         s=Replace(s, "<PlatformToolset>v140</PlatformToolset>"                         , "<PlatformToolset>v141_xp</PlatformToolset>"           , true, WHOLE_WORD_STRICT);
+         s=Replace(s, "<TreatWarningAsError>true</TreatWarningAsError>"                 , "<TreatWarningAsError>false</TreatWarningAsError>"     , true, WHOLE_WORD_STRICT);
          // reduce size
-         s=Replace(s, "<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>", "<DebugInformationFormat>None</DebugInformationFormat>", true, true);
-         s=Replace(s, " /Fd\"$(TargetDir)\\$(TargetName).pdb\""                         , S                                                      , true, true); // one file has this specified in "LowLevelCloth" project which results in PDB missing notification on compilation
-         s=Replace(s, " /Zi"                                                            , S                                                      , true, true); // one file has this specified in "LowLevelCloth" project which results in PDB missing notification on compilation
+         s=Replace(s, "<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>", "<DebugInformationFormat>None</DebugInformationFormat>", true, WHOLE_WORD_STRICT);
+         s=Replace(s, " /Fd\"$(TargetDir)\\$(TargetName).pdb\""                         , S                                                      , true, WHOLE_WORD_STRICT); // one file has this specified in "LowLevelCloth" project which results in PDB missing notification on compilation
+         s=Replace(s, " /Zi"                                                            , S                                                      , true, WHOLE_WORD_STRICT); // one file has this specified in "LowLevelCloth" project which results in PDB missing notification on compilation
          // static lib
       #if PHYSX_DLL
          if(ff.name=="PhysX.vcxproj"
@@ -993,15 +993,15 @@ static Bool PatchPhysXProject(C Str &path)
          || ff.name=="PhysXCooking.vcxproj"
          || ff.name=="PxFoundation.vcxproj")
          {
-            s=Replace(s, "<ConfigurationType>StaticLibrary</ConfigurationType>", "<ConfigurationType>DynamicLibrary</ConfigurationType>", true, true);
-            s=Replace(s, "<TargetExt>.lib</TargetExt>"                         , "<TargetExt>.dll</TargetExt>"                          , true, true);
+            s=Replace(s, "<ConfigurationType>StaticLibrary</ConfigurationType>", "<ConfigurationType>DynamicLibrary</ConfigurationType>", true, WHOLE_WORD_STRICT);
+            s=Replace(s, "<TargetExt>.lib</TargetExt>"                         , "<TargetExt>.dll</TargetExt>"                          , true, WHOLE_WORD_STRICT);
          }
          s=Replace(s, ".rc\">\n\t\t\t<ExcludedFromBuild>true</ExcludedFromBuild>\n\t\t</", ".rc\">\n\t\t</");
          s=Replace(s, ".rc\">\n      <ExcludedFromBuild>true</ExcludedFromBuild>\n    </", ".rc\">\n    </");
          s=Replace(s, ".rc\"><ExcludedFromBuild>true</ExcludedFromBuild></"              , ".rc\"></"      );
       #else
-         s=Replace(s, "<ConfigurationType>DynamicLibrary</ConfigurationType>", "<ConfigurationType>StaticLibrary</ConfigurationType>", true, true);
-         s=Replace(s, "<TargetExt>.dll</TargetExt>"                          , "<TargetExt>.lib</TargetExt>"                         , true, true);
+         s=Replace(s, "<ConfigurationType>DynamicLibrary</ConfigurationType>", "<ConfigurationType>StaticLibrary</ConfigurationType>", true, WHOLE_WORD_STRICT);
+         s=Replace(s, "<TargetExt>.dll</TargetExt>"                          , "<TargetExt>.lib</TargetExt>"                         , true, WHOLE_WORD_STRICT);
 
          s=Replace(s, ".rc\">\n\t\t</", ".rc\">\n\t\t\t<ExcludedFromBuild>true</ExcludedFromBuild>\n\t\t</"); // projects have "*.rc" files included, because of which linking them into EsenthelEngine.lib file will fail, so we have to disable them
          s=Replace(s, ".rc\">\n    </", ".rc\">\n      <ExcludedFromBuild>true</ExcludedFromBuild>\n    </");
@@ -1021,7 +1021,7 @@ static Bool PatchPhysXProject(C Str &path)
          s=Replace(s, "CHECKED_x64.lib</OutputFile>", "_x64.lib</OutputFile>");
 
          s=Replace(s, "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>", "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>");
-         s=Replace(s, "_DEBUG", "NDEBUG", true, true);
+         s=Replace(s, "_DEBUG", "NDEBUG", true, WHOLE_WORD_STRICT);
          
          if(r)s=Replace(s, "\n", "\r\n");
          if(so!=s)
@@ -1238,7 +1238,7 @@ static FILE_LIST_MODE ListPhysXAndroidFiles(C FileFind &ff, Ptr user)
       || ff.name=="include"              )PhysXAndroidFolders+=S+" \\\n\t-I"+UnixPath(GetRelativePath(ThirdPartyLibsPath+"PhysX/Android", ff.pathName()));
    }else
    if(ff.type==FSTD_FILE && GetExt(ff.name)=="cpp"
-   && !Contains(SkipStartPath(ff.pathName(), ThirdPartyLibsPath), "serialization", false, true)
+   && !Contains(SkipStartPath(ff.pathName(), ThirdPartyLibsPath), "serialization", false, WHOLE_WORD_STRICT)
    )PhysXAndroidFiles+=S+" \\\n\t"+UnixPath(GetRelativePath(ThirdPartyLibsPath+"PhysX/Android/jni", ff.pathName()));
    return FILE_LIST_CONTINUE;
 }
@@ -1283,10 +1283,10 @@ static void PhysXCompileLinux()
       FileText f; if(f.read(ff.pathName()))
       {
          Str so, s; f.getAll(so); s=so;
-         s=Replace(s, " -Werror", S, true, true);
+         s=Replace(s, " -Werror", S, true, WHOLE_WORD_STRICT);
       #if !PHYSX_DLL
-       //s=Replace(s, " -shared", S, true, true);
-         s=Replace(s, ".so"  , ".a", true, true);
+       //s=Replace(s, " -shared", S, true, WHOLE_WORD_STRICT);
+         s=Replace(s, ".so"  , ".a", true, WHOLE_WORD_STRICT);
          Str name=GetExtNot(SkipStart(ff.name, "Makefile.")); // "Makefile.LowLevel.mk" -> "LowLevel"
          s=Replace(s, S+"$(CXX) -shared $("+name+"_release_obj) $("+name+"_release_lflags) -lc -o $@", S+"@$(AR) rcs $("+name+"_release_bin) $("+name+"_release_obj)");
       #endif
