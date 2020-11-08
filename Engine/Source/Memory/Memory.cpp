@@ -62,9 +62,9 @@ Bool MemStats::get()
 #else
    Char8 data[2048]; if(UnixReadFile("/proc/meminfo", data, SIZE(data))) // sample output: "MemTotal: 1024 kB\nMemFree: 512 kB\nCached: 256 kB"
    {
-      if(CChar8 *total =TextPos(data, "MemTotal", false, true))
-      if(CChar8 *free  =TextPos(data, "MemFree" , false, true))
-      if(CChar8 *cached=TextPos(data, "Cached"  , false, true))
+      if(CChar8 *total =TextPos(data, "MemTotal", false, WHOLE_WORD_STRICT))
+      if(CChar8 *free  =TextPos(data, "MemFree" , false, WHOLE_WORD_STRICT))
+      if(CChar8 *cached=TextPos(data, "Cached"  , false, WHOLE_WORD_STRICT))
       {
          total +=8; // Length("MemTotal") -> 8
          free  +=7; // Length("MemFree" ) -> 7

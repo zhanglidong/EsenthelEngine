@@ -1063,7 +1063,7 @@ struct FBX
             Int anim_layers=anim_stack->GetMemberCount<FbxAnimLayer>();
             if( anim_layers>0)
             {
-               FbxTimeSpan time_span=anim_stack->GetLocalTimeSpan(); Dbl time_start=time_span.GetStart().GetSecondDouble(), time_stop=time_span.GetStop().GetSecondDouble(), fps=FbxTime::GetFrameRate(global_settings->GetTimeMode()); // alternative is GetReferenceTimeSpan()
+               FbxTimeSpan time_span=anim_stack->GetLocalTimeSpan(); Dbl time_start=time_span.GetStart().GetSecondDouble(), time_stop=time_span.GetStop().GetSecondDouble(), fps=FbxTime::GetFrameRate(global_settings->GetTimeMode());
                XAnimation &xanim    =animations.New();
                xanim.fps  =fps;
                xanim.start=time_start;
