@@ -231,6 +231,7 @@
             <linkerLibFileItem>../../ThirdPartyLibs/Zstd/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/FDK-AAC/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/mbedTLS/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>
@@ -473,6 +474,7 @@
             <linkerLibFileItem>../../ThirdPartyLibs/Zstd/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/FDK-AAC/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/mbedTLS/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>

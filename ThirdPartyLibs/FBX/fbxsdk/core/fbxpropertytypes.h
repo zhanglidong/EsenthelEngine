@@ -194,11 +194,11 @@ public:
 	//@{
 		/** Retrieve the value as a float.
 		  */
-		const float value() const;
+		float value() const;
 
 		/** Retrieve the value as it is stored.
 		  */
-		unsigned const short internal_value() const;
+		unsigned short internal_value() const;
 	//@}
 
 /*****************************************************************************************************************************
@@ -500,19 +500,19 @@ public:
 		/** Retrieve the distance value 
 		  * \return             The value of the distance in the defined measurement unit.   
 		  */
-		const float value() const;
+		float value() const;
 	//@}
 
     /** Get the value of distance when converting this measurement unit to inch.
 	  * \return             The value of distance when converting this measurement unit to inch.
 	  */
-    const float internalValue() const;
+    float internalValue() const;
 
 	/** Get the value of distance when converting this measurement unit to the specified measurement unit.
 	  * \param pUnit       The measurement unit to be converted to.
 	  * \return            The value of distance when using the specified measurement unit.
 	  */
-    const float valueAs(const FbxSystemUnit& pUnit) const;
+    float valueAs(const FbxSystemUnit& pUnit) const;
 
 private:
     float               mValue;
@@ -522,12 +522,12 @@ private:
 /** Retrieve a type enumeration memory footprint size
 * \param pType The type enumeration
 * \return The size of this type in memory */
-FBXSDK_DLL const size_t FbxTypeSizeOf(const EFbxType pType);
+FBXSDK_DLL size_t FbxTypeSizeOf(const EFbxType pType);
 
 /** Retrieve a type enumeration component count
 * \param pType The type enumeration
 * \return The number of component used by this type */
-FBXSDK_DLL const size_t FbxTypeComponentCount(const EFbxType pType);
+FBXSDK_DLL size_t FbxTypeComponentCount(const EFbxType pType);
 
 // Type management for properties
 inline EFbxType FbxTypeOf(const FbxChar&){ return eFbxChar; }
@@ -1156,6 +1156,14 @@ inline bool FbxTypeCopy(void* pDst, EFbxType pDstType, const void* pSrc, EFbxTyp
   */
 FBXSDK_DLL void* FbxTypeAllocate(const EFbxType pType);
 
+/** Creates a fbx primitive type and initializes its memory; in place if possible.
+  * \param pType The type of object to create.
+  * \param pData Pointer to the object being created.
+  * \param pDataSize Data size at pData.
+  * \return true if allocation was successful. if the size of pType is larger than pDataSize pData is allocated otherwise inplace constructor is called.
+  */
+FBXSDK_DLL bool FbxTypeAllocate(const EFbxType pType, void* &pData, size_t pDataSize);
+
 /** Destroys an fbx primitive type. If the return value is true
   * the memory pointed to by pData has been deleted and should
   * no longer be accessed.
@@ -1164,6 +1172,16 @@ FBXSDK_DLL void* FbxTypeAllocate(const EFbxType pType);
   * \return true if the object was destroyed, false otherwise.
   */
 FBXSDK_DLL bool FbxTypeDeallocate(const EFbxType pType, void* pData);
+
+/** Destroys an fbx primitive type. If the return value is true
+  * the memory pointed to by pData has been deleted and should
+  * no longer be accessed.
+  * \param pType The type of object being deleted
+  * \param pData Pointer to the object being deleted.
+  * \param pDataSize Data size at pData.
+  * \return true if the object was destroyed, false otherwise.
+  */
+FBXSDK_DLL bool FbxTypeDeallocate(const EFbxType pType, void* &pData, size_t pDataSize);
 
 /** Compare two values of the same type
   * \param pA first value

@@ -965,6 +965,7 @@
 		378A349A1A2575F40057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349B1A2576050057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349C1A2576060057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
+		378C062D25584ED200281D12 /* libxml2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378C062C25584ED200281D12 /* libxml2.a */; };
 		378EB2F023A5069C0098C290 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
 		378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378EB34523A51FAC0098C290 /* libWaifu2x.a */; };
 		379084A51B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
@@ -1682,6 +1683,7 @@
 		378A34971A2575D20057DD1F /* Callback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Callback.h; sourceTree = "<group>"; };
 		378A34981A2575D20057DD1F /* DLL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DLL.h; sourceTree = "<group>"; };
 		378A34991A2575F40057DD1F /* DLL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DLL.cpp; sourceTree = "<group>"; };
+		378C062C25584ED200281D12 /* libxml2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxml2.a; path = ../ThirdPartyLibs/Xml2/Mac/libxml2.a; sourceTree = "<group>"; };
 		378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageFilterWaifu.cpp; sourceTree = "<group>"; };
 		378EB34523A51FAC0098C290 /* libWaifu2x.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWaifu2x.a; path = ../ThirdPartyLibs/Waifu2x/Mac/Build/Release/libWaifu2x.a; sourceTree = "<group>"; };
 		3790849C1B3E61D600B8E7DC /* Obj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Obj.h; sourceTree = "<group>"; };
@@ -1817,6 +1819,7 @@
 				3716E29E1BB8EA8B0037177D /* libLZHAM.a in Frameworks */,
 				3716E2B61BB8EB1B0037177D /* libOpus.a in Frameworks */,
 				376EDCC41FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */,
+				378C062D25584ED200281D12 /* libxml2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2950,6 +2953,7 @@
 			children = (
 				3716E2891BB8E9210037177D /* libBullet.a */,
 				0BED409E17E2FC9100B2DD6C /* libfbxsdk.a */,
+				378C062C25584ED200281D12 /* libxml2.a */,
 				3706B2E31E972C000057BFB5 /* libFDK-AAC.a */,
 				379982301FB5624500B31132 /* libFlac.a */,
 				37CD66A91EB8007C00B31285 /* libispc_texcomp.a */,
@@ -4231,6 +4235,7 @@
 					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
 					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
 					../ThirdPartyLibs/PhysX/Dummy/Apple,
+					../ThirdPartyLibs/Xml2/Mac,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = EsenthelEngine;
@@ -4271,6 +4276,7 @@
 					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
 					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
 					../ThirdPartyLibs/PhysX/Dummy/Apple,
+					../ThirdPartyLibs/Xml2/Mac,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = EsenthelEngine;

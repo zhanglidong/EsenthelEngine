@@ -1,6 +1,6 @@
 /****************************************************************************************
  
-   Copyright (C) 2015 Autodesk, Inc.
+   Copyright (C) 2016 Autodesk, Inc.
    All rights reserved.
  
    Use of this software is subject to the terms of the Autodesk license agreement
@@ -37,8 +37,6 @@
   * reads FBX files created with FiLMBOX version 2.5 and later and writes FBX 
   * files compatible with MotionBuilder version 6.0 and up. 
   */
-
-#pragma pack(push, 8)	//FBXSDK is compiled with default value (8)
 
 #include <fbxsdk/fbxsdk_def.h>
 
@@ -131,9 +129,12 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 #include <fbxsdk/fileio/fbxstatisticsfbx.h>
 #include <fbxsdk/fileio/fbxstatistics.h>
+#include <fbxsdk/fileio/fbxcallbacks.h>
 
 //---------------------------------------------------------------------------------------
 //Scene Includes
+#include <fbxsdk/scene/fbxaudio.h>
+#include <fbxsdk/scene/fbxaudiolayer.h>
 #include <fbxsdk/scene/fbxcollection.h>
 #include <fbxsdk/scene/fbxcollectionexclusive.h>
 #include <fbxsdk/scene/fbxcontainer.h>
@@ -144,6 +145,7 @@
 #include <fbxsdk/scene/fbxenvironment.h>
 #include <fbxsdk/scene/fbxgroupname.h>
 #include <fbxsdk/scene/fbxlibrary.h>
+#include <fbxsdk/scene/fbxmediaclip.h>
 #include <fbxsdk/scene/fbxobjectmetadata.h>
 #include <fbxsdk/scene/fbxpose.h>
 #include <fbxsdk/scene/fbxreference.h>
@@ -243,6 +245,7 @@
 #include <fbxsdk/scene/shading/fbxsemanticentryview.h>
 #include <fbxsdk/scene/shading/fbxsurfacelambert.h>
 #include <fbxsdk/scene/shading/fbxsurfacematerial.h>
+#include <fbxsdk/scene/shading/fbxsurfacematerialutils.h>
 #include <fbxsdk/scene/shading/fbxsurfacephong.h>
 #include <fbxsdk/scene/shading/fbxtexture.h>
 
@@ -262,12 +265,11 @@
 #include <fbxsdk/utils/fbxrenamingstrategyutilities.h>
 #include <fbxsdk/utils/fbxrootnodeutility.h>
 #include <fbxsdk/utils/fbxusernotification.h>
+#include <fbxsdk/utils/fbxscenecheckutility.h>
 
 //---------------------------------------------------------------------------------------
 #if defined(FBXSDK_NAMESPACE) && (FBXSDK_NAMESPACE_USING == 1)
 	using namespace FBXSDK_NAMESPACE;
 #endif
-
-#pragma pack(pop)
 
 #endif /* _FBXSDK_H_ */

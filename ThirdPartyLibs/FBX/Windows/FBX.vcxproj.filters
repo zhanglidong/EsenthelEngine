@@ -25,4 +25,12 @@
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\x64\libxml2-mt.lib">
+      <Filter>Source\64</Filter>
+    </Library>
+    <Library Include="lib\x86\libxml2-mt.lib">
+      <Filter>Source\32</Filter>
+    </Library>
+  </ItemGroup>
 </Project>

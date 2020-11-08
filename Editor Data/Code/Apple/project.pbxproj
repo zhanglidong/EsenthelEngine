@@ -278,6 +278,7 @@
 					"-framework OpenAL",
 					"-lz",
 					"-liodbc",
+					"-liconv",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -308,6 +309,7 @@
 					"-framework OpenAL",
 					"-lz",
 					"-liodbc",
+					"-liconv",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

@@ -188,7 +188,7 @@ public:
           * \param pName                    The name of the given project
           * \return                         The base URL of the project or returns NULL if the project with the name is not found.
           */
-        const char* GetXRefProjectUrl(const char* pName);   // Should be const, will break AV.
+        const char* GetXRefProjectUrl(const char* pName);   // FIXME: Should be const, will break AV.
 
         /** Returns the base URL for the given project.
           * \param pName                    The name of the given project
