@@ -1492,8 +1492,11 @@ class ImporterClass
                               int bone=mesh_skel.findBoneI(edit_skel.bones[edit_bone].name); // find edit bone in mesh skel
                               if(InRange(bone, 256)){old_to_new[i]=bone; goto bone_set;}
                            }
-                           byte parent_index=import.skel.bones[i].parent;
-                           old_to_new[i]=(InRange(parent_index, i) ? old_to_new[parent_index] : 0xFF); // set "new bone" as the same as "old parents new bone", use 'i' for range check to check for 'old_to_new' that was already set
+
+                           {
+                              byte parent_index=import.skel.bones[i].parent;
+                              old_to_new[i]=(InRange(parent_index, i) ? old_to_new[parent_index] : 0xFF); // set "new bone" as the same as "old parents new bone", use 'i' for range check to check for 'old_to_new' that was already set
+                           }
                         bone_set:;
                         }
                         import.mesh.clearSkeleton().boneRemap(old_to_new, false);
