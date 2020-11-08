@@ -229,6 +229,7 @@ template<typename KEY, typename DATA, MapEx<KEY,DATA> &MAP  >   struct   MapElmP
 struct Object;
 struct DataCallback;
 struct Notification;
+struct IndexWeight;
 /******************************************************************************/
 // SOUND
 /******************************************************************************/
