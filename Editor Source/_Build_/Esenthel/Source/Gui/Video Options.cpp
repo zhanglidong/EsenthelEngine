@@ -393,7 +393,7 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    void VideoOptions::ShowAdvanced(VideoOptions &vo) {vo.advanced.visibleActivate(vo.advanced_show());}
    void VideoOptions::setScale()
    {
-      D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(950.f/1080) : scale);
+      D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79f) : scale);
    }
    void VideoOptions::setScale(flt  scale)  {T.scale    =scale; setScale();}
    void VideoOptions::setScaleWin(bool scale)  {T.scale_win=scale; setScale();}

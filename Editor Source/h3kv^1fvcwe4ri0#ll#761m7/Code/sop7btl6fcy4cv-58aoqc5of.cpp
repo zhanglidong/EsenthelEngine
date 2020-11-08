@@ -156,8 +156,8 @@ class MeshParts : Window
    {
       ObjEdit.mesh_undos.set("hide");
       MeshLod &lod=ObjEdit.getLod();
-      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=lod.parts.addr(ObjEdit.mesh_parts.list.sel[i]))part.variations(Max(part.variations(), ObjEdit.selVariation()+1)) // make room for variation first
-                                                                                                            .variation (                       ObjEdit.selVariation(), null);
+      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=lod.parts.addr(ObjEdit.mesh_parts.list.sel[i]))part.variations(ObjEdit.mesh.variations()) // first make sure we have room for all variations
+                                                                                                            .variation (ObjEdit.selVariation(), null);
       ObjEdit.setChangedMesh(true, false);
    }
    static void Focus() {ObjEdit.v4.moveTo(ObjEdit.selMeshCenter());}
@@ -391,7 +391,7 @@ class MeshParts : Window
          if(ObjEdit.mesh_skel && ObjEdit.mesh_skel.is())temp.skeleton(ObjEdit.mesh_skel).skeleton(null);else temp.clearSkeleton().exclude(VTX_SKIN); // call 'skeleton' to reassign bone mapping or remove it if not present
          if(!ObjEdit.mesh.is() && ObjEdit.mesh.lods()<=1)Swap(ObjEdit.mesh, temp);else // if this mesh is empty, then just create from 'temp', this will copy all variations
          {
-            temp.variations(Min(temp.variations(), ObjEdit.mesh.variations())); // remove variations that don't fit in dest
+            temp.variations(ObjEdit.mesh.variations()); // set variations to match dest
             MeshLod &dest=ObjEdit.getLod(); FREPA(temp)dest.parts.New().create(temp.parts[i]); // add parts in order as they're listed
          }
          ObjEdit.mesh.setBox();

@@ -2162,14 +2162,14 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   if(p.variation(variation)!=p2.variation(variation) || !Equal(p.name, p2.name))goto different;
                }
                MeshPart &part=lod2.parts[part_i];
-               part.variations(Max(part.variations(), variation+1)) // make room first for specified variation
+               part.variations(mesh.variations()) // first make sure we have room for all variations
                    .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
             }
             different:;
          }
 
          MeshPart &part=lod.parts[part_i];
-         part.variations(Max(part.variations(), variation+1)) // make room first for specified variation
+         part.variations(mesh.variations()) // first make sure we have room for all variations
              .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
          setChangedMesh(true, false);
          Proj.refresh(false, false); // refresh in case the mesh had invalid refs and now it won't

@@ -430,7 +430,7 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
 
    void setScale()
    {
-      D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(950./1080) : scale);
+      D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79) : scale);
    }
    void setScale   (flt  scale)  {T.scale    =scale; setScale();}
    void setScaleWin(bool scale)  {T.scale_win=scale; setScale();}

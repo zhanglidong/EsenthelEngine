@@ -235,8 +235,8 @@
                   MeshLod &lod=mesh.lod(i);  REPA(lod)
                   {
                      MeshPart &part=lod.parts[i];
-                     part.variations(Max(part.variations(), mesh.variations())) // make room first for specified variation
-                         .variation (                       mesh.variations()-1, Proj.gamePath(elm->id));
+                     part.variations(mesh.variations()) // first make sure we have room for all variations
+                         .variation (mesh.variations()-1, Proj.gamePath(elm->id));
                   }
                }
                mesh.variationMove(mesh.variations()-1, start+added); added++; // move last added to start

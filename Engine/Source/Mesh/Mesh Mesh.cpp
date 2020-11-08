@@ -116,13 +116,10 @@ Mesh& Mesh::variations(Int variations)
       Memt<VariationEx> variation_exs; GetVariations(variation_exs, T);
       variation_exs.setNum(variations);
       for(Int i=T.variations(); i<variation_exs.elms(); i++)variation_exs[i].randomizeID(); // randomize ID
-      if(variation_exs.elms()<T.variations())REP(lods()) // minimize mesh part variations
+      // do not attempt to set part variations only if new number is smaller, we should always reallocate the arrays for them, because if we want 2 variations without allocating all, and then set #0, then because extra would not get allocated, then setting #0 variation would also set all others
+      REP(lods())
       {
-         MeshLod &lod=T.lod(i); REPA(lod)
-         {
-            MeshPart &part=lod.parts[i];
-            if(part.variations()>variation_exs.elms())part.variations(variation_exs.elms()); // if part has more variations than what we want, then remove the extra
-         }
+         MeshLod &lod=T.lod(i); REPAO(lod.parts).variations(variation_exs.elms());
       }
       SetVariations(variation_exs, T);
    }

@@ -90,7 +90,7 @@ struct JSDownload
 };
 Memx<JSDownload> JSDownloads;
 static SyncLock  JSDownloadsLock;
-static void OnProgress(Ptr user, Int code, Int done, Int total, UInt timestamp)
+static void OnProgress(Ptr user, Int code, Int done, Int total, UInt timestamp) // TODO: Warning: this is a 32-bit timestamp
 {
    if(JSDownloads.elms()) // check in case 'JSDownloads' destructor was already called
    {
@@ -109,7 +109,7 @@ static void OnProgress(Ptr user, Int code, Int done, Int total, UInt timestamp)
       }
    }
 }
-static void OnDone(Ptr user, Int code, CPtr data, Int data_size, Int content_length, Int content_range, UInt timestamp)
+static void OnDone(Ptr user, Int code, CPtr data, Int data_size, Int content_length, Int content_range, UInt timestamp) // TODO: Warning: this is a 32-bit timestamp
 {
    if(JSDownloads.elms()) // check in case 'JSDownloads' destructor was already called
    {

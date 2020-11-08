@@ -194,7 +194,7 @@ class Version // value randomized each time the data is changed indicating that 
    void randomize() {uint old=ver; do ver=Random();while(!ver || ver==old);} // avoid zero and previous value
 }
 /******************************************************************************/
-class TimeStamp
+class TimeStamp // TODO: Warning: this is a 32-bit value and will overflow at some point
 {
    static const long Start=63524217600, // 63524217600 is the number of seconds at 1st Jan 2013 (approximate time of the first application version)
                      Unix =62167219200; // 62167219200 is the number of seconds at 1st Jan 1970
