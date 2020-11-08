@@ -424,7 +424,7 @@ struct FBX
    {
       if(materials)
       {
-         Bool flip_normal_y=Contains(app_name, "Maya", false, true);
+         Bool flip_normal_y=Contains(app_name, "Maya", false, WHOLE_WORD_STRICT);
          Int  mtrls=scene->GetMaterialCount();
          Memt<Bool> duplicate_name; // there may be multiple materials with the same name, we need to make them unique
          FREP(mtrls)if(FbxSurfaceMaterial *mtrl=scene->GetMaterial(i))
