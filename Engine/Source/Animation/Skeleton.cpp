@@ -881,6 +881,7 @@ static Int BoneTypeIndexSub(C Skeleton &skel, C SkelBone &bone)
 }
 Skeleton& Skeleton::setBoneTypes()
 {
+   // STEP 1 - set 'type'
    REPA(bones)
    {
       SkelBone &bone=bones[i];
@@ -980,25 +981,44 @@ Skeleton& Skeleton::setBoneTypes()
       }
    }
 
-   // the following algorithm is not perfect because it will assign the same 'type_index, type_sub' combination for sibling bones with 'type_sub>0', for example if there's "Spine0" bone and it has 2 children: "SpineA" and "SpineB", then Spine0 will be 0(index) : 0(sub) and SpineA/B will both have 0(index) : 1(sub)
-
-   // set sub-indexes (needed for assigning 'type_index')
+   // STEP 2 - set 'type_sub', needed for assigning 'type_index'
+   struct Link
+   {
+      Byte top_parent, // index of the top parent that has the same type
+           total_subs; // this is used only for top parents, counter of how many children bones with same type were encountered so far
+   };
+   MemtN<Link, 256> links; links.setNum(bones.elms());
    FREPA(bones) // go from the start to assign parents first
    {
-      SkelBone &bone=bones[i];
-      Int sub=0; if(bone.type)for(Int cur=i; ; )
+      SkelBone &bone=bones[i]; if(bone.type)
       {
-         cur=boneParent(cur); if(cur<0)break;
-         SkelBone &parent=bones[cur]; if(parent.type==bone.type)
+         Link &bone_link=links[i];
+         for(Int cur=i; ; ) // find first parent with same type
          {
-            sub=parent.type_sub+1; break;
+            cur=boneParent(cur); if(cur<0)break;
+            SkelBone &parent=bones[cur]; if(parent.type==bone.type) // found a parent with same type 'same_type_parent'
+            {
+               Int top_parent=links[cur].top_parent; // get top parent according to same_type_parent
+               bone_link.top_parent=top_parent; // set this bone's top_parent to be 'same_type_parent.top_parent'
+             //bone_link.total_subs=0; can be ignored because this is used only for the top parent, and since here we've found a parent, then this is not a top parent
+               bone.type_sub=++links[top_parent].total_subs; // increase top parent total subs
+               goto have_sub;
+            }
          }
+      // didn't found same_type_parent:
+         bone_link.top_parent=i; // set top parent to be self
+         bone_link.total_subs=0; // have 0 subs
+         bone.type_sub=0;
+      have_sub:
+         bone.type_index=UNASSIGNED; // set 'type_index' to unknown to be used in the next STEP
+      }else
+      {
+         bone.type_sub  =0;
+         bone.type_index=0; // set all BONE_UNKNOWN to 0
       }
-      bone.type_sub  =sub;
-      bone.type_index=(bone.type ? UNASSIGNED : 0); // set all BONE_UNKNOWN to 0
    }
 
-   // assign 'type_index'
+   // STEP 3 - set 'type_index'
    MemtN<BoneOrder, 256> groups[2]; // 0=negative, 1=positive
    FREPA(bones) // go from the start to assign parents first
    {
@@ -1011,7 +1031,7 @@ Skeleton& Skeleton::setBoneTypes()
             {
              C SkelBone &test=bones[i]; if(test.type==bone.type && !test.type_sub)
                {
-                  Bool      positive=true; // use positive indexes by default
+                  Bool      positive;
                   Flt       order;
                   SkelBone *parent=bones.addr(test.parent);
                   Vec       pos=((test.type==BONE_SHOULDER) ? test.to() : test.pos); // for shoulders use target location because they can be located close to the center (or in case of some models even on the other side)
@@ -1034,13 +1054,14 @@ Skeleton& Skeleton::setBoneTypes()
                      order=Abs(pos.x)-pos.y-pos.z; // start with left top front
                   }else
                   {
+                     positive=true; // use positive indexes by default
                      order=pos.x-pos.y-pos.z; // start with left top front
                   }
                   if(test.type==BONE_FINGER || test.type==BONE_TOE)
                   {
                      pos.normalize();
                      order=pos.x; // start with left
-                     if(!positive)CHS(order); // change order for left hands
+                     if(!positive)CHS(order); // change order for left hands/feet
                   }
                   groups[positive].New().set(i, parent ? BoneTypeIndexSub(T, *parent) : 0, order);
                }
