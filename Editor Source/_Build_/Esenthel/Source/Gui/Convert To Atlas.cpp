@@ -464,6 +464,7 @@ ConvertToAtlasClass ConvertToAtlas;
       warning.create();
                add("Force Square"   , MEMBER(ConvertToAtlasClass, force_square)).changed(Refresh);
                add("Auto Stretch"   , MEMBER(ConvertToAtlasClass, auto_stretch)).changed(Refresh);
+               add("Allow Rotate"   , MEMBER(ConvertToAtlasClass, allow_rotate)).changed(Refresh);
 Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum(mode_t, Elms(mode_t)).desc("When creating material atlases, existing object meshes need to have their UV adjusted.\nWith this option you can control if the adjusted objects:\n-Replace the old ones (keeping their Element ID)\nor\n-They are created as new objects (with new Element ID)");
                add("Global Scale"   , MEMBER(ConvertToAtlasClass, scale)).range(1.0f/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).changed(ChangedScale);
       Rect r=super::create("Convert To Atlas"); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.63f, 0));
@@ -512,7 +513,7 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
       flt y=0;
       FREPA(mtrls){mtrls[i].posY(y); y-=h;}
       Memc<RectSizeAnchor> mtrl_sizes; mtrl_sizes.setNum(mtrls.elms()); REPAO(mtrl_sizes).size=mtrls[i].scaled_size;
-      Memc<RectI         > mtrl_rects; if(PackRectsUnknownLimit(mtrl_sizes, mtrl_rects, tex_size, true, 0, false, true, ConvertToAtlas.force_square))
+      Memc<RectI         > mtrl_rects; if(PackRectsUnknownLimit(mtrl_sizes, mtrl_rects, tex_size, allow_rotate, 0, false, true, ConvertToAtlas.force_square))
       {
          REPA(mtrls)
          {
@@ -575,7 +576,7 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
       mtrls.clear(); warning.hide(); // release memory, since we're releasing then we also need to hide the warning to prevent from converting on empty materials
       return T;
    }
-ConvertToAtlasClass::ConvertToAtlasClass() : force_square(false), auto_stretch(false), scale(1), mode(NEW), tex_size(0) {}
+ConvertToAtlasClass::ConvertToAtlasClass() : force_square(false), auto_stretch(false), allow_rotate(true), scale(1), mode(NEW), tex_size(0) {}
 
 ConvertToAtlasClass::Mtrl::Mtrl() : id(UIDZero), original_size(0), scaled_size(0), pos(0), packed_rect(0), rotated(false), scale(1) {}
 

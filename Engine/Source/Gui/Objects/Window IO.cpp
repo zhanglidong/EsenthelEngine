@@ -522,7 +522,7 @@ void WindowIO::getList()
    else                            ff.findDrives(               );
    for(; ff(); )if(!(ff.attrib&FATTRIB_HIDDEN))switch(ff.type)
    {
-      case FSTD_DRIVE: if(ff.driveType()==DRIVE_DISK                            )file.New().set(                                                 ff.type,       0, ff.name.tailSlash(false)); break;
+      case FSTD_DRIVE:                                                           file.New().set(                                                 ff.type,       0, ff.name.tailSlash(false)); break;
       case FSTD_DIR  :                                                           file.New().set((_dir_operate && goodExt(ff.name)) ? FSTD_LINK : ff.type,       0, ff.name                 ); break;
       case FSTD_FILE : if(!_dir_operate && _mode!=WIN_IO_DIR && goodExt(ff.name))file.New().set(                                                 ff.type, ff.size, ff.name                 ); break;
    }

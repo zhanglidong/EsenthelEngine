@@ -67,7 +67,7 @@ public:
    Region      region;
    Preview     preview;
    Warning     warning;
-   bool        force_square, auto_stretch;
+   bool        force_square, auto_stretch, allow_rotate;
    flt         scale;
    MODE        mode;
    VecI2       tex_size;
