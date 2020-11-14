@@ -223,11 +223,27 @@ Bool Object::customMeshVariationAny()C
    return false;
 }
 /******************************************************************************/
+Param* Object::findParam(CChar8 *name)
+{
+#if 0 // un-sorted
+   REPA(params)if(Equal(params[i].name, name))return &params[i];
+#else // sorted
+   for(Int l=0, r=params.elms(); l<r; )
+   {
+      Int mid=UInt(l+r)/2,
+          compare=Compare(name, params[mid].name);
+      if(!compare  )return     &params[mid];
+      if( compare<0)r=mid;
+      else          l=mid+1;
+   }
+#endif
+   return _base ? _base->findParam(name) : null;
+}
 Param* Object::findParam(C Str &name)
 {
-#if 0
+#if 0 // un-sorted
    REPA(params)if(Equal(params[i].name, name))return &params[i];
-#else
+#else // sorted
    for(Int l=0, r=params.elms(); l<r; )
    {
       Int mid=UInt(l+r)/2,

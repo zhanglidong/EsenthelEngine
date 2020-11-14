@@ -55,8 +55,9 @@ inline C SkelSlot & Skeleton :: getSlot (CChar8 *name                           
 inline C AnimBone * Animation::findBone (CChar8 *name, BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T).findBone (name, type, type_index, type_sub);}
 inline C AnimEvent* Animation::findEvent(CChar8 *name                                              )C {return ConstCast(T).findEvent(name                            );}
 /******************************************************************************/
-inline C Param* Object::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
-inline C Param& Object:: getParam(C Str &name)C {return ConstCast(T). getParam(name);}
+inline C Param* Object::findParam(CChar8 *name)C {return ConstCast(T).findParam(name);}
+inline C Param* Object::findParam(C Str  &name)C {return ConstCast(T).findParam(name);}
+inline C Param& Object:: getParam(C Str  &name)C {return ConstCast(T). getParam(name);}
 /******************************************************************************/
 extern Bool  _CompressBC67 (C Image &src, Image &dest);
 extern Bool (*CompressBC67)(C Image &src, Image &dest);

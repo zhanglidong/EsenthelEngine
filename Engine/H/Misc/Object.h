@@ -79,11 +79,13 @@ struct Object // Object Parameters - they're created in the Editor and are used 
    Bool customAlign           ()C; // if this object                     uses custom align          (if 'custom' was set to true when setting the value)
 
    // params
-   Param * findParam (C Str &name) ; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
- C Param * findParam (C Str &name)C; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
-   Param &  getParam (C Str &name) ; // get  parameter by name, first local parameters are searched, if not found then bases are searched recursively, Exit on fail !! each objects parameters are required to be sorted according to their name !!
- C Param &  getParam (C Str &name)C; // get  parameter by name, first local parameters are searched, if not found then bases are searched recursively, Exit on fail !! each objects parameters are required to be sorted according to their name !!
-   Object& sortParams(           ) ; // sort parameters according to their names, this needs to be called after manual adding/removing custom parameters (this is needed for using 'findParam getParam' methods which assume that parameters are sorted)
+   Param * findParam (CChar8 *name) ; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
+ C Param * findParam (CChar8 *name)C; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
+   Param * findParam (C Str  &name) ; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
+ C Param * findParam (C Str  &name)C; // find parameter by name, first local parameters are searched, if not found then bases are searched recursively, null on fail !! each objects parameters are required to be sorted according to their name !!
+   Param &  getParam (C Str  &name) ; // get  parameter by name, first local parameters are searched, if not found then bases are searched recursively, Exit on fail !! each objects parameters are required to be sorted according to their name !!
+ C Param &  getParam (C Str  &name)C; // get  parameter by name, first local parameters are searched, if not found then bases are searched recursively, Exit on fail !! each objects parameters are required to be sorted according to their name !!
+   Object& sortParams(            ) ; // sort parameters according to their names, this needs to be called after manual adding/removing custom parameters (this is needed for using 'findParam getParam' methods which assume that parameters are sorted)
 
    // alignment
    ALIGN_TYPE alignX()C; // get x alignment
