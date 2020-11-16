@@ -1042,7 +1042,7 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="avgHuePhoto" || name=="avgHueAlphaWeight" || name=="avgHuePhotoAlphaWeight" || name=="medHue" || name=="medHuePhoto" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="avgHuePhoto" || name=="avgHueAlphaWeight" || name=="avgHuePhotoAlphaWeight" || name=="medHue" || name=="medHueAlphaWeight" || name=="medHuePhoto" || name=="medHuePhotoAlphaWeight" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
@@ -1820,6 +1820,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       if(image.lock()) // lock for writing because we will use this lock for applying hue too
       {
          Vec4 col; if(image.stats(null, null, null, &col, null, null, null, &box))AddHue(image, HueDelta(RgbToHsb(col.xyz).x, param.asFlt()), box, param.name=="medHuePhoto");
+         image.unlock();
+      }
+   }else
+   if(param.name=="medHueAlphaWeight" || param.name=="medHuePhotoAlphaWeight")
+   {
+      if(image.lock()) // lock for writing because we will use this lock for applying hue too
+      {
+         Vec col; if(image.stats(null, null, null, null, null, null, &col, &box))AddHue(image, HueDelta(RgbToHsb(col).x, param.asFlt()), box, param.name=="medHuePhotoAlphaWeight");
          image.unlock();
       }
    }else
