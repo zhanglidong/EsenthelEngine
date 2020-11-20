@@ -1,0 +1,1 @@
+Files were extracted from Visual Studio \ NuGet Package Manager \ Microsoft.Xbox.Live.SDK.cpp.UWP

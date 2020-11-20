@@ -1,7 +1,7 @@
 /******************************************************************************/
 #pragma once // include the header only once
 /******************************************************************************/
-#define ENGINE_BUILD 65 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
+#define ENGINE_BUILD 66 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
 /******************************************************************************
 
    Following defines are available, they are always set to 0 (disabled) or 1 (enabled)
@@ -375,6 +375,7 @@ namespace EE // Esenthel Engine namespace
    #include "Net/Facebook.h"
    #include "Net/Store.h"
    #include "Net/Steam.h"
+   #include "Net/Xbox Live.h"
    #include "Net/Internet Cache.h"
    #include "Net/Game Analytics.h"
    /******************************************************************************/
