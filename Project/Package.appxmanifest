@@ -23,6 +23,7 @@
           <uap:Rotation Preference="portraitFlipped" />
           <uap:Rotation Preference="landscapeFlipped" />
         </uap:InitialRotationPreference>
+        <uap:DefaultTile/>
       </uap:VisualElements>
     </Application>
   </Applications>
