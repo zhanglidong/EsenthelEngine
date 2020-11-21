@@ -25,7 +25,7 @@ struct XBOXLive
    void (*callback)(EVENT event)=null; // pointer to a custom function that will be called with processed events, 'event'=event occurring at the moment
 
    STATUS  status()C {return _status;} // get current log in status
-   Bool   logedIn()C {return _status==LOGGED_IN;} // if currently logged in
+   Bool  loggedIn()C {return _status==LOGGED_IN;} // if currently logged in
    void     logIn(); // initiate log in process, result will be reported through the 'callback' function
    
    ULong userID      ()C {return _me.id       ;} // get user ID           ,  0  on fail. This is valid only after being logged in
@@ -34,7 +34,7 @@ struct XBOXLive
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after 'getUserProfile' completed
 
    // cloud saves
-   Bool cloudSupported    ()C; // if cloud saves are supported
+   Bool cloudSupported    ()C; // if cloud saves are supported, this will always be false if currently not logged in
    Long cloudAvailableSize()C; // get number of available bytes for cloud storage, 0 on fail
 
    Bool cloudDel(C Str &file_name); // delete 'file_name', false on fail
