@@ -1332,7 +1332,7 @@ Windows::System::User^& OSUserGetter::get()
          }else is=true; // set this in case there are no users available
       });
 
-      if(App.mainThread())App.loopUntil(is, true);else task.wait();
+      if(App.mainThread())App.loopUntil(is);else task.wait();
    }
    return user;
 }

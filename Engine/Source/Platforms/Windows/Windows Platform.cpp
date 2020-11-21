@@ -619,7 +619,7 @@ void Application::loopUntil(Bool &finished, Bool wait)
       {
          Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessAllIfPresent); // this may call our callbacks, 'ProcessOneAndAllPending'= can't be used because apparently tasks don't count as events, and this will wait until some other events occur, even though we have tasks waiting
          if(finished)break;
-         if(wait)Time.wait(1);
+         if(wait)Time.wait(1);else Yield(); // at least yield because there might be some slow IO operations that would require thousands of loop iterations to complete
       }
      _loop=false;
    }
