@@ -168,7 +168,14 @@ void XBOXLive::logIn()
 #endif
 }
 /******************************************************************************/
-Bool XBOXLive::cloudSupported()C {return GameSaveProvider!=null;}
+Bool XBOXLive::cloudSupported()C
+{
+#if SUPPORT_XBOX_LIVE
+   return GameSaveProvider!=null;
+#else
+   return false;
+#endif
+}
 /******************************************************************************/
 } // namespace EE
 /******************************************************************************/
