@@ -37,6 +37,11 @@ struct XBOXLive
    Bool cloudSupported    ()C; // if cloud saves are supported
    Long cloudAvailableSize()C; // get number of available bytes for cloud storage, 0 on fail
 
+   Bool cloudDel(C Str &file_name); // delete 'file_name', false on fail
+
+   Bool cloudSave(C Str &file_name, File &f,              Cipher *cipher=null); // save data from 'file' to 'file_name' cloud file, false on fail, only data from current 'f' file position to the end of the file is saved. !! There is a 16 MB limit for file size in Xbox Live !!
+   Bool cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher=null); // load file from 'file_name' cloud file to 'file', false on fail, 'f' should be already opened for writing if 'memory' is set to false, if 'memory' is set to true then 'f' will be first reinitialized with 'writeMemFixed' before loading, which means that load result will not be stored into original 'f' target, but instead into a dynamically allocated memory
+
 private:
    STATUS   _status=LOGGED_OUT;
    User     _me;

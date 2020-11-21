@@ -28,6 +28,7 @@ XBOXLive XboxLive;
 std::shared_ptr<xbox::services::system::xbox_live_user> XboxUser;
 std::shared_ptr<xbox::services::xbox_live_context     > XboxCtx;
 Windows::Gaming::XboxLive::Storage::GameSaveProvider   ^GameSaveProvider;
+Windows::Gaming::XboxLive::Storage::GameSaveContainer  ^GameSaveContainer;
 #endif
 /******************************************************************************/
 void XBOXLive::User::clear()
@@ -105,13 +106,14 @@ void XBOXLive::logInOk()
       task.then([this](Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult ^result)
       {
          SyncLocker lock(_lock);
-         GameSaveProvider=result->Value;
+         if(GameSaveProvider=result->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
          setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members and 'GameSaveProvider')
 
          xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
          {
             // this will get called when game exits or user signs-out
             SyncLocker lock(_lock);
+            GameSaveContainer=null;
             GameSaveProvider=null;
             XboxCtx =null;
             XboxUser=null;
@@ -167,7 +169,7 @@ void XBOXLive::logIn()
 Bool XBOXLive::cloudSupported()C
 {
 #if SUPPORT_XBOX_LIVE
-   return GameSaveProvider!=null;
+   return GameSaveContainer!=null;
 #else
    return false;
 #endif
@@ -196,6 +198,49 @@ Long XBOXLive::cloudAvailableSize()C
    }
 #endif
    return 0;
+}
+Bool XBOXLive::cloudDel(C Str &file_name)
+{
+#if SUPPORT_XBOX_LIVE
+   if(GameSaveContainer && file_name.is())
+   {
+      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      {
+         auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(null, null, null));
+         lock.off();
+         Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus status;
+         if(App.mainThread())
+         {
+            Bool finished=false;
+            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveOperationResult ^result)
+            {
+               status=result->Status; finished=true; // set 'finished' last
+            });
+            App.loopUntil(finished);
+         }else status=task.get()->Status;
+         return status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok;
+      }
+   }
+#endif
+   return false;
+}
+Bool XBOXLive::cloudSave(C Str &file_name, File &f, Cipher *cipher)
+{
+#if SUPPORT_XBOX_LIVE
+   if(GameSaveContainer && file_name.is())
+   {
+   }
+#endif
+   return false;
+}
+Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
+{
+#if SUPPORT_XBOX_LIVE
+   if(GameSaveContainer && file_name.is())
+   {
+   }
+#endif
+   return false;
 }
 /******************************************************************************/
 } // namespace EE
