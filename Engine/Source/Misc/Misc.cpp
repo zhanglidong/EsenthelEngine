@@ -2,13 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#if WINDOWS_NEW
-using namespace concurrency;
-using namespace Platform::Collections;
-using namespace Windows::Foundation;
-using namespace Windows::Foundation::Collections;
-using namespace Windows::System;
-#elif MAC
+#if MAC
 static PasteboardRef Pasteboard;
 #elif ANDROID || WEB
 static Str Clipboard;
@@ -914,7 +908,7 @@ struct ClipSetter
       T.content=content;
       try // can crash if app not yet initialized
       {
-         auto task=create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
+         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
          {
             Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(T.content);
          })));
@@ -943,7 +937,7 @@ struct ClipGetter
       {
          try // can crash if app not yet initialized
          {
-            auto task=create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
+            auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
             {
                try // can crash if app not focused
                {
@@ -957,7 +951,7 @@ struct ClipGetter
       }
       if(content && content->Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::Text))
       {
-         auto task=create_task(content->GetTextAsync());
+         auto task=concurrency::create_task(content->GetTextAsync());
          if(main_thread)
          {
             ok=false;
@@ -1346,18 +1340,18 @@ static struct UserNameGetter
       {
          if(App.mainThread()) // 'User::FindAllAsync' can be called only on the main thread
          {
-            create_task(User::FindAllAsync(UserType::LocalUser, UserAuthenticationStatus::LocallyAuthenticated)).then([this](IVectorView<User^>^ users)
+            concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
             {
                if(users->Size>0)
                {
-                  auto properties=ref new Vector<Platform::String^>();
-                  properties->Append(KnownUserProperties::FirstName);
-                  properties->Append(KnownUserProperties:: LastName);
-                  create_task(users->First()->Current->GetPropertiesAsync(properties->GetView())).then([this](IPropertySet^ values)
+                  auto properties=ref new Platform::Collections::Vector<Platform::String^>();
+                  properties->Append(Windows::System::KnownUserProperties::FirstName);
+                  properties->Append(Windows::System::KnownUserProperties:: LastName);
+                  concurrency::create_task(users->First()->Current->GetPropertiesAsync(properties->GetView())).then([this](Windows::Foundation::Collections::IPropertySet^ values)
                   {
                      Str temp;
-                     if(auto first_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties::FirstName)))temp         =first_name->Data();
-                     if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
+                     if(auto first_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties::FirstName)))temp         =first_name->Data();
+                     if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
                      SyncLocker locker(lock); // sync to avoid modifying the name on multiple threads
                      if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
                   });
@@ -1365,7 +1359,7 @@ static struct UserNameGetter
             });
          }else
          {
-            auto task=create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
+            auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
             {
                // we're on the main thread now, so just call 'get' again, but this time don't wait
                get(false); // !! we can't and don't need to wait here, as we only want to request user data so it can be obtained back on the caller thread, if we wait, then crash will occur, because this is actually called inside a Windows Callback on the main thread, and if we wait then 'loopUntil' would call Windows Callbacks again
@@ -1643,7 +1637,7 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       {
          case FSTD_FILE:
          {
-            create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](task<Windows::Storage::StorageFile^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            concurrency::create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](concurrency::task<Windows::Storage::StorageFile^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
             {
                try{Windows::System::Launcher::LaunchFileAsync(task.get());} catch(...){}
             });
@@ -1651,7 +1645,7 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
 
          case FSTD_DIR:
          {
-            create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](task<Windows::Storage::StorageFolder^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            concurrency::create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](concurrency::task<Windows::Storage::StorageFolder^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
             {
                try{Windows::System::Launcher::LaunchFolderAsync(task.get());} catch(...){}
             });
