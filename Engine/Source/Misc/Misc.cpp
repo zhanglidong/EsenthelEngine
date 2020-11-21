@@ -1338,7 +1338,7 @@ static struct UserGetter
    {
       if(!is)
       {
-         concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
+         auto task=concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
          {
             if(users->Size>0)
             {
@@ -1347,7 +1347,7 @@ static struct UserGetter
             }else is=true; // set this in case there are no users available
          });
 
-         if(App.mainThread())App.loopUntil(is, true);else for(; !is; )Time.wait(1); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
+         if(App.mainThread())App.loopUntil(is, true);else task.wait(); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
       }
       return user;
    }
@@ -1367,7 +1367,7 @@ static struct UserNameGetter
             auto properties=ref new Platform::Collections::Vector<Platform::String^>();
             properties->Append(Windows::System::KnownUserProperties::FirstName);
             properties->Append(Windows::System::KnownUserProperties:: LastName);
-            concurrency::create_task(user->GetPropertiesAsync(properties->GetView())).then([this](Windows::Foundation::Collections::IPropertySet^ values)
+            auto task=concurrency::create_task(user->GetPropertiesAsync(properties->GetView())).then([this](Windows::Foundation::Collections::IPropertySet^ values)
             {
                Str temp;
                if(auto first_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties::FirstName)))temp         =first_name->Data();
@@ -1375,9 +1375,8 @@ static struct UserNameGetter
                SafeSyncLocker locker(lock); // sync to avoid modifying the name on multiple threads
                if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
             });
+            if(App.mainThread())App.loopUntil(is, true);else task.wait(); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
          }else is=true; // set this in case there are no users available
-
-         if(App.mainThread())App.loopUntil(is, true);else for(; !is; )Time.wait(1); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
       }
       return name;
    }
