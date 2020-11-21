@@ -187,12 +187,12 @@ Long XBOXLive::cloudAvailableSize()C
          Long size;
          if(App.mainThread())
          {
-            Bool ok=false;
+            Bool finished=false;
             task.then([&](Long result)
             {
-               size=result; ok=true; // set 'ok' last
+               size=result; finished=true; // set 'finished' last
             });
-            App.loopUntil(ok);
+            App.loopUntil(finished);
          }else  size=task.get();
          return size;
       }
@@ -339,12 +339,12 @@ Bool XBOXLive::cloudFiles(MemPtr<CloudFile> files)C
          Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^blobs;
          if(App.mainThread())
          {
-            Bool ok=false;
+            Bool finished=false;
             task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^result)
             {
-               blobs=result; ok=true; // set 'ok' last
+               blobs=result; finished=true; // set 'finished' last
             });
-            App.loopUntil(ok);
+            App.loopUntil(finished);
          }else blobs=task.get();
 
          if(blobs && blobs->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok)
