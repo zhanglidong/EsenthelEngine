@@ -38,10 +38,11 @@ struct XBOXLive
 private:
    STATUS _status=LOGGED_OUT;
    User   _me;
-
+#if EE_PRIVATE
    void setStatus(STATUS status);
    void logInOk();
    void getUserProfile(ULong user_id);
+#endif
 }extern
    XboxLive;
 /******************************************************************************/

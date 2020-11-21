@@ -85,8 +85,8 @@ void XBOXLive::logInOk()
   _me.id  =TextULong(WChar(XboxUser->xbox_user_id().c_str()));
   _me.name=XboxUser->gamertag().c_str();
  //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
-   getUserProfile(userID());
-   auto storage=XboxCtx->title_storage_service();
+   //getUserProfile(userID());
+   //auto storage=XboxCtx->title_storage_service();
    /*if(auto config=XboxCtx->application_config())
    {
       auto app_id=config->title_id();

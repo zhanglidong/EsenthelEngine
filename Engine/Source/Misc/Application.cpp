@@ -943,10 +943,10 @@ void Application::del()
       stayAwake(AWAKE_OFF); // on Mac disable staying awake, because we've created 'AssertionID' for it
    #endif
       deleteSelf();
+   #if 1 // !! after 'deleteSelf' !! reduce mem leaks logging on Mac
+      cmd_line.del(); _exe.del(); _name.del(); _back_text.del();
+   #endif
    }
-#if 1 // reduce mem leaks logging on Mac
-   cmd_line.del(); _exe.del(); _name.del(); _back_text.del();
-#endif
   _closed=true; // !! this needs to be set before 'detectMemLeaks' because that may trigger calling destructors !!
    detectMemLeaks();
 }
