@@ -60,9 +60,9 @@ void XBOXLive::getUserProfile(ULong user_id)
                   if(user_id==T.userID())
                   {
                      // store in temporaries so later we can move/swap into profile fast
-                     ULong score=TextULong(WChar(profile.gamerscore().c_str()));
-                     Str image_url=S+profile.game_display_picture_resize_uri().to_string().c_str()+"&w=424"; // default size is around 1080 which is not needed, limit to 424 (other options are 208, 64)
-                     /*auto user_app_name =profile. app_display_name().c_str();
+                     Long score    =TextLong(WChar(profile.gamerscore().c_str()));
+                     Str  image_url=S+profile.game_display_picture_resize_uri().to_string().c_str()+"&w=424"; // default size is around 1080 which is not needed, limit to 424 (other options are 208, 64)
+                   /*auto user_app_name =profile. app_display_name().c_str();
                      auto user_game_name=profile.game_display_name().c_str();
                      auto tag=profile.gamertag().c_str();
                      auto user_app_pic=profile.app_display_picture_resize_uri().to_string().c_str();*/
