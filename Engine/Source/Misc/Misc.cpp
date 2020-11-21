@@ -898,74 +898,6 @@ Int MidMod(Int x, Int min, Int max)
    return min+Mod(x-min, max-min+1);
 }
 /******************************************************************************/
-#if WINDOWS_NEW
-struct ClipSetter
-{
-   Windows::ApplicationModel::DataTransfer::DataPackage ^content;
-
-   ClipSetter(Windows::ApplicationModel::DataTransfer::DataPackage ^content)
-   {
-      T.content=content;
-      try // can crash if app not yet initialized
-      {
-         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
-         {
-            Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(T.content);
-         })));
-         task.wait();
-      }
-      catch(...){}
-   }
-};
-struct ClipGetter
-{
-   Str  text;
-   Bool ok;
-   Windows::ApplicationModel::DataTransfer::DataPackageView ^content;
-
-   ClipGetter()
-   {
-      Bool main_thread=App.mainThread();
-      if(  main_thread) // 'GetContent' is single threaded and can be called only on the main thread
-      {
-         try // can crash if app not focused
-         {
-            content=Windows::ApplicationModel::DataTransfer::Clipboard::GetContent();
-         }
-         catch(...){}
-      }else
-      {
-         try // can crash if app not yet initialized
-         {
-            auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
-            {
-               try // can crash if app not focused
-               {
-                  content=Windows::ApplicationModel::DataTransfer::Clipboard::GetContent();
-               }
-               catch(...){}
-            })));
-            task.wait();
-         }
-         catch(...){}
-      }
-      if(content && content->Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::Text))
-      {
-         auto task=concurrency::create_task(content->GetTextAsync());
-         if(main_thread)
-         {
-            ok=false;
-            task.then([this](Platform::String ^text)
-            {
-               T.text=text->Data();
-               ok=true;
-            });
-            App.loopUntil(ok);
-         }else text=task.get()->Data();
-      }
-   }
-};
-#endif
 Bool ClipSet(C Str &text)
 {
 #if WINDOWS_OLD
@@ -984,10 +916,28 @@ Bool ClipSet(C Str &text)
 	}
 	return false;
 #elif WINDOWS_NEW
+   Bool ok;
    auto content=ref new Windows::ApplicationModel::DataTransfer::DataPackage;
    content->SetText(ref new Platform::String(text));
-   if(App.mainThread())Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(content);else ClipSetter cs(content);
-   return true;
+   if(App.mainThread())
+   {
+      Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(content);
+      ok=true;
+   }else
+   {
+      ok=false;
+      try // can crash if app not yet initialized
+      {
+         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+         {
+            Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(content);
+            ok=true;
+         })));
+         task.wait();
+      }
+      catch(...){}
+   }
+   return ok;
 #elif MAC
    PasteboardClear(Pasteboard);
    if(text.is())
@@ -1062,8 +1012,47 @@ Str ClipGet()
       CloseClipboard();
    }
 #elif WINDOWS_NEW
-   ClipGetter cg; if(fix_new_line)cg.text.replace('\r', '\0');
-   return     cg.text;
+   Windows::ApplicationModel::DataTransfer::DataPackageView ^content;
+
+   Bool main_thread=App.mainThread();
+   if(  main_thread) // 'GetContent' is single threaded and can be called only on the main thread
+   {
+      try // can crash if app not focused
+      {
+         content=Windows::ApplicationModel::DataTransfer::Clipboard::GetContent();
+      }
+      catch(...){}
+   }else
+   {
+      try // can crash if app not yet initialized
+      {
+         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+         {
+            try // can crash if app not focused
+            {
+               content=Windows::ApplicationModel::DataTransfer::Clipboard::GetContent();
+            }
+            catch(...){}
+         })));
+         task.wait();
+      }
+      catch(...){}
+   }
+   if(content && content->Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::Text))
+   {
+      auto task=concurrency::create_task(content->GetTextAsync());
+      if(main_thread)
+      {
+         Bool ok=false;
+         task.then([&](Platform::String ^string)
+         {
+            s=string->Data();
+            ok=true;
+         });
+         App.loopUntil(ok);
+      }else s=task.get()->Data();
+      if(fix_new_line)s.replace('\r', '\0');
+   }
 #elif MAC
    #if 1
       if(NSPasteboard *pasteboard=[NSPasteboard generalPasteboard])
