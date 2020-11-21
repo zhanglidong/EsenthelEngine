@@ -33,8 +33,6 @@ struct XBOXLive
  C Str&  userName    ()C {return _me.name     ;} // get user name/gamertag,  "" on fail. This is valid only after being logged in
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after 'getUserProfile' completed
 
-   void getUserProfile(); // request extra profile information for current user (such as score and image url), result will be reported through the 'callback' function
-
    // cloud saves
    Bool cloudSupported()C; // if cloud saves are supported
 
@@ -45,6 +43,7 @@ private:
 #if EE_PRIVATE
    void setStatus(STATUS status);
    void logInOk();
+   void getUserProfile() {getUserProfile(userID());} // request extra profile information for current user (such as score and image url), result will be reported through the 'callback' function
    void getUserProfile(ULong user_id);
 #endif
 }extern

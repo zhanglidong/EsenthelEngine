@@ -79,10 +79,6 @@ void XBOXLive::getUserProfile(ULong user_id)
    }
 #endif
 }
-void XBOXLive::getUserProfile()
-{
-   getUserProfile(userID());
-}
 void XBOXLive::setStatus(STATUS status)
 {
    if(T._status!=status){T._status=status; if(callback)(*callback)(STATUS_CHANGED);}
@@ -102,7 +98,7 @@ void XBOXLive::logInOk()
      _me.id  =TextULong(WChar(XboxUser->xbox_user_id().c_str()));
      _me.name=XboxUser->gamertag().c_str();
     //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
-    //getUserProfile(userID());
+      getUserProfile(); // request extra info as soon as we have ID
 
       auto task=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
       lock.off();
