@@ -1350,18 +1350,16 @@ static struct UserNameGetter
             {
                if(users->Size>0)
                {
-                  auto properties = ref new Vector<Platform::String^>();
+                  auto properties=ref new Vector<Platform::String^>();
                   properties->Append(KnownUserProperties::FirstName);
                   properties->Append(KnownUserProperties:: LastName);
                   create_task(users->First()->Current->GetPropertiesAsync(properties->GetView())).then([this](IPropertySet^ values)
                   {
-                     if(auto first_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties::FirstName)))
-                     if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties:: LastName)))
-                     {
-                        SyncLocker locker(lock); // sync to avoid modifying the name on multiple threads
-                        if(!is){name=first_name->Data(); name.space()+=last_name->Data(); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name, also set 'is' here as well even though we're setting it later, to avoid modifying/reading the name on multiple threads
-                     }
-                     is=true; // set this in case there's no FirstName/LastName available
+                     Str temp;
+                     if(auto first_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties::FirstName)))temp         =first_name->Data();
+                     if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
+                     SyncLocker locker(lock); // sync to avoid modifying the name on multiple threads
+                     if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
                   });
                }else is=true; // set this in case there are no users available
             });
