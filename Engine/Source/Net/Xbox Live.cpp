@@ -326,6 +326,45 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
 #endif
    return false;
 }
+Bool XBOXLive::cloudFiles(MemPtr<CloudFile> files)C
+{
+#if SUPPORT_XBOX_LIVE
+   if(GameSaveContainer)
+   {
+      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      if(auto query=GameSaveContainer->CreateBlobInfoQuery(null))
+      {
+         lock.off();
+         auto task=concurrency::create_task(query->GetBlobInfoAsync());
+         Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^blobs;
+         if(App.mainThread())
+         {
+            Bool ok=false;
+            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^result)
+            {
+               blobs=result; ok=true; // set 'ok' last
+            });
+            App.loopUntil(ok);
+         }else blobs=task.get();
+
+         if(blobs && blobs->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok)
+         {
+            files.setNum(blobs->Value->Size); REPA(files) // from the end because we might remove
+            {
+               if(auto blob_info=blobs->Value->GetAt(i))
+               {
+                  CloudFile &file=files[i];
+                  file.name=blob_info->Name->Data();
+                  file.size=blob_info->Size;
+               }else files.remove(i, true); // keep order in case results are sorted
+            }
+            return true;
+         }
+      }
+   }
+#endif
+   files.clear(); return false;
+}
 /******************************************************************************/
 } // namespace EE
 /******************************************************************************/
