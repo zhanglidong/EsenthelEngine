@@ -617,7 +617,7 @@ void Application::loopUntil(Bool &finished, Bool wait)
      _loop=true; // specify that we're inside this special loop, this is needed so if any events occur during callback processing, then we will record them and execute them at a later time, for example this is done so no key pushes are detected at this stage (which can occur in State Update or Draw) but they will be detected once Update and Draw are finished
       for(;;) // start loop
       {
-         Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessAllIfPresent); // this may call our callbacks, 'ProcessOneAndAllPending'= can't be used because apparently tasks don't count as events, and this will wait until some other events occur, even though we have tasks waiting
+         Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessAllIfPresent); // this may call our callbacks, 'ProcessOneAndAllPending'= can't be used because apparently tasks don't count as events, and this will wait until some other events occur, even though we have tasks waiting. We would have to use 'PostEvent', however in tests results were slightly slower, so don't use.
          if(finished)break;
          if(wait)Time.wait(1);else Yield(); // at least yield because there might be some slow IO operations that would require thousands of loop iterations to complete
       }
