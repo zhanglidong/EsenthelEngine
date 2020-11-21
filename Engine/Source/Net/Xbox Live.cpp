@@ -288,6 +288,40 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
 #if SUPPORT_XBOX_LIVE
    if(GameSaveContainer && file_name.is())
    {
+      auto blobs=ref new Platform::Collections::Vector<Platform::String^>();
+      blobs->Append(ref new Platform::String(file_name));
+      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      {
+         auto task=concurrency::create_task(GameSaveContainer->GetAsync(blobs));
+         lock.off();
+         Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult ^blobs;
+         if(App.mainThread())
+         {
+            Bool finished=false;
+            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult ^result)
+            {
+               blobs=result; finished=true; // set 'finished' last
+            });
+            App.loopUntil(finished);
+         }else blobs=task.get();
+
+         if(blobs && blobs->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok)
+            if(blobs->Value->Size==1)
+               if(auto buffer=blobs->Value->First()->Current->Value)
+         {
+            Long size=buffer->Length;
+            Ptr buffer_data;
+            if(size)
+            {
+               buffer_data=GetBufferData(buffer);
+               if(!buffer_data)goto error;
+            }
+            if(cipher)cipher->decrypt(buffer_data, buffer_data, size, 0);
+            if(memory)f.writeMemFixed(size);
+            if(f.put(buffer_data, size))return true;
+         error:;
+         }
+      }
    }
 #endif
    return false;
