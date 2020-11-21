@@ -92,17 +92,17 @@ void XBOXLive::logInOk()
 #if SUPPORT_XBOX_LIVE
    SyncLockerEx lock(_lock);
    if(!XboxCtx)XboxCtx=std::make_shared<xbox::services::xbox_live_context>(XboxUser);
-  _me.id  =TextULong(WChar(XboxUser->xbox_user_id().c_str()));
-  _me.name=XboxUser->gamertag().c_str();
- //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
-   //getUserProfile(userID());
-   //auto storage=XboxCtx->title_storage_service();
    if(auto config=XboxCtx->application_config())
    {
       /*auto app_id=config->title_id();
       auto scid=config->scid().c_str();
       auto env =config->environment().c_str();
       auto sandbox=config->sandbox().c_str();*/
+
+     _me.id  =TextULong(WChar(XboxUser->xbox_user_id().c_str()));
+     _me.name=XboxUser->gamertag().c_str();
+    //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
+    //getUserProfile(userID());
 
       auto task=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
       lock.off();
@@ -123,7 +123,7 @@ void XBOXLive::logInOk()
             setStatus(LOGGED_OUT);
          });
       });
-   }
+   }else setStatus(LOGGED_OUT);
 #endif
 }
 /******************************************************************************/
