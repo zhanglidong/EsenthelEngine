@@ -34,7 +34,8 @@ struct XBOXLive
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after 'getUserProfile' completed
 
    // cloud saves
-   Bool cloudSupported()C; // if cloud saves are supported
+   Bool cloudSupported    ()C; // if cloud saves are supported
+   Long cloudAvailableSize()C; // get number of available bytes for cloud storage, 0 on fail
 
 private:
    STATUS   _status=LOGGED_OUT;

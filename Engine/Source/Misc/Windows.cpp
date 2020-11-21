@@ -2059,7 +2059,7 @@ static Bool      EventPost(Thread &thread)
    {
       EventPostWait=0; // mark that we've waited entire time, and posting
    #if WINDOWS_NEW
-      Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([=]()
+      Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([]()
       {
       }));
    #elif LINUX
