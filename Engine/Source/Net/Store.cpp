@@ -223,7 +223,7 @@ Bool PlatformStore::refreshItems(C MemPtr<Str> &item_ids)
          FREPA(item_ids)product_ids->SetAt(i, ref new Platform::String(item_ids[i]));
          create_task(WIN_STORE::LoadListingInformationByProductIdsAsync(product_ids)).then([](Windows::ApplicationModel::Store::ListingInformation ^listing)
       #elif 1 // this works ok but returns all items
-         create_task(WIN_STORE::LoadListingInformationAsync()).then([](Windows::ApplicationModel::Store::ListingInformation ^listing)
+         create_task(WIN_STORE::LoadListingInformationAsync()).then([this](Windows::ApplicationModel::Store::ListingInformation ^listing)
       #endif
          {
             // this will be called on the main thread
@@ -234,7 +234,7 @@ Bool PlatformStore::refreshItems(C MemPtr<Str> &item_ids)
                   price=listing->FormattedPrice->Data(),
                  market=listing->CurrentMarket->Data();*/
 
-               // even though we're getting full list of items and we could first delete existing 'Store._items', don't do that for thread-safety in case secondary threads already operate on existing items
+               // even though we're getting full list of items and we could first delete existing '_items', don't do that for thread-safety in case secondary threads already operate on existing items
                if(listing->ProductListings)
                {
                   auto product=listing->ProductListings->First();
@@ -242,7 +242,7 @@ Bool PlatformStore::refreshItems(C MemPtr<Str> &item_ids)
                   {
                    //Str key=product->Current->Key->Data(); this is the same as 'id'
                      Str id =product->Current->Value->ProductId->Data();
-                     PlatformStore::Item *item=ConstCast(Store.findItem(id)); if(!item)item=&Store._items.New();
+                     PlatformStore::Item *item=ConstCast(findItem(id)); if(!item)item=&_items.New();
                      item->subscription=false;
                      item->id   =id;
                      item->name =product->Current->Value->Name->Data();
@@ -250,7 +250,7 @@ Bool PlatformStore::refreshItems(C MemPtr<Str> &item_ids)
                      item->price=product->Current->Value->FormattedPrice->Data();
                      product->MoveNext();
                   }
-                  if(Store.callback)Store.callback(PlatformStore::REFRESHED_ITEMS, null);
+                  if(callback)callback(PlatformStore::REFRESHED_ITEMS, null);
                }
             }
          });
@@ -295,7 +295,7 @@ Bool PlatformStore::refreshPurchases()
 #if WINDOWS_NEW
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {
-      create_task(WIN_STORE::GetAppReceiptAsync()).then([](Platform::String ^receipt)
+      create_task(WIN_STORE::GetAppReceiptAsync()).then([this](Platform::String ^receipt)
       {
          // this will be called on the main thread
          if(receipt)
@@ -320,9 +320,9 @@ Bool PlatformStore::refreshPurchases()
                      }
                   }
                }
-               Swap(Store._purchases, purchases);
+               Swap(_purchases, purchases);
             }
-            if(Store.callback)Store.callback(REFRESHED_PURCHASES, null);
+            if(callback)callback(REFRESHED_PURCHASES, null);
          }
       });
    }
@@ -359,7 +359,7 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
    if(!id.is())return ITEM_UNAVAILABLE;
    if(!(subscription ? supportsSubscriptions() : supportsItems()))return SERVICE_UNAVAILABLE;
 #if WINDOWS_NEW
-   create_task(WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id))).then([id](task<Windows::ApplicationModel::Store::PurchaseResults^> task)
+   create_task(WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id))).then([this, id](task<Windows::ApplicationModel::Store::PurchaseResults^> task)
    {
       // this will be called on the main thread
 
@@ -379,7 +379,7 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
                case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotFulfilled    : result=ALREADY_OWNED; break; // The transaction did not complete because the last purchase of this consumable in-app product has not been reported as fulfilled to the Windows Store - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
                case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotPurchased    : // The purchase did not occur because the user decided not to complete the transaction (or the transaction failed for other reasons) - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
                {
-                  if(Store._items.elms() && !Store.findItem(id))result=ITEM_UNAVAILABLE; // on Windows if we have information about one item, then it means we know all items, and if this item is not among them, then we know that it's unavailable
+                  if(_items.elms() && !findItem(id))result=ITEM_UNAVAILABLE; // on Windows if we have information about one item, then it means we know all items, and if this item is not among them, then we know that it's unavailable
                   else result=USER_CANCELED;
                }break;
             }
@@ -400,13 +400,13 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
             }
 
             // first add to the list of purchases
-            if(result==PURCHASED && !Store.findPurchaseByToken(purchase.token))Store._purchases.add(purchase);
+            if(result==PURCHASED && !findPurchaseByToken(purchase.token))_purchases.add(purchase);
          }
       }
       catch(...){}
 
       // now call the callback
-      if(Store.callback)Store.callback(result, &purchase); // !! here don't pass purchase from '_purchases' !!
+      if(callback)callback(result, &purchase); // !! here don't pass purchase from '_purchases' !!
    });
    return WAITING;
 #elif ANDROID
