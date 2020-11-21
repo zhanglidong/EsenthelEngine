@@ -35,9 +35,13 @@ struct XBOXLive
 
    void getUserProfile(); // request extra profile information for current user (such as score and image url), result will be reported through the 'callback' function
 
+   // cloud saves
+   Bool cloudSupported()C; // if cloud saves are supported
+
 private:
-   STATUS _status=LOGGED_OUT;
-   User   _me;
+   STATUS   _status=LOGGED_OUT;
+   User     _me;
+   SyncLock _lock;
 #if EE_PRIVATE
    void setStatus(STATUS status);
    void logInOk();

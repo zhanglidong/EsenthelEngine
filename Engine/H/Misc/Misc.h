@@ -17,6 +17,16 @@ enum FADE_TYPE : Byte // Fade Type
    FADE_IN  , // fading in
    FADE_OUT , // fading out
 };
+#if WINDOWS_NEW
+struct OSUserGetter
+{
+   Windows::System::User ^user;
+   Bool                   is;
+
+   Windows::System::User^& get();
+}extern
+   OSUser;
+#endif
 #endif
 /******************************************************************************/
 template<typename TYPE, Int elms>   constexpr Int Elms(C TYPE (&Array)[elms]) {return elms;} // get number of elements in array

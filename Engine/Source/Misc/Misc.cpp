@@ -1328,41 +1328,35 @@ CChar8* OSName(OS_VER ver)
 }
 /******************************************************************************/
 #if WINDOWS_NEW
-static struct UserGetter
+static SyncLock OSLock;
+OSUserGetter OSUser;
+Windows::System::User^& OSUserGetter::get()
 {
-   Windows::System::User ^user;
-   Bool     is;
-   SyncLock lock;
-
-   Windows::System::User^& get()
+   if(!is)
    {
-      if(!is)
+      auto task=concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
       {
-         auto task=concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
+         if(users->Size>0)
          {
-            if(users->Size>0)
-            {
-               SafeSyncLocker locker(lock); // sync to avoid modifying value on multiple threads
-               if(!is){user=users->First()->Current; is=true;}
-            }else is=true; // set this in case there are no users available
-         });
+            SafeSyncLocker locker(OSLock); // sync to avoid modifying value on multiple threads
+            if(!is){user=users->First()->Current; is=true;}
+         }else is=true; // set this in case there are no users available
+      });
 
-         if(App.mainThread())App.loopUntil(is, true);else task.wait(); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
-      }
-      return user;
+      if(App.mainThread())App.loopUntil(is, true);else task.wait();
    }
-}User;
+   return user;
+}
 static struct UserNameGetter
 {
-   Str      name;
-   Bool     is;
-   SyncLock lock;
+   Str  name;
+   Bool is;
 
  C Str& get()
    {
       if(!is && App.hwnd()) // !! we can call this only after window was created, because OS might ask for permission !!
       {
-         if(auto &user=User.get())
+         if(auto &user=OSUser.get())
          {
             auto properties=ref new Platform::Collections::Vector<Platform::String^>();
             properties->Append(Windows::System::KnownUserProperties::FirstName);
@@ -1372,10 +1366,10 @@ static struct UserNameGetter
                Str temp;
                if(auto first_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties::FirstName)))temp         =first_name->Data();
                if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
-               SafeSyncLocker locker(lock); // sync to avoid modifying the name on multiple threads
+               SafeSyncLocker locker(OSLock); // sync to avoid modifying the name on multiple threads
                if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
             });
-            if(App.mainThread())App.loopUntil(is, true);else task.wait(); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
+            if(App.mainThread())App.loopUntil(is, true);else task.wait(); // may have to wait a long time until user agrees to provide permission
          }else is=true; // set this in case there are no users available
       }
       return name;
