@@ -780,76 +780,6 @@ Bool FDelInside(C Str &name)
    return false;
 }
 Bool FDel(C Str &name) {return FDel(FileInfoSystem(name).type, name);}
-#if WINDOWS_NEW
-struct FileRecycler
-{
-   Bool ok;
-
-   FileRecycler(C Str &name)
-   {
-      auto get_file=concurrency::create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
-      if(App.mainThread())
-      {
-         ok=false;
-         get_file.then([this](concurrency::task<Windows::Storage::StorageFile^> get_file)
-         {
-            try
-            {
-               concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([this]()
-               {
-                  ok=true;
-               });
-            }
-            catch(...){ok=true;}
-         });
-         App.loopUntil(ok);
-      }else
-      {
-         try
-         {
-            auto del=concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
-            del.wait();
-         }
-         catch(...){}
-      }
-      ok=!FExistSystem(name);
-   }
-};
-struct FolderRecycler
-{
-   Bool ok;
-
-   FolderRecycler(C Str &name)
-   {
-      auto get_folder=concurrency::create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
-      if(App.mainThread())
-      {
-         ok=false;
-         get_folder.then([this](concurrency::task<Windows::Storage::StorageFolder^> get_folder)
-         {
-            try
-            {
-               concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([this]()
-               {
-                  ok=true;
-               });
-            }
-            catch(...){ok=true;}
-         });
-         App.loopUntil(ok);
-      }else
-      {
-         try
-         {
-            auto del=concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
-            del.wait();
-         }
-         catch(...){}
-      }
-      ok=!FExistSystem(name);
-   }
-};
-#endif
 Bool FRecycle(C Str &name, Bool hidden)
 {
    if(name.is())
@@ -866,10 +796,66 @@ Bool FRecycle(C Str &name, Bool hidden)
          return !SHFileOperation(&sh);
       }
    #elif WINDOWS_NEW
+      Bool ok;
       switch(FileInfoSystem(name).type)
       {
-         case FSTD_FILE: return   FileRecycler(name).ok;
-         case FSTD_DIR : return FolderRecycler(name).ok;
+         case FSTD_FILE:
+         {
+            auto get_file=concurrency::create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            if(App.mainThread())
+            {
+               ok=false;
+               get_file.then([&](concurrency::task<Windows::Storage::StorageFile^> get_file)
+               {
+                  try
+                  {
+                     concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([&]()
+                     {
+                        ok=true;
+                     });
+                  }
+                  catch(...){ok=true;}
+               });
+               App.loopUntil(ok);
+            }else
+            {
+               try
+               {
+                  auto del=concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
+                  del.wait();
+               }
+               catch(...){}
+            }
+         }return !FExistSystem(name);
+
+         case FSTD_DIR:
+         {
+            auto get_folder=concurrency::create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            if(App.mainThread())
+            {
+               ok=false;
+               get_folder.then([&](concurrency::task<Windows::Storage::StorageFolder^> get_folder)
+               {
+                  try
+                  {
+                     concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([&]()
+                     {
+                        ok=true;
+                     });
+                  }
+                  catch(...){ok=true;}
+               });
+               App.loopUntil(ok);
+            }else
+            {
+               try
+               {
+                  auto del=concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
+                  del.wait();
+               }
+               catch(...){}
+            }
+         }return !FExistSystem(name);
       }
    #elif MAC
       FSRef fs_ref; if(FSPathMakeRef((UInt8*)(UnixPathUTF8(name)()), &fs_ref, null)==noErr)return FSMoveObjectToTrashSync(&fs_ref, null, 0)==noErr;
