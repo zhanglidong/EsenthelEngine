@@ -108,7 +108,7 @@ void XBOXLive::logInOk()
       {
          SyncLocker lock(_lock);
          if(GameSaveProvider=result->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
-         setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members and 'GameSaveProvider')
+         setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
 
          xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
          {
