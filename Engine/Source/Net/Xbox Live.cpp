@@ -144,7 +144,7 @@ void XBOXLive::logIn()
                   case xbox::services::system::sign_in_status::success: logInOk(); break;
                   case xbox::services::system::sign_in_status::user_interaction_required: // sign-in with UI
                   {
-                     XboxUser->signin(Windows::UI::Core::CoreWindow::GetForCurrentThread()->Dispatcher).then([this](xbox::services::xbox_live_result<xbox::services::system::sign_in_result> loudResult) // use task_continuation_context::use_current() to make the continuation task running in current apartment 
+                     XboxUser->signin(Windows::UI::Core::CoreWindow::GetForCurrentThread()->Dispatcher).then([this](xbox::services::xbox_live_result<xbox::services::system::sign_in_result> loudResult)
                      {
                         if(loudResult.err())setStatus(LOGGED_OUT);else
                         {
