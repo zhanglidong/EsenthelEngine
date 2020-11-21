@@ -4,6 +4,7 @@
 #define SUPPORT_XBOX_LIVE (WINDOWS_NEW && 1)
 
 #if SUPPORT_XBOX_LIVE
+#include <robuffer.h> // needed for 'IBufferByteAccess'
 #include "../ThirdPartyLibs/begin.h"
 #define XSAPI_CPP 1
 #define _NO_ASYNCRTIMP
@@ -204,9 +205,11 @@ Bool XBOXLive::cloudDel(C Str &file_name)
 #if SUPPORT_XBOX_LIVE
    if(GameSaveContainer && file_name.is())
    {
+      auto blobs=ref new Platform::Collections::Vector<Platform::String^>();
+      blobs->Append(ref new Platform::String(file_name));
       SyncLockerEx lock(_lock); if(GameSaveContainer)
       {
-         auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(null, null, null));
+         auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(null, blobs, null));
          lock.off();
          Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus status;
          if(App.mainThread())
@@ -224,11 +227,58 @@ Bool XBOXLive::cloudDel(C Str &file_name)
 #endif
    return false;
 }
+#if SUPPORT_XBOX_LIVE
+static Ptr GetBufferData(Windows::Storage::Streams::IBuffer^ buffer)
+{
+   byte *data=null;
+   IUnknown *unknown=reinterpret_cast<IUnknown*>(buffer);
+   Windows::Storage::Streams::IBufferByteAccess *bufferByteAccess=null;
+   unknown->QueryInterface(_uuidof(Windows::Storage::Streams::IBufferByteAccess), (Ptr*)&bufferByteAccess);
+   if(bufferByteAccess)
+   {
+      bufferByteAccess->Buffer(&data);
+      bufferByteAccess->Release();
+   }
+   return data;
+}
+static Windows::Storage::Streams::IBuffer^ CreateBuffer(UInt size)
+{
+   Windows::Storage::Streams::Buffer ^buffer=ref new Windows::Storage::Streams::Buffer(size);
+   if(buffer)buffer->Length=size;
+   return buffer;
+}
+#endif
 Bool XBOXLive::cloudSave(C Str &file_name, File &f, Cipher *cipher)
 {
 #if SUPPORT_XBOX_LIVE
    if(GameSaveContainer && file_name.is())
    {
+      Long size=f.left();
+      if(size<=INT_MAX)
+         if(auto buffer=CreateBuffer(size))
+            if(Ptr buffer_data=GetBufferData(buffer))
+               if(f.getFast(buffer_data, size))
+      {
+         if(cipher)cipher->encrypt(buffer_data, buffer_data, size, 0);
+         auto blobs=ref new Platform::Collections::Map<Platform::String^, Windows::Storage::Streams::IBuffer^>();
+         blobs->Insert(ref new Platform::String(file_name), buffer);
+         SyncLockerEx lock(_lock); if(GameSaveContainer)
+         {
+            auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(blobs->GetView(), null, null));
+            lock.off();
+            Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus status;
+            if(App.mainThread())
+            {
+               Bool finished=false;
+               task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveOperationResult ^result)
+               {
+                  status=result->Status; finished=true; // set 'finished' last
+               });
+               App.loopUntil(finished);
+            }else status=task.get()->Status;
+            return status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok;
+         }
+      }
    }
 #endif
    return false;

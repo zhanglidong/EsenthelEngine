@@ -634,7 +634,7 @@ Bool SteamWorks::cloudSave(C Str &file_name, File &f, Cipher *cipher)
 #if SUPPORT_STEAM
    if(file_name.is())if(ISteamRemoteStorage *i=SteamRemoteStorage())
    {
-      Memt<Byte> data; data.setNum(f.left()); if(f.get(data.data(), data.elms()))
+      Memt<Byte> data; data.setNum(f.left()); if(f.getFast(data.data(), data.elms()))
       {
          if(cipher)cipher->encrypt(data.data(), data.data(), data.elms(), 0);
          return i->FileWrite(UTF8(file_name), data.data(), data.elms());
