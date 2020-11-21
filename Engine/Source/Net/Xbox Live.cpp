@@ -108,9 +108,9 @@ void XBOXLive::logInOk()
       lock.off();
       task->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([=](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^operation, Windows::Foundation::AsyncStatus status)
       {
+         SyncLocker lock(_lock);
          if(status==Windows::Foundation::AsyncStatus::Completed)GameSaveProvider=operation->GetResults()->Value;
-
-         setStatus(LOGGED_IN); // call after 'XboxCtx', setting members and having 'GameSaveProvider'
+         setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members and 'GameSaveProvider')
 
          xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
          {
