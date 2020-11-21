@@ -56,6 +56,8 @@ void WindowMsgBox(C Str &title, C Str &text, Bool error=false); // show OS messa
 #if EE_PRIVATE
 Ptr WindowMonitor(Ptr hwnd); // return HMONITOR for 'hwnd' window
 
+void PostEvent();
+
 void InitWindow();
 void ShutWindow();
 #endif

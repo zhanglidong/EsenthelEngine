@@ -2051,7 +2051,7 @@ static XClientMessageEvent WakeUpEvent;
 #endif
 #if WINDOWS_NEW
 static Windows::UI::Core::DispatchedHandler ^EventPostHandler=ref new Windows::UI::Core::DispatchedHandler([](){}); // dummy function
-static void EventPost() {Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, EventPostHandler);} // this posts an empty event so 'ProcessEvents/WaitForEvent' can resume immediatelly
+void PostEvent() {Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, EventPostHandler);} // this posts an empty event so 'ProcessEvents/WaitForEvent' can resume immediatelly
 #endif
 static Int       EventPostWait;
 static SyncEvent EventPostEvent[2];
@@ -2063,7 +2063,7 @@ static Bool      EventPost(Thread &thread)
    {
       EventPostWait=0; // mark that we've waited entire time, and posting
    #if WINDOWS_NEW
-      EventPost();
+      PostEvent();
    #elif LINUX
       XSendEvent(XDisplay, App.Hwnd(), 0, 0, (XEvent*)&WakeUpEvent); XFlush(XDisplay);
    #endif
