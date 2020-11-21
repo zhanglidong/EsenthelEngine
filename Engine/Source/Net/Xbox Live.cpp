@@ -311,7 +311,7 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
          {
             Long size=buffer->Length;
             Ptr buffer_data;
-            if(size)
+            if(size) // require data only if we have some size, in case null is returned for 0 sized buffers
             {
                buffer_data=GetBufferData(buffer);
                if(!buffer_data)goto error;
