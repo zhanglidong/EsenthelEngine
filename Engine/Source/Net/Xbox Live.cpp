@@ -90,7 +90,7 @@ void XBOXLive::logInOk()
    if(!XboxCtx)XboxCtx=std::make_shared<xbox::services::xbox_live_context>(XboxUser);
    if(auto config=XboxCtx->application_config())
    {
-      /*auto app_id=config->title_id();
+    /*auto app_id=config->title_id();
       auto scid=config->scid().c_str();
       auto env =config->environment().c_str();
       auto sandbox=config->sandbox().c_str();*/
@@ -100,12 +100,12 @@ void XBOXLive::logInOk()
     //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
       getUserProfile(); // request extra info as soon as we have ID
 
-      auto task=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
+      auto task=concurrency::create_task(Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str())));
       lock.off();
-      task->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([=](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^operation, Windows::Foundation::AsyncStatus status)
+      task.then([this](Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult ^result)
       {
          SyncLocker lock(_lock);
-         if(status==Windows::Foundation::AsyncStatus::Completed)GameSaveProvider=operation->GetResults()->Value;
+         GameSaveProvider=result->Value;
          setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members and 'GameSaveProvider')
 
          xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
@@ -171,6 +171,31 @@ Bool XBOXLive::cloudSupported()C
 #else
    return false;
 #endif
+}
+Long XBOXLive::cloudAvailableSize()C
+{
+#if SUPPORT_XBOX_LIVE
+   if(GameSaveProvider)
+   {
+      SyncLockerEx lock(_lock); if(GameSaveProvider)
+      {
+         auto task=concurrency::create_task(GameSaveProvider->GetRemainingBytesInQuotaAsync());
+         lock.off();
+         Long size;
+         if(App.mainThread())
+         {
+            Bool ok=false;
+            task.then([&](Long result)
+            {
+               size=result; ok=true; // set 'ok' last
+            });
+            App.loopUntil(ok);
+         }else  size=task.get();
+         return size;
+      }
+   }
+#endif
+   return 0;
 }
 /******************************************************************************/
 } // namespace EE
