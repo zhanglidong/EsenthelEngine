@@ -11,7 +11,7 @@
 #define _NO_PPLXIMP
 #define _NO_XSAPIIMP
 
-#define XBOX_LIVE_CREATORS_SDK
+//#define XBOX_LIVE_CREATORS_SDK
 #include "../ThirdPartyLibs/Xbox Live/2018.6.20181010.2/xsapi/services.h" // !! if changing this to another version/path then also have to change Visual Studio project properties for Include Directories for all Configurations/Platforms !! this is because those LIB files are too big to be stored on GitHub and thus must be extracted manually, because of that to avoid compatibility issues between headers/libraries the paths to headers/libs must match so they must include version numbers
 #include "../ThirdPartyLibs/end.h"
 #endif
@@ -26,10 +26,10 @@ namespace EE{
 XBOXLive XboxLive;
 
 #if SUPPORT_XBOX_LIVE
-std::shared_ptr<xbox::services::system::xbox_live_user> XboxUser;
-std::shared_ptr<xbox::services::xbox_live_context     > XboxCtx;
-Windows::Gaming::XboxLive::Storage::GameSaveProvider   ^GameSaveProvider;
-Windows::Gaming::XboxLive::Storage::GameSaveContainer  ^GameSaveContainer;
+static std::shared_ptr<xbox::services::system::xbox_live_user> XboxUser;
+static std::shared_ptr<xbox::services::xbox_live_context     > XboxCtx;
+static Windows::Gaming::XboxLive::Storage::GameSaveProvider   ^GameSaveProvider;
+static Windows::Gaming::XboxLive::Storage::GameSaveContainer  ^GameSaveContainer;
 #endif
 /******************************************************************************/
 void XBOXLive::User::clear()
@@ -39,43 +39,66 @@ void XBOXLive::User::clear()
    name     .clear();
    image_url.clear();
 }
-void XBOXLive::getUserProfile(ULong user_id)
+void XBOXLive::Friend::clear()
+{
+   super::clear();
+   favorite=false;
+}
+/******************************************************************************/
+// LOG IN
+/******************************************************************************/
+void XBOXLive::getUserProfile() {getUserProfile(_me.id);}
+void XBOXLive::getUserProfile(C MemPtr<ULong> &user_ids)
 {
 #if SUPPORT_XBOX_LIVE
-   if(user_id && XboxCtx)
+   if(user_ids.elms() && XboxCtx)
    {
-      string_t temp=TextInt(user_id);
+      std::vector<string_t> user_ids_str; user_ids_str.resize(user_ids.elms()); for(Int i=0; i<user_ids_str.size(); i++)user_ids_str[i]=TextInt(user_ids[i]);
       SyncLockerEx lock(_lock); if(XboxCtx)
       {
-         auto task=XboxCtx->profile_service().get_user_profile(temp);
+         auto task=XboxCtx->profile_service().get_user_profiles(user_ids_str);
          lock.off();
-         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::social::xbox_user_profile>> results)
+         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<std::vector<xbox::services::social::xbox_user_profile>>> results)
          {
             if(!results.err())
             {
-               auto result=results.payload(); if(!result.err())
+             C auto &result=results.payload(); if(!result.err())
                {
-                  auto profile=result.payload();
-                  auto user_id=TextULong(WChar(profile.xbox_user_id().c_str()));
-                  if(user_id==T.userID())
+                C auto &profiles=result.payload();
+                  for(Int i=0; i<profiles.size(); i++)
                   {
+                   C auto &profile=profiles[i];
+                     ULong user_id=TextULong(WChar(profile.xbox_user_id().c_str()));
                      // store in temporaries so later we can move/swap into profile fast
                      Long score    =TextLong(WChar(profile.gamerscore().c_str()));
                      Str  image_url=S+profile.game_display_picture_resize_uri().to_string().c_str()+"&w=424"; // default size is around 1080 which is not needed, limit to 424 (other options are 208, 64)
-                   /*auto user_app_name =profile. app_display_name().c_str();
-                     auto user_game_name=profile.game_display_name().c_str();
+                   /*auto user_app_name=profile.app_display_name().c_str();
                      auto tag=profile.gamertag().c_str();
                      auto user_app_pic=profile.app_display_picture_resize_uri().to_string().c_str();*/
-
+                     if(user_id==T.userID())
                      {
                         SyncLocker lock(_lock);
                        _me.score=score;
                         Swap(_me.image_url, image_url);
+                     }else
+                     {
+                        Str user_game_name=profile.game_display_name().c_str();
+                        SyncLocker lock(_lock);
+                        REPA(_friends)
+                        {
+                           Friend &user=_friends[i]; if(user.id==user_id)
+                           {
+                              user.score=score;
+                              Swap(user.name     , user_game_name);
+                              Swap(user.image_url, image_url     );
+                              break;
+                           }
+                        }
                      }
+                     if(callback)callback(USER_PROFILE, user_id);
                   }
                }
             }
-            if(callback)(*callback)(USER_PROFILE);
          });
       }
    }
@@ -83,14 +106,14 @@ void XBOXLive::getUserProfile(ULong user_id)
 }
 void XBOXLive::setStatus(STATUS status)
 {
-   if(T._status!=status){T._status=status; if(callback)(*callback)(STATUS_CHANGED);}
+   if(T._status!=status){T._status=status; if(callback)callback(STATUS_CHANGED, userID());}
 }
 void XBOXLive::logInOk()
 {
 #if SUPPORT_XBOX_LIVE
    SyncLockerEx lock(_lock);
    if(!XboxCtx)XboxCtx=std::make_shared<xbox::services::xbox_live_context>(XboxUser);
-   if(auto config=XboxCtx->application_config())
+   if(C auto &config=XboxCtx->application_config())
    {
     /*auto app_id=config->title_id();
       auto scid=config->scid().c_str();
@@ -113,12 +136,15 @@ void XBOXLive::logInOk()
          xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
          {
             // this will get called when game exits or user signs-out
-            SyncLocker lock(_lock);
-            GameSaveContainer=null;
-            GameSaveProvider=null;
-            XboxCtx =null;
-            XboxUser=null;
-           _me.clear();
+            {
+               SyncLocker lock(_lock);
+               GameSaveContainer=null;
+               GameSaveProvider=null;
+               XboxCtx =null;
+               XboxUser=null;
+              _me.clear();
+              _friends.clear(); _friends_known=_friends_getting=false;
+            }
             setStatus(LOGGED_OUT);
          });
       });
@@ -141,7 +167,7 @@ void XBOXLive::logIn()
          {
             if(result.err())setStatus(LOGGED_OUT);else
             {
-               auto payload=result.payload(); switch(payload.status())
+             C auto &payload=result.payload(); switch(payload.status())
                {
                   default: setStatus(LOGGED_OUT); break;
                   case xbox::services::system::sign_in_status::success: logInOk(); break;
@@ -151,7 +177,7 @@ void XBOXLive::logIn()
                      {
                         if(loudResult.err())setStatus(LOGGED_OUT);else
                         {
-                           auto payload=loudResult.payload(); switch(payload.status())
+                         C auto &payload=loudResult.payload(); switch(payload.status())
                            {
                               default: setStatus(LOGGED_OUT); break;
                               case xbox::services::system::sign_in_status::success: logInOk(); break;
@@ -166,6 +192,8 @@ void XBOXLive::logIn()
    }
 #endif
 }
+/******************************************************************************/
+// CLOUD SAVES
 /******************************************************************************/
 Bool XBOXLive::cloudSupported()C
 {
@@ -364,6 +392,85 @@ Bool XBOXLive::cloudFiles(MemPtr<CloudFile> files)C
    }
 #endif
    files.clear(); return false;
+}
+/******************************************************************************/
+// FRIENDS
+/******************************************************************************/
+void XBOXLive::getFriends()
+{
+#if SUPPORT_XBOX_LIVE
+   if(XboxCtx)
+   {
+      SyncLockerEx lock(_lock); if(XboxCtx && !_friends_getting)
+      {
+        _friends_getting=true;
+         auto task=XboxCtx->social_service().get_social_relationships();
+         lock.off();
+         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::social::xbox_social_relationship_result>> results)
+         {
+            if(!results.err())
+            {
+             C auto &result=results.payload(); if(!result.err())
+               {
+                C auto &profiles=result.payload().items();
+                  Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
+                  Memc<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
+                  {
+                     Friend &user=friends[i];
+                   C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
+                     user.clear();
+                     user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
+                     user.favorite=relationship.is_favorite();
+                     friend_ids[i]=user.id;
+                  }
+                  {
+                     SyncLocker lock(_lock);
+                     Swap(_friends, friends);
+                    _friends_known=true;
+                  }
+                  getUserProfile(friend_ids); // get profiles of all friends, after setting '_friends'
+               }
+            }
+           _friends_getting=false;
+            if(callback)callback(USER_FRIENDS, userID()); // notify that get friends finished
+         });
+      }
+   }
+#endif
+}
+Bool XBOXLive::getFriends(MemPtr<ULong> friend_ids)C
+{
+#if SUPPORT_XBOX_LIVE
+   if(_friends_known)
+   {
+      SyncLocker lock(_lock); if(_friends_known)
+      {
+         friend_ids.setNum(_friends.elms());
+         REPAO(friend_ids)=_friends[i].id;
+         return true;
+      }
+   }
+#endif
+   friend_ids.clear(); return false;
+}
+Str XBOXLive::userName(ULong user_id)C
+{
+#if SUPPORT_XBOX_LIVE
+   if(user_id)
+   {
+      if(user_id==userID())return userName();
+      if(_friends_known)
+      {
+         SyncLocker lock(_lock);
+         REPA(_friends)if(_friends[i].id==user_id)return _friends[i].name;
+      }
+   }
+#endif
+   return S;
+}
+C Memc<XBOXLive::Friend>& XBOXLive::friends()C
+{
+   return _friends;
 }
 /******************************************************************************/
 } // namespace EE
