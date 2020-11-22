@@ -40,7 +40,7 @@ struct XBOXLive
 
    STATUS  status()C {return _status;} // get current log in status
    Bool  loggedIn()C {return _status==LOGGED_IN;} // if currently logged in
-   void     logIn(); // initiate log in process, result will be reported through the 'callback' function
+   void     logIn(); // initiate log in process, result will be reported through the 'callback' function with a STATUS_CHANGED event
    
    ULong userID      ()C {return _me.id       ;} // get user ID           ,  0  on fail. This is valid only after being logged in
    Long  userScore   ()C {return _me.score    ;} // get user score        , -1  on fail. This is valid only after being logged in and after USER_PROFILE
