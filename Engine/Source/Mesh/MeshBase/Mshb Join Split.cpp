@@ -103,7 +103,7 @@ void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C VecI &cells, UInt flag_and)
    split(meshes, Boxes(Box(T), cells), flag_and);
 }
 /******************************************************************************/
-void MeshBase::splitVtxs(MeshBase &dest, C MemPtr<Bool> &vtx_is, UInt flag_and)
+void MeshBase::splitVtxs(MeshBase &dest, C CMemPtr<Bool> &vtx_is, UInt flag_and)
 {
    if(this!=&dest)
    {
@@ -139,7 +139,7 @@ void MeshBase::splitVtxs(MeshBase &dest, C MemPtr<Bool> &vtx_is, UInt flag_and)
       }
    }
 }
-void MeshBase::splitFaces(MeshBase &dest, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is, UInt flag_and)
+void MeshBase::splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and)
 {
    if(this!=&dest)
    {

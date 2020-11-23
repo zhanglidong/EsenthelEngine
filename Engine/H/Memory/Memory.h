@@ -169,10 +169,10 @@ void ListMemLeaks();
 Ptr  AlignedAlloc(IntPtr size);
 void AlignedFree (Ptr    &ptr);
 
-         void _CopyIs  (Ptr   dest,   CPtr  src, C MemPtr<Bool> &is  , UInt elm_size);                                                // copy only elements with "is[]=true"
-         void _CopyList(Ptr   dest,   CPtr  src, C MemPtr<Int > &list, UInt elm_size);                                                // copy only elements mentioned on the list
-T1(TYPE) void  CopyIs  (TYPE *dest, C TYPE *src, C MemPtr<Bool> &is                 ) {_CopyIs  (dest, (CPtr)src, is  , SIZE(TYPE));} // copy only elements with "is[]=true"
-T1(TYPE) void  CopyList(TYPE *dest, C TYPE *src, C MemPtr<Int > &list               ) {_CopyList(dest, (CPtr)src, list, SIZE(TYPE));} // copy only elements mentioned on the list
+         void _CopyIs  (Ptr   dest,   CPtr  src, C CMemPtr<Bool> &is  , UInt elm_size);                                                // copy only elements with "is[]=true"
+         void _CopyList(Ptr   dest,   CPtr  src, C CMemPtr<Int > &list, UInt elm_size);                                                // copy only elements mentioned on the list
+T1(TYPE) void  CopyIs  (TYPE *dest, C TYPE *src, C CMemPtr<Bool> &is                 ) {_CopyIs  (dest, (CPtr)src, is  , SIZE(TYPE));} // copy only elements with "is[]=true"
+T1(TYPE) void  CopyList(TYPE *dest, C TYPE *src, C CMemPtr<Int > &list               ) {_CopyList(dest, (CPtr)src, list, SIZE(TYPE));} // copy only elements mentioned on the list
 
 // copy different sized data
        void Copy8To16 (Ptr dest16, CPtr src8 , Int elms); // copy  8->16 bit

@@ -61,7 +61,7 @@ void MeshBase::copyVtxs(C MeshBase &src)
    CopyN(vtx.flag    (), src.vtx.flag    (), elms);
    CopyN(vtx.dup     (), src.vtx.dup     (), elms);
 }
-void MeshBase::copyVtxs(C MeshBase &src, C MemPtr<Bool> &is)
+void MeshBase::copyVtxs(C MeshBase &src, C CMemPtr<Bool> &is)
 {
    DEBUG_ASSERT(is.elms()<=src.vtxs() && CountIs(is)<=vtxs(), "copyVtxs");
    CopyIs(vtx.pos     (), src.vtx.pos     (), is);
@@ -89,7 +89,7 @@ void MeshBase::copyEdges(C MeshBase &src)
    CopyN(edge.flag   (), src.edge.flag   (), elms);
    CopyN(edge.id     (), src.edge.id     (), elms);
 }
-void MeshBase::copyEdges(C MeshBase &src, C MemPtr<Bool> &is)
+void MeshBase::copyEdges(C MeshBase &src, C CMemPtr<Bool> &is)
 {
    DEBUG_ASSERT(is.elms()<=src.edges() && CountIs(is)<=edges(), "copyEdges");
    CopyIs(edge.ind    (), src.edge.ind    (), is);
@@ -108,7 +108,7 @@ void MeshBase::copyTris(C MeshBase &src)
    CopyN(tri.flag   (), src.tri.flag   (), elms);
    CopyN(tri.id     (), src.tri.id     (), elms);
 }
-void MeshBase::copyTris(C MeshBase &src, C MemPtr<Bool> &is)
+void MeshBase::copyTris(C MeshBase &src, C CMemPtr<Bool> &is)
 {
    DEBUG_ASSERT(is.elms()<=src.tris() && CountIs(is)<=tris(), "copyTris");
    CopyIs(tri.ind    (), src.tri.ind    (), is);
@@ -128,7 +128,7 @@ void MeshBase::copyQuads(C MeshBase &src)
    CopyN(quad.flag   (), src.quad.flag   (), elms);
    CopyN(quad.id     (), src.quad.id     (), elms);
 }
-void MeshBase::copyQuads(C MeshBase &src, C MemPtr<Bool> &is)
+void MeshBase::copyQuads(C MeshBase &src, C CMemPtr<Bool> &is)
 {
    DEBUG_ASSERT(is.elms()<=src.quads() && CountIs(is)<=quads(), "copyQuads");
    CopyIs(quad.ind    (), src.quad.ind    (), is);
@@ -989,7 +989,7 @@ MeshBase& MeshBase::create(C MeshPart &src, UInt flag_and)
    if(src.render.is())return create(src.render, flag_and);
                       return del();
 }
-MeshBase& MeshBase::copyFace(MeshBase &dest, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is, UInt flag_and)C
+MeshBase& MeshBase::copyFace(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and)C
 {
  C Int *p;
 

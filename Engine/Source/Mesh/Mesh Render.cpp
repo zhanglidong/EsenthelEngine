@@ -968,7 +968,7 @@ void MeshRender::transform(Matrix &matrix)
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-void MeshRender::adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C MemPtr<BoneSplit> &bone_splits)
+void MeshRender::adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C CMemPtr<BoneSplit> &bone_splits)
 {
    const Bool want_bone_split  =false,
               want_sign        =true,

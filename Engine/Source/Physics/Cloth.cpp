@@ -190,7 +190,7 @@ ClothMesh& ClothMesh::skeleton(Skeleton *skeleton)
 //Bool boneRename(C Str8 &src, C Str8 &dest                             ); // rename 'src' bone to 'dest' bone, returns true if a bone was renamed
 //Bool ClothMesh::boneRename(C Str8 &src, C Str8 &dest) {return _bone_map.rename(src, dest);}
 
-void ClothMesh::boneRemap(C MemPtr<Byte, 256> &old_to_new, Bool remap_names)
+void ClothMesh::boneRemap(C CMemPtr<Byte, 256> &old_to_new, Bool remap_names)
 {
   _phys.boneRemap(old_to_new);
   _skin.boneRemap(old_to_new);
@@ -381,7 +381,7 @@ Cloth& Cloth::set(C Particle *particle, Int particles)
    if(_cloth && particle && particles>=_cloth->getNbParticles())_cloth->setParticles((C PxClothParticle*)particle, null);
    return T;
 }
-Cloth& Cloth::setCollisionBalls(C MemPtr<Ball> &balls)
+Cloth& Cloth::setCollisionBalls(C CMemPtr<Ball> &balls)
 {
    if(_cloth)
    {
@@ -395,7 +395,7 @@ Cloth& Cloth::setCollisionBalls(C MemPtr<Ball> &balls)
    }
    return T;
 }
-Cloth& Cloth::setCollisionCapsules(C MemPtr<VecI2> &capsules)
+Cloth& Cloth::setCollisionCapsules(C CMemPtr<VecI2> &capsules)
 {
    if(_cloth)
    {
@@ -411,9 +411,9 @@ Cloth& Cloth::setCollisionCapsules(C MemPtr<VecI2> &capsules)
 #else
 C Cloth::Particle* Cloth::  lockRead() {return null;}
 Cloth&             Cloth::unlock    () {return T;}
-Cloth&             Cloth::set                 (C Particle      *particle, Int particles) {return T;}
-Cloth&             Cloth::setCollisionBalls   (C MemPtr<Ball > &balls   ) {return T;}
-Cloth&             Cloth::setCollisionCapsules(C MemPtr<VecI2> &capsules) {return T;}
+Cloth&             Cloth::set                 (C Particle       *particle, Int particles) {return T;}
+Cloth&             Cloth::setCollisionBalls   (C CMemPtr<Ball > &balls   ) {return T;}
+Cloth&             Cloth::setCollisionCapsules(C CMemPtr<VecI2> &capsules) {return T;}
 #endif
 /******************************************************************************/
 // GET / SET

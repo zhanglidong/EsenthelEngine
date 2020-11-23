@@ -101,14 +101,14 @@ struct SQL
       Bool flush(Str *messages=null, Int *error=null); // stop   buffered mode (commit transaction), false on fail
 
       // tables
-      Bool    getTables   (MemPtr<Str> table_names,                               Str *messages=null, Int *error=null); // get    a list of all  table names     in the database, false on fail
-      Bool    delTable    (C Str      &table_name                               , Str *messages=null, Int *error=null); // delete a 'table_name' table         from the database, false on fail
-      Bool createTable    (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // create a 'table_name' table           in the database, false on fail
-      Bool appendTable    (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // append a 'table_name' table           in the database, false on fail, this method works by adding new 'columns' to an existing table
-      Bool    delTableCols(C Str      &table_name , C MemPtr<Str      > &columns, Str *messages=null, Int *error=null); // delete   'table_name' table 'columns' in the database, false on fail
-      Bool existsTable    (C Str      &table_name                               , Str *messages=null, Int *error=null); // check if 'table_name' table exists    in the database, false on fail
+      Bool    getTables   (MemPtr<Str> table_names,                                Str *messages=null, Int *error=null); // get    a list of all  table names     in the database, false on fail
+      Bool    delTable    (C Str      &table_name                                , Str *messages=null, Int *error=null); // delete a 'table_name' table         from the database, false on fail
+      Bool createTable    (C Str      &table_name , C CMemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // create a 'table_name' table           in the database, false on fail
+      Bool appendTable    (C Str      &table_name , C CMemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // append a 'table_name' table           in the database, false on fail, this method works by adding new 'columns' to an existing table
+      Bool    delTableCols(C Str      &table_name , C CMemPtr<Str      > &columns, Str *messages=null, Int *error=null); // delete   'table_name' table 'columns' in the database, false on fail
+      Bool existsTable    (C Str      &table_name                                , Str *messages=null, Int *error=null); // check if 'table_name' table exists    in the database, false on fail
    #if EE_PRIVATE
-      Bool createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Str &cmd);
+      Bool createTableIndexes(C Str &table_name, C CMemPtr<SQLColumn> &columns, Str *messages, Str &cmd);
    #endif
 
       // rows
@@ -122,10 +122,10 @@ struct SQL
       Bool   _setRow (C Str &table_name, C Str &id_name, C Str &safe_id_value, C SQLValues &values, Str *messages, Int *error);
    #endif
 
-      Bool getAllRows    (C Str &table_name,                                           Str *messages=null, Int *error=null); // get all rows of a 'table_name' table                           , if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information about all their     column data, false on fail
-      Bool getRows       (C Str &table_name, C Str &condition,                         Str *messages=null, Int *error=null); // get     rows of a 'table_name' table which meet the 'condition', if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information about all their     column data, false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will return all rows which have 'id' column equal to 0
-      Bool getAllRowsCols(C Str &table_name,                   C MemPtr<Str> &columns, Str *messages=null, Int *error=null); // get all rows of a 'table_name' table                           , if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information only about selected column data, false on fail                                                                                                                                       'columns'=name of columns to return in the result, this method may be faster than 'getAllRows' because it returns only selected columns (unlike all columns in 'getAllRows')
-      Bool getRowsCols   (C Str &table_name, C Str &condition, C MemPtr<Str> &columns, Str *messages=null, Int *error=null); // get     rows of a 'table_name' table which meet the 'condition', if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information only about selected column data, false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will return all rows which have 'id' column equal to 0, 'columns'=name of columns to return in the result, this method may be faster than 'getRows'    because it returns only selected columns (unlike all columns in 'getRows')
+      Bool getAllRows    (C Str &table_name,                                            Str *messages=null, Int *error=null); // get all rows of a 'table_name' table                           , if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information about all their     column data, false on fail
+      Bool getRows       (C Str &table_name, C Str &condition,                          Str *messages=null, Int *error=null); // get     rows of a 'table_name' table which meet the 'condition', if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information about all their     column data, false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will return all rows which have 'id' column equal to 0
+      Bool getAllRowsCols(C Str &table_name,                   C CMemPtr<Str> &columns, Str *messages=null, Int *error=null); // get all rows of a 'table_name' table                           , if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information only about selected column data, false on fail                                                                                                                                       'columns'=name of columns to return in the result, this method may be faster than 'getAllRows' because it returns only selected columns (unlike all columns in 'getAllRows')
+      Bool getRowsCols   (C Str &table_name, C Str &condition, C CMemPtr<Str> &columns, Str *messages=null, Int *error=null); // get     rows of a 'table_name' table which meet the 'condition', if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information only about selected column data, false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will return all rows which have 'id' column equal to 0, 'columns'=name of columns to return in the result, this method may be faster than 'getRows'    because it returns only selected columns (unlike all columns in 'getRows')
 
       Int getAllRowsNum(C Str &table_name,                   Str *messages=null, Int *error=null); // get number of all rows of a 'table_name' table                           , -1 on fail
       Int getRowsNum   (C Str &table_name, C Str &condition, Str *messages=null, Int *error=null); // get number of     rows of a 'table_name' table which meet the 'condition', -1 on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will return all rows which have 'id' column equal to 0
@@ -142,22 +142,22 @@ struct SQL
       Bool commandParamRaw (Int i, CPtr value, Int size, Int c_type, Int sql_type);
       Bool commandParamRaw2(Int i, CPtr value, Int size, Int c_type, Int sql_type);
    #endif
-      SQL& commandParam(Int i,   Bool          value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   Int           value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   UInt          value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   Long          value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   ULong         value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   Flt           value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i,   Dbl           value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, CChar          *value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, CChar8         *value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C Str          &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C Str8         &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C UID          &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C DateTime     &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C DateTimeMs   &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, C MemPtr<Byte> &value          ); // set i-th parameter as 'value'
-      SQL& commandParam(Int i, CPtr            value, Int size); // get i-th parameter as 'value'
+      SQL& commandParam(Int i,   Bool           value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   Int            value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   UInt           value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   Long           value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   ULong          value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   Flt            value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i,   Dbl            value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, CChar           *value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, CChar8          *value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C Str           &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C Str8          &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C UID           &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C DateTime      &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C DateTimeMs    &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, C CMemPtr<Byte> &value          ); // set i-th parameter as 'value'
+      SQL& commandParam(Int i, CPtr             value, Int size); // get i-th parameter as 'value'
 
       Bool commandExecute(Str *messages=null, Int *error=null); // execute prepared command, 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
 

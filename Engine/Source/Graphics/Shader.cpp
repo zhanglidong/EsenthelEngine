@@ -501,7 +501,7 @@ void ShaderBuffer::createParts(C Int *elms, Int elms_num)
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderParam> ShaderParams(CompareCS);
 /******************************************************************************/
-void ShaderParam::OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translation> &dest)
+void ShaderParam::OptimizeTranslation(C CMemPtr<Translation> &src, Mems<Translation> &dest)
 {
    dest=src;
    REPA(dest)if(i)
@@ -1665,7 +1665,7 @@ static void TestBuffer(C ShaderBuffer *buffer, Int bind_slot)
  C Str8 *name=ShaderBuffers.dataToKey(buffer); if(!name)Exit("Can't find ShaderBuffer name");
    return TestBuffer(*name, bind_slot);
 }
-static Bool Test(C MemPtr<Mems<BufferLink>> &links)
+static Bool Test(C CMemPtr<Mems<BufferLink>> &links)
 {
    REPA(links)
    {
@@ -1676,7 +1676,7 @@ static Bool Test(C MemPtr<Mems<BufferLink>> &links)
    }
    return true;
 }
-static Bool Test(C MemPtr<Mems<ImageLink>> &links)
+static Bool Test(C CMemPtr<Mems<ImageLink>> &links)
 {
    REPA(links)
    {

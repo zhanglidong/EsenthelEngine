@@ -515,6 +515,6 @@ void DrawArrow (C Color &color, C Vec &start, C Vec &end,                  Flt t
 void DrawArrow2(C Color &color, C Vec &start, C Vec &end, Flt width=0.02f, Flt tip_radius=0.1f, Flt tip_length=0.1f);
 
 // subdivide
-void SubdivideEdges(C MemPtr<Vec    > &src, MemPtr<Vec    > dest); // subdivide continuous points from 'src' into 'dest'
-void SubdivideEdges(C MemPtr<VtxFull> &src, MemPtr<VtxFull> dest); // subdivide continuous points from 'src' into 'dest'
+void SubdivideEdges(C CMemPtr<Vec    > &src, MemPtr<Vec    > dest); // subdivide continuous points from 'src' into 'dest'
+void SubdivideEdges(C CMemPtr<VtxFull> &src, MemPtr<VtxFull> dest); // subdivide continuous points from 'src' into 'dest'
 /******************************************************************************/

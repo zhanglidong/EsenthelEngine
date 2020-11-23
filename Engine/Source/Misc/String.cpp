@@ -3762,7 +3762,7 @@ static Int (&GetCompare(Bool case_sensitive, Bool paths)) (C Str &a, C Str &b)
 {
    return paths ? (case_sensitive ? ComparePathCS : ComparePathCI) : (case_sensitive ? CompareSCS : CompareSCI);
 }
-void StrLibrary::create(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths)
+void StrLibrary::create(C CMemPtr<Str> &strings, Bool case_sensitive, Bool paths)
 {
    del();
 
@@ -3800,8 +3800,8 @@ void StrLibrary::create(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths)
       else                      {Set((Char8*)(_data+data_pos), cleaned[i], cleaned[i].length()+1); _index[i]=data_pos         ; data_pos+=SIZE(Char8)*(cleaned[i].length()+1);}
    }
 }
-StrLibrary::StrLibrary(                                                       )                {Zero(T);}
-StrLibrary::StrLibrary(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths) : StrLibrary() {create(strings, case_sensitive, paths);}
+StrLibrary::StrLibrary(                                                        )                {Zero(T);}
+StrLibrary::StrLibrary(C CMemPtr<Str> &strings, Bool case_sensitive, Bool paths) : StrLibrary() {create(strings, case_sensitive, paths);}
 /******************************************************************************/
 Str StrLibrary::elm(Int i)C
 {

@@ -84,7 +84,7 @@ struct Blocks
    Bool set(Int x, Int y, Int z, C MaterialPtr &top, C MaterialPtr &side, C MaterialPtr &bottom); // set block material to 'top side bottom', true is returned if any change was made during this operation, this does not automatically rebuild the mesh or the physical body, after calling this method you should call 'setMesh' and 'setPhysBody'
 
    // mesh
-   Blocks& setMesh(Flt tex_scale, C BlocksOcclusion *occl=null, C BoxI *local_box=null, C VecI2 &blocks_pos=0, C BlocksMap *map=null, C MemPtr<Light> &lights=null, Bool optimize=false, Flt max_face_length=-1); // set Blocks mesh, 'tex_scale'=texture coordinates scale, 'occl'=Blocks occlusion object used for ambient occlusion calculation (use null for no AO), 'local_box'=if specified then the mesh will only be updated in specified local coordinates (use null for setting entire mesh), 'blocks_pos'=position of this Blocks object inside the 'BlocksMap' (based on this position neighbors will be obtained from the map), 'map'=map of all Blocks objects (you should pass a pointer to your custom class that extends from 'BlocksMap' to provide custom 'findBlocks' method which will be used for finding neighbors to this Blocks object), 'lights'=array of world space lights, 'optimize'=if automatically optimize the mesh by welding coplanar faces which will result in faster rendering ('max_face_length'=max allowed face length, -1=no limit)
+   Blocks& setMesh(Flt tex_scale, C BlocksOcclusion *occl=null, C BoxI *local_box=null, C VecI2 &blocks_pos=0, C BlocksMap *map=null, C CMemPtr<Light> &lights=null, Bool optimize=false, Flt max_face_length=-1); // set Blocks mesh, 'tex_scale'=texture coordinates scale, 'occl'=Blocks occlusion object used for ambient occlusion calculation (use null for no AO), 'local_box'=if specified then the mesh will only be updated in specified local coordinates (use null for setting entire mesh), 'blocks_pos'=position of this Blocks object inside the 'BlocksMap' (based on this position neighbors will be obtained from the map), 'map'=map of all Blocks objects (you should pass a pointer to your custom class that extends from 'BlocksMap' to provide custom 'findBlocks' method which will be used for finding neighbors to this Blocks object), 'lights'=array of world space lights, 'optimize'=if automatically optimize the mesh by welding coplanar faces which will result in faster rendering ('max_face_length'=max allowed face length, -1=no limit)
 
    void setShader() {_mesh.setShader();} // reset mesh shader
 
@@ -264,7 +264,7 @@ struct BlocksMap // extend this class to provide your own 'findBlocks' method
    // operations
    Bool raycast(C Vec &start, C Vec &move, Vec *hit_pos=null, Vec *hit_normal=null)C; // raycast from 'start' local position along 'move' vector, returns true if collision occurred and sets 'hit_pos' to its position and 'hit_normal' to its normal vector
 
-   Vec light(C Vec &pos, C BlocksOcclusion *occl=null, C MemPtr<Blocks::Light> &lights=null)C; // calculate light at 'pos' position, 'lights'=lights present in the scene
+   Vec light(C Vec &pos, C BlocksOcclusion *occl=null, C CMemPtr<Blocks::Light> &lights=null)C; // calculate light at 'pos' position, 'lights'=lights present in the scene
 
    // custom
    virtual Blocks* findBlocks(Int x, Int y)C {return null;} // override this method and return pointer to 'Blocks' at specified location

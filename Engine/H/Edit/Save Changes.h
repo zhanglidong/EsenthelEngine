@@ -39,9 +39,9 @@ struct SaveChanges : ClosableWindow
    void create();
 
    // set
-            void set(C MemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr   user)=null, Ptr   user=null);
-   T1(TYPE) void set(C MemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, TYPE *user)     , TYPE *user     ) {set(elms, (void(*)(Bool, Ptr))after_save_close,  user);}
-   T1(TYPE) void set(C MemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, TYPE &user)     , TYPE &user     ) {set(elms, (void(*)(Bool, Ptr))after_save_close, &user);}
+            void set(C CMemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr   user)=null, Ptr   user=null);
+   T1(TYPE) void set(C CMemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, TYPE *user)     , TYPE *user     ) {set(elms, (void(*)(Bool, Ptr))after_save_close,  user);}
+   T1(TYPE) void set(C CMemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, TYPE &user)     , TYPE &user     ) {set(elms, (void(*)(Bool, Ptr))after_save_close, &user);}
 
    // operations
    void clear  ();

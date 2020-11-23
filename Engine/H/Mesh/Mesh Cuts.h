@@ -43,11 +43,11 @@ Bool PosPointMeshZB(C Vec2 &point, C Mesh      &mesh, Vec *hit_pos=null, Int *hi
 Bool PosPointMeshZB(C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos=null, Int *hit_face=null, Int *hit_part=null, Int *hit_mesh=null, Bool test_quads_as_2_tris=true); // 'hit_part'=index of hit MeshPart, 'hit_mesh'=index of hit Mesh
 /******************************************************************************/
 // get mesh rest matrix as if it has fallen on the ground and lying there, 'initial_matrix'=initial matrix of the mesh (use null for no custom matrix), 'mass_center'=mesh center of mass (use null for auto-detect), 'min_dist'=minimum distance between vertexes to consider them as contact points, 'rest_box'=if specified then it will be set to the precise box of the mesh after being transformed by the rest matrix, 'max_steps'=maximum number of steps to perform the calculation (<0 = unlimited), 'only_visible'=if process only visible mesh parts, 'only_phys'=if process only mesh parts without 'MSHP_NO_PHYS_BODY'
-Matrix GetRestMatrix(C MeshBase            &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1);
-Matrix GetRestMatrix(C MeshLod             &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
-Matrix GetRestMatrix(C Mesh                &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
-Matrix GetRestMatrix(C MemPtr<C MeshPart*> &meshes, C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
-Matrix GetRestMatrix(C MemPtr<C MeshLod *> &meshes, C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
+Matrix GetRestMatrix(C MeshBase             &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1);
+Matrix GetRestMatrix(C MeshLod              &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
+Matrix GetRestMatrix(C Mesh                 &mesh  , C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
+Matrix GetRestMatrix(C CMemPtr<C MeshPart*> &meshes, C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
+Matrix GetRestMatrix(C CMemPtr<C MeshLod *> &meshes, C Matrix *initial_matrix=null, C Vec *mass_center=null, Flt min_dist=0.01f, Box *rest_box=null, Int max_steps=-1, Bool only_visible=true, Bool only_phys=true);
 /******************************************************************************/
 #if EE_PRIVATE
 /******************************************************************************/

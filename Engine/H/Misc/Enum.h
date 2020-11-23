@@ -39,7 +39,7 @@ struct Enum // Enum helper class !! Enum doesn't support manual value assigning,
    CChar8*  getName(C UID  &id  )C {return elmName(T   (id  ));} // get name of enum element by specifying its 'id'  , Exit      on fail (if element was not found)
 
    // manage
-   Enum& create(C Str &name, C MemPtr<Elm> &elms); // create from custom elements
+   Enum& create(C Str &name, C CMemPtr<Elm> &elms); // create from custom elements
 
    // io
    void operator=(C Str  &name) ; // load binary                 , Exit  on fail

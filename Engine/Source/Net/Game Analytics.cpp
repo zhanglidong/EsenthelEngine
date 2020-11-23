@@ -16,7 +16,7 @@
 
 namespace EE{namespace _GameAnalytics{
 /******************************************************************************/
-void configureAvailableCustomDimensions01(C MemPtr<Str> &customDimensions)
+void configureAvailableCustomDimensions01(C CMemPtr<Str> &customDimensions)
 {
 #if IOS && SUPPORT_GAME_ANALYTICS
    if(NSMutableArray *array=[NSMutableArray arrayWithCapacity:customDimensions.elms()])
@@ -28,7 +28,7 @@ void configureAvailableCustomDimensions01(C MemPtr<Str> &customDimensions)
 #elif ANDROID && SUPPORT_GAME_ANALYTICS
 #endif
 }
-void configureAvailableCustomDimensions02(C MemPtr<Str> &customDimensions)
+void configureAvailableCustomDimensions02(C CMemPtr<Str> &customDimensions)
 {
 #if IOS && SUPPORT_GAME_ANALYTICS
    if(NSMutableArray *array=[NSMutableArray arrayWithCapacity:customDimensions.elms()])
@@ -40,7 +40,7 @@ void configureAvailableCustomDimensions02(C MemPtr<Str> &customDimensions)
 #elif ANDROID && SUPPORT_GAME_ANALYTICS
 #endif
 }
-void configureAvailableCustomDimensions03(C MemPtr<Str> &customDimensions)
+void configureAvailableCustomDimensions03(C CMemPtr<Str> &customDimensions)
 {
 #if IOS && SUPPORT_GAME_ANALYTICS
    if(NSMutableArray *array=[NSMutableArray arrayWithCapacity:customDimensions.elms()])
@@ -52,7 +52,7 @@ void configureAvailableCustomDimensions03(C MemPtr<Str> &customDimensions)
 #elif ANDROID && SUPPORT_GAME_ANALYTICS
 #endif
 }
-void configureAvailableResourceCurrencies(C MemPtr<Str> &resourceCurrencies)
+void configureAvailableResourceCurrencies(C CMemPtr<Str> &resourceCurrencies)
 {
 #if IOS && SUPPORT_GAME_ANALYTICS
    if(NSMutableArray *array=[NSMutableArray arrayWithCapacity:resourceCurrencies.elms()])
@@ -64,7 +64,7 @@ void configureAvailableResourceCurrencies(C MemPtr<Str> &resourceCurrencies)
 #elif ANDROID && SUPPORT_GAME_ANALYTICS
 #endif
 }
-void configureAvailableResourceItemTypes(C MemPtr<Str> &resourceItemTypes)
+void configureAvailableResourceItemTypes(C CMemPtr<Str> &resourceItemTypes)
 {
 #if IOS && SUPPORT_GAME_ANALYTICS
    if(NSMutableArray *array=[NSMutableArray arrayWithCapacity:resourceItemTypes.elms()])

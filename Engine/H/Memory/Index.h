@@ -75,19 +75,19 @@ struct IndexPtr
    NO_COPY_CONSTRUCTOR(IndexPtr);
 };
 /******************************************************************************/
-void CreateIs       (  MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms);
-void CreateIsNot    (  MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms);
-void CreateFaceIs   (  MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads);
-void CreateFaceIsNot(  MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads);
+void CreateIs       (MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms);
+void CreateIsNot    (MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms);
+void CreateFaceIs   (MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads);
+void CreateFaceIsNot(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads);
 /******************************************************************************/
 void SetFaceIndex(Ptr data, C VecI *tri, Int tris, C VecI4 *quad, Int quads, Bool bit16);
 /******************************************************************************/
 #if EE_PRIVATE
-       void SetRemap(  MemPtr<Int>  remap, C MemPtr<Bool> &is, Int elms);
-       void IndRemap(C MemPtr<Int> &remap, Int   *ind, Int elms);
-inline void IndRemap(C MemPtr<Int> &remap, VecI2 *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*2);}
-inline void IndRemap(C MemPtr<Int> &remap, VecI  *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*3);}
-inline void IndRemap(C MemPtr<Int> &remap, VecI4 *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*4);}
+       void SetRemap(   MemPtr<Int>  remap, C CMemPtr<Bool> &is, Int elms);
+       void IndRemap(C CMemPtr<Int> &remap, Int   *ind, Int elms);
+inline void IndRemap(C CMemPtr<Int> &remap, VecI2 *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*2);}
+inline void IndRemap(C CMemPtr<Int> &remap, VecI  *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*3);}
+inline void IndRemap(C CMemPtr<Int> &remap, VecI4 *ind, Int elms) {IndRemap(remap, (Int*)ind, elms*4);}
 
        Bool IndSave(File &f, C Int   *ind, Int inds, Int elms=-1);
        Bool IndLoad(File &f,   Int   *ind, Int inds             );
@@ -104,6 +104,6 @@ inline Int Elms(C IndexPtrGroup &index) {return index.num   ;}
 inline Int Elms(C Index         &index) {return index.groups;}
 /******************************************************************************/
 #endif
-Bool  ElmIs(C MemPtr<Bool> &is, Int i); // if i-th element is in range and set to true
-Int CountIs(C MemPtr<Bool> &is       ); // return the number of elements in the 'is' array which are true
+Bool  ElmIs(C CMemPtr<Bool> &is, Int i); // if i-th element is in range and set to true
+Int CountIs(C CMemPtr<Bool> &is       ); // return the number of elements in the 'is' array which are true
 /******************************************************************************/

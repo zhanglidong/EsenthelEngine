@@ -33,7 +33,7 @@ struct LaserSegment
           n[3];
    Matrix m;
 };
-void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt radius, Bool sharp_ending, C MemPtr<Vec> &points)
+void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt radius, Bool sharp_ending, C CMemPtr<Vec> &points)
 {
    if(Renderer.firstPass() && points.elms()>1)
    {

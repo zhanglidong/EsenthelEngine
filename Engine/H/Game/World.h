@@ -170,7 +170,7 @@ struct WorldManager // World Manager
 
       AreaState(C VecI2 &xz=VecI2(0, 0), AREA_STATE state=AREA_UNLOADED) {set(xz, state);}
    };
-   void  areaSetState (C MemPtr<AreaState> &area_states, Bool unload_remaining=false); // manually set the state of areas, this method can be used for WORLD_MANUAL (for other modes it is ignored), 'area_states'=list of area coordinates and their desired states, 'unload_remaining'=if automatically unload all areas that aren't included in the 'area_states' list
+   void  areaSetState (C CMemPtr<AreaState> &area_states, Bool unload_remaining=false); // manually set the state of areas, this method can be used for WORLD_MANUAL (for other modes it is ignored), 'area_states'=list of area coordinates and their desired states, 'unload_remaining'=if automatically unload all areas that aren't included in the 'area_states' list
    Int   areaActiveNum(           )C; // get number of active areas
    Area* areaActive   (  Int    i )C; // get i-th      active area                         , if the index is out of range                                  then null is returned
    Area* areaActive   (C VecI2 &xz)C; // get           active area at 'xz' area coordinates, if the area doesn't exist or isn't active at that coordinates then null is returned (which means that only area with                          AREA_ACTIVE state can be returned)

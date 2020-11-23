@@ -56,14 +56,14 @@ struct HTTPParam : TextParam // optional parameter that can be passed to the 'Do
 
    HTTPParam& set(C Str &name, C Str &value, HTTP_TYPE type=HTTP_GET) {super::set(name, value); T.type=type; return T;}
 
-   static Str8 Encode(C MemPtr<HTTPParam> &params); // encode 'params' array into string
+   static Str8 Encode(C CMemPtr<HTTPParam> &params); // encode 'params' array into string
 };
 /******************************************************************************/
 const_mem_addr struct Download // File Downloader !! must be stored in constant memory address !!
 {
    // manage
-   Download& del   (  Int  milliseconds=-1                                                                                                                                                                                   ); // wait 'milliseconds' time for thread to exit and delete (<0 = infinite wait)
-   Download& create(C Str &url, C MemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false, Bool ignore_auth_result=false, SyncEvent *event=null); // download 'url' file, 'params'=optional parameters that you can pass if the 'url' is a php script, 'post'=data to be sent to the specified address (if this is null then HTTP GET is used, otherwise HTTP POST is used, 'post' File must point to a constant memory address as that pointer will be used until the data has been fully sent), 'max_post_size'=number of bytes to send (-1=all remaining), 'offset'=offset position of the file data to download, use this for example if you wish to resume previous download by starting from 'offset' position, 'size'=number of bytes to download (-1=all remaining), warning: some servers don't support manual specifying 'offset' and 'size', 'paused'=if create paused, 'ignore_auth_result'=if ignore authorization results and continue even when they failed, 'event'=event to signal when 'Download.state' changes
+   Download& del   (  Int  milliseconds=-1                                                                                                                                                                                    ); // wait 'milliseconds' time for thread to exit and delete (<0 = infinite wait)
+   Download& create(C Str &url, C CMemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false, Bool ignore_auth_result=false, SyncEvent *event=null); // download 'url' file, 'params'=optional parameters that you can pass if the 'url' is a php script, 'post'=data to be sent to the specified address (if this is null then HTTP GET is used, otherwise HTTP POST is used, 'post' File must point to a constant memory address as that pointer will be used until the data has been fully sent), 'max_post_size'=number of bytes to send (-1=all remaining), 'offset'=offset position of the file data to download, use this for example if you wish to resume previous download by starting from 'offset' position, 'size'=number of bytes to download (-1=all remaining), warning: some servers don't support manual specifying 'offset' and 'size', 'paused'=if create paused, 'ignore_auth_result'=if ignore authorization results and continue even when they failed, 'event'=event to signal when 'Download.state' changes
 
    // operations
    Download& pause (                   ); // pause  downloading
@@ -103,7 +103,7 @@ const_mem_addr struct Download // File Downloader !! must be stored in constant 
 
            ~Download() {del();}
             Download();
-   explicit Download(C Str &url, C MemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false);
+   explicit Download(C Str &url, C CMemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false);
 
 #if !EE_PRIVATE
 private:

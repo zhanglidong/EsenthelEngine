@@ -1195,7 +1195,7 @@ void Threads::_queue(Ptr data, void func(Ptr data, Ptr user, Int thread_index), 
       func(data, user, 0); // if have no threads then call on this thread
    }
 }
-Threads& Threads::queue(C MemPtr<Call> &calls)
+Threads& Threads::queue(C CMemPtr<Call> &calls)
 {
    if(calls.elms())
    {

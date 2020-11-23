@@ -109,13 +109,13 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag=0, Flt weld_pos_eps=EPS); // join all parts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
 
 #if EE_PRIVATE
-   MeshPart* splitVtxs (Int i, C MemPtr<Bool> &vtx_is                                                  ); // split i-th part by given 'is' array of vertexes to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
-   MeshPart* splitFaces(Int i, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is); // split i-th part by given 'is' array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
+   MeshPart* splitVtxs (Int i, C CMemPtr<Bool> &vtx_is                                                    ); // split i-th part by given 'is' array of vertexes to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
+   MeshPart* splitFaces(Int i, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is); // split i-th part by given 'is' array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
    MeshPart* splitBone (Int i, Int bone, C Skeleton *skeleton=null); // split i-th part by bone blend index to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
 #endif
-   MeshPart* splitVtxs (Int i, C MemPtr<Int> &vtxs                                            ); // split i-th part by given array of vertexes to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
-   MeshPart* splitFaces(Int i, C MemPtr<Int> &faces                                           ); // split i-th part by given array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created, here 'faces' indexes can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
-   MeshPart* splitFaces(Int i, C MemPtr<Int> &edges, C MemPtr<Int> &tris, C MemPtr<Int> &quads); // split i-th part by given array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
+   MeshPart* splitVtxs (Int i, C CMemPtr<Int> &vtxs                                              ); // split i-th part by given array of vertexes to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
+   MeshPart* splitFaces(Int i, C CMemPtr<Int> &faces                                             ); // split i-th part by given array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created, here 'faces' indexes can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshPart* splitFaces(Int i, C CMemPtr<Int> &edges, C CMemPtr<Int> &tris, C CMemPtr<Int> &quads); // split i-th part by given array of faces    to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
 
    // operations
 #if EE_PRIVATE
@@ -130,7 +130,7 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& tesselate(); // smooth subdivide faces, preserving original vertexes
    MeshLod& subdivide(); // smooth subdivide faces,  smoothing original vertexes
 
-   MeshLod&    boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
+   MeshLod&    boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
    void includeUsedBones(Bool (&bones)[256])C;
 

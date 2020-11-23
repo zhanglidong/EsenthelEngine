@@ -36,7 +36,7 @@ void Enum::sort()
    elm_ptr.sort(EnumElmPtr::CompareName); UInt *name_order=nameOrder(); REPA(T)name_order[i]=elm_ptr[i].index;
    elm_ptr.sort(EnumElmPtr::CompareID  ); UInt *  id_order=  idOrder(); REPA(T)  id_order[i]=elm_ptr[i].index;
 }
-Enum& Enum::create(C Str &name, C MemPtr<Elm> &elms)
+Enum& Enum::create(C Str &name, C CMemPtr<Elm> &elms)
 {
    del();
 

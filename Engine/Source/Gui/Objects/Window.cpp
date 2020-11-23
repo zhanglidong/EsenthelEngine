@@ -882,7 +882,7 @@ Dialog& Dialog::autoSize()
    }
    return T;
 }
-Dialog& Dialog::set(C Str &title, C Str &text, C MemPtr<Str> &buttons, C TextStylePtr &text_style)
+Dialog& Dialog::set(C Str &title, C Str &text, C CMemPtr<Str> &buttons, C TextStylePtr &text_style)
 {
    super::setTitle(title).barVisible(title.is());
    T+=T.text.create(text, text_style); T.text.auto_line=AUTO_LINE_SPACE_SPLIT;
@@ -892,7 +892,7 @@ Dialog& Dialog::set(C Str &title, C Str &text, C MemPtr<Str> &buttons, C TextSty
 
    return autoSize();
 }
-Dialog& Dialog::create(C Str &title, C Str &text, C MemPtr<Str> &buttons, C TextStylePtr &text_style)
+Dialog& Dialog::create(C Str &title, C Str &text, C CMemPtr<Str> &buttons, C TextStylePtr &text_style)
 {
    super::create();
    return set(title, text, buttons, text_style);

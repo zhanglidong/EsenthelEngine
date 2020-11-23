@@ -211,7 +211,7 @@ static void                Update(PlatformStore &store) {store.update();}
      _processed.clear();
    }
 }
-Bool PlatformStore::refreshItems(C MemPtr<Str> &item_ids)
+Bool PlatformStore::refreshItems(C CMemPtr<Str> &item_ids)
 {
    if(item_ids.elms())
    {
@@ -506,7 +506,7 @@ JNIEXPORT void JNICALL Java_com_esenthel_Native_connected(JNIEnv *env, jclass cl
 JNIEXPORT jstring JNICALL Java_com_esenthel_Native_getStr(JNIEnv *env, jclass clazz, jlong user, jint i)
 {
    JNI jni(env);
- C MemPtr<Str> &strings=*(C MemPtr<Str>*)user;
+   MemPtr<Str> &strings=*(MemPtr<Str>*)user;
    return jni->NewStringUTF(UTF8(InRange(i, strings) ? strings[i] : S));
 }
 JNIEXPORT void JNICALL Java_com_esenthel_Native_listItem(JNIEnv *env, jclass clazz, jlong user, jstring sku, jstring name, jstring desc, jstring price, jboolean sub)

@@ -607,11 +607,11 @@ TextParam& TextParam::setValuePacked(C Vec  &value) {T.value=_TextPacked(value);
 TextParam& TextParam::setValuePacked(C Vec4 &value) {T.value=_TextPacked(value); return T;}
 #endif
 /******************************************************************************/
-TextNode* FindNode(MemPtr<TextNode> nodes, C Str &name, Int i)
+C TextNode* CFindNode(C CMemPtr<TextNode> &nodes, C Str &name, Int i)
 {
    if(InRange(i, nodes))FREPAD(n, nodes) // process in order
    {
-      TextNode &node=nodes[n]; if(node.name==name)
+    C TextNode &node=nodes[n]; if(node.name==name)
       {
          if(i==0)return &node; i--;
       }
@@ -1629,7 +1629,7 @@ void FileParams::decode(C Str &s)
    FileText f; f.readMem(s); clear(); Load(T, f, f.getChar());
 }
 /******************************************************************************/
-Str FileParams::Encode(C MemPtr<FileParams> &file_params)
+Str FileParams::Encode(C CMemPtr<FileParams> &file_params)
 {
 #if 0
    Str s; FREPA(file_params)

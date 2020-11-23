@@ -434,7 +434,7 @@ Param& Param::setTypeValue(C Param &src)
    return T;
 }
 /******************************************************************************/
-Param& Param::setAsIDArray(C MemPtr<UID> &ids, Bool allow_PARAM_ID_type)
+Param& Param::setAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type)
 {
    enum_type=null;
    value.s.clear(); // always 'clear' even for 'reserve' to avoid copying old data in 'setNum'
@@ -454,7 +454,7 @@ Param& Param::setAsIDArray(C MemPtr<UID> &ids, Bool allow_PARAM_ID_type)
    }
    return T;
 }
-Param& Param::includeAsIDArray(C MemPtr<UID> &ids, Bool allow_PARAM_ID_type)
+Param& Param::includeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type)
 {
    if(Int id_num=IDs()) // if have any existing ID's
    {

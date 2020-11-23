@@ -276,7 +276,7 @@ Bool Menu::exists(C Str &command)C
 // SET
 /******************************************************************************/
 static MemberDesc MenuElmFlag(MEMBER(MenuElm, _flag));
-Menu& Menu::setData(CChar8 *data[], Int elms, C MemPtr<Bool> &visible, Bool keep_cur)
+Menu& Menu::setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    ListColumn columns[]=
    {
@@ -289,7 +289,7 @@ Menu& Menu::setData(CChar8 *data[], Int elms, C MemPtr<Bool> &visible, Bool keep
    setData<CChar8*>(data, elms, visible, keep_cur); // call not self but the template
    return T;
 }
-Menu& Menu::setData(CChar *data[], Int elms, C MemPtr<Bool> &visible, Bool keep_cur)
+Menu& Menu::setData(CChar *data[], Int elms, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    ListColumn columns[]=
    {

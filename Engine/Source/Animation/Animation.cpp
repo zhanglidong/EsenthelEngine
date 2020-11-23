@@ -1424,7 +1424,7 @@ void AnimKeys::includeTimes(MemPtr<Flt, 16384> orn_times, MemPtr<Flt, 16384> pos
    if(  pos_times){if(  pos_times.elms())FREPA(  poss)  pos_times.binaryInclude(  poss[i].time, CompareEps);else {  pos_times.setNum(  poss.elms()); REPAO(  pos_times)=  poss[i].time;}} // process forward because keys are sorted
    if(scale_times){if(scale_times.elms())FREPA(scales)scale_times.binaryInclude(scales[i].time, CompareEps);else {scale_times.setNum(scales.elms()); REPAO(scale_times)=scales[i].time;}} // process forward because keys are sorted
 }
-static void IncludeTimes(C MemPtr<Flt, 16384> &src, MemPtr<Flt, 16384> dest)
+static void IncludeTimes(C CMemPtr<Flt, 16384> &src, MemPtr<Flt, 16384> dest)
 {
    FREPA(src)dest.binaryInclude(src[i], CompareEps); // process forward because 'src' is most likely sorted
 }
@@ -2049,7 +2049,7 @@ Animation& Animation::removeClones()
    return T;
 }
 /******************************************************************************/
-static Bool SameBone(C SkelBone *a, C SkelBone *b, C MemPtr< Mems<IndexWeight> > &new_to_old_weights=null, Int old_i=-1, Int new_i=-1)
+static Bool SameBone(C SkelBone *a, C SkelBone *b, C CMemPtr< Mems<IndexWeight> > &new_to_old_weights=null, Int old_i=-1, Int new_i=-1)
 {
    if(!a && !b)return true; // both are null
    if( a &&  b)             // both are valid
@@ -2067,7 +2067,7 @@ static Bool SameBone(C SkelBone *a, C SkelBone *b, C MemPtr< Mems<IndexWeight> >
    }
    return false;
 }
-static Bool SameSet(C SkelBone &a_child, C SkelBone &b_child, C SkelBone *a_parent, C SkelBone *b_parent, C MemPtr< Mems<IndexWeight> > &new_to_old_weights, Int old_parent_i, Int new_parent_i) // this assumes that 'a_child' and 'b_child' are the same "SameBone(a_child, b_child)", and checks if their parents are the same, and children positions relative to their parents are also the same
+static Bool SameSet(C SkelBone &a_child, C SkelBone &b_child, C SkelBone *a_parent, C SkelBone *b_parent, C CMemPtr< Mems<IndexWeight> > &new_to_old_weights, Int old_parent_i, Int new_parent_i) // this assumes that 'a_child' and 'b_child' are the same "SameBone(a_child, b_child)", and checks if their parents are the same, and children positions relative to their parents are also the same
 {
    if(SameBone(a_parent, b_parent, new_to_old_weights, old_parent_i, new_parent_i))
       return a_parent ? Equal(a_child.pos-a_parent->pos, b_child.pos-b_parent->pos)
@@ -2285,7 +2285,7 @@ struct SphericalInterpolator
       }
    }
 };
-Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &old_skel, C Skeleton &new_skel, Int old_skel_bone_as_root, C MemPtr< Mems<IndexWeight> > &weights, UInt root_flags)
+Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &old_skel, C Skeleton &new_skel, Int old_skel_bone_as_root, C CMemPtr< Mems<IndexWeight> > &weights, UInt root_flags)
 {
 /* 
    'old_skel' and 'new_skel'     are assumed to have the same names when 'weights' are null (if 'weights' are not null, then their indexes are used as 'new_skel' -> 'old_skel' mapping, and names/types are ignored)

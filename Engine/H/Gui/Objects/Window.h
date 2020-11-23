@@ -124,8 +124,8 @@ struct Dialog : Window // Dialog (has text and custom amount of buttons, creatin
    Text2        text;
    Memx<Button> buttons;
 
-   Dialog& create  (C Str &title, C Str &text, C MemPtr<Str> &buttons, C TextStylePtr &text_style=null); // create with given parameters, this automatically calls 'set'
-   Dialog& set     (C Str &title, C Str &text, C MemPtr<Str> &buttons, C TextStylePtr &text_style=null); // adjust an already created Dialog with given parameters, this automatically calls 'autoSize'
+   Dialog& create  (C Str &title, C Str &text, C CMemPtr<Str> &buttons, C TextStylePtr &text_style=null); // create with given parameters, this automatically calls 'set'
+   Dialog& set     (C Str &title, C Str &text, C CMemPtr<Str> &buttons, C TextStylePtr &text_style=null); // adjust an already created Dialog with given parameters, this automatically calls 'autoSize'
    Dialog& autoSize(); // set window, text and buttons rectangles based on their values
 };
 /******************************************************************************/

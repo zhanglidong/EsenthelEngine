@@ -958,7 +958,7 @@ MeshBase& MeshBase::quadToTri(Flt cos)
    }
    return T;
 }
-MeshBase& MeshBase::quadToTri(C MemPtr<Int> &quads)
+MeshBase& MeshBase::quadToTri(C CMemPtr<Int> &quads)
 {
    Memt<Int> actual_quads; FREPA(quads){Int q=quads[i]; if(InRange(q, T.quad))actual_quads.binaryInclude(q);}
    if(       actual_quads.elms())

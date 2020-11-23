@@ -122,7 +122,7 @@ struct ShaderParam // Shader Parameter
       void set(Int cpu_offset, Int gpu_offset, Int elm_size) {T.cpu_offset=cpu_offset; T.gpu_offset=gpu_offset; T.elm_size=elm_size;}
    };
 
-   static void OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translation> &dest);
+   static void OptimizeTranslation(C CMemPtr<Translation> &src, Mems<Translation> &dest);
 
    Byte *_data;
    Bool *_changed;

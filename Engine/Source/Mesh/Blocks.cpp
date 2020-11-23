@@ -199,7 +199,7 @@ Bool BlocksMap::raycast(C Vec &start, C Vec &move, Vec *hit_pos, Vec *hit_normal
          if(blocks->raycast(start, move, hit_pos, hit_normal, &matrix(walker.pos().x, walker.pos().y)))return true;
    return false;
 }
-Vec BlocksMap::light(C Vec &pos, C BlocksOcclusion *occl, C MemPtr<Blocks::Light> &lights)C
+Vec BlocksMap::light(C Vec &pos, C BlocksOcclusion *occl, C CMemPtr<Blocks::Light> &lights)C
 {
    Vec   local_pos=pos/_base_matrix; Vec block_pos=local_pos/resolution();
    VecI2 xz=Floor(block_pos.xz());
@@ -628,7 +628,7 @@ Blocks& Blocks::subDivision(Int steps)
    T._sub_division=Max(1, steps);
    return T;
 }
-Blocks& Blocks::setMesh(Flt tex_scale, C BlocksOcclusion *occl, C BoxI *local_box, C VecI2 &blocks_pos, C BlocksMap *map, C MemPtr<Light> &lights, Bool optimize, Flt max_face_length)
+Blocks& Blocks::setMesh(Flt tex_scale, C BlocksOcclusion *occl, C BoxI *local_box, C VecI2 &blocks_pos, C BlocksMap *map, C CMemPtr<Light> &lights, Bool optimize, Flt max_face_length)
 {
    BoxI box; if(local_box)
    {

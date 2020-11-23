@@ -516,7 +516,7 @@ const_mem_addr struct Threads // Worker Threads, allow to process data on multip
    T2(DATA, USER_DATA)   void queue(DATA &data, void func(DATA &data, USER_DATA *user, Int thread_index), USER_DATA *user=null) {_queue((Ptr)&data, (void (*)(Ptr data, Ptr user, Int thread_index))func,  user);}
    T2(DATA, USER_DATA)   void queue(DATA &data, void func(DATA &data, USER_DATA &user, Int thread_index), USER_DATA &user     ) {_queue((Ptr)&data, (void (*)(Ptr data, Ptr user, Int thread_index))func, &user);}
 
-   Threads& queue(C MemPtr<Call> &calls); // queue multiple calls
+   Threads& queue(C CMemPtr<Call> &calls); // queue multiple calls
 
    // cancel queued calls on 'func' function with 'data' and 'user' parameters, returns the number of canceled calls, please note that call that's already in progress can't be canceled
                    Int cancelFuncUser(void func(IntPtr elm_index, Ptr        user, Int thread_index), Ptr        user=null) {return _cancel((void (*)(Ptr data, Ptr user, Int thread_index))func,  user);}

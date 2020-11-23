@@ -1397,7 +1397,7 @@ MeshBase& MeshBase::subdivide()
    Swap(T, temp); return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::subdivideEdge(Bool freeze_z, C MemPtr<Bool> &is)
+MeshBase& MeshBase::subdivideEdge(Bool freeze_z, C CMemPtr<Bool> &is)
 {
    Int     *p, p0, p1;
    Int      vtxs =T.vtxs (),
@@ -1783,7 +1783,7 @@ MeshBase& MeshBase::extr(Flt length)
    Swap(T, temp); return T;
 }
 /******************************************************************************/
-static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, VecB4 *blend=null)
+static void BoneRemap(VecB4 &matrix, C CMemPtr<Byte, 256> &old_to_new, VecB4 *blend=null)
 {
    REPA(matrix.c)
    {
@@ -1813,12 +1813,12 @@ static void BoneRemap(VecB4 &matrix, C MemPtr<Byte, 256> &old_to_new, VecB4 *ble
    }
    if(blend)FixMatrixWeight(matrix, *blend);
 }
-MeshBase& MeshBase::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+MeshBase& MeshBase::boneRemap(C CMemPtr<Byte, 256> &old_to_new)
 {
    if(VecB4 *matrix=vtx.matrix()){VecB4 *blend=vtx.blend(); REP(vtxs())BoneRemap(matrix[i], old_to_new, blend ? &blend[i] : null);}
    return T;
 }
-void MeshRender::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+void MeshRender::boneRemap(C CMemPtr<Byte, 256> &old_to_new)
 {
    Int matrix_ofs =vtxOfs(VTX_MATRIX);
    if( matrix_ofs>=0)if(Byte *vtx=vtxLock())

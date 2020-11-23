@@ -1126,7 +1126,7 @@ Matrix GetRestMatrix(C MeshBase &mesh, C Matrix *initial_matrix, C Vec *mass_cen
    Memt<C MeshRender*> gpu_meshes;
    return GetRestMatrix(meshes, gpu_meshes, initial_matrix, mass_center, min_dist, rest_box, max_steps);
 }
-Matrix GetRestMatrix(C MemPtr<C MeshPart*> &meshes, C Matrix *initial_matrix, C Vec *mass_center, Flt min_dist, Box *rest_box, Int max_steps, Bool only_visible, Bool only_phys)
+Matrix GetRestMatrix(C CMemPtr<C MeshPart*> &meshes, C Matrix *initial_matrix, C Vec *mass_center, Flt min_dist, Box *rest_box, Int max_steps, Bool only_visible, Bool only_phys)
 {
    Memt<C MeshBase  *>     temp;
    Memt<C MeshRender*> gpu_temp;
@@ -1140,7 +1140,7 @@ Matrix GetRestMatrix(C MemPtr<C MeshPart*> &meshes, C Matrix *initial_matrix, C 
    }
    return GetRestMatrix(temp, gpu_temp, initial_matrix, mass_center, min_dist, rest_box, max_steps);
 }
-Matrix GetRestMatrix(C MemPtr<C MeshLod*> &meshes, C Matrix *initial_matrix, C Vec *mass_center, Flt min_dist, Box *rest_box, Int max_steps, Bool only_visible, Bool only_phys)
+Matrix GetRestMatrix(C CMemPtr<C MeshLod*> &meshes, C Matrix *initial_matrix, C Vec *mass_center, Flt min_dist, Box *rest_box, Int max_steps, Bool only_visible, Bool only_phys)
 {
    Memt<C MeshPart*> parts;
    REPA(meshes)

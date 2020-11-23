@@ -405,7 +405,7 @@ inline Flt AngleFlipY (Flt angle) {return PI2-angle;} // flip angle so that (x, 
 inline Flt AngleFlipXY(Flt angle) {return PI +angle;} // flip angle so that (x, y)->(-x,-y), where x=Cos(angle), y=Sin(angle)
 
 // average direction
-void AvgDirU(Vec2 &dir, C MemPtr<Vec2> &points); // get average direction from array of points, points should be located around center Vec2(0,0), direction is not normalized
+void AvgDirU(Vec2 &dir, C CMemPtr<Vec2> &points); // get average direction from array of points, points should be located around center Vec2(0,0), direction is not normalized
 /******************************************************************************/
 // BLENDING
 /******************************************************************************/

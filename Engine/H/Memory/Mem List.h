@@ -90,14 +90,14 @@ T1(TYPE) struct Meml : _Meml // List Based Container
    Meml&    swapOrder(Int i, Int j); // swap order of 'i' and 'j' elements (swapping  modifies only indexes), this method does not change the memory address of any of the elements
 
    // misc
-                      Meml& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator
-                      Meml& operator=(C Memc  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Meml& operator=(C Memt  <TYPE, size>  &src); // copy elements using assignment operator
-                      Meml& operator=(C Memb  <TYPE      >  &src); // copy elements using assignment operator
-                      Meml& operator=(C Memx  <TYPE      >  &src); // copy elements using assignment operator
-                      Meml& operator=(C Meml  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Meml& operator=(C MemPtr<TYPE, size>  &src); // copy elements using assignment operator
-                      Meml& operator=(  Meml  <TYPE      > &&src); // copy elements using assignment operator
+                      Meml& operator=(C  Mems  <TYPE      >  &src); // copy elements using assignment operator
+                      Meml& operator=(C  Memc  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Meml& operator=(C  Memt  <TYPE, size>  &src); // copy elements using assignment operator
+                      Meml& operator=(C  Memb  <TYPE      >  &src); // copy elements using assignment operator
+                      Meml& operator=(C  Memx  <TYPE      >  &src); // copy elements using assignment operator
+                      Meml& operator=(C  Meml  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Meml& operator=(C CMemPtr<TYPE, size>  &src); // copy elements using assignment operator
+                      Meml& operator=(   Meml  <TYPE      > &&src); // copy elements using assignment operator
 
    // io
    Bool save(File &f);   Bool save(File &f)C; // save elements with their own 'save' method, this method first saves number of current elements, and then for each element calls its 'save' method, false on fail

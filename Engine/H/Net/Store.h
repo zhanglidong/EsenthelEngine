@@ -98,8 +98,8 @@ struct PlatformStore // class allowing to communicate with Platform Store
 #endif
 
    // operations
-   Bool refreshItems    (C MemPtr<Str> &item_ids); // refresh 'items'     container for selected items, once the latest data has been received, 'callback' function will be called with REFRESHED_ITEMS     result, false on fail, 'item_ids'=item ID's for which you want to refresh the details
-   Bool refreshPurchases(                       ); // refresh 'purchases' container                   , once the latest data has been received, 'callback' function will be called with REFRESHED_PURCHASES result, false on fail
+   Bool refreshItems    (C CMemPtr<Str> &item_ids); // refresh 'items'     container for selected items, once the latest data has been received, 'callback' function will be called with REFRESHED_ITEMS     result, false on fail, 'item_ids'=item ID's for which you want to refresh the details
+   Bool refreshPurchases(                        ); // refresh 'purchases' container                   , once the latest data has been received, 'callback' function will be called with REFRESHED_PURCHASES result, false on fail
 
    RESULT buy(C Str &id, Bool subscription=false, C Str &data=S); // purchase an item, 'id'=ID of the item, 'subscription'=if it's a subscription or regular item (this is required only for Google Play, for Apple Store it's ignored), 'data'=custom string that will be attached to the purchase and later accessible through 'Purchase.data' (used only in Google Play, in Apple Store this is ignored)
    RESULT buy(C Item &item, C Str &data=S) {return buy(item.id, item.subscription, data);}

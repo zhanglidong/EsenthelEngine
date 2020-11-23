@@ -105,14 +105,14 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
    Memt&      moveElm  (Int elm, Int new_index); // move 'elm' element to new position located at 'new_index'
 
    // misc
-                          Memt& operator=(C Mems  <TYPE          > &src); // copy elements using assignment operator
-                          Memt& operator=(C Memc  <TYPE          > &src); // copy elements using assignment operator
-                          Memt& operator=(C Memt  <TYPE,     size> &src); // copy elements using assignment operator (this must be specified even though method below should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
-   template<Int src_size> Memt& operator=(C Memt  <TYPE, src_size> &src); // copy elements using assignment operator (this will allow copying from 'Memt' with other sizes)
-                          Memt& operator=(C Memb  <TYPE          > &src); // copy elements using assignment operator
-                          Memt& operator=(C Memx  <TYPE          > &src); // copy elements using assignment operator
-                          Memt& operator=(C Meml  <TYPE          > &src); // copy elements using assignment operator
-   template<Int src_size> Memt& operator=(C MemPtr<TYPE, src_size> &src); // copy elements using assignment operator
+                          Memt& operator=(C  Mems  <TYPE          > &src); // copy elements using assignment operator
+                          Memt& operator=(C  Memc  <TYPE          > &src); // copy elements using assignment operator
+   template<Int src_size> Memt& operator=(C  Memt  <TYPE, src_size> &src); // copy elements using assignment operator (this will allow copying from 'Memt' with other sizes)
+                          Memt& operator=(C  Memt  <TYPE,     size> &src); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
+                          Memt& operator=(C  Memb  <TYPE          > &src); // copy elements using assignment operator
+                          Memt& operator=(C  Memx  <TYPE          > &src); // copy elements using assignment operator
+                          Memt& operator=(C  Meml  <TYPE          > &src); // copy elements using assignment operator
+   template<Int src_size> Memt& operator=(C CMemPtr<TYPE, src_size> &src); // copy elements using assignment operator
 
 #if EE_PRIVATE
    void  copyTo  (  TYPE *dest)C {CopyN(dest  , data(), elms());          } // copy raw memory of all elements to   'dest'
@@ -151,14 +151,14 @@ private:
 /******************************************************************************/
 template<const_mem_addr typename TYPE, Int Memt_elms> struct MemtN : Memt<TYPE, SIZE(TYPE)*Memt_elms> // Temporary Memory Based Container, 'TYPE'=type of elements to be stored in this container, 'Memt_elms'=number of elements that can be stored without having to allocate any dynamic memory
 {
-                          MemtN& operator=(C Mems  <TYPE           > &src); // copy elements using assignment operator
-                          MemtN& operator=(C Memc  <TYPE           > &src); // copy elements using assignment operator
-   template<Int src_size> MemtN& operator=(C Memt  <TYPE,  src_size> &src); // copy elements using assignment operator (this will allow copying from 'Memt' with other sizes)
-                          MemtN& operator=(C MemtN <TYPE, Memt_elms> &src); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
-                          MemtN& operator=(C Memb  <TYPE           > &src); // copy elements using assignment operator
-                          MemtN& operator=(C Memx  <TYPE           > &src); // copy elements using assignment operator
-                          MemtN& operator=(C Meml  <TYPE           > &src); // copy elements using assignment operator
-   template<Int src_size> MemtN& operator=(C MemPtr<TYPE,  src_size> &src); // copy elements using assignment operator
+                          MemtN& operator=(C  Mems  <TYPE           > &src); // copy elements using assignment operator
+                          MemtN& operator=(C  Memc  <TYPE           > &src); // copy elements using assignment operator
+   template<Int src_size> MemtN& operator=(C  Memt  <TYPE,  src_size> &src); // copy elements using assignment operator (this will allow copying from 'Memt' with other sizes)
+                          MemtN& operator=(C  MemtN <TYPE, Memt_elms> &src); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
+                          MemtN& operator=(C  Memb  <TYPE           > &src); // copy elements using assignment operator
+                          MemtN& operator=(C  Memx  <TYPE           > &src); // copy elements using assignment operator
+                          MemtN& operator=(C  Meml  <TYPE           > &src); // copy elements using assignment operator
+   template<Int src_size> MemtN& operator=(C CMemPtr<TYPE,  src_size> &src); // copy elements using assignment operator
 };
 /******************************************************************************/
 template<typename TYPE, Int size>   inline Int Elms(C Memt<TYPE, size> &memt) {return memt.elms();}

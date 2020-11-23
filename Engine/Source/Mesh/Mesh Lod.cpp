@@ -289,7 +289,7 @@ Int MeshLod::partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool te
    return temp.elms();
 }
 /******************************************************************************/
-MeshPart* MeshLod::splitVtxs(Int i, C MemPtr<Bool> &vtx_is)
+MeshPart* MeshLod::splitVtxs(Int i, C CMemPtr<Bool> &vtx_is)
 {
    MeshPart *part=null; if(InRange(i, T) && vtx_is.elms())
    {
@@ -311,7 +311,7 @@ MeshPart* MeshLod::splitVtxs(Int i, C MemPtr<Bool> &vtx_is)
    }
    return part;
 }
-MeshPart* MeshLod::splitFaces(Int i, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is)
+MeshPart* MeshLod::splitFaces(Int i, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is)
 {
    MeshPart *part=null; if(InRange(i, T) && (edge_is.elms() || tri_is.elms() || quad_is.elms()))
    {
@@ -343,7 +343,7 @@ MeshPart* MeshLod::splitBone(Int i, Int bone, C Skeleton *skeleton)
    }
    return part;
 }
-MeshPart* MeshLod::splitVtxs(Int i, C MemPtr<Int> &vtxs)
+MeshPart* MeshLod::splitVtxs(Int i, C CMemPtr<Int> &vtxs)
 {
    if(vtxs.elms())if(MeshPart *part=parts.addr(i))
    {
@@ -351,7 +351,7 @@ MeshPart* MeshLod::splitVtxs(Int i, C MemPtr<Int> &vtxs)
    }
    return null;
 }
-MeshPart* MeshLod::splitFaces(Int i, C MemPtr<Int> &faces)
+MeshPart* MeshLod::splitFaces(Int i, C CMemPtr<Int> &faces)
 {
    if(faces.elms())if(MeshPart *part=parts.addr(i))
    {
@@ -360,7 +360,7 @@ MeshPart* MeshLod::splitFaces(Int i, C MemPtr<Int> &faces)
    }
    return null;
 }
-MeshPart* MeshLod::splitFaces(Int i, C MemPtr<Int> &edges, C MemPtr<Int> &tris, C MemPtr<Int> &quads)
+MeshPart* MeshLod::splitFaces(Int i, C CMemPtr<Int> &edges, C CMemPtr<Int> &tris, C CMemPtr<Int> &quads)
 {
    if(edges.elms() || tris.elms() || quads.elms())if(MeshPart *part=parts.addr(i))
    {
@@ -591,9 +591,9 @@ MeshLod& MeshLod::explodeVtxs() {REPAO(parts).base.explodeVtxs(); return T;}
 MeshLod& MeshLod::tesselate  () {REPAO(parts).base.tesselate  (); return T;}
 MeshLod& MeshLod::subdivide  () {REPAO(parts).base.subdivide  (); return T;}
 
-MeshLod& MeshLod::boneRemap(C MemPtr<Byte, 256> &old_to_new)  {REPAO(parts).boneRemap  (old_to_new); return T;}
-void     MeshLod::includeUsedBones(Bool (&bones)[256]      )C {REPAO(parts).includeUsedBones(bones);}
-void     MeshLod::    setUsedBones(Bool (&bones)[256]      )C {Zero(bones); includeUsedBones(bones);}
+MeshLod& MeshLod::boneRemap(C CMemPtr<Byte, 256> &old_to_new)  {REPAO(parts).boneRemap  (old_to_new); return T;}
+void     MeshLod::includeUsedBones(Bool (&bones)[256]       )C {REPAO(parts).includeUsedBones(bones);}
+void     MeshLod::    setUsedBones(Bool (&bones)[256]       )C {Zero(bones); includeUsedBones(bones);}
 
 MeshLod& MeshLod::freeOpenGLESData() {REPAO(parts).freeOpenGLESData(); return T;}
 /******************************************************************************/

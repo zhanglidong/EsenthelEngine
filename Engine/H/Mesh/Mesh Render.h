@@ -70,7 +70,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    Int  triIndSize     ()C {return indBit16() ? SIZE(U16)*3 : SIZE(U32)*3;} // get triangle indexes size
    Bool storageCompress()C {return FlagTest(_storage, MSHR_COMPRESS);}
 
-   void        boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
+   void        boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
    void includeUsedBones(Bool (&bones)[256])C;
 
@@ -95,7 +95,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
 
    MeshRender& optimize        (Bool faces=true, Bool vertexes=true); // this method will re-order elements for best rendering performance, 'faces'=if re-order faces, 'vertexes'=if re-order vertexes
    MeshRender& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
-   void        adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C MemPtr<BoneSplit> &bone_splits);
+   void        adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C CMemPtr<BoneSplit> &bone_splits);
 
    // io
 #if EE_PRIVATE

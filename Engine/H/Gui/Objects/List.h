@@ -106,14 +106,14 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    // set / get
   _List& setColumns(C ListColumn *column, Int columns, Bool columns_hidden=false); // set columns, list columns are copied internally
 
-   T1(TYPE) _List& setData    ( TYPE       *data, Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from continuous memory  !! after any change in source data, 'setData' must be called again !!
-   T1(TYPE) _List& setData    ( Mems<TYPE> &mems,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Mems               !! after any change in source data, 'setData' must be called again !!
-            _List& setData    (_Memc       &memc,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memc               !! after any change in source data, 'setData' must be called again !!
-            _List& setData    (_Memb       &memb,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memb               !! after any change in source data, 'setData' must be called again !!
-            _List& setData    (_Memx       &memx,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memx               !! after any change in source data, 'setData' must be called again !!
-            _List& setData    (_Meml       &meml,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Meml               !! after any change in source data, 'setData' must be called again !!
-            _List& setData    (_Map        &map ,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Map                !! after any change in source data, 'setData' must be called again !!
-   T1(TYPE) _List& setDataNode( Memx<TYPE> &memx,           C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memx with children !! after any change in source data, 'setData' must be called again !! TYPE must have a "Memx<TYPE> children" member, for example: "struct TYPE { Memx<TYPE> children; }", in that case 'setDataNode' will add all elements including children recursively
+   T1(TYPE) _List& setData    ( TYPE       *data, Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from continuous memory  !! after any change in source data, 'setData' must be called again !!
+   T1(TYPE) _List& setData    ( Mems<TYPE> &mems,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Mems               !! after any change in source data, 'setData' must be called again !!
+            _List& setData    (_Memc       &memc,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memc               !! after any change in source data, 'setData' must be called again !!
+            _List& setData    (_Memb       &memb,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memb               !! after any change in source data, 'setData' must be called again !!
+            _List& setData    (_Memx       &memx,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memx               !! after any change in source data, 'setData' must be called again !!
+            _List& setData    (_Meml       &meml,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Meml               !! after any change in source data, 'setData' must be called again !!
+            _List& setData    (_Map        &map ,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Map                !! after any change in source data, 'setData' must be called again !!
+   T1(TYPE) _List& setDataNode( Memx<TYPE> &memx,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set list data from Memx with children !! after any change in source data, 'setData' must be called again !! TYPE must have a "Memx<TYPE> children" member, for example: "struct TYPE { Memx<TYPE> children; }", in that case 'setDataNode' will add all elements including children recursively
 
   _List& columnsHidden(Bool hidden                                         );   Bool   columnsHidden    ()C {return              _columns_hidden;} // set/get if all columns are hidden
   _List&  columnHeight(Flt  base, Flt relative=0                           );   Flt     columnHeight    ()C;                                       // set/get columns           height  ,                     default=(0.055, 0.0   ), final height = "zoom * columnHeightRel() + columnHeightBase()"
@@ -230,7 +230,7 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
 #if EE_PRIVATE
    Bool columnsVisible   ()C {return !_columns_hidden && _columns.elms();}
    void zero             ();
-   void init             (Int elms, C MemPtr<Bool> &visible, Bool keep_cur);
+   void init             (Int elms, C CMemPtr<Bool> &visible, Bool keep_cur);
    void setRects         ();
    Bool setCurEx         (Int cur, Int dir=0, Bool pushed=false, UInt touch_id=0);
    Bool setSel           (Int visible);
@@ -305,8 +305,8 @@ private:
 #if EE_PRIVATE
 private:
 #endif
-  _List& _setData(Ptr data, Int elms, Int elm_size, C MemPtr<Bool> &visible=null, Bool keep_cur=false);
-  _List& _setData(_Memx &node, Int children_offset, C MemPtr<Bool> &visible=null, Bool keep_cur=false);
+  _List& _setData(Ptr data, Int elms, Int elm_size, C CMemPtr<Bool> &visible=null, Bool keep_cur=false);
+  _List& _setData(_Memx &node, Int children_offset, C CMemPtr<Bool> &visible=null, Bool keep_cur=false);
 
 protected:
    virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
@@ -332,14 +332,14 @@ const_mem_addr T1(TYPE) struct List : _List // Gui List Template !! must be stor
    TYPE* screenToData(  Flt   y  , C GuiPC *gpc=null)C {return (TYPE*)super::screenToData(y  , gpc);} // convert screen  position Y to data, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    TYPE* screenToData(C Vec2 &pos, C GuiPC *gpc=null)C {return (TYPE*)super::screenToData(pos, gpc);} // convert screen  position   to data, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
 
-           List& setData    (          TYPE  *data, Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (data, elms, visible, keep_cur); return T;} // set list data from continuous memory  !! after any change in source data, 'setData' must be called again !!
-           List& setData    (Mems<     TYPE> &mems,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (mems,       visible, keep_cur); return T;} // set list data from Mems               !! after any change in source data, 'setData' must be called again !!
-           List& setData    (Memc<     TYPE> &memc,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memc,       visible, keep_cur); return T;} // set list data from Memc               !! after any change in source data, 'setData' must be called again !!
-           List& setData    (Memb<     TYPE> &memb,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memb,       visible, keep_cur); return T;} // set list data from Memb               !! after any change in source data, 'setData' must be called again !!
-           List& setData    (Memx<     TYPE> &memx,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memx,       visible, keep_cur); return T;} // set list data from Memx               !! after any change in source data, 'setData' must be called again !!
-           List& setData    (Meml<     TYPE> &meml,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (meml,       visible, keep_cur); return T;} // set list data from Meml               !! after any change in source data, 'setData' must be called again !!
-   T1(KEY) List& setData    (Map <KEY, TYPE> &map ,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (map ,       visible, keep_cur); return T;} // set list data from Map                !! after any change in source data, 'setData' must be called again !!
-           List& setDataNode(Memx<     TYPE> &memx,           C MemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setDataNode(memx,       visible, keep_cur); return T;} // set list data from Memx with children !! after any change in source data, 'setData' must be called again !! TYPE must have a "Memx<TYPE> children" member, for example: "struct TYPE { Memx<TYPE> children; }", in that case 'setDataNode' will add all elements including children recursively
+           List& setData    (          TYPE  *data, Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (data, elms, visible, keep_cur); return T;} // set list data from continuous memory  !! after any change in source data, 'setData' must be called again !!
+           List& setData    (Mems<     TYPE> &mems,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (mems,       visible, keep_cur); return T;} // set list data from Mems               !! after any change in source data, 'setData' must be called again !!
+           List& setData    (Memc<     TYPE> &memc,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memc,       visible, keep_cur); return T;} // set list data from Memc               !! after any change in source data, 'setData' must be called again !!
+           List& setData    (Memb<     TYPE> &memb,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memb,       visible, keep_cur); return T;} // set list data from Memb               !! after any change in source data, 'setData' must be called again !!
+           List& setData    (Memx<     TYPE> &memx,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (memx,       visible, keep_cur); return T;} // set list data from Memx               !! after any change in source data, 'setData' must be called again !!
+           List& setData    (Meml<     TYPE> &meml,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (meml,       visible, keep_cur); return T;} // set list data from Meml               !! after any change in source data, 'setData' must be called again !!
+   T1(KEY) List& setData    (Map <KEY, TYPE> &map ,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setData    (map ,       visible, keep_cur); return T;} // set list data from Map                !! after any change in source data, 'setData' must be called again !!
+           List& setDataNode(Memx<     TYPE> &memx,           C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {super::setDataNode(memx,       visible, keep_cur); return T;} // set list data from Memx with children !! after any change in source data, 'setData' must be called again !! TYPE must have a "Memx<TYPE> children" member, for example: "struct TYPE { Memx<TYPE> children; }", in that case 'setDataNode' will add all elements including children recursively
 };
 /******************************************************************************/
 inline Int Elms(C _List &list) {return list.elms();}

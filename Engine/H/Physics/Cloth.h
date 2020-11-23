@@ -22,7 +22,7 @@ const_mem_addr struct ClothMesh // Physical Cloth Mesh, it is created from MeshB
  C MaterialPtr& material()C {return _material;} // get ClothMesh material
 
    // operations
-   void boneRemap(C MemPtr<Byte, 256> &old_to_new, Bool remap_names=true); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap, 'remap_names'=if remap the bone names as well
+   void boneRemap(C CMemPtr<Byte, 256> &old_to_new, Bool remap_names=true); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap, 'remap_names'=if remap the bone names as well
 
    // io
    Bool save(C Str &name)C; // save, false on fail
@@ -112,8 +112,8 @@ struct Cloth // Physical Cloth
    Cloth&  unlock    (); // unlock read access, this must be called after 'lockRead'
    Cloth&    set     (C Particle *particle, Int particles); // set custom particles for the cloth, length of this array must be at least as long as 'vtxs'
 
-   Cloth& setCollisionBalls   (C MemPtr<Ball > &balls   ); // set balls    that collide with this Cloth (up to 32 balls    are supported)
-   Cloth& setCollisionCapsules(C MemPtr<VecI2> &capsules); // set capsules that collide with this Cloth (up to 32 capsules are supported), they are specified using indexes for both ends of capsule balls from the 'balls' specified using 'setCollisionBalls' (they must be set prior to calling 'setCollisionCapsules')
+   Cloth& setCollisionBalls   (C CMemPtr<Ball > &balls   ); // set balls    that collide with this Cloth (up to 32 balls    are supported)
+   Cloth& setCollisionCapsules(C CMemPtr<VecI2> &capsules); // set capsules that collide with this Cloth (up to 32 capsules are supported), they are specified using indexes for both ends of capsule balls from the 'balls' specified using 'setCollisionBalls' (they must be set prior to calling 'setCollisionCapsules')
 
    // draw
    void drawSkinned        (C AnimatedSkeleton &anim_skel                )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_PREPARE

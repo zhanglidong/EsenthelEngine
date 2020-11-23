@@ -1508,8 +1508,8 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
    return false;
 }
 /******************************************************************************
-void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C MemPtr<Animation*> &animations); // !! does not change mesh bone names !!
-void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C MemPtr<Animation*> &animations)
+void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C CMemPtr<Animation*> &animations); // !! does not change mesh bone names !!
+void RemoveNubBones(Mesh *mesh, Skeleton &skeleton, C CMemPtr<Animation*> &animations)
 {
    Memt<Byte, 256> old_to_new;
    REPA(skeleton.bones)

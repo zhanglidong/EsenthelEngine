@@ -16,7 +16,7 @@ static  Int   NodeElms    (_Memx &node, Int children_offset)
    Int    elms=0; FREPA(node)elms+=1+NodeElms(NodeChildren(node[i], children_offset), children_offset); // increase self + children of self
    return elms;
 }
-static void NodeVisible(_Memx &node, Int children_offset, Ptr* &abs_to_data, Ptr* &vis_to_data, C MemPtr<Bool> &visible, Int &index)
+static void NodeVisible(_Memx &node, Int children_offset, Ptr* &abs_to_data, Ptr* &vis_to_data, C CMemPtr<Bool> &visible, Int &index)
 {
    FREPA(node)
    {
@@ -535,7 +535,7 @@ _List& _List::setColumns(C ListColumn *column, Int columns, Bool columns_hidden)
    return T;
 }
 /******************************************************************************/
-_List& _List::_setData(Ptr data, Int elms, Int elm_size, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::_setData(Ptr data, Int elms, Int elm_size, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    =data;
    T._memb    =null;
@@ -548,8 +548,8 @@ _List& _List::_setData(Ptr data, Int elms, Int elm_size, C MemPtr<Bool> &visible
    init(elms, visible, keep_cur);
    return T;
 }
-_List& _List::setData(_Memc &memc, C MemPtr<Bool> &visible, Bool keep_cur) {return _setData(memc.data(), memc.elms(), memc.elmSize(), visible, keep_cur);}
-_List& _List::setData(_Memb &memb, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::setData(_Memc &memc, C CMemPtr<Bool> &visible, Bool keep_cur) {return _setData(memc.data(), memc.elms(), memc.elmSize(), visible, keep_cur);}
+_List& _List::setData(_Memb &memb, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    = null;
    T._memb    =&memb;
@@ -562,7 +562,7 @@ _List& _List::setData(_Memb &memb, C MemPtr<Bool> &visible, Bool keep_cur)
    init(memb.elms(), visible, keep_cur);
    return T;
 }
-_List& _List::setData(_Memx &memx, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::setData(_Memx &memx, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    = null;
    T._memb    = null;
@@ -575,7 +575,7 @@ _List& _List::setData(_Memx &memx, C MemPtr<Bool> &visible, Bool keep_cur)
    init(memx.elms(), visible, keep_cur);
    return T;
 }
-_List& _List::setData(_Meml &meml, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::setData(_Meml &meml, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    = null;
    T._memb    = null;
@@ -588,7 +588,7 @@ _List& _List::setData(_Meml &meml, C MemPtr<Bool> &visible, Bool keep_cur)
    init(meml.elms(), visible, keep_cur);
    return T;
 }
-_List& _List::setData(_Map &map, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::setData(_Map &map, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    = null;
    T._memb    = null;
@@ -601,7 +601,7 @@ _List& _List::setData(_Map &map, C MemPtr<Bool> &visible, Bool keep_cur)
    init(map.elms(), visible, keep_cur);
    return T;
 }
-_List& _List::_setData(_Memx &node, Int children_offset, C MemPtr<Bool> &visible, Bool keep_cur)
+_List& _List::_setData(_Memx &node, Int children_offset, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
    T._data    = null;
    T._memb    = null;
@@ -616,7 +616,7 @@ _List& _List::_setData(_Memx &node, Int children_offset, C MemPtr<Bool> &visible
    return T;
 }
 /******************************************************************************/
-void _List::init(Int elms, C MemPtr<Bool> &visible, Bool keep_cur)
+void _List::init(Int elms, C CMemPtr<Bool> &visible, Bool keep_cur)
 {
  //Int vis_cur=cur; // remember visible cursor, in case we want to keep cursor as visible (not absolute)
 

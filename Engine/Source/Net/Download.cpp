@@ -56,7 +56,7 @@ static void AppendParam(Str8 &text, C TextParam &param)
       else text+=c;
    }
 }
-Str8 HTTPParam::Encode(C MemPtr<HTTPParam> &params)
+Str8 HTTPParam::Encode(C CMemPtr<HTTPParam> &params)
 {
    Str8 s; FREPA(params)
    {
@@ -576,8 +576,8 @@ void Download::zero()
 #endif
 }
 
-Download::Download(                                                                                                            ) : _memb(64*1024) {zero();                                                                }
-Download::Download(C Str &url, C MemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused) : _memb(64*1024) {zero(); create(url, params, post, max_post_size, offset, size, paused);}
+Download::Download(                                                                                                             ) : _memb(64*1024) {zero();                                                                }
+Download::Download(C Str &url, C CMemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused) : _memb(64*1024) {zero(); create(url, params, post, max_post_size, offset, size, paused);}
 
 void Download::delPartial() // this deletes only members which can't be accessed on the main thread
 {
@@ -606,7 +606,7 @@ Download& Download::del(Int milliseconds)
    if(state())state(DWNL_NONE); // call here because 'zero' does not call this
    zero(); return T;
 }
-Download& Download::create(C Str &url, C MemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused, Bool ignore_auth_result, SyncEvent *event)
+Download& Download::create(C Str &url, C CMemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused, Bool ignore_auth_result, SyncEvent *event)
 {
 #if WEB
    post=null; // not yet supported

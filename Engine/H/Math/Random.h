@@ -86,20 +86,20 @@ struct Randomizer // Randomizer is multi-threaded safe
    Flt normalSkew(Flt shape); // return random Flt with skew normal distribution
 
    // array element
-   template<typename TYPE, Int elms>    TYPE& elm(         TYPE       (&array)[elms]) {return array[T(     elms  )];}
-   template<typename TYPE, Int elms>  C TYPE& elm(       C TYPE       (&array)[elms]) {return array[T(     elms  )];}
-   template<typename TYPE          >    TYPE& elm(  Mems  <TYPE      > &mems        ) {return mems [T(mems.elms())];}
-   template<typename TYPE          >  C TYPE& elm(C Mems  <TYPE      > &mems        ) {return mems [T(mems.elms())];}
-   template<typename TYPE          >    TYPE& elm(  Memc  <TYPE      > &memc        ) {return memc [T(memc.elms())];}
-   template<typename TYPE          >  C TYPE& elm(C Memc  <TYPE      > &memc        ) {return memc [T(memc.elms())];}
-   template<typename TYPE, Int size>    TYPE& elm(  Memt  <TYPE, size> &memt        ) {return memt [T(memt.elms())];}
-   template<typename TYPE, Int size>  C TYPE& elm(C Memt  <TYPE, size> &memt        ) {return memt [T(memt.elms())];}
-   template<typename TYPE          >    TYPE& elm(  Memb  <TYPE      > &memb        ) {return memb [T(memb.elms())];}
-   template<typename TYPE          >  C TYPE& elm(C Memb  <TYPE      > &memb        ) {return memb [T(memb.elms())];}
-   template<typename TYPE          >    TYPE& elm(  Memx  <TYPE      > &memx        ) {return memx [T(memx.elms())];}
-   template<typename TYPE          >  C TYPE& elm(C Memx  <TYPE      > &memx        ) {return memx [T(memx.elms())];}
-   template<typename TYPE, Int size>    TYPE& elm(  MemPtr<TYPE, size> &memp        ) {return memp [T(memp.elms())];}
-   template<typename TYPE, Int size>  C TYPE& elm(C MemPtr<TYPE, size> &memp        ) {return memp [T(memp.elms())];}
+   template<typename TYPE, Int elms>    TYPE& elm(          TYPE       (&array)[elms]) {return array[T(     elms  )];}
+   template<typename TYPE, Int elms>  C TYPE& elm(        C TYPE       (&array)[elms]) {return array[T(     elms  )];}
+   template<typename TYPE          >    TYPE& elm(   Mems  <TYPE      > &mems        ) {return mems [T(mems.elms())];}
+   template<typename TYPE          >  C TYPE& elm(C  Mems  <TYPE      > &mems        ) {return mems [T(mems.elms())];}
+   template<typename TYPE          >    TYPE& elm(   Memc  <TYPE      > &memc        ) {return memc [T(memc.elms())];}
+   template<typename TYPE          >  C TYPE& elm(C  Memc  <TYPE      > &memc        ) {return memc [T(memc.elms())];}
+   template<typename TYPE, Int size>    TYPE& elm(   Memt  <TYPE, size> &memt        ) {return memt [T(memt.elms())];}
+   template<typename TYPE, Int size>  C TYPE& elm(C  Memt  <TYPE, size> &memt        ) {return memt [T(memt.elms())];}
+   template<typename TYPE          >    TYPE& elm(   Memb  <TYPE      > &memb        ) {return memb [T(memb.elms())];}
+   template<typename TYPE          >  C TYPE& elm(C  Memb  <TYPE      > &memb        ) {return memb [T(memb.elms())];}
+   template<typename TYPE          >    TYPE& elm(   Memx  <TYPE      > &memx        ) {return memx [T(memx.elms())];}
+   template<typename TYPE          >  C TYPE& elm(C  Memx  <TYPE      > &memx        ) {return memx [T(memx.elms())];}
+   template<typename TYPE, Int size>    TYPE& elm(   MemPtr<TYPE, size> &memp        ) {return memp [T(memp.elms())];}
+   template<typename TYPE, Int size>  C TYPE& elm(C CMemPtr<TYPE, size> &memp        ) {return memp [T(memp.elms())];}
 
    Randomizer() {randomize();}
    Randomizer(UInt  s0, UInt  s1, UInt s2, UInt s3);

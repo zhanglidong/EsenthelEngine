@@ -40,10 +40,20 @@ void XBOXLive::Friend::clear()
    favorite=false;
 }
 /******************************************************************************/
+static C XBOXLive::Friend* CFind(C CMemPtr<XBOXLive::Friend> &users, ULong id)
+{
+   REPA(users)
+   {
+    C XBOXLive::Friend &user=users[i]; if(user.id==id)return &user;
+   }
+   return null;
+}
+static XBOXLive::Friend* Find(MemPtr<XBOXLive::Friend> users, ULong id) {return ConstCast(CFind(users, id));}
+/******************************************************************************/
 // LOG IN
 /******************************************************************************/
-void XBOXLive::getUserProfile() {getUserProfile(_me.id);}
-void XBOXLive::getUserProfile(C MemPtr<ULong> &user_ids)
+void XBOXLive::getUserProfile() {getUserProfile(userID());}
+void XBOXLive::getUserProfile(C CMemPtr<ULong> &user_ids)
 {
 #if SUPPORT_XBOX_LIVE
    if(user_ids.elms() && XboxCtx)
@@ -79,15 +89,11 @@ void XBOXLive::getUserProfile(C MemPtr<ULong> &user_ids)
                      {
                         Str user_game_name=profile.game_display_name().c_str();
                         SyncLocker lock(_lock);
-                        REPA(_friends)
+                        if(Friend *user=Find(_friends, user_id))
                         {
-                           Friend &user=_friends[i]; if(user.id==user_id)
-                           {
-                              user.score=score;
-                              Swap(user.name     , user_game_name);
-                              Swap(user.image_url, image_url     );
-                              break;
-                           }
+                           user->score=score;
+                           Swap(user->name     , user_game_name);
+                           Swap(user->image_url, image_url     );
                         }
                      }
                      if(callback)callback(USER_PROFILE, user_id);
@@ -407,6 +413,7 @@ void XBOXLive::getFriends()
             {
              C auto &result=results.payload(); if(!result.err())
                {
+                  Memt<Friend> old; {SyncLocker lock(_lock); old=_friends;}
                 C auto &profiles=result.payload().items();
                   Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
                   Memc<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
@@ -417,6 +424,12 @@ void XBOXLive::getFriends()
                      user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
                      user.favorite=relationship.is_favorite();
                      friend_ids[i]=user.id;
+                     if(Friend *o=Find(old, user.id)) // if was previously known, reuse its data
+                     {
+                        Swap(user.name     , o->name     );
+                        Swap(user.image_url, o->image_url);
+                        Swap(user.score    , o->score    );
+                     }
                   }
                   {
                      SyncLocker lock(_lock);
@@ -457,7 +470,7 @@ Str XBOXLive::userName(ULong user_id)C
       if(_friends_known)
       {
          SyncLocker lock(_lock);
-         REPA(_friends)if(_friends[i].id==user_id)return _friends[i].name;
+         if(C Friend *user=CFind(_friends, user_id))return user->name;
       }
    }
 #endif

@@ -27,18 +27,18 @@ const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in con
    // data
             ComboBox& clear(); // clear data
 
-            ComboBox& setData(CChar8 *data[], Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData(data, elms, visible, keep_cur); return T;} // set columns and data from text array
-            ComboBox& setData(CChar  *data[], Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData(data, elms, visible, keep_cur); return T;} // set columns and data from text array
-            ComboBox& setData(C Node<MenuElm> &node                                                      ) {menu.setData(node                         ); return T;} // set columns and data from node of menu elements
+            ComboBox& setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData(data, elms, visible, keep_cur); return T;} // set columns and data from text array
+            ComboBox& setData(CChar  *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData(data, elms, visible, keep_cur); return T;} // set columns and data from text array
+            ComboBox& setData(C Node<MenuElm> &node                                                       ) {menu.setData(node                         ); return T;} // set columns and data from node of menu elements
 
-            ComboBox& setColumns(ListColumn  *column, Int columns, Bool columns_hidden=true                         ) {menu.setColumns(column, columns, columns_hidden); return T;} // set list columns
-   T1(TYPE) ComboBox& setData   (      TYPE  *data  , Int elms   , C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (data, elms, visible, keep_cur  ); return T;} // set data from continuous memory
-   T1(TYPE) ComboBox& setData   ( Mems<TYPE> &mems  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (mems,       visible, keep_cur  ); return T;} // set data from Mems
-            ComboBox& setData   (_Memc       &memc  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memc,       visible, keep_cur  ); return T;} // set data from Memc
-            ComboBox& setData   (_Memb       &memb  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memb,       visible, keep_cur  ); return T;} // set data from Memb
-            ComboBox& setData   (_Memx       &memx  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memx,       visible, keep_cur  ); return T;} // set data from Memx
-            ComboBox& setData   (_Meml       &meml  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (meml,       visible, keep_cur  ); return T;} // set data from Meml
-            ComboBox& setData   (_Map        &map   ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (map ,       visible, keep_cur  ); return T;} // set data from Map
+            ComboBox& setColumns(ListColumn  *column, Int columns, Bool columns_hidden=true                          ) {menu.setColumns(column, columns, columns_hidden); return T;} // set list columns
+   T1(TYPE) ComboBox& setData   (      TYPE  *data  , Int elms   , C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (data, elms, visible, keep_cur  ); return T;} // set data from continuous memory
+   T1(TYPE) ComboBox& setData   ( Mems<TYPE> &mems  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (mems,       visible, keep_cur  ); return T;} // set data from Mems
+            ComboBox& setData   (_Memc       &memc  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memc,       visible, keep_cur  ); return T;} // set data from Memc
+            ComboBox& setData   (_Memb       &memb  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memb,       visible, keep_cur  ); return T;} // set data from Memb
+            ComboBox& setData   (_Memx       &memx  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (memx,       visible, keep_cur  ); return T;} // set data from Memx
+            ComboBox& setData   (_Meml       &meml  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (meml,       visible, keep_cur  ); return T;} // set data from Meml
+            ComboBox& setData   (_Map        &map   ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {menu.setData   (map ,       visible, keep_cur  ); return T;} // set data from Map
 
    // set / get
                                                                                        Int       visSel()C {return menu.list.absToVis(_abs_sel);} //     get active visible  selection

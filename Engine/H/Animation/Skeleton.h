@@ -232,7 +232,7 @@ struct Skeleton // Animation Skeleton - base skeleton used by 'AnimatedSkeleton'
    Skeleton& sortBones    (                       MemPtr<Byte, 256> old_to_new=null); // sort bones in parent<->child order and calculate children count and offsets, this is required when changing bone parents, if 'old_to_new' is passed it will be set as bone remap "old_to_new[old_index]=new_index"
 #if EE_PRIVATE
    Skeleton& setBoneLengths(                                                       ); // automatically set bone lengths
-   void      boneRemap     (                    C MemPtr<Byte, 256> &old_to_new    );
+   void      boneRemap     (                   C CMemPtr<Byte, 256> &old_to_new    );
 #endif
 
    // draw
@@ -416,7 +416,7 @@ struct BoneMap
 
    Bool same(C Skeleton &skeleton)C; // if contains the same data as the 'skeleton'
 
-   void    remap(                    C MemPtr<Byte, 256> &old_to_new                    ) ; //     remap
+   void    remap(                   C CMemPtr<Byte, 256> &old_to_new                    ) ; //     remap
    void setRemap(C Skeleton &skeleton, MemPtr<Byte, 256>  old_to_new, Bool by_name=false)C; // set remap that maps from current bone mapping to 'skeleton' bone mapping, 'by_name'=if remap by name only and ignore type/indexes
 
    Bool save(File &f)C;

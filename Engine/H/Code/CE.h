@@ -102,9 +102,9 @@ struct CodeEditorInterface
    void activateSource(C Str &name ); // make file    based source active
    void activateApp   (Bool rebuild); // finalize changing app
 
-   void paste(C MemPtr<UID> &elms, GuiObj *obj, C Vec2 &screen_pos); // paste project elements at specified position
-   void paste(C Str &text        , GuiObj *obj, C Vec2 &screen_pos); // paste text             at specified position
-   void paste(C Str &text                                         ); // paste text             at current   position
+   void paste(C CMemPtr<UID> &elms, GuiObj *obj, C Vec2 &screen_pos); // paste project elements at specified position
+   void paste(C Str &text         , GuiObj *obj, C Vec2 &screen_pos); // paste text             at specified position
+   void paste(C Str &text                                          ); // paste text             at current   position
 
  C Memx<Item>& items(); // get Esenthel Engine items
 

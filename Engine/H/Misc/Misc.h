@@ -348,10 +348,10 @@ Bool ParseProcess(             MemPtr<ExeSection> sections); // parse current pr
 Bool ParseExe    ( File &f   , MemPtr<ExeSection> sections); // parse EXE file        and list its sections, false on fail
 Bool ParseExe    (C Str &name, MemPtr<ExeSection> sections); // parse EXE file        and list its sections, false on fail
 
-  Int         FindSectionNameI  (C MemPtr<ExeSection> &sections, CChar8 *name  ); // find section index by its name                  ,   -1 on fail
-  Int         FindSectionOffsetI(C MemPtr<ExeSection> &sections, CPtr    offset); // find section index by offset it should belong to,   -1 on fail
-C ExeSection* FindSectionName   (C MemPtr<ExeSection> &sections, CChar8 *name  ); // find section index by its name                  , null on fail
-C ExeSection* FindSectionOffset (C MemPtr<ExeSection> &sections, CPtr    offset); // find section index by offset it should belong to, null on fail
+  Int         FindSectionNameI  (C CMemPtr<ExeSection> &sections, CChar8 *name  ); // find section index by its name                  ,   -1 on fail
+  Int         FindSectionOffsetI(C CMemPtr<ExeSection> &sections, CPtr    offset); // find section index by offset it should belong to,   -1 on fail
+C ExeSection* FindSectionName   (C CMemPtr<ExeSection> &sections, CChar8 *name  ); // find section index by its name                  , null on fail
+C ExeSection* FindSectionOffset (C CMemPtr<ExeSection> &sections, CPtr    offset); // find section index by offset it should belong to, null on fail
 /******************************************************************************/
 enum SYSTEM_PATH // System Path Type
 {

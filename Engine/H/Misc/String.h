@@ -132,8 +132,8 @@ private:
 struct StrLibrary // String Library, efficient solution for storing multiple strings in a file using least possible amount of bytes
 {
    // manage
-   void del   (                                                       ); // delete manually
-   void create(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths); // create library database from 'strings' array of strings, 'paths'=if treat strings as paths (they can have '/' replaced with '\')
+   void del   (                                                        ); // delete manually
+   void create(C CMemPtr<Str> &strings, Bool case_sensitive, Bool paths); // create library database from 'strings' array of strings, 'paths'=if treat strings as paths (they can have '/' replaced with '\')
 
    // get / set
    Int elms(     )C {return _elms;} // get number of strings stored in this library
@@ -148,7 +148,7 @@ struct StrLibrary // String Library, efficient solution for storing multiple str
 
            ~StrLibrary() {del();}
             StrLibrary();
-   explicit StrLibrary(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths);
+   explicit StrLibrary(C CMemPtr<Str> &strings, Bool case_sensitive, Bool paths);
 
 private:
    Bool  _case_sensitive, _paths;

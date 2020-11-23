@@ -1356,7 +1356,7 @@ void DrawArrow2(C Color &color, C Vec &start, C Vec &end, Flt width, Flt tip_rad
    }
 }
 /******************************************************************************/
-void SubdivideEdges(C MemPtr<Vec> &src, MemPtr<Vec> dest)
+void SubdivideEdges(C CMemPtr<Vec> &src, MemPtr<Vec> dest)
 {
    dest.setNum(Max(0, src.elms() + (src.elms()-1))); // original + edge points
 
@@ -1371,7 +1371,7 @@ void SubdivideEdges(C MemPtr<Vec> &src, MemPtr<Vec> dest)
       else                       d=Avg(src[i], Avg(dest[i*2-1], dest[i*2+1]));
    }
 }
-void SubdivideEdges(C MemPtr<VtxFull> &src, MemPtr<VtxFull> dest)
+void SubdivideEdges(C CMemPtr<VtxFull> &src, MemPtr<VtxFull> dest)
 {
    dest.setNum(Max(0, src.elms() + (src.elms()-1))); // original + edge points
 

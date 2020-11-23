@@ -839,7 +839,7 @@ void SaveProperties(C Memx<Property> &properties, MemPtr<TextNode> nodes, Char s
       }
    }
 }
-void LoadProperties(Memx<Property> &properties, C MemPtr<TextNode> &nodes, Char space_replacement, Bool handle_same_names)
+void LoadProperties(Memx<Property> &properties, C CMemPtr<TextNode> &nodes, Char space_replacement, Bool handle_same_names)
 {
    FREPA(properties)
    {
@@ -847,7 +847,7 @@ void LoadProperties(Memx<Property> &properties, C MemPtr<TextNode> &nodes, Char 
       {
          Int same_names=0; if(handle_same_names)REPD(j, i)if(Equal(properties[j].name(), name))same_names++;
          Str temp=name; temp.replace(' ', space_replacement); if(same_names){temp+='@'; temp+=same_names;}
-         if(C TextNode *node=FindNodeC(nodes, temp))prop.set(node->value, NO_SOUND);
+         if(C TextNode *node=CFindNode(nodes, temp))prop.set(node->value, NO_SOUND);
       }
    }
 }

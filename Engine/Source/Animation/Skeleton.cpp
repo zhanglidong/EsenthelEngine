@@ -643,7 +643,7 @@ void Skeleton::getSkin(C Vec &pos, VecB4 &blend, VecB4 &matrix)C
    }
 }
 /******************************************************************************/
-void Skeleton::boneRemap(C MemPtr<Byte, 256> &old_to_new) // !! this does not modify 'children_offset' and 'children_num' !!
+void Skeleton::boneRemap(C CMemPtr<Byte, 256> &old_to_new) // !! this does not modify 'children_offset' and 'children_num' !!
 {
 #if 1 // clear out of range
    REPA(bones){Byte &b =bones[i].parent; b =(InRange(b , old_to_new) ? old_to_new[b ] : 0xFF);}
@@ -1380,7 +1380,7 @@ Bool BoneMap::rename(C Str8 &src, C Str8 &dest)
    return false;
 }*/
 
-void BoneMap::remap(C MemPtr<Byte, 256> &old_to_new)
+void BoneMap::remap(C CMemPtr<Byte, 256> &old_to_new)
 {
    if(_bones) // process only if this already has some bones, this is important so we don't set a new map from empty data
    {

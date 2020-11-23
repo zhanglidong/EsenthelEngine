@@ -31,11 +31,11 @@ namespace GameAnalytics
       GAErrorSeverityCritical=5,
    };
 
-   void configureAvailableCustomDimensions01(C MemPtr<Str> &customDimensions);
-   void configureAvailableCustomDimensions02(C MemPtr<Str> &customDimensions);
-   void configureAvailableCustomDimensions03(C MemPtr<Str> &customDimensions);
-   void configureAvailableResourceCurrencies(C MemPtr<Str> &resourceCurrencies);
-   void configureAvailableResourceItemTypes (C MemPtr<Str> &resourceItemTypes);
+   void configureAvailableCustomDimensions01(C CMemPtr<Str> &customDimensions);
+   void configureAvailableCustomDimensions02(C CMemPtr<Str> &customDimensions);
+   void configureAvailableCustomDimensions03(C CMemPtr<Str> &customDimensions);
+   void configureAvailableResourceCurrencies(C CMemPtr<Str> &resourceCurrencies);
+   void configureAvailableResourceItemTypes (C CMemPtr<Str> &resourceItemTypes);
 
    void configureBuild(C Str &build);
    void configureUserId(C Str &userId);

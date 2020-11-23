@@ -78,14 +78,14 @@ T1(TYPE) struct Memx : _Memx // Block Based Extended Container
    Memx& moveToEnd   (Int elm               ); // move 'elm' valid element to the end         (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
 
    // misc
-                      Memx& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator
-                      Memx& operator=(C Memc  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Memx& operator=(C Memt  <TYPE, size>  &src); // copy elements using assignment operator
-                      Memx& operator=(C Memb  <TYPE      >  &src); // copy elements using assignment operator
-                      Memx& operator=(C Memx  <TYPE      >  &src); // copy elements using assignment operator
-                      Memx& operator=(C Meml  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Memx& operator=(C MemPtr<TYPE, size>  &src); // copy elements using assignment operator
-                      Memx& operator=(  Memx  <TYPE      > &&src); // copy elements using assignment operator
+                      Memx& operator=(C  Mems  <TYPE      >  &src); // copy elements using assignment operator
+                      Memx& operator=(C  Memc  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Memx& operator=(C  Memt  <TYPE, size>  &src); // copy elements using assignment operator
+                      Memx& operator=(C  Memb  <TYPE      >  &src); // copy elements using assignment operator
+                      Memx& operator=(C  Memx  <TYPE      >  &src); // copy elements using assignment operator
+                      Memx& operator=(C  Meml  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Memx& operator=(C CMemPtr<TYPE, size>  &src); // copy elements using assignment operator
+                      Memx& operator=(   Memx  <TYPE      > &&src); // copy elements using assignment operator
 
    T1(EXTENDED) Memx& replaceClass(); // replace the type of class stored in the container, all elements are automatically removed before changing the type of the class, the new type must be extended from the base 'TYPE' (if you're receiving a compilation error pointing to this method this means that the new class isn't extended from the base class)
 

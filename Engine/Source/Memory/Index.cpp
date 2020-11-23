@@ -112,21 +112,21 @@ IndexPtr& IndexPtr::set()
    return T;
 }
 /******************************************************************************/
-Bool  ElmIs(C MemPtr<Bool> &is, Int i) {return InRange(i, is) && is[i];}
-Int CountIs(C MemPtr<Bool> &is)
+Bool  ElmIs(C CMemPtr<Bool> &is, Int i) {return InRange(i, is) && is[i];}
+Int CountIs(C CMemPtr<Bool> &is)
 {
    Int    n=0; REPA(is)n+=is[i];
    return n;
 }
-void CreateIs(MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms)
+void CreateIs(MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms)
 {
    is.setNum(elms); REPAO(is)=false; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=true;}
 }
-void CreateIsNot(MemPtr<Bool> is, C MemPtr<Int> &selection, Int elms)
+void CreateIsNot(MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms)
 {
    is.setNum(elms); REPAO(is)=true; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=false;}
 }
-void CreateFaceIs(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads)
+void CreateFaceIs(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads)
 {
     tri_is.setNum( tris); REPAO( tri_is)=false;
    quad_is.setNum(quads); REPAO(quad_is)=false;
@@ -137,7 +137,7 @@ void CreateFaceIs(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &face
       else          {             if(InRange(f,  tri_is)) tri_is[f]=true;}
    }
 }
-void CreateFaceIsNot(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C MemPtr<Int> &faces, Int tris, Int quads)
+void CreateFaceIsNot(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads)
 {
     tri_is.setNum( tris); REPAO( tri_is)=true;
    quad_is.setNum(quads); REPAO(quad_is)=true;
@@ -162,14 +162,14 @@ void SetFaceIndex(Ptr data, C VecI *tri, Int tris, C VecI4 *quad, Int quads, Boo
    }
 }
 /******************************************************************************/
-void SetRemap(MemPtr<Int> remap, C MemPtr<Bool> &is, Int elms)
+void SetRemap(MemPtr<Int> remap, C CMemPtr<Bool> &is, Int elms)
 {
    remap.setNum(elms);
    Int full=Min(remap.elms(), is.elms()), i=0, index=0;
    for(; i<      full  ; i++)remap[i]=(is[i] ? index++ : -1);
    for(; i<remap.elms(); i++)remap[i]=                   -1 ;
 }
-void IndRemap(C MemPtr<Int> &remap, Int *ind, Int elms)
+void IndRemap(C CMemPtr<Int> &remap, Int *ind, Int elms)
 {
    for(; elms-->0; ind++)*ind=(InRange(*ind, remap) ? remap[*ind] : -1);
 }

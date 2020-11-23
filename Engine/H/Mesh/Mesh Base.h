@@ -270,17 +270,17 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& createPhys(C MeshLod    &src ,           UInt flag_and=VTX_POS|FACE_IND, Bool set_face_id_from_part_index=false, Bool skip_hidden_parts=false); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from, this method ignores parts with MSHP_NO_PHYS_BODY flag and does not include them in the final mesh, 'skip_hidden_parts'=if ignore MeshPart's with MSHP_HIDDEN flag
 #if EE_PRIVATE
    MeshBase& create    (C MeshBase  *src[], Int elms, UInt flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
-   Bool      createVtx (C VtxBuf &vb, UInt flag, UInt storage,                                                    UInt flag_and=~0) ; // create vertexes from vertex buffer
-   Bool      createInd (C IndBuf &ib                                                                                              ) ; // create indexed  from index  buffer
-   MeshBase& copyFace  (MeshBase &dest, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is, UInt flag_and=~0)C; // copy only selected elements                          , 'flag_and'=MESH_BASE_FLAG, 'edge_is tri_is quad_is' must point to an array of Bool's of size equal to number of eddges, triangles and quads respectively, i-th element will be copied only if "_is[i]==true", if the "is" parameter is set to null, then no elemenets are copied, !! method returns 'dest' !!
-   void      copyId    (MeshBase &dest, Int id,                                                                   UInt flag_and=~0)C; // copy only elements with matching id                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
-   void      copyId    (MeshLod  &dest,                                                                           UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
-   void      copyId    (Mesh     &dest,                                                                           UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   Bool      createVtx (C VtxBuf &vb, UInt flag, UInt storage,                                                       UInt flag_and=~0) ; // create vertexes from vertex buffer
+   Bool      createInd (C IndBuf &ib                                                                                                 ) ; // create indexed  from index  buffer
+   MeshBase& copyFace  (MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and=~0)C; // copy only selected elements                          , 'flag_and'=MESH_BASE_FLAG, 'edge_is tri_is quad_is' must point to an array of Bool's of size equal to number of eddges, triangles and quads respectively, i-th element will be copied only if "_is[i]==true", if the "is" parameter is set to null, then no elemenets are copied, !! method returns 'dest' !!
+   void      copyId    (MeshBase &dest, Int id,                                                                      UInt flag_and=~0)C; // copy only elements with matching id                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
+   void      copyId    (MeshLod  &dest,                                                                              UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   void      copyId    (Mesh     &dest,                                                                              UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
 
-   void copyVtxs (C MeshBase &src);   void copyVtxs (C MeshBase &src, C MemPtr<Bool> &is);
-   void copyEdges(C MeshBase &src);   void copyEdges(C MeshBase &src, C MemPtr<Bool> &is);
-   void copyTris (C MeshBase &src);   void copyTris (C MeshBase &src, C MemPtr<Bool> &is);
-   void copyQuads(C MeshBase &src);   void copyQuads(C MeshBase &src, C MemPtr<Bool> &is);
+   void copyVtxs (C MeshBase &src);   void copyVtxs (C MeshBase &src, C CMemPtr<Bool> &is);
+   void copyEdges(C MeshBase &src);   void copyEdges(C MeshBase &src, C CMemPtr<Bool> &is);
+   void copyTris (C MeshBase &src);   void copyTris (C MeshBase &src, C CMemPtr<Bool> &is);
+   void copyQuads(C MeshBase &src);   void copyQuads(C MeshBase &src, C CMemPtr<Bool> &is);
 #if PHYSX
    Bool create(PxConvexMesh   &convex);
    Bool create(PxTriangleMesh &mesh  );
@@ -369,8 +369,8 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& mirrorY  (                                  ); // mirror in Y axis
    MeshBase& mirrorZ  (                                  ); // mirror in Z axis
    MeshBase& reverse  (                                  ); // reverse all      faces
-   MeshBase& reverse  (  Int          face               ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
-   MeshBase& reverse  (C MemPtr<Int> &faces              ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& reverse  (  Int           face              ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& reverse  (C CMemPtr<Int> &faces             ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
 #if EE_PRIVATE
    MeshBase& rightToLeft(                                ); // convert from right hand to left hand coordinate system
 #endif
@@ -400,17 +400,17 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    MeshBase& tesselate    (); // smooth subdivide faces, preserving original vertexes
    MeshBase& subdivide    (); // smooth subdivide faces,  smoothing original vertexes
-   MeshBase& subdivideEdge(Bool freeze_z=false, C MemPtr<Bool> &is=null); // smooth subdivide edges, 'is'=only selected edges
+   MeshBase& subdivideEdge(Bool freeze_z=false, C CMemPtr<Bool> &is=null); // smooth subdivide edges, 'is'=only selected edges
 
-   MeshBase&   boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
+   MeshBase&   boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
    void includeUsedBones(Bool (&bones)[256])C;
 
    MeshBase& setVtxAO(Flt strength, Flt bias, Flt max, Flt ray_length, Flt pos_eps=EPS, Int rays=1024, MESH_AO_FUNC func=MAF_FULL, Threads *threads=null); // calculate per-vertex ambient occlusion in vertex colors, 'strength'=0..1 AO strength, 'bias'=0..1, 'max'=AO limit 0..1, 'ray_length'=max ray distance to test, 'rays'=number of rays to use for AO calculation, 'func'=falloff function
 
 #if EE_PRIVATE
-   void splitVtxs (MeshBase &dest, C MemPtr<Bool> & vtx_is,                                                  UInt flag_and=~0); // split by moving selected vertexes to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
-   void splitFaces(MeshBase &dest, C MemPtr<Bool> &edge_is, C MemPtr<Bool> &tri_is, C MemPtr<Bool> &quad_is, UInt flag_and=~0); // split by moving selected faces    to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void splitVtxs (MeshBase &dest, C CMemPtr<Bool> & vtx_is,                                                    UInt flag_and=~0); // split by moving selected vertexes to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and=~0); // split by moving selected faces    to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
 
    void      copyVtx   (Int i, MeshBase &dest, Int dest_i)C; // copy i-th vertex to 'dest' dest_i-th vertex
    MeshBase& splitEdges(Flt length=1      , Bool *is=null) ; // split edges, 'length'=maximum length of edge, 'is'=only selected edges
@@ -448,7 +448,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& edgeToTri  (Bool set_id   =false      ); // edges     to triangles (triangulation)
    MeshBase& triToQuad  (Flt  cos      =EPS_COL_COS); // triangles to quads    , 'cos'=minimum cosine between 2      triangle normals to weld  them into 1 quad (0..1)
    MeshBase& quadToTri  (Flt  cos      =2          ); // quads     to triangles, 'cos'=minimum cosine between 2 quad triangle normals to leave them as   1 quad (0..1, value >1 converts all quads into triangles)
-   MeshBase& quadToTri  (C MemPtr<Int> &quads      ); // quads     to triangles, 'quads'=indexes of quads to convert
+   MeshBase& quadToTri  (C CMemPtr<Int> &quads     ); // quads     to triangles, 'quads'=indexes of quads to convert
 
    enum TEX_MODE
    {
@@ -477,10 +477,10 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& add    (C MeshPart   &src, UInt flag_and=~0); // add MeshPart
 
 #if EE_PRIVATE
-   MeshBase& keepVtxs (C MemPtr<Bool> &is); // keep only vertexes  which "is[i]==true"
-   MeshBase& keepEdges(C MemPtr<Bool> &is); // keep only edges     which "is[i]==true"
-   MeshBase& keepTris (C MemPtr<Bool> &is); // keep only triangles which "is[i]==true"
-   MeshBase& keepQuads(C MemPtr<Bool> &is); // keep only quads     which "is[i]==true"
+   MeshBase& keepVtxs (C CMemPtr<Bool> &is); // keep only vertexes  which "is[i]==true"
+   MeshBase& keepEdges(C CMemPtr<Bool> &is); // keep only edges     which "is[i]==true"
+   MeshBase& keepTris (C CMemPtr<Bool> &is); // keep only triangles which "is[i]==true"
+   MeshBase& keepQuads(C CMemPtr<Bool> &is); // keep only quads     which "is[i]==true"
 #endif
    MeshBase& removeVtx (Int vtx );
    MeshBase& removeEdge(Int edge);
@@ -488,11 +488,11 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& removeQuad(Int quad);
    MeshBase& removeFace(Int face); // remove face, here the 'face' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
 
-   MeshBase& removeVtxs (C MemPtr<Int> &vtxs                               ); // remove selected vertexes
-   MeshBase& removeEdges(C MemPtr<Int> &edges, Bool remove_unused_vtxs=true); // remove selected edges
-   MeshBase& removeTris (C MemPtr<Int> &tris , Bool remove_unused_vtxs=true); // remove selected triangles
-   MeshBase& removeQuads(C MemPtr<Int> &quads, Bool remove_unused_vtxs=true); // remove selected quads
-   MeshBase& removeFaces(C MemPtr<Int> &faces, Bool remove_unused_vtxs=true); // remove selected faces, here the 'faces' indexes can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& removeVtxs (C CMemPtr<Int> &vtxs                               ); // remove selected vertexes
+   MeshBase& removeEdges(C CMemPtr<Int> &edges, Bool remove_unused_vtxs=true); // remove selected edges
+   MeshBase& removeTris (C CMemPtr<Int> &tris , Bool remove_unused_vtxs=true); // remove selected triangles
+   MeshBase& removeQuads(C CMemPtr<Int> &quads, Bool remove_unused_vtxs=true); // remove selected quads
+   MeshBase& removeFaces(C CMemPtr<Int> &faces, Bool remove_unused_vtxs=true); // remove selected faces, here the 'faces' indexes can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
 
    MeshBase& removeDoubleSideFaces(Bool remove_unused_vtxs=true);
 

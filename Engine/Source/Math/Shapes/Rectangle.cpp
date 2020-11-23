@@ -734,7 +734,7 @@ namespace RP
  //#include "Rect Packer/SkylineBinPack.cpp"
 }
 /******************************************************************************/
-Bool PackRectsKnownLimit(C MemPtr<RectSizeAnchor> &sizes, MemPtr<RectI> rects, C VecI2 &limit, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement)
+Bool PackRectsKnownLimit(C CMemPtr<RectSizeAnchor> &sizes, MemPtr<RectI> rects, C VecI2 &limit, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement)
 {
    MAX(border, 0); if(align_for_compression)border+=3; // when using 'align_for_compression' we need to have at least 3 extra pixels to align the target
 
@@ -802,7 +802,7 @@ max_rects:
    return false;
 }
 /******************************************************************************/
-Bool PackRectsUnknownLimit(C MemPtr<RectSizeAnchor> &sizes, MemPtr<RectI> rects, VecI2 &limit, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement, Bool only_square, Int max_size)
+Bool PackRectsUnknownLimit(C CMemPtr<RectSizeAnchor> &sizes, MemPtr<RectI> rects, VecI2 &limit, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement, Bool only_square, Int max_size)
 {
    ULong area=0; REPA(sizes)
    {
@@ -825,7 +825,7 @@ Bool PackRectsUnknownLimit(C MemPtr<RectSizeAnchor> &sizes, MemPtr<RectI> rects,
    return false;
 }
 /******************************************************************************/
-Bool PackRectsMultiLimit(C MemPtr<RectSizeAnchor> &sizes, MemPtr<RectIndex> rects, MemPtr<VecI2> limits, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement, Bool only_square, Int max_size)
+Bool PackRectsMultiLimit(C CMemPtr<RectSizeAnchor> &sizes, MemPtr<RectIndex> rects, MemPtr<VecI2> limits, Bool allow_rotate, Int border, Bool align_for_compression, Bool compact_arrangement, Bool only_square, Int max_size)
 {
    MAX(border, 0); if(align_for_compression)border+=3; // when using 'align_for_compression' we need to have at least 3 extra pixels to align the target
 

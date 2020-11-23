@@ -3959,10 +3959,10 @@ Bool ParseExe(C Str &name, MemPtr<ExeSection> sections)
    File f; if(f.readTry(name))return ParseExe(f, sections);
    sections.clear(); return false;
 }
-  Int         FindSectionNameI  (C MemPtr<ExeSection> &sections, CChar8 *name  ) {REPA(sections)if(Equal(sections[i].name, name, true))return i; return -1;}
-  Int         FindSectionOffsetI(C MemPtr<ExeSection> &sections, CPtr    offset) {REPA(sections)if(      sections[i].contains(offset ))return i; return -1;}
-C ExeSection* FindSectionName   (C MemPtr<ExeSection> &sections, CChar8 *name  ) {return sections.addr(FindSectionNameI  (sections, name  ));}
-C ExeSection* FindSectionOffset (C MemPtr<ExeSection> &sections, CPtr    offset) {return sections.addr(FindSectionOffsetI(sections, offset));}
+  Int         FindSectionNameI  (C CMemPtr<ExeSection> &sections, CChar8 *name  ) {REPA(sections)if(Equal(sections[i].name, name, true))return i; return -1;}
+  Int         FindSectionOffsetI(C CMemPtr<ExeSection> &sections, CPtr    offset) {REPA(sections)if(      sections[i].contains(offset ))return i; return -1;}
+C ExeSection* FindSectionName   (C CMemPtr<ExeSection> &sections, CChar8 *name  ) {return sections.addr(FindSectionNameI  (sections, name  ));}
+C ExeSection* FindSectionOffset (C CMemPtr<ExeSection> &sections, CPtr    offset) {return sections.addr(FindSectionOffsetI(sections, offset));}
 /******************************************************************************/
 void InitMisc()
 {

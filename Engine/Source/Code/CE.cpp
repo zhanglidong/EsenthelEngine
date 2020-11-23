@@ -1796,7 +1796,7 @@ void CodeEditorInterface::visibleOutput       (Bool on) {       CE.visibleOutput
 Bool CodeEditorInterface::visibleAndroidDevLog(       ) {return CE.visibleAndroidDevLog(  );}
 void CodeEditorInterface::visibleAndroidDevLog(Bool on) {       CE.visibleAndroidDevLog(on);}
 
-void CodeEditorInterface::paste(C MemPtr<UID> &elms, GuiObj *obj, C Vec2 &screen_pos)
+void CodeEditorInterface::paste(C CMemPtr<UID> &elms, GuiObj *obj, C Vec2 &screen_pos)
 {
    if(Source *src=CE.cur())
       if(!src->Const && src->contains(obj) && elms.elms())

@@ -107,8 +107,8 @@ struct Animation // set of animation keyframes used for animating 'AnimatedSkele
    Animation& slideTime     (Flt dt); // slide time positions of keyframes
    Animation& scaleTime     (Flt start_time, Flt end_time, Flt scale); // scale time positions of keyframes that are between 'start_time' and 'end_time' by 'scale' factor
 
-   Animation& adjustForSameSkeletonWithDifferentPose     (C Skeleton &source, C Skeleton &target                                                                                            ); // adjust animation which was created for 'source' skeleton to be used for 'target' skeleton
-   Animation& adjustForSameTransformWithDifferentSkeleton(C Skeleton &source, C Skeleton &target, Int source_bone_as_root=-1, C MemPtr< Mems<IndexWeight> > &weights=null, UInt root_flags=0); // adjust animation which was created for 'source' skeleton to be used for 'target' skeleton, 'source_bone_as_root'=index of a bone in 'source' skeleton that is converted to root, 'root_flags'=ROOT_FLAG, it's recommended to call 'optimize' after this method, because it may generate a lot of unnecessary keyframes
+   Animation& adjustForSameSkeletonWithDifferentPose     (C Skeleton &source, C Skeleton &target                                                                                             ); // adjust animation which was created for 'source' skeleton to be used for 'target' skeleton
+   Animation& adjustForSameTransformWithDifferentSkeleton(C Skeleton &source, C Skeleton &target, Int source_bone_as_root=-1, C CMemPtr< Mems<IndexWeight> > &weights=null, UInt root_flags=0); // adjust animation which was created for 'source' skeleton to be used for 'target' skeleton, 'source_bone_as_root'=index of a bone in 'source' skeleton that is converted to root, 'root_flags'=ROOT_FLAG, it's recommended to call 'optimize' after this method, because it may generate a lot of unnecessary keyframes
 
    Animation& offsetRootBones(C Skeleton &skeleton, C Vec &move); // offset all bones that have no parents by 'move' movement in global space
 

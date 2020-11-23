@@ -224,9 +224,9 @@ struct XmlData // Xml Data
    XmlData(C TextData &text); // create from 'TextData'
 };
 /******************************************************************************/
-  TextNode* FindNode (  MemPtr<TextNode>  nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
-C TextNode* FindNodeC(C MemPtr<TextNode> &nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
-  TextNode&  GetNode (  MemPtr<TextNode>  nodes, C Str &name         ); // get       node which name is equal to 'name', New  on fail (if not found)
+  TextNode*  FindNode(   MemPtr<TextNode>  nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
+C TextNode* CFindNode(C CMemPtr<TextNode> &nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
+  TextNode&   GetNode(   MemPtr<TextNode>  nodes, C Str &name         ); // get       node which name is equal to 'name', New  on fail (if not found)
 
 XmlNode* FindNode(MemPtr<XmlNode> nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
 XmlNode&  GetNode(MemPtr<XmlNode> nodes, C Str &name         ); // get       node which name is equal to 'name', New  on fail (if not found)
@@ -251,8 +251,8 @@ struct FileParams
    FileParams(        ) {}
    FileParams(C Str &s) {decode(s);}
 
-   static Str              Encode(C MemPtr<FileParams> &file_params); // encode 'file_params' array into string
-   static Mems<FileParams> Decode(C Str                &str        ); // decode 'str' string into file params array
-   static Str              Merge (C Str                &a, C Str &b); // merge  'a' 'b' strings
+   static Str              Encode(C CMemPtr<FileParams> &file_params); // encode 'file_params' array into string
+   static Mems<FileParams> Decode(C Str                 &str        ); // decode 'str' string into file params array
+   static Str              Merge (C Str                 &a, C Str &b); // merge  'a' 'b' strings
 };
 /******************************************************************************/

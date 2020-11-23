@@ -107,15 +107,15 @@ struct MeshPart // Mesh Base + Mesh Render
    MeshPart& texRotate(  Flt   angle, Byte tex_index=0); // rotate texture UV's
 
    // operations
-   MeshPart&   boneRemap(C MemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
+   MeshPart&   boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
    void includeUsedBones(Bool (&bones)[256])C;
 
    MeshPart& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
-   MeshPart& setLeafAttachment(C Vec2                   &tex        ); // this method will set leaf attachment according to texture coordinates
-   MeshPart& setLeafAttachment(C MemPtr<LeafAttachment> &attachments); // this method will set leaf attachment according to attachments
-   MeshPart& setLeafAttachment(C Vec                    &pos        ); // this method will set leaf attachment at specified position
+   MeshPart& setLeafAttachment(C Vec2                    &tex        ); // this method will set leaf attachment according to texture coordinates
+   MeshPart& setLeafAttachment(C CMemPtr<LeafAttachment> &attachments); // this method will set leaf attachment according to attachments
+   MeshPart& setLeafAttachment(C Vec                     &pos        ); // this method will set leaf attachment at specified position
 
    MeshPart& setRandomLeafColor  (Flt variation=0.3f); // this method will set    random colors  for different leafs (this will only affect mesh parts which have leaf-based material), 'variation'=how different the colors should be from each other (0..1)
    MeshPart& setRandomLeafBending(                  ); // this method will set    unique bending for different leafs (this will only affect mesh parts which have leaf-based material)

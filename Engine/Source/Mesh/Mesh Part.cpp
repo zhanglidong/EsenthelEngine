@@ -72,7 +72,7 @@ static void SetLeafAttachment(MeshBase &mesh, C Vec2 &tex, Memc<Int> &faces)
       }
    }
 }
-static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments, Memc<Int> &faces)
+static void SetLeafAttachment(MeshBase &mesh, C CMemPtr<LeafAttachment> &attachments, Memc<Int> &faces)
 {
    DEBUG_ASSERT(attachments.elms(), "'SetLeafAttachment' 'attachments' must have elements");
    Int best_attachment=0; if(attachments.elms()>1) // if have more than 1 attachments, then check which one is best (closest)
@@ -100,7 +100,7 @@ static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachme
    }
    SetLeafAttachment(mesh, attachments[best_attachment].attachment, faces);
 }
-static void SetLeafAttachment(MeshBase &mesh, C MemPtr<LeafAttachment> &attachments)
+static void SetLeafAttachment(MeshBase &mesh, C CMemPtr<LeafAttachment> &attachments)
 {
    if(mesh.vtx.tex0())
    {
@@ -790,7 +790,7 @@ MeshPart& MeshPart::animate(C AnimatedSkeleton &skel)
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-MeshPart& MeshPart::boneRemap(C MemPtr<Byte, 256> &old_to_new)
+MeshPart& MeshPart::boneRemap(C CMemPtr<Byte, 256> &old_to_new)
 {
    base  .boneRemap(old_to_new);
    render.boneRemap(old_to_new);
@@ -810,7 +810,7 @@ MeshPart& MeshPart::setLeafAttachment(C Vec2 &tex)
    attachment.attachment=tex;
    return setLeafAttachment(attachment);
 }
-MeshPart& MeshPart::setLeafAttachment(C MemPtr<LeafAttachment> &attachments)
+MeshPart& MeshPart::setLeafAttachment(C CMemPtr<LeafAttachment> &attachments)
 {
    if(attachments.elms())
    {

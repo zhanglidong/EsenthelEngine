@@ -1604,7 +1604,7 @@ struct CalcElm
    CalcElm() {} // needed because of union
 };
 /******************************************************************************/
-static Bool ReadChar(Meml<CalcElm> &elms, CChar* &text, Str *error, C MemPtr<CalcVar> &vars)
+static Bool ReadChar(Meml<CalcElm> &elms, CChar* &text, Str *error, C CMemPtr<CalcVar> &vars)
 {
    Char name[256];
    for(Int i=0; ; )
@@ -1709,7 +1709,7 @@ static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1    
 static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2                 ) {if(error)*error=S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()                   +')'; return false;}
 static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2, C CalcValue &a3) {if(error)*error=S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()+", "+a3.typeName()+')'; return false;}
 /******************************************************************************/
-Bool Calculate(CalcValue &value, C Str &expression, Str *error, C MemPtr<CalcVar> &vars)
+Bool Calculate(CalcValue &value, C Str &expression, Str *error, C CMemPtr<CalcVar> &vars)
 {
    if(error)error->clear();
    value.type=CVAL_NONE;
@@ -1802,13 +1802,13 @@ Bool Calculate(CalcValue &value, C Str &expression, Str *error, C MemPtr<CalcVar
    return false;
 }
 /******************************************************************************/
-Int   CalculateI (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asInt  ();}
-Long  CalculateL (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asLong ();}
-Flt   CalculateF (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asFlt  ();}
-Dbl   CalculateD (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asDbl  ();}
-VecD2 CalculateV2(C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD2();}
-VecD  CalculateV (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD ();}
-VecD4 CalculateV4(C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD4();}
+Int   CalculateI (C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asInt  ();}
+Long  CalculateL (C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asLong ();}
+Flt   CalculateF (C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asFlt  ();}
+Dbl   CalculateD (C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asDbl  ();}
+VecD2 CalculateV2(C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD2();}
+VecD  CalculateV (C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD ();}
+VecD4 CalculateV4(C Str &expression, Str *error, C CMemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD4();}
 /******************************************************************************/
 }
 /******************************************************************************/

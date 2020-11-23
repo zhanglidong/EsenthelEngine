@@ -27,14 +27,14 @@ error:;
    if(versions.resizable())versions.clear();else REPAO(versions).zero();
    return false;
 }
-static void SaveVersions(File &f, C MemPtr<FileVersion> &versions)
+static void SaveVersions(File &f, C CMemPtr<FileVersion> &versions)
 {
    f.cmpUIntV(0);
    versions.saveRaw(f);
 }
-static Bool          LoadVersions(C Str &name,   MemPtr<FileVersion>  versions, Bool latest_only=false) {File f; if(f.readStdTry(name))return LoadVersions(f, versions, latest_only); if(versions.resizable())versions.clear();else REPAO(versions).zero(); return false;}
-static Bool          SaveVersions(C Str &name, C MemPtr<FileVersion> &versions                        ) {File f; if(f.writeTry  (name)){      SaveVersions(f, versions             ); return true;} return false;}
-static Bool SafeOverwriteVersions(C Str &name, C MemPtr<FileVersion> &versions                        ) {File f;    f.writeMem  (    );       SaveVersions(f, versions             ); f.pos(0); return SafeOverwrite(f, name);}
+static Bool          LoadVersions(C Str &name,    MemPtr<FileVersion>  versions, Bool latest_only=false) {File f; if(f.readStdTry(name))return LoadVersions(f, versions, latest_only); if(versions.resizable())versions.clear();else REPAO(versions).zero(); return false;}
+static Bool          SaveVersions(C Str &name, C CMemPtr<FileVersion> &versions                        ) {File f; if(f.writeTry  (name)){      SaveVersions(f, versions             ); return true;} return false;}
+static Bool SafeOverwriteVersions(C Str &name, C CMemPtr<FileVersion> &versions                        ) {File f;    f.writeMem  (    );       SaveVersions(f, versions             ); f.pos(0); return SafeOverwrite(f, name);}
 /******************************************************************************/
 static Str VersionFolder(C Str &name) // get the name of the folder which will contain all versions of the 'name' file, "C:/Folder/file.ext" -> "C:/Folder/Version/file.ext"
 {

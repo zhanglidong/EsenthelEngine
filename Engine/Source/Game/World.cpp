@@ -900,7 +900,7 @@ static void AreaUnloadRemaining(Cell<Area> &cell, WorldManager &world)
    if(cell()._temp)cell()._temp=false;       // was     marked, so it was     processed manually, we can disable the mark flag now
    else            world.areaUnload(cell()); // was not marked,    it was not processed manually, we need to unload the area
 }
-void WorldManager::areaSetState(C MemPtr<AreaState> &area_states, Bool unload_remaining)
+void WorldManager::areaSetState(C CMemPtr<AreaState> &area_states, Bool unload_remaining)
 {
    if(_mode==WORLD_MANUAL)
    {

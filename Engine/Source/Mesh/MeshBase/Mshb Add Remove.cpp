@@ -159,7 +159,7 @@ MeshBase& MeshBase::removeFace(Int f)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::keepVtxs(C MemPtr<Bool> &is)
+MeshBase& MeshBase::keepVtxs(C CMemPtr<Bool> &is)
 {
    exclude(VTX_DUP|ADJ_ALL);
 
@@ -192,7 +192,7 @@ MeshBase& MeshBase::keepVtxs(C MemPtr<Bool> &is)
    // end
    Swap(T, temp); return T;
 }
-MeshBase& MeshBase::keepEdges(C MemPtr<Bool> &is)
+MeshBase& MeshBase::keepEdges(C CMemPtr<Bool> &is)
 {
    Int edges =CountIs(is);
    if( edges!=T.edges())
@@ -202,7 +202,7 @@ MeshBase& MeshBase::keepEdges(C MemPtr<Bool> &is)
    }
    return T;
 }
-MeshBase& MeshBase::keepTris(C MemPtr<Bool> &is)
+MeshBase& MeshBase::keepTris(C CMemPtr<Bool> &is)
 {
    Int tris =CountIs(is);
    if( tris!=T.tris())
@@ -212,7 +212,7 @@ MeshBase& MeshBase::keepTris(C MemPtr<Bool> &is)
    }
    return T;
 }
-MeshBase& MeshBase::keepQuads(C MemPtr<Bool> &is)
+MeshBase& MeshBase::keepQuads(C CMemPtr<Bool> &is)
 {
    Int quads =CountIs(is);
    if( quads!=T.quads())
@@ -222,27 +222,27 @@ MeshBase& MeshBase::keepQuads(C MemPtr<Bool> &is)
    }
    return T;
 }
-MeshBase& MeshBase::removeVtxs(C MemPtr<Int> &vtxs)
+MeshBase& MeshBase::removeVtxs(C CMemPtr<Int> &vtxs)
 {
    if(vtxs.elms()){Memt<Bool> nis; CreateIsNot(nis, vtxs, T.vtxs()); keepVtxs(nis);}
    return T;
 }
-MeshBase& MeshBase::removeEdges(C MemPtr<Int> &edges, Bool remove_unused_vtxs)
+MeshBase& MeshBase::removeEdges(C CMemPtr<Int> &edges, Bool remove_unused_vtxs)
 {
    if(edges.elms()){Memt<Bool> nis; CreateIsNot(nis, edges, T.edges()); keepEdges(nis); if(remove_unused_vtxs)removeUnusedVtxs();}
    return T;
 }
-MeshBase& MeshBase::removeTris(C MemPtr<Int> &tris, Bool remove_unused_vtxs)
+MeshBase& MeshBase::removeTris(C CMemPtr<Int> &tris, Bool remove_unused_vtxs)
 {
    if(tris.elms()){Memt<Bool> nis; CreateIsNot(nis, tris, T.tris()); keepTris(nis); if(remove_unused_vtxs)removeUnusedVtxs();}
    return T;
 }
-MeshBase& MeshBase::removeQuads(C MemPtr<Int> &quads, Bool remove_unused_vtxs)
+MeshBase& MeshBase::removeQuads(C CMemPtr<Int> &quads, Bool remove_unused_vtxs)
 {
    if(quads.elms()){Memt<Bool> nis; CreateIsNot(nis, quads, T.quads()); keepQuads(nis); if(remove_unused_vtxs)removeUnusedVtxs();}
    return T;
 }
-MeshBase& MeshBase::removeFaces(C MemPtr<Int> &faces, Bool remove_unused_vtxs)
+MeshBase& MeshBase::removeFaces(C CMemPtr<Int> &faces, Bool remove_unused_vtxs)
 {
    if(faces.elms())
    {

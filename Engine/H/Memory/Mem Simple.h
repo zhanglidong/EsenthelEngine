@@ -89,14 +89,14 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems&      moveElm  (Int elm, Int new_index); // move 'elm' element to new position located at 'new_index'
 
    // misc
-                      Mems& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator
-                      Mems& operator=(C Memc  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Mems& operator=(C Memt  <TYPE, size>  &src); // copy elements using assignment operator
-                      Mems& operator=(C Memb  <TYPE      >  &src); // copy elements using assignment operator
-                      Mems& operator=(C Memx  <TYPE      >  &src); // copy elements using assignment operator
-                      Mems& operator=(C Meml  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Mems& operator=(C MemPtr<TYPE, size>  &src); // copy elements using assignment operator
-                      Mems& operator=(  Mems  <TYPE      > &&src); // copy elements using assignment operator
+                      Mems& operator=(C  Mems  <TYPE      >  &src); // copy elements using assignment operator
+                      Mems& operator=(C  Memc  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Mems& operator=(C  Memt  <TYPE, size>  &src); // copy elements using assignment operator
+                      Mems& operator=(C  Memb  <TYPE      >  &src); // copy elements using assignment operator
+                      Mems& operator=(C  Memx  <TYPE      >  &src); // copy elements using assignment operator
+                      Mems& operator=(C  Meml  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Mems& operator=(C CMemPtr<TYPE, size>  &src); // copy elements using assignment operator
+                      Mems& operator=(   Mems  <TYPE      > &&src); // copy elements using assignment operator
 #if EE_PRIVATE
    void  copyTo  (  TYPE *dest)C; // copy raw memory of all elements to   'dest'
    Mems& copyFrom(C TYPE *src ) ; // copy raw memory of all elements from 'src'

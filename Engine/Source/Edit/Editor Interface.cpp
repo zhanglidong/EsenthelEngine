@@ -13,7 +13,7 @@ namespace Edit{
 ASSERT( EI_NUM<=256); // because they're stored as bytes
 ASSERT(ELM_NUM<=256); // because they're stored as bytes
 /******************************************************************************/
-static Str ElmFullData(C MemPtr<Elm> &elms, C UID &elm_id, Str &name, Bool &removed, Bool &publish) // 'elms' must be sorted by their ID
+static Str ElmFullData(C CMemPtr<Elm> &elms, C UID &elm_id, Str &name, Bool &removed, Bool &publish) // 'elms' must be sorted by their ID
 {
    name   .clear();
    removed=false;
@@ -432,7 +432,7 @@ Bool EditorInterface::selectedElms(MemPtr<UID> elms)
 fail:;
    elms.clear(); return false;
 }
-Bool EditorInterface::selectElms(C MemPtr<UID> &elms)
+Bool EditorInterface::selectElms(C CMemPtr<UID> &elms)
 {
    if(connected())
    {
@@ -444,7 +444,7 @@ Bool EditorInterface::selectElms(C MemPtr<UID> &elms)
    }
    return false;
 }
-Bool EditorInterface::reloadElms(C MemPtr<UID> &elms, Bool remember_result)
+Bool EditorInterface::reloadElms(C CMemPtr<UID> &elms, Bool remember_result)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -457,7 +457,7 @@ Bool EditorInterface::reloadElms(C MemPtr<UID> &elms, Bool remember_result)
    }
    return false;
 }
-Bool EditorInterface::cancelReloadElms(C MemPtr<UID> &elms)
+Bool EditorInterface::cancelReloadElms(C CMemPtr<UID> &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -470,7 +470,7 @@ Bool EditorInterface::cancelReloadElms(C MemPtr<UID> &elms)
    }
    return false;
 }
-Bool EditorInterface::reloadResult(C MemPtr<UID> &elms, MemPtr< IDParam<RELOAD_RESULT> > results)
+Bool EditorInterface::reloadResult(C CMemPtr<UID> &elms, MemPtr< IDParam<RELOAD_RESULT> > results)
 {
    if(elms.elms() && connected())
    {
@@ -488,7 +488,7 @@ Bool EditorInterface::reloadResult(C MemPtr<UID> &elms, MemPtr< IDParam<RELOAD_R
 fail:
    results.clear(); return !elms.elms(); // OK only if there were no elemenets
 }
-Bool EditorInterface::forgetReloadResult(C MemPtr<UID> &elms)
+Bool EditorInterface::forgetReloadResult(C CMemPtr<UID> &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -526,7 +526,7 @@ UID EditorInterface::newWorld(C Str &name, Int area_size, Int terrain_res, C UID
    return UIDZero;
 }
 /******************************************************************************/
-Bool EditorInterface::setElmName(C MemPtr< IDParam<Str> > &elms)
+Bool EditorInterface::setElmName(C CMemPtr< IDParam<Str> > &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -539,7 +539,7 @@ Bool EditorInterface::setElmName(C MemPtr< IDParam<Str> > &elms)
    }
    return false;
 }
-Bool EditorInterface::setElmRemoved(C MemPtr< IDParam<Bool> > &elms)
+Bool EditorInterface::setElmRemoved(C CMemPtr< IDParam<Bool> > &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -552,7 +552,7 @@ Bool EditorInterface::setElmRemoved(C MemPtr< IDParam<Bool> > &elms)
    }
    return false;
 }
-Bool EditorInterface::setElmPublish(C MemPtr< IDParam<Bool> > &elms)
+Bool EditorInterface::setElmPublish(C CMemPtr< IDParam<Bool> > &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -565,7 +565,7 @@ Bool EditorInterface::setElmPublish(C MemPtr< IDParam<Bool> > &elms)
    }
    return false;
 }
-Bool EditorInterface::setElmParent(C MemPtr< IDParam<UID> > &elms)
+Bool EditorInterface::setElmParent(C CMemPtr< IDParam<UID> > &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -578,7 +578,7 @@ Bool EditorInterface::setElmParent(C MemPtr< IDParam<UID> > &elms)
    }
    return false;
 }
-Bool EditorInterface::setElmSrcFile(C MemPtr< IDParam<Str> > &elms)
+Bool EditorInterface::setElmSrcFile(C CMemPtr< IDParam<Str> > &elms)
 {
    if(!elms.elms())return true;
    if(connected())
@@ -810,7 +810,7 @@ Bool EditorInterface::worldTerrainSet(C UID &world_id, C VecI2 &area_xy, C Image
 /******************************************************************************/
 // WORLD OBJECTS
 /******************************************************************************/
-Bool EditorInterface::worldObjCreate(C UID &world_id, C MemPtr<WorldObjParams> &objs)
+Bool EditorInterface::worldObjCreate(C UID &world_id, C CMemPtr<WorldObjParams> &objs)
 {
    if(world_id.valid() && connected())
    {
@@ -822,7 +822,7 @@ Bool EditorInterface::worldObjCreate(C UID &world_id, C MemPtr<WorldObjParams> &
    }
    return false;
 }
-Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs, C MemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed)
+Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed)
 {
    if(world_id.valid() && connected())
    {
@@ -839,7 +839,7 @@ Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs
 fail:
    objs.clear(); return !world_id.valid();
 }
-Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs, C MemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed, Bool include_removed_params)
+Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed, Bool include_removed_params)
 {
    if(world_id.valid() && connected())
    {
@@ -907,7 +907,7 @@ Bool EditorInterface::worldCamSet(C Camera &cam)
 /******************************************************************************/
 // WORLD DRAW
 /******************************************************************************/
-Bool EditorInterface::worldDrawLines(C MemPtr<Line> &lines)
+Bool EditorInterface::worldDrawLines(C CMemPtr<Line> &lines)
 {
    if(connected())
    {
@@ -1272,7 +1272,7 @@ Bool EditorInterface::getObject(C UID &elm_id, ObjData &obj, Bool include_remove
    }
    obj.reset(); return !elm_id.valid();
 }
-Bool EditorInterface::modifyObject(C UID &elm_id, C MemPtr<ObjChange> &changes)
+Bool EditorInterface::modifyObject(C UID &elm_id, C CMemPtr<ObjChange> &changes)
 {
    if(elm_id.valid() && connected())
    {

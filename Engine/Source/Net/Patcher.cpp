@@ -358,7 +358,7 @@ struct LocalFilePtr
  C Patcher::LocalFile *lf;
    Int                 org_index;
 
-   void set(C MemPtr<Patcher::LocalFile> &local_files, Int index) {T.lf=&local_files[index]; T.org_index=index;}
+   void set(C CMemPtr<Patcher::LocalFile> &local_files, Int index) {T.lf=&local_files[index]; T.org_index=index;}
 
    static Int Compare(C LocalFilePtr &a, C LocalFilePtr &b) {return ComparePath(a.lf->full_name, b.lf->full_name);}
    static Int Compare(C LocalFilePtr &a, C Str          &b) {return ComparePath(a.lf->full_name, b              );}
@@ -397,7 +397,7 @@ static Bool Equal(C Patcher::LocalFile *a, C Patcher::LocalFile *b)
    return false; // one exists and other doesn't = they're different
 }
 /******************************************************************************/
-Bool Patcher::compare(C MemPtr<LocalFile> &local_files, MemPtr<Int> local_remove, MemPtr<Int> server_download)
+Bool Patcher::compare(C CMemPtr<LocalFile> &local_files, MemPtr<Int> local_remove, MemPtr<Int> server_download)
 {
     local_remove  .clear();
    server_download.clear();
@@ -437,7 +437,7 @@ Bool Patcher::compare(C MemPtr<LocalFile> &local_files, MemPtr<Int> local_remove
    return false;
 }
 /******************************************************************************/
-void Patcher::Compare(C MemPtr<LocalFile> &src_files, C MemPtr<LocalFile> &dest_files, MemPtr<Int> dest_remove, MemPtr<Int> src_copy)
+void Patcher::Compare(C CMemPtr<LocalFile> &src_files, C CMemPtr<LocalFile> &dest_files, MemPtr<Int> dest_remove, MemPtr<Int> src_copy)
 {
   dest_remove.clear();
    src_copy  .clear();

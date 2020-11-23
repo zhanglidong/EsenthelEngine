@@ -951,7 +951,7 @@ void IncRealByBit(Dbl &r)
 /******************************************************************************/
 // Standard Deviational Ellipse
 // http://resources.esri.com/help/9.3/arcgisengine/java/gp_toolref/spatial_statistics_tools/how_directional_distribution_colon_standard_deviational_ellipse_spatial_statistics_works.htm
-void AvgDirU(Vec2 &dir, C MemPtr<Vec2> &points)
+void AvgDirU(Vec2 &dir, C CMemPtr<Vec2> &points)
 {
    Flt x2=0, y2=0, xy=0;
    REPA(points)
@@ -967,8 +967,8 @@ void AvgDirU(Vec2 &dir, C MemPtr<Vec2> &points)
    dir.set(a+b, c); // if we would normalize, then dir.x=cos, dir.y=sin
 }
 /*
-void AvgDirU(Vec  &dir, C MemPtr<Vec > &points); // get average direction from array of points, points should be located around center Vec (0,0,0), direction is not normalized
-void AvgDirU(Vec &dir, C MemPtr<Vec> &points)
+void AvgDirU(Vec &dir, C CMemPtr<Vec> &points); // get average direction from array of points, points should be located around center Vec (0,0,0), direction is not normalized
+void AvgDirU(Vec &dir, C CMemPtr<Vec> &points)
 {
    this is wrong
    Flt x2=0, y2=0, z2=0, xy=0, xz=0;

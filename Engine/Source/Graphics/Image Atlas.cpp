@@ -29,7 +29,7 @@ struct ImageAtlasSrc : RectSizeAnchor // trimmed size
    ImageAtlasSrc() {size.zero(); image=null; name=null; opaque.set(0, 0, -1, -1); original_size.zero();}
 };
 /******************************************************************************/
-Bool ImageAtlas::create(C MemPtr<Source> &images, IMAGE_TYPE image_type, Int mip_maps, Bool allow_rotate, Int border, Bool align_for_compression, Bool only_square, Int max_tex_size, Bool trim_transparent, Bool transparent_to_neighbors)
+Bool ImageAtlas::create(C CMemPtr<Source> &images, IMAGE_TYPE image_type, Int mip_maps, Bool allow_rotate, Int border, Bool align_for_compression, Bool only_square, Int max_tex_size, Bool trim_transparent, Bool transparent_to_neighbors)
 {
    del();
 

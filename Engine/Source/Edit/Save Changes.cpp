@@ -23,7 +23,7 @@ void SaveChanges::create()
    rect(Rect_C(0, 0, 1.1f, 0.57f));
 }
 /******************************************************************************/
-void SaveChanges::set(C MemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr user), Ptr user)
+void SaveChanges::set(C CMemPtr<Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr user), Ptr user)
 {
    T. elms            =elms;
    T._after_save_close=after_save_close;

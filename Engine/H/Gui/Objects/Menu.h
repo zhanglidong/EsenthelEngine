@@ -89,18 +89,18 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE *user), TYPE *user     ) {return T.func((void(*)(C Str&, Ptr))func,  user);} // set function called when any sub-element is pushed, with 'user' as its parameter
    T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE &user), TYPE &user     ) {return T.func((void(*)(C Str&, Ptr))func, &user);} // set function called when any sub-element is pushed, with 'user' as its parameter
 
-   Menu& setData(CChar8 *data[], Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
-   Menu& setData(CChar  *data[], Int elms, C MemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
-   Menu& setData(C Node<MenuElm> &node                                                      ); // set columns and data from node of menu elements
+   Menu& setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
+   Menu& setData(CChar  *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
+   Menu& setData(C Node<MenuElm> &node                                                       ); // set columns and data from node of menu elements
 
-            Menu& setColumns(ListColumn  *column, Int columns, Bool columns_hidden);                                                                                       // set list columns
-   T1(TYPE) Menu& setData   (      TYPE  *data  , Int elms   , C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(data, elms, visible, keep_cur); return T;} // set data from continuous memory
-   T1(TYPE) Menu& setData   ( Mems<TYPE> &mems  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(mems,       visible, keep_cur); return T;} // set data from Mems
-            Menu& setData   (_Memc       &memc  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memc,       visible, keep_cur); return T;} // set data from Memc
-            Menu& setData   (_Memb       &memb  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memb,       visible, keep_cur); return T;} // set data from Memb
-            Menu& setData   (_Memx       &memx  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memx,       visible, keep_cur); return T;} // set data from Memx
-            Menu& setData   (_Meml       &meml  ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(meml,       visible, keep_cur); return T;} // set data from Meml
-            Menu& setData   (_Map        &map   ,              C MemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(map ,       visible, keep_cur); return T;} // set data from Map
+            Menu& setColumns(ListColumn  *column, Int columns, Bool columns_hidden);                                                                                        // set list columns
+   T1(TYPE) Menu& setData   (      TYPE  *data  , Int elms   , C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(data, elms, visible, keep_cur); return T;} // set data from continuous memory
+   T1(TYPE) Menu& setData   ( Mems<TYPE> &mems  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(mems,       visible, keep_cur); return T;} // set data from Mems
+            Menu& setData   (_Memc       &memc  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memc,       visible, keep_cur); return T;} // set data from Memc
+            Menu& setData   (_Memb       &memb  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memb,       visible, keep_cur); return T;} // set data from Memb
+            Menu& setData   (_Memx       &memx  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(memx,       visible, keep_cur); return T;} // set data from Memx
+            Menu& setData   (_Meml       &meml  ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(meml,       visible, keep_cur); return T;} // set data from Meml
+            Menu& setData   (_Map        &map   ,              C CMemPtr<Bool> &visible=null, Bool keep_cur=false) {list.setData(map ,       visible, keep_cur); return T;} // set data from Map
 
    Menu& clearElmSelectable(                ); // clear per element selectable
    Menu&   setElmSelectable(Bool &selectable); // set   per element selectable, from list data elements member, for 'selectable' parameter 'MEMBER' macro usage is required

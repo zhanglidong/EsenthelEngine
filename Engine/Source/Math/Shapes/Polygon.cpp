@@ -321,7 +321,7 @@ void CreateConvex2Dxz(MemPtr<VecD2> poly, C VecD *point, Int points)
    }
 }
 /******************************************************************************/
-void Triangulate(C MemPtr<Vec> &poly, MeshBase &mesh, Bool convex)
+void Triangulate(C CMemPtr<Vec> &poly, MeshBase &mesh, Bool convex)
 {
    if(poly.elms()>=3)
    {
@@ -388,7 +388,7 @@ void Triangulate(C MemPtr<Vec> &poly, MeshBase &mesh, Bool convex)
       mesh.del();
    }
 }
-void Triangulate(C MemPtr<VtxFull> &poly, MeshBase &mesh, UInt flag_and, Bool convex)
+void Triangulate(C CMemPtr<VtxFull> &poly, MeshBase &mesh, UInt flag_and, Bool convex)
 {
    if(poly.elms()>=3)
    {
@@ -452,7 +452,7 @@ void Triangulate(C MemPtr<VtxFull> &poly, MeshBase &mesh, UInt flag_and, Bool co
       }
    }else mesh.del();
 }
-void Triangulate(C MemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
+void Triangulate(C CMemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
 {
    // count number of vertexes and triangles
    Int vtxs=0, max_vtxs=0,
@@ -531,7 +531,7 @@ void Triangulate(C MemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps,
    }
    mesh.weldVtx(VTX_ALL, weld_pos_eps);
 }
-void Triangulate(C MemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, UInt flag_and, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
+void Triangulate(C CMemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, UInt flag_and, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
 {
    // count number of vertexes and triangles
    Int vtxs=0, max_vtxs=0,
@@ -611,7 +611,7 @@ void Triangulate(C MemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, UInt flag_and
    mesh.weldVtx(VTX_ALL, weld_pos_eps);
 }
 /******************************************************************************/
-void ClipPoly(C MemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output)
+void ClipPoly(C CMemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output)
 {
    output.clear();
 
@@ -651,7 +651,7 @@ void ClipPoly(C MemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output)
       }break;
    }
 }
-void ClipPoly(C MemPtr<VecD2> &poly, C PlaneD2 &plane, MemPtr<VecD2> output)
+void ClipPoly(C CMemPtr<VecD2> &poly, C PlaneD2 &plane, MemPtr<VecD2> output)
 {
    output.clear();
 
@@ -691,7 +691,7 @@ void ClipPoly(C MemPtr<VecD2> &poly, C PlaneD2 &plane, MemPtr<VecD2> output)
       }break;
    }
 }
-void ClipPoly(C MemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output)
+void ClipPoly(C CMemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output)
 {
    output.clear();
 
@@ -732,7 +732,7 @@ void ClipPoly(C MemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output)
    }
 }
 /******************************************************************************/
-void SplitPoly(C MemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output_positive, MemPtr<Vec> output_negative)
+void SplitPoly(C CMemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output_positive, MemPtr<Vec> output_negative)
 {
    output_positive.clear();
    output_negative.clear();
@@ -800,7 +800,7 @@ void SplitPoly(C MemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output_positive,
       }break;
    }
 }
-void SplitPoly(C MemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output_positive, MemPtr<VtxFull> output_negative)
+void SplitPoly(C CMemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output_positive, MemPtr<VtxFull> output_negative)
 {
    output_positive.clear();
    output_negative.clear();
@@ -869,7 +869,7 @@ void SplitPoly(C MemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output_p
    }
 }
 /******************************************************************************/
-void DrawPoly2D(C MemPtr<Vec> &poly, C Color &edge_color, C Color &vtx_color)
+void DrawPoly2D(C CMemPtr<Vec> &poly, C Color &edge_color, C Color &vtx_color)
 {
    if(poly.elms())
    {
@@ -892,7 +892,7 @@ void DrawPoly2D(C MemPtr<Vec> &poly, C Color &edge_color, C Color &vtx_color)
       }
    }
 }
-void DrawPoly(C MemPtr<Vec> &poly, C Color &edge_color, C Color &vtx_color)
+void DrawPoly(C CMemPtr<Vec> &poly, C Color &edge_color, C Color &vtx_color)
 {
    if(poly.elms())
    {

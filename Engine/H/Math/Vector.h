@@ -1355,9 +1355,9 @@ struct VecUS2 // Vector 2D (Unsigned Short)
    VecUS2& set (UShort x, UShort y) {T.x=x; T.y=y; return T;}
 
 #if EE_PRIVATE
-   VecUS2& remap   (C        Int  *map) {if(map){x=map[x]; y=map[y];} return T;} // remap if map is provided
-   VecUS2& remapAll(C MemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); return T;} // remap all components
-   VecUS2& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       return T;} // remap     components which are in range of the remap array
+   VecUS2& remap   (C         Int  *map) {if(map){x=map[x]; y=map[y];} return T;} // remap if map is provided
+   VecUS2& remapAll(C CMemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); return T;} // remap all components
+   VecUS2& remapFit(C CMemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       return T;} // remap     components which are in range of the remap array
 #endif
 
    VecUS2& operator+=(Int i) {x+=i; y+=i; return T;}
@@ -1417,9 +1417,9 @@ struct VecUS // Vector 3D (Unsigned Short)
    VecUS& set (C VecUS2 &xy      , UShort z) {T.xy=xy;      T.z=z; return T;}
 
 #if EE_PRIVATE
-   VecUS& remap   (C        Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z];} return T;} // remap if map is provided
-   VecUS& remapAll(C MemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); return T;} // remap all components
-   VecUS& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       return T;} // remap     components which are in range of the remap array
+   VecUS& remap   (C         Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z];} return T;} // remap if map is provided
+   VecUS& remapAll(C CMemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); return T;} // remap all components
+   VecUS& remapFit(C CMemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       return T;} // remap     components which are in range of the remap array
 #endif
 
    VecUS& operator+=(Int i) {x+=i; y+=i; z+=i; return T;}
@@ -1690,9 +1690,9 @@ struct VecI2 // Vector 2D (integer)
    VecI2& sat         (         );                              // saturate       all components
 
 #if EE_PRIVATE
-   VecI2& remap   (C        Int  *map) {if(map){x=map[x]; y=map[y];} return T;} // remap if map is provided
-   VecI2& remapAll(C MemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); return T;} // remap all components
-   VecI2& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       return T;} // remap     components which are in range of the remap array
+   VecI2& remap   (C         Int  *map) {if(map){x=map[x]; y=map[y];} return T;} // remap if map is provided
+   VecI2& remapAll(C CMemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); return T;} // remap all components
+   VecI2& remapFit(C CMemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       return T;} // remap     components which are in range of the remap array
 
    VecI2 asIso  ()C {return VecI2(x+y  , y-x  );}
    VecI2 asIso2 ()C {return VecI2(x*2+y, y*2-x);}
@@ -1857,9 +1857,9 @@ struct VecI // Vector 3D (integer)
    VecI& sat         (         );                                // saturate       all components
 
 #if EE_PRIVATE
-   VecI& remap   (C        Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z];} return T;} // remap if map is provided
-   VecI& remapAll(C MemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); return T;} // remap all components
-   VecI& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       return T;} // remap     components which are in range of the remap array
+   VecI& remap   (C         Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z];} return T;} // remap if map is provided
+   VecI& remapAll(C CMemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); return T;} // remap all components
+   VecI& remapFit(C CMemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       return T;} // remap     components which are in range of the remap array
 #endif
 
               VecI() {}
@@ -2008,9 +2008,9 @@ struct VecI4 // Vector 4D (integer)
    VecI4& sat         (         );                                                        // saturate       all components
 
 #if EE_PRIVATE
-   VecI4& remap   (C        Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z]; w=map[w];} return T;} // remap if map is provided
-   VecI4& remapAll(C MemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); w=(InRange(w, map) ? map[w] : -1); return T;} // remap all components
-   VecI4& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       if(InRange(w, map))w=map[w];       return T;} // remap     components which are in range of the remap array
+   VecI4& remap   (C         Int  *map) {if(map){x=map[x]; y=map[y]; z=map[z]; w=map[w];} return T;} // remap if map is provided
+   VecI4& remapAll(C CMemPtr<Int> &map) {x=(InRange(x, map) ? map[x] : -1); y=(InRange(y, map) ? map[y] : -1); z=(InRange(z, map) ? map[z] : -1); w=(InRange(w, map) ? map[w] : -1); return T;} // remap all components
+   VecI4& remapFit(C CMemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       if(InRange(w, map))w=map[w];       return T;} // remap     components which are in range of the remap array
 #endif
 
    VecI tri0()C {return VecI(x, y, w);}

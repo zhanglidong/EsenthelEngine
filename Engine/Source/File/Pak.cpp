@@ -1500,7 +1500,7 @@ Bool Pak::create(C Str &file, C Str &pak_name, UInt flag, Cipher *dest_cipher, C
    Str f=file;
    return create(MemPtr<Str>(f), pak_name, flag, dest_cipher, src_cipher, compress, compression_level, filter, error_message, progress);
 }
-Bool Pak::create(C MemPtr<Str> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, Cipher *src_cipher, COMPRESS_TYPE compress, Int compression_level, Bool (*filter)(C Str &name), Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<Str> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, Cipher *src_cipher, COMPRESS_TYPE compress, Int compression_level, Bool (*filter)(C Str &name), Str *error_message, PakProgress *progress)
 {
    if(progress && progress->wantStop(error_message))return false;
    // !! don't delete Pak anywhere here because we still need 'pak_name' which can be a Pak member !!
@@ -1541,7 +1541,7 @@ Bool Pak::create(C MemPtr<Str> &files, C Str &pak_name, UInt flag, Cipher *dest_
    // create
    return pc.create(pn, dest_cipher);
 }
-Bool Pak::create(C MemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
    if(progress && progress->wantStop(error_message))return false;
    // !! don't delete Pak anywhere here because we still need 'pak_name' which can be a Pak member !!
@@ -1637,7 +1637,7 @@ Bool Pak::create(C Mems<C PakFileData*> &files, C Str &pak_name, UInt flag, Ciph
    // create according to created nodes
    return create(nodes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
 }
-Bool Pak::create(C MemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
    Mems<C PakFileData*> f; f.setNum(files.elms()); REPAO(f)=&files[i];
    return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
@@ -1654,7 +1654,7 @@ static void ExcludeChildren(Pak &pak, C PakFile &pf, Memt<Bool> &is)
       ExcludeChildren(pak, pak.file(child_i), is); // exclude all  children of that child too
    }
 }
-Bool PakUpdate(Pak &src_pak, C MemPtr<PakFileData> &update_files, C Str &pak_name, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
    if(error_message)error_message->clear();
 
@@ -1792,7 +1792,7 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
 static Int ComparePF(C PakFileData*C &a, C PakFileData*C &b) {return ComparePath(a->name, b->name);}
 static Int ComparePF(C PakFileData*C &a, C Str           &b) {return ComparePath(a->name, b      );}
 
-Bool PakEqual(C MemPtr<PakFileData> &files, C Pak &pak)
+Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
 {
    Memt<C PakFileData*> files_sorted; files_sorted.setNum(files.elms()); REPAO(files_sorted)=&files[i];
    files_sorted.sort(ComparePF);
@@ -1812,7 +1812,7 @@ Bool PakEqual(C MemPtr<PakFileData> &files, C Pak &pak)
    }
    return true;
 }
-Bool PakEqual(C MemPtr<PakFileData> &files, C Str &name, Cipher *cipher)
+Bool PakEqual(C CMemPtr<PakFileData> &files, C Str &name, Cipher *cipher)
 {
    if(name.is())
    {

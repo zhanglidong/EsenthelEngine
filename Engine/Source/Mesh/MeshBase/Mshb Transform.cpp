@@ -219,7 +219,7 @@ MeshBase& MeshBase::reverse(Int face)
    }
    return T;
 }
-MeshBase& MeshBase::reverse(C MemPtr<Int> &faces)
+MeshBase& MeshBase::reverse(C CMemPtr<Int> &faces)
 {
    if(faces.elms())
    {

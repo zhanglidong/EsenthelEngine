@@ -13,7 +13,7 @@
          ..
 
       You can write just one function:
-         Int Sum(C MemPtr<Int> &values) {Int sum=0; REPA(values)sum+=values[i]; return sum;}
+         Int Sum(C CMemPtr<Int> &values) {Int sum=0; REPA(values)sum+=values[i]; return sum;}
 
          This function will accept all memory container types, so you can do the following:
             Memc<Int> memc_values; Sum(memc_values);
@@ -21,17 +21,132 @@
             ..
 
 /******************************************************************************/
-template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer, 'Memt_size'=size of the 'Memt' helper stack memory
+template<typename TYPE, Int Memt_size> struct CMemPtr // Const Memory Container Pointer, 'Memt_size'=size of the 'Memt' helper stack memory
+{
+   // get / set
+   Int     elms    ()C; // number of elements
+   UInt    elmSize ()C; // size   of element
+   UIntPtr memUsage()C; // memory usage
+
+ C TYPE* data      (     )C; // get pointer to the start of the elements
+ C TYPE* addr      (Int i)C; // get i-th  element address, null is returned if index is out of range
+ C TYPE& operator[](Int i)C; // get i-th  element, accessing element out of range is an invalid operation and may cause undefined behavior
+ C TYPE& first     (     )C; // get first element
+ C TYPE& last      (     )C; // get last  element
+
+   Int  index   (C TYPE *elm)C; // get index of element in container, -1 on fail      , testing is done by comparing elements memory address only
+   Bool contains(C TYPE *elm)C; // check if memory container actually contains element, testing is done by comparing elements memory address only
+
+   operator   Bool()C; // if points to something (not null)
+   Bool  resizable()C; // if supports adding/removing elements
+   Bool continuous()C; // if elements are stored in continuous memory
+
+   // values
+   T1(VALUE) Int  find(C VALUE &value)C {REPA(T)if(T[i]==value)return i; return -1;} // check if 'value' is present in container and return its index, -1 if not found
+   T1(VALUE) Bool has (C VALUE &value)C {return find(value)>=0;                    } // check if 'value' is present in container
+
+   T1(VALUE)   Bool  binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b)=Compare)C; // search sorted container for presence of 'value' and return if it was found in the container, 'index'=if the function returned true then this index points to the location where the 'value' is located in the container, if the function returned false then it means that 'value' was not found in the container however the 'index' points to the place where it should be added in the container while preserving sorted data, 'index' will always be in range (0..elms) inclusive
+   T1(VALUE)   Bool  binaryHas   (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)C {Int i; return binarySearch(value, i, compare);               } // check if 'value' (using binary search) is present in container
+   T1(VALUE) C TYPE* binaryFind  (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)C {Int i; return binarySearch(value, i, compare) ? &T[i] : null;} // check if 'value' (using binary search) is present in container and return it, null on fail
+
+#if EE_PRIVATE
+   void copyTo(TYPE *dest)C; // copy raw memory of all elements to 'dest'
+#endif
+
+   // io
+   Bool save   (File &f)C; // save elements with their own 'save' method, this method first saves number of current elements, and then for each element calls its 'save' method, false on fail
+   Bool saveRaw(File &f)C; // save raw memory of elements (number of elements + elements raw memory), false on fail
+
+   // initialize 'CMemPtr' to point to source
+                          CMemPtr& point(          null_t=null                         );
+                          CMemPtr& point(C         TYPE             &src               );
+                          CMemPtr& point(C         TYPE             *src, Int src_elms );
+   template<Int src_elms> CMemPtr& point(C         TYPE            (&src)    [src_elms]);
+                          CMemPtr& point(C  Mems  <TYPE           > &src               );
+                          CMemPtr& point(C  Memc  <TYPE           > &src               );
+                          CMemPtr& point(C  Memt  <TYPE, Memt_size> &src               );
+                          CMemPtr& point(C  Memb  <TYPE           > &src               );
+                          CMemPtr& point(C  Memx  <TYPE           > &src               );
+                          CMemPtr& point(C  Meml  <TYPE           > &src               );
+                          CMemPtr& point(C CMemPtr<TYPE, Memt_size> &src               );
+
+                          CMemPtr(          null_t=null                         ) {point(null         );}
+                          CMemPtr(C         TYPE             &src               ) {point(src          );}
+   template<Int src_elms> CMemPtr(C         TYPE            (&src)    [src_elms]) {point(src          );}
+                          CMemPtr(C         TYPE             *src, Int src_elms ) {point(src, src_elms);}
+                          CMemPtr(C  Mems  <TYPE           > &src               ) {point(src          );}
+                          CMemPtr(C  Memc  <TYPE           > &src               ) {point(src          );}
+ //T1(EXTENDED)           CMemPtr(C  Memc  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Memt  <TYPE, Memt_size> &src               ) {point(src          );}
+                          CMemPtr(C  Memb  <TYPE           > &src               ) {point(src          );}
+ //T1(EXTENDED)           CMemPtr(C  Memb  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Memx  <TYPE           > &src               ) {point(src          );}
+ //T1(EXTENDED)           CMemPtr(C  Memx  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Meml  <TYPE           > &src               ) {point(src          );}
+                          CMemPtr(C CMemPtr<TYPE, Memt_size> &src               ) {point(src          );}
+
+   enum MODE
+   {
+      PTR ,
+      MEMS,
+      MEMC,
+      MEMT,
+      MEMB,
+      MEMX,
+      MEML,
+   };
+
+   MODE mode()C {return _mode;} // get type of container from which 'CMemPtr' was created
+
+ C Mems<TYPE           >* mems()C {return (_mode==MEMS) ? _mems : null;}
+ C Memc<TYPE           >* memc()C {return (_mode==MEMC) ? _memc : null;}
+ C Memt<TYPE, Memt_size>* memt()C {return (_mode==MEMT) ? _memt : null;}
+ C Memb<TYPE           >* memb()C {return (_mode==MEMB) ? _memb : null;}
+ C Memx<TYPE           >* memx()C {return (_mode==MEMX) ? _memx : null;}
+ C Meml<TYPE           >* meml()C {return (_mode==MEML) ? _meml : null;}
+
+private:
+                          CMemPtr& operator=(   null_t                                 )=delete;
+                          CMemPtr& operator=(C  TYPE                    &src           )=delete;
+   template<Int src_elms> CMemPtr& operator=(C  TYPE                   (&src)[src_elms])=delete;
+                          CMemPtr& operator=(C  Mems  <TYPE           > &src           )=delete;
+                          CMemPtr& operator=(C  Memc  <TYPE           > &src           )=delete;
+   template<Int src_size> CMemPtr& operator=(C  Memt  <TYPE,  src_size> &src           )=delete;
+                          CMemPtr& operator=(C  Memb  <TYPE           > &src           )=delete;
+                          CMemPtr& operator=(C  Memx  <TYPE           > &src           )=delete;
+                          CMemPtr& operator=(C  Meml  <TYPE           > &src           )=delete;
+   template<Int src_size> CMemPtr& operator=(C CMemPtr<TYPE,  src_size> &src           )=delete;
+                          CMemPtr& operator=(C CMemPtr<TYPE, Memt_size> &src           )=delete; // this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy
+
+   union
+   {
+    C TYPE                  *_ptr ;
+    C Mems<TYPE           > *_mems;
+    C Memc<TYPE           > *_memc;
+    C Memt<TYPE, Memt_size> *_memt;
+    C Memb<TYPE           > *_memb;
+    C Memx<TYPE           > *_memx;
+    C Meml<TYPE           > *_meml;
+   };
+   MODE _mode;
+   Int  _elms;
+
+   friend struct Mems  <TYPE>;
+   friend struct Memc  <TYPE>;
+   friend struct Memt  <TYPE, Memt_size>;
+   friend struct Memb  <TYPE>;
+   friend struct Memx  <TYPE>;
+   friend struct Meml  <TYPE>;
+   friend struct MemPtr<TYPE, Memt_size>;
+};
+/******************************************************************************/
+template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> // Memory Container Pointer, 'Memt_size'=size of the 'Memt' helper stack memory
 {
    // manage
    MemPtr& clear(); // remove all elements
    MemPtr& del  (); // remove all elements and free helper memory
 
    // get / set
-   Int     elms    ()C; // number of elements
-   UInt    elmSize ()C; // size   of element
-   UIntPtr memUsage()C; // memory usage
-
    TYPE* data      (     ) ; // get    pointer to the start of the elements
  C TYPE* data      (     )C; // get    pointer to the start of the elements
    TYPE* addr      (Int i) ; // get    i-th  element address, null is returned if index is out of range
@@ -45,13 +160,6 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
  C TYPE& last      (     )C; // get    last  element
    TYPE& New       (     ) ; // create new   element at the  end                                                                              , this method changes the memory address of all elements
    TYPE& NewAt     (Int i) ; // create new   element at i-th position, all old elements starting from i-th position will be moved to the right, this method changes the memory address of all elements
-
-   Int  index   (C TYPE *elm)C; // get index of element in container, -1 on fail      , testing is done by comparing elements memory address only
-   Bool contains(C TYPE *elm)C; // check if memory container actually contains element, testing is done by comparing elements memory address only
-
-   operator   Bool()C; // if points to something (not null)
-   Bool  resizable()C; // if supports adding/removing elements
-   Bool continuous()C; // if elements are stored in continuous memory
 
    // remove
    MemPtr& removeLast(                                  ); // remove last element                                                                                                                                                                        , this method does not change the memory address of any of the remaining elements
@@ -70,14 +178,12 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
    T1(VALUE) Bool    exclude(C VALUE &value, Bool keep_order=false)  {Int i=find(value); if(i>=0){remove(i, keep_order); return true ;}             return false;} // exclude  'value' if present  in container                , returns true if value was    present and has been removed, this method changes the memory address of all elements
    T1(VALUE) Bool    toggle (C VALUE &value, Bool keep_order=false)  {Int i=find(value); if(i>=0){remove(i, keep_order); return false;} add(value); return true ;} // toggle   'value'    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
 
-   T1(VALUE)   Bool    binarySearch (C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b)=Compare)C; // search sorted container for presence of 'value' and return if it was found in the container, 'index'=if the function returned true then this index points to the location where the 'value' is located in the container, if the function returned false then it means that 'value' was not found in the container however the 'index' points to the place where it should be added in the container while preserving sorted data, 'index' will always be in range (0..elms) inclusive
-   T1(VALUE)   Bool    binaryHas    (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)C {Int i; return binarySearch(value, i, compare);                                                              } // check if 'value' (using binary search) is present in container
-   T1(VALUE)   TYPE*   binaryFind   (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; return binarySearch(value, i, compare) ? &T[i] : null;                                               } // check if 'value' (using binary search) is present in container and return it, null on fail
-   T1(VALUE) C TYPE*   binaryFind   (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)C {return ConstCast(T).binaryFind(value, compare);                                                             } // check if 'value' (using binary search) is present in container and return it, null on fail
-   T1(VALUE)   MemPtr& binaryAdd    (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i;        binarySearch(value, i, compare); NewAt (i)=value;                                return     T;} // add      'value' (using binary search)                                                                                                    , this method changes the memory address of all elements
-   T1(VALUE)   Bool    binaryInclude(C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;}                  return false;} // include  'value' (using binary search) if it's not already present in container, returns true if value wasn't present and has been added  , this method changes the memory address of all elements
-   T1(VALUE)   Bool    binaryExclude(C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(    binarySearch(value, i, compare)){remove(i, true); return true;}                  return false;} // exclude  'value' (using binary search) if present  in container                , returns true if value was    present and has been removed, this method changes the memory address of all elements
-   T1(VALUE)   Bool    binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
+   T1(VALUE)   TYPE*   binaryFind   (C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)  {return ConstCast(super::binaryFind(value, compare));                                                        } // check if 'value' (using binary search) is present in container and return it, null on fail
+   T1(VALUE) C TYPE*   binaryFind   (C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)C {return           super::binaryFind(value, compare) ;                                                        } // check if 'value' (using binary search) is present in container and return it, null on fail
+   T1(VALUE)   MemPtr& binaryAdd    (C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i;        binarySearch(value, i, compare); NewAt (i)=value;                                return     T;} // add      'value' (using binary search)                                                                                                    , this method changes the memory address of all elements
+   T1(VALUE)   Bool    binaryInclude(C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;}                  return false;} // include  'value' (using binary search) if it's not already present in container, returns true if value wasn't present and has been added  , this method changes the memory address of all elements
+   T1(VALUE)   Bool    binaryExclude(C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(    binarySearch(value, i, compare)){remove(i, true); return true;}                  return false;} // exclude  'value' (using binary search) if present  in container                , returns true if value was    present and has been removed, this method changes the memory address of all elements
+   T1(VALUE)   Bool    binaryToggle (C VALUE &value, Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method changes the memory address of all elements
 
    // order
    MemPtr& sort(           Int compare(C TYPE &a, C TYPE &b           )=Compare); // sort elements with custom comparing function
@@ -87,28 +193,26 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
    MemPtr&    swapOrder(Int i, Int j); // swap order of 'i' and 'j' valid elements
 
    // misc
-                          MemPtr& operator=(C TYPE                    &src           ); // copy elements using assignment operator
-   template<Int src_elms> MemPtr& operator=(C TYPE                   (&src)[src_elms]); // copy elements using assignment operator
-                          MemPtr& operator=(C Mems  <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtr& operator=(C Memc  <TYPE           > &src           ); // copy elements using assignment operator
-   template<Int src_size> MemPtr& operator=(C Memt  <TYPE,  src_size> &src           ); // copy elements using assignment operator
-                          MemPtr& operator=(C Memb  <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtr& operator=(C Memx  <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtr& operator=(C Meml  <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtr& operator=(C MemPtr<TYPE, Memt_size> &src           ); // copy elements using assignment operator (this must be specified even though method below should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
-   template<Int src_size> MemPtr& operator=(C MemPtr<TYPE,  src_size> &src           ); // copy elements using assignment operator (this will allow copying from 'MemPtr' with other sizes)
+                          MemPtr& operator=(C  TYPE                    &src           ); // copy elements using assignment operator
+   template<Int src_elms> MemPtr& operator=(C  TYPE                   (&src)[src_elms]); // copy elements using assignment operator
+                          MemPtr& operator=(C  Mems  <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtr& operator=(C  Memc  <TYPE           > &src           ); // copy elements using assignment operator
+   template<Int src_size> MemPtr& operator=(C  Memt  <TYPE,  src_size> &src           ); // copy elements using assignment operator
+                          MemPtr& operator=(C  Memb  <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtr& operator=(C  Memx  <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtr& operator=(C  Meml  <TYPE           > &src           ); // copy elements using assignment operator
+   template<Int src_size> MemPtr& operator=(C CMemPtr<TYPE,  src_size> &src           ); // copy elements using assignment operator (this will allow copying from 'CMemPtr' and 'MemPtr' with other sizes)
+                          MemPtr& operator=(C  MemPtr<TYPE, Memt_size> &src           ); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
 
 #if EE_PRIVATE
-   void    copyTo  (  TYPE *dest)C; // copy raw memory of all elements to   'dest'
-   MemPtr& copyFrom(C TYPE *src ) ; // copy raw memory of all elements from 'src '
+   MemPtr& copyFrom(C TYPE *src); // copy raw memory of all elements from 'src'
 #endif
 
    // io
    Bool save(File &f);   Bool save(File &f)C; // save elements with their own 'save' method, this method first saves number of current elements, and then for each element calls its 'save' method, false on fail
    Bool load(File &f);                        // load elements with their own 'load' method, this method first loads number of saved   elements, and then for each element calls its 'load' method, false on fail
 
-   Bool saveRaw(File &f)C; // save raw memory of elements (number of elements + elements raw memory), false on fail
-   Bool loadRaw(File &f) ; // load raw memory of elements (number of elements + elements raw memory), false on fail
+   Bool loadRaw(File &f); // load raw memory of elements (number of elements + elements raw memory), false on fail
 
    // initialize 'MemPtr' to point to source
                           MemPtr& point(       null_t=null                         );
@@ -141,69 +245,33 @@ template<typename TYPE, Int Memt_size> struct MemPtr // Memory Container Pointer
                           MemPtr(C MemPtr<TYPE, Memt_size> &src               )=delete;
                        #endif
 
-   enum MODE
-   {
-      PTR ,
-      MEMS,
-      MEMC,
-      MEMT,
-      MEMB,
-      MEMX,
-      MEML,
-   };
-
-   MODE mode()C {return _mode;} // get type of container from which 'MemPtr' was created
-
-   Mems<TYPE           >* mems()  {return (_mode==MEMS) ? _mems : null;}
- C Mems<TYPE           >* mems()C {return (_mode==MEMS) ? _mems : null;}
-   Memc<TYPE           >* memc()  {return (_mode==MEMC) ? _memc : null;}
- C Memc<TYPE           >* memc()C {return (_mode==MEMC) ? _memc : null;}
-   Memt<TYPE, Memt_size>* memt()  {return (_mode==MEMT) ? _memt : null;}
- C Memt<TYPE, Memt_size>* memt()C {return (_mode==MEMT) ? _memt : null;}
-   Memb<TYPE           >* memb()  {return (_mode==MEMB) ? _memb : null;}
- C Memb<TYPE           >* memb()C {return (_mode==MEMB) ? _memb : null;}
-   Memx<TYPE           >* memx()  {return (_mode==MEMX) ? _memx : null;}
- C Memx<TYPE           >* memx()C {return (_mode==MEMX) ? _memx : null;}
-   Meml<TYPE           >* meml()  {return (_mode==MEML) ? _meml : null;}
- C Meml<TYPE           >* meml()C {return (_mode==MEML) ? _meml : null;}
-
-private:
-   union
-   {
-      TYPE                  *_ptr ;
-      Mems<TYPE           > *_mems;
-      Memc<TYPE           > *_memc;
-      Memt<TYPE, Memt_size> *_memt;
-      Memb<TYPE           > *_memb;
-      Memx<TYPE           > *_memx;
-      Meml<TYPE           > *_meml;
-   };
-   MODE _mode;
-   Int  _elms;
-
-   MemPtr& operator=(null_t)=delete;
-
-   friend struct Mems<TYPE>;
-   friend struct Memc<TYPE>;
-   friend struct Memt<TYPE, Memt_size>;
-   friend struct Memb<TYPE>;
-   friend struct Memx<TYPE>;
-   friend struct Meml<TYPE>;
+   Mems<TYPE           >* mems()  {return (_mode==MEMS) ? ConstCast(_mems) : null;}
+ C Mems<TYPE           >* mems()C {return (_mode==MEMS) ?           _mems  : null;}
+   Memc<TYPE           >* memc()  {return (_mode==MEMC) ? ConstCast(_memc) : null;}
+ C Memc<TYPE           >* memc()C {return (_mode==MEMC) ?           _memc  : null;}
+   Memt<TYPE, Memt_size>* memt()  {return (_mode==MEMT) ? ConstCast(_memt) : null;}
+ C Memt<TYPE, Memt_size>* memt()C {return (_mode==MEMT) ?           _memt  : null;}
+   Memb<TYPE           >* memb()  {return (_mode==MEMB) ? ConstCast(_memb) : null;}
+ C Memb<TYPE           >* memb()C {return (_mode==MEMB) ?           _memb  : null;}
+   Memx<TYPE           >* memx()  {return (_mode==MEMX) ? ConstCast(_memx) : null;}
+ C Memx<TYPE           >* memx()C {return (_mode==MEMX) ?           _memx  : null;}
+   Meml<TYPE           >* meml()  {return (_mode==MEML) ? ConstCast(_meml) : null;}
+ C Meml<TYPE           >* meml()C {return (_mode==MEML) ?           _meml  : null;}
 };
 /******************************************************************************/
 template<const_mem_addr typename TYPE, Int Memt_elms> struct MemPtrN : MemPtr<TYPE, SIZE(TYPE)*Memt_elms> // Memory Container Pointer, 'Memt_elms'=number of elements of the 'Memt'
 {
    // copy elements using assignment operator
-                          MemPtrN& operator=(C TYPE                     &src           ); // copy elements using assignment operator
-   template<Int src_elms> MemPtrN& operator=(C TYPE                    (&src)[src_elms]); // copy elements using assignment operator
-                          MemPtrN& operator=(C Mems   <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtrN& operator=(C Memc   <TYPE           > &src           ); // copy elements using assignment operator
-   template<Int src_size> MemPtrN& operator=(C Memt   <TYPE,  src_size> &src           ); // copy elements using assignment operator
-                          MemPtrN& operator=(C Memb   <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtrN& operator=(C Memx   <TYPE           > &src           ); // copy elements using assignment operator
-                          MemPtrN& operator=(C Meml   <TYPE           > &src           ); // copy elements using assignment operator
-   template<Int src_size> MemPtrN& operator=(C MemPtr <TYPE,  src_size> &src           ); // copy elements using assignment operator (this will allow copying from 'MemPtr' with other sizes)
-                          MemPtrN& operator=(C MemPtrN<TYPE, Memt_elms> &src           ); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
+                          MemPtrN& operator=(C  TYPE                     &src           ); // copy elements using assignment operator
+   template<Int src_elms> MemPtrN& operator=(C  TYPE                    (&src)[src_elms]); // copy elements using assignment operator
+                          MemPtrN& operator=(C  Mems   <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtrN& operator=(C  Memc   <TYPE           > &src           ); // copy elements using assignment operator
+   template<Int src_size> MemPtrN& operator=(C  Memt   <TYPE,  src_size> &src           ); // copy elements using assignment operator
+                          MemPtrN& operator=(C  Memb   <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtrN& operator=(C  Memx   <TYPE           > &src           ); // copy elements using assignment operator
+                          MemPtrN& operator=(C  Meml   <TYPE           > &src           ); // copy elements using assignment operator
+   template<Int src_size> MemPtrN& operator=(C CMemPtr <TYPE,  src_size> &src           ); // copy elements using assignment operator (this will allow copying from 'MemPtr' with other sizes)
+                          MemPtrN& operator=(C  MemPtrN<TYPE, Memt_elms> &src           ); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
 
    // initialize 'MemPtrN' to point to source
                           MemPtrN(       null_t=null                                    ) {}
@@ -221,5 +289,5 @@ template<const_mem_addr typename TYPE, Int Memt_elms> struct MemPtrN : MemPtr<TY
    MemPtrN& operator=(null_t)=delete;
 };
 /******************************************************************************/
-template<typename TYPE, Int size>   inline Int Elms(C MemPtr<TYPE, size> &memp) {return memp.elms();}
+template<typename TYPE, Int size>   inline Int Elms(C CMemPtr<TYPE, size> &memp) {return memp.elms();}
 /******************************************************************************/

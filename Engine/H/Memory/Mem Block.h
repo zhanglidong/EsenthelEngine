@@ -81,14 +81,14 @@ T1(const_mem_addr TYPE) struct Memb : _Memb // Block Based Container
    Memb&      moveElm(Int elm, Int new_index); // move 'elm' element to new position located at 'new_index'
 
    // misc
-                      Memb& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator
-                      Memb& operator=(C Memc  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Memb& operator=(C Memt  <TYPE, size>  &src); // copy elements using assignment operator
-                      Memb& operator=(C Memb  <TYPE      >  &src); // copy elements using assignment operator
-                      Memb& operator=(C Memx  <TYPE      >  &src); // copy elements using assignment operator
-                      Memb& operator=(C Meml  <TYPE      >  &src); // copy elements using assignment operator
-   template<Int size> Memb& operator=(C MemPtr<TYPE, size>  &src); // copy elements using assignment operator
-                      Memb& operator=(  Memb  <TYPE      > &&src); // copy elements using assignment operator
+                      Memb& operator=(C  Mems  <TYPE      >  &src); // copy elements using assignment operator
+                      Memb& operator=(C  Memc  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Memb& operator=(C  Memt  <TYPE, size>  &src); // copy elements using assignment operator
+                      Memb& operator=(C  Memb  <TYPE      >  &src); // copy elements using assignment operator
+                      Memb& operator=(C  Memx  <TYPE      >  &src); // copy elements using assignment operator
+                      Memb& operator=(C  Meml  <TYPE      >  &src); // copy elements using assignment operator
+   template<Int size> Memb& operator=(C CMemPtr<TYPE, size>  &src); // copy elements using assignment operator
+                      Memb& operator=(   Memb  <TYPE      > &&src); // copy elements using assignment operator
 
    T1(EXTENDED) Memb& replaceClass(); // replace the type of class stored in the container, all elements are automatically removed before changing the type of the class, the new type must be extended from the base 'TYPE' (if you're receiving a compilation error pointing to this method this means that the new class isn't extended from the base class)
 

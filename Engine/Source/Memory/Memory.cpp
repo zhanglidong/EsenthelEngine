@@ -557,7 +557,7 @@ void Copy(Ptr dest, CPtr src, IntPtr dest_size, IntPtr src_size)
    }
 }
 /******************************************************************************/
-void _CopyIs(Ptr dest, CPtr src, C MemPtr<Bool> &is, UInt elm_size)
+void _CopyIs(Ptr dest, CPtr src, C CMemPtr<Bool> &is, UInt elm_size)
 {
    if(dest && src)switch(elm_size)
    {
@@ -584,7 +584,7 @@ void _CopyIs(Ptr dest, CPtr src, C MemPtr<Bool> &is, UInt elm_size)
    }
 }
 /******************************************************************************/
-void _CopyList(Ptr dest, CPtr src, C MemPtr<Int> &list, UInt elm_size)
+void _CopyList(Ptr dest, CPtr src, C CMemPtr<Int> &list, UInt elm_size)
 {
    if(dest && src)switch(elm_size)
    {

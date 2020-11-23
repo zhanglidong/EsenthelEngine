@@ -361,7 +361,7 @@ SQL& SQL::commandParam(Int i, C UID &value)
    }
    return T;
 }
-SQL& SQL::commandParam(Int i, C MemPtr<Byte> &value)
+SQL& SQL::commandParam(Int i, C CMemPtr<Byte> &value)
 {
    switch(_type)
    {
@@ -452,7 +452,7 @@ Bool SQL::delTable(C Str &table_name, Str *messages, Int *error)
 {
    return command(S+"DROP TABLE "+name(table_name), messages, error);
 }
-Bool SQL::createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Str &cmd)
+Bool SQL::createTableIndexes(C Str &table_name, C CMemPtr<SQLColumn> &columns, Str *messages, Str &cmd)
 {
    Bool ok=true;
    switch(_type)
@@ -481,7 +481,7 @@ Bool SQL::createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, St
    }
    return ok;
 }
-Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Int *error)
+Bool SQL::createTable(C Str &table_name, C CMemPtr<SQLColumn> &columns, Str *messages, Int *error)
 {
    if(messages)messages->clear();
    if(error   )*error=0;
@@ -495,7 +495,7 @@ Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
    cmd+=')';
    return command(cmd, messages, error) && createTableIndexes(table_name, columns, messages, cmd);
 }
-Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Int *error)
+Bool SQL::appendTable(C Str &table_name, C CMemPtr<SQLColumn> &columns, Str *messages, Int *error)
 {
    if(messages)messages->clear();
    if(error   )*error=0;
@@ -540,7 +540,7 @@ Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
    }
    return true;
 }
-Bool SQL::delTableCols(C Str &table_name, C MemPtr<Str> &columns, Str *messages, Int *error)
+Bool SQL::delTableCols(C Str &table_name, C CMemPtr<Str> &columns, Str *messages, Int *error)
 {
    if(messages)messages->clear();
    if(error   )*error=0;
@@ -663,14 +663,14 @@ Bool SQL::getRows(C Str &table_name, C Str &condition, Str *messages, Int *error
    if(!condition.is())return getAllRows(table_name, messages, error);
    return command(S+"SELECT * FROM "+name(table_name)+" WHERE "+condition, messages, error);
 }
-Bool SQL::getAllRowsCols(C Str &table_name, C MemPtr<Str> &columns, Str *messages, Int *error)
+Bool SQL::getAllRowsCols(C Str &table_name, C CMemPtr<Str> &columns, Str *messages, Int *error)
 {
    Str cmd="SELECT ";
    FREPA(columns){if(i)cmd+=", "; cmd+=name(columns[i]);}
    cmd+=S+" FROM "+name(table_name);
    return command(cmd, messages, error);
 }
-Bool SQL::getRowsCols(C Str &table_name, C Str &condition, C MemPtr<Str> &columns, Str *messages, Int *error)
+Bool SQL::getRowsCols(C Str &table_name, C Str &condition, C CMemPtr<Str> &columns, Str *messages, Int *error)
 {
    if(!condition.is())return getAllRowsCols(table_name, columns, messages, error);
    Str cmd="SELECT ";
