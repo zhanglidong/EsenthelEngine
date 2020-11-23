@@ -29,7 +29,7 @@ struct AudioClientGetter : RuntimeClass<RuntimeClassFlags<ClassicCom>, FtmBase, 
    Bool           finished;
    IAudioClient3 *audio_client;
 
-   virtual HRESULT STDMETHODCALLTYPE ActivateCompleted(IActivateAudioInterfaceAsyncOperation *operation)
+   virtual HRESULT STDMETHODCALLTYPE ActivateCompleted(IActivateAudioInterfaceAsyncOperation *operation)override
    {
       finished=true; return S_OK;
    }
