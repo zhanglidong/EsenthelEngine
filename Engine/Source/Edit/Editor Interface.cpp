@@ -120,8 +120,8 @@ Bool MaterialMap::load(File &f)
 /******************************************************************************/
 // MATERIAL
 /******************************************************************************/
-static Str  Encode(       C Mems  <FileParams> &file_params) {return      FileParams::Encode(ConstCast(file_params));}
-static void Decode(File &f, MemPtr<FileParams>  file_params) {file_params=FileParams::Decode(f.getStr());}
+static Str  Encode(       C Mems  <FileParams> &file_params) {return      FileParams::Encode(file_params);}
+static void Decode(File &f, MemPtr<FileParams>  file_params) {file_params=FileParams::Decode(f.getStr() );}
 /******************************************************************************/
 Material& Material::reset()
 {

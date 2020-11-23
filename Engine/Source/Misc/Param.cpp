@@ -338,7 +338,7 @@ Param& Param::setValue(C Param &src)
 
       case PARAM_ID_ARRAY: switch(src.type)
       {
-         case PARAM_ID      : setAsIDArray(ConstCast(src.value.id), false); break; // disallow changing type because we're in 'setValue' which can change only the value
+         case PARAM_ID      : setAsIDArray(src.value.id, false); break; // disallow changing type because we're in 'setValue' which can change only the value
        //case PARAM_ID_ARRAY: this case is already handled in "type==src.type"
          case PARAM_STR     : setValue(src.value.s); break;
          default            : value.s.clear(); break;

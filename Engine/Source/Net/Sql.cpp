@@ -514,7 +514,7 @@ Bool SQL::appendTable(C Str &table_name, C CMemPtr<SQLColumn> &columns, Str *mes
                cmd+=desc;
                if(command(cmd, messages ? &temp : null))
                {
-                  if(!createTableIndexes(table_name, ConstCast(col), messages, cmd))ok=false;
+                  if(!createTableIndexes(table_name, col, messages, cmd))ok=false;
                }else goto error;
             }else
             {
