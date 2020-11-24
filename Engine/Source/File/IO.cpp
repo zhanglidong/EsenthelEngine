@@ -796,65 +796,42 @@ Bool FRecycle(C Str &name, Bool hidden)
          return !SHFileOperation(&sh);
       }
    #elif WINDOWS_NEW
-      Bool ok;
       switch(FileInfoSystem(name).type)
       {
          case FSTD_FILE:
          {
-            auto get_file=concurrency::create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
-            if(App.mainThread())
+            auto get_file=Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            SyncEvent event;
+            get_file->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Storage::StorageFile^>([&](Windows::Foundation::IAsyncOperation<Windows::Storage::StorageFile^> ^get_file, Windows::Foundation::AsyncStatus status)
             {
-               ok=false;
-               get_file.then([&](concurrency::task<Windows::Storage::StorageFile^> get_file)
+               if(status==Windows::Foundation::AsyncStatus::Completed)
                {
-                  try
+                  auto del_file=get_file->GetResults()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default);
+                       del_file->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^del_file, Windows::Foundation::AsyncStatus status)
                   {
-                     concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([&]()
-                     {
-                        ok=true;
-                     });
-                  }
-                  catch(...){ok=true;}
-               });
-               App.loopUntil(ok);
-            }else
-            {
-               try
-               {
-                  auto del=concurrency::create_task(get_file.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
-                  del.wait();
-               }
-               catch(...){}
-            }
+                     event.on();
+                  });
+               }else event.on();
+            });
+            App.wait(event);
          }return !FExistSystem(name);
 
          case FSTD_DIR:
          {
-            auto get_folder=concurrency::create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
-            if(App.mainThread())
+            auto get_folder=Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            SyncEvent event;
+            get_folder->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Storage::StorageFolder^>([&](Windows::Foundation::IAsyncOperation<Windows::Storage::StorageFolder^> ^get_folder, Windows::Foundation::AsyncStatus status)
             {
-               ok=false;
-               get_folder.then([&](concurrency::task<Windows::Storage::StorageFolder^> get_folder)
+               if(status==Windows::Foundation::AsyncStatus::Completed)
                {
-                  try
+                  auto del_folder=get_folder->GetResults()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default);
+                       del_folder->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^del_file, Windows::Foundation::AsyncStatus status)
                   {
-                     concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default)).then([&]()
-                     {
-                        ok=true;
-                     });
-                  }
-                  catch(...){ok=true;}
-               });
-               App.loopUntil(ok);
-            }else
-            {
-               try
-               {
-                  auto del=concurrency::create_task(get_folder.get()->DeleteAsync(Windows::Storage::StorageDeleteOption::Default));
-                  del.wait();
-               }
-               catch(...){}
-            }
+                     event.on();
+                  });
+               }else event.on();
+            });
+            App.wait(event);
          }return !FExistSystem(name);
       }
    #elif MAC
