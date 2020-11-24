@@ -236,19 +236,17 @@ Bool XBOXLive::cloudDel(C Str &file_name)
       blobs->Append(ref new Platform::String(file_name));
       SyncLockerEx lock(_lock); if(GameSaveContainer)
       {
-         auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(null, blobs, null));
+         auto op=GameSaveContainer->SubmitUpdatesAsync(null, blobs, null);
          lock.off();
-         Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus status;
-         if(App.mainThread())
+         Bool ok;
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^> ^op, Windows::Foundation::AsyncStatus status)
          {
-            Bool finished=false;
-            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveOperationResult ^result)
-            {
-               status=result->Status; finished=true; // set 'finished' last
-            });
-            App.loopUntil(finished);
-         }else status=task.get()->Status;
-         return status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok;
+            ok=(status==Windows::Foundation::AsyncStatus::Completed && op->GetResults()->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok);
+            event.on();
+         });
+         App.wait(event);
+         return ok;
       }
    }
 #endif
@@ -291,19 +289,17 @@ Bool XBOXLive::cloudSave(C Str &file_name, File &f, Cipher *cipher)
          blobs->Insert(ref new Platform::String(file_name), buffer);
          SyncLockerEx lock(_lock); if(GameSaveContainer)
          {
-            auto task=concurrency::create_task(GameSaveContainer->SubmitUpdatesAsync(blobs->GetView(), null, null));
+            auto op=GameSaveContainer->SubmitUpdatesAsync(blobs->GetView(), null, null);
             lock.off();
-            Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus status;
-            if(App.mainThread())
+            Bool ok;
+            SyncEvent event;
+            op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^> ^op, Windows::Foundation::AsyncStatus status)
             {
-               Bool finished=false;
-               task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveOperationResult ^result)
-               {
-                  status=result->Status; finished=true; // set 'finished' last
-               });
-               App.loopUntil(finished);
-            }else status=task.get()->Status;
-            return status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok;
+               ok=(status==Windows::Foundation::AsyncStatus::Completed && op->GetResults()->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok);
+               event.on();
+            });
+            App.wait(event);
+            return ok;
          }
       }
    }
@@ -319,18 +315,16 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
       blobs->Append(ref new Platform::String(file_name));
       SyncLockerEx lock(_lock); if(GameSaveContainer)
       {
-         auto task=concurrency::create_task(GameSaveContainer->GetAsync(blobs));
+         auto op=GameSaveContainer->GetAsync(blobs);
          lock.off();
          Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult ^blobs;
-         if(App.mainThread())
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult^> ^op, Windows::Foundation::AsyncStatus status)
          {
-            Bool finished=false;
-            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult ^result)
-            {
-               blobs=result; finished=true; // set 'finished' last
-            });
-            App.loopUntil(finished);
-         }else blobs=task.get();
+            if(status==Windows::Foundation::AsyncStatus::Completed)blobs=op->GetResults();
+            event.on();
+         });
+         App.wait(event);
 
          if(blobs && blobs->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok)
             if(blobs->Value->Size==1)
@@ -342,8 +336,8 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
             {
                buffer_data=GetBufferData(buffer);
                if(!buffer_data)goto error;
+               if(cipher)cipher->decrypt(buffer_data, buffer_data, size, 0);
             }
-            if(cipher)cipher->decrypt(buffer_data, buffer_data, size, 0);
             if(memory)f.writeMemFixed(size);
             if(f.put(buffer_data, size))return true;
          error:;
@@ -362,17 +356,15 @@ Bool XBOXLive::cloudFiles(MemPtr<CloudFile> files)C
       if(auto query=GameSaveContainer->CreateBlobInfoQuery(null))
       {
          lock.off();
-         auto task=concurrency::create_task(query->GetBlobInfoAsync());
+         auto op=query->GetBlobInfoAsync();
          Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^blobs;
-         if(App.mainThread())
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult^> ^op, Windows::Foundation::AsyncStatus status)
          {
-            Bool finished=false;
-            task.then([&](Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^result)
-            {
-               blobs=result; finished=true; // set 'finished' last
-            });
-            App.loopUntil(finished);
-         }else blobs=task.get();
+            if(status==Windows::Foundation::AsyncStatus::Completed)blobs=op->GetResults();
+            event.on();
+         });
+         App.wait(event);
 
          if(blobs && blobs->Status==Windows::Gaming::XboxLive::Storage::GameSaveErrorStatus::Ok)
          {
