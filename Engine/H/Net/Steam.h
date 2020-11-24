@@ -115,8 +115,8 @@ struct SteamWorks
    RESULT subscriptionState(); // get status of user subscriptions, this method will contact Steam and return the result through the 'callback' function
 
    // cloud IO, these methods require setting up Cloud settings on your App Steam Page - https://partner.steamgames.com/apps/cloud/XXX
-   Long cloudAvailableSize()C; // get number of available bytes for cloud storage, 0 on fail
-   Long cloudTotalSize    ()C; // get number of total     bytes for cloud storage, 0 on fail
+   Long cloudAvailableSize()C; // get number of available bytes for cloud storage, -1 on fail
+   Long cloudTotalSize    ()C; // get number of total     bytes for cloud storage, -1 on fail
 
    Bool     cloudDel    (C Str &file_name); // delete                   'file_name', false on fail
    Bool     cloudExists (C Str &file_name); // check if                 'file_name' exists

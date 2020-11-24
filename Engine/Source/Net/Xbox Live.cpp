@@ -211,23 +211,21 @@ Long XBOXLive::cloudAvailableSize()C
    {
       SyncLockerEx lock(_lock); if(GameSaveProvider)
       {
-         auto task=concurrency::create_task(GameSaveProvider->GetRemainingBytesInQuotaAsync());
+         auto op=GameSaveProvider->GetRemainingBytesInQuotaAsync();
          lock.off();
          Long size;
-         if(App.mainThread())
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Long>([&](Windows::Foundation::IAsyncOperation<Long> ^op, Windows::Foundation::AsyncStatus status)
          {
-            Bool finished=false;
-            task.then([&](Long result)
-            {
-               size=result; finished=true; // set 'finished' last
-            });
-            App.loopUntil(finished);
-         }else  size=task.get();
+            size=((status==Windows::Foundation::AsyncStatus::Completed) ? op->GetResults() : -1);
+            event.on();
+         });
+         App.wait(event);
          return size;
       }
    }
 #endif
-   return 0;
+   return -1;
 }
 Bool XBOXLive::cloudDel(C Str &file_name)
 {

@@ -587,14 +587,14 @@ Long SteamWorks::cloudAvailableSize()C
 #if SUPPORT_STEAM
    if(ISteamRemoteStorage *i=SteamRemoteStorage()){uint64 total, available; if(i->GetQuota(&total, &available))return available;}
 #endif
-   return 0;
+   return -1;
 }
 Long SteamWorks::cloudTotalSize()C
 {
 #if SUPPORT_STEAM
    if(ISteamRemoteStorage *i=SteamRemoteStorage()){uint64 total, available; if(i->GetQuota(&total, &available))return total;}
 #endif
-   return 0;
+   return -1;
 }
 
 Bool SteamWorks::cloudDel(C Str &file_name)

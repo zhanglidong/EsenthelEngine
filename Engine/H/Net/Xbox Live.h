@@ -55,7 +55,7 @@ struct XBOXLive
 
    // cloud saves
    Bool cloudSupported    ()C; // if cloud saves are supported, this will always be false if currently not logged in
-   Long cloudAvailableSize()C; // get number of available bytes for cloud storage, 0 on fail
+   Long cloudAvailableSize()C; // get number of available bytes for cloud storage, -1 on fail
 
    Bool cloudDel(C Str &file_name); // delete 'file_name', false on fail
 
