@@ -7,9 +7,6 @@
 /******************************************************************************/
 #include "stdafx.h"
 #include "../Platforms/iOS/iOS.h"
-#if WINDOWS_NEW
-   using namespace concurrency;
-#endif
 #if DEBUG
    #define WIN_STORE Windows::ApplicationModel::Store::CurrentAppSimulator
 #else
@@ -221,9 +218,9 @@ Bool PlatformStore::refreshItems(C CMemPtr<Str> &item_ids)
       #if 0 // doc says this is Windows Phone only, on Desktop it crashes, so don't bother
          Platform::Collections::Vector<Platform::String^> ^product_ids = ref new Platform::Collections::Vector<Platform::String^>(item_ids.elms());
          FREPA(item_ids)product_ids->SetAt(i, ref new Platform::String(item_ids[i]));
-         create_task(WIN_STORE::LoadListingInformationByProductIdsAsync(product_ids)).then([](Windows::ApplicationModel::Store::ListingInformation ^listing)
+         concurrency::create_task(WIN_STORE::LoadListingInformationByProductIdsAsync(product_ids)).then([](Windows::ApplicationModel::Store::ListingInformation ^listing)
       #elif 1 // this works ok but returns all items
-         create_task(WIN_STORE::LoadListingInformationAsync()).then([this](Windows::ApplicationModel::Store::ListingInformation ^listing)
+         concurrency::create_task(WIN_STORE::LoadListingInformationAsync()).then([this](Windows::ApplicationModel::Store::ListingInformation ^listing)
       #endif
          {
             // this will be called on the main thread
@@ -295,7 +292,7 @@ Bool PlatformStore::refreshPurchases()
 #if WINDOWS_NEW
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {
-      create_task(WIN_STORE::GetAppReceiptAsync()).then([this](Platform::String ^receipt)
+      concurrency::create_task(WIN_STORE::GetAppReceiptAsync()).then([this](Platform::String ^receipt)
       {
          // this will be called on the main thread
          if(receipt)
@@ -359,7 +356,7 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
    if(!id.is())return ITEM_UNAVAILABLE;
    if(!(subscription ? supportsSubscriptions() : supportsItems()))return SERVICE_UNAVAILABLE;
 #if WINDOWS_NEW
-   create_task(WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id))).then([this, id](task<Windows::ApplicationModel::Store::PurchaseResults^> task)
+   concurrency::create_task(WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id))).then([this, id](concurrency::task<Windows::ApplicationModel::Store::PurchaseResults^> task)
    {
       // this will be called on the main thread
 
@@ -435,7 +432,7 @@ PlatformStore::RESULT PlatformStore::consume(C Str &token)
    WIN_STORE::ReportProductFulfillment(ref new Platform::String(purchase->id));
 #else
    UID token_id; token_id.fromHex(token);
-   create_task(WIN_STORE::ReportConsumableFulfillmentAsync(ref new Platform::String(purchase->id), token_id.guid())).then([token](Windows::ApplicationModel::Store::FulfillmentResult result) // both 'ProductId' and 'TransactionId' must be specified
+   concurrency::create_task(WIN_STORE::ReportConsumableFulfillmentAsync(ref new Platform::String(purchase->id), token_id.guid())).then([token](Windows::ApplicationModel::Store::FulfillmentResult result) // both 'ProductId' and 'TransactionId' must be specified
    {
       // this will be called on the main thread
       Purchase temp; C Purchase *existing=Store.findPurchaseByToken(token);
