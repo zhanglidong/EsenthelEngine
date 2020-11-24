@@ -1648,7 +1648,19 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       if(SpecialLink(name))return IntPtr(ShellExecute(null,                       L"open",     name                  , params,                null  , hidden ? SW_HIDE : SW_SHOWNORMAL))>32;
                            return IntPtr(ShellExecute(null, as_admin ? L"runas" : L"open", Str(name).tailSlash(false), params, WChar(_GetPath(name)), hidden ? SW_HIDE : SW_SHOWNORMAL))>32; // always remove tail slash, because if trying to open a local folder "Folder/" with slash at the end then it will fail (however if full path is used, or no tail slash, then it will work)
    #elif WINDOWS_NEW
-      if(SpecialLink(name))return Windows::System::Launcher::LaunchUriAsync(ref new Windows::Foundation::Uri(ref new Platform::String(name)))!=null;
+      if(SpecialLink(name))
+      {
+         auto op=Windows::System::Launcher::LaunchUriAsync(ref new Windows::Foundation::Uri(ref new Platform::String(name)));
+         SyncEvent event;
+         Bool ok;
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<bool>([&](Windows::Foundation::IAsyncOperation<bool> ^launch, Windows::Foundation::AsyncStatus status)
+         {
+            ok=(status==Windows::Foundation::AsyncStatus::Completed && launch->GetResults());
+            event.on();
+         });
+         App.wait(event);
+         return ok;
+      }
       switch(FileInfoSystem(name).type)
       {
          case FSTD_FILE:
