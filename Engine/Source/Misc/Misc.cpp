@@ -928,12 +928,17 @@ Bool ClipSet(C Str &text)
       ok=false;
       try // can crash if app not yet initialized
       {
-         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+         auto op=Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
          {
             Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(content);
             ok=true;
-         })));
-         task.wait();
+         }));
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^op, Windows::Foundation::AsyncStatus status)
+         {
+            event.on();
+         });
+         App.wait(event);
       }
       catch(...){}
    }
@@ -1026,31 +1031,36 @@ Str ClipGet()
    {
       try // can crash if app not yet initialized
       {
-         auto task=concurrency::create_task(Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+         auto op=Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
          {
             try // can crash if app not focused
             {
                content=Windows::ApplicationModel::DataTransfer::Clipboard::GetContent();
             }
             catch(...){}
-         })));
-         task.wait();
+         }));
+         SyncEvent event;
+         op->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^op, Windows::Foundation::AsyncStatus status)
+         {
+            event.on();
+         });
+         App.wait(event);
       }
       catch(...){}
    }
    if(content && content->Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::Text))
    {
-      auto task=concurrency::create_task(content->GetTextAsync());
-      if(main_thread)
+      auto op=content->GetTextAsync();
+      SyncEvent event;
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([&](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
       {
-         Bool ok=false;
-         task.then([&](Platform::String ^string)
+         if(status==Windows::Foundation::AsyncStatus::Completed)
          {
-            s=string->Data();
-            ok=true;
-         });
-         App.loopUntil(ok);
-      }else s=task.get()->Data();
+            s=op->GetResults()->Data();
+         }
+         event.on();
+      });
+      App.wait(event);
       if(fix_new_line)s.replace('\r', '\0');
    }
 #elif MAC
@@ -1323,16 +1333,23 @@ Windows::System::User^& OSUserGetter::get()
 {
    if(!is)
    {
-      auto task=concurrency::create_task(Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated)).then([this](Windows::Foundation::Collections::IVectorView<Windows::System::User^>^ users)
+      auto op=Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated);
+      SyncEvent event;
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Foundation::Collections::IVectorView<Windows::System::User^>^>([&](Windows::Foundation::IAsyncOperation<Windows::Foundation::Collections::IVectorView<Windows::System::User^>^> ^op, Windows::Foundation::AsyncStatus status)
       {
-         if(users->Size>0)
+         if(status==Windows::Foundation::AsyncStatus::Completed)
          {
+            auto users=op->GetResults();
             SafeSyncLocker locker(OSLock); // sync to avoid modifying value on multiple threads
-            if(!is){user=users->First()->Current; is=true;}
-         }else is=true; // set this in case there are no users available
+            if(!is)
+            {
+               if(users->Size>0)user=users->First()->Current;
+               is=true; // set always even in case there are no users available
+            }
+         }
+         event.on();
       });
-
-      if(App.mainThread())App.loopUntil(is);else task.wait();
+      App.wait(event);
    }
    return user;
 }
@@ -1350,15 +1367,22 @@ static struct UserNameGetter
             auto properties=ref new Platform::Collections::Vector<Platform::String^>();
             properties->Append(Windows::System::KnownUserProperties::FirstName);
             properties->Append(Windows::System::KnownUserProperties:: LastName);
-            auto task=concurrency::create_task(user->GetPropertiesAsync(properties->GetView())).then([this](Windows::Foundation::Collections::IPropertySet^ values)
+            auto op=user->GetPropertiesAsync(properties->GetView());
+            SyncEvent event;
+            op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Foundation::Collections::IPropertySet^>([&](Windows::Foundation::IAsyncOperation<Windows::Foundation::Collections::IPropertySet^> ^op, Windows::Foundation::AsyncStatus status)
             {
-               Str temp;
-               if(auto first_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties::FirstName)))temp         =first_name->Data();
-               if(auto  last_name=safe_cast<Platform::String^>(values->Lookup(Windows::System::KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
-               SafeSyncLocker locker(OSLock); // sync to avoid modifying the name on multiple threads
-               if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
+               if(status==Windows::Foundation::AsyncStatus::Completed)
+               {
+                  Str  temp;
+                  auto results=op->GetResults();
+                  if(auto first_name=safe_cast<Platform::String^>(results->Lookup(Windows::System::KnownUserProperties::FirstName)))temp         =first_name->Data();
+                  if(auto  last_name=safe_cast<Platform::String^>(results->Lookup(Windows::System::KnownUserProperties:: LastName)))temp.space()+= last_name->Data();
+                  SafeSyncLocker locker(OSLock); // lock to avoid modifying the name on multiple threads
+                  if(!is){Swap(name, temp); is=true;} // set 'is' at the end, once 'name' is ready, because as soon as 'is' is true, then other threads may access the name
+               }
+               event.on();
             });
-            if(App.mainThread())App.loopUntil(is, true);else task.wait(); // may have to wait a long time until user agrees to provide permission
+            App.wait(event);
          }else is=true; // set this in case there are no users available
       }
       return name;
