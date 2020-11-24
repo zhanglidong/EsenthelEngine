@@ -482,14 +482,14 @@ ref struct FrameworkView sealed : IFrameworkView
                case KB_SHIFT: key=((scan_code==42)               ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
                case KB_ALT  : key=(args->KeyStatus.IsExtendedKey ? KB_RALT   : KB_LALT  ); break;
             }
-            if(App._loop)Events.New().keyDown(key, scan_code);else Kb.push(key, scan_code); // if app is in special loop, then we need to record events, and execute them later
+            if(App._waiting)Events.New().keyDown(key, scan_code);else Kb.push(key, scan_code); // if app is in special loop, then we need to record events, and execute them later
          }break;
 
          case Windows::UI::Core::CoreAcceleratorKeyEventType::Character      :
          case Windows::UI::Core::CoreAcceleratorKeyEventType::SystemCharacter:
          {
             Char c=(Char)args->VirtualKey;
-            if(App._loop)Events.New().chr(c, scan_code);else Kb.queue(c, scan_code); // if app is in special loop, then we need to record events, and execute them later
+            if(App._waiting)Events.New().chr(c, scan_code);else Kb.queue(c, scan_code); // if app is in special loop, then we need to record events, and execute them later
          }break;
 
          case Windows::UI::Core::CoreAcceleratorKeyEventType::KeyUp      :
@@ -502,7 +502,7 @@ ref struct FrameworkView sealed : IFrameworkView
                case KB_SHIFT: key=((scan_code==42)               ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
                case KB_ALT  : key=(args->KeyStatus.IsExtendedKey ? KB_RALT   : KB_LALT  ); break;
             }
-            if(App._loop)Events.New().keyUp(key);else Kb.release(key); // if app is in special loop, then we need to record events, and execute them later
+            if(App._waiting)Events.New().keyUp(key);else Kb.release(key); // if app is in special loop, then we need to record events, and execute them later
          }break;
       }
    }
@@ -518,13 +518,13 @@ ref struct FrameworkView sealed : IFrameworkView
          case KB_SHIFT: key=((scan_code==42)               ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
          case KB_ALT  : key=(args->KeyStatus.IsExtendedKey ? KB_RALT   : KB_LALT  ); break;
       }
-      if(App._loop)Events.New().keyDown(key, scan_code);else Kb_push(key, scan_code); // if app is in special loop, then we need to record events, and execute them later
+      if(App._waiting)Events.New().keyDown(key, scan_code);else Kb_push(key, scan_code); // if app is in special loop, then we need to record events, and execute them later
    }
    void OnCharacterReceived(CoreWindow^ sender, CharacterReceivedEventArgs^ args)
    {
       Char c=Char(args->KeyCode);
       Int  scan_code=args->KeyStatus.ScanCode;
-      if(App._loop)Events.New().chr(c, scan_code);else Kb.queue(c, scan_code); // if app is in special loop, then we need to record events, and execute them later
+      if(App._waiting)Events.New().chr(c, scan_code);else Kb.queue(c, scan_code); // if app is in special loop, then we need to record events, and execute them later
    }
    void OnKeyUp(CoreWindow^ sender, KeyEventArgs^ args) // mouse buttons are not passed here
    {
@@ -536,7 +536,7 @@ ref struct FrameworkView sealed : IFrameworkView
          case KB_SHIFT: key=((scan_code==42)               ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
          case KB_ALT  : key=(args->KeyStatus.IsExtendedKey ? KB_RALT   : KB_LALT  ); break;
       }
-      if(App._loop)Events.New().keyUp(key);else Kb.release(key); // if app is in special loop, then we need to record events, and execute them later
+      if(App._waiting)Events.New().keyUp(key);else Kb.release(key); // if app is in special loop, then we need to record events, and execute them later
    }
 #endif
 
@@ -610,19 +610,18 @@ ref struct FrameworkViewSource sealed : IFrameworkViewSource
       return ref new FrameworkView();
    }
 };
-void Application::loopUntil(Bool &finished, Bool wait)
+void Application::wait(SyncEvent &event)
 {
-   if(!finished) // first check if we already finished and don't need to do anything
+   if(mainThread()) // on the main thread we need to keep processing events
    {
-     _loop=true; // specify that we're inside this special loop, this is needed so if any events occur during callback processing, then we will record them and execute them at a later time, for example this is done so no key pushes are detected at this stage (which can occur in State Update or Draw) but they will be detected once Update and Draw are finished
+     _waiting=true; // specify that we're inside this special waiting loop, this is needed so if any events occur during callback processing, then we will record them and execute them at a later time, for example this is done so no key pushes are detected at this stage (which can occur in State Update or Draw) but they will be detected once Update and Draw are finished
       for(;;) // start loop
       {
          Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessAllIfPresent); // this may call our callbacks, 'ProcessOneAndAllPending'= can't be used because apparently tasks don't count as events, and this will wait until some other events occur, even though we have tasks waiting. We would have to use 'PostEvent', however in tests results were slightly slower, so don't use.
-         if(finished)break;
-         if(wait)Time.wait(1);else Yield(); // at least yield because there might be some slow IO operations that would require thousands of loop iterations to complete
+         if(event.wait(1))break; // wait after processing all events queued up so far to make sure we don't stall the events (in case this method is called a lot of times, for example 1000 times with 'event.wait' before processing events in worst case would prevent events from being processed for 1 second)
       }
-     _loop=false;
-   }
+     _waiting=false;
+   }else event.wait();
 }
 #endif
 /******************************************************************************/

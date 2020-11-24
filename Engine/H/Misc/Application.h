@@ -130,7 +130,7 @@ struct Application // Application Settings
    HWND Hwnd()C {return HWND(_hwnd);}
 #elif WINDOWS_NEW
    Windows::UI::Core::CoreWindow^& Hwnd() {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(_hwnd);}
-   void loopUntil(Bool &finished, Bool wait=false); // this should be called only on the main thread
+   void wait(SyncEvent &event); // wait for async operation to complete
    static void ExecuteRecordedEvents();
 #elif MAC
    NSWindow* Hwnd()C {return (NSWindow*)_hwnd ;}
@@ -157,7 +157,7 @@ private:
 #endif
    Bool                _active, _initialized, _minimized, _maximized, _close, _closed, _del_self_at_exit, _elevated, _back_full;
 #if WINDOWS_NEW
-   Bool                _loop;
+   Bool                _waiting;
 #endif
    AWAKE_MODE          _stay_awake;
    DIR_ENUM            _orientation=DIR_UP;

@@ -50,7 +50,7 @@ Application::Application()
    notification=null;
   _active=_initialized=_minimized=_maximized=_close=_closed=_del_self_at_exit=_elevated=_back_full=false;
 #if WINDOWS_NEW
-  _loop=false;
+  _waiting=false;
 #endif
   _stay_awake=AWAKE_OFF;
  //_mem_leaks=0; don't set this as it could have been already modified

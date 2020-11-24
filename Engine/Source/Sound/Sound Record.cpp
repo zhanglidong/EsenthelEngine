@@ -26,24 +26,23 @@ using namespace Windows::Media::Devices;
 
 struct AudioClientGetter : RuntimeClass<RuntimeClassFlags<ClassicCom>, FtmBase, IActivateAudioInterfaceCompletionHandler>
 {
-   Bool           finished;
+   SyncEvent      event;
    IAudioClient3 *audio_client;
 
    virtual HRESULT STDMETHODCALLTYPE ActivateCompleted(IActivateAudioInterfaceAsyncOperation *operation)override
    {
-      finished=true; return S_OK;
+      event.on(); return S_OK;
    }
    AudioClientGetter()
    {
       audio_client=null;
       if(App.hwnd()) // can call methods only if app was initialized, otherwise it will crash
       {
-         finished=false;
          IActivateAudioInterfaceAsyncOperation *audio_activate;
          auto device_name=MediaDevice::GetDefaultAudioCaptureId(AudioDeviceRole::Default); // this will be something like "\\?\SWD#MMDEVAPI#{0.0.1.00000000}.{5871ae83-5ebe-46cc-9bce-b486b524e679}#{2eef81be-33fa-4800-9670-1cd474972c3f}"
          if(OK(ActivateAudioInterfaceAsync(device_name->Data(), __uuidof(IAudioClient3), null, this, &audio_activate)))
          {
-            if(App.mainThread())App.loopUntil(finished, true);else for(; !finished; )Time.wait(1); // wait because app may have to wait a long time until user agrees to provide permission which would cause full CPU usage
+            App.wait(event);
             HRESULT hr; IUnknown *ac=null; audio_activate->GetActivateResult(&hr, &ac); audio_activate->Release(); if(ac)
             {
                ac->QueryInterface(__uuidof(IAudioClient3), (Ptr*)&audio_client);
