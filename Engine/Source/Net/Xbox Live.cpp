@@ -126,28 +126,31 @@ void XBOXLive::logInOk()
     //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
       getUserProfile(); // request extra info as soon as we have ID
 
-      auto task=concurrency::create_task(Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str())));
+      auto op=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
       lock.off();
-      task.then([this](Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult ^result)
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
       {
-         SyncLocker lock(_lock);
-         if(GameSaveProvider=result->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
-         setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
-
-         xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
+         if(status==Windows::Foundation::AsyncStatus::Completed)
          {
-            // this will get called when game exits or user signs-out
+            SyncLocker lock(_lock);
+            if(GameSaveProvider=op->GetResults()->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
+            setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
+
+            xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
             {
-               SyncLocker lock(_lock);
-               GameSaveContainer=null;
-               GameSaveProvider=null;
-               XboxCtx =null;
-               XboxUser=null;
-              _me.clear();
-              _friends.clear(); _friends_known=_friends_getting=false;
-            }
-            setStatus(LOGGED_OUT);
-         });
+               // this will get called when game exits or user signs-out
+               {
+                  SyncLocker lock(_lock);
+                  GameSaveContainer=null;
+                  GameSaveProvider=null;
+                  XboxCtx =null;
+                  XboxUser=null;
+                 _me.clear();
+                 _friends.clear(); _friends_known=_friends_getting=false;
+               }
+               setStatus(LOGGED_OUT);
+            });
+         }else setStatus(LOGGED_OUT);
       });
    }else setStatus(LOGGED_OUT);
 #endif

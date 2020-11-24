@@ -192,7 +192,7 @@ ref struct FrameworkView sealed : IFrameworkView
    void OnSuspending(Object^ sender, SuspendingEventArgs^ args)
    {
       if(App._closed)return; // do nothing if app called 'Exit'
-      SuspendingDeferral^ deferral=args->SuspendingOperation->GetDeferral();
+      SuspendingDeferral ^deferral=args->SuspendingOperation->GetDeferral();
       create_task([this,  deferral]()
       {
          if(!App._closed) // only if app didn't call 'Exit', check this again in case 'Exit' was called later
