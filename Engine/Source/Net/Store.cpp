@@ -360,51 +360,51 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
    if(!id.is())return ITEM_UNAVAILABLE;
    if(!(subscription ? supportsSubscriptions() : supportsItems()))return SERVICE_UNAVAILABLE;
 #if WINDOWS_NEW
-   concurrency::create_task(WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id))).then([this, id](concurrency::task<Windows::ApplicationModel::Store::PurchaseResults^> task)
+   auto op=WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id));
+   op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::PurchaseResults^>([this, id](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::PurchaseResults^> ^op, Windows::Foundation::AsyncStatus status)
    {
       // this will be called on the main thread
-
       RESULT   result=UNKNOWN;
       Purchase purchase;
       purchase.id=id;
       purchase.date.zero();
-
-      try // exception may occur
+      if(status==Windows::Foundation::AsyncStatus::Completed)
+         if(auto results=op->GetResults())
       {
-         if(auto results=task.get())
+         switch(results->Status)
          {
-            switch(results->Status)
+            case Windows::ApplicationModel::Store::ProductPurchaseStatus::Succeeded       : result=PURCHASED    ; break;
+            case Windows::ApplicationModel::Store::ProductPurchaseStatus::AlreadyPurchased: result=ALREADY_OWNED; break;
+            case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotFulfilled    : result=ALREADY_OWNED; break; // The transaction did not complete because the last purchase of this consumable in-app product has not been reported as fulfilled to the Windows Store - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
+            case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotPurchased    : // The purchase did not occur because the user decided not to complete the transaction (or the transaction failed for other reasons) - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
             {
-               case Windows::ApplicationModel::Store::ProductPurchaseStatus::Succeeded       : result=PURCHASED    ; break;
-               case Windows::ApplicationModel::Store::ProductPurchaseStatus::AlreadyPurchased: result=ALREADY_OWNED; break;
-               case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotFulfilled    : result=ALREADY_OWNED; break; // The transaction did not complete because the last purchase of this consumable in-app product has not been reported as fulfilled to the Windows Store - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
-               case Windows::ApplicationModel::Store::ProductPurchaseStatus::NotPurchased    : // The purchase did not occur because the user decided not to complete the transaction (or the transaction failed for other reasons) - https://msdn.microsoft.com/en-us/library/windows/apps/windows.applicationmodel.store.productpurchasestatus
-               {
-                  if(_items.elms() && !findItem(id))result=ITEM_UNAVAILABLE; // on Windows if we have information about one item, then it means we know all items, and if this item is not among them, then we know that it's unavailable
-                  else result=USER_CANCELED;
-               }break;
-            }
-            if(result==PURCHASED || result==ALREADY_OWNED)
-            {
-               UID token; token.guid()=results->TransactionId; purchase.token=token.asHex();
-            }
+               if(_items.elms() && !findItem(id))result=ITEM_UNAVAILABLE; // on Windows if we have information about one item, then it means we know all items, and if this item is not among them, then we know that it's unavailable
+               else result=USER_CANCELED;
+            }break;
+         }
+         if(result==PURCHASED || result==ALREADY_OWNED)
+         {
+            UID token; token.guid()=results->TransactionId; purchase.token=token.asHex();
+         }
 
-            if(results->ReceiptXml)
-            {
-             C wchar_t *receipt=results->ReceiptXml->Data();
-               FileText f; f.readMem(receipt, Length(receipt)*SIZE(*receipt), UTF_16); // use 'UTF_16' because 'receipt' is a 16-bit string
-               XmlData xml; xml.load(f);
-               if(XmlNode *receipt=xml.findNode("Receipt"))
-                  if(XmlNode *ProductReceipt=receipt->findNode("ProductReceipt"))
-                     if(XmlParam *date=ProductReceipt->findParam("PurchaseDate"))
-                        ConvertDate(date->value, purchase.date);
-            }
+         if(results->ReceiptXml)
+         {
+          C wchar_t *receipt=results->ReceiptXml->Data();
+            FileText f; f.readMem(receipt, Length(receipt)*SIZE(*receipt), UTF_16); // use 'UTF_16' because 'receipt' is a 16-bit string
+            XmlData xml; xml.load(f);
+            if(XmlNode *receipt=xml.findNode("Receipt"))
+               if(XmlNode *ProductReceipt=receipt->findNode("ProductReceipt"))
+                  if(XmlParam *date=ProductReceipt->findParam("PurchaseDate"))
+                     ConvertDate(date->value, purchase.date);
+         }
 
-            // first add to the list of purchases
-            if(result==PURCHASED && !findPurchaseByToken(purchase.token))_purchases.add(purchase);
+         // first add to the list of purchases
+         if(result==PURCHASED && !findPurchaseByToken(purchase.token))
+         {
+            SyncLocker locker(_lock);
+           _purchases.add(purchase);
          }
       }
-      catch(...){}
 
       // now call the callback
       if(callback)callback(result, &purchase); // !! here don't pass purchase from '_purchases' !!
