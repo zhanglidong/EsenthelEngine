@@ -1,7 +1,7 @@
 /******************************************************************************
 
-   Xbox Live has a 16 MB limit for individual cloud file sizes.
-   Individual calls to 'cloudSave' may not exceed that limit.
+   Xbox Live has a 16 MB limit for individual cloud file sizes:
+      -individual calls to 'cloudSave' may not exceed that limit
 
 /******************************************************************************/
 struct XBOXLive
