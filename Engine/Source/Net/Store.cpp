@@ -222,7 +222,7 @@ Bool PlatformStore::refreshItems(C CMemPtr<Str> &item_ids)
       #else // this works ok but returns all items
          auto op=WIN_STORE::LoadListingInformationAsync();
       #endif
-         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::ListingInformation^>([&](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::ListingInformation^> ^op, Windows::Foundation::AsyncStatus status)
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::ListingInformation^>([this](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::ListingInformation^> ^op, Windows::Foundation::AsyncStatus status)
          {
             // this will be called on the main thread
             if(status==Windows::Foundation::AsyncStatus::Completed)
@@ -237,17 +237,20 @@ Bool PlatformStore::refreshItems(C CMemPtr<Str> &item_ids)
                if(listing->ProductListings)
                {
                   auto product=listing->ProductListings->First();
-                  REP(listing->ProductListings->Size)
                   {
-                   //Str key=product->Current->Key->Data(); this is the same as 'id'
-                     Str id =product->Current->Value->ProductId->Data();
-                     PlatformStore::Item *item=ConstCast(findItem(id)); if(!item)item=&_items.New();
-                     item->subscription=false;
-                     item->id   =id;
-                     item->name =product->Current->Value->Name->Data();
-                     item->desc =product->Current->Value->Description->Data();
-                     item->price=product->Current->Value->FormattedPrice->Data();
-                     product->MoveNext();
+                     SyncLocker locker(_lock);
+                     REP(listing->ProductListings->Size)
+                     {
+                      //Str key=product->Current->Key->Data(); this is the same as 'id'
+                        Str id =product->Current->Value->ProductId->Data();
+                        PlatformStore::Item *item=ConstCast(findItem(id)); if(!item)item=&_items.New();
+                        item->subscription=false;
+                        item->id   =id;
+                        item->name =product->Current->Value->Name->Data();
+                        item->desc =product->Current->Value->Description->Data();
+                        item->price=product->Current->Value->FormattedPrice->Data();
+                        product->MoveNext();
+                     }
                   }
                   if(callback)callback(PlatformStore::REFRESHED_ITEMS, null);
                }
@@ -295,7 +298,7 @@ Bool PlatformStore::refreshPurchases()
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {
       auto op=WIN_STORE::GetAppReceiptAsync();
-      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([&](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([this](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
       {
          // this will be called on the main thread
          if(status==Windows::Foundation::AsyncStatus::Completed)
@@ -321,6 +324,7 @@ Bool PlatformStore::refreshPurchases()
                      }
                   }
                }
+               SyncLocker locker(_lock);
                Swap(_purchases, purchases);
             }
             if(callback)callback(REFRESHED_PURCHASES, null);
@@ -436,25 +440,28 @@ PlatformStore::RESULT PlatformStore::consume(C Str &token)
    WIN_STORE::ReportProductFulfillment(ref new Platform::String(purchase->id));
 #else
    UID token_id; token_id.fromHex(token);
-   concurrency::create_task(WIN_STORE::ReportConsumableFulfillmentAsync(ref new Platform::String(purchase->id), token_id.guid())).then([token](Windows::ApplicationModel::Store::FulfillmentResult result) // both 'ProductId' and 'TransactionId' must be specified
+   auto op=WIN_STORE::ReportConsumableFulfillmentAsync(ref new Platform::String(purchase->id), token_id.guid()); // both 'ProductId' and 'TransactionId' must be specified
+        op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::FulfillmentResult>([this, token](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::FulfillmentResult> ^op, Windows::Foundation::AsyncStatus status)
    {
       // this will be called on the main thread
-      Purchase temp; C Purchase *existing=Store.findPurchaseByToken(token);
+      Purchase   temp;
+      SyncLocker locker(_lock);
+    C Purchase  *existing=findPurchaseByToken(token);
       if(existing)temp=*existing;else{temp.date.zero(); temp.token=token;} // copy to temp because we will remove it
-      switch(result)
+      if(status==Windows::Foundation::AsyncStatus::Completed)switch(op->GetResults())
       {
          case Windows::ApplicationModel::Store::FulfillmentResult::PurchaseReverted:
          {
-            Store._purchases.removeData(existing, true); // first remove from list of purchases
-            if(Store.callback)Store.callback(REFUND, &temp); // now call the callback
+           _purchases.removeData(existing, true); // first remove from list of purchases
+            if(callback)callback(REFUND, &temp); // now call the callback
          }break;
          
          case Windows::ApplicationModel::Store::FulfillmentResult::Succeeded:
          {
-            Store._purchases.removeData(existing, true); // first remove from list of purchases
-            if(Store.callback)Store.callback(CONSUMED, &temp); // now call the callback
+           _purchases.removeData(existing, true); // first remove from list of purchases
+            if(callback)callback(CONSUMED, &temp); // now call the callback
          }break;
-      }
+      }else if(callback)callback(UNKNOWN, &temp);
    });
 #endif
 #elif ANDROID
