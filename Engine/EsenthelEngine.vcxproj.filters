@@ -2600,5 +2600,17 @@
     <Library Include="..\ThirdPartyLibs\Waifu2x\Windows\x64\Release Universal\Waifu2x.lib">
       <Filter>H\_\Libs\64\Universal</Filter>
     </Library>
+    <Library Include="..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2\x64\Microsoft.Xbox.Services.141.UWP.Ship.Cpp.lib">
+      <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2\x64\cpprest141_uwp_2_9.lib">
+      <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Tiff\Windows\Release Universal\Tiff.lib">
+      <Filter>H\_\Libs\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Tiff\Windows\x64\Release Universal\Tiff.lib">
+      <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
   </ItemGroup>
 </Project>
