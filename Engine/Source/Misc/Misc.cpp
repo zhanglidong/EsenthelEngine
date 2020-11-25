@@ -1665,18 +1665,94 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       {
          case FSTD_FILE:
          {
-            concurrency::create_task(Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](concurrency::task<Windows::Storage::StorageFile^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            auto get_file=Windows::Storage::StorageFile::GetFileFromPathAsync(ref new Platform::String(WindowsPath(name))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            SyncEvent event;
+            Windows::Storage::StorageFile ^file;
+            get_file->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Storage::StorageFile^>([&](Windows::Foundation::IAsyncOperation<Windows::Storage::StorageFile^> ^get_file, Windows::Foundation::AsyncStatus status)
             {
-               try{Windows::System::Launcher::LaunchFileAsync(task.get());} catch(...){}
+               if(status==Windows::Foundation::AsyncStatus::Completed)file=get_file->GetResults();
+               event.on();
             });
-         }return true;
+            App.wait(event);
+            if(file)
+            {
+               Bool ok=false;
+               if(App.mainThread())
+               {
+                  auto launch=Windows::System::Launcher::LaunchFileAsync(file);
+                       launch->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<bool>([&](Windows::Foundation::IAsyncOperation<bool> ^launch, Windows::Foundation::AsyncStatus status)
+                  {
+                     ok=(status==Windows::Foundation::AsyncStatus::Completed && launch->GetResults());
+                     event.on();
+                  });
+                  App.wait(event);
+               }else
+               {
+                  auto run=Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+                  {
+                     auto      launch=Windows::System::Launcher::LaunchFileAsync(file);
+                     SyncEvent launch_event;
+                               launch->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<bool>([&](Windows::Foundation::IAsyncOperation<bool> ^launch, Windows::Foundation::AsyncStatus status)
+                     {
+                        ok=(status==Windows::Foundation::AsyncStatus::Completed && launch->GetResults());
+                        launch_event.on(); // here can't use 'event' in case 'run' was canceled or have error and 'launch' never got executed, in that case "App.wait(event);" below would wait forever, instead make sure that 'run->Completed' waits for 'launch' to finish
+                     });
+                     launch_event.wait(); // here we have to wait until launch completed, to make sure that 'run->Completed' will be called after launch already finished, can't use "App.wait(launch_event);" because we're inside 'ProcessEvents' and 'wait' would call 'ProcessEvents' again which is not supported
+                  }));
+                  run->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^run, Windows::Foundation::AsyncStatus status)
+                  {
+                     event.on();
+                  });
+                  App.wait(event);
+               }
+               return ok;
+            }
+         }break;
 
          case FSTD_DIR:
          {
-            concurrency::create_task(Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name)))).then([](concurrency::task<Windows::Storage::StorageFolder^> task) // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            auto get_folder=Windows::Storage::StorageFolder::GetFolderFromPathAsync(ref new Platform::String(WindowsPath(name))); // 'WindowsPath' must be used or exception will occur when using '/' instead of '\'
+            SyncEvent event;
+            Windows::Storage::StorageFolder ^folder;
+            get_folder->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Storage::StorageFolder^>([&](Windows::Foundation::IAsyncOperation<Windows::Storage::StorageFolder^> ^get_folder, Windows::Foundation::AsyncStatus status)
             {
-               try{Windows::System::Launcher::LaunchFolderAsync(task.get());} catch(...){}
+               if(status==Windows::Foundation::AsyncStatus::Completed)folder=get_folder->GetResults();
+               event.on();
             });
+            App.wait(event);
+            if(folder)
+            {
+               Bool ok=false;
+               if(App.mainThread())
+               {
+                  auto launch=Windows::System::Launcher::LaunchFolderAsync(folder);
+                       launch->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<bool>([&](Windows::Foundation::IAsyncOperation<bool> ^launch, Windows::Foundation::AsyncStatus status)
+                  {
+                     ok=(status==Windows::Foundation::AsyncStatus::Completed && launch->GetResults());
+                     event.on();
+                  });
+                  App.wait(event);
+               }else
+               {
+                  auto run=Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([&]()
+                  {
+                     auto      launch=Windows::System::Launcher::LaunchFolderAsync(folder);
+                     SyncEvent launch_event;
+                               launch->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<bool>([&](Windows::Foundation::IAsyncOperation<bool> ^launch, Windows::Foundation::AsyncStatus status)
+                     {
+                        ok=(status==Windows::Foundation::AsyncStatus::Completed && launch->GetResults());
+                        launch_event.on(); // here can't use 'event' in case 'run' was canceled or have error and 'launch' never got executed, in that case "App.wait(event);" below would wait forever, instead make sure that 'run->Completed' waits for 'launch' to finish
+                     });
+                     launch_event.wait(); // here we have to wait until launch completed, to make sure that 'run->Completed' will be called after launch already finished, can't use "App.wait(launch_event);" because we're inside 'ProcessEvents' and 'wait' would call 'ProcessEvents' again which is not supported
+                  }));
+                  run->Completed=ref new Windows::Foundation::AsyncActionCompletedHandler([&](Windows::Foundation::IAsyncAction ^run, Windows::Foundation::AsyncStatus status)
+                  {
+                     event.on();
+                  });
+                  App.wait(event);
+               }
+               return ok;
+            }
          }return true;
       }
    #elif LINUX
