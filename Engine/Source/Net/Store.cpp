@@ -215,16 +215,18 @@ Bool PlatformStore::refreshItems(C CMemPtr<Str> &item_ids)
    #if WINDOWS_NEW
       try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
       {
-      #if 0 // doc says this is Windows Phone only, on Desktop it crashes, so don't bother
-         Platform::Collections::Vector<Platform::String^> ^product_ids = ref new Platform::Collections::Vector<Platform::String^>(item_ids.elms());
+      #if 0 // this crashes on Desktop
+         Platform::Collections::Vector<Platform::String^> ^product_ids=ref new Platform::Collections::Vector<Platform::String^>(item_ids.elms());
          FREPA(item_ids)product_ids->SetAt(i, ref new Platform::String(item_ids[i]));
-         concurrency::create_task(WIN_STORE::LoadListingInformationByProductIdsAsync(product_ids)).then([](Windows::ApplicationModel::Store::ListingInformation ^listing)
-      #elif 1 // this works ok but returns all items
-         concurrency::create_task(WIN_STORE::LoadListingInformationAsync()).then([this](Windows::ApplicationModel::Store::ListingInformation ^listing)
+         auto op=WIN_STORE::LoadListingInformationByProductIdsAsync(product_ids);
+      #else // this works ok but returns all items
+         auto op=WIN_STORE::LoadListingInformationAsync();
       #endif
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::ListingInformation^>([&](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::ListingInformation^> ^op, Windows::Foundation::AsyncStatus status)
          {
             // this will be called on the main thread
-            if(listing)
+            if(status==Windows::Foundation::AsyncStatus::Completed)
+               if(auto listing=op->GetResults())
             {
              /*Str name=listing->Name->Data(),
                    desc=listing->Description->Data(),
