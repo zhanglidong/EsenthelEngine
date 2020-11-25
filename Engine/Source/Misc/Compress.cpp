@@ -2066,13 +2066,13 @@ Bool ParseZip(File &f, MemPtr<ZipFile> files)
       file.  compressed_size= raw.  compressed_size;
       file.            crc32= raw.            crc32;
       file.offset=offset;
-      file.modify_time_utc.second=((raw.modify_time&31)<<1);
-      file.modify_time_utc.minute=((raw.modify_time>>5)&63);
-      file.modify_time_utc.hour  =((raw.modify_time>>11)  );
-      file.modify_time_utc.day   =((raw.modify_date&31)   );
-      file.modify_time_utc.month =((raw.modify_date>>5)&15);
-      file.modify_time_utc.year  =((raw.modify_date>>9)+1980);
-      file.modify_time_utc.toUTC();
+      // ZIP operates on local time zone of the computer that created it, so just return as it is without converting to UTC implying that it's UTC supported !!
+      file.modify_time_local.second=((raw.modify_time&31)<<1);
+      file.modify_time_local.minute=((raw.modify_time>>5)&63);
+      file.modify_time_local.hour  =((raw.modify_time>>11)  );
+      file.modify_time_local.day   =((raw.modify_date&31)   );
+      file.modify_time_local.month =((raw.modify_date>>5)&15);
+      file.modify_time_local.year  =((raw.modify_date>>9)+1980);
       file.name=FromUTF8(s.data());
    }
    return files.elms()>0;

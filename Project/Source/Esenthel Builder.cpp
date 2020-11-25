@@ -1372,6 +1372,43 @@ void Resize(Flt=0, Flt=0)
    DoSel.rect(Rect_L(x+0.06, y, 0.45, 0.05));
 }
 /******************************************************************************/
+Bool ExtractTry(File &f, C ZipFile &zip_file, C Str &dest, DateTime *utc)
+{
+   if(f.pos(zip_file.offset))
+   {
+      FCreateDirs(GetPath(dest));
+      File temp;
+      return DecompressRaw(f, temp, COMPRESS_ZLIB, zip_file.compressed_size, zip_file.uncompressed_size, true)
+          && temp.pos(0)
+          && SafeOverwrite(temp, dest, utc);
+   }
+   return false;
+}
+Bool ExtractTry(C Str &name)
+{
+   File f; if(f.readStdTry(name))
+   {
+      Memt<ZipFile> files; if(ParseZip(f, files))
+      {
+         Str path=GetPath(name).tailSlash(true);
+         FREPA(files)
+         {
+          C ZipFile &zip_file=files[i]; if(zip_file.uncompressed_size) // process only files with data
+            {
+               Str dest=path+zip_file.name;
+               FileInfoSystem fi(dest);
+               DateTime utc=zip_file.modify_time_local; utc.toUTC();
+               if(fi.size!=zip_file.uncompressed_size || fi.modify_time_utc!=utc) // need to extract
+                  if(!ExtractTry(f, zip_file, dest, &utc))return false;
+            }
+         }
+         return true;
+      }
+   }
+   return false;
+}
+void Extract(C Str &path) {if(!ExtractTry(path))Exit(S+"Can't extract: "+path);}
+/******************************************************************************/
 void InitPre()
 {
    App.flag=APP_RESIZABLE|APP_MINIMIZABLE|APP_MAXIMIZABLE|APP_NO_PAUSE_ON_WINDOW_MOVE_SIZE|APP_WORK_IN_BACKGROUND|APP_FULL_TOGGLE;
@@ -1405,6 +1442,11 @@ void InitPre()
    }
 
    DataPath(EngineDataPath);
+
+   // extract LIB files that are too big for GitHub to handle
+#if WINDOWS
+   Extract("C:/Esenthel/ThirdPartyLibs/Xbox Live/2018.6.20181010.2/x64.zip");
+#endif
 }
 void SetPaths()
 {

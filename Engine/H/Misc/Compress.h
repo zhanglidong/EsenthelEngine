@@ -85,7 +85,7 @@ struct ZipFile
               compressed_size, // size of    compressed data (if file is not compressed, it's equal to 'uncompressed_size')
             crc32            ; // CRC32 hash
    Long     offset           ; // data offset in ZIP file
-   DateTime modify_time_utc  ; // modification time (in UTC time zone)
+   DateTime modify_time_local; // modification time (in local time zone of the ZIP creator)
 
    COMPRESS_TYPE compression()C {return compressed ? COMPRESS_ZLIB : COMPRESS_NONE;} // get file compression type
 };

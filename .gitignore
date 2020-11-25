@@ -59,6 +59,7 @@ Desktop.ini
 /ThirdPartyLibs/PhysX/PxShared
 /ThirdPartyLibs/PhysX/Android/jni/Android.mk
 /ThirdPartyLibs/PhysX/Android/obj
+/ThirdPartyLibs/Xbox Live/2018.6.20181010.2/x64
 !/Clean.bat
 !/Esenthel.sln
 Lock
