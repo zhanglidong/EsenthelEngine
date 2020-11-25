@@ -294,10 +294,12 @@ Bool PlatformStore::refreshPurchases()
 #if WINDOWS_NEW
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {
-      concurrency::create_task(WIN_STORE::GetAppReceiptAsync()).then([this](Platform::String ^receipt)
+      auto op=WIN_STORE::GetAppReceiptAsync();
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([&](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
       {
          // this will be called on the main thread
-         if(receipt)
+         if(status==Windows::Foundation::AsyncStatus::Completed)
+            if(auto receipt=op->GetResults())
          {
           C wchar_t *r=receipt->Data();
             FileText f; f.readMem(r, Length(r)*SIZE(*r), UTF_16); // use 'UTF_16' because 'r' is a 16-bit string
