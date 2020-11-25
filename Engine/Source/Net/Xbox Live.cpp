@@ -128,7 +128,7 @@ void XBOXLive::logInOk()
 
       auto op=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
       lock.off();
-      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
+      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([this](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
       {
          if(status==Windows::Foundation::AsyncStatus::Completed)
          {

@@ -298,7 +298,7 @@ Bool PlatformStore::refreshPurchases()
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {
       auto op=WIN_STORE::GetAppReceiptAsync();
-      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([this](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
+           op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Platform::String^>([this](Windows::Foundation::IAsyncOperation<Platform::String^> ^op, Windows::Foundation::AsyncStatus status)
       {
          // this will be called on the main thread
          if(status==Windows::Foundation::AsyncStatus::Completed)
@@ -365,7 +365,7 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
    if(!(subscription ? supportsSubscriptions() : supportsItems()))return SERVICE_UNAVAILABLE;
 #if WINDOWS_NEW
    auto op=WIN_STORE::RequestProductPurchaseAsync(ref new Platform::String(id));
-   op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::PurchaseResults^>([this, id](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::PurchaseResults^> ^op, Windows::Foundation::AsyncStatus status)
+        op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::PurchaseResults^>([this, id](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::PurchaseResults^> ^op, Windows::Foundation::AsyncStatus status) // !! have to pass 'id' as a copy and not reference because the function might return before op finishes !!
    {
       // this will be called on the main thread
       RESULT   result=UNKNOWN;
@@ -441,7 +441,7 @@ PlatformStore::RESULT PlatformStore::consume(C Str &token)
 #else
    UID token_id; token_id.fromHex(token);
    auto op=WIN_STORE::ReportConsumableFulfillmentAsync(ref new Platform::String(purchase->id), token_id.guid()); // both 'ProductId' and 'TransactionId' must be specified
-        op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::FulfillmentResult>([this, token](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::FulfillmentResult> ^op, Windows::Foundation::AsyncStatus status)
+        op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::ApplicationModel::Store::FulfillmentResult>([this, token](Windows::Foundation::IAsyncOperation<Windows::ApplicationModel::Store::FulfillmentResult> ^op, Windows::Foundation::AsyncStatus status) // !! have to pass 'token' as a copy and not reference because the function might return before op finishes !!
    {
       // this will be called on the main thread
       Purchase   temp;
@@ -455,7 +455,7 @@ PlatformStore::RESULT PlatformStore::consume(C Str &token)
            _purchases.removeData(existing, true); // first remove from list of purchases
             if(callback)callback(REFUND, &temp); // now call the callback
          }break;
-         
+
          case Windows::ApplicationModel::Store::FulfillmentResult::Succeeded:
          {
            _purchases.removeData(existing, true); // first remove from list of purchases
