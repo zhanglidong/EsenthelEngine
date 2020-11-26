@@ -59,10 +59,10 @@ void XBOXLive::getUserProfile(C CMemPtr<ULong> &user_ids)
    if(user_ids.elms() && XboxCtx)
    {
       std::vector<string_t> user_ids_str; user_ids_str.resize(user_ids.elms()); for(Int i=0; i<user_ids_str.size(); i++)user_ids_str[i]=TextInt(user_ids[i]);
-      SyncLockerEx lock(_lock); if(XboxCtx)
+      SyncLockerEx locker(lock); if(XboxCtx)
       {
          auto task=XboxCtx->profile_service().get_user_profiles(user_ids_str);
-         lock.off();
+         locker.off();
          task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<std::vector<xbox::services::social::xbox_user_profile>>> results)
          {
             if(!results.err())
@@ -82,13 +82,13 @@ void XBOXLive::getUserProfile(C CMemPtr<ULong> &user_ids)
                      auto user_app_pic=profile.app_display_picture_resize_uri().to_string().c_str();*/
                      if(user_id==T.userID())
                      {
-                        SyncLocker lock(_lock);
+                        SyncLocker locker(lock);
                        _me.score=score;
                         Swap(_me.image_url, image_url);
                      }else
                      {
                         Str user_game_name=profile.game_display_name().c_str();
-                        SyncLocker lock(_lock);
+                        SyncLocker locker(lock);
                         if(Friend *user=Find(_friends, user_id))
                         {
                            user->score=score;
@@ -112,7 +112,7 @@ void XBOXLive::setStatus(STATUS status)
 void XBOXLive::logInOk()
 {
 #if SUPPORT_XBOX_LIVE
-   SyncLockerEx lock(_lock);
+   SyncLockerEx locker(lock);
    if(!XboxCtx)XboxCtx=std::make_shared<xbox::services::xbox_live_context>(XboxUser);
    if(C auto &config=XboxCtx->application_config())
    {
@@ -127,12 +127,12 @@ void XBOXLive::logInOk()
       getUserProfile(); // request extra info as soon as we have ID
 
       auto op=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
-      lock.off();
+      locker.off();
       op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([this](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
       {
          if(status==Windows::Foundation::AsyncStatus::Completed)
          {
-            SyncLocker lock(_lock);
+            SyncLocker locker(lock);
             if(GameSaveProvider=op->GetResults()->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
             setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
 
@@ -140,7 +140,7 @@ void XBOXLive::logInOk()
             {
                // this will get called when game exits or user signs-out
                {
-                  SyncLocker lock(_lock);
+                  SyncLocker locker(lock);
                   GameSaveContainer=null;
                   GameSaveProvider=null;
                   XboxCtx =null;
@@ -162,7 +162,7 @@ void XBOXLive::logIn()
    if(_status==LOGGED_OUT)
    {
       OSUser.get(); // !! get 'OSUser' here because we will need it inside the 'logInOk', and we can't obtain it there because it's called inside system callbacks and getting it would require callbacks again (nested calls are not allowed)
-      SyncLocker lock(_lock); if(_status==LOGGED_OUT)
+      SyncLocker locker(lock); if(_status==LOGGED_OUT)
       {
         _status=LOGGING_IN; // don't call 'setStatus' to avoid setting callback because we don't need it here
          if(!XboxUser)XboxUser=std::make_shared<xbox::services::system::xbox_live_user>();
@@ -212,10 +212,10 @@ Long XBOXLive::cloudAvailableSize()C
 #if SUPPORT_XBOX_LIVE
    if(GameSaveProvider)
    {
-      SyncLockerEx lock(_lock); if(GameSaveProvider)
+      SyncLockerEx locker(lock); if(GameSaveProvider)
       {
          auto op=GameSaveProvider->GetRemainingBytesInQuotaAsync();
-         lock.off();
+         locker.off();
          Long size;
          SyncEvent event;
          op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Long>([&](Windows::Foundation::IAsyncOperation<Long> ^op, Windows::Foundation::AsyncStatus status)
@@ -237,10 +237,10 @@ Bool XBOXLive::cloudDel(C Str &file_name)
    {
       auto blobs=ref new Platform::Collections::Vector<Platform::String^>();
       blobs->Append(ref new Platform::String(file_name));
-      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      SyncLockerEx locker(lock); if(GameSaveContainer)
       {
          auto op=GameSaveContainer->SubmitUpdatesAsync(null, blobs, null);
-         lock.off();
+         locker.off();
          Bool ok;
          SyncEvent event;
          op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^> ^op, Windows::Foundation::AsyncStatus status)
@@ -256,7 +256,7 @@ Bool XBOXLive::cloudDel(C Str &file_name)
    return false;
 }
 #if SUPPORT_XBOX_LIVE
-static Ptr GetBufferData(Windows::Storage::Streams::IBuffer^ buffer)
+static Ptr GetBufferData(Windows::Storage::Streams::IBuffer ^buffer)
 {
    byte *data=null;
    IUnknown *unknown=reinterpret_cast<IUnknown*>(buffer);
@@ -290,10 +290,10 @@ Bool XBOXLive::cloudSave(C Str &file_name, File &f, Cipher *cipher)
          if(cipher)cipher->encrypt(buffer_data, buffer_data, size, 0);
          auto blobs=ref new Platform::Collections::Map<Platform::String^, Windows::Storage::Streams::IBuffer^>();
          blobs->Insert(ref new Platform::String(file_name), buffer);
-         SyncLockerEx lock(_lock); if(GameSaveContainer)
+         SyncLockerEx locker(lock); if(GameSaveContainer)
          {
             auto op=GameSaveContainer->SubmitUpdatesAsync(blobs->GetView(), null, null);
-            lock.off();
+            locker.off();
             Bool ok;
             SyncEvent event;
             op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveOperationResult^> ^op, Windows::Foundation::AsyncStatus status)
@@ -316,10 +316,10 @@ Bool XBOXLive::cloudLoad(C Str &file_name, File &f, Bool memory, Cipher *cipher)
    {
       auto blobs=ref new Platform::Collections::Vector<Platform::String^>();
       blobs->Append(ref new Platform::String(file_name));
-      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      SyncLockerEx locker(lock); if(GameSaveContainer)
       {
          auto op=GameSaveContainer->GetAsync(blobs);
-         lock.off();
+         locker.off();
          Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult ^blobs;
          SyncEvent event;
          op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult^>([&](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveBlobGetResult^> ^op, Windows::Foundation::AsyncStatus status)
@@ -355,10 +355,10 @@ Bool XBOXLive::cloudFiles(MemPtr<CloudFile> files)C
 #if SUPPORT_XBOX_LIVE
    if(GameSaveContainer)
    {
-      SyncLockerEx lock(_lock); if(GameSaveContainer)
+      SyncLockerEx locker(lock); if(GameSaveContainer)
       if(auto query=GameSaveContainer->CreateBlobInfoQuery(null))
       {
-         lock.off();
+         locker.off();
          auto op=query->GetBlobInfoAsync();
          Windows::Gaming::XboxLive::Storage::GameSaveBlobInfoGetResult ^blobs;
          SyncEvent event;
@@ -395,18 +395,18 @@ void XBOXLive::getFriends()
 #if SUPPORT_XBOX_LIVE
    if(XboxCtx)
    {
-      SyncLockerEx lock(_lock); if(XboxCtx && !_friends_getting)
+      SyncLockerEx locker(lock); if(XboxCtx && !_friends_getting)
       {
         _friends_getting=true;
          auto task=XboxCtx->social_service().get_social_relationships();
-         lock.off();
+         locker.off();
          task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::social::xbox_social_relationship_result>> results)
          {
             if(!results.err())
             {
              C auto &result=results.payload(); if(!result.err())
                {
-                  Memt<Friend> old; {SyncLocker lock(_lock); old=_friends;}
+                  Memt<Friend> old; {SyncLocker locker(lock); old=_friends;}
                 C auto &profiles=result.payload().items();
                   Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
                   Mems<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
@@ -425,7 +425,7 @@ void XBOXLive::getFriends()
                      }
                   }
                   {
-                     SyncLocker lock(_lock);
+                     SyncLocker locker(lock);
                      Swap(_friends, friends);
                     _friends_known=true;
                   }
@@ -444,7 +444,7 @@ Bool XBOXLive::getFriends(MemPtr<ULong> friend_ids)C
 #if SUPPORT_XBOX_LIVE
    if(_friends_known)
    {
-      SyncLocker lock(_lock); if(_friends_known)
+      SyncLocker locker(lock); if(_friends_known)
       {
          friend_ids.setNum(_friends.elms());
          REPAO(friend_ids)=_friends[i].id;
@@ -459,7 +459,7 @@ Bool XBOXLive::getFriends(MemPtr<Friend> friends)C
 #if SUPPORT_XBOX_LIVE
    if(_friends_known)
    {
-      SyncLocker lock(_lock); if(_friends_known)
+      SyncLocker locker(lock); if(_friends_known)
       {
          friends=T._friends;
          return true;
@@ -476,16 +476,12 @@ Str XBOXLive::userName(ULong user_id)C
       if(user_id==userID())return userName();
       if(_friends_known)
       {
-         SyncLocker lock(_lock);
+         SyncLocker locker(lock);
          if(C Friend *user=CFind(_friends, user_id))return user->name;
       }
    }
 #endif
    return S;
-}
-C Mems<XBOXLive::Friend>& XBOXLive::friends()C
-{
-   return _friends;
 }
 /******************************************************************************/
 } // namespace EE

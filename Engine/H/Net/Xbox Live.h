@@ -36,23 +36,25 @@ struct XBOXLive
    #endif
    };
 
-   void (*callback)(EVENT event, ULong user_id)=null; // pointer to a custom function that will be called with processed events, 'event'=event occurring at the moment, 'user_id'=user ID affected by this event
+   SyncLock lock;
+   void   (*callback)(EVENT event, ULong user_id)=null; // pointer to a custom function that will be called with processed events, 'event'=event occurring at the moment, 'user_id'=user ID affected by this event
 
    STATUS  status()C {return _status;} // get current log in status
    Bool  loggedIn()C {return _status==LOGGED_IN;} // if currently logged in
    void     logIn(); // initiate log in process, result will be reported through the 'callback' function with a STATUS_CHANGED event
    
+ C User& me          ()C {return _me          ;} // get user                           . This is valid only after being logged in
    ULong userID      ()C {return _me.id       ;} // get user ID           ,  0  on fail. This is valid only after being logged in
    Long  userScore   ()C {return _me.score    ;} // get user score        , -1  on fail. This is valid only after being logged in and after USER_PROFILE event
  C Str&  userName    ()C {return _me.name     ;} // get user name/gamertag,  "" on fail. This is valid only after being logged in
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after USER_PROFILE event
 
    // Friends - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
-   void          getFriends(                         ) ; // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
-   Bool          getFriends(MemPtr<ULong > friend_ids)C; // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
-   Bool          getFriends(MemPtr<Friend> friends   )C; // get list of friends    , false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
-   Str           userName  (       ULong   user_id   )C; // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
- C Mems<Friend>& friends   (                         )C; // get friend list        , empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   void          getFriends   (                         ) ;                   // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
+   Bool          getFriends   (MemPtr<ULong > friend_ids)C;                   // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   Bool          getFriends   (MemPtr<Friend> friends   )C;                   // get list of friends    , false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   Str           userName     (       ULong   user_id   )C;                   // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+ C Mems<Friend>& lockedFriends(                         )C {return _friends;} // get friend list        , empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event) this method can be called only under lock for 'lock' member
 
    // cloud saves
    Bool cloudSupported    ()C; // if cloud saves are supported, this will always be false if currently not logged in
@@ -77,7 +79,6 @@ private:
    Bool         _friends_known=false, _friends_getting=false;
    User         _me;
    Mems<Friend> _friends;
-   SyncLock     _lock;
 #if EE_PRIVATE
    void setStatus(STATUS status);
    void logInOk();
