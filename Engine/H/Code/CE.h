@@ -308,14 +308,15 @@ const_mem_addr struct CodeEditor
          TEXT  , // .txt
          LIB   , // .lib
          PAK   , // .pak
+         COPY  , // .*
          IGNORE, //
       };
       MODE      mode;
-      Str       src_proj_path, dest_file_path, dest_proj_path, ext_not;
+      Str       src_proj_path, dest_file_path, dest_proj_path, ext_not, filter;
       SourceLoc src_loc;
       ULong     xcode_file_id, xcode_mac_id, xcode_ios_id;
 
-      Bool includeInProj() {return mode==SOURCE || mode==LIB || mode==TEXT;}
+      Bool includeInProj() {return mode==SOURCE || mode==LIB || mode==TEXT || mode==COPY;}
 
       BuildFile& set(MODE mode, C Str &src_proj_path, C SourceLoc &src_loc)
       {

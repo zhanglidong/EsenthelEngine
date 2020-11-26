@@ -912,7 +912,7 @@ static void StoreTree10(Node<BuildFileElm> &bfe, XmlNode &node)
       Node<BuildFileElm> &elm=bfe.children[i];
       if(elm.bf) // file
       {
-         XmlNode &file  =node.nodes.New().setName((elm.bf->mode==CodeEditor::BuildFile::SOURCE) ? "ClCompile" : (elm.bf->mode==CodeEditor::BuildFile::LIB) ? "Library" : "None"); file.params.New().set("Include", elm.bf->dest_proj_path);
+         XmlNode &file  =node.nodes.New().setName((elm.bf->mode==CodeEditor::BuildFile::SOURCE) ? "ClCompile" : (elm.bf->mode==CodeEditor::BuildFile::LIB) ? "Library" : (elm.bf->mode==CodeEditor::BuildFile::COPY) ? "CopyFileToFolders" : "None"); file.params.New().set("Include", elm.bf->dest_proj_path);
          XmlNode &filter=file.nodes.New().setName("Filter"); filter.data.New()=GetPath(elm.full_name);
       }else // folder
       {
@@ -1262,8 +1262,31 @@ Bool CodeEditor::generateVSProj(Int version)
    if(!OverwriteOnChangeLoud(resource_rc, build_path+"resource.rc"))return false;
    if(resource_changed)FTimeUTC(build_path+"resource.rc", DateTime().getUTC()); // if any resource was changed then we need to adjust "resource.rc" modification time to make sure that VS will rebuild the resources
 
+   // xboxservices.config
+   if(build_exe_type==EXE_EXE || build_exe_type==EXE_NEW)
+   {
+      ULong xbl_title_id=cei().appXboxLiveTitleID();
+      UID   xbl_scid    =cei().appXboxLiveSCID   ();
+      if(xbl_title_id || xbl_scid.valid()) // want to use Xbox
+      {
+         TextData td;
+         td.nodes.New().set("TitleId"               , xbl_title_id);
+         td.nodes.New().set("PrimaryServiceConfigId", CaseDown(xbl_scid.asCanonical())); // CaseDown required
+         td.nodes.New().set("XboxLiveCreatorsTitle" , TextBool(cei().appXboxLiveProgram()==XBOX_LIVE_CREATORS));
+         FileText f; f.writeMem(); td.saveJSON(f); if(!OverwriteOnChangeLoud(f, build_path+"xboxservices.config"))return false;
+
+         BuildFile &bf=build_files.New().set(BuildFile::COPY, S, SourceLoc());
+         bf.dest_proj_path=    "xboxservices.config";
+         bf.filter        ="H/_/xboxservices.config";
+      }
+   }
+
    // VS project
-   Node<BuildFileElm> tree; FREPA(build_files)BuildTree(tree, build_files[i], build_files[i].dest_proj_path);
+   Node<BuildFileElm> tree; FREPA(build_files)
+   {
+      BuildFile &bf=build_files[i];
+      BuildTree(tree, bf, bf.filter.is() ? bf.filter : bf.dest_proj_path);
+   }
    Memc<Str> libs=GetFiles(cei().appLibsWindows()),
              dirs=GetFiles(cei().appDirsWindows());
 
@@ -1444,7 +1467,7 @@ Bool CodeEditor::generateVSProj(Int version)
                BuildFile &bf=build_files[i];
                if(bf.includeInProj())
                {
-                  XmlNode &file=group.nodes.New().setName((bf.mode==BuildFile::SOURCE) ? "ClCompile" : (bf.mode==BuildFile::LIB) ? "Library" : "None");
+                  XmlNode &file=group.nodes.New().setName((bf.mode==BuildFile::SOURCE) ? "ClCompile" : (bf.mode==BuildFile::LIB) ? "Library" : (bf.mode==BuildFile::COPY) ? "CopyFileToFolders" : "None");
                   file.params.New().set("Include", bf.dest_proj_path);
                }
             }
