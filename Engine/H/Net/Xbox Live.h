@@ -48,10 +48,11 @@ struct XBOXLive
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after USER_PROFILE event
 
    // Friends - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
-   void          getFriends(                        ) ; // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
-   Bool          getFriends(MemPtr<ULong> friend_ids)C; // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
-   Str           userName  (       ULong  user_id   )C; // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
- C Memc<Friend>& friends   (                        )C; // get friend list        , empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   void          getFriends(                         ) ; // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
+   Bool          getFriends(MemPtr<ULong > friend_ids)C; // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   Bool          getFriends(MemPtr<Friend> friends   )C; // get list of friends    , false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   Str           userName  (       ULong   user_id   )C; // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+ C Mems<Friend>& friends   (                         )C; // get friend list        , empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
 
    // cloud saves
    Bool cloudSupported    ()C; // if cloud saves are supported, this will always be false if currently not logged in
@@ -75,7 +76,7 @@ private:
    STATUS       _status=LOGGED_OUT;
    Bool         _friends_known=false, _friends_getting=false;
    User         _me;
-   Memc<Friend> _friends;
+   Mems<Friend> _friends;
    SyncLock     _lock;
 #if EE_PRIVATE
    void setStatus(STATUS status);

@@ -409,7 +409,7 @@ void XBOXLive::getFriends()
                   Memt<Friend> old; {SyncLocker lock(_lock); old=_friends;}
                 C auto &profiles=result.payload().items();
                   Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
-                  Memc<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
+                  Mems<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
                   {
                      Friend &user=friends[i];
                    C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
@@ -454,6 +454,20 @@ Bool XBOXLive::getFriends(MemPtr<ULong> friend_ids)C
 #endif
    friend_ids.clear(); return false;
 }
+Bool XBOXLive::getFriends(MemPtr<Friend> friends)C
+{
+#if SUPPORT_XBOX_LIVE
+   if(_friends_known)
+   {
+      SyncLocker lock(_lock); if(_friends_known)
+      {
+         friends=T._friends;
+         return true;
+      }
+   }
+#endif
+   friends.clear(); return false;
+}
 Str XBOXLive::userName(ULong user_id)C
 {
 #if SUPPORT_XBOX_LIVE
@@ -469,7 +483,7 @@ Str XBOXLive::userName(ULong user_id)C
 #endif
    return S;
 }
-C Memc<XBOXLive::Friend>& XBOXLive::friends()C
+C Mems<XBOXLive::Friend>& XBOXLive::friends()C
 {
    return _friends;
 }
