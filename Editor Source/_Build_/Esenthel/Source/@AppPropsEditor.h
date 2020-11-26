@@ -41,11 +41,13 @@ class AppPropsEditor : PropWin
    AppImage    icon     ,    image_portrait     ,    image_landscape     ,    notification_icon;
    Tabs      platforms, platforms2;
 
-   static void Changed             (C Property &prop);
-   static void GetAndroidLicenseKey(  ptr           );
-   static void GetFacebookAppID    (  ptr           );
-   static void GetAdMobApp         (  ptr           );
-   static void GetChartboostApp    (  ptr           );
+   static void Changed              (C Property &prop);
+   static void GetAndroidLicenseKey (  ptr           );
+   static void GetFacebookAppID     (  ptr           );
+   static void GetAdMobApp          (  ptr           );
+   static void GetChartboostApp     (  ptr           );
+   static void GetMicrosoftPublisher(  ptr           );
+   static void GetXboxLive          (  ptr           );
 
    static void DirsWin                     (  AppPropsEditor &ap, C Str &text);
    static Str  DirsWin                     (C AppPropsEditor &ap             );
@@ -73,6 +75,16 @@ class AppPropsEditor : PropWin
    static Str  LibsiOS                     (C AppPropsEditor &ap             );
    static void Package                     (  AppPropsEditor &ap, C Str &text);
    static Str  Package                     (C AppPropsEditor &ap             );
+   static void MicrosoftPublisherID        (  AppPropsEditor &ap, C Str &text);
+   static Str  MicrosoftPublisherID        (C AppPropsEditor &ap             );
+   static void MicrosoftPublisherName      (  AppPropsEditor &ap, C Str &text);
+   static Str  MicrosoftPublisherName      (C AppPropsEditor &ap             );
+   static void XboxLiveProgram             (  AppPropsEditor &ap, C Str &text);
+   static Str  XboxLiveProgram             (C AppPropsEditor &ap             );
+   static void XboxLiveTitleID             (  AppPropsEditor &ap, C Str &text);
+   static Str  XboxLiveTitleID             (C AppPropsEditor &ap             );
+   static void XboxLiveSCID                (  AppPropsEditor &ap, C Str &text);
+   static Str  XboxLiveSCID                (C AppPropsEditor &ap             );
    static void AndroidLicenseKey           (  AppPropsEditor &ap, C Str &text);
    static Str  AndroidLicenseKey           (C AppPropsEditor &ap             );
    static void Build                       (  AppPropsEditor &ap, C Str &text);
@@ -116,11 +128,21 @@ class AppPropsEditor : PropWin
    static void Orientation                 (  AppPropsEditor &ap, C Str &text);
    static Str  Orientation                 (C AppPropsEditor &ap             );
 
+   enum PLATFORM
+   {
+      PWIN,
+      PMAC,
+      PLIN,
+      PAND,
+      PIOS,
+   };
    static cchar8 *platforms_t[]
 ;
    static cchar8 *platforms2_t[]
 ;
-
+   static cchar8 *xbox_live_program_t[]
+;
+   ASSERT(Edit::XBOX_LIVE_CREATORS==0 && Edit::XBOX_LIVE_ID_XBOX==1 && Edit::XBOX_LIVE_NUM==2);
    void create();
    void toGui();
 

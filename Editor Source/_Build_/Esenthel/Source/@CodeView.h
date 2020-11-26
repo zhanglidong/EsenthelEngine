@@ -30,6 +30,11 @@ class CodeView : Region, Edit::CodeEditorInterface
    virtual Str               appLibsAndroid                     ()override; 
    virtual Str               appLibsiOS                         ()override; 
    virtual Str               appPackage                         ()override; 
+   virtual UID               appMicrosoftPublisherID            ()override; 
+   virtual Str               appMicrosoftPublisherName          ()override; 
+   virtual Edit::XBOX_LIVE    appXboxLiveProgram                 ()override;
+   virtual ULong             appXboxLiveTitleID                 ()override; 
+   virtual UID               appXboxLiveSCID                    ()override; 
    virtual Str               appGooglePlayLicenseKey            ()override; 
    virtual Str               appLocationUsageReason             ()override; 
    virtual Int               appBuild                           ()override; 

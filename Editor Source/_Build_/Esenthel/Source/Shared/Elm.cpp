@@ -2407,6 +2407,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
           && headers_windows_time==src.headers_windows_time && headers_mac_time==src.headers_mac_time && headers_linux_time==src.headers_linux_time && headers_android_time==src.headers_android_time && headers_ios_time==src.headers_ios_time
           && libs_windows_time==src.libs_windows_time && libs_mac_time==src.libs_mac_time && libs_linux_time==src.libs_linux_time && libs_android_time==src.libs_android_time && libs_ios_time==src.libs_ios_time
           && package_time==src.package_time && android_license_key_time==src.android_license_key_time && location_usage_reason_time==src.location_usage_reason_time && build_time==src.build_time
+          && ms_publisher_id_time==src.ms_publisher_id_time && ms_publisher_name_time==src.ms_publisher_name_time
+          && xbl_program_time==src.xbl_program_time && xbl_title_id_time==src.xbl_title_id_time && xbl_scid_time==src.xbl_scid_time
           && fb_app_id_time==src.fb_app_id_time
           && am_app_id_ios_time==src.am_app_id_ios_time && am_app_id_google_time==src.am_app_id_google_time
           && cb_app_id_ios_time==src.cb_app_id_ios_time && cb_app_signature_ios_time==src.cb_app_signature_ios_time && cb_app_id_google_time==src.cb_app_id_google_time && cb_app_signature_google_time==src.cb_app_signature_google_time
@@ -2421,6 +2423,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
           || headers_windows_time>src.headers_windows_time || headers_mac_time>src.headers_mac_time || headers_linux_time>src.headers_linux_time || headers_android_time>src.headers_android_time || headers_ios_time>src.headers_ios_time
           || libs_windows_time>src.libs_windows_time || libs_mac_time>src.libs_mac_time || libs_linux_time>src.libs_linux_time || libs_android_time>src.libs_android_time || libs_ios_time>src.libs_ios_time
           || package_time>src.package_time || android_license_key_time>src.android_license_key_time || location_usage_reason_time>src.location_usage_reason_time || build_time>src.build_time
+          || ms_publisher_id_time>src.ms_publisher_id_time || ms_publisher_name_time>src.ms_publisher_name_time
+          || xbl_program_time>src.xbl_program_time || xbl_title_id_time>src.xbl_title_id_time || xbl_scid_time>src.xbl_scid_time
           || fb_app_id_time>src.fb_app_id_time
           || am_app_id_ios_time>src.am_app_id_ios_time || am_app_id_google_time>src.am_app_id_google_time
           || cb_app_id_ios_time>src.cb_app_id_ios_time || cb_app_signature_ios_time>src.cb_app_signature_ios_time || cb_app_id_google_time>src.cb_app_id_google_time || cb_app_signature_google_time>src.cb_app_signature_google_time
@@ -2449,6 +2453,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       dirs_windows_time++; dirs_nonwindows_time++;
       headers_windows_time++; headers_mac_time++; headers_linux_time++; headers_android_time++; headers_ios_time++;
       libs_windows_time++; libs_mac_time++; libs_linux_time++; libs_android_time++; libs_ios_time++;
+      ms_publisher_id_time++; ms_publisher_name_time++;
+      xbl_program_time++; xbl_title_id_time++; xbl_scid_time++;
       fb_app_id_time++;
       am_app_id_ios_time++; am_app_id_google_time++;
       cb_app_id_ios_time++; cb_app_signature_ios_time++; cb_app_id_google_time++; cb_app_signature_google_time++;
@@ -2479,6 +2485,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Undo(  location_usage_reason_time, src.  location_usage_reason_time, location_usage_reason  , src.location_usage_reason  );
          ch|=Undo(                  build_time, src.                  build_time, build                  , src.build                  );
          ch|=Undo(                storage_time, src.                storage_time, storage                , src.storage                );
+         ch|=Undo(        ms_publisher_id_time, src.        ms_publisher_id_time, ms_publisher_id        , src.ms_publisher_id        );
+         ch|=Undo(      ms_publisher_name_time, src.      ms_publisher_name_time, ms_publisher_name      , src.ms_publisher_name      );
+         ch|=Undo(            xbl_program_time, src.            xbl_program_time, xbl_program            , src.xbl_program            );
+         ch|=Undo(           xbl_title_id_time, src.           xbl_title_id_time, xbl_title_id           , src.xbl_title_id           );
+         ch|=Undo(               xbl_scid_time, src.               xbl_scid_time, xbl_scid               , src.xbl_scid               );
          ch|=Undo(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
          ch|=Undo(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
          ch|=Undo(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
@@ -2531,6 +2542,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Sync(  location_usage_reason_time, src.  location_usage_reason_time, location_usage_reason  , src.location_usage_reason  );
          ch|=Sync(                  build_time, src.                  build_time, build                  , src.build                  );
          ch|=Sync(                storage_time, src.                storage_time, storage                , src.storage                );
+         ch|=Sync(        ms_publisher_id_time, src.        ms_publisher_id_time, ms_publisher_id        , src.ms_publisher_id        );
+         ch|=Sync(      ms_publisher_name_time, src.      ms_publisher_name_time, ms_publisher_name      , src.ms_publisher_name      );
+         ch|=Sync(            xbl_program_time, src.            xbl_program_time, xbl_program            , src.xbl_program            );
+         ch|=Sync(           xbl_title_id_time, src.           xbl_title_id_time, xbl_title_id           , src.xbl_title_id           );
+         ch|=Sync(               xbl_scid_time, src.               xbl_scid_time, xbl_scid               , src.xbl_scid               );
          ch|=Sync(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
          ch|=Sync(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
          ch|=Sync(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
@@ -2562,11 +2578,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmApp::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(17);
+      f.cmpUIntV(18);
       f<<dirs_windows<<dirs_nonwindows;
       f<<headers_windows<<headers_mac<<headers_linux<<headers_android<<headers_ios;
       f<<libs_windows<<libs_mac<<libs_linux<<libs_android<<libs_ios;
       f<<package<<android_license_key<<location_usage_reason<<build<<storage<<supported_orientations<<flag;
+      f<<ms_publisher_id<<ms_publisher_id_time<<ms_publisher_name<<ms_publisher_name_time;
+      f<<xbl_program<<xbl_program_time<<xbl_title_id<<xbl_title_id_time<<xbl_scid<<xbl_scid_time;
       f<<fb_app_id;
       f<<am_app_id_ios<<am_app_id_google;
       f<<cb_app_id_ios<<cb_app_signature_ios<<cb_app_id_google<<cb_app_signature_google;
@@ -2589,6 +2607,30 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       T=ElmApp(); // reset to default, in case this is needed (for example when loading data from reused objects for code synchronization)
       if(super::load(f))switch(f.decUIntV())
       {
+         case 18:
+         {
+            f>>dirs_windows>>dirs_nonwindows;
+            f>>headers_windows>>headers_mac>>headers_linux>>headers_android>>headers_ios;
+            f>>libs_windows>>libs_mac>>libs_linux>>libs_android>>libs_ios;
+            f>>package>>android_license_key>>location_usage_reason>>build>>storage>>supported_orientations>>flag;
+            f>>ms_publisher_id>>ms_publisher_id_time>>ms_publisher_name>>ms_publisher_name_time;
+            f>>xbl_program>>xbl_program_time>>xbl_title_id>>xbl_title_id_time>>xbl_scid>>xbl_scid_time;
+            f>>fb_app_id;
+            f>>am_app_id_ios>>am_app_id_google;
+            f>>cb_app_id_ios>>cb_app_signature_ios>>cb_app_id_google>>cb_app_signature_google;
+            f>>icon>>notification_icon>>image_portrait>>image_landscape>>gui_skin;
+            f>>dirs_windows_time>>dirs_nonwindows_time;
+            f>>headers_windows_time>>headers_mac_time>>headers_linux_time>>headers_android_time>>headers_ios_time;
+            f>>libs_windows_time>>libs_mac_time>>libs_linux_time>>libs_android_time>>libs_ios_time;
+            f>>package_time>>android_license_key_time>>location_usage_reason_time>>build_time>>storage_time>>supported_orientations_time;
+            f>>fb_app_id_time;
+            f>>am_app_id_ios_time>>am_app_id_google_time;
+            f>>cb_app_id_ios_time>>cb_app_signature_ios_time>>cb_app_id_google_time>>cb_app_signature_google_time;
+            f>>embed_engine_data_time>>publish_proj_data_time>>publish_physx_dll_time>>publish_steam_dll_time>>publish_open_vr_dll_time>>publish_data_as_pak_time>>android_expansion_time;
+            f>>icon_time>>notification_icon_time>>image_portrait_time>>image_landscape_time>>gui_skin_time;
+            if(f.ok())return true;
+         }break;
+
          case 17:
          {
             f>>dirs_windows>>dirs_nonwindows;
@@ -2882,6 +2924,24 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(androidExpansion        ())nodes.New().set("AndroidExpansion"     );
       if(android_license_key  .is())nodes.New().set("AndroidLicenseKey"    , android_license_key);
 
+      {
+         TextNode &ms=nodes.New().setName("Microsoft");
+         if(ms_publisher_id  .valid())ms.nodes.New().set("PublisherID"      , ms_publisher_id.asCanonical());
+                                      ms.nodes.New().set("PublisherIDTime"  , ms_publisher_id_time  .text());
+         if(ms_publisher_name.is   ())ms.nodes.New().set("PublisherName"    , ms_publisher_name);
+                                      ms.nodes.New().set("PublisherNameTime", ms_publisher_name_time.text());
+      }
+
+      {
+         TextNode &xbl=nodes.New().setName("XboxLive");
+                             xbl.nodes.New().set("Program"      , xbl_program);
+                             xbl.nodes.New().set("ProgramTime"  , xbl_program_time.text());
+         if(xbl_title_id    )xbl.nodes.New().set("TitleID"      , xbl_title_id);
+                             xbl.nodes.New().set("TitleIDTime"  , xbl_title_id_time.text());
+         if(xbl_scid.valid())xbl.nodes.New().set("SCID"         , xbl_scid.asCanonical());
+                             xbl.nodes.New().set("SCIDTime"     , xbl_scid_time.text());
+      }
+
       if(fb_app_id)nodes.New().set("FacebookAppID", fb_app_id);
 
       {
@@ -2982,6 +3042,30 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="AndroidExpansion"            )androidExpansion(n.asBool1());else
          if(n.name=="AndroidLicenseKey"           )n.getValue(android_license_key);else
 
+         if(n.name=="Microsoft")
+         {
+            REPA(n.nodes)
+            {
+             C TextNode &ms=n.nodes[i];
+               if(ms.name=="PublisherID"      )ms_publisher_id.fromCanonical(ms.asText());else
+               if(ms.name=="PublisherIDTime"  )ms_publisher_id_time         =ms.asText() ;else
+               if(ms.name=="PublisherName"    )ms.getValue                  (ms_publisher_name);else
+               if(ms.name=="PublisherNameTime")ms_publisher_name_time       =ms.asText();
+            }
+         }else
+         if(n.name=="XboxLive")
+         {
+            REPA(n.nodes)
+            {
+             C TextNode &xbl=n.nodes[i];
+               if(xbl.name=="Program"    )xbl_program           =(Edit::XBOX_LIVE)xbl.asInt();else
+               if(xbl.name=="ProgramTime")xbl_program_time      =xbl.asText() ;else
+               if(xbl.name=="TitleID"    )xbl.getValue          (xbl_title_id);else
+               if(xbl.name=="TitleIDTime")xbl_title_id_time     =xbl.asText() ;else
+               if(xbl.name=="SCID"       )xbl_scid.fromCanonical(xbl.asText());else
+               if(xbl.name=="SCIDTime"   )xbl_scid_time         =xbl.asText();
+            }
+         }else
          if(n.name=="FacebookAppID"               )n.getValue(fb_app_id);else
          if(n.name=="AdMob"                       )
          {
@@ -3585,7 +3669,7 @@ ElmTextStyle::ElmTextStyle() : font_id(UIDZero) {}
 
 ElmPanelImage::ElmPanelImage() : compressed(false) {}
 
-ElmApp::ElmApp() : build(1), fb_app_id(0), storage(Edit::STORAGE_INTERNAL), supported_orientations(DIRF_X|DIRF_Y), flag(PUBLISH_PROJ_DATA|PUBLISH_PHYSX_DLL|PUBLISH_DATA_AS_PAK), icon(UIDZero), notification_icon(UIDZero), image_portrait(UIDZero), image_landscape(UIDZero), gui_skin(UIDZero) {}
+ElmApp::ElmApp() : build(1), fb_app_id(0), xbl_title_id(0), storage(Edit::STORAGE_INTERNAL), xbl_program(Edit::XBOX_LIVE_CREATORS), supported_orientations(DIRF_X|DIRF_Y), flag(PUBLISH_PROJ_DATA|PUBLISH_PHYSX_DLL|PUBLISH_DATA_AS_PAK), icon(UIDZero), notification_icon(UIDZero), image_portrait(UIDZero), image_landscape(UIDZero), gui_skin(UIDZero), ms_publisher_id(UIDZero), xbl_scid(UIDZero) {}
 
 ElmMiniMap::ElmMiniMap() : areas_per_image(4), image_size(256), world_id(UIDZero), env_id(UIDZero) {}
 

@@ -45,8 +45,9 @@ enum STORAGE_MODE : Byte
 };
 enum XBOX_LIVE : Byte // https://docs.microsoft.com/en-us/gaming/xbox-live/get-started/join-dev-program/live-dev-program-overview
 {
-   XBOX_LIVE_CREATORS        ,
-   XBOX_LIVE_MANAGED_PARTNERS,
+   XBOX_LIVE_CREATORS,
+   XBOX_LIVE_ID_XBOX , // ID@Xbox, Managed Partners
+   XBOX_LIVE_NUM     ,
 };
 struct CodeEditorInterface
 {
