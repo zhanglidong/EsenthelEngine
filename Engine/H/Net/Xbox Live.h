@@ -81,7 +81,7 @@ private:
    Mems<Friend> _friends;
 #if EE_PRIVATE
    void setStatus(STATUS status);
-   void logInOk();
+   void logInOK();
    void getUserProfile(); // request extra profile information for current user (such as score and image url), result will be reported through the 'callback' function
    void getUserProfile(C CMemPtr<ULong> &user_ids);
 #endif

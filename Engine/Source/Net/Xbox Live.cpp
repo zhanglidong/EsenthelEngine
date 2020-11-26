@@ -109,7 +109,7 @@ void XBOXLive::setStatus(STATUS status)
 {
    if(T._status!=status){T._status=status; if(callback)callback(STATUS_CHANGED, userID());}
 }
-void XBOXLive::logInOk()
+void XBOXLive::logInOK()
 {
 #if SUPPORT_XBOX_LIVE
    SyncLockerEx locker(lock);
@@ -161,7 +161,7 @@ void XBOXLive::logIn()
 #if SUPPORT_XBOX_LIVE
    if(_status==LOGGED_OUT)
    {
-      OSUser.get(); // !! get 'OSUser' here because we will need it inside the 'logInOk', and we can't obtain it there because it's called inside system callbacks and getting it would require callbacks again (nested calls are not allowed)
+      OSUser.get(); // !! get 'OSUser' here because we will need it inside the 'logInOK', and we can't obtain it there because it's called inside system callbacks and getting it would require callbacks again (nested calls are not allowed)
       SyncLocker locker(lock); if(_status==LOGGED_OUT)
       {
         _status=LOGGING_IN; // don't call 'setStatus' to avoid setting callback because we don't need it here
@@ -174,7 +174,7 @@ void XBOXLive::logIn()
              C auto &payload=result.payload(); switch(payload.status())
                {
                   default: setStatus(LOGGED_OUT); break;
-                  case xbox::services::system::sign_in_status::success: logInOk(); break;
+                  case xbox::services::system::sign_in_status::success: logInOK(); break;
                   case xbox::services::system::sign_in_status::user_interaction_required: // sign-in with UI
                   {
                      XboxUser->signin(Windows::UI::Core::CoreWindow::GetForCurrentThread()->Dispatcher).then([this](xbox::services::xbox_live_result<xbox::services::system::sign_in_result> loudResult)
@@ -184,7 +184,7 @@ void XBOXLive::logIn()
                          C auto &payload=loudResult.payload(); switch(payload.status())
                            {
                               default: setStatus(LOGGED_OUT); break;
-                              case xbox::services::system::sign_in_status::success: logInOk(); break;
+                              case xbox::services::system::sign_in_status::success: logInOK(); break;
                            }
                         }
                      }, concurrency::task_continuation_context::use_current());
