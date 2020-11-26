@@ -1269,10 +1269,10 @@ Bool CodeEditor::generateVSProj(Int version)
       UID   xbl_scid    =cei().appXboxLiveSCID   ();
       if(xbl_title_id || xbl_scid.valid()) // want to use Xbox
       {
-         TextData td;
-         td.nodes.New().set("TitleId"               , xbl_title_id);
-         td.nodes.New().set("PrimaryServiceConfigId", CaseDown(xbl_scid.asCanonical())); // CaseDown required
-         td.nodes.New().set("XboxLiveCreatorsTitle" , TextBool(cei().appXboxLiveProgram()==XBOX_LIVE_CREATORS));
+         TextData td; TextNode &root=td.nodes.New();
+         root.nodes.New().set("TitleId"               , xbl_title_id);
+         root.nodes.New().set("PrimaryServiceConfigId", CaseDown(xbl_scid.asCanonical())); // CaseDown required
+         root.nodes.New().set("XboxLiveCreatorsTitle" , TextBool(cei().appXboxLiveProgram()==XBOX_LIVE_CREATORS));
          FileText f; f.writeMem(); td.saveJSON(f); if(!OverwriteOnChangeLoud(f, build_path+"xboxservices.config"))return false;
 
          BuildFile &bf=build_files.New().set(BuildFile::COPY, S, SourceLoc());
