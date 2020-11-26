@@ -1445,7 +1445,7 @@ void InitPre()
 
    // extract LIB files that are too big for GitHub to handle
 #if WINDOWS
-   Extract("C:/Esenthel/ThirdPartyLibs/Xbox Live/2018.6.20181010.2/x64.zip");
+   Extract(EsenthelPath+"ThirdPartyLibs/Xbox Live/2018.6.20181010.2/x64.zip");
 #endif
 }
 void SetPaths()
