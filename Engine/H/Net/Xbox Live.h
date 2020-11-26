@@ -1,5 +1,23 @@
 /******************************************************************************
 
+   Xbox Live is available only on Windows UWP
+
+   In order to use Xbox Live functionality, you need to:
+      1. Be a Microsoft Partner - https://partner.microsoft.com/en-us/dashboard
+      2. Create an Application - https://partner.microsoft.com/en-US/dashboard/apps/new
+      3. Enable Xbox Live for it
+         1. Open Application Page on https://partner.microsoft.com/en-us/dashboard
+         2. Select "Services \ Xbox Live" in the menu
+         3. Enable Xbox Live
+      4. Configure your Esenthel Application in Esenthel Editor
+         1. Double-click your Application Element in the Project to open its properties
+         2. Fill out the "Microsoft" and "XboxLive" fields (you can use "Get" buttons to navigate to Microsoft website where you can obtain these values)
+
+   Please note that some functionality is limited depending on the type of your Microsoft Partner account:
+      https://docs.microsoft.com/en-us/gaming/xbox-live/get-started/join-dev-program/live-feature-comparison-table
+      Creators                   - everything except Friends and Achievements
+      Managed Partners (ID@Xbox) - full support
+
    Xbox Live has a 16 MB limit for individual cloud file sizes:
       -individual calls to 'cloudSave' may not exceed that limit
 
