@@ -43,6 +43,11 @@ enum STORAGE_MODE : Byte
    STORAGE_EXTERNAL,
    STORAGE_AUTO    ,
 };
+enum XBOX_LIVE : Byte // https://docs.microsoft.com/en-us/gaming/xbox-live/get-started/join-dev-program/live-dev-program-overview
+{
+   XBOX_LIVE_CREATORS        ,
+   XBOX_LIVE_MANAGED_PARTNERS,
+};
 struct CodeEditorInterface
 {
    void del        ();
@@ -143,52 +148,57 @@ struct CodeEditorInterface
 
    virtual UID projectID() {return UIDZero;} // get active Project ID
 
-   virtual UID           appID                              () {return           UIDZero;} // get ID                                  of current app
-   virtual Str           appName                            () {return                 S;} // get name                                of current app
-   virtual Str           appDirsWindows                     () {return                 S;} // get all directories                     of current app
-   virtual Str           appDirsNonWindows                  () {return                 S;} // get all directories                     of current app
-   virtual Str           appHeadersWindows                  () {return                 S;} // get all headers                         of current app
-   virtual Str           appHeadersMac                      () {return                 S;} // get all headers                         of current app
-   virtual Str           appHeadersLinux                    () {return                 S;} // get all headers                         of current app
-   virtual Str           appHeadersAndroid                  () {return                 S;} // get all headers                         of current app
-   virtual Str           appHeadersiOS                      () {return                 S;} // get all headers                         of current app
-   virtual Str           appLibsWindows                     () {return                 S;} // get all libraries                       of current app
-   virtual Str           appLibsMac                         () {return                 S;} // get all libraries                       of current app
-   virtual Str           appLibsLinux                       () {return                 S;} // get all libraries                       of current app
-   virtual Str           appLibsAndroid                     () {return                 S;} // get all libraries                       of current app
-   virtual Str           appLibsiOS                         () {return                 S;} // get all libraries                       of current app
-   virtual Str           appPackage                         () {return                 S;} // get package name                        of current app
-   virtual Str           appGooglePlayLicenseKey            () {return                 S;} // get Google Play license key             of current app
-   virtual Str           appLocationUsageReason             () {return                 S;} // get location usage reason               of current app
-   virtual Int           appBuild                           () {return                 1;} // get build number                        of current app
-   virtual ULong         appFacebookAppID                   () {return                 0;} // get Facebook   App ID                   of current app
-   virtual Str           appAdMobAppIDiOS                   () {return                 S;} // get AdMob      App ID                   of current app for iOS         platform
-   virtual Str           appAdMobAppIDGooglePlay            () {return                 S;} // get AdMob      App ID                   of current app for Google Play platform
-   virtual Str           appChartboostAppIDiOS              () {return                 S;} // get Chartboost App ID                   of current app for iOS         platform
-   virtual Str           appChartboostAppSignatureiOS       () {return                 S;} // get Chartboost App Signature            of current app for iOS         platform
-   virtual Str           appChartboostAppIDGooglePlay       () {return                 S;} // get Chartboost App ID                   of current app for Google Play platform
-   virtual Str           appChartboostAppSignatureGooglePlay() {return                 S;} // get Chartboost App Signature            of current app for Google Play platform
-   virtual STORAGE_MODE  appPreferredStorage                () {return  STORAGE_INTERNAL;} // get preferred storage                   of current app
-   virtual UInt          appSupportedOrientations           () {return                 0;} // get supported orientations (DIR_FLAG)   of current app
-   virtual UID           appGuiSkin                         () {return           UIDZero;} // get default Gui Skin                    of current app
-   virtual ImagePtr      appIcon                            () {return              null;} // get icon                                of current app
-   virtual ImagePtr      appImagePortrait                   () {return              null;} // get portrait  splash screen             of current app
-   virtual ImagePtr      appImageLandscape                  () {return              null;} // get landscape splash screen             of current app
-   virtual ImagePtr      appNotificationIcon                () {return              null;} // get notification icon                   of current app
-   virtual Int           appEmbedEngineData                 () {return                 0;} // get if embed   engine  data             of current app
-   virtual Cipher*       appEmbedCipher                     () {return              null;} // get cipher      used for embedding data of current app
-   virtual COMPRESS_TYPE appEmbedCompress                   () {return     COMPRESS_NONE;} // get compression used for embedding data of current app
-   virtual Int           appEmbedCompressLevel              () {return                 0;} // get compression used for embedding data of current app
-   virtual DateTime      appEmbedSettingsTime               () {return DateTime().zero();} // get settings time    for embedding data of current app
-   virtual Bool          appPublishProjData                 () {return              true;} // get if publish project data             of current app
-   virtual Bool          appPublishPhysxDll                 () {return              true;} // get if copy PhysX  dll's                of current app
-   virtual Bool          appPublishSteamDll                 () {return             false;} // get if copy Steam  dll                  of current app
-   virtual Bool          appPublishOpenVRDll                () {return             false;} // get if copy OpenVR dll                  of current app
-   virtual Bool          appPublishDataAsPak                () {return              true;} // get if publish data as paks             of current app
-   virtual Bool          appWindowsCodeSign                 () {return             false;} // get if code sign exe                    of current app
-   virtual Bool          appAndroidExpansion                () {return             false;} // get if download android expansion files of current app
-   virtual void          appSpecificFiles                   (MemPtr<PakFileData> files) {} // get specific files                      of current app
-   virtual void          appInvalidProperty                 (C Str &msg               ) {} // called when application property was detected as invalid
+   virtual UID           appID                              () {return            UIDZero;} // get ID                                  of current app
+   virtual Str           appName                            () {return                  S;} // get name                                of current app
+   virtual Str           appDirsWindows                     () {return                  S;} // get all directories                     of current app
+   virtual Str           appDirsNonWindows                  () {return                  S;} // get all directories                     of current app
+   virtual Str           appHeadersWindows                  () {return                  S;} // get all headers                         of current app
+   virtual Str           appHeadersMac                      () {return                  S;} // get all headers                         of current app
+   virtual Str           appHeadersLinux                    () {return                  S;} // get all headers                         of current app
+   virtual Str           appHeadersAndroid                  () {return                  S;} // get all headers                         of current app
+   virtual Str           appHeadersiOS                      () {return                  S;} // get all headers                         of current app
+   virtual Str           appLibsWindows                     () {return                  S;} // get all libraries                       of current app
+   virtual Str           appLibsMac                         () {return                  S;} // get all libraries                       of current app
+   virtual Str           appLibsLinux                       () {return                  S;} // get all libraries                       of current app
+   virtual Str           appLibsAndroid                     () {return                  S;} // get all libraries                       of current app
+   virtual Str           appLibsiOS                         () {return                  S;} // get all libraries                       of current app
+   virtual Str           appPackage                         () {return                  S;} // get package name                        of current app
+   virtual UID           appMicrosoftPublisherID            () {return            UIDZero;} // get Microsoft Publisher ID              of current app
+   virtual Str           appMicrosoftPublisherName          () {return                  S;} // get Microsoft Publisher Name            of current app
+   virtual XBOX_LIVE     appXboxLiveProgram                 () {return XBOX_LIVE_CREATORS;} // get Xbox Live program                   of current app
+   virtual ULong         appXboxLiveTitleID                 () {return                  0;} // get Xbox Live Title ID                  of current app
+   virtual UID           appXboxLiveSCID                    () {return            UIDZero;} // get Xbox Live SCID                      of current app
+   virtual Bool          appWindowsCodeSign                 () {return              false;} // get if code sign exe                    of current app
+   virtual Str           appGooglePlayLicenseKey            () {return                  S;} // get Google Play license key             of current app
+   virtual Str           appLocationUsageReason             () {return                  S;} // get location usage reason               of current app
+   virtual Int           appBuild                           () {return                  1;} // get build number                        of current app
+   virtual ULong         appFacebookAppID                   () {return                  0;} // get Facebook   App ID                   of current app
+   virtual Str           appAdMobAppIDiOS                   () {return                  S;} // get AdMob      App ID                   of current app for iOS         platform
+   virtual Str           appAdMobAppIDGooglePlay            () {return                  S;} // get AdMob      App ID                   of current app for Google Play platform
+   virtual Str           appChartboostAppIDiOS              () {return                  S;} // get Chartboost App ID                   of current app for iOS         platform
+   virtual Str           appChartboostAppSignatureiOS       () {return                  S;} // get Chartboost App Signature            of current app for iOS         platform
+   virtual Str           appChartboostAppIDGooglePlay       () {return                  S;} // get Chartboost App ID                   of current app for Google Play platform
+   virtual Str           appChartboostAppSignatureGooglePlay() {return                  S;} // get Chartboost App Signature            of current app for Google Play platform
+   virtual STORAGE_MODE  appPreferredStorage                () {return   STORAGE_INTERNAL;} // get preferred storage                   of current app
+   virtual UInt          appSupportedOrientations           () {return                  0;} // get supported orientations (DIR_FLAG)   of current app
+   virtual UID           appGuiSkin                         () {return            UIDZero;} // get default Gui Skin                    of current app
+   virtual ImagePtr      appIcon                            () {return               null;} // get icon                                of current app
+   virtual ImagePtr      appImagePortrait                   () {return               null;} // get portrait  splash screen             of current app
+   virtual ImagePtr      appImageLandscape                  () {return               null;} // get landscape splash screen             of current app
+   virtual ImagePtr      appNotificationIcon                () {return               null;} // get notification icon                   of current app
+   virtual Int           appEmbedEngineData                 () {return                  0;} // get if embed   engine  data             of current app
+   virtual Cipher*       appEmbedCipher                     () {return               null;} // get cipher      used for embedding data of current app
+   virtual COMPRESS_TYPE appEmbedCompress                   () {return      COMPRESS_NONE;} // get compression used for embedding data of current app
+   virtual Int           appEmbedCompressLevel              () {return                  0;} // get compression used for embedding data of current app
+   virtual DateTime      appEmbedSettingsTime               () {return  DateTime().zero();} // get settings time    for embedding data of current app
+   virtual Bool          appPublishProjData                 () {return               true;} // get if publish project data             of current app
+   virtual Bool          appPublishPhysxDll                 () {return               true;} // get if copy PhysX  dll's                of current app
+   virtual Bool          appPublishSteamDll                 () {return              false;} // get if copy Steam  dll                  of current app
+   virtual Bool          appPublishOpenVRDll                () {return              false;} // get if copy OpenVR dll                  of current app
+   virtual Bool          appPublishDataAsPak                () {return               true;} // get if publish data as paks             of current app
+   virtual Bool          appAndroidExpansion                () {return              false;} // get if download android expansion files of current app
+   virtual void          appSpecificFiles                   (MemPtr<PakFileData> files) { } // get specific files                      of current app
+   virtual void          appInvalidProperty                 (C Str &msg               ) { } // called when application property was detected as invalid
 
    virtual Rect         menuRect    (                      ) {return D.rect();}
    virtual Rect       sourceRect    (                      ) {return D.rect();}
