@@ -1298,6 +1298,7 @@ Bool CodeEditor::generateVSProj(Int version)
          if(XmlNode *properties=package->findNode("Properties"))
          {
             if(XmlNode *display_name=properties->findNode("DisplayName"))display_name->data.setNum(1)[0]=cei().appName();
+            Str publisher_name=cei().appMicrosoftPublisherName(); if(publisher_name.is())if(XmlNode *publisher_display_name=properties->findNode("PublisherDisplayName"))publisher_display_name->data.setNum(1)[0]=publisher_name; // replace only if specified, because can't be empty
          }
          if(XmlNode *applications=package->findNode("Applications"))
             if(XmlNode *application=applications->findNode("Application"))
