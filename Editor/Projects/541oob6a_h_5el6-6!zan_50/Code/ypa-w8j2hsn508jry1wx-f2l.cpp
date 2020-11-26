@@ -41,12 +41,13 @@ void Shut()
 /******************************************************************************/
 bool Update()
 {
+   if(Kb.bp(KB_ESC))return false;
    return true;
 }
 /******************************************************************************/
 void Draw()
 {
-   D.clear(WHITE);
+   D.clear(AZURE);
    
    Str status;
    switch(XboxLive.status())
@@ -62,14 +63,15 @@ void Draw()
       if(ImagePtr photo=IC.getImage(XboxLive.userImageURL()))photo->drawFit(Rect_U(0, 0.7, 0.3, 0.3));
       D.text(0, 0.3, S+"Cloud supported:"+XboxLive.cloudSupported()+", available size:"+XboxLive.cloudAvailableSize());
       D.text(0, 0.2, S+"Friends:");
-      flt y=0.1;
+      flt x=-D.w()/2, y=0.1;
       Memt<XBOXLive.Friend> friends; if(XboxLive.getFriends(friends))
       {
          TextStyleParams ts; ts.align.x=1;
          FREPA(friends)
          {
           C XBOXLive.Friend &user=friends[i];
-            D.text(ts, -D.w()/2, y, S+i+", "+user.id+", "+user.name+(user.favorite ? "(*)" : null));
+            D.text(ts, x, y, S+'#'+i+", ID:"+user.id+", Name:"+user.name+(user.favorite ? "(*)" : null));
+            if(ImagePtr photo=IC.getImage(user.image_url))photo->drawFit(Rect_R(x-0.05, y, 0.1, 0.1));
          }
       }else D.text(0, y, "Unknown");
    }
