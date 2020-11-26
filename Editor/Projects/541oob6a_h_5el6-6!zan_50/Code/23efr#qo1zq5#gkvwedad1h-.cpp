@@ -4,11 +4,11 @@
    !! INSTRUCTIONS ARE IN "Esenthel Engine\Net\Facebook" Header File                      !!
 
 /******************************************************************************/
-const bool IHaveReadTheInstructionsAtTheTop=false; // read the instructions above, then set this to true
+const bool IHaveReadInstructionsAtTheTop=false; // read the instructions above, then set this to true
 
 const bool SetPhotoSize=true; // if download photos based on targetted screen resolution
 
-Button        DisplayFriends, PostOnWall, OpenPage;
+Button        DisplayFriends, MakePost, OpenPage;
 InternetCache IC; // cache for images from the internet
 Threads       Workers; // worker threads for importing images in the background thread
 /******************************************************************************/
@@ -16,9 +16,9 @@ void GetFriends(ptr)
 {
    FB.getFriends(); // download list of friends
 }
-void PostOnWallDo(ptr)
+void MakePostDo(ptr)
 {
-   FB.post(S, "http://www.esenthel.com/", S, "Esenthel Engine is Awesome", "Yes it's true");
+   FB.post("http://www.esenthel.com/", "Esenthel Engine is Awesome");
 }
 void OpenPageDo(ptr)
 {
@@ -31,14 +31,14 @@ void Save()
 }
 void InitPre()
 {
-   ASSERT(IHaveReadTheInstructionsAtTheTop);
+   ASSERT(IHaveReadInstructionsAtTheTop);
    EE_INIT();
    App.save_state=Save;
 }
 /******************************************************************************/
 bool Init()
 {
-   Workers.create(true, Max(1, Cpu.threads()-1)); // create workers
+   Workers.create(true, 1); // create workers
    Str path;
 #if MOBILE
    path=SystemPath(SP_APP_DATA);
@@ -48,7 +48,7 @@ bool Init()
    Images.delayRemove(30); // this will delay automatic unloading of cached images
 
    Gui+=DisplayFriends.create(Rect_C(0,  0.2, 0.8, 0.12), "Display Friends").func(GetFriends);
-   Gui+=PostOnWall    .create(Rect_C(0,  0.0, 0.8, 0.12), "Post On Wall"   ).func(PostOnWallDo);
+   Gui+=MakePost      .create(Rect_C(0,  0.0, 0.8, 0.12), "Make a Post"    ).func(MakePostDo);
    Gui+=OpenPage      .create(Rect_C(0, -0.2, 0.8, 0.12), "Open Page"      ).func(OpenPageDo);
 
    return true;
