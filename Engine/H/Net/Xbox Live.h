@@ -47,7 +47,7 @@ struct XBOXLive
  C Str&  userName    ()C {return _me.name     ;} // get user name/gamertag,  "" on fail. This is valid only after being logged in
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after USER_PROFILE event
 
-   // friends
+   // Friends - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
    void          getFriends(                        ) ; // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
    Bool          getFriends(MemPtr<ULong> friend_ids)C; // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
    Str           userName  (       ULong  user_id   )C; // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
@@ -68,6 +68,8 @@ struct XBOXLive
       Long size;
    };
    Bool cloudFiles(MemPtr<CloudFile> files)C; // get list of files that are currently stored in the cloud, false on fail
+
+   // Achievements - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
 
 private:
    STATUS       _status=LOGGED_OUT;
