@@ -1289,10 +1289,11 @@ Bool CodeEditor::generateVSProj(Int version)
 
       if(XmlNode *package=xml.findNode("Package"))
       {
-         if(XmlNode *identity=package->findNode("identity"))
+         if(XmlNode *identity=package->findNode("Identity"))
          {
-            identity->getParam("Name").setValue(Replace(cei().appPackage(), '_', '-')); // MS doesn't support '_' but supports '-'
-            identity->getParam("Version").setValue(S+cei().appBuild()+".0.0.0");
+            identity->getParam("Name"     ).setValue(Replace(cei().appPackage(), '_', '-')); // MS doesn't support '_' but supports '-'
+            identity->getParam("Publisher").setValue(S+"CN="+CaseUp(cei().appMicrosoftPublisherID().asCanonical())); // MS might require case up
+            identity->getParam("Version"  ).setValue(S+cei().appBuild()+".0.0.0");
          }
          if(XmlNode *properties=package->findNode("Properties"))
          {
