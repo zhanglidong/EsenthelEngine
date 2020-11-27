@@ -257,13 +257,12 @@ Bool XBOXLive::cloudDel(C Str &file_name)
 static Ptr GetBufferData(Windows::Storage::Streams::IBuffer ^buffer)
 {
    byte *data=null;
-   IUnknown *unknown=reinterpret_cast<IUnknown*>(buffer);
-   Windows::Storage::Streams::IBufferByteAccess *bufferByteAccess=null;
-   unknown->QueryInterface(_uuidof(Windows::Storage::Streams::IBufferByteAccess), (Ptr*)&bufferByteAccess);
-   if(bufferByteAccess)
+   Windows::Storage::Streams::IBufferByteAccess *buffer_byte_access=null;
+   ((IUnknown*)buffer)->QueryInterface(_uuidof(Windows::Storage::Streams::IBufferByteAccess), (Ptr*)&buffer_byte_access);
+   if(buffer_byte_access)
    {
-      bufferByteAccess->Buffer(&data);
-      bufferByteAccess->Release();
+      buffer_byte_access->Buffer(&data);
+      buffer_byte_access->Release();
    }
    return data;
 }
@@ -496,7 +495,7 @@ void XBOXLive::getAchievements()
             if(!result.err())
             {
                Memt<Achievement> temp;
-               auto payload=result.payload();
+               auto payload=result.payload(); // can't use a reference because we might modify it below with "next" results
             again:
              C auto &xachievements=payload.items(); FREP(xachievements.size())
                {
