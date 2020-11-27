@@ -491,27 +491,52 @@ void XBOXLive::getAchievements()
         _achievements_getting=true;
          auto task=XboxCtx->achievement_service().get_achievements_for_title_id(XboxCtx->xbox_live_user_id(), XboxCtx->application_config()->title_id(), xbox::services::achievements::achievement_type::all, false, xbox::services::achievements::achievement_order_by::default_order, 0, 0);
          locker.off();
-         task.then([this](xbox::services::xbox_live_result<xbox::services::achievements::achievements_result> results)
+         task.then([this](xbox::services::xbox_live_result<xbox::services::achievements::achievements_result> result)
          {
-            if(!results.err())
+            if(!result.err())
             {
-             C auto &result=results.payload(); //if(!result.err())
+               Memt<Achievement> temp;
+               auto payload=result.payload();
+            again:
+             C auto &xachievements=payload.items(); FREP(xachievements.size())
                {
-                  //result.
-                /*C auto &profiles=result.payload().items();
-                  Mems<Achievement> achievements   ; achievements   .setNum(profiles.size()); FREPA(achievements) // operate on temporary to swap fast under lock
+                C auto        &src =xachievements[i];
+                  Achievement &dest=temp.New();
+                  dest.id  =src.id  ().c_str();
+                  dest.name=src.name().c_str();
+                  dest.unlocked_desc=src.unlocked_description().c_str();
+                  dest.  locked_desc=src.  locked_description().c_str();
+                  dest.secret=src.is_secret();
+                  switch(src.progress_state())
                   {
-                     Achievement &user=achievements[i];
-                   C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
-                     user.clear();
-                     user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
-                     user.favorite=relationship.is_favorite();
+                     default                                                                   : dest.state=XBOXLive::Achievement::UNKNOWN    ; break;
+                     case xbox::services::achievements::achievement_progress_state::not_started: dest.state=XBOXLive::Achievement::NOT_STARTED; break;
+                     case xbox::services::achievements::achievement_progress_state::in_progress: dest.state=XBOXLive::Achievement::IN_PROGRESS; break;
+                     case xbox::services::achievements::achievement_progress_state::achieved   : dest.state=XBOXLive::Achievement::ACHIEVED   ; break;
                   }
+               }
+               if(payload.has_next())
+               {
+                  auto task=payload.get_next(0);
+                  SyncEvent event;
+                  Bool ok=false;
+                  task.then([&](xbox::services::xbox_live_result<xbox::services::achievements::achievements_result> result)
                   {
-                     SyncLocker locker(lock);
-                     Swap(_achievements, achievements);
-                    _achievements_known=true;
-                  }*/
+                     if(!result.err())
+                     {
+                        payload=result.payload();
+                        ok=true;
+                     }
+                     event.on();
+                  });
+                  App.wait(event);
+                  if(ok)goto again;
+               }
+               Mems<Achievement> achievements; achievements=temp;
+               {
+                  SyncLocker locker(lock);
+                  Swap(_achievements, achievements);
+                 _achievements_known=true;
                }
             }
            _achievements_getting=false;
