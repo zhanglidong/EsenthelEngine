@@ -15,7 +15,11 @@ void XboxCallback(XBOXLive.EVENT event, ULong user_id)
    {
       case XBOXLive.STATUS_CHANGED:
       {
-         if(user_id==XboxLive.userID() && XboxLive.loggedIn())XboxLive.getFriends(); // after successful log in, request list of friends
+         if(user_id==XboxLive.userID() && XboxLive.loggedIn()) // after successful log in
+         {
+            XboxLive.getFriends     (); // request list of friends
+            XboxLive.getAchievements(); // request list of achievements
+         }
       }break;
    }
 }
@@ -96,29 +100,51 @@ void Draw()
       case XBOXLive.LOGGING_IN: status="Logging In"; break;
       case XBOXLive.LOGGED_IN : status="Logged In" ; break;
    }
-   D.text(0, 0.9, status);
+   flt h=0.07, y=D.h()-h;
+   D.text(0, y, status); y-=h;
 
    if(XboxLive.status()==XBOXLive.LOGGED_IN)
    {
-      D.text(0, 0.8, S+"Welcome "+XboxLive.userName());
-      if(ImagePtr photo=IC.getImage(XboxLive.userImageURL()))photo->drawFit(Rect_U(0, 0.7, 0.3, 0.3));
+      D.text(0, y, S+"Welcome "+XboxLive.userName()); y-=h;
+      if(ImagePtr photo=IC.getImage(XboxLive.userImageURL()))photo->drawFit(Rect_U(0, y, 0.3, 0.3)); y-=h+0.3;
 
-      D.text(0, 0.3, S+"Cloud supported:"+XboxLive.cloudSupported()+", available size:"+XboxLive.cloudAvailableSize());
+      D.text(0, y, S+"Cloud supported:"+XboxLive.cloudSupported()+", available size:"+XboxLive.cloudAvailableSize()); y-=h;
+      D.text(0, y, "Press Enter to test Cloud Saves"); y-=h;
+      y-=h;
 
-      D.text(0, 0.2, S+"Friends:");
-      flt x=-D.w()/2, y=0.1;
+      flt x=-D.w()/2;
+      D.text(0, y, S+"Friends:"); y-=h;
       Memt<XBOXLive.Friend> friends; if(XboxLive.getFriends(friends))
       {
-         TextStyleParams ts; ts.align.x=1;
+         flt h=0.06; TextStyleParams ts; ts.align.x=1; ts.size=h;
          FREPA(friends)
          {
           C XBOXLive.Friend &user=friends[i];
             D.text(ts, x, y, S+'#'+i+", ID:"+user.id+", Name:"+user.name+(user.favorite ? "(*)" : null));
-            if(ImagePtr photo=IC.getImage(user.image_url))photo->drawFit(Rect_R(x-0.05, y, 0.1, 0.1));
+            if(ImagePtr photo=IC.getImage(user.image_url))photo->drawFit(Rect_R(x-0.05, y, h, h));
+            y-=h;
          }
-      }else D.text(0, y, "Unknown");
+      }else 
+      {
+         D.text(0, y, "Unknown"); y-=h;
+      }
+      y-=h/2;
 
-      D.text(0, -0.9, "Press Enter to test Cloud Saves");
+      D.text(0, y, S+"Achievements:"); y-=h;
+      Memt<XBOXLive.Achievement> achievements; if(XboxLive.getAchievements(achievements))
+      {
+         flt h=0.06; TextStyleParams ts; ts.align.x=1; ts.size=h;
+         FREPA(achievements)
+         {
+          C XBOXLive.Achievement &achievement=achievements[i];
+            D.text(ts, x, y, S+'#'+i+", ID:"+achievement.id+", Name:"+achievement.name+", Unlocked:"+achievement.unlocked());
+            y-=h;
+         }
+      }else 
+      {
+         D.text(0, y, "Unknown"); y-=h;
+      }
+      y-=h/2;
    }
    Gui.draw();
 }
