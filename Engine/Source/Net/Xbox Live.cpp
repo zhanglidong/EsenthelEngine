@@ -506,13 +506,28 @@ void XBOXLive::getAchievements()
                   dest.unlocked_desc=src.unlocked_description().c_str();
                   dest.  locked_desc=src.  locked_description().c_str();
                   dest.secret=src.is_secret();
-                  switch(src.progress_state())
+
+                  // progress
+                C auto &requirements=src.progression().requirements(); if(requirements.size()==1)
                   {
-                     default                                                                   : dest.state=XBOXLive::Achievement::UNKNOWN    ; break;
-                     case xbox::services::achievements::achievement_progress_state::not_started: dest.state=XBOXLive::Achievement::NOT_STARTED; break;
-                     case xbox::services::achievements::achievement_progress_state::in_progress: dest.state=XBOXLive::Achievement::IN_PROGRESS; break;
-                     case xbox::services::achievements::achievement_progress_state::achieved   : dest.state=XBOXLive::Achievement::ACHIEVED   ; break;
+                   C auto &requirement=requirements[0];
+                     CalcValue cur, total;
+                     TextValue(WChar(requirement.current_progress_value().c_str()), cur  );
+                     TextValue(WChar(requirement. target_progress_value().c_str()), total);
+                     if(cur.type && total.type)
+                     {
+                        dest.progress=cur.asFlt()/total.asFlt();
+                        goto has_progress;
+                     }
                   }
+                  switch(src.progress_state()) // if couldn't set based on 'requirements' then set based on state
+                  {
+                     default                                                                   : dest.progress=  -1; break; // unknown
+                     case xbox::services::achievements::achievement_progress_state::not_started: dest.progress=   0; break;
+                     case xbox::services::achievements::achievement_progress_state::in_progress: dest.progress=0.5f; break;
+                     case xbox::services::achievements::achievement_progress_state::achieved   : dest.progress=   1; break;
+                  }
+               has_progress:;
                }
                if(payload.has_next())
                {

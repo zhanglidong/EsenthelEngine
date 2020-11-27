@@ -67,19 +67,13 @@ struct XBOXLive
 
    struct Achievement
    {
-      enum STATE : Byte
-      {
-         UNKNOWN    ,
-         NOT_STARTED,
-         IN_PROGRESS,
-         ACHIEVED   ,
-      };
+      Str  id, name, unlocked_desc, locked_desc;
+      Flt  progress; // achievement progress, 0=not started, 1=fully completed
+      Bool secret; // if this is a secret achievement
 
-      Str   id, name, unlocked_desc, locked_desc;
-      STATE state;
-      Bool  secret;
-
-      Bool unlocked()C {return state==ACHIEVED;}
+      Bool notStarted()C {return progress<=0              ;} // if not yet started
+      Bool inProgress()C {return progress> 0 && progress<1;} // if in progress
+      Bool   unlocked()C {return progress>=1              ;} // if unlocked/achieved/completed
    };
 
    SyncLock lock;
