@@ -137,7 +137,7 @@ void Draw()
          FREPA(achievements)
          {
           C XBOXLive.Achievement &achievement=achievements[i];
-            D.text(ts, x, y, S+'#'+i+", ID:"+achievement.id+", Name:"+achievement.name+", Unlocked:"+achievement.unlocked());
+            D.text(ts, x, y, S+'#'+i+", ID:"+achievement.id+", Name:\""+achievement.name+"\", Progress:"+achievement.progress+", Unlocked:"+achievement.unlocked());
             y-=h;
          }
       }else 

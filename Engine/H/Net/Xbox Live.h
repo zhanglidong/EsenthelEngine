@@ -39,7 +39,7 @@ struct XBOXLive
       STATUS_CHANGED   , // user log in status has changed
       USER_PROFILE     , // received full profile information for a user
       USER_FRIENDS     , // received list of friends, however their info is not complete (only 'id' and 'favorite' members will be valid, remaining members should be received soon through 'USER_PROFILE' events for each friend separately)
-      USER_ACHIEVEMENTS, // received list of achievements
+      USER_ACHIEVEMENTS, // received list of achievements due to a 'getAchievements' call, or list was updated due to a 'setAchievement' call
    };
    enum STATUS : Byte
    {
@@ -113,9 +113,10 @@ struct XBOXLive
    Bool cloudFiles(MemPtr<CloudFile> files)C; // get list of files that are currently stored in the cloud, false on fail
 
    // Achievements - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
-   void                  getAchievements();                                  // initiate process of obtaining achievement list, result will be reported through the 'callback' function with USER_ACHIEVEMENTS event, only after that event methods below will return valid results
-   Bool                  getAchievements(MemPtr<Achievement> achievements)C; // get achievement list, false on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event)
- C Mems<Achievement>& lockedAchievements()C {return _achievements;}          // get achievement list, empty on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event) this method can be called only under lock for 'lock' member
+   void                  getAchievements();                                     // initiate process of obtaining achievement list, result will be reported through the 'callback' function with USER_ACHIEVEMENTS event, only after that event methods below will return valid results
+   Bool                  getAchievements(MemPtr<Achievement> achievements   )C; // get achievement list, false on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event)
+   void                  setAchievement (C Str &achievement_id, Flt progress);  // set achievement progress, 'achievement_id'=ID of the achievement, 'progress'=0..1 (0=not started, 1=fully completed)
+ C Mems<Achievement>& lockedAchievements()C {return _achievements;}             // get achievement list, empty on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event) this method can be called only under lock for 'lock' member
 
 private:
    STATUS            _status=LOGGED_OUT;

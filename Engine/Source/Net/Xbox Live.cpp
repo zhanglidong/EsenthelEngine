@@ -404,7 +404,7 @@ void XBOXLive::getFriends()
                Memt<Friend> old; {SyncLocker locker(lock); old=_friends;}
              C auto &profiles=result.payload().items();
                Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
-               Mems<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
+               Mems<Friend> friends   ; friends   .setNum(profiles.size()); REPA(friends) // operate on temporary to swap fast under lock
                {
                   Friend &user=friends[i];
                 C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
@@ -497,7 +497,7 @@ void XBOXLive::getAchievements()
                Memt<Achievement> temp;
                auto payload=result.payload(); // can't use a reference because we might modify it below with "next" results
             again:
-             C auto &xachievements=payload.items(); FREP(xachievements.size())
+             C auto &xachievements=payload.items(); FREP(xachievements.size()) // process in order
                {
                 C auto        &src =xachievements[i];
                   Achievement &dest=temp.New();
@@ -573,6 +573,38 @@ Bool XBOXLive::getAchievements(MemPtr<Achievement> achievements)C
    }
 #endif
    achievements.clear(); return false;
+}
+void XBOXLive::setAchievement(C Str &achievement_id, Flt progress)
+{
+#if SUPPORT_XBOX_LIVE
+   if(XboxCtx)
+   {
+      SAT(progress);
+      SyncLockerEx locker(lock); if(XboxCtx)
+      {
+         auto task=XboxCtx->achievement_service().update_achievement(XboxCtx->xbox_live_user_id(), string_t(achievement_id), RoundU(progress*100)); // Xbox API operates on percents
+         locker.off();
+         task.then([this, achievement_id, progress](xbox::services::xbox_live_result<void> result)
+         {
+            Bool ok;
+            if(result.err())ok=false;else
+            {
+               ok=true;
+               // update cached achievements
+               SyncLocker locker(lock); if(_achievements_known)REPA(_achievements)
+               {
+                  Achievement &achievement=_achievements[i]; if(achievement.id==achievement_id)
+                  {
+                     achievement.progress=progress;
+                     break;
+                  }
+               }
+            }
+            if(callback)callback(USER_ACHIEVEMENTS, userID()); // notify that set achievement finished
+         });
+      }
+   }
+#endif
 }
 /******************************************************************************/
 } // namespace EE
