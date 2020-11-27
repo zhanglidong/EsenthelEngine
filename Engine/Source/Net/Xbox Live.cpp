@@ -401,37 +401,34 @@ void XBOXLive::getFriends()
         _friends_getting=true;
          auto task=XboxCtx->social_service().get_social_relationships();
          locker.off();
-         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::social::xbox_social_relationship_result>> results)
+         task.then([this](xbox::services::xbox_live_result<xbox::services::social::xbox_social_relationship_result> result)
          {
-            if(!results.err())
+            if(!result.err())
             {
-             C auto &result=results.payload(); if(!result.err())
+               Memt<Friend> old; {SyncLocker locker(lock); old=_friends;}
+             C auto &profiles=result.payload().items();
+               Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
+               Mems<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
                {
-                  Memt<Friend> old; {SyncLocker locker(lock); old=_friends;}
-                C auto &profiles=result.payload().items();
-                  Memt<ULong > friend_ids; friend_ids.setNum(profiles.size());
-                  Mems<Friend> friends   ; friends   .setNum(profiles.size()); FREPA(friends) // operate on temporary to swap fast under lock
+                  Friend &user=friends[i];
+                C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
+                  user.clear();
+                  user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
+                  user.favorite=relationship.is_favorite();
+                  friend_ids[i]=user.id;
+                  if(Friend *o=Find(old, user.id)) // if was previously known, reuse its data
                   {
-                     Friend &user=friends[i];
-                   C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
-                     user.clear();
-                     user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
-                     user.favorite=relationship.is_favorite();
-                     friend_ids[i]=user.id;
-                     if(Friend *o=Find(old, user.id)) // if was previously known, reuse its data
-                     {
-                        Swap(user.name     , o->name     );
-                        Swap(user.image_url, o->image_url);
-                        Swap(user.score    , o->score    );
-                     }
+                     Swap(user.name     , o->name     );
+                     Swap(user.image_url, o->image_url);
+                     Swap(user.score    , o->score    );
                   }
-                  {
-                     SyncLocker locker(lock);
-                     Swap(_friends, friends);
-                    _friends_known=true;
-                  }
-                  getUserProfile(friend_ids); // get profiles of all friends, after setting '_friends'
                }
+               {
+                  SyncLocker locker(lock);
+                  Swap(_friends, friends);
+                 _friends_known=true;
+               }
+               getUserProfile(friend_ids); // get profiles of all friends, after setting '_friends'
             }
            _friends_getting=false;
             if(callback)callback(USER_FRIENDS, userID()); // notify that get friends finished
@@ -497,11 +494,11 @@ void XBOXLive::getAchievements()
         _achievements_getting=true;
          auto task=XboxCtx->achievement_service().get_achievements_for_title_id(XboxCtx->xbox_live_user_id(), XboxCtx->application_config()->title_id(), xbox::services::achievements::achievement_type::all, false, xbox::services::achievements::achievement_order_by::default_order, 0, 0);
          locker.off();
-         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::achievements::achievements_result>> results)
+         task.then([this](xbox::services::xbox_live_result<xbox::services::achievements::achievements_result> results)
          {
             if(!results.err())
             {
-             C auto &result=results.payload(); if(!result.err())
+             C auto &result=results.payload(); //if(!result.err())
                {
                   //result.
                 /*C auto &profiles=result.payload().items();
