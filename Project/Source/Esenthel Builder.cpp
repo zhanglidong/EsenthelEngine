@@ -830,6 +830,7 @@ void CopyEngineWindows32DX11            () {Copy(EnginePath+"EsenthelEngine32DX1
 void CopyEngineWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngineUniversal64DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal64DX11.lib");}
 void CopyEngineWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
+void CopyEngineWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
 
 void CopyEngineDebugWindows64DX9             () {Copy(EnginePath+"EsenthelEngineDebug64DX9.lib" , EditorPath+"Bin/EsenthelEngine64DX9.lib");}
 void CopyEngineDebugWindows32DX9             () {Copy(EnginePath+"EsenthelEngineDebug32DX9.lib" , EditorPath+"Bin/EsenthelEngine32DX9.lib");}
@@ -838,6 +839,7 @@ void CopyEngineDebugWindows32DX11            () {Copy(EnginePath+"EsenthelEngine
 void CopyEngineDebugWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngineDebugUniversal64DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal64DX11.lib");}
 void CopyEngineDebugWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineDebugUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineDebugWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
+void CopyEngineDebugWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
 
 void CompileEngineWindows64GL              () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "1) 64 bit", CopyEngineWindows64GL);}
 void CompileEngineWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Release DX9"           , "1) 64 bit", CopyEngineWindows64DX9);}
@@ -932,7 +934,7 @@ TaskBase CompileEngineWindowsTB[]=
    {null, null, CompileEngineWindows64DX11},
    {null, null, CompileEngineWindowsUniversal64DX11},
  //{null, null, CompileEngineWindowsUniversal32DX11},
-   {null, null, CompileEngineWindowsUniversalArm32DX11},
+ //{null, null, CompileEngineWindowsUniversalArm32DX11},
 };
 TaskBase CompileEngineDebugWindowsTB[]=
 {
@@ -942,7 +944,7 @@ TaskBase CompileEngineDebugWindowsTB[]=
    {null, null, CompileEngineDebugWindows64DX11},
    {null, null, CompileEngineDebugWindowsUniversal64DX11},
  //{null, null, CompileEngineDebugWindowsUniversal32DX11},
-   {null, null, CompileEngineDebugWindowsUniversalArm32DX11},
+ //{null, null, CompileEngineDebugWindowsUniversalArm32DX11},
 };
 TaskBase CompileEngineAppleTB[]=
 {
@@ -1316,10 +1318,12 @@ void PhysXCompileWeb(Ptr)
 TaskBase TaskBases[]=
 {
 #if WINDOWS
-   {"Compile Windows 64 DX11"        , "Compile the Engine in Release mode for Windows 64-bit DX10+ only"              , CompileEngineWindows64DX11     , false},
-   {"Compile Windows All"            , "Compile the Engine in Release mode for all Windows targets"                    , CompileEngineWindows           , true , true},
-   {"Compile Windows 64 DX11 (Debug)", "Compile the Engine in Debug mode for Windows 64-bit DX10+ only"                , CompileEngineDebugWindows64DX11, false},
-   {"Compile Windows All (Debug)"    , "Compile the Engine in Debug mode for all Windows targets"                      , CompileEngineDebugWindows      , false, true},
+   {"Compile Windows 64 DX11    "      , "Compile the Engine in Release mode for Windows 64-bit DX10+ WinAPI only"       , CompileEngineWindows64DX11              , false},
+   {"Compile Windows 64 DX11 UWP"      , "Compile the Engine in Release mode for Windows 64-bit DX10+ UWP only"          , CompileEngineWindowsUniversal64DX11     , false},
+   {"Compile Windows All        "      , "Compile the Engine in Release mode for all Windows targets"                    , CompileEngineWindows                    , true , true},
+   {"Compile Windows 64 DX11     Debug", "Compile the Engine in Debug mode for Windows 64-bit DX10+ WinAPI only"         , CompileEngineDebugWindows64DX11         , false},
+   {"Compile Windows 64 DX11 UWP Debug", "Compile the Engine in Debug mode for Windows 64-bit DX10+ UWP only"            , CompileEngineDebugWindowsUniversal64DX11, false},
+   {"Compile Windows All         Debug", "Compile the Engine in Debug mode for all Windows targets"                      , CompileEngineDebugWindows               , false, true},
 #elif APPLE
    {"Clean Apple"               , "Clean temporary files generated during Engine compilation for Apple platforms"       ,   CleanEngineApple        , false},
    {"Compile Mac"               , "Compile the Engine in Release mode for Mac only"                                     , CompileEngineMac          , false},
@@ -1419,7 +1423,7 @@ void InitPre()
 #endif
    D.screen_changed=Resize;
    Flt scale=D.screenH()/1080.0f;
-   D.mode(800*scale, 630*scale);
+   D.mode(800*scale, 695*scale);
    App.name("Esenthel Builder");
 
    for(Str path=GetPath(App.exe()); ; path=GetPath(path))
