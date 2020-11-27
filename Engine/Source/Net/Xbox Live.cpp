@@ -63,41 +63,38 @@ void XBOXLive::getUserProfile(C CMemPtr<ULong> &user_ids)
       {
          auto task=XboxCtx->profile_service().get_user_profiles(user_ids_str);
          locker.off();
-         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<std::vector<xbox::services::social::xbox_user_profile>>> results)
+         task.then([this](xbox::services::xbox_live_result<std::vector<xbox::services::social::xbox_user_profile>> result)
          {
-            if(!results.err())
+            if(!result.err())
             {
-             C auto &result=results.payload(); if(!result.err())
+             C auto &profiles=result.payload();
+               for(Int i=0; i<profiles.size(); i++)
                {
-                C auto &profiles=result.payload();
-                  for(Int i=0; i<profiles.size(); i++)
+                C auto &profile=profiles[i];
+                  ULong user_id=TextULong(WChar(profile.xbox_user_id().c_str()));
+                  // store in temporaries so later we can move/swap into profile fast
+                  Long score    =TextLong(WChar(profile.gamerscore().c_str()));
+                  Str  image_url=S+profile.game_display_picture_resize_uri().to_string().c_str()+"&w=424"; // default size is around 1080 which is not needed, limit to 424 (other options are 208, 64)
+                /*auto user_app_name=profile.app_display_name().c_str();
+                  auto tag=profile.gamertag().c_str();
+                  auto user_app_pic=profile.app_display_picture_resize_uri().to_string().c_str();*/
+                  if(user_id==T.userID())
                   {
-                   C auto &profile=profiles[i];
-                     ULong user_id=TextULong(WChar(profile.xbox_user_id().c_str()));
-                     // store in temporaries so later we can move/swap into profile fast
-                     Long score    =TextLong(WChar(profile.gamerscore().c_str()));
-                     Str  image_url=S+profile.game_display_picture_resize_uri().to_string().c_str()+"&w=424"; // default size is around 1080 which is not needed, limit to 424 (other options are 208, 64)
-                   /*auto user_app_name=profile.app_display_name().c_str();
-                     auto tag=profile.gamertag().c_str();
-                     auto user_app_pic=profile.app_display_picture_resize_uri().to_string().c_str();*/
-                     if(user_id==T.userID())
+                     SyncLocker locker(lock);
+                    _me.score=score;
+                     Swap(_me.image_url, image_url);
+                  }else
+                  {
+                     Str user_game_name=profile.game_display_name().c_str();
+                     SyncLocker locker(lock);
+                     if(Friend *user=Find(_friends, user_id))
                      {
-                        SyncLocker locker(lock);
-                       _me.score=score;
-                        Swap(_me.image_url, image_url);
-                     }else
-                     {
-                        Str user_game_name=profile.game_display_name().c_str();
-                        SyncLocker locker(lock);
-                        if(Friend *user=Find(_friends, user_id))
-                        {
-                           user->score=score;
-                           Swap(user->name     , user_game_name);
-                           Swap(user->image_url, image_url     );
-                        }
+                        user->score=score;
+                        Swap(user->name     , user_game_name);
+                        Swap(user->image_url, image_url     );
                      }
-                     if(callback)callback(USER_PROFILE, user_id);
                   }
+                  if(callback)callback(USER_PROFILE, user_id);
                }
             }
          });
