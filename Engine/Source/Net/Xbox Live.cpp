@@ -145,8 +145,9 @@ void XBOXLive::logInOK()
                   GameSaveProvider=null;
                   XboxCtx =null;
                   XboxUser=null;
-                 _me.clear();
-                 _friends.clear(); _friends_known=_friends_getting=false;
+                 _me          .clear();
+                 _friends     .clear(); _friends_known=_friends_getting=false;
+                 _achievements.clear(); _achievements_known=_achievements_getting=false;
                }
                setStatus(LOGGED_OUT);
             });
@@ -482,6 +483,63 @@ Str XBOXLive::userName(ULong user_id)C
    }
 #endif
    return S;
+}
+/******************************************************************************/
+// ACHIEVEMENTS
+/******************************************************************************/
+void XBOXLive::getAchievements()
+{
+#if SUPPORT_XBOX_LIVE
+   if(XboxCtx)
+   {
+      SyncLockerEx locker(lock); if(XboxCtx && !_achievements_getting)
+      {
+        _achievements_getting=true;
+         auto task=XboxCtx->achievement_service().get_achievements_for_title_id(XboxCtx->xbox_live_user_id(), XboxCtx->application_config()->title_id(), xbox::services::achievements::achievement_type::all, false, xbox::services::achievements::achievement_order_by::default_order, 0, 0);
+         locker.off();
+         task.then([this](xbox::services::xbox_live_result<xbox::services::xbox_live_result<xbox::services::achievements::achievements_result>> results)
+         {
+            if(!results.err())
+            {
+             C auto &result=results.payload(); if(!result.err())
+               {
+                  //result.
+                /*C auto &profiles=result.payload().items();
+                  Mems<Achievement> achievements   ; achievements   .setNum(profiles.size()); FREPA(achievements) // operate on temporary to swap fast under lock
+                  {
+                     Achievement &user=achievements[i];
+                   C xbox::services::social::xbox_social_relationship &relationship=profiles[i];
+                     user.clear();
+                     user.id      =TextULong(WChar(relationship.xbox_user_id().c_str()));
+                     user.favorite=relationship.is_favorite();
+                  }
+                  {
+                     SyncLocker locker(lock);
+                     Swap(_achievements, achievements);
+                    _achievements_known=true;
+                  }*/
+               }
+            }
+           _achievements_getting=false;
+            if(callback)callback(USER_ACHIEVEMENTS, userID()); // notify that get achievements finished
+         });
+      }
+   }
+#endif
+}
+Bool XBOXLive::getAchievements(MemPtr<Achievement> achievements)C
+{
+#if SUPPORT_XBOX_LIVE
+   if(_achievements_known)
+   {
+      SyncLocker locker(lock); if(_achievements_known)
+      {
+         achievements=T._achievements;
+         return true;
+      }
+   }
+#endif
+   achievements.clear(); return false;
 }
 /******************************************************************************/
 } // namespace EE

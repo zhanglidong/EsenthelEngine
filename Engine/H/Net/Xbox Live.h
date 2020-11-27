@@ -36,9 +36,10 @@ struct XBOXLive
 {
    enum EVENT
    {
-      STATUS_CHANGED, // user log in status has changed
-      USER_PROFILE  , // received full profile information for a user
-      USER_FRIENDS  , // received list of friends, however their info is not complete (only 'id' and 'favorite' members will be valid, remaining members should be received soon through 'USER_PROFILE' events for each friend separately)
+      STATUS_CHANGED   , // user log in status has changed
+      USER_PROFILE     , // received full profile information for a user
+      USER_FRIENDS     , // received list of friends, however their info is not complete (only 'id' and 'favorite' members will be valid, remaining members should be received soon through 'USER_PROFILE' events for each friend separately)
+      USER_ACHIEVEMENTS, // received list of achievements
    };
    enum STATUS : Byte
    {
@@ -64,6 +65,23 @@ struct XBOXLive
    #endif
    };
 
+   struct Achievement
+   {
+      enum STATE : Byte
+      {
+         UNKNOWN    ,
+         NOT_STARTED,
+         IN_PROGRESS,
+         ACHIEVED   ,
+      };
+
+      Str   id, name, unlocked_desc, locked_desc;
+      STATE state;
+      Bool  secret;
+
+      Bool unlocked()C {return state==ACHIEVED;}
+   };
+
    SyncLock lock;
    void   (*callback)(EVENT event, ULong user_id)=null; // pointer to a custom function that will be called with processed events, 'event'=event occurring at the moment, 'user_id'=user ID affected by this event
 
@@ -78,11 +96,11 @@ struct XBOXLive
  C Str&  userImageURL()C {return _me.image_url;} // get user image url from which you can download his/her photo, for example by using the 'Download' class. This is valid only after being logged in and after USER_PROFILE event
 
    // Friends - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
-   void          getFriends   (                         ) ;                   // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
-   Bool          getFriends   (MemPtr<ULong > friend_ids)C;                   // get list of friend ID's, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
-   Bool          getFriends   (MemPtr<Friend> friends   )C;                   // get list of friends    , false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
-   Str           userName     (       ULong   user_id   )C;                   // get user name          , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
- C Mems<Friend>& lockedFriends(                         )C {return _friends;} // get friend list        , empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event) this method can be called only under lock for 'lock' member
+   void             getFriends(                         ) ;                   // initiate process of obtaining friend list, result will be reported through the 'callback' function with USER_FRIENDS event, only after that event methods below will return valid results
+   Bool             getFriends(MemPtr<ULong > friend_ids)C;                   // get friend ID list, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+   Bool             getFriends(MemPtr<Friend> friends   )C;                   // get friend    list, false on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
+ C Mems<Friend>& lockedFriends(                         )C {return _friends;} // get friend    list, empty on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event) this method can be called only under lock for 'lock' member
+   Str             userName   (       ULong   user_id   )C;                   // get user name     , ""    on fail (this will always fail if 'getFriends' was not yet called or has not yet completed with a USER_FRIENDS event)
 
    // cloud saves
    Bool cloudSupported    ()C; // if cloud saves are supported, this will always be false if currently not logged in
@@ -101,12 +119,16 @@ struct XBOXLive
    Bool cloudFiles(MemPtr<CloudFile> files)C; // get list of files that are currently stored in the cloud, false on fail
 
    // Achievements - This functionality is available only for Microsoft Managed Partners for ID@Xbox program
+   void                  getAchievements();                                  // initiate process of obtaining achievement list, result will be reported through the 'callback' function with USER_ACHIEVEMENTS event, only after that event methods below will return valid results
+   Bool                  getAchievements(MemPtr<Achievement> achievements)C; // get achievement list, false on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event)
+ C Mems<Achievement>& lockedAchievements()C {return _achievements;}          // get achievement list, empty on fail (this will always fail if 'getAchievements' was not yet called or has not yet completed with a USER_ACHIEVEMENTS event) this method can be called only under lock for 'lock' member
 
 private:
-   STATUS       _status=LOGGED_OUT;
-   Bool         _friends_known=false, _friends_getting=false;
-   User         _me;
-   Mems<Friend> _friends;
+   STATUS            _status=LOGGED_OUT;
+   Bool              _friends_known=false, _friends_getting=false, _achievements_known=false, _achievements_getting=false;
+   User              _me;
+   Mems<Friend>      _friends;
+   Mems<Achievement> _achievements;
 #if EE_PRIVATE
    void setStatus(STATUS status);
    void logInOK();
