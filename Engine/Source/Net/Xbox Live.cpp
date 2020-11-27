@@ -258,7 +258,7 @@ static Ptr GetBufferData(Windows::Storage::Streams::IBuffer ^buffer)
 {
    byte *data=null;
    Windows::Storage::Streams::IBufferByteAccess *buffer_byte_access=null;
-   ((IUnknown*)buffer)->QueryInterface(_uuidof(Windows::Storage::Streams::IBufferByteAccess), (Ptr*)&buffer_byte_access);
+   ((IUnknown*)buffer)->QueryInterface(__uuidof(Windows::Storage::Streams::IBufferByteAccess), (Ptr*)&buffer_byte_access);
    if(buffer_byte_access)
    {
       buffer_byte_access->Buffer(&data);
