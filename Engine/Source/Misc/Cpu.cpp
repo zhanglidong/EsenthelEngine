@@ -215,8 +215,8 @@ CPU::CPU()
    {
     //LogN(data);
       CChar8 *t;
-      if(t=TextPos(data, "Hardware" , false, true))t+=8;else // Length("Hardware" ) -> 8
-      if(t=TextPos(data, "Processor", false, true))t+=9;     // Length("Processor") -> 9, if "Hardware" not available, then try using "Processor", because in the past sample output was: "Processor: ARMv7 Processor rev 9 (v7l)"
+      if(t=TextPos(data, "Hardware" , false, WHOLE_WORD_STRICT))t+=8;else // Length("Hardware" ) -> 8
+      if(t=TextPos(data, "Processor", false, WHOLE_WORD_STRICT))t+=9;     // Length("Processor") -> 9, if "Hardware" not available, then try using "Processor", because in the past sample output was: "Processor: ARMv7 Processor rev 9 (v7l)"
       if(t)
       {
          for(; *t==' '  || *t==':' || *t=='\t'; )        t++; // skip spaces
