@@ -245,18 +245,18 @@ template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> 
                           MemPtr(C MemPtr<TYPE, Memt_size> &src               )=delete;
                        #endif
 
-   Mems<TYPE           >* mems()  {return (_mode==MEMS) ? ConstCast(_mems) : null;}
- C Mems<TYPE           >* mems()C {return (_mode==MEMS) ?           _mems  : null;}
-   Memc<TYPE           >* memc()  {return (_mode==MEMC) ? ConstCast(_memc) : null;}
- C Memc<TYPE           >* memc()C {return (_mode==MEMC) ?           _memc  : null;}
-   Memt<TYPE, Memt_size>* memt()  {return (_mode==MEMT) ? ConstCast(_memt) : null;}
- C Memt<TYPE, Memt_size>* memt()C {return (_mode==MEMT) ?           _memt  : null;}
-   Memb<TYPE           >* memb()  {return (_mode==MEMB) ? ConstCast(_memb) : null;}
- C Memb<TYPE           >* memb()C {return (_mode==MEMB) ?           _memb  : null;}
-   Memx<TYPE           >* memx()  {return (_mode==MEMX) ? ConstCast(_memx) : null;}
- C Memx<TYPE           >* memx()C {return (_mode==MEMX) ?           _memx  : null;}
-   Meml<TYPE           >* meml()  {return (_mode==MEML) ? ConstCast(_meml) : null;}
- C Meml<TYPE           >* meml()C {return (_mode==MEML) ?           _meml  : null;}
+   Mems<TYPE           >* mems()  {return (T._mode==T.MEMS) ? ConstCast(T._mems) : null;}
+ C Mems<TYPE           >* mems()C {return (T._mode==T.MEMS) ?           T._mems  : null;}
+   Memc<TYPE           >* memc()  {return (T._mode==T.MEMC) ? ConstCast(T._memc) : null;}
+ C Memc<TYPE           >* memc()C {return (T._mode==T.MEMC) ?           T._memc  : null;}
+   Memt<TYPE, Memt_size>* memt()  {return (T._mode==T.MEMT) ? ConstCast(T._memt) : null;}
+ C Memt<TYPE, Memt_size>* memt()C {return (T._mode==T.MEMT) ?           T._memt  : null;}
+   Memb<TYPE           >* memb()  {return (T._mode==T.MEMB) ? ConstCast(T._memb) : null;}
+ C Memb<TYPE           >* memb()C {return (T._mode==T.MEMB) ?           T._memb  : null;}
+   Memx<TYPE           >* memx()  {return (T._mode==T.MEMX) ? ConstCast(T._memx) : null;}
+ C Memx<TYPE           >* memx()C {return (T._mode==T.MEMX) ?           T._memx  : null;}
+   Meml<TYPE           >* meml()  {return (T._mode==T.MEML) ? ConstCast(T._meml) : null;}
+ C Meml<TYPE           >* meml()C {return (T._mode==T.MEML) ?           T._meml  : null;}
 };
 /******************************************************************************/
 template<const_mem_addr typename TYPE, Int Memt_elms> struct MemPtrN : MemPtr<TYPE, SIZE(TYPE)*Memt_elms> // Memory Container Pointer, 'Memt_elms'=number of elements of the 'Memt'
