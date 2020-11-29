@@ -1797,38 +1797,33 @@ Bool DisplayClass::findMode()
       if(1 // find the monitor/output that we're going to use, and iterate all of its modes to check if that mode supports stretched mode
       && !SwapChainDesc.Windowed) // needed for exclusive fullscreen only and only when the driver has scaling set to DXGI_MODE_SCALING_CENTERED
       {
-         IDXGIOutput *output;
-         Bool         ok=false;
-         if(SwapChain) // if we already have a swap chain, then reuse its output
-         {
-            output=null; SwapChain->GetContainingOutput(&output); if(output){ok=true; goto has_output;} // set 'ok' so break will be called
-         }
-         if(Adapter)
+         IDXGIOutput *output=null;
+         if(SwapChain)SwapChain->GetContainingOutput(&output); // if we already have a swap chain, then reuse its output
+         if(!output && Adapter) // if still unknown, then find in Adapter
             if(Ptr monitor=WindowMonitor(App.Hwnd()))
                for(Int i=0; ; i++) // iterate all outputs
          {
-            output=null; Adapter->EnumOutputs(i, &output); if(output)
+            Adapter->EnumOutputs(i, &output); if(output)
             {
-               DXGI_OUTPUT_DESC desc; ok=(OK(output->GetDesc(&desc)) && desc.Monitor==monitor); // if found the monitor that we're going to use
-               if(ok)
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==monitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+               output->Release(); output=null; // release, clear and continue looking
+            }else break; // no more outputs available
+         }
+         if(output)
+         {
+            DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
+            UInt                                           descs_elms=0; output->GetDisplayModeList(mode, 0, &descs_elms, null); // get number of mode descs
+            MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output->GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get mode descs
+            FREPA(descs)
+            {
+             C DXGI_MODE_DESC &mode=descs[i];
+               if(mode.Width==resW() && mode.Height==resH() && mode.Scaling!=DXGI_MODE_SCALING_UNSPECIFIED) // can't just check for ==DXGI_MODE_SCALING_STRETCHED because it's never listed, however DXGI_MODE_SCALING_CENTERED will be listed for modes that support stretching, so we use !=DXGI_MODE_SCALING_UNSPECIFIED to support both DXGI_MODE_SCALING_STRETCHED and DXGI_MODE_SCALING_CENTERED
                {
-               has_output:
-                  DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
-                  UInt                                           descs_elms=0; output->GetDisplayModeList(mode, 0, &descs_elms, null); // get number of mode descs
-                  MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output->GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get mode descs
-                  FREPA(descs)
-                  {
-                   C DXGI_MODE_DESC &mode=descs[i];
-                     if(mode.Width==resW() && mode.Height==resH() && mode.Scaling!=DXGI_MODE_SCALING_UNSPECIFIED) // can't just check for ==DXGI_MODE_SCALING_STRETCHED because it's never listed, however DXGI_MODE_SCALING_CENTERED will be listed for modes that support stretching, so we use !=DXGI_MODE_SCALING_UNSPECIFIED to support both DXGI_MODE_SCALING_STRETCHED and DXGI_MODE_SCALING_CENTERED
-                     {
-                        SwapChainDesc.BufferDesc.Scaling=DXGI_MODE_SCALING_STRETCHED;
-                        break;
-                     }
-                  }
+                  SwapChainDesc.BufferDesc.Scaling=DXGI_MODE_SCALING_STRETCHED;
+                  break;
                }
-               output->Release();
-               if(ok)break;
-            }else break;
+            }
+            output->Release();
          }
       }
    #else // WINDOWS_NEW
