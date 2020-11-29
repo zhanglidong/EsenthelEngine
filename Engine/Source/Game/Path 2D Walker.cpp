@@ -79,7 +79,7 @@ static Bool PathWalkerFind(Int start_node, Int target_node, C VecI2 &start_xy, C
 
       // find path
       Memc<VecI2> path;
-      if(World._path_find.find(&VecI2(start_xy.x+start_ofs_x, start_xy.y+start_ofs_y), null, path, -1, true, true))
+      if(World._path_find.find(&NoTemp(VecI2(start_xy.x+start_ofs_x, start_xy.y+start_ofs_y)), null, path, -1, true, true))
       {
          // convert local VecI2 to world Vec2
          Vec2 mul=World.areaSize()/World.settings().path2DRes(),

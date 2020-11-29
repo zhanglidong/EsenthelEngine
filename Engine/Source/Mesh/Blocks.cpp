@@ -196,7 +196,7 @@ Bool BlocksMap::raycast(C Vec &start, C Vec &move, Vec *hit_pos, Vec *hit_normal
 
    for(PixelWalker walker(block_start.xz(), (block_start+block_move).xz()); walker.active(); walker.step())
       if(Blocks *blocks=findBlocks(walker.pos().x, walker.pos().y))
-         if(blocks->raycast(start, move, hit_pos, hit_normal, &matrix(walker.pos().x, walker.pos().y)))return true;
+         if(blocks->raycast(start, move, hit_pos, hit_normal, &NoTemp(matrix(walker.pos().x, walker.pos().y))))return true;
    return false;
 }
 Vec BlocksMap::light(C Vec &pos, C BlocksOcclusion *occl, C CMemPtr<Blocks::Light> &lights)C

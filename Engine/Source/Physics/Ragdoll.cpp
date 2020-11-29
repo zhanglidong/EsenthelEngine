@@ -236,7 +236,7 @@ Ragdoll& Ragdoll::toSkel(AnimatedSkeleton &anim_skel)
            C SkelBone &skel_bone=     skel.bones[sbone];
 
          asbon.clear();
-         if(InRange(rparent, T))asbon.orn=GetAnimOrient(skel_bone, rbon.actor.orn(), &skel.bones[skel_bone.parent], &bone(rparent).actor.orn());
+         if(InRange(rparent, T))asbon.orn=GetAnimOrient(skel_bone, rbon.actor.orn(), &skel.bones[skel_bone.parent], &NoTemp(bone(rparent).actor.orn()));
          else                   asbon.orn=GetAnimOrient(skel_bone, rbon.actor.orn()*ibody);
       }
 
@@ -281,7 +281,7 @@ Ragdoll& Ragdoll::toSkelBlend(AnimatedSkeleton &anim_skel, Flt blend)
                                 asbon.orn*=blend1;
                                 asbon.rot*=blend1;
                                 asbon.pos*=blend1;
-         if(InRange(rparent, T))asbon.orn+=blend*GetAnimOrient(skel_bone, rbon.actor.orn(), &skel.bones[skel_bone.parent], &bone(rparent).actor.orn());
+         if(InRange(rparent, T))asbon.orn+=blend*GetAnimOrient(skel_bone, rbon.actor.orn(), &skel.bones[skel_bone.parent], &NoTemp(bone(rparent).actor.orn()));
          else                   asbon.orn+=blend*GetAnimOrient(skel_bone, rbon.actor.orn()*ibody);
       }
 

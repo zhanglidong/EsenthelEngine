@@ -54,7 +54,7 @@ Grab& Grab::pos(C Vec &pos)
            _joint.createSpherical(*_actor, &_grab, world, Vec(0, 1, 0));
          }else
          {
-           _joint.createDist(*_actor, &_grab, _local_pos, VecZero, 0, 0, &Spring(_power, 5));
+           _joint.createDist(*_actor, &_grab, _local_pos, VecZero, 0, 0, &NoTemp(Spring(_power, 5)));
          }
       }
      _grab.kinematicMoveTo(pos);

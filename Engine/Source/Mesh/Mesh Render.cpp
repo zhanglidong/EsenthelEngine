@@ -498,7 +498,7 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                                  if(!mesh->storageCompress())Set(v, *(Vec*)(src+vtx_bin));else
                                  {
                                     Vec bin;
-                                    SByte4ToTan(*(VecB4*)(src+vtx_bin), null, &bin, (vtx_nrm>=0) ? &SByte4ToNrm(*(VecB4*)(src+vtx_nrm)) : null);
+                                    SByte4ToTan(*(VecB4*)(src+vtx_bin), null, &bin, (vtx_nrm>=0) ? &NoTemp(SByte4ToNrm(*(VecB4*)(src+vtx_nrm))) : null);
                                     Set(v, bin);
                                  }
                               }else Set(v, VecZero);

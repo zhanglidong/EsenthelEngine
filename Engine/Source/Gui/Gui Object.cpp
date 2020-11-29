@@ -732,7 +732,7 @@ GuiObjChildren::Child* GuiObjChildren::add(GuiObj &child, GuiObj &parent)
          if(CompareLevel(child, *children[m].go)<0)r=m;else l=m+1;
       }
 
-      Child &c=children.NewAt(l); c.go=&child; child._parent=&parent; child.parentClientRectChanged(old_parent ? &old_parent->localClientRect() : null, &parent.localClientRect());
+      Child &c=children.NewAt(l); c.go=&child; child._parent=&parent; child.parentClientRectChanged(old_parent ? &NoTemp(old_parent->localClientRect()) : null, &NoTemp(parent.localClientRect()));
       if(!kb && child.kbCatch())kb=&child;
       changed=true;
       return &c;

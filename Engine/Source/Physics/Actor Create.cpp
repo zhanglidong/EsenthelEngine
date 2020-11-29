@@ -176,11 +176,11 @@ Bool Actor::createTry(C ActorShapes &shapes, Flt density, Bool kinematic)
            _ActorShapes::Shape &s=as.shape[i];
             switch(s.shape.type)
             {
-               case SHAPE_PLANE  : if(!Add(*_actor, s.shape.plane                             ))goto error; densities.add(Density(s.density, kinematic)*density); break;
-               case SHAPE_BOX    : if(!Add(*_actor, s.shape.box    , &s.shape.box    .center()))goto error; densities.add(Density(s.density, kinematic)*density); break;
-               case SHAPE_OBOX   : if(!Add(*_actor, s.shape.obox   , &s.shape.obox   .center()))goto error; densities.add(Density(s.density, kinematic)*density); break;
-               case SHAPE_BALL   : if(!Add(*_actor, s.shape.ball   , &s.shape.ball   .pos     ))goto error; densities.add(Density(s.density, kinematic)*density); break;
-               case SHAPE_CAPSULE: if(!Add(*_actor, s.shape.capsule, &s.shape.capsule.pos     ))goto error; densities.add(Density(s.density, kinematic)*density); break;
+               case SHAPE_PLANE  : if(!Add(*_actor, s.shape.plane                                     ))goto error; densities.add(Density(s.density, kinematic)*density); break;
+               case SHAPE_BOX    : if(!Add(*_actor, s.shape.box    , &NoTemp(s.shape.box    .center())))goto error; densities.add(Density(s.density, kinematic)*density); break;
+               case SHAPE_OBOX   : if(!Add(*_actor, s.shape.obox   , &NoTemp(s.shape.obox   .center())))goto error; densities.add(Density(s.density, kinematic)*density); break;
+               case SHAPE_BALL   : if(!Add(*_actor, s.shape.ball   , &NoTemp(s.shape.ball   .pos     )))goto error; densities.add(Density(s.density, kinematic)*density); break;
+               case SHAPE_CAPSULE: if(!Add(*_actor, s.shape.capsule, &NoTemp(s.shape.capsule.pos     )))goto error; densities.add(Density(s.density, kinematic)*density); break;
             }
          }
          FREPA(as.convex){_ActorShapes::Convex &convex=as.convex[i]; if(!Add(*_actor, *convex.convex, convex.scale))goto error; densities.add(Density(convex.density, kinematic)*density);}
@@ -221,7 +221,7 @@ Bool Actor::createTry(C Box &box, Flt density, C Vec *anchor, Bool kinematic)
       Vec pos=box.center();
       if(Create(T, density>0, kinematic, anchor ? *anchor : pos))
       {
-         if(Add(*_actor, box, anchor ? &(pos-*anchor) : null))
+         if(Add(*_actor, box, anchor ? &NoTemp(pos-*anchor) : null))
          {
             if(_dynamic)PxRigidBodyExt::updateMassAndInertia(*_dynamic, Density(density, kinematic), null);
             group(0).materialForce(null);
@@ -241,7 +241,7 @@ Bool Actor::createTry(C OBox &obox, Flt density, C Vec *anchor, Bool kinematic)
       Vec pos=obox.center();
       if(Create(T, density>0, kinematic, anchor ? *anchor : pos))
       {
-         if(Add(*_actor, obox, anchor ? &(pos-*anchor) : null))
+         if(Add(*_actor, obox, anchor ? &NoTemp(pos-*anchor) : null))
          {
             if(_dynamic)PxRigidBodyExt::updateMassAndInertia(*_dynamic, Density(density, kinematic), null);
             group(0).materialForce(null);
@@ -260,7 +260,7 @@ Bool Actor::createTry(C Extent &ext, Flt density, C Vec *anchor, Bool kinematic)
    {
       if(Create(T, density>0, kinematic, anchor ? *anchor : ext.pos))
       {
-         if(Add(*_actor, ext, anchor ? &(ext.pos-*anchor) : null))
+         if(Add(*_actor, ext, anchor ? &NoTemp(ext.pos-*anchor) : null))
          {
             if(_dynamic)PxRigidBodyExt::updateMassAndInertia(*_dynamic, Density(density, kinematic), null);
             group(0).materialForce(null);
@@ -279,7 +279,7 @@ Bool Actor::createTry(C Ball &ball, Flt density, C Vec *anchor, Bool kinematic)
    {
       if(Create(T, density>0, kinematic, anchor ? *anchor : ball.pos))
       {
-         if(Add(*_actor, ball, anchor ? &(ball.pos-*anchor) : null))
+         if(Add(*_actor, ball, anchor ? &NoTemp(ball.pos-*anchor) : null))
          {
             if(_dynamic)PxRigidBodyExt::updateMassAndInertia(*_dynamic, Density(density, kinematic), null);
             group(0).materialForce(null);
@@ -298,7 +298,7 @@ Bool Actor::createTry(C Capsule &capsule, Flt density, C Vec *anchor, Bool kinem
    {
       if(Create(T, density>0, kinematic, anchor ? *anchor : capsule.pos))
       {
-         if(Add(*_actor, capsule, anchor ? &(capsule.pos-*anchor) : null))
+         if(Add(*_actor, capsule, anchor ? &NoTemp(capsule.pos-*anchor) : null))
          {
             if(_dynamic)PxRigidBodyExt::updateMassAndInertia(*_dynamic, Density(density, kinematic), null);
             group(0).materialForce(null);

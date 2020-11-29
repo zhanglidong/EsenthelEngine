@@ -2862,7 +2862,7 @@ void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *r
 }
 void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect &rect)C
 {
-   copyMs(dest, restore_rt, multi_sample, &Round(D.screenToUV(rect)*size()));
+   copyMs(dest, restore_rt, multi_sample, &NoTemp(Round(D.screenToUV(rect)*size())));
 }
 /******************************************************************************/
 void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest)C

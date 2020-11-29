@@ -2982,7 +2982,7 @@ Animation& Animation::setTangents()
 }
 Animation& Animation::optimize(Flt angle_eps, Flt pos_eps, Flt scale_eps, Bool remove_unused_bones)
 {
-         keys  .optimize(loop(), linear(), length(), angle_eps, pos_eps, scale_eps, &Orient(Vec(0, 0, 1), Vec(0, 1, 0))); // we can remove default orientation for root
+         keys  .optimize(loop(), linear(), length(), angle_eps, pos_eps, scale_eps, &NoTemp(Orient(Vec(0, 0, 1), Vec(0, 1, 0)))); // we can remove default orientation for root
    REPAO(bones).optimize(loop(), linear(), length(), angle_eps, pos_eps, scale_eps);
    if(remove_unused_bones)removeUnused();
    setRootMatrix();
