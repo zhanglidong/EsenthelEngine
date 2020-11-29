@@ -1449,7 +1449,7 @@ void Expr::memOffset(Long offset)
    mem.addOffset(offset, FlagTest(symbol.modifiers, Symbol::MODIF_REF));
 }
 /******************************************************************************/
-static void CastTo(Expr &expr, Symbol::Modif &dest, CAST_MATCH &max_cast, Expr &max_result, Compiler &compiler, RecTest &rt=ConstCast(RecTest())) // function which recursively updates the cast
+static void CastTo(Expr &expr, Symbol::Modif &dest, CAST_MATCH &max_cast, Expr &max_result, Compiler &compiler, RecTest &rt=NoTemp(RecTest())) // function which recursively updates the cast
 {
    IntLock lock(rt); if(rt)return;
 
@@ -1589,7 +1589,7 @@ static void CastTo(Expr &expr, Symbol::Modif &dest, CAST_MATCH &max_cast, Expr &
       }
    }
 }
-static Bool CastToBase(Expr &expr, Symbol::Modif &dest, Expr &out, RecTest &rt=ConstCast(RecTest()))
+static Bool CastToBase(Expr &expr, Symbol::Modif &dest, Expr &out, RecTest &rt=NoTemp(RecTest()))
 {
    IntLock lock(rt); if(rt)return false;
 

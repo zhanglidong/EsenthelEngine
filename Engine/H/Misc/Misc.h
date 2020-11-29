@@ -69,13 +69,13 @@ Str GetRelativePath(Str src, Str dest); // get relative path from 'src' location
 #if EE_PRIVATE
 INLINE Bool IsSlash(Char c) {return c=='/' || c=='\\';}
 
-CChar * _GetBase     (CChar  *name, Bool tail_slash= 0, Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c); // 'tail_slash'=if keep   tail slash
-CChar * _GetBaseNoExt(CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c);
-CChar * _GetExt      (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c);
-CChar * _GetExtNot   (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c);
-CChar * _GetPath     (CChar  *name, Int  tail_slash=-1, Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c); // 'tail_slash'=if insert tail slash (1=always, 0=never, -1=if name had a tail slash)
- Char8* _GetStart    (CChar8 *name,                     Char8 (&dest)[MAX_LONG_PATH]=ConstCast(TempChar8<MAX_LONG_PATH>()).c);
- Char * _GetStart    (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=ConstCast(TempChar <MAX_LONG_PATH>()).c);
+CChar * _GetBase     (CChar  *name, Bool tail_slash= 0, Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c); // 'tail_slash'=if keep   tail slash
+CChar * _GetBaseNoExt(CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c);
+CChar * _GetExt      (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c);
+CChar * _GetExtNot   (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c);
+CChar * _GetPath     (CChar  *name, Int  tail_slash=-1, Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c); // 'tail_slash'=if insert tail slash (1=always, 0=never, -1=if name had a tail slash)
+ Char8* _GetStart    (CChar8 *name,                     Char8 (&dest)[MAX_LONG_PATH]=NoTemp(TempChar8<MAX_LONG_PATH>()).c);
+ Char * _GetStart    (CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c);
 CChar * _GetStartNot (CChar  *name);
 
 Str  WindowsPath    (C Str &path); // replace '/'  with '\\'
@@ -319,7 +319,7 @@ Bool ErrorWrite(C Str &file            );
 Bool ErrorCopy (C Str &src, C Str &dest);
 Bool ErrorMove (C Str &src, C Str &dest);
 
-CChar* _EncodeFileName(C UID &id, Char (&name)[24+1]=ConstCast(TempChar<24+1>()).c); // have to use 'CChar' instead of 'CChar8' because this function is passed to _Cache._find,_get,_require
+CChar* _EncodeFileName(C UID &id, Char (&name)[24+1]=NoTemp(TempChar<24+1>()).c); // have to use 'CChar' instead of 'CChar8' because this function is passed to _Cache._find,_get,_require
 #endif
 /******************************************************************************/
 struct ExeSection

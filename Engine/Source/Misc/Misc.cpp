@@ -3028,7 +3028,7 @@ Str DecodeXmlString(C Str &str)
    return temp;
 }
 /******************************************************************************/
-static CChar* GetPath2(CChar *name, Char (&dest)[MAX_LONG_PATH]=ConstCast(TempChar<MAX_LONG_PATH>()).c)
+static CChar* GetPath2(CChar *name, Char (&dest)[MAX_LONG_PATH]=NoTemp(TempChar<MAX_LONG_PATH>()).c)
 {
    if(Int length=SetReturnLength(dest, name))for(; length--; )if(IsSlash(dest[length])){dest[length]=0; return dest;}
    dest[0]=0; return dest;

@@ -2289,11 +2289,11 @@ StrO TextVer (C VecI4 &ver                                     )
 }
 /******************************************************************************/
 #if 0
-CChar * _TextPacked(  Flt   f, Char  (&temp)[ 7*1]=ConstCast(TempChar< 7*1>()).c);
-CChar * _TextPacked(  Dbl   d, Char  (&temp)[12*1]=ConstCast(TempChar<12*1>()).c);
-CChar * _TextPacked(C Vec2 &v, Char  (&temp)[ 7*2]=ConstCast(TempChar< 7*2>()).c);
-CChar * _TextPacked(C Vec  &v, Char  (&temp)[ 7*3]=ConstCast(TempChar< 7*3>()).c);
-CChar * _TextPacked(C Vec4 &v, Char  (&temp)[ 7*4]=ConstCast(TempChar< 7*4>()).c);
+CChar * _TextPacked(  Flt   f, Char  (&temp)[ 7*1]=NoTemp(TempChar< 7*1>()).c);
+CChar * _TextPacked(  Dbl   d, Char  (&temp)[12*1]=NoTemp(TempChar<12*1>()).c);
+CChar * _TextPacked(C Vec2 &v, Char  (&temp)[ 7*2]=NoTemp(TempChar< 7*2>()).c);
+CChar * _TextPacked(C Vec  &v, Char  (&temp)[ 7*3]=NoTemp(TempChar< 7*3>()).c);
+CChar * _TextPacked(C Vec4 &v, Char  (&temp)[ 7*4]=NoTemp(TempChar< 7*4>()).c);
 
 CChar* _TextPacked(Flt f, Char (&temp)[7]) // 1 for CharReal, 5 for Flt, 1 for NUL
 {
@@ -2823,24 +2823,24 @@ Str8::Str8(C Str8 &s, UInt extra_length) {_length=s.length(); if(Int size=NewStr
 Str ::Str (C Str  &s, UInt extra_length) {_length=s.length(); if(Int size=NewStrSize(length(), extra_length)){_d.setNum(size); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
 Str ::Str (C Str8 &s, UInt extra_length) {_length=s.length(); if(Int size=NewStrSize(length(), extra_length)){_d.setNum(size); I(); FREP(length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0';}} // always set NUL manually because 's' can be null, don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
 
-Str8::Str8(SByte i) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (SByte i) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Int   i) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Int   i) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Long  i) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Long  i) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Byte  u) : Str8(TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Byte  u) : Str (TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(UInt  u) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (UInt  u) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(ULong u) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (ULong u) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Flt   f) : Str8(TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Flt   f) : Str (TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Dbl   d) : Str8(TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Dbl   d) : Str (TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(CPtr  p) : Str8(TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
-Str ::Str (CPtr  p) : Str (TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str8::Str8(SByte i) : Str8(TextInt(    Int(i), NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (SByte i) : Str (TextInt(    Int(i), NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(Int   i) : Str8(TextInt(        i , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (Int   i) : Str (TextInt(        i , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(Long  i) : Str8(TextInt(        i , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (Long  i) : Str (TextInt(        i , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(Byte  u) : Str8(TextInt(   UInt(u), NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (Byte  u) : Str (TextInt(   UInt(u), NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(UInt  u) : Str8(TextInt(        u , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (UInt  u) : Str (TextInt(        u , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(ULong u) : Str8(TextInt(        u , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (ULong u) : Str (TextInt(        u , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(Flt   f) : Str8(TextFlt(        f , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (Flt   f) : Str (TextFlt(        f , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(Dbl   d) : Str8(TextDbl(        d , NoTemp(TempChar8<256>()).c)) {}
+Str ::Str (Dbl   d) : Str (TextDbl(        d , NoTemp(TempChar8<256>()).c)) {}
+Str8::Str8(CPtr  p) : Str8(TextHex(UIntPtr(p), NoTemp(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str ::Str (CPtr  p) : Str (TextHex(UIntPtr(p), NoTemp(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
 
 Str8::Str8(C Vec2   &v) : Str8() {T=v;}
 Str ::Str (C Vec2   &v) : Str () {T=v;}

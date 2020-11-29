@@ -358,8 +358,8 @@ Int CompareCS(C Str &a, C BStr &b);
        CChar8*  TextBin   (ULong u, Char8 (&temp)[256], Int digits=-1, Int separate=0, Bool prefix=false);
        CChar8*  TextHex   (UInt  u, Char8 (&temp)[256], Int digits=-1, Int separate=0, Bool prefix=false);
        CChar8*  TextHex   (ULong u, Char8 (&temp)[256], Int digits=-1, Int separate=0, Bool prefix=false);
-       CChar8* _TextHex   (Flt   f, Char8 (&temp)[17]=ConstCast(TempChar8<17>()).c);
-       CChar8* _TextHex   (Dbl   d, Char8 (&temp)[25]=ConstCast(TempChar8<25>()).c);
+       CChar8* _TextHex   (Flt   f, Char8 (&temp)[17]=NoTemp(TempChar8<17>()).c);
+       CChar8* _TextHex   (Dbl   d, Char8 (&temp)[25]=NoTemp(TempChar8<25>()).c);
        CChar8*  TextReal  (Dbl   r, Char8 (&temp)[256], Int precision, Int separate=0                   );
 inline CChar8*  TextFlt   (Dbl   r, Char8 (&temp)[256],                Int separate=0                   ) {return TextReal(r, temp, PRECISION_FLT, separate);}
 inline CChar8*  TextDbl   (Dbl   r, Char8 (&temp)[256],                Int separate=0                   ) {return TextReal(r, temp, PRECISION_DBL, separate);}

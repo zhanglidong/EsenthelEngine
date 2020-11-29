@@ -602,7 +602,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       IDxcCompiler *dxc_compiler=null; CreateCompiler(&dxc_compiler); if(dxc_compiler)
       {
          IDxcOperationResult *op_result=null;
-         dxc_compiler->Compile(source->file_blob, source->file_name, (Str)func_name, (Str)target, arguments.data(), arguments.elms(), defines.data(), defines.elms(), &ConstCast(Include12(source->file_name)), &op_result);
+         dxc_compiler->Compile(source->file_blob, source->file_name, (Str)func_name, (Str)target, arguments.data(), arguments.elms(), defines.data(), defines.elms(), &NoTemp(Include12(source->file_name)), &op_result);
          if(op_result)
          {
             op_result->GetErrorBuffer(&error_blob);
@@ -807,7 +807,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
-      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &ConstCast(Include11(source->file_name)), func_name, target, (amd ? D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY : 0)|(get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
+      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &NoTemp(Include11(source->file_name)), func_name, target, (amd ? D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY : 0)|(get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
       if(error_blob)
       {
          CChar8 *e=(Char8*)error_blob->GetBufferPointer();

@@ -124,10 +124,10 @@ struct Symbol : Str // C++ Symbol
       Bool isVoidPtr(); // test if this object is exactly a 'Ptr' or 'CPtr'
       Bool basicType(); // test if is a C++ native type or pointer of any kind
 
-      Int  rawSize        (Bool ref_as_ptr_size, RecTest &rt=ConstCast(RecTest()));
-      Int  firstMemberSize(                      RecTest &rt=ConstCast(RecTest())); // get size of first member in the class (or size of this if it's a var)
-      Bool hasConstructor (                      RecTest &rt=ConstCast(RecTest()));
-      Bool hasDestructor  (                      RecTest &rt=ConstCast(RecTest()));
+      Int  rawSize        (Bool ref_as_ptr_size, RecTest &rt=NoTemp(RecTest()));
+      Int  firstMemberSize(                      RecTest &rt=NoTemp(RecTest())); // get size of first member in the class (or size of this if it's a var)
+      Bool hasConstructor (                      RecTest &rt=NoTemp(RecTest()));
+      Bool hasDestructor  (                      RecTest &rt=NoTemp(RecTest()));
       Bool constMemAddrOK (                                                      );
       Str  modifName      (Bool spaces=true, Bool include_const=true, Bool include_ref=true, Bool invalid_array_as_1=false, Bool template_space=false);
 
@@ -135,8 +135,8 @@ struct Symbol : Str // C++ Symbol
       Bool sameFuncParamValue(Modif &modif);
 
       void setConst      (Bool on=true);
-      void proceedToFinal(Memc<Modif> *templates, Bool func_call=false, RecTest &rt=ConstCast(RecTest()));
-      void proceedTo     (Modif &src            ,                       RecTest &rt=ConstCast(RecTest()));
+      void proceedToFinal(Memc<Modif> *templates, Bool func_call=false, RecTest &rt=NoTemp(RecTest()));
+      void proceedTo     (Modif &src            ,                       RecTest &rt=NoTemp(RecTest()));
 
       Bool save(File &f, StrLibrary &sl)
       {
@@ -311,20 +311,20 @@ struct Symbol : Str // C++ Symbol
    Bool isTemplateClass       ();
    Bool isTemplateFunc        ();
    Bool isInlineFunc          ();
-   Bool isAbstractClass       (              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class    is abstract
-   Bool isVirtualClass        (              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class    is virtual
-   Bool isVirtualFunc         (              Memc<Modif> *templates=null                                  ); // check if a function is virtual
-   Bool hasVirtualDestructor  (              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class has a virtual destructor
-   Bool hasVirtualFunc        (Symbol &func, Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class has a virtual function identical to 'func'
-   Bool hasConstructor        (              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class has or should have constructor
-   Bool hasDestructor         (              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // check if a class has or should have  destructor
-   Bool hasResult             (              Memc<Modif> *templates=null, Modif   *value=null             ); // check if a function has result (return value) which is not 'void' (can be everything else, including 'void*')
+   Bool isAbstractClass       (              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class    is abstract
+   Bool isVirtualClass        (              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class    is virtual
+   Bool isVirtualFunc         (              Memc<Modif> *templates=null                               ); // check if a function is virtual
+   Bool hasVirtualDestructor  (              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class has a virtual destructor
+   Bool hasVirtualFunc        (Symbol &func, Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class has a virtual function identical to 'func'
+   Bool hasConstructor        (              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class has or should have constructor
+   Bool hasDestructor         (              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // check if a class has or should have  destructor
+   Bool hasResult             (              Memc<Modif> *templates=null, Modif   *value=null          ); // check if a function has result (return value) which is not 'void' (can be everything else, including 'void*')
    Bool fullyPublic           (); // if this symbol and all of its parents are public
    Int  templateClasses       ();
-   Int  baseOffset            (Int     base_index     ,              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // get raw offset of the 'base_index' base class from the start of the object (this should support also the case when pointing after all bases, to return the offset of all bases)
-   Int  memberOffset          (Symbol *member         , Bool *found, Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // get raw offset of the 'member'     member     from the start of the object (this should support alse the case when 'member' is not a child of the class, to return the size of the whole class)
-   Int  rawSize               (Bool    ref_as_ptr_size,              Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest()));
-   Int  firstMemberSize       (                                      Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest())); // get size of first member in the class (or size of this if it's a var)
+   Int  baseOffset            (Int     base_index     ,              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // get raw offset of the 'base_index' base class from the start of the object (this should support also the case when pointing after all bases, to return the offset of all bases)
+   Int  memberOffset          (Symbol *member         , Bool *found, Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // get raw offset of the 'member'     member     from the start of the object (this should support alse the case when 'member' is not a child of the class, to return the size of the whole class)
+   Int  rawSize               (Bool    ref_as_ptr_size,              Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest()));
+   Int  firstMemberSize       (                                      Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest())); // get size of first member in the class (or size of this if it's a var)
    Int  realParams            (); // return 0 for operator++(Int), operator--(Int) and "params.elms()" for everything else
 
    Bool sameFunc  (Symbol &f); // compares return values and parameters only (ignores parents)
@@ -333,10 +333,10 @@ struct Symbol : Str // C++ Symbol
    Bool constDefineInHeader(); // if define const in header
    Bool fromPartialMacro   (); // if was created from a macro, and only from its part
 
-   Bool hasBase          (Symbol *Class , Memc<Modif> *templates=null, RecTest &rt=ConstCast(RecTest()));
-   Bool hasNonPrivateBase(Symbol *Class , Memc<Modif> *templates=null, Bool allow_self=true, Bool test_private=false, RecTest &rt=ConstCast(RecTest()));
-   Bool hasPrivateBase   (Symbol *Class , Memc<Modif> *templates=null, Bool test_private=false, RecTest &rt=ConstCast(RecTest()));
-   Bool hasNonPublicBase (Symbol *Class , Memc<Modif> *templates=null, Bool test_access =false, RecTest &rt=ConstCast(RecTest()));
+   Bool hasBase          (Symbol *Class , Memc<Modif> *templates=null, RecTest &rt=NoTemp(RecTest()));
+   Bool hasNonPrivateBase(Symbol *Class , Memc<Modif> *templates=null, Bool allow_self=true, Bool test_private=false, RecTest &rt=NoTemp(RecTest()));
+   Bool hasPrivateBase   (Symbol *Class , Memc<Modif> *templates=null, Bool test_private=false, RecTest &rt=NoTemp(RecTest()));
+   Bool hasNonPublicBase (Symbol *Class , Memc<Modif> *templates=null, Bool test_access =false, RecTest &rt=NoTemp(RecTest()));
    Bool isMemberOf       (Symbol *symbol, Memc<Symbol::Modif> &symbol_templates, Symbol *caller, Bool instance, Bool ctor_init, Bool allow_self, Bool allow_bases);
    Bool canBeAccessedFrom(Symbol *path  , Symbol *caller, Bool precise_parent, Memc<SymbolPtr> &usings);
 
@@ -449,11 +449,11 @@ Str NamelessName(Symbol *parent);
 
 Symbol* GetFinalSymbol(Symbol *symbol, Memc<Symbol::Modif> *templates=null);
 
-SymbolPtr FindChild (C Str &name, Symbol *parent, Memc<Symbol::Modif> *parent_templates=null, Bool allow_base=true, Bool allow_self=true, RecTest &rt=ConstCast(RecTest()));
+SymbolPtr FindChild (C Str &name, Symbol *parent, Memc<Symbol::Modif> *parent_templates=null, Bool allow_base=true, Bool allow_self=true, RecTest &rt=NoTemp(RecTest()));
 SymbolPtr FindSymbol(C Str &name, Symbol *parent);
 SymbolPtr FindSymbol(C Str &name, Symbol *parent, Memc<SymbolPtr> &usings);
 
-void AddBaseTemplates(Memc<Symbol::Modif> &templates, Symbol &Class, RecTest &rt=ConstCast(RecTest()));
+void AddBaseTemplates(Memc<Symbol::Modif> &templates, Symbol &Class, RecTest &rt=NoTemp(RecTest()));
 /******************************************************************************/
 } // namespace
 #endif

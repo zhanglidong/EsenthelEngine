@@ -195,7 +195,7 @@ Ptr _Cache::find(CChar *file, CChar *path, Bool counted)
    return null;
 }
 /******************************************************************************/
-inline static CChar* HelperPath(CChar *file, CChar *path, Char (&dest)[MAX_LONG_PATH]=ConstCast(TempChar<MAX_LONG_PATH>()).c)
+inline static CChar* HelperPath(CChar *file, CChar *path, Char (&dest)[MAX_LONG_PATH]=NoTemp(TempChar<MAX_LONG_PATH>()).c)
 {
    MergePath(dest, _SkipStartPath(path, DataPath()), file);
    return    dest;
