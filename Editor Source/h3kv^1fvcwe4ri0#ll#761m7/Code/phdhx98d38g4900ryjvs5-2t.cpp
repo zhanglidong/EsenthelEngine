@@ -93,7 +93,7 @@ class MiniMapEditor : PropWin
 
          if(final)D.viewForceSquarePixel(true);
          D.viewFov (DegToRad(0.4), FOV_XY); // set low 'fov' to simulate orthogonal rendering, use 'FOV_XY' to set equal horizontal and vertical fov values to generate uniform scale textures
-         D.viewRect(final ? &RectI(0, 0, res_border, res_border) : &RectI(viewport.centerI()).extend(res_border/2)); // set viewport to cover image map resolution with borders
+         D.viewRect(final ? &NoTemp(RectI(0, 0, res_border, res_border)) : &RectI(viewport.centerI()).extend(res_border/2)); // set viewport to cover image map resolution with borders
 
          // set camera
          Cam.at   = ((Vec2(image_pos)+0.5)*miniMapWidth()).x0y(); // set camera at center of current map image
@@ -348,7 +348,7 @@ bool InitMiniMap()
    UpdateProgress.create(Rect_C(0, -0.05, 1, 0.045));
    MiniMapBuilding=true;
    MiniMapOk=false;
-   MiniMapAreasLeft=Proj.worldAreasToRebuild(&MiniMapEdit.worldID());
+   MiniMapAreasLeft=Proj.worldAreasToRebuild(&NoTemp(MiniMapEdit.worldID()));
    return true;
 }
 void ShutMiniMap()
@@ -370,11 +370,11 @@ bool UpdateMiniMap()
 {
    if(Kb.bp(KB_ESC)){SetProjectState(); Gui.msgBox(S, "Mini Map generation breaked on user request");}
 
-   Builder.update(!MiniMapBuilding, &MiniMapEdit.worldID());
+   Builder.update(!MiniMapBuilding, &NoTemp(MiniMapEdit.worldID()));
    if(MiniMapBuilding)
    {
-      UpdateProgress.set(MiniMapAreasLeft-Proj.worldAreasToRebuild(&MiniMapEdit.worldID()), MiniMapAreasLeft);
-      if(Builder.finished(&MiniMapEdit.worldID()))
+      UpdateProgress.set(MiniMapAreasLeft-Proj.worldAreasToRebuild(&NoTemp(MiniMapEdit.worldID())), MiniMapAreasLeft);
+      if(Builder.finished(&NoTemp(MiniMapEdit.worldID())))
       {
          MiniMapBuilding=false;
          WorldEdit.flush(); // flush any world areas that were built
@@ -411,7 +411,7 @@ void DrawMiniMap()
    D.clear(BackgroundColor());
    if(MiniMapBuilding)
    {
-      D.text(0, 0.05, S+"Waiting for "+Proj.worldAreasToRebuild(&MiniMapEdit.worldID())+" world areas to finish building");
+      D.text(0, 0.05, S+"Waiting for "+Proj.worldAreasToRebuild(&NoTemp(MiniMapEdit.worldID()))+" world areas to finish building");
    }else
    {
       for(uint start=Time.curTimeMs(); ; )

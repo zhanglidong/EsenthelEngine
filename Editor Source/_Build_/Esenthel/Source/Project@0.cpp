@@ -4169,7 +4169,7 @@ void DrawProject()
             if(ext=="c" || ext=="cpp" || ext=="h" || ext=="cc" || ext=="cxx" || ext=="m" || ext=="mm"           )type=ELM_CODE ;else
             if(Ends(name, ".mesh.ascii") || Ends(name, ".xps.ascii")                                            )type=ELM_OBJ  ;else
                                                                                                                  type=ELM_FILE ;
-            if(Elm *elm=newElm(type, parent_id, &GetBaseNoExt(name), false))
+            if(Elm *elm=newElm(type, parent_id, &NoTemp(GetBaseNoExt(name)), false))
             {
                elm->setSrcFile(CodeEdit.importPaths(name)); elmReload(elm->id, false, false); list_sel.add(elm->id); // no need to call 'Server.setElmShort' because 'Server.setElmFull' was already requested in 'newElm'
                return true;

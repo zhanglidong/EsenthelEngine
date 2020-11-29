@@ -1352,7 +1352,7 @@ AnimEditor AnimEdit;
                            desired_angle=TriABAngle(a_length, b_length, desired_length);
                            SCAST(Orient, bone       )*=Matrix3().setRotate(rotate_axis, delta + desired_angle-cur_angle); // add delta because child is transformed by parent
 
-                           Orient pose=GetAnimOrient(bone_parent, &transformedBone(sbon_parent->parent)); pose.fix();
+                           Orient pose=GetAnimOrient(bone_parent, &NoTemp(transformedBone(sbon_parent->parent))); pose.fix();
                            AnimKeys::Orn *orn=&GetOrn(*keys_parent, animTime(), pose);
                            orn->orn=pose;
 
@@ -1368,7 +1368,7 @@ AnimEditor AnimEdit;
                            SCAST(Orient, bone_parent)*=m;
                            SCAST(Orient, bone       )*=m; // this should include position, but we don't actually need it
                            
-                           Orient pose=GetAnimOrient(bone_parent, &transformedBone(sbon_parent->parent)); pose.fix();
+                           Orient pose=GetAnimOrient(bone_parent, &NoTemp(transformedBone(sbon_parent->parent))); pose.fix();
                            AnimKeys::Orn *orn=&GetOrn(*keys_parent, animTime(), pose);
                            orn->orn=pose;
 

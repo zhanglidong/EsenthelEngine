@@ -51,7 +51,7 @@ bool ThreadIDReplace(Thread &thread)
                         mesh_data->fromMtrl(mesh);
                         mesh_data->file_time.getUTC();
                         Skeleton *body_skel; Proj.getMeshSkels(mesh_data, null, &body_skel);
-                        Mesh game; EditToGameMesh(mesh, game, body_skel, Proj.getEnum(mesh_data->draw_group_id), &mesh_data->transform());
+                        Mesh game; EditToGameMesh(mesh, game, body_skel, Proj.getEnum(mesh_data->draw_group_id), &NoTemp(mesh_data->transform()));
                         Save(mesh, Proj.editPath(elm), Proj.game_path);
                         Save(game, Proj.gamePath(elm)); Proj.savedGame(elm);
                      }

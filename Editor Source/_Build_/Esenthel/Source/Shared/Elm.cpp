@@ -981,7 +981,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(flag&ROOT_SMOOTH_POS)f|=::ROOT_SMOOTH_POS;
       return f;
    }
-   void ElmAnim::setRoot(Animation &anim) {SetRootMoveRot(anim, rootMove() ? &(root_move*transform.scale) : null, rootRot() ? &root_rot : null);}
+   void ElmAnim::setRoot(Animation &anim) {SetRootMoveRot(anim, rootMove() ? &NoTemp(root_move*transform.scale) : null, rootRot() ? &root_rot : null);}
    bool ElmAnim::mayContain(C UID &id)C {return id==skel_id;}
    void ElmAnim::newData()
 {

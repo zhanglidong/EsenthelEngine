@@ -1151,7 +1151,7 @@ ImporterClass Importer;
 
                   // game mesh
                   Skeleton *body_skel; Proj.getMeshSkels(mesh_data, null, &body_skel);
-                  Mesh game_mesh; EditToGameMesh(import.mesh, game_mesh, body_skel, Proj.getEnum(mesh_data->draw_group_id), &mesh_data->transform());
+                  Mesh game_mesh; EditToGameMesh(import.mesh, game_mesh, body_skel, Proj.getEnum(mesh_data->draw_group_id), &NoTemp(mesh_data->transform()));
                   Save(game_mesh, Proj.gamePath(mesh_elm->id)); Proj.savedGame(*mesh_elm); // save
                   mesh_data->from(game_mesh);
                   Server.setElmFull(obj_data->mesh_id);
@@ -1445,7 +1445,7 @@ ImporterClass Importer;
                   Save(mesh, edit_path, Proj.game_path); // save
 
                   // game mesh
-                  Mesh game_mesh; EditToGameMesh(mesh, game_mesh, body_skel, Proj.getEnum(mesh_data->draw_group_id), &mesh_data->transform());
+                  Mesh game_mesh; EditToGameMesh(mesh, game_mesh, body_skel, Proj.getEnum(mesh_data->draw_group_id), &NoTemp(mesh_data->transform()));
                   Save(game_mesh, Proj.gamePath(mesh_elm->id)); Proj.savedGame(*mesh_elm); // save
                   mesh_data->from(game_mesh);
 

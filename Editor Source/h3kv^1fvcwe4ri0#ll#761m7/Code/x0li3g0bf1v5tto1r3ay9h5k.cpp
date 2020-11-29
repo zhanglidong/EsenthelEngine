@@ -336,7 +336,7 @@ class IconEditor : PropWin
             VecI2 super_size=view_size*2;
             if(   super_size.x<=screen_size.x && super_size.y<=screen_size.y)view_size=super_size;else break;
          }
-         D.viewRect(&RectI(VecI2(0), view_size));
+         D.viewRect(&NoTemp(RectI(VecI2(0), view_size)));
       }else
       if(no_scale)
       {

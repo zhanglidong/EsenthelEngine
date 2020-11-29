@@ -930,7 +930,7 @@ class GuiView : Region
                   REPA(temp)if(temp[i].parent()==temp_parent){Vec2 p=temp[i].pos(); MIN(pos.x, p.x); MAX(pos.y, p.y);} // get top-left corner
                   for(int i=0; i<temp.elms(); )if(temp[i].parent()==temp_parent) // keep order
                   {
-                     if(GuiObj *obj=copy(*temp[i], parent, &Ms.pos(), &(temp[i].pos()-pos)))sel.add(obj);
+                     if(GuiObj *obj=copy(*temp[i], parent, &Ms.pos(), &NoTemp(temp[i].pos()-pos)))sel.add(obj);
                      temp.remove(i, true); // keep order
                   }else i++;
                }

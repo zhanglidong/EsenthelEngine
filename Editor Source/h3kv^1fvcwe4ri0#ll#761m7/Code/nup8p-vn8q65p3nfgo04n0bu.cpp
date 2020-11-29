@@ -1183,7 +1183,7 @@ class ElmAnim : ElmData
       if(flag&ROOT_SMOOTH_POS)f|=.ROOT_SMOOTH_POS;
       return f;
    }
-   void setRoot(Animation &anim) {SetRootMoveRot(anim, rootMove() ? &(root_move*transform.scale) : null, rootRot() ? &root_rot : null);}
+   void setRoot(Animation &anim) {SetRootMoveRot(anim, rootMove() ? &NoTemp(root_move*transform.scale) : null, rootRot() ? &root_rot : null);}
 
    virtual bool mayContain(C UID &id)C override {return id==skel_id;}
 

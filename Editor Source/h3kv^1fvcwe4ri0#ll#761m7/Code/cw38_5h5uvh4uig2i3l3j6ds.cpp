@@ -82,7 +82,7 @@ class ObjView : Viewport4Region
       }
       void drawBlend()
       {
-         if(mesh)mesh->drawBlend(matrix, &Vec4(1, 1, 1, ObjEdit.background_alpha()));
+         if(mesh)mesh->drawBlend(matrix, &NoTemp(Vec4(1, 1, 1, ObjEdit.background_alpha())));
       }
    }
    class SlotMesh
@@ -510,7 +510,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             if(ListElm *list_elm=Proj.list.visToData(Proj.list.lit))
                if(Elm *obj=list_elm.elm)if(ElmObj *obj_data=obj.objData())if(obj_data.mesh_id.valid())
                   if(C MeshPtr &mesh=Proj.gamePath(obj_data.mesh_id))
-                     mesh->drawBlend(MatrixIdentity, &Vec4(1, 1, 1, 0.5));
+                     mesh->drawBlend(MatrixIdentity, &NoTemp(Vec4(1, 1, 1, 0.5)));
 
             if(background_alpha()>0 && background_alpha()<1)REPAO(back_meshes).drawBlend();
          }break;
@@ -1026,7 +1026,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          pos+=(D.viewFrom ()/Dot(dir, ActiveCam.matrix.z))*dir;
          dir*= D.viewRange();
          flt frac, f; Vec hp;
-         REPA(lod)if(partVisible(i, lod.parts[i]))if(Sweep(pos, dir, lod.parts[i], &transformMatrix(partOp(i)), &f, &hp, null, true, -1, false))if(hit_part<0 || f<frac)
+         REPA(lod)if(partVisible(i, lod.parts[i]))if(Sweep(pos, dir, lod.parts[i], &NoTemp(transformMatrix(partOp(i))), &f, &hp, null, true, -1, false))if(hit_part<0 || f<frac)
          {
             hit_part=i; frac=f; if(hit_pos)*hit_pos=hp;
          }

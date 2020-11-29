@@ -549,7 +549,7 @@ void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flag
          if(best_type)*best_type=type;
          if(hash     )
          {
-            h.update(&ImageHashHeader(image, type), SIZE(ImageHashHeader)); // need to append hash with a header, to make sure different sized/cube/srgb/sign/quality images will always have different hash
+            h.update(&NoTemp(ImageHashHeader(image, type)), SIZE(ImageHashHeader)); // need to append hash with a header, to make sure different sized/cube/srgb/sign/quality images will always have different hash
            *hash=h();
          }
       }else

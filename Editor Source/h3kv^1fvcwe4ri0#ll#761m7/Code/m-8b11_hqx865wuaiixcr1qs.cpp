@@ -1012,7 +1012,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    {
           rect(Rect_RU(D.w(), D.h(), rect().w(), D.h()*2));
       sub.rect(Rect(0.01, -rect().h(), rect().w(), preview.rect().min.y-0.01));
-      sub.virtualSize(&(sub.childrenSize()+Vec2(0, 0.02))); // add a bit of padding
+      sub.virtualSize(&NoTemp(sub.childrenSize()+Vec2(0, 0.02))); // add a bit of padding
       if(!sub.slidebar[1].visible())move(Vec2(slidebarSize(), 0));
       preview_big.rect(EditRect(false));
    }
