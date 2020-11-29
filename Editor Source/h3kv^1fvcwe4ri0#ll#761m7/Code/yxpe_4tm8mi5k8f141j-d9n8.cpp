@@ -62,7 +62,7 @@ class AdjustBoneOrns : PropWin
              add_shoulder=false,
              reset_perp=true,
              refresh_needed=true;
-   HAND_MODE hand_mode=HAND_PARENT;
+   HAND_MODE hand_mode=HAND_AVG;
    FOOT_MODE foot_mode=FOOT_DOWN;
    ROT_SHOULDER_MODE rotate_shoulder=ROT_SHOULDER_NO;
    Button    adjust;
