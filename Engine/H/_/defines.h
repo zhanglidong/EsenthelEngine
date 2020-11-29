@@ -40,10 +40,8 @@
 T1(TYPE) TYPE& ConstCast(C TYPE &x) {return const_cast<TYPE&>(x);} // remove the const modifier
 T1(TYPE) TYPE* ConstCast(C TYPE *x) {return const_cast<TYPE*>(x);} // remove the const modifier
 
-T1(TYPE)   TYPE& NoTemp(  TYPE &x) {return x;}
-T1(TYPE) C TYPE& NoTemp(C TYPE &x) {return x;}
-
-T1(TYPE) TYPE&& RValue(TYPE &type) {return (TYPE&&)type;}
+T1(TYPE) TYPE&  NoTemp(TYPE &&x) {return         x;}
+T1(TYPE) TYPE&& RValue(TYPE & x) {return (TYPE&&)x;}
 /******************************************************************************/
 // ITERATION MACROS
 /******************************************************************************/
