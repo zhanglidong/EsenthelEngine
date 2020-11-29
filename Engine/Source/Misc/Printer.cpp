@@ -68,7 +68,7 @@ Bool RawPrinter::send(C Str8 &data, C Str &document_name)
 	   DOC_INFO_1W doc_info;
 	   doc_info.pDocName   =ConstCast(WChar(document_name.is() ? document_name() : App.name().is() ? App.name()() : u"Doc")); // some printers may fail if no name is specified
 	   doc_info.pOutputFile=null;
-	   doc_info.pDatatype  =L"RAW";
+	   doc_info.pDatatype  =ConstCast(L"RAW");
 	   if(DWORD job_id=StartDocPrinterW(printer, 1, (LPBYTE)&doc_info))
       {
 	      if(StartPagePrinter(printer))
