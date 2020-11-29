@@ -1046,8 +1046,8 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                }else
                {
                   TexChannel tc[TC_NUM];
-                  tc[0].set(TC_ROUGH ).find(name, "roughness").find(name, "rough");
-                  tc[1].set(TC_METAL ).find(name, "metalness").find(name, "metallic").find(name, "metal");
+                  tc[0].set(TC_ROUGH ).find(name, "roughness").find(name, "rough").find(name, "R", true);
+                  tc[1].set(TC_METAL ).find(name, "metalness").find(name, "metallic").find(name, "metal").find(name, "MT", true);
                   tc[2].set(TC_AO    ).find(name, "occlusion").find(name, "occl").find(name, "AO", true);
                   tc[3].set(TC_HEIGHT).find(name, "height"   );
                   int channels=0; REPA(tc)if(tc[i].pos>=0)channels++; multi_channel=(channels>1);
