@@ -429,7 +429,7 @@ Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt 
    CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, true, false, min_angle, max_angle, collision);
    return T;
 }
-Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt *swing, Flt *twist, Bool collision)
+Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Flt *swing, C Flt *twist, Bool collision)
 {
    del();
    Matrix m0            =      a0. matrix(),
@@ -453,7 +453,7 @@ Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt
    CreateSlider(T, a0, a1, local_anchor, local_axis, local_normal, min, max, collision);
    return T;
 }
-Joint& Joint::createDist(Actor &a0, Actor *a1, C Vec &anchor0, C Vec &anchor1, Flt min, Flt max, Spring *spring, Bool collision)
+Joint& Joint::createDist(Actor &a0, Actor *a1, C Vec &anchor0, C Vec &anchor1, Flt min, Flt max, C Spring *spring, Bool collision)
 {
    del();
    Vec local_anchor[]={anchor0, anchor1};
