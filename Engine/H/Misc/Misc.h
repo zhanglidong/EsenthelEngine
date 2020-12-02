@@ -23,7 +23,7 @@ struct OSUserGetter
    Windows::System::User ^user;
    Bool                   is;
 
-   Windows::System::User^& get();
+   Windows::System::User^C& get();
 }extern
    OSUser;
 #endif

@@ -1329,7 +1329,7 @@ CChar8* OSName(OS_VER ver)
 #if WINDOWS_NEW
 static SyncLock OSLock;
 OSUserGetter OSUser;
-Windows::System::User^& OSUserGetter::get()
+Windows::System::User^C& OSUserGetter::get()
 {
    if(!is)
    {
