@@ -102,13 +102,33 @@ void XBOXLive::getUserProfile(C CMemPtr<ULong> &user_ids)
    }
 #endif
 }
+#if SUPPORT_XBOX_LIVE
 void XBOXLive::setStatus(STATUS status)
 {
    if(T._status!=status){T._status=status; if(callback)callback(STATUS_CHANGED, userID());}
 }
+void XBOXLive::logInOK1()
+{
+   setStatus(LOGGED_IN);
+
+   xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args &) // setup auto-callback
+   {
+      // this will get called when game exits or user signs-out
+      {
+         SyncLocker locker(lock);
+         GameSaveContainer=null;
+         GameSaveProvider=null;
+         XboxCtx =null;
+         XboxUser=null;
+        _me          .clear();
+        _friends     .clear(); _friends_known=_friends_getting=false;
+        _achievements.clear(); _achievements_known=_achievements_getting=false;
+      }
+      setStatus(LOGGED_OUT);
+   });
+}
 void XBOXLive::logInOK()
 {
-#if SUPPORT_XBOX_LIVE
    SyncLockerEx locker(lock);
    if(!XboxCtx)XboxCtx=std::make_shared<xbox::services::xbox_live_context>(XboxUser);
    if(C auto &config=XboxCtx->application_config())
@@ -123,36 +143,23 @@ void XBOXLive::logInOK()
     //Str age=XboxUser->age_group().c_str(); // can return: "Adult", ..
       getUserProfile(); // request extra info as soon as we have ID
 
-      auto op=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(OSUser.get(), ref new Platform::String(config->scid().c_str()));
-      locker.off();
-      op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([this](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
+      if(C auto &user=OSUser.get())
       {
-         if(status==Windows::Foundation::AsyncStatus::Completed)
+         auto op=Windows::Gaming::XboxLive::Storage::GameSaveProvider::GetForUserAsync(user, ref new Platform::String(config->scid().c_str()));
+         locker.off();
+         op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^>([this](Windows::Foundation::IAsyncOperation<Windows::Gaming::XboxLive::Storage::GameSaveProviderGetResult^> ^op, Windows::Foundation::AsyncStatus status)
          {
-            SyncLocker locker(lock);
-            if(GameSaveProvider=op->GetResults()->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
-            setStatus(LOGGED_IN); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
-
-            xbox::services::system::xbox_live_user::add_sign_out_completed_handler([this](const xbox::services::system::sign_out_completed_event_args&) // setup auto-callback
+            if(status==Windows::Foundation::AsyncStatus::Completed)
             {
-               // this will get called when game exits or user signs-out
-               {
-                  SyncLocker locker(lock);
-                  GameSaveContainer=null;
-                  GameSaveProvider=null;
-                  XboxCtx =null;
-                  XboxUser=null;
-                 _me          .clear();
-                 _friends     .clear(); _friends_known=_friends_getting=false;
-                 _achievements.clear(); _achievements_known=_achievements_getting=false;
-               }
-               setStatus(LOGGED_OUT);
-            });
-         }else setStatus(LOGGED_OUT);
-      });
+               SyncLocker locker(lock);
+               if(GameSaveProvider=op->GetResults()->Value)GameSaveContainer=GameSaveProvider->CreateContainer("Data");
+               logInOK1(); // call once everything is ready ('XboxCtx', members, 'GameSaveProvider', 'GameSaveContainer')
+            }else setStatus(LOGGED_OUT);
+         });
+      }else logInOK1(); // logged in OK but failed to get user (which is needed for cloud saves)
    }else setStatus(LOGGED_OUT);
-#endif
 }
+#endif
 /******************************************************************************/
 void XBOXLive::logIn()
 {

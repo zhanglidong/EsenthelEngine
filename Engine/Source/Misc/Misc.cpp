@@ -1333,7 +1333,7 @@ Windows::System::User^& OSUserGetter::get()
 {
    if(!is)
    {
-      auto op=Windows::System::User::FindAllAsync(Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated);
+      auto op=Windows::System::User::FindAllAsync(); // "Windows::System::UserType::LocalUser, Windows::System::UserAuthenticationStatus::LocallyAuthenticated" will work on PC but might return null on Xbox, so don't use it
       SyncEvent event;
       op->Completed=ref new Windows::Foundation::AsyncOperationCompletedHandler<Windows::Foundation::Collections::IVectorView<Windows::System::User^>^>([&](Windows::Foundation::IAsyncOperation<Windows::Foundation::Collections::IVectorView<Windows::System::User^>^> ^op, Windows::Foundation::AsyncStatus status)
       {
@@ -1362,7 +1362,7 @@ static struct UserNameGetter
    {
       if(!is && App.hwnd()) // !! we can call this only after window was created, because OS might ask for permission !!
       {
-         if(auto &user=OSUser.get())
+         if(C auto &user=OSUser.get())
          {
             auto properties=ref new Platform::Collections::Vector<Platform::String^>();
             properties->Append(Windows::System::KnownUserProperties::FirstName);
