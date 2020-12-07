@@ -494,7 +494,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -536,7 +536,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -580,7 +580,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -622,7 +622,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -667,7 +667,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -713,7 +713,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -832,7 +832,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -880,7 +880,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -929,7 +929,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -979,7 +979,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1030,7 +1030,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1080,7 +1080,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1236,7 +1236,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1278,7 +1278,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1325,7 +1325,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1399,7 +1399,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1445,7 +1445,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1495,7 +1495,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
