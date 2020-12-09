@@ -60,7 +60,7 @@ static Int Layout(C Material &material) // Textures
    }                     return 0;
    // 'base_1' is normal map and doesn't affect texture layout
 }
-static Int BumpMode(C Material &material, UInt mesh_base_flag)
+static Int BumpMode(C Material &material, MeshFlag mesh_base_flag)
 {
    if(mesh_base_flag&VTX_NRM)
    {
@@ -82,7 +82,7 @@ static Bool Macro      (C Material &material) {return  material. macro_map;}
 static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL8;}
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 
-static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
+static MeshFlag FlagHeightmap(MeshFlag mesh_base_flag, Bool heightmap)
 {
    if(heightmap)
    {
@@ -92,7 +92,7 @@ static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
    return mesh_base_flag;
 }
 /******************************************************************************/
-DefaultShaders::DefaultShaders(C Material *material, UInt mesh_base_flag, Int lod_index, Bool heightmap)
+DefaultShaders::DefaultShaders(C Material *material, MeshFlag mesh_base_flag, Int lod_index, Bool heightmap)
 {
  C Material *materials[4]=
    {
@@ -103,7 +103,7 @@ DefaultShaders::DefaultShaders(C Material *material, UInt mesh_base_flag, Int lo
    };
    init(materials, mesh_base_flag, lod_index, heightmap);
 }
-void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_index, Bool heightmap)
+void DefaultShaders::init(C Material *material[4], MeshFlag mesh_base_flag, Int lod_index, Bool heightmap)
 {
    // !! Never return the same shader for Multi-Materials as Single-Materials !!
    if(!mesh_base_flag){set_empty: valid=false; return;}

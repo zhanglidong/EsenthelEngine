@@ -239,7 +239,6 @@ namespace EE // Esenthel Engine namespace
    #include "Graphics/Light.h"
    #include "Graphics/Shader.h"
    #include "Graphics/Shader Compiler.h"
-   #include "Graphics/Shader Main.h"
    #include "Graphics/Vertex Index Buffer Ex.h"
    #include "Graphics/Vertex Index Buffer.h"
    #include "Graphics/Sun.h"
@@ -286,6 +285,7 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    //
    /******************************************************************************/
+   #include "Graphics/Shader Main.h"
    #include "Math/Frustum.h"
    #include "Misc/Application.h"
    #include "Misc/Windows.h"
