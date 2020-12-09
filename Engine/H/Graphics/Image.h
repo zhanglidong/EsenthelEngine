@@ -601,16 +601,16 @@ struct Image // Image (Texture)
    Bool ImportBMPRaw( File &f   , Bool ico=false                           );   Bool ExportBMPRaw(File &f, Byte byte_pp, Bool ico=false)C;
 #endif
 
-   Bool   ImportTry(C Str  &name, Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, false on fail
-   Image& Import   (C Str  &name, Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, Exit  on fail
-   Bool   ImportTry(  File &f   , Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, false on fail
-   Image& Import   (  File &f   , Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, Exit  on fail
+   Bool   ImportTry(C Str  &name, Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, false on fail
+   Image& Import   (C Str  &name, Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, Exit  on fail
+   Bool   ImportTry(  File &f   , Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, false on fail
+   Image& Import   (  File &f   , Int type=-1, Int mode=-1, Int mip_maps=-1); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE, 'mip_maps'=number of mip-maps (0=autodetect), -1=keep original value, Exit  on fail
 
    Bool Export(C Str &name, Flt rgb_quality=-1, Flt alpha_quality=-1, Flt compression_level=-1, Int sub_sample=-1)C; // export according to extension, false on fail, 'rgb_quality'=color quality 0..1 (-1=default, 0=smallest size, 1=best quality), 'alpha_quality'=alpha quality 0..1 (-1=use 'rgb_quality', 0=smallest size, 1=best quality), 'compression_level'=0..1 (-1=default, 0=fast/biggest size, 1=slow/smallest size), 'sub_sample'=0..2 (chroma sub-sampling for RGB images, 0=none, 1=half, 2=quarter, -1=default)
 
-   Bool   ImportCubeTry(C Image &right, C Image &left, C Image &up, C Image &down, C Image &forward, C Image &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import                                           as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, false on fail
-   Bool   ImportCubeTry(C Str   &right, C Str   &left, C Str   &up, C Str   &down, C Str   &forward, C Str   &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, false on fail
-   Image& ImportCube   (C Str   &right, C Str   &left, C Str   &up, C Str   &down, C Str   &forward, C Str   &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, Exit  on fail
+   Bool   ImportCubeTry(C Image &right, C Image &left, C Image &up, C Image &down, C Image &forward, C Image &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import                                               as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, false on fail
+   Bool   ImportCubeTry(C Str   &right, C Str   &left, C Str   &up, C Str   &down, C Str   &forward, C Str   &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, false on fail
+   Image& ImportCube   (C Str   &right, C Str   &left, C Str   &up, C Str   &down, C Str   &forward, C Str   &back, Int type=-1, Bool soft=false, Int mip_maps=1, Bool resize_to_pow2=true, FILTER_TYPE filter=FILTER_BEST); // import BMP PNG JPG WEBP HEIF TGA TIF DDS PSD ICO HDR as cube texture, 'type'=IMAGE_TYPE (-1=keep original value), 'soft'=if use IMAGE_SOFT_CUBE or IMAGE_CUBE, Exit  on fail
 
    Bool ImportBMP (C Str  &name                                          ) ; // import    BMP  from file, false on fail
    Bool ImportBMP (  File &f                                             ) ; // import    BMP  from file, false on fail
@@ -651,6 +651,8 @@ struct Image // Image (Texture)
    Bool ExportICO (  File &f                                             )C; // export as ICO  to   file, false on fail
    Bool ExportICNS(C Str  &name                                          )C; // export as ICNS to   file, false on fail
    Bool ExportICNS(  File &f                                             )C; // export as ICNS to   file, false on fail
+   Bool ImportHDR (C Str  &name                                          ) ; // import    HDR  from file, false on fail
+   Bool ImportHDR (  File &f                                             ) ; // import    HDR  from file, false on fail
 
             Image& operator=(C Image &src); // create from 'src' image using 'copy' method, Exit on fail
            ~Image();

@@ -601,6 +601,7 @@ Bool Image::ImportTry(File &f, Int type, Int mode, Int mip_maps)
    f.resetOK().pos(pos); if(ImportTIF (f))goto ok; // import after PNG/JPG in case LibTIFF tries to decode them too
    f.resetOK().pos(pos); if(ImportDDS (f, type, mode, mip_maps))goto ok;
    f.resetOK().pos(pos); if(ImportPSD (f))goto ok;
+   f.resetOK().pos(pos); if(ImportHDR (f))goto ok;
    f.resetOK().pos(pos); if(ImportICO (f))goto ok;
  //f.resetOK().pos(pos); if(ImportTGA (f, type, mode, mip_maps))goto ok; TGA format doesn't contain any special signatures, so we can't check it
    del(); return false;

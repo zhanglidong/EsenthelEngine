@@ -15,6 +15,9 @@
  //#include "../../../../ThirdPartyLibs/DirectXTex/BC4BC5.cpp"
    #include "../../../../ThirdPartyLibs/DirectXTex/BC6HBC7.cpp"
 #endif
+
+#include "../../../../ThirdPartyLibs/end.h"
+
 #if BC6_DEC==BC_LIB_TEXGENPACK || BC7_DEC==BC_LIB_TEXGENPACK
    namespace TGP
    {
@@ -23,8 +26,6 @@
       #pragma runtime_checks("", restore)
    }
 #endif
-
-#include "../../../../ThirdPartyLibs/end.h"
 
 namespace EE{
 /******************************************************************************/

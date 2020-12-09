@@ -36,7 +36,7 @@ namespace
 
 static Int OpusMaxFrameSize(Int channels)
 {
-   return (OPUS_MAX_FRAME_SAMPLES*SIZE(I16))*channels;
+   return (OPUS_MAX_FRAME_SAMPLES*sizeof(I16))*channels;
 }
 #endif
 

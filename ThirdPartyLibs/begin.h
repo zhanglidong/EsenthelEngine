@@ -3,6 +3,7 @@
 #undef C
 #undef T
 #undef null
+#undef SIZE
 
 #if DEBUG
    #define SET_DEBUG 1
@@ -53,5 +54,9 @@
    #undef WEB
 #endif
 
-#undef  LONG_MIN
-#define LONG_MIN (-2147483647L - 1) // minimum (signed) long value
+#undef   LONG_MIN
+#define  LONG_MIN (-2147483647L - 1)
+#undef   LONG_MAX
+#define  LONG_MAX   2147483647L
+#undef  ULONG_MAX
+#define ULONG_MAX   0xffffffffUL

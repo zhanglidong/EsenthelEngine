@@ -2126,6 +2126,9 @@
     <ClCompile Include="Source\Net\Xbox Live.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Import\HDR.cpp">
+      <Filter>Source\Graphics\Import</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">
