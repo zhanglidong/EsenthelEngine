@@ -370,6 +370,7 @@
           <itemPath>../Source/Graphics/Import/ETC.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/ETC.h</itemPath>
           <itemPath>../Source/Graphics/Import/ETC_Compress.cpp</itemPath>
+          <itemPath>../Source/Graphics/Import/HDR.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/HEIF.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/ICO.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/JPEG.cpp</itemPath>
@@ -1484,6 +1485,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../Source/Graphics/Import/HDR.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/HEIF.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -2903,6 +2906,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../Source/Graphics/Import/HDR.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/HEIF.cpp" ex="false" tool="1" flavor2="0">
       </item>
