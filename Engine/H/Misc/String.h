@@ -32,11 +32,11 @@ struct Str // Text String (16-bit per character)
   CChar* operator()(     )C {return _d.data();} // get  text data
    Char  operator[](Int i)C;                    // get  i-th character, returns '\0' if 'i' is out of range
 
-   Bool is      ()C {return _length>0                     ;} // if  contains any data
-   Int  length  ()C {return _length                       ;} // get current length
-   Char first   ()C {return _length ? _d[        0] : '\0';} // get first character present in the string, '\0' if empty
-   Char last    ()C {return _length ? _d[_length-1] : '\0';} // get last  character present in the string, '\0' if empty
-   UInt memUsage()C {return           _d.memUsage()       ;} // get memory usage
+   Bool    is      ()C {return _length>0                     ;} // if  contains any data
+   Int     length  ()C {return _length                       ;} // get current length
+   Char    first   ()C {return _length ? _d[        0] : '\0';} // get first character present in the string, '\0' if empty
+   Char    last    ()C {return _length ? _d[_length-1] : '\0';} // get last  character present in the string, '\0' if empty
+   UIntPtr memUsage()C {return           _d.memUsage()       ;} // get memory usage
 
    // operations
    Str& del       (                   ); // clear stored data and free helper memory

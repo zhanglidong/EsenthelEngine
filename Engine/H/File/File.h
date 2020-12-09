@@ -74,9 +74,9 @@ struct File
 
    // get / set
 #if EE_PRIVATE
-   Long posFile  ()C;                              // get actual   position in file (takes into account buffering)
-   Long posAbs   ()C {return _pos+       _offset;} // get absolute position in file
-   Int  posCipher()C {return _pos+_cipher_offset;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
+   Long posFile  ()C;                                   // get actual   position in file (takes into account buffering)
+   Long posAbs   ()C {return     _pos +       _offset;} // get absolute position in file
+   Int  posCipher()C {return Int(_pos)+_cipher_offset;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
    Ptr  memFast  ()  {return (Byte*)_mem+posAbs();}
    Ptr  mem      () ; // get raw memory pointer for FILE_MEM
    UInt memUsage ()C; // get memory usage
