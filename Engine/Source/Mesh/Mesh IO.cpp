@@ -524,7 +524,7 @@ Bool MeshRender::loadData(File &f)
               _tris=_ib._ind_num/3;
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
             }
-          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
             if(f.ok())return true;
          }
       }break;
@@ -542,7 +542,7 @@ Bool MeshRender::loadData(File &f)
                adjustToPlatform(FlagTest(storage, 1<<0), FlagTest(storage, 1<<1), FlagTest(storage, 1<<2), bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
             }
-          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
             if(f.ok())return true;
          }
       }break;
@@ -561,7 +561,7 @@ Bool MeshRender::loadData(File &f)
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, false, true);
             }
-          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
             if(f.ok())return true;
          }
       }break;
@@ -581,7 +581,7 @@ Bool MeshRender::loadData(File &f)
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, true, true);
             }
-          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
             if(f.ok())return true;
          }
       }break;
@@ -601,7 +601,7 @@ Bool MeshRender::loadData(File &f)
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, true, true);
             }
-          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
             if(f.ok())return true;
          }
       }break;
@@ -663,7 +663,7 @@ Bool MeshRender::loadData(File &f)
                Fix(T, true, true);
 
                MeshBase mshb(T); create(mshb, ~0, false);
-             //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+             //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
                if(f.ok())return true;
             }
          }else if(f.ok())return true;
