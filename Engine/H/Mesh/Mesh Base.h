@@ -4,7 +4,7 @@
       It contains vertexes, edges, triangles and quads.
 
 /******************************************************************************/
-enum VTX_FLAGS // flags of a single vertex 'MeshVtxs::flag'
+enum VTX_FLAG // flags of a single vertex 'MeshVtxs.flag'
 {
    VTX_FLAG_CLOTH=0x1, // when converting MeshBase to ClothMesh then use the vertex in physical cloth creation
 };
@@ -38,21 +38,21 @@ enum MESH_BASE_FLAG // Mesh Base Flag
    EDGE_ADJ_FACE=1<<11, // edge adjacent face
    EDGE_NRM     =1<<12, // edge normal
    EDGE_FLAG    =1<<13, // edge flag
-   EDGE_ID      =1<<14, // edge id
+   EDGE_ID      =1<<14, // edge ID
 
    TRI_IND     =1<<15, // triangle vertex index
    TRI_ADJ_FACE=1<<16, // triangle adjacent face
    TRI_ADJ_EDGE=1<<17, // triangle adjacent edge
    TRI_NRM     =1<<18, // triangle normal
    TRI_FLAG    =1<<19, // triangle flag
-   TRI_ID      =1<<20, // triangle id
+   TRI_ID      =1<<20, // triangle ID
 
    QUAD_IND     =1<<21, // quad vertex index
    QUAD_ADJ_FACE=1<<22, // quad adjacent face
    QUAD_ADJ_EDGE=1<<23, // quad adjacent edge
    QUAD_NRM     =1<<24, // quad normal
    QUAD_FLAG    =1<<25, // quad flag
-   QUAD_ID      =1<<26, // quad id
+   QUAD_ID      =1<<26, // quad ID
 
    VTX_TEX_ALL    =VTX_TEX0  |VTX_TEX1|VTX_TEX2,
    VTX_TAN_BIN    =VTX_TAN   |VTX_BIN          ,
@@ -168,8 +168,8 @@ struct MeshVtxs // Mesh Vertexes
  C VecB4* blend   ()C {return _blend   ;}   C VecB4& blend   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, their sum must be equal to 255 !!
    Flt  * size    ()  {return _size    ;}     Flt  & size    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
  C Flt  * size    ()C {return _size    ;}   C Flt  & size    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
-   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
- C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
+   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAG
+ C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAG
    Int  * dup     ()  {return _dup     ;}     Int  & dup     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
  C Int  * dup     ()C {return _dup     ;}   C Int  & dup     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
 
@@ -183,7 +183,7 @@ private:
 /******************************************************************************/
 struct MeshEdges // Mesh Edges
 {
-   Int    elms   ()C {return _elms    ;}                                                                           // get number of edges
+   Int    elms   ()C {return _elms    ;}                                                                                 // get number of edges
    VecI2* ind    ()  {return _ind     ;}     VecI2& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
  C VecI2* ind    ()C {return _ind     ;}   C VecI2& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
    VecI2* adjFace()  {return _adj_face;}     VecI2& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th edge adjacent faces, index to faces adjacent to the edge encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
@@ -192,8 +192,8 @@ struct MeshEdges // Mesh Edges
  C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th edge normal
    Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
  C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
-   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
- C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
+   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge ID
+ C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge ID
 
    MeshEdges() {}
 #if !EE_PRIVATE
@@ -205,7 +205,7 @@ private:
 /******************************************************************************/
 struct MeshTris // Mesh Triangles
 {
-   Int   elms   ()C {return _elms    ;}                                                                           // get number of triangles
+   Int   elms   ()C {return _elms    ;}                                                                                // get number of triangles
    VecI* ind    ()  {return _ind     ;}     VecI& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
  C VecI* ind    ()C {return _ind     ;}   C VecI& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
    VecI* adjFace()  {return _adj_face;}     VecI& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th triangle adjacent faces, index to faces adjacent to the triangle encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
@@ -216,8 +216,8 @@ struct MeshTris // Mesh Triangles
  C Vec * nrm    ()C {return _nrm     ;}   C Vec & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th triangle normal
    Byte* flag   ()  {return _flag    ;}     Byte& flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
  C Byte* flag   ()C {return _flag    ;}   C Byte& flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
-   Int * id     ()  {return _id      ;}     Int & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
- C Int * id     ()C {return _id      ;}   C Int & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
+   Int * id     ()  {return _id      ;}     Int & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle ID
+ C Int * id     ()C {return _id      ;}   C Int & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle ID
 
    MeshTris() {}
 #if !EE_PRIVATE
@@ -229,7 +229,7 @@ private:
 /******************************************************************************/
 struct MeshQuads // Mesh Quads
 {
-   Int    elms   ()C {return _elms    ;}                                                                           // get number of quads
+   Int    elms   ()C {return _elms    ;}                                                                                 // get number of quads
    VecI4* ind    ()  {return _ind     ;}     VecI4& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
  C VecI4* ind    ()C {return _ind     ;}   C VecI4& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
    VecI4* adjFace()  {return _adj_face;}     VecI4& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th quad adjacent faces, index to faces adjacent to the quad encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
@@ -240,8 +240,8 @@ struct MeshQuads // Mesh Quads
  C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th quad normal
    Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
  C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
-   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
- C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
+   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad ID
+ C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad ID
 
    MeshQuads() {}
 #if !EE_PRIVATE
@@ -273,9 +273,9 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    Bool      createVtx (C VtxBuf &vb, UInt flag, UInt storage,                                                       UInt flag_and=~0) ; // create vertexes from vertex buffer
    Bool      createInd (C IndBuf &ib                                                                                                 ) ; // create indexed  from index  buffer
    MeshBase& copyFace  (MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and=~0)C; // copy only selected elements                          , 'flag_and'=MESH_BASE_FLAG, 'edge_is tri_is quad_is' must point to an array of Bool's of size equal to number of eddges, triangles and quads respectively, i-th element will be copied only if "_is[i]==true", if the "is" parameter is set to null, then no elemenets are copied, !! method returns 'dest' !!
-   void      copyId    (MeshBase &dest, Int id,                                                                      UInt flag_and=~0)C; // copy only elements with matching id                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
-   void      copyId    (MeshLod  &dest,                                                                              UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
-   void      copyId    (Mesh     &dest,                                                                              UInt flag_and=~0)C; // copy according to id's (each id to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   void      copyId    (MeshBase &dest, Int id,                                                                      UInt flag_and=~0)C; // copy only elements with matching ID                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
+   void      copyId    (MeshLod  &dest,                                                                              UInt flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   void      copyId    (Mesh     &dest,                                                                              UInt flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
 
    void copyVtxs (C MeshBase &src);   void copyVtxs (C MeshBase &src, C CMemPtr<Bool> &is);
    void copyEdges(C MeshBase &src);   void copyEdges(C MeshBase &src, C CMemPtr<Bool> &is);
@@ -338,7 +338,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    Flt  area        (Vec  *center=null                )C; // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
    Flt  convexVolume(                                 )C; // calculate volume of this mesh assuming that it's convex
    Int  maxId       (                                 )C; // get maximum value of ID in edges/faces, -1 if doesn't have any
-   Bool hasId       (Int   id                         )C; // if  any of the edges/faces have their id set to 'id'
+   Bool hasId       (Int   id                         )C; // if  any of the edges/faces have their ID set to 'id'
 
    // set
 #if EE_PRIVATE

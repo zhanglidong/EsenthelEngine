@@ -129,7 +129,7 @@ struct FBX
    FbxImporter              *importer       =null;
    FbxGlobalSettings        *global_settings=null;
    Int                       sdk_major=0, sdk_minor=0, sdk_revision=0;
-   Memc<Node>                nodes;
+   Mems<Node>                nodes;
    Memc<FbxSurfaceMaterial*> ee_mtrl_to_fbx_mtrl; // this will point from EE Material 'materials' container index to FBX Material pointer
    Flt                       scale=1.0f;
    Str                       app_name;
@@ -194,14 +194,14 @@ struct FBX
                FbxSystemUnit scene_system_unit=global_settings->GetSystemUnit(),
                            desired_system_unit=FbxSystemUnit::m; // meters
                if(scene_system_unit!=desired_system_unit)
-               #if 0 // broken in latest SDK
+               #if 1
                   desired_system_unit.ConvertScene(scene);
                #else
                   scale=scene_system_unit.GetScaleFactor()/desired_system_unit.GetScaleFactor();
                #endif
 
                // set nodes
-               nodes.setNum(scene->GetNodeCount()); // create all nodes up-front !! this is important because we're using 'Memc' !!
+               nodes.setNum(scene->GetNodeCount()); // create all nodes up-front !! this is important because we're using 'Mems' !!
                REPAO(nodes).node=scene->GetNode(i); // set node link
                REPA (nodes)
                {
@@ -868,20 +868,11 @@ struct FBX
 
                                  case FbxGeometryElement::eByPolygonVertex:
                                  {
-                                 #if 0 // this code is from FBX SDK "DisplayMesh.cxx", but it's faulty
-                                    Int TextureUVIndex=fbx_mesh->GetTextureUVIndex(poly, vtx);
-                                    switch(leUV->GetReferenceMode())
-                                    {
-                                       case FbxGeometryElement::eDirect       :
-                                       case FbxGeometryElement::eIndexToDirect: uv=VEC(leUV->GetDirectArray().GetAt(TextureUVIndex)); break;
-                                    }
-                                 #else // this code is based on other vertex components
                                     switch(leUV->GetReferenceMode())
                                     {
                                        case FbxGeometryElement::eDirect       : uv=VEC(leUV->GetDirectArray().GetAt(vtxs)); break;
                                        case FbxGeometryElement::eIndexToDirect: uv=VEC(leUV->GetDirectArray().GetAt(leUV->GetIndexArray().GetAt(vtxs))); break;
                                     }
-                                 #endif
                                  }break;
                               }
                               uv.y=1-uv.y; // FBX uses mirrored Y
