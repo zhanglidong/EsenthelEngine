@@ -2,9 +2,9 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-MeshGroup& MeshGroup::include (UInt flag) {REPAO(meshes).include (flag); return T;}
-MeshGroup& MeshGroup::exclude (UInt flag) {REPAO(meshes).exclude (flag); return T;}
-MeshGroup& MeshGroup::keepOnly(UInt flag) {REPAO(meshes).keepOnly(flag); return T;}
+MeshGroup& MeshGroup::include (MeshFlag flag) {REPAO(meshes).include (flag); return T;}
+MeshGroup& MeshGroup::exclude (MeshFlag flag) {REPAO(meshes).exclude (flag); return T;}
+MeshGroup& MeshGroup::keepOnly(MeshFlag flag) {REPAO(meshes).keepOnly(flag); return T;}
 /******************************************************************************/
 void MeshGroup::zero     () {ext.zero();}
      MeshGroup::MeshGroup() {zero();}
@@ -77,8 +77,8 @@ MeshGroup& MeshGroup::create(C Mesh &src, C Boxes &boxes)
    if(&dest==&temp)Swap(temp, T);
    setBox(true); return T;
 }
-MeshGroup& MeshGroup::create(C Mesh      &src, C VecI &cells   ) {return create(src, Boxes(src.ext, cells));}
-MeshGroup& MeshGroup::create(C MeshGroup &src,   UInt  flag_and)
+MeshGroup& MeshGroup::create(C Mesh      &src, C VecI    &cells   ) {return create(src, Boxes(src.ext, cells));}
+MeshGroup& MeshGroup::create(C MeshGroup &src,   MeshFlag flag_and)
 {
    if(this==&src)keepOnly(flag_and);else
    {
@@ -97,14 +97,14 @@ void MeshGroup::copyParams(C MeshGroup &src)
 /******************************************************************************/
 // GET
 /******************************************************************************/
-UInt MeshGroup::flag     ()C {UInt flag=0; REPA(T)flag|=meshes[i].flag     (); return flag;}
-Int  MeshGroup::vtxs     ()C {Int  n   =0; REPA(T)n   +=meshes[i].vtxs     (); return n   ;}
-Int  MeshGroup::baseVtxs ()C {Int  n   =0; REPA(T)n   +=meshes[i].baseVtxs (); return n   ;}
-Int  MeshGroup::edges    ()C {Int  n   =0; REPA(T)n   +=meshes[i].edges    (); return n   ;}
-Int  MeshGroup::tris     ()C {Int  n   =0; REPA(T)n   +=meshes[i].tris     (); return n   ;}
-Int  MeshGroup::quads    ()C {Int  n   =0; REPA(T)n   +=meshes[i].quads    (); return n   ;}
-Int  MeshGroup::faces    ()C {Int  n   =0; REPA(T)n   +=meshes[i].faces    (); return n   ;}
-Int  MeshGroup::trisTotal()C {Int  n   =0; REPA(T)n   +=meshes[i].trisTotal(); return n   ;}
+MeshFlag MeshGroup::flag     ()C {MeshFlag flag=0; REPA(T)flag|=meshes[i].flag     (); return flag;}
+Int      MeshGroup::vtxs     ()C {Int      n   =0; REPA(T)n   +=meshes[i].vtxs     (); return n   ;}
+Int      MeshGroup::baseVtxs ()C {Int      n   =0; REPA(T)n   +=meshes[i].baseVtxs (); return n   ;}
+Int      MeshGroup::edges    ()C {Int      n   =0; REPA(T)n   +=meshes[i].edges    (); return n   ;}
+Int      MeshGroup::tris     ()C {Int      n   =0; REPA(T)n   +=meshes[i].tris     (); return n   ;}
+Int      MeshGroup::quads    ()C {Int      n   =0; REPA(T)n   +=meshes[i].quads    (); return n   ;}
+Int      MeshGroup::faces    ()C {Int      n   =0; REPA(T)n   +=meshes[i].faces    (); return n   ;}
+Int      MeshGroup::trisTotal()C {Int      n   =0; REPA(T)n   +=meshes[i].trisTotal(); return n   ;}
 /******************************************************************************/
 // JOIN
 /******************************************************************************/
@@ -118,7 +118,7 @@ MeshGroup& MeshGroup::join(Int i0, Int i1)
    }
    return T;
 }
-MeshGroup& MeshGroup::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag, Flt weld_pos_eps) {REPAO(meshes).joinAll(test_material, test_draw_group, test_name, test_vtx_flag, weld_pos_eps); return T;}
+MeshGroup& MeshGroup::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag, Flt weld_pos_eps) {REPAO(meshes).joinAll(test_material, test_draw_group, test_name, test_vtx_flag, weld_pos_eps); return T;}
 /******************************************************************************/
 // TEXTURIZE
 /******************************************************************************/
@@ -139,13 +139,13 @@ MeshGroup& MeshGroup::scaleMove(C Vec &scale, C Vec &move) {ext*=scale; ext+=mov
 /******************************************************************************/
 // SET
 /******************************************************************************/
-MeshGroup& MeshGroup::setFaceNormals(                                   ) {REPAO(meshes).setFaceNormals(                      ); return T;}
-MeshGroup& MeshGroup::setNormals    (                                   ) {REPAO(meshes).setNormals    (                      ); return T;}
-MeshGroup& MeshGroup::setVtxDup     (UInt flag, Flt pos_eps, Flt nrm_cos) {REPAO(meshes).setVtxDup     (flag, pos_eps, nrm_cos); return T;}
-MeshGroup& MeshGroup::setRender     (                                   ) {REPAO(meshes).setRender     (                      ); return T;}
-MeshGroup& MeshGroup::setShader     (                                   ) {REPAO(meshes).setShader     (                      ); return T;}
-MeshGroup& MeshGroup::material      (C MaterialPtr &material            ) {REPAO(meshes).material      (material              ); return T;}
-Bool       MeshGroup::setBox        (Bool           set_mesh_boxes      )
+MeshGroup& MeshGroup::setFaceNormals(                                       ) {REPAO(meshes).setFaceNormals(                      ); return T;}
+MeshGroup& MeshGroup::setNormals    (                                       ) {REPAO(meshes).setNormals    (                      ); return T;}
+MeshGroup& MeshGroup::setVtxDup     (MeshFlag flag, Flt pos_eps, Flt nrm_cos) {REPAO(meshes).setVtxDup     (flag, pos_eps, nrm_cos); return T;}
+MeshGroup& MeshGroup::setRender     (                                       ) {REPAO(meshes).setRender     (                      ); return T;}
+MeshGroup& MeshGroup::setShader     (                                       ) {REPAO(meshes).setShader     (                      ); return T;}
+MeshGroup& MeshGroup::material      (C MaterialPtr &material                ) {REPAO(meshes).material      (material              ); return T;}
+Bool       MeshGroup::setBox        (Bool           set_mesh_boxes          )
 {
    if(set_mesh_boxes)REPAO(meshes).setBox();
    Bool found=false; Box box; REPA(T)
@@ -157,9 +157,9 @@ Bool       MeshGroup::setBox        (Bool           set_mesh_boxes      )
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-MeshGroup& MeshGroup::weldVtx2D    (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPAO(meshes).weldVtx2D(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-MeshGroup& MeshGroup::weldVtx      (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPAO(meshes).weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-MeshGroup& MeshGroup::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
+MeshGroup& MeshGroup::weldVtx2D    (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPAO(meshes).weldVtx2D(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+MeshGroup& MeshGroup::weldVtx      (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPAO(meshes).weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+MeshGroup& MeshGroup::weldVtxValues(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
    flag&=T.flag(); // can weld only values that we have
    if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld

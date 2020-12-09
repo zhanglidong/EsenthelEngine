@@ -4,7 +4,7 @@ namespace EE{
 /******************************************************************************/
 // WELD
 /******************************************************************************/
-static void Weld(MeshBase &mshb, UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps, Bool flat)
+static void Weld(MeshBase &mshb, MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps, Bool flat)
 {
    if(pos_eps>=0)
    {
@@ -60,8 +60,8 @@ static void Weld(MeshBase &mshb, UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove
          // tri
          {
             is.setNum(mshb.tris()); FREPA(mshb.tri){VecI f=tri_ind[i]; f.remapAll(vtx_remap); is[i]=f.allDifferent();}
-            Int  tris=CountIs(is);
-            UInt flag=mshb.flag(), f=(flag&TRI_ALL);
+            Int      tris=CountIs(is);
+            MeshFlag flag=mshb.flag(), f=(flag&TRI_ALL);
 
             if(quad_tri.elms())
             {
@@ -105,10 +105,10 @@ static void Weld(MeshBase &mshb, UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove
       }
    }
 }
-MeshBase& MeshBase::weldVtx2D(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {Weld(T, flag, pos_eps, nrm_cos, remove_degenerate_faces_eps, true ); return T;}
-MeshBase& MeshBase::weldVtx  (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {Weld(T, flag, pos_eps, nrm_cos, remove_degenerate_faces_eps, false); return T;}
+MeshBase& MeshBase::weldVtx2D(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {Weld(T, flag, pos_eps, nrm_cos, remove_degenerate_faces_eps, true ); return T;}
+MeshBase& MeshBase::weldVtx  (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {Weld(T, flag, pos_eps, nrm_cos, remove_degenerate_faces_eps, false); return T;}
 /******************************************************************************/
-MeshBase& MeshBase::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
+MeshBase& MeshBase::weldVtxValues(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
    flag&=T.flag(); // can weld only values that we have
    if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
@@ -1545,7 +1545,7 @@ MeshBase& MeshBase::splitEdges(Flt length, Bool *is)
 
    // create mshb
    {
-      UInt f=((VTX_ALL|EDGE_ID|EDGE_FLAG)&flag());
+      MeshFlag f=((VTX_ALL|EDGE_ID|EDGE_FLAG)&flag());
       create(mvtx.elms(), medge.elms(), 0, 0, f);
       REPA(vtx )mvtx[i].to(T, i);
       REPA(edge)
@@ -1611,7 +1611,7 @@ MeshBase& MeshBase::splitEdges(Flt length, Flt d, Bool *is)
 
    // create mshb
    {
-      UInt f=((VTX_ALL|EDGE_ID|EDGE_FLAG)&flag());
+      MeshFlag f=((VTX_ALL|EDGE_ID|EDGE_FLAG)&flag());
       create(mvtx.elms(), medge.elms(), 0, 0, f);
       REPA(vtx )mvtx[i].to(T, i);
       REPA(edge)

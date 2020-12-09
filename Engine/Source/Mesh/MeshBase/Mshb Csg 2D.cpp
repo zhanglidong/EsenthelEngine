@@ -168,7 +168,7 @@ static void AddMesh(C MeshBase &mshb, Memc<MC_EDGE> &medge, Bool type)
 {
    FREPA(mshb.edge)
    {
-      C Int *p=mshb.edge.ind(i).c;
+    C Int *p=mshb.edge.ind(i).c;
       UInt p0=GetPoint(mshb.vtx.pos(p[0]).xy),
            p1=GetPoint(mshb.vtx.pos(p[1]).xy);
       if(p0!=p1)

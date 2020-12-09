@@ -66,14 +66,14 @@ MeshBase& MeshBase::addQuad(C VecI4 &ind)
 
    return T;
 }
-MeshBase& MeshBase::add(C MeshBase &src, UInt flag_and)
+MeshBase& MeshBase::add(C MeshBase &src, MeshFlag flag_and)
 {
    if(!src.is())return T;
  C MeshBase *meshes[]={this, &src};
    return create(meshes, Elms(meshes), flag_and);
 }
-MeshBase& MeshBase::add(C MeshRender &src, UInt flag_and) {MeshBase mb(src, flag_and); return add(mb);}
-MeshBase& MeshBase::add(C MeshPart   &src, UInt flag_and) {MeshBase mb(src, flag_and); return add(mb);}
+MeshBase& MeshBase::add(C MeshRender &src, MeshFlag flag_and) {MeshBase mb(src, flag_and); return add(mb);}
+MeshBase& MeshBase::add(C MeshPart   &src, MeshFlag flag_and) {MeshBase mb(src, flag_and); return add(mb);}
 /******************************************************************************
 MeshBase& addEdge(C Vec2       &pos, Int edge        ); // add edge     by splitting 'edge' edge into two edges at 'pos' position
 MeshBase& MeshBase::addEdge(C Vec2 &pos, Int e)
@@ -540,7 +540,7 @@ MeshBase& MeshBase::removeDegenerateFaces(Flt eps)
       exclude(ADJ_ALL);
 
       // set flag
-      UInt flag=T.flag();
+      MeshFlag flag=T.flag();
       if(tri_from_quad.elms())
       {
          if(quad.flag())flag|=TRI_FLAG;

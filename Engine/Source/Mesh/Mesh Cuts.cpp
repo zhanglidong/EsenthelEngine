@@ -43,7 +43,7 @@ CutsCache::CutsCache(C MeshBase &mshb)
 /******************************************************************************/
 // DIST
 /******************************************************************************/
-DIST_TYPE DistPointMesh(C Vec2 &point, C MeshBase &mshb, UInt flag, Flt *distance, Int *index, UInt test_flag)
+DIST_TYPE DistPointMesh(C Vec2 &point, C MeshBase &mshb, MeshFlag flag, Flt *distance, Int *index, UInt test_flag)
 {
    DIST_TYPE type=DIST_NONE;
    Int       j=-1;
@@ -71,7 +71,7 @@ DIST_TYPE DistPointMesh(C Vec2 &point, C MeshBase &mshb, UInt flag, Flt *distanc
    if(index   )*index   =j   ;
    return type;
 }
-DIST_TYPE DistPointMesh(C Vec &point, C MeshBase &mshb, UInt flag, Flt *distance, Int *index)
+DIST_TYPE DistPointMesh(C Vec &point, C MeshBase &mshb, MeshFlag flag, Flt *distance, Int *index)
 {
    DIST_TYPE type=DIST_NONE;
    Int       j=-1;

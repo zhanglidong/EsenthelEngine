@@ -260,7 +260,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             }
          }
       }
-      void lerp(C VtxData &a, C VtxData &b, Flt step, UInt flag)
+      void lerp(C VtxData &a, C VtxData &b, Flt step, MeshFlag flag)
       {
          Flt step1=1-step;
          if(flag&VTX_TEX0    )tex0    =  a.tex0    *step1 + b.tex0    *step;
@@ -282,7 +282,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(flag&VTX_TEX2)tex2=a.tex2*step1 + b.tex2*step;
          }
       }
-      void lerp(C VtxData &a, C VtxData &b, C VtxData &c, C Vec &blend, UInt flag)
+      void lerp(C VtxData &a, C VtxData &b, C VtxData &c, C Vec &blend, MeshFlag flag)
       {
          if(flag&VTX_TEX0    )tex0    =  a.tex0    *blend.x + b.tex0    *blend.y + c.tex0    *blend.z;
          if(flag&VTX_COLOR   )color   =  a.color   *blend.x + b.color   *blend.y + c.color   *blend.z;
@@ -304,7 +304,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(flag&VTX_TEX2)tex2=a.tex2*blend.x + b.tex2*blend.y + c.tex2*blend.z;
          }
       }
-      void normalize(C Weights &weight, UInt flag)
+      void normalize(C Weights &weight, MeshFlag flag)
       {
          // skin not handled here
          if(flag&VTX_NRM     )nrm.normalize();
@@ -322,19 +322,19 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    };
    struct Triangle
    {
-      Real    edge_error[3], error_min;
-      VecI    ind; // vertex index
-      Vec     nrm, tan, bin; // for simplification tangent/binormal are computed per triangle (not per vertex), tangent/binormal are not normalized
-      Flt     weight;
-      VtxData vtxs[3], // data for each vertex
-              vtx_new; // weighted average 'vtx_mid' for all tris, this is done per-component only if in 2 tris the shared vertexes data is the same
-      Int     part, // MeshPart index
-              mtrl_group;
-      UInt    flag; // MSHB_FLAG, this is obtained from the 'MeshPart.base' of that triangle
-      Bool    middle,
-              visible; // this is obtained from 'MeshPart.part_flag' of that triangle (alternatively instead of having this value, we could keep an array for all mesh part properties and reuse 'part' to access that array, however that would be slower)
+      Real     edge_error[3], error_min;
+      VecI     ind; // vertex index
+      Vec      nrm, tan, bin; // for simplification tangent/binormal are computed per triangle (not per vertex), tangent/binormal are not normalized
+      Flt      weight;
+      VtxData  vtxs[3], // data for each vertex
+               vtx_new; // weighted average 'vtx_mid' for all tris, this is done per-component only if in 2 tris the shared vertexes data is the same
+      Int      part, // MeshPart index
+               mtrl_group;
+      MeshFlag flag; // MSHB_FLAG, this is obtained from the 'MeshPart.base' of that triangle
+      Bool     middle,
+               visible; // this is obtained from 'MeshPart.part_flag' of that triangle (alternatively instead of having this value, we could keep an array for all mesh part properties and reuse 'part' to access that array, however that would be slower)
    #if !ADJUST_REFS
-      Bool    exists; // if references are not adjusted, then we need to keep information about which triangle exists and which got removed
+      Bool     exists; // if references are not adjusted, then we need to keep information about which triangle exists and which got removed
       Triangle() {exists=true ;}
      ~Triangle() {exists=false;}
    #endif
@@ -417,17 +417,17 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    };
    struct MtrlGroup
    {
-      UInt flag;
-      Ptr  multi_mtrls[4];
+      MeshFlag flag;
+      Ptr      multi_mtrls[4];
 
-      MtrlGroup(UInt flag=0, C MeshPart *part=null)
+      MtrlGroup(MeshFlag flag=0, C MeshPart *part=null)
       {
          T.flag=flag;
          REPAO(multi_mtrls)=(part ? part->multiMaterial(i)() : null);
       }
       Bool operator==(C MtrlGroup &mg)C
       {
-         const UInt mask=(VTX_POS|VTX_HLP|VTX_NRM|VTX_TEX_ALL|VTX_SIZE); // tan/bin not needed because they are recalculated, color not needed because defaulted to WHITE, material blend weight not needed because defaulted to (1,0,0,0), skin not needed because defaulted to bone=0 weight=1
+         const MeshFlag mask=(VTX_POS|VTX_HLP|VTX_NRM|VTX_TEX_ALL|VTX_SIZE); // tan/bin not needed because they are recalculated, color not needed because defaulted to WHITE, material blend weight not needed because defaulted to (1,0,0,0), skin not needed because defaulted to bone=0 weight=1
          if((flag&mask)!=(mg.flag&mask))return false;
          REPA(multi_mtrls)if(multi_mtrls[i]!=mg.multi_mtrls[i])return false;
          return true;
@@ -446,7 +446,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    Bool               keep_border;
    MESH_SIMPLIFY      mode;
    Int                processed_tris, max_skin, visible_tris=0;
-   UInt               test_flag; // this is set based on the max tolerance parameters to the simplify function
+   MeshFlag           test_flag; // this is set based on the max tolerance parameters to the simplify function
    Flt                max_uv2, max_color, max_material, max_normal;
    Box                box;
    Memx<Triangle    > tris;
@@ -607,8 +607,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          TrianglePtr &trip2=all_tris[i]; if(&trip!=&trip2) // skip self, remember that 'tri2' can be middle too, just like 'tri'
          {
             Triangle &tri2=*trip2.tri;
-            UInt add_flag=(tri.flag&tri2.flag);
-            if(  add_flag&VTX_TEX_ALL) // if we want to merge tex coordinates
+            MeshFlag add_flag=(tri.flag&tri2.flag);
+            if(      add_flag&VTX_TEX_ALL) // if we want to merge tex coordinates
             {
                if(tri.mtrl_group!=tri2.mtrl_group // we can merge tex only if materials match
                || Dot(tri.tan, tri2.tan)<=0  // and triangles don't have mirrored tex
@@ -667,8 +667,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       PROF(SET_VTX_DATA);
       Triangle &tri=*trip.tri;
       if(tri.middle)return true; // middle tris have already been calculated
-      UInt set_flag=tri.flag; // get what we need to calculate
-      if( (set_flag&VTX_TEX0) && !trip.vtx_tex0)return false; // if this triangle has TEX0 but we haven't found any middle triangle match, then we can't proceed
+      MeshFlag set_flag=tri.flag; // get what we need to calculate
+      if(     (set_flag&VTX_TEX0) && !trip.vtx_tex0)return false; // if this triangle has TEX0 but we haven't found any middle triangle match, then we can't proceed
       // try getting from middle triangle if we've got a connection (prefer middle because this is already calculated, and from all triangles, not just one side)
       if(trip.vtx_hlp     ){tri.vtx_new.hlp     =trip.vtx_hlp     ->hlp     ;                                         FlagDisable(set_flag, VTX_HLP     );}
       if(trip.vtx_nrm     ){tri.vtx_new.nrm     =trip.vtx_nrm     ->nrm     ;                                         FlagDisable(set_flag, VTX_NRM     );}
@@ -707,8 +707,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                         const Int tv2=tri2.ind.c[tvi2];
                         if(tv==tv2) // if the same vtx
                         {
-                           UInt add_flag=(set_flag&tri2.flag);
-                           if(  add_flag&VTX_TEX_ALL) // if we want to merge tex coordinates
+                           MeshFlag add_flag=(set_flag&tri2.flag);
+                           if(      add_flag&VTX_TEX_ALL) // if we want to merge tex coordinates
                            {
                               if(tri.mtrl_group!=tri2.mtrl_group // we can merge tex only if materials match
                               || Dot(tri.tan, tri2.tan)<=0  // and triangles don't have mirrored tex
@@ -755,8 +755,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       #endif
          if(!tri.middle) // we don't need to check middle triangles
          {
-            UInt  test_flag=(tri.flag&T.test_flag);
-          C VtxData  &vtx_n= tri.vtx_new;
+            MeshFlag test_flag=(tri.flag&T.test_flag);
+          C VtxData     &vtx_n= tri.vtx_new;
 
             if(TEST_ORIGINAL_POS) // calculate original position in the new triangle
             {
@@ -1160,7 +1160,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
    void add(C MeshBase &mesh, Int part, C MeshPart *mesh_part)
    {
-      UInt mesh_flag=mesh.flag();
+      MeshFlag mesh_flag=mesh.flag();
 
       // check visibility add tri count
       Bool visible=(!mesh_part || !(mesh_part->part_flag&MSHP_HIDDEN));
@@ -1239,8 +1239,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    void init(Flt pos_eps)
    {
       PROF(INIT);
-      Int  mtrl_groups_elms=mtrl_groups.elms(); // how many material groups are there, remember this because 'mtrl_groups' will be deleted
-      UInt mtrl_groups_flag=0; REPA(mtrl_groups)mtrl_groups_flag|=mtrl_groups[i].flag; // what vtx components are we processing
+      Int      mtrl_groups_elms=mtrl_groups.elms(); // how many material groups are there, remember this because 'mtrl_groups' will be deleted
+      MeshFlag mtrl_groups_flag=0; REPA(mtrl_groups)mtrl_groups_flag|=mtrl_groups[i].flag; // what vtx components are we processing
       REPA(tris) // set actual triangle flag after adding all meshes, because they may modify the mtrl group flag
       {
          Triangle &tri=tris[i]; tri.flag=mtrl_groups[tri.mtrl_group].flag;
@@ -1465,9 +1465,9 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       }
    }
 
-   void store(MeshBase &mesh, UInt flag_and=~0)
+   void store(MeshBase &mesh, MeshFlag flag_and=~0)
    {
-      UInt flags=0; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
+      MeshFlag flags=0; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
       mesh.create(tris.elms()*3, 0, tris.elms(), 0, flags&(VTX_ALL&~(VTX_TAN_BIN|VTX_DUP)));
       Int tri_index=0;
    #if 0
@@ -1499,10 +1499,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    {
       struct PartInfo
       {
-         Int  tris;
-         UInt flag;
-
-         PartInfo() {tris=0; flag=0;}
+         Int      tris=0;
+         MeshFlag flag=0;
       };
       MemtN<PartInfo, 256> part_infos;
 
@@ -1549,7 +1547,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          MeshBase &mesh=parts[i].base;
 
          // this needs to be done before welding vertexes so we don't weld with big tan/bin differences
-         UInt flag=part_infos[i].flag;
+         MeshFlag flag=part_infos[i].flag;
          if(flag&VTX_TAN_BIN)mesh.setTanBin(); // if(flag&VTX_TAN)mesh.setTangents(); if(flag&VTX_BIN)mesh.setBinormals();
 
          mesh.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down, ignore degenerate faces

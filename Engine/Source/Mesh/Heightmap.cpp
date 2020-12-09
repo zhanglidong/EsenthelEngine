@@ -1746,21 +1746,21 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, UInt flag, BuildMemSo
          MtrlCombo &mtrl_combo=builder.mtrl_combos[i];
          MeshPart  &part      =    lod.parts      [i];
 
-         UInt flag=VTX_POS|VTX_NRM|TRI_IND;
-         if(!VTX_HEIGHTMAP)flag|=VTX_TEX0|VTX_TAN;
-         if(ambient_occlusion || color.is())flag|=VTX_COLOR;
-         if( mtrl_combo.mtrl_index.y/* || mtrl_combo.mtrl_index.z || mtrl_combo.mtrl_index.w*/)flag|=VTX_MATERIAL;else // 'mtrl_index' in 'mtrl_combo' is always sorted, so we only need to check if 2nd material is not null
+         MeshFlag mesh_flag=VTX_POS|VTX_NRM|TRI_IND;
+         if(!VTX_HEIGHTMAP)mesh_flag|=VTX_TEX0|VTX_TAN;
+         if(ambient_occlusion || color.is())mesh_flag|=VTX_COLOR;
+         if( mtrl_combo.mtrl_index.y/* || mtrl_combo.mtrl_index.z || mtrl_combo.mtrl_index.w*/)mesh_flag|=VTX_MATERIAL;else // 'mtrl_index' in 'mtrl_combo' is always sorted, so we only need to check if 2nd material is not null
          if(!mtrl_combo.mtrl_index.x && !build_null_mtrl)mtrl_combo.reset(); // prevent creating null material
 
          if(soft)
          {
             MeshBase &mshb=part.base;
-            mshb.create(mtrl_combo.vtxs, 0, mtrl_combo.tris, 0, flag);
+            mshb.create(mtrl_combo.vtxs, 0, mtrl_combo.tris, 0, mesh_flag);
             mshb.tri._elms=0; // clear so we can use it as progress index for adding new tris
          }else
          {
             MeshRender &mshr=part.render;
-            if(!mshr.create(mtrl_combo.vtxs, mtrl_combo.tris, flag, VTX_COMPRESS))return false;
+            if(!mshr.create(mtrl_combo.vtxs, mtrl_combo.tris, mesh_flag, VTX_COMPRESS))return false;
 
             if(mshr.vtxs() && !mshr.vtxLock(LOCK_WRITE))return false;
             if(mshr.tris() && !mshr.indLock(LOCK_WRITE))return false;

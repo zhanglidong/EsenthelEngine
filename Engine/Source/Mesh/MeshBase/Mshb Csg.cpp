@@ -895,7 +895,7 @@ finished:
    Swap(dest, temp);
 }
 /******************************************************************************/
-void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_plane, Int clip_planes, UInt flag_and, Flt weld_pos_eps)
+void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_plane, Int clip_planes, MeshFlag flag_and, Flt weld_pos_eps)
 {
    flag_and&=src.flag();
    if(!(flag_and&VTX_ALL&~(VTX_POS|VTX_FLAG|VTX_DUP))) // if simple is enough
@@ -981,7 +981,7 @@ void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_p
    }
 }
 /******************************************************************************/
-void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, Int clip_planes, UInt flag_and, Flt weld_pos_eps)
+void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, Int clip_planes, MeshFlag flag_and, Flt weld_pos_eps)
 {
    Mesh temp;
 
@@ -1089,7 +1089,7 @@ finished:
    Swap(dest, temp);
 }
 /******************************************************************************/
-void SplitMesh(C Mesh &src, C Matrix *matrix, Mesh &dest_positive, Mesh &dest_negative, C Plane &clip_plane, UInt flag_and, Flt weld_pos_eps)
+void SplitMesh(C Mesh &src, C Matrix *matrix, Mesh &dest_positive, Mesh &dest_negative, C Plane &clip_plane, MeshFlag flag_and, Flt weld_pos_eps)
 {
    Bool same=(&dest_positive==&dest_negative);
    Mesh temp_positive, temp_negative2, &temp_negative=(same ? temp_positive : temp_negative2); // if we're splitting to the same mesh, then just store everything in 'temp_positive'
@@ -1314,7 +1314,7 @@ static void SplitPoly(C Memc<VtxFull> &poly, C Plane &plane, Memc<VtxFull> &outp
    }
 }
 /******************************************************************************/
-void SplitMeshSolid(C Mesh &src, C Matrix *matrix, Mesh &dest_positive, Mesh &dest_negative, C Plane &clip_plane, C MaterialPtr &material, Flt tex_scale, UInt flag_and, Flt weld_pos_eps)
+void SplitMeshSolid(C Mesh &src, C Matrix *matrix, Mesh &dest_positive, Mesh &dest_negative, C Plane &clip_plane, C MaterialPtr &material, Flt tex_scale, MeshFlag flag_and, Flt weld_pos_eps)
 {
    Mesh temp_positive, temp_negative;
 

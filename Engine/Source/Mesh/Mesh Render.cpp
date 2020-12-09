@@ -52,7 +52,7 @@ void MeshRender::zero()
 MeshRender::MeshRender(                 )                {zero();}
 MeshRender::MeshRender(C MeshRender &src) : MeshRender() {T=src;}
 /******************************************************************************/
-Int MeshRender::vtxOfs(UInt elm)C
+Int MeshRender::vtxOfs(MeshFlag elm)C
 {
    Int ofs=0;
    if(storageCompress())
@@ -154,7 +154,7 @@ Bool MeshRender::setVF()
 #endif
    return _vf!=null;
 }
-Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
+Bool MeshRender::create(Int vtxs, Int tris, MeshFlag flag, Bool compress)
 { // avoid deleting at the start, instead, check if some members already match
    UInt compress_flag=(compress ? VTX_COMPRESS_NRM_TAN_BIN : 0);
    Bool same_format=(flag==T.flag() && compress==storageCompress()); // !! this must check for all parameters which are passed into 'VtxFormatKey' !!
@@ -170,7 +170,7 @@ Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
    }
    del(); return false;
 }
-Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool compress)
+Bool MeshRender::createRaw(C MeshBase &src, MeshFlag flag_and, Bool optimize, Bool compress)
 {
    if(create(src.vtxs(), src.trisTotal(), src.flag()&flag_and&VTX_MSHR, compress))
    {
@@ -314,7 +314,7 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
 
    SplitPart() {matrixes=0; Zero(matrix_used);}
 };*/
-Bool MeshRender::create(C MeshBase &src, UInt flag_and, Bool optimize, Bool compress)
+Bool MeshRender::create(C MeshBase &src, MeshFlag flag_and, Bool optimize, Bool compress)
 {
  /*check if MAX_MATRIX limit is exceeded
    if((flag_and&VTX_MATRIX) && src.vtx.matrix())REPA(src.vtx)
@@ -405,7 +405,7 @@ Bool MeshRender::create(C MeshBase &src, UInt flag_and, Bool optimize, Bool comp
    }*/
    return createRaw(src, flag_and, optimize, compress);
 }
-Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optimize, Bool compress)
+Bool MeshRender::create(C MeshRender *src[], Int elms, MeshFlag flag_and, Bool optimize, Bool compress)
 {
    /*// check for bone splits
    REP(elms)if(C MeshRender *mesh=src[i])if(mesh->_bone_splits) // if any of the meshes have bone splits
@@ -417,8 +417,8 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
    }*/
 
    // do fast merge
-   Int  vtxs=0, tris=0;
-   UInt flag_all=0;
+   Int      vtxs=0, tris=0;
+   MeshFlag flag_all=0;
    REP(elms)if(C MeshRender *mesh=src[i])
    {
       vtxs+=mesh->vtxs();
@@ -577,7 +577,7 @@ Bool MeshRender::create(C MeshRender &src)
    return false;
 }
 /******************************************************************************/
-C Byte* MeshRender::vtxLockedElm(UInt elm)C
+C Byte* MeshRender::vtxLockedElm(MeshFlag elm)C
 {
    if(C Byte *data=vtxLockedData())
    {

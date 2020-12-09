@@ -20,7 +20,7 @@ MeshLod& MeshLod::create(Int num)
    parts.setNum(num);
    return T;
 }
-MeshLod& MeshLod::create(C MeshLod &src, UInt flag_and)
+MeshLod& MeshLod::create(C MeshLod &src, MeshFlag flag_and)
 {
    if(this==&src)keepOnly(flag_and);else
    {
@@ -39,22 +39,23 @@ void MeshLod::scaleParams(Flt scale)
 {
    dist2*=Sqr(scale);
 }
-MeshLod& MeshLod::include (UInt flag) {REPAO(parts).include (flag); return T;}
-MeshLod& MeshLod::exclude (UInt flag) {REPAO(parts).exclude (flag); return T;}
-MeshLod& MeshLod::keepOnly(UInt flag) {REPAO(parts).keepOnly(flag); return T;}
+MeshLod& MeshLod::include (MeshFlag flag) {REPAO(parts).include (flag); return T;}
+MeshLod& MeshLod::exclude (MeshFlag flag) {REPAO(parts).exclude (flag); return T;}
+MeshLod& MeshLod::keepOnly(MeshFlag flag) {REPAO(parts).keepOnly(flag); return T;}
 /******************************************************************************/
 // GET
 /******************************************************************************/
-UInt MeshLod::flag     ()C {UInt flag =0; REPA(T)flag |=parts[i].flag     (); return flag ;}
-UInt MeshLod::memUsage ()C {UInt size =0; REPA(T)size +=parts[i].memUsage (); return size ;}
-Int  MeshLod::vtxs     ()C {Int  vtxs =0; REPA(T)vtxs +=parts[i].vtxs     (); return vtxs ;}
-Int  MeshLod::baseVtxs ()C {Int  vtxs =0; REPA(T)vtxs +=parts[i].base.vtxs(); return vtxs ;}
-Int  MeshLod::edges    ()C {Int  edges=0; REPA(T)edges+=parts[i].edges    (); return edges;}
-Int  MeshLod::tris     ()C {Int  tris =0; REPA(T)tris +=parts[i].tris     (); return tris ;}
-Int  MeshLod::quads    ()C {Int  quads=0; REPA(T)quads+=parts[i].quads    (); return quads;}
-Int  MeshLod::faces    ()C {Int  faces=0; REPA(T)faces+=parts[i].faces    (); return faces;}
-Int  MeshLod::trisTotal()C {Int  tris =0; REPA(T)tris +=parts[i].trisTotal(); return tris ;}
-Flt  MeshLod::area     (Vec *center)C
+MeshFlag MeshLod::flag     ()C {MeshFlag flag =0; REPA(T)flag |=parts[i].flag     (); return flag ;}
+UInt     MeshLod::memUsage ()C {UInt     size =0; REPA(T)size +=parts[i].memUsage (); return size ;}
+Int      MeshLod::vtxs     ()C {Int      vtxs =0; REPA(T)vtxs +=parts[i].vtxs     (); return vtxs ;}
+Int      MeshLod::baseVtxs ()C {Int      vtxs =0; REPA(T)vtxs +=parts[i].base.vtxs(); return vtxs ;}
+Int      MeshLod::edges    ()C {Int      edges=0; REPA(T)edges+=parts[i].edges    (); return edges;}
+Int      MeshLod::tris     ()C {Int      tris =0; REPA(T)tris +=parts[i].tris     (); return tris ;}
+Int      MeshLod::quads    ()C {Int      quads=0; REPA(T)quads+=parts[i].quads    (); return quads;}
+Int      MeshLod::faces    ()C {Int      faces=0; REPA(T)faces+=parts[i].faces    (); return faces;}
+Int      MeshLod::trisTotal()C {Int      tris =0; REPA(T)tris +=parts[i].trisTotal(); return tris ;}
+
+Flt MeshLod::area(Vec *center)C
 {
    if(center)center->zero();
    Flt area=0;
@@ -99,16 +100,16 @@ Bool MeshLod::hasDrawGroupMask(UInt draw_group_mask )C {REPA(parts)if((1<<parts[
 /******************************************************************************/
 // SET
 /******************************************************************************/
-MeshLod& MeshLod::setEdgeNormals(Bool flag                          ) {REPAO(parts).base.setEdgeNormals(flag                  ); return T;}
-MeshLod& MeshLod::setFaceNormals(                                   ) {REPAO(parts).base.setFaceNormals(                      ); return T;}
-MeshLod& MeshLod::setNormals2D  (Bool flag                          ) {REPAO(parts).base.setNormals2D  (flag                  ); return T;}
-MeshLod& MeshLod::setNormals    (                                   ) {REPAO(parts).base.setNormals    (                      ); return T;}
-MeshLod& MeshLod::setNormalsAuto(Flt  angle, Flt pos_eps            ) {REPAO(parts).base.setNormalsAuto(angle, pos_eps        ); return T;}
-MeshLod& MeshLod::setTanBin     (                                   ) {REPAO(parts).base.setTanBin     (                      ); return T;}
-MeshLod& MeshLod::setAutoTanBin (                                   ) {REPAO(parts).     setAutoTanBin (                      ); return T;}
-MeshLod& MeshLod::setVtxDup2D   (UInt flag, Flt pos_eps, Flt nrm_cos) {REPAO(parts).base.setVtxDup2D   (flag, pos_eps, nrm_cos); return T;}
-MeshLod& MeshLod::setVtxDup     (UInt flag, Flt pos_eps, Flt nrm_cos) {REPAO(parts).base.setVtxDup     (flag, pos_eps, nrm_cos); return T;}
-MeshLod& MeshLod::setAdjacencies(Bool faces, Bool edges             ) {REPAO(parts).base.setAdjacencies(faces, edges          ); return T;}
+MeshLod& MeshLod::setEdgeNormals(Bool flag                              ) {REPAO(parts).base.setEdgeNormals(flag                  ); return T;}
+MeshLod& MeshLod::setFaceNormals(                                       ) {REPAO(parts).base.setFaceNormals(                      ); return T;}
+MeshLod& MeshLod::setNormals2D  (Bool flag                              ) {REPAO(parts).base.setNormals2D  (flag                  ); return T;}
+MeshLod& MeshLod::setNormals    (                                       ) {REPAO(parts).base.setNormals    (                      ); return T;}
+MeshLod& MeshLod::setNormalsAuto(Flt  angle, Flt pos_eps                ) {REPAO(parts).base.setNormalsAuto(angle, pos_eps        ); return T;}
+MeshLod& MeshLod::setTanBin     (                                       ) {REPAO(parts).base.setTanBin     (                      ); return T;}
+MeshLod& MeshLod::setAutoTanBin (                                       ) {REPAO(parts).     setAutoTanBin (                      ); return T;}
+MeshLod& MeshLod::setVtxDup2D   (MeshFlag flag, Flt pos_eps, Flt nrm_cos) {REPAO(parts).base.setVtxDup2D   (flag, pos_eps, nrm_cos); return T;}
+MeshLod& MeshLod::setVtxDup     (MeshFlag flag, Flt pos_eps, Flt nrm_cos) {REPAO(parts).base.setVtxDup     (flag, pos_eps, nrm_cos); return T;}
+MeshLod& MeshLod::setAdjacencies(Bool faces, Bool edges                 ) {REPAO(parts).base.setAdjacencies(faces, edges          ); return T;}
 
 MeshLod& MeshLod::setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges)
 {
@@ -194,7 +195,7 @@ MeshLod& MeshLod::join(Int i0, Int i1, Flt weld_pos_eps)
    }
    return T;
 }
-MeshLod& MeshLod::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag, Flt weld_pos_eps)
+MeshLod& MeshLod::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag, Flt weld_pos_eps)
 {
    if(parts.elms()>1) // if has some parts to merge
    {
@@ -210,8 +211,8 @@ MeshLod& MeshLod::joinAll(Bool test_material, Bool test_draw_group, Bool test_na
          {
             MeshPart &part=parts[i]; if(part.is())
             {
-               Int     draw_group=part.drawGroup();
-               UInt part_vtx_flag=(part.flag()&test_vtx_flag);
+               Int         draw_group=part.drawGroup();
+               MeshFlag part_vtx_flag=(part.flag()&test_vtx_flag);
 
                similar.add(i); // add self before others, so order is preserved
                for(Int j=i+1; j<parts.elms(); j++) // find matching, preserve order
@@ -263,15 +264,15 @@ MeshLod& MeshLod::joinAll(Bool test_material, Bool test_draw_group, Bool test_na
    }
    return T;
 }
-Int MeshLod::partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag, Bool skip_hidden)C
+Int MeshLod::partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag, Bool skip_hidden)C
 {
    Memt<C MeshPart*> temp;
    REPA(T)
    {
     C MeshPart &part=parts[i]; if(part.is())if(!skip_hidden || !(part.part_flag&MSHP_HIDDEN))
       {
-         Int     draw_group=part.drawGroup();
-         UInt part_vtx_flag=(part.flag()&test_vtx_flag);
+         Int         draw_group=part.drawGroup();
+         MeshFlag part_vtx_flag=(part.flag()&test_vtx_flag);
 
          REPA(temp) // check if compatible already exists
          {
@@ -427,9 +428,9 @@ MeshLod& MeshLod::reverse      (                                 ) {            
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-MeshLod& MeshLod::weldVtx2D    (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPA(T)parts[i].base.weldVtx2D(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-MeshLod& MeshLod::weldVtx      (UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPA(T)parts[i].base.weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-MeshLod& MeshLod::weldVtxValues(UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
+MeshLod& MeshLod::weldVtx2D    (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPA(T)parts[i].base.weldVtx2D(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+MeshLod& MeshLod::weldVtx      (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REPA(T)parts[i].base.weldVtx  (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+MeshLod& MeshLod::weldVtxValues(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps)
 {
    flag&=T.flag(); // can weld only values that we have
    if(flag&(VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SKIN|VTX_SIZE)) // if have anything to weld
