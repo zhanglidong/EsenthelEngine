@@ -24,11 +24,11 @@ VecB4    TBNToSByte4(            C Vec *tan, C Vec *bin, C Vec *nrm); // (-  1..
 /******************************************************************************/
 struct VtxFormatKey
 {
-   UInt flag    , // MESH_BASE_FLAG
-        compress; // VTX_COMPRESS_FLAG
+   MeshFlag flag    ; // MESH_BASE_FLAG
+   UInt     compress; // VTX_COMPRESS_FLAG
 
    VtxFormatKey() {}
-   VtxFormatKey(UInt flag, UInt compress) {T.flag=flag; T.compress=compress;}
+   VtxFormatKey(MeshFlag flag, UInt compress) {T.flag=flag; T.compress=compress;}
 };
 #if GL
 enum GL_VTX_SEMANTIC : Byte // !! must be in sync with all "ATTR*" mentions in the engine !!
@@ -85,7 +85,7 @@ struct VtxFormat // Vertex Format
    #elif GL
       Bool create(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
    #endif
-   Bool create(UInt flag, UInt compress); // 'flag'=MESH_BASE_FLAG, 'compress'=VTX_COMPRESS_FLAG
+   Bool create(MeshFlag flag, UInt compress); // 'flag'=MESH_BASE_FLAG, 'compress'=VTX_COMPRESS_FLAG
 #if GL
           void bind(C VtxBuf &vb);
 #else
@@ -132,10 +132,10 @@ struct VtxBuf // Vertex Buffer
    Bool setFrom(CPtr data, Int size); // false on fail
 
    // manage
-   Bool createRaw(Int memory_size                       , Bool dynamic=false, CPtr data=null); //                                                      false on fail
-   Bool createNum(Int vtx_size, Int vtx_num             , Bool dynamic=false, CPtr data=null); //                                                      false on fail
-   Bool create   (Int vtx_num , UInt flag, UInt compress, Bool dynamic=false                ); // 'flag'=MESH_BASE_FLAG, 'compress'=VTX_COMPRESS_FLAG, false on fail
-   Bool create   (C VtxBuf &src                         , Int  dynamic=-1                   ); // create from 'src'    ,                               false on fail
+   Bool createRaw(Int memory_size                           , Bool dynamic=false, CPtr data=null); //                                                      false on fail
+   Bool createNum(Int vtx_size, Int vtx_num                 , Bool dynamic=false, CPtr data=null); //                                                      false on fail
+   Bool create   (Int vtx_num , MeshFlag flag, UInt compress, Bool dynamic=false                ); // 'flag'=MESH_BASE_FLAG, 'compress'=VTX_COMPRESS_FLAG, false on fail
+   Bool create   (C VtxBuf &src                             , Int  dynamic=-1                   ); // create from 'src'    ,                               false on fail
 
    void freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
