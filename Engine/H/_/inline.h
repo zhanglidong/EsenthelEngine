@@ -268,7 +268,7 @@ T1(TYPE)  TYPE&  Mems<TYPE>::NewAt(Int i)
 T1(TYPE)  Int  Mems<TYPE>::index(C TYPE *elm)C
 {
    UIntPtr i=UIntPtr(elm)-UIntPtr(data());
-   if(i<elmsMem())return i/elmSize(); // unsigned compare will already guarantee "i>=0 && "
+   if(i<elmsMem())return Int(i/elmSize()); // unsigned compare will already guarantee "i>=0 && "
    return -1;
 }
 T1(TYPE)  Bool  Mems<TYPE>::contains(C TYPE *elm)C {return index(elm)>=0;}
@@ -382,7 +382,7 @@ T1(TYPE)  void  Mems<TYPE>::minNumDiscard(Int num)
 }
 #endif
 
-T1(TYPE)  Int  Mems<TYPE>::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Mems.addNum' size too big"); setNum(new_elms); return index;}
+T1(TYPE)  Int  Mems<TYPE>::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Mems.addNum' size too big"); setNum((Int)new_elms); return index;}
 
 T1(TYPE) T1(VALUE)  Bool  Mems<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -708,7 +708,7 @@ template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::NewAt(Int i)
 template<typename TYPE, Int size>  Int  Memt<TYPE, size>::index(C TYPE *elm)C
 {
    UIntPtr i=UIntPtr(elm)-UIntPtr(data());
-   if(i<elmsMem())return i/elmSize(); // unsigned compare will already guarantee "i>=0 && "
+   if(i<elmsMem())return Int(i/elmSize()); // unsigned compare will already guarantee "i>=0 && "
    return -1;
 }
 template<typename TYPE, Int size>  Bool  Memt<TYPE, size>::contains(C TYPE *elm)C {return index(elm)>=0;}
@@ -852,7 +852,7 @@ template<typename TYPE, Int size>  void  Memt<TYPE, size>::minNumDiscard(Int num
 }
 #endif
 
-template<typename TYPE, Int size>  Int  Memt<TYPE, size>::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memt.addNum' size too big"); setNum(new_elms); return index;}
+template<typename TYPE, Int size>  Int  Memt<TYPE, size>::addNum(Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memt.addNum' size too big"); setNum((Int)new_elms); return index;}
 
 template<typename TYPE, Int size> T1(VALUE)  Bool  Memt<TYPE, size>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
 

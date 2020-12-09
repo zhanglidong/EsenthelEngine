@@ -2076,9 +2076,9 @@ inline VecI2 RoundGPU(C Vec2 &v) {return VecI2(RoundGPU(v.x), RoundGPU(v.y)     
 
 // floor, round to nearest integer which is smaller or equal to value, Sample Usage: Floor(7.3) -> 7, Floor(7.9) -> 7
 inline Int   Floor (  Int    x) {return x;}
-inline Int   Floor (  Flt    x) {return floorf(x);}
-inline Int   Floor (  Dbl    x) {return floor (x);}
-inline Long  FloorL(  Dbl    x) {return floor (x);}
+inline Int   Floor (  Flt    x) {return (Int )floorf(x);}
+inline Int   Floor (  Dbl    x) {return (Int )floor (x);}
+inline Long  FloorL(  Dbl    x) {return (Long)floor (x);}
 inline VecI2 Floor (C Vec2  &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
 inline VecI2 Floor (C VecD2 &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
 inline VecI  Floor (C Vec   &x) {return VecI (Floor(x.x), Floor(x.y), Floor(x.z)            );}
@@ -2088,9 +2088,9 @@ inline VecI4 Floor (C VecD4 &x) {return VecI4(Floor(x.x), Floor(x.y), Floor(x.z)
 
 // ceil, round to nearest integer which is greater or equal to value, Sample Usage: Ceil(7.3) -> 8, Ceil(7.9) -> 8
 inline Int   Ceil (  Int    x) {return x;}
-inline Int   Ceil (  Flt    x) {return ceilf(x);}
-inline Int   Ceil (  Dbl    x) {return ceil (x);}
-inline Long  CeilL(  Dbl    x) {return ceil (x);}
+inline Int   Ceil (  Flt    x) {return (Int )ceilf(x);}
+inline Int   Ceil (  Dbl    x) {return (Int )ceil (x);}
+inline Long  CeilL(  Dbl    x) {return (Long)ceil (x);}
 inline VecI2 Ceil (C Vec2  &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
 inline VecI2 Ceil (C VecD2 &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
 inline VecI  Ceil (C Vec   &x) {return VecI (Ceil(x.x), Ceil(x.y), Ceil(x.z)           );}

@@ -98,8 +98,8 @@ struct Vtx3DFull
    VecB4 material, matrix, blend;
    Flt   size;
 
-   void setNrmTan(C Vec &nrm, C Vec &tan            ) {T.nrm=nrm; T.tan.set(tan,                                 +1     );} // set normal tangent binormal from 'normal' 'tangent'           , this method is faster, use it when you don't use mirroring in uv mapping or you don't use binormal in the shader at all
-   void setNrmTan(C Vec &nrm, C Vec &tan, C Vec &bin) {T.nrm=nrm; T.tan.set(tan, (Dot(Cross(nrm, tan), bin)>0) ? +1 : -1);} // set normal tangent binormal from 'normal' 'tangent' 'binormal'
+   void setNrmTan(C Vec &nrm, C Vec &tan            ) {T.nrm=nrm; T.tan.set(tan,                                 +1.0f        );} // set normal tangent binormal from 'normal' 'tangent'           , this method is faster, use it when you don't use mirroring in uv mapping or you don't use binormal in the shader at all
+   void setNrmTan(C Vec &nrm, C Vec &tan, C Vec &bin) {T.nrm=nrm; T.tan.set(tan, (Dot(Cross(nrm, tan), bin)>0) ? +1.0f : -1.0f);} // set normal tangent binormal from 'normal' 'tangent' 'binormal'
 };
 #endif
 struct Vtx2DTex
@@ -135,8 +135,8 @@ struct Vtx3DStandard
    Vec2  tex;
    Color color;
 
-   void setNrmTan(C Vec &nrm, C Vec &tan            ) {T.nrm=nrm; T.tan.set(tan,                                 +1     );} // set normal tangent binormal from 'normal' 'tangent'           , this method is faster, use it when you don't use mirroring in uv mapping or you don't use binormal in the shader at all
-   void setNrmTan(C Vec &nrm, C Vec &tan, C Vec &bin) {T.nrm=nrm; T.tan.set(tan, (Dot(Cross(nrm, tan), bin)>0) ? +1 : -1);} // set normal tangent binormal from 'normal' 'tangent' 'binormal'
+   void setNrmTan(C Vec &nrm, C Vec &tan            ) {T.nrm=nrm; T.tan.set(tan,                                 +1.0f        );} // set normal tangent binormal from 'normal' 'tangent'           , this method is faster, use it when you don't use mirroring in uv mapping or you don't use binormal in the shader at all
+   void setNrmTan(C Vec &nrm, C Vec &tan, C Vec &bin) {T.nrm=nrm; T.tan.set(tan, (Dot(Cross(nrm, tan), bin)>0) ? +1.0f : -1.0f);} // set normal tangent binormal from 'normal' 'tangent' 'binormal'
 };
 /******************************************************************************/
 struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing

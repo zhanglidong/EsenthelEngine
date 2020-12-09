@@ -4,7 +4,7 @@ struct MaterialPalette : private Memc<MaterialPtr>
    // get
    Int          elms      (     )C {return super::elms      ( );} // get number of elements
  C MaterialPtr& operator[](Int i)C {return super::operator[](i);} // get i-th material
-   UInt         memUsage  (     )C {return super::memUsage  ( );} // get memory usage
+   UIntPtr      memUsage  (     )C {return super::memUsage  ( );} // get memory usage
 
    Int getMaterialIndex (C MaterialPtr &material); // get index of desired 'material' in the palette, if 'material' is not listed in the palette it will be added, up to 255 materials can be stored, 0 index is always reserved for null material, -1 on fail
    Int getMaterialIndex0(C MaterialPtr &material); // get index of desired 'material' in the palette, if 'material' is not listed in the palette it will be added, up to 255 materials can be stored, 0 index is always reserved for null material,  0 on fail
@@ -31,9 +31,9 @@ private:
 struct IDPalette : private Memc<UID>
 {
    // get
-   Int  elms      (     )C {return super::elms      ( );} // get number of elements
- C UID& operator[](Int i)C {return super::operator[](i);} // get i-th ID
-   UInt memUsage  (     )C {return super::memUsage  ( );} // get memory usage
+   Int     elms      (     )C {return super::elms      ( );} // get number of elements
+ C UID&    operator[](Int i)C {return super::operator[](i);} // get i-th ID
+   UIntPtr memUsage  (     )C {return super::memUsage  ( );} // get memory usage
 
    Int getIDIndex (C UID &id); // get index of desired 'id' in the palette, if 'id' is not listed in the palette it will be added, up to 255 ids can be stored, 0 index is always reserved for 'UIDZero' id, -1 on fail
    Int getIDIndex0(C UID &id); // get index of desired 'id' in the palette, if 'id' is not listed in the palette it will be added, up to 255 ids can be stored, 0 index is always reserved for 'UIDZero' id,  0 on fail

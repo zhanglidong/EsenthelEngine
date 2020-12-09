@@ -9,19 +9,19 @@
 /******************************************************************************/
 struct TimeClass
 {
-   UInt     frame ()C {return _frame;} // current frame number
-   Flt      fps   ()C {return _fps  ;} // current number of frames per second
-   Flt      d     ()C {return _d    ;} // game        time delta             (                    frame time duration,     modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
-   Flt     ad     ()C {return _ad   ;} // application time delta             (                    frame time duration, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
-   Flt     rd     ()C {return _rd   ;} // real        time delta             (                    frame time duration, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses)
-   Dbl      time  ()C {return _t    ;} // game        time in current frame  (     seconds since application  started,     modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
-   Dbl   appTime  ()C {return _at   ;} // application time in current frame  (     seconds since application  started, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
-   Dbl stateTime  ()C {return _st   ;} // state       time in current frame  (     seconds since last 'State' started, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
-   Dbl  realTime  ()C {return _rt   ;} // real        time in current frame  (     seconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses)
-   Dbl   curTime  ()C;                 // real        time in current moment (     seconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses, this method always calculates the time when called)
-   UInt  curTimeMs()C;                 // real        time in current moment (milliseconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses, this is a little faster method than 'curTime' but returns time in milliseconds)
+   UInt     frame ()C {return      _frame;} // current frame number
+   Flt      fps   ()C {return      _fps  ;} // current number of frames per second
+   Flt      d     ()C {return (Flt)_d    ;} // game        time delta             (                    frame time duration,     modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
+   Flt     ad     ()C {return (Flt)_ad   ;} // application time delta             (                    frame time duration, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
+   Flt     rd     ()C {return (Flt)_rd   ;} // real        time delta             (                    frame time duration, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses)
+   Dbl      time  ()C {return      _t    ;} // game        time in current frame  (     seconds since application  started,     modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
+   Dbl   appTime  ()C {return      _at   ;} // application time in current frame  (     seconds since application  started, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
+   Dbl stateTime  ()C {return      _st   ;} // state       time in current frame  (     seconds since last 'State' started, NOT modified by game 'speed',     affected by 'smooth' 'skipUpdate' and application pauses)
+   Dbl  realTime  ()C {return      _rt   ;} // real        time in current frame  (     seconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses)
+   Dbl   curTime  ()C;                      // real        time in current moment (     seconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses, this method always calculates the time when called)
+   UInt  curTimeMs()C;                      // real        time in current moment (milliseconds since application  started, NOT modified by game 'speed', NOT affected by 'smooth' 'skipUpdate' and application pauses, this is a little faster method than 'curTime' but returns time in milliseconds)
 
-   Flt               speed     (                      )C {return _speed;}            // get game time speed (<1 slower, 1 default, >1 faster)
+   Flt               speed     (                      )C {return (Flt)_speed;}       // get game time speed (<1 slower, 1 default, >1 faster)
    void              speed     (Flt              speed);                             // set game time speed (<1 slower, 1 default, >1 faster) and modify sound speeds (except VOLUME_MUSIC and VOLUME_AMBIENT volume groups)
    SMOOTH_VALUE_MODE smooth    (                      )C {return _sv_ad.mode(    );} // get time delta smoothing, default=SV_WEIGHT4
    void              smooth    (SMOOTH_VALUE_MODE mode)  {       _sv_ad.mode(mode);} // set time delta smoothing

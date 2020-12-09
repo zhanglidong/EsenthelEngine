@@ -161,12 +161,12 @@ struct ShaderParamChange // Shader Parameter Change
    ShaderParam *param; // parameter to change
    Vec4         value; // value     to change to
 
-   ShaderParamChange& set(  Bool  b) {value.x  =b; return T;}
-   ShaderParamChange& set(  Int   i) {value.x  =i; return T;}
-   ShaderParamChange& set(  Flt   f) {value.x  =f; return T;}
-   ShaderParamChange& set(C Vec2 &v) {value.xy =v; return T;}
-   ShaderParamChange& set(C Vec  &v) {value.xyz=v; return T;}
-   ShaderParamChange& set(C Vec4 &v) {value    =v; return T;}
+   ShaderParamChange& set(  Bool  b) {value.x  =     b; return T;}
+   ShaderParamChange& set(  Int   i) {value.x  =(Flt)i; return T;}
+   ShaderParamChange& set(  Flt   f) {value.x  =     f; return T;}
+   ShaderParamChange& set(C Vec2 &v) {value.xy =     v; return T;}
+   ShaderParamChange& set(C Vec  &v) {value.xyz=     v; return T;}
+   ShaderParamChange& set(C Vec4 &v) {value    =     v; return T;}
 
    ShaderParamChange& set(ShaderParam *param) {T.param=param; return T;}
 

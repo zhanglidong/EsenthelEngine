@@ -131,7 +131,7 @@ void SetThreadName(C Str8 &name, UIntPtr thread_id)
    ThreadName info;
    info.dwType    =0x1000;
    info.szName    =name;
-   info.dwThreadID=thread_id;
+   info.dwThreadID=(DWORD)thread_id;
    info.dwFlags   =0;
 
    __try{RaiseException(0x406D1388, 0, SIZE(info)/SIZE(ULONG_PTR), (ULONG_PTR*)&info);}

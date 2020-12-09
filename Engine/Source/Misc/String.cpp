@@ -169,8 +169,8 @@ UInt CharFlagFast(Char  a, Char  b) {return CharFlagFast(a)|CharFlagFast(b);}
 
 INLINE Char  CaseDownFast(Char  c) {return _CaseDown[Unsigned(c)];}
 INLINE Char  CaseUpFast  (Char  c) {return _CaseUp  [Unsigned(c)];}
-INLINE Char8 CaseDownFast(Char8 c) {return  CaseDownFast(Char8To16Fast(c));}
-INLINE Char8 CaseUpFast  (Char8 c) {return  CaseUpFast  (Char8To16Fast(c));}
+INLINE Char8 CaseDownFast(Char8 c) {return  Char16To8Fast(CaseDownFast(Char8To16Fast(c)));}
+INLINE Char8 CaseUpFast  (Char8 c) {return  Char16To8Fast(CaseUpFast  (Char8To16Fast(c)));}
 
 CHAR_TYPE CharTypeFast(Char c) // don't INLINE because it's not a simple function
 {
@@ -1318,8 +1318,8 @@ Bool Contains(C Str  &src, Char8 c) {Char  a=Char8To16Fast(c);                  
 Bool Contains(C Str8 &src, Char  c) {Char8 a=Char16To8Fast(c); if(Char8To16Fast(a)==c)FREPA(src)if(src()[i]==a)return true; return false;} // keep this function to allow having '\0' chars in the middle, () avoids range check, we can assume that Str was already initialized, 'Char16To8Fast' may not support all characters, so we have to check if it's a direct mapping in both ways
 Bool Contains(CChar8 *src, Char8 c) {                                                 if(src)for(;;){Char8 s=*src++; if(!s)break; if(s==c)return true;} return false;} // break before checking to prevent returning true for '\0' chars
 Bool Contains(CChar  *src, Char  c) {                                                 if(src)for(;;){Char  s=*src++; if(!s)break; if(s==c)return true;} return false;} // break before checking to prevent returning true for '\0' chars
-Bool Contains(CChar  *src, Char8 c) {Char  a=Char8To16Fast(c);                        if(src)for(;;){Char8 s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized
-Bool Contains(CChar8 *src, Char  c) {Char8 a=Char16To8Fast(c); if(Char8To16Fast(a)==c)if(src)for(;;){Char  s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized, 'Char16To8Fast' may not support all characters, so we have to check if it's a direct mapping in both ways
+Bool Contains(CChar  *src, Char8 c) {Char  a=Char8To16Fast(c);                        if(src)for(;;){Char  s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized
+Bool Contains(CChar8 *src, Char  c) {Char8 a=Char16To8Fast(c); if(Char8To16Fast(a)==c)if(src)for(;;){Char8 s=*src++; if(!s)break; if(s==a)return true;} return false;} // break before checking to prevent returning true for '\0' chars, we can assume that Str was already initialized, 'Char16To8Fast' may not support all characters, so we have to check if it's a direct mapping in both ways
 /****************************************************************************/
 Bool Contains(CChar8 *src, CChar8 *t, Bool case_sensitive, WHOLE_WORD whole_word)
 {
