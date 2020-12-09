@@ -80,6 +80,7 @@ enum MESH_BASE_FLAG // Mesh Base Flag
    VTX_MSHR=VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_MATRIX|VTX_BLEND|VTX_SIZE, // vertex values which can be stored in MeshRender
 #endif
 };
+typedef UInt MeshFlag;
 enum MESH_SIMPLIFY : Byte
 {
    SIMPLIFY_QUADRIC, // vertex distances are calculated based on quadric matrixes
@@ -112,10 +113,16 @@ struct VtxDupNrm : VtxDup
 Int SetVtxDup(MemPtr<VtxDup   > vtxs, C Box &box, Flt pos_eps=EPS                         ); // returns the number of unique positions
 Int SetVtxDup(MemPtr<VtxDupNrm> vtxs, C Box &box, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // returns the number of unique positions
 /******************************************************************************/
-UInt EtqFlagSwap(UInt flag); // swap sides of ETQ_FLAG
-
+enum SIDE_TYPE
+{
+   SIDE_NONE=-1,
+   SIDE_L   = 0,
+   SIDE_R   = 1,
+};
 SIDE_TYPE GetSide(C VecI2 &edge, C VecI  &tri );
 SIDE_TYPE GetSide(C VecI2 &edge, C VecI4 &quad);
+/******************************************************************************/
+UInt EtqFlagSwap(UInt flag); // swap sides of ETQ_FLAG
 #endif
 /******************************************************************************/
 struct VtxFull // Vertex containing all possible data
@@ -259,23 +266,23 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshQuads quad; // quads
 
    // manage
-   MeshBase& del       (                                                                                                                                  ); // delete manually
-   MeshBase& create    (  Int         vtxs, Int edges, Int tris, Int quads, UInt flag=0                                                                   ); // create, 'vtxs'=number of vertexes, 'edges'=number of edges, 'tris'=number of triangles, 'quads'=number of quads, 'flag'=MESH_BASE_FLAG (here VTX_POS, EDGE_IND, TRI_IND, QUAD_IND are always created automatically so you don't have to specify them manually)
-   MeshBase& create    (C MeshBase   &src ,           UInt flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
-   MeshBase& create    (C MeshRender &src ,           UInt flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
-   MeshBase& create    (C MeshPart   &src ,           UInt flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
-   MeshBase& create    (C MeshLod    &src ,           UInt flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
-   MeshBase& create    (C MeshBase   *src , Int elms, UInt flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
-   MeshBase& create    (C PhysPart   &src                                                                                                                 ); // create from 'src'
-   MeshBase& createPhys(C MeshLod    &src ,           UInt flag_and=VTX_POS|FACE_IND, Bool set_face_id_from_part_index=false, Bool skip_hidden_parts=false); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from, this method ignores parts with MSHP_NO_PHYS_BODY flag and does not include them in the final mesh, 'skip_hidden_parts'=if ignore MeshPart's with MSHP_HIDDEN flag
+   MeshBase& del       (                                                                                                                                      ); // delete manually
+   MeshBase& create    (  Int         vtxs, Int edges, Int tris, Int quads, MeshFlag flag=0                                                                   ); // create, 'vtxs'=number of vertexes, 'edges'=number of edges, 'tris'=number of triangles, 'quads'=number of quads, 'flag'=MESH_BASE_FLAG (here VTX_POS, EDGE_IND, TRI_IND, QUAD_IND are always created automatically so you don't have to specify them manually)
+   MeshBase& create    (C MeshBase   &src ,           MeshFlag flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
+   MeshBase& create    (C MeshRender &src ,           MeshFlag flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
+   MeshBase& create    (C MeshPart   &src ,           MeshFlag flag_and=~0                                                                                    ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG
+   MeshBase& create    (C MeshLod    &src ,           MeshFlag flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
+   MeshBase& create    (C MeshBase   *src , Int elms, MeshFlag flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
+   MeshBase& create    (C PhysPart   &src                                                                                                                     ); // create from 'src'
+   MeshBase& createPhys(C MeshLod    &src ,           MeshFlag flag_and=VTX_POS|FACE_IND, Bool set_face_id_from_part_index=false, Bool skip_hidden_parts=false); // create from 'src'      , 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from, this method ignores parts with MSHP_NO_PHYS_BODY flag and does not include them in the final mesh, 'skip_hidden_parts'=if ignore MeshPart's with MSHP_HIDDEN flag
 #if EE_PRIVATE
-   MeshBase& create    (C MeshBase  *src[], Int elms, UInt flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
-   Bool      createVtx (C VtxBuf &vb, UInt flag, UInt storage,                                                       UInt flag_and=~0) ; // create vertexes from vertex buffer
-   Bool      createInd (C IndBuf &ib                                                                                                 ) ; // create indexed  from index  buffer
-   MeshBase& copyFace  (MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and=~0)C; // copy only selected elements                          , 'flag_and'=MESH_BASE_FLAG, 'edge_is tri_is quad_is' must point to an array of Bool's of size equal to number of eddges, triangles and quads respectively, i-th element will be copied only if "_is[i]==true", if the "is" parameter is set to null, then no elemenets are copied, !! method returns 'dest' !!
-   void      copyId    (MeshBase &dest, Int id,                                                                      UInt flag_and=~0)C; // copy only elements with matching ID                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
-   void      copyId    (MeshLod  &dest,                                                                              UInt flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
-   void      copyId    (Mesh     &dest,                                                                              UInt flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   MeshBase& create    (C MeshBase  *src[], Int elms, MeshFlag flag_and=~0              , Bool set_face_id_from_part_index=false                              ); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG, 'set_face_id_from_part_index'=if set face 'id' members to the index of the original MeshPart that they were created from
+   Bool      createVtx (C VtxBuf &vb, MeshFlag flag, UInt storage,                                                   MeshFlag flag_and=~0) ; // create vertexes from vertex buffer
+   Bool      createInd (C IndBuf &ib                                                                                                     ) ; // create indexed  from index  buffer
+   MeshBase& copyFace  (MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, MeshFlag flag_and=~0)C; // copy only selected elements                          , 'flag_and'=MESH_BASE_FLAG, 'edge_is tri_is quad_is' must point to an array of Bool's of size equal to number of eddges, triangles and quads respectively, i-th element will be copied only if "_is[i]==true", if the "is" parameter is set to null, then no elemenets are copied, !! method returns 'dest' !!
+   void      copyID    (MeshBase &dest, Int id,                                                                      MeshFlag flag_and=~0)C; // copy only elements with matching ID                  , 'flag_and'=MESH_BASE_FLAG, the 'id' parameter is compared to 'id' member of each edge, triangle and quad from the mesh, if any element matches the comparison, then it is copied into destination mesh
+   void      copyID    (MeshLod  &dest,                                                                              MeshFlag flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
+   void      copyID    (Mesh     &dest,                                                                              MeshFlag flag_and=~0)C; // copy according to ID's (each ID to separate MeshPart), 'flag_and'=MESH_BASE_FLAG, this method tests 'id' member of each edge, triangle and quad, and stores the element in different Mesh Parts depending on the 'id' value, elements of "id==0" go to 0-th MeshPart, elements of "id==1" go to 1-st MeshPart, ...
 
    void copyVtxs (C MeshBase &src);   void copyVtxs (C MeshBase &src, C CMemPtr<Bool> &is);
    void copyEdges(C MeshBase &src);   void copyEdges(C MeshBase &src, C CMemPtr<Bool> &is);
@@ -290,29 +297,29 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 #endif
 #endif
 
-   MeshBase& include (UInt flag); // include   elements specified with 'flag' MESH_BASE_FLAG
-   MeshBase& exclude (UInt flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
-   MeshBase& keepOnly(UInt flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
+   MeshBase& include (MeshFlag flag); // include   elements specified with 'flag' MESH_BASE_FLAG
+   MeshBase& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
+   MeshBase& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
 
    // create
-   MeshBase& createPlane (  Int x=2, Int y=2, UInt flag=0                                       ); // create mesh as 3D plane from (0,0,0) to (1,1,0) vertex positions using quads, 'x, y'=vertex resolution, 'flag'=VTX_FLAG
-   MeshBase& create      (C Box     &box    , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=VTX_FLAG
-   MeshBase& create      (C OBox    &obox   , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=VTX_FLAG
-   MeshBase& create      (C Ball    &ball   , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& create2     (C Ball    &ball   , UInt flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& createIco   (C Ball    &ball   , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& create      (C Capsule &capsule, UInt flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=VTX_FLAG
-   MeshBase& create      (C Tube    &tube   , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=VTX_FLAG
-   MeshBase& create      (C Cone    &cone   , UInt flag=0, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=VTX_FLAG
-   MeshBase& create      (C Torus   &torus  , UInt flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=VTX_FLAG
-   MeshBase& create      (C Shape   &shape  , UInt flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=VTX_FLAG
-   MeshBase& createConvex(C Vec     *point  , Int  points, Int max_points=-1                    ); // create mesh as 3D convex mesh created from 'point' array of 'points' elements, you can optionally limit the maximum number of generated points to 'max_points' by setting it to a value different than -1
+   MeshBase& createPlane (  Int x=2, Int y=2, MeshFlag flag=0                                       ); // create mesh as 3D plane from (0,0,0) to (1,1,0) vertex positions using quads, 'x, y'=vertex resolution, 'flag'=VTX_FLAG
+   MeshBase& create      (C Box     &box    , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=VTX_FLAG
+   MeshBase& create      (C OBox    &obox   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=VTX_FLAG
+   MeshBase& create      (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=VTX_FLAG
+   MeshBase& create2     (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=VTX_FLAG
+   MeshBase& createIco   (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=VTX_FLAG
+   MeshBase& create      (C Capsule &capsule, MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=VTX_FLAG
+   MeshBase& create      (C Tube    &tube   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=VTX_FLAG
+   MeshBase& create      (C Cone    &cone   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=VTX_FLAG
+   MeshBase& create      (C Torus   &torus  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=VTX_FLAG
+   MeshBase& create      (C Shape   &shape  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=VTX_FLAG
+   MeshBase& createConvex(C Vec     *point  , Int      points, Int max_points=-1                    ); // create mesh as 3D convex mesh created from 'point' array of 'points' elements, you can optionally limit the maximum number of generated points to 'max_points' by setting it to a value different than -1
 #if EE_PRIVATE
    MeshBase& createGrid    (  Int x=2, Int y=2, Bool fast=false                   ); // create mesh as 2D grid from (0,0) to (1,1) vertex positions using edges, 'x, y'=vertex resolution
    MeshBase& createFast    (C Box    &box                                         ); // create mesh as 3D box (fast version - only vertex position and quad indexes are set)
-   MeshBase& createBox     (C Matrix &matrix , UInt flag=0     , Int resolution=-1); // create mesh as 3D box              , 'flag'=VTX_FLAG
-   MeshBase& createHalf    (C Ball   &ball   , UInt flag=0     , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
-   MeshBase& createIcoHalf (C Ball   &ball   , UInt flag=0     , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
+   MeshBase& createBox     (C Matrix &matrix , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D box              , 'flag'=VTX_FLAG
+   MeshBase& createHalf    (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
+   MeshBase& createIcoHalf (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
    MeshBase& createFast    (C Tube   &tube   ,                   Int resolution=-1); // create mesh as 3D tube (fast)
    MeshBase& createEdge    (C Rect   &rect   , Bool solid=false                   ); // create mesh as 2D edged-rectangle
    MeshBase& createEdge    (C Circle &circle , Bool solid=false, Int resolution=-1); // create mesh as 2D edged-circle
@@ -328,32 +335,32 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    Int  faces    ()C {return                              tri.elms()  + quad.elms()  ;} // get number of faces
    Int  trisTotal()C {return                              tri.elms()  + quad.elms()*2;} // get number of triangles including quads (each quad can be represented by 2 triangles)
 
-   UInt flag        (                                 )C; // get MESH_BASE_FLAG
-   UInt memUsage    (                                 )C; // get memory usage
-   Bool getBox      (Box  &box                        )C; // get box  encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
-   Bool getBox      (Box  &box , C Matrix &mesh_matrix)C; // get box  encapsulating the mesh, this method iterates through all vertexes, 'mesh_matrix'=matrix affecting vertex positions, false on fail (if no vertexes are present)
-   Bool getBall     (Ball &ball                       )C; // get ball encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
-   Bool getRect     (Rect &rect                       )C; // get 2D rectangle encapsulating the mesh on XY plane, false on fail (if no vertexes are present)
-   Bool getRectXZ   (Rect &rect                       )C; // get 2D rectangle encapsulating the mesh on XZ plane, false on fail (if no vertexes are present)
-   Flt  area        (Vec  *center=null                )C; // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
-   Flt  convexVolume(                                 )C; // calculate volume of this mesh assuming that it's convex
-   Int  maxId       (                                 )C; // get maximum value of ID in edges/faces, -1 if doesn't have any
-   Bool hasId       (Int   id                         )C; // if  any of the edges/faces have their ID set to 'id'
+   MeshFlag flag        (                                 )C; // get MESH_BASE_FLAG
+   UInt     memUsage    (                                 )C; // get memory usage
+   Bool     getBox      (Box  &box                        )C; // get box  encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
+   Bool     getBox      (Box  &box , C Matrix &mesh_matrix)C; // get box  encapsulating the mesh, this method iterates through all vertexes, 'mesh_matrix'=matrix affecting vertex positions, false on fail (if no vertexes are present)
+   Bool     getBall     (Ball &ball                       )C; // get ball encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
+   Bool     getRect     (Rect &rect                       )C; // get 2D rectangle encapsulating the mesh on XY plane, false on fail (if no vertexes are present)
+   Bool     getRectXZ   (Rect &rect                       )C; // get 2D rectangle encapsulating the mesh on XZ plane, false on fail (if no vertexes are present)
+   Flt      area        (Vec  *center=null                )C; // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
+   Flt      convexVolume(                                 )C; // calculate volume of this mesh assuming that it's convex
+   Int      maxID       (                                 )C; // get maximum value of ID in edges/faces, -1 if doesn't have any
+   Bool     hasID       (Int   id                         )C; // if  any of the edges/faces have their ID set to 'id'
 
    // set
 #if EE_PRIVATE
    MeshBase& setEdgeNormals(Bool flag=false); // recalculate edge            2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
    MeshBase& setNormals2D  (Bool flag=false); // recalculate edge and vertex 2D normals, 'flag'=if include ETQ_FLAG behavior in normal calculation
-   MeshBase& setVtxDupEx   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt tan_cos=EPS_TAN_COS, Flt bin_cos=EPS_BIN_COS, Bool tex_wrap=false, Bool smooth_groups_in_vtx_material=false);
+   MeshBase& setVtxDupEx   (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt tan_cos=EPS_TAN_COS, Flt bin_cos=EPS_BIN_COS, Bool tex_wrap=false, Bool smooth_groups_in_vtx_material=false);
 #endif
-   MeshBase& setNormals    (                                                     ); // recalculate vertex            3D normals
-   MeshBase& setNormalsAuto(Flt angle=EPS_NRM_AUTO, Flt pos_eps=EPS              ); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals, this method will generate a lot of vertexes, it's recommended to call 'weldVtx' afterwards
-   MeshBase& setFaceNormals(                                                     ); // recalculate triangle and quad 3D normals
-   MeshBase& setTanBin     (                                                     ); // recalculate vertex            3D tangents and binormals
-   MeshBase& setAutoTanBin (                                                     ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
-   MeshBase& setVtxDup2D   (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
-   MeshBase& setVtxDup     (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)
-   MeshBase& setAdjacencies(Bool faces=true, Bool edges=false                    ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
+   MeshBase& setNormals    (                                                         ); // recalculate vertex            3D normals
+   MeshBase& setNormalsAuto(Flt angle=EPS_NRM_AUTO, Flt pos_eps=EPS                  ); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals, this method will generate a lot of vertexes, it's recommended to call 'weldVtx' afterwards
+   MeshBase& setFaceNormals(                                                         ); // recalculate triangle and quad 3D normals
+   MeshBase& setTanBin     (                                                         ); // recalculate vertex            3D tangents and binormals
+   MeshBase& setAutoTanBin (                                                         ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
+   MeshBase& setVtxDup2D   (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
+   MeshBase& setVtxDup     (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)
+   MeshBase& setAdjacencies(Bool faces=true, Bool edges=false                        ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
 
    // transform
    MeshBase& move     (              C Vec &move         ); //           move mesh
@@ -391,10 +398,10 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    // operations
 #if EE_PRIVATE
    MeshBase& weldEdge     (); // weld edges
-   MeshBase& weldVtx2D    (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshBase& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 #endif
-   MeshBase& weldVtx      (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position, 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
-   MeshBase& weldVtxValues(UInt flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position, 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshBase& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position, 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshBase& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position, 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
    MeshBase& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
@@ -409,17 +416,17 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& setVtxAO(Flt strength, Flt bias, Flt max, Flt ray_length, Flt pos_eps=EPS, Int rays=1024, MESH_AO_FUNC func=MAF_FULL, Threads *threads=null); // calculate per-vertex ambient occlusion in vertex colors, 'strength'=0..1 AO strength, 'bias'=0..1, 'max'=AO limit 0..1, 'ray_length'=max ray distance to test, 'rays'=number of rays to use for AO calculation, 'func'=falloff function
 
 #if EE_PRIVATE
-   void splitVtxs (MeshBase &dest, C CMemPtr<Bool> & vtx_is,                                                    UInt flag_and=~0); // split by moving selected vertexes to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
-   void splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and=~0); // split by moving selected faces    to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void splitVtxs (MeshBase &dest, C CMemPtr<Bool> & vtx_is,                                                    MeshFlag flag_and=~0); // split by moving selected vertexes to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, MeshFlag flag_and=~0); // split by moving selected faces    to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
 
    void      copyVtx   (Int i, MeshBase &dest, Int dest_i)C; // copy i-th vertex to 'dest' dest_i-th vertex
    MeshBase& splitEdges(Flt length=1      , Bool *is=null) ; // split edges, 'length'=maximum length of edge, 'is'=only selected edges
    MeshBase& splitEdges(Flt length, Flt d , Bool *is=null) ; // split edges, 'length'=minimum length of edge to part, 'd'=length of added edges on left & right side, 'is'=only selected edges
 
    // join / split
-   void split    (MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, UInt flag_and=~0)C; // split to container of meshes by boxes                                        , copy only elements included in 'flag_and' MESH_BASE_FLAG
-   void split    (MemPtr<MeshBaseIndex> meshes, C VecI  &cells, UInt flag_and=~0)C; // split to container of meshes by number of splits                             , copy only elements included in 'flag_and' MESH_BASE_FLAG
-   void splitBone(MeshBase &dest, Int bone                    , UInt flag_and=~0) ; // split by moving elements influenced by 'bone' to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void split    (MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, MeshFlag flag_and=~0)C; // split to container of meshes by boxes                                        , copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void split    (MemPtr<MeshBaseIndex> meshes, C VecI  &cells, MeshFlag flag_and=~0)C; // split to container of meshes by number of splits                             , copy only elements included in 'flag_and' MESH_BASE_FLAG
+   void splitBone(MeshBase &dest, Int bone                    , MeshFlag flag_and=~0) ; // split by moving elements influenced by 'bone' to 'dest' leaving the rest only, copy only elements included in 'flag_and' MESH_BASE_FLAG
 #endif
 
    // fix
@@ -468,13 +475,13 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 #endif
 
    // add / remove
-   MeshBase& addVtx (C Vec        &pos                  ); // add empty vertex at 'pos' position
-   MeshBase& addEdge(C VecI2      &ind                  ); // add edge     by giving vertex indexes
-   MeshBase& addTri (C VecI       &ind                  ); // add triangle by giving vertex indexes
-   MeshBase& addQuad(C VecI4      &ind                  ); // add quad     by giving vertex indexes
-   MeshBase& add    (C MeshBase   &src, UInt flag_and=~0); // add MeshBase
-   MeshBase& add    (C MeshRender &src, UInt flag_and=~0); // add MeshRender
-   MeshBase& add    (C MeshPart   &src, UInt flag_and=~0); // add MeshPart
+   MeshBase& addVtx (C Vec        &pos                      ); // add empty vertex at 'pos' position
+   MeshBase& addEdge(C VecI2      &ind                      ); // add edge     by giving vertex indexes
+   MeshBase& addTri (C VecI       &ind                      ); // add triangle by giving vertex indexes
+   MeshBase& addQuad(C VecI4      &ind                      ); // add quad     by giving vertex indexes
+   MeshBase& add    (C MeshBase   &src, MeshFlag flag_and=~0); // add MeshBase
+   MeshBase& add    (C MeshRender &src, MeshFlag flag_and=~0); // add MeshRender
+   MeshBase& add    (C MeshPart   &src, MeshFlag flag_and=~0); // add MeshPart
 
 #if EE_PRIVATE
    MeshBase& keepVtxs (C CMemPtr<Bool> &is); // keep only vertexes  which "is[i]==true"
@@ -544,12 +551,12 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
            ~MeshBase() {del ( );}
             MeshBase() {Zero(T);}
-   explicit MeshBase(  Int         vtxs, Int edges, Int tris, Int quads, UInt flag=0);
-   explicit MeshBase(C MeshBase   &src , UInt flag_and=~0                           );
-   explicit MeshBase(C MeshRender &src , UInt flag_and=~0                           );
-   explicit MeshBase(C MeshPart   &src , UInt flag_and=~0                           );
-   explicit MeshBase(C MeshLod    &src , UInt flag_and=~0                           );
-   explicit MeshBase(C PhysPart   &src                                              );
+   explicit MeshBase(  Int         vtxs, Int edges, Int tris, Int quads, MeshFlag flag=0);
+   explicit MeshBase(C MeshBase   &src , MeshFlag flag_and=~0                           );
+   explicit MeshBase(C MeshRender &src , MeshFlag flag_and=~0                           );
+   explicit MeshBase(C MeshPart   &src , MeshFlag flag_and=~0                           );
+   explicit MeshBase(C MeshLod    &src , MeshFlag flag_and=~0                           );
+   explicit MeshBase(C PhysPart   &src                                                  );
 };
 /******************************************************************************/
 #if EE_PRIVATE

@@ -111,8 +111,8 @@ DestructMesh& DestructMesh::create(Mesh &mesh, Int cuts, C MaterialPtr &material
 
             // convert back to meshes
             Mesh connected_mesh, unknown_mesh;
-            connected.copyId(connected_mesh); connected_mesh.MeshLod::copyParams(src); FREP(Min(src.parts.elms(), connected_mesh.parts.elms()))connected_mesh.parts[i].keepOnly(src.parts[i].base.flag()).copyParams(src.parts[i]);
-            joined   .copyId(  unknown_mesh);   unknown_mesh.MeshLod::copyParams(src); FREP(Min(src.parts.elms(),   unknown_mesh.parts.elms()))  unknown_mesh.parts[i].keepOnly(src.parts[i].base.flag()).copyParams(src.parts[i]);
+            connected.copyID(connected_mesh); connected_mesh.MeshLod::copyParams(src); FREP(Min(src.parts.elms(), connected_mesh.parts.elms()))connected_mesh.parts[i].keepOnly(src.parts[i].base.flag()).copyParams(src.parts[i]);
+            joined   .copyID(  unknown_mesh);   unknown_mesh.MeshLod::copyParams(src); FREP(Min(src.parts.elms(),   unknown_mesh.parts.elms()))  unknown_mesh.parts[i].keepOnly(src.parts[i].base.flag()).copyParams(src.parts[i]);
 
             // remove empty parts
             REPA(connected_mesh)if(!connected_mesh.parts[i].is())connected_mesh.remove(i, false);

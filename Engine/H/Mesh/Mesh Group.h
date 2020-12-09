@@ -9,8 +9,8 @@ struct MeshGroup // Mesh Group (array of Meshes)
    Mems<Mesh> meshes; // meshes
 
    // manage
-   MeshGroup& del   (                                  ); // delete
-   MeshGroup& create(C MeshGroup &src, UInt flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
+   MeshGroup& del   (                                      ); // delete
+   MeshGroup& create(C MeshGroup &src, MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
 
    MeshGroup& create(C Mesh &src, C VecI &cells); // create from 'src' partitioned into "cells.x * cells.y * cells.z" meshes
 
@@ -19,27 +19,27 @@ struct MeshGroup // Mesh Group (array of Meshes)
 
    void copyParams(C MeshGroup &src); // copy only parameters without meshes
 
-   MeshGroup& include (UInt flag); // include   elements specified with 'flag' MESH_BASE_FLAG
+   MeshGroup& include (MeshFlag flag); // include   elements specified with 'flag' MESH_BASE_FLAG
 #endif
-   MeshGroup& exclude (UInt flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
-   MeshGroup& keepOnly(UInt flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
+   MeshGroup& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
+   MeshGroup& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
 
    // get
-   Bool is       ()C {return meshes.elms()>0;} // if has any meshes
-   UInt flag     ()C; // get MESH_BASE_FLAG
-   Int  vtxs     ()C; // get total number of vertexes
+   Bool     is       ()C {return meshes.elms()>0;} // if has any meshes
+   MeshFlag flag     ()C; // get MESH_BASE_FLAG
+   Int      vtxs     ()C; // get total number of vertexes
 #if EE_PRIVATE
-   Int  baseVtxs ()C; // get total number of vertexes in MeshBase only, without MeshRender
+   Int      baseVtxs ()C; // get total number of vertexes in MeshBase only, without MeshRender
 #endif
-   Int  edges    ()C; // get total number of edges
-   Int  tris     ()C; // get total number of triangles
-   Int  quads    ()C; // get total number of quads
-   Int  faces    ()C; // get total number of faces                    , faces    =(triangles + quads  )
-   Int  trisTotal()C; // get total number of triangles including quads, trisTotal=(triangles + quads*2)
+   Int      edges    ()C; // get total number of edges
+   Int      tris     ()C; // get total number of triangles
+   Int      quads    ()C; // get total number of quads
+   Int      faces    ()C; // get total number of faces                    , faces    =(triangles + quads  )
+   Int      trisTotal()C; // get total number of triangles including quads, trisTotal=(triangles + quads*2)
 
    // join
-   MeshGroup& join   (Int i0, Int i1                                                                                      ); // join i0-th and i1-th Mesh together
-   MeshGroup& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag=0, Flt weld_pos_eps=EPS); // join all MeshParts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding), this does not join 'meshes' together, this only joins MeshParts within the 'meshes'
+   MeshGroup& join   (Int i0, Int i1                                                                                          ); // join i0-th and i1-th Mesh together
+   MeshGroup& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag=0, Flt weld_pos_eps=EPS); // join all MeshParts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding), this does not join 'meshes' together, this only joins MeshParts within the 'meshes'
 
    // transform
    MeshGroup& move     (              C Vec &move); //           move MeshGroup
@@ -61,22 +61,22 @@ struct MeshGroup // Mesh Group (array of Meshes)
 #endif
 
    // set
-   MeshGroup& delBase       (                                                     ); // delete all software meshes (MeshBase  ) in this mesh
-   MeshGroup& delRender     (                                                     ); // delete all hardware meshes (MeshRender) in this mesh
-   MeshGroup& setRender     (                                                     ); // set rendering version, convert all MeshBase's to MeshRender's
-   MeshGroup& setVtxDup     (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex duplicates (vtx.dup)
-   MeshGroup& setNormals    (                                                     ); // recalculate vertex            3D normals
-   MeshGroup& setFaceNormals(                                                     ); // recalculate triangle and quad 3D normals
-   MeshGroup& setShader     (                                                     ); // reset shader
-   MeshGroup& material      (C MaterialPtr &material                              ); // set material, 'material' must point to object in constant memory address (mesh will store only the pointer to the material and later use it if needed)
-   Bool       setBox        (Bool           set_mesh_boxes                        ); // recalculate bounding box
+   MeshGroup& delBase       (                                                         ); // delete all software meshes (MeshBase  ) in this mesh
+   MeshGroup& delRender     (                                                         ); // delete all hardware meshes (MeshRender) in this mesh
+   MeshGroup& setRender     (                                                         ); // set rendering version, convert all MeshBase's to MeshRender's
+   MeshGroup& setVtxDup     (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex duplicates (vtx.dup)
+   MeshGroup& setNormals    (                                                         ); // recalculate vertex            3D normals
+   MeshGroup& setFaceNormals(                                                         ); // recalculate triangle and quad 3D normals
+   MeshGroup& setShader     (                                                         ); // reset shader
+   MeshGroup& material      (C MaterialPtr &material                                  ); // set material, 'material' must point to object in constant memory address (mesh will store only the pointer to the material and later use it if needed)
+   Bool       setBox        (Bool           set_mesh_boxes                            ); // recalculate bounding box
 
    // operations
 #if EE_PRIVATE
-   MeshGroup& weldVtx2D    (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 #endif
-   MeshGroup& weldVtx      (UInt flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
-   MeshGroup& weldVtxValues(UInt flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
    MeshGroup& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 

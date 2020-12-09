@@ -245,7 +245,7 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                   Matrix m=~mesh.matrix;
                   m.moveBack(node.pivot);
                   m*=mesh.matrix;
-                  Int max_id=mesh.maxId();
+                  Int max_id=mesh.maxID();
                   if( max_id<0) // if mesh doesn't have ID at all
                   {  // copy the complete mesh
                      MeshPart &part=parts.New();
@@ -254,11 +254,11 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                      part.base.transform(m);
                      if(part_material_index)part_material_index.add(-1); // set material as -1
                   }else // if it has ID's
-                  for(Int i=-1; i<=max_id; i++)if(mesh.hasId(i)) // iterate through all id's and copy only those which have faces
+                  for(Int i=-1; i<=max_id; i++)if(mesh.hasID(i)) // iterate through all id's and copy only those which have faces
                   {
                      MeshPart &part=parts.New();
                      Set(part.name, mesh.name);
-                     mesh.copyId(part.base, i);
+                     mesh.copyID(part.base, i);
                      part.base.transform(m);
                      if(part_material_index)part_material_index.add(i); // set i-th material
                   }

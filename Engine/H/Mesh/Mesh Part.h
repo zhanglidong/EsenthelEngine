@@ -25,32 +25,32 @@ struct MeshPart // Mesh Base + Mesh Render
    Byte       part_flag; // MSHP_FLAG
 
    // manage
-   MeshPart& del   (                                 ); // delete
-   MeshPart& create(C MeshPart &src, UInt flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
+   MeshPart& del   (                                     ); // delete
+   MeshPart& create(C MeshPart &src, MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
 
    void copyParams(C MeshPart &src, Bool copy_shaders=false); // copy parameters (without meshes - 'base' and 'render'), 'copy_shaders'=if also copy shaders (if set to true then you must make sure that the 'dest.render' has all required data as 'this.render')
 
 #if EE_PRIVATE
    void scaleParams(Flt scale);
 
-   MeshPart& include (UInt flag); // include   elements specified with 'flag' MESH_BASE_FLAG
+   MeshPart& include (MeshFlag flag); // include   elements specified with 'flag' MESH_BASE_FLAG
 #endif
-   MeshPart& exclude (UInt flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
-   MeshPart& keepOnly(UInt flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
+   MeshPart& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
+   MeshPart& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
 
    // get
-   Bool is           (                )C {return base.is() || render.is();} // if  has any data
-   UInt flag         (                )C;                                   // get MESH_BASE_FLAG
-   UInt memUsage     (                )C;                                   // get memory usage
-   Int  vtxs         (                )C;                                   // get total number of vertexes
-   Int  edges        (                )C;                                   // get total number of edges
-   Int  tris         (                )C;                                   // get total number of triangles
-   Int  quads        (                )C;                                   // get total number of quads
-   Int  faces        (                )C;                                   // get total number of faces                    , faces    =(triangles + quads  )
-   Int  trisTotal    (                )C;                                   // get total number of triangles including quads, trisTotal=(triangles + quads*2)
-   Bool getBox       (Box &box        )C;                                   // get box encapsulating the MeshPart, this method iterates through all vertexes, false on fail (if no vertexes are present)
-   Flt  area         (Vec *center=null)C;                                   // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
-   Bool sameMaterials(C MeshPart &part)C;                                   // if  has exactly the same materials as 'part' mesh part, this method compares materials, multi materials and material variations
+   Bool     is           (                )C {return base.is() || render.is();} // if  has any data
+   MeshFlag flag         (                )C;                                   // get MESH_BASE_FLAG
+   UInt     memUsage     (                )C;                                   // get memory usage
+   Int      vtxs         (                )C;                                   // get total number of vertexes
+   Int      edges        (                )C;                                   // get total number of edges
+   Int      tris         (                )C;                                   // get total number of triangles
+   Int      quads        (                )C;                                   // get total number of quads
+   Int      faces        (                )C;                                   // get total number of faces                    , faces    =(triangles + quads  )
+   Int      trisTotal    (                )C;                                   // get total number of triangles including quads, trisTotal=(triangles + quads*2)
+   Bool     getBox       (Box &box        )C;                                   // get box encapsulating the MeshPart, this method iterates through all vertexes, false on fail (if no vertexes are present)
+   Flt      area         (Vec *center=null)C;                                   // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
+   Bool     sameMaterials(C MeshPart &part)C;                                   // if  has exactly the same materials as 'part' mesh part, this method compares materials, multi materials and material variations
 
    // set
 #if EE_PRIVATE

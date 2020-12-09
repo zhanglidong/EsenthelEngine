@@ -511,6 +511,7 @@ static void Fix(MeshRender &m, Bool color, Bool bone_weight)
 }
 Bool MeshRender::loadData(File &f)
 {
+   ASSERT(SIZE(_flag)==4);
    del(); switch(f.decUIntV()) // version
    {
       case 6:

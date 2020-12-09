@@ -811,7 +811,7 @@ void Csg(MeshLod &a, C MeshLod &b, UInt sel, MeshLod *dest, Bool detect_self_int
    Csg(a_base, b_base, sel, null, detect_self_intersections, weld_pos_eps);
    
    if(!dest)dest=&a;
-   a_base.copyId(*dest);
+   a_base.copyID(*dest);
 
    FREPA(*dest)dest->parts[i].multiMaterial(materials[i].m[0], materials[i].m[1], materials[i].m[2], materials[i].m[3]);
 }

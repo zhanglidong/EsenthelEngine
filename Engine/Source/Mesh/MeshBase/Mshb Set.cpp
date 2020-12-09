@@ -4,7 +4,7 @@ namespace EE{
 /******************************************************************************/
 // GET
 /******************************************************************************/
-Int MeshBase::maxId()C
+Int MeshBase::maxID()C
 {
    Int max=-1;
    if(edge.id())REPA(edge)MAX(max, edge.id(i));
@@ -12,7 +12,7 @@ Int MeshBase::maxId()C
    if(quad.id())REPA(quad)MAX(max, quad.id(i));
    return max;
 }
-Bool MeshBase::hasId(Int id)C
+Bool MeshBase::hasID(Int id)C
 {
    if(edge.id())REPA(edge)if(edge.id(i)==id)return true;
    if(tri .id())REPA(tri )if(tri .id(i)==id)return true;

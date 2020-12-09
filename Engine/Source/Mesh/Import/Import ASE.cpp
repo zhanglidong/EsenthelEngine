@@ -258,7 +258,7 @@ Bool ImportASE(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
 
             if(base.tri.id()) // we need to split into parts
             {
-               Mesh  temp; base.copyId(temp, ~TRI_ID);
+               Mesh  temp; base.copyID(temp, ~TRI_ID);
                FREPA(temp)if(temp.parts[i].is())
                {
                   Swap(mesh->parts.New(), temp.parts[i]);

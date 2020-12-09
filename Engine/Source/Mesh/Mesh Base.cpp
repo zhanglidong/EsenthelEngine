@@ -35,12 +35,12 @@ SIDE_TYPE GetSide(C VecI2 &edge, C VecI4 &quad)
    return SIDE_NONE;
 }
 /******************************************************************************/
-MeshBase::MeshBase(  Int         vtxs, Int edges, Int tris, Int quads, UInt flag) : MeshBase() {create(vtxs, edges, tris, quads, flag);}
-MeshBase::MeshBase(C MeshBase   &src , UInt flag_and                            ) : MeshBase() {create(src , flag_and);}
-MeshBase::MeshBase(C MeshRender &src , UInt flag_and                            ) : MeshBase() {create(src , flag_and);}
-MeshBase::MeshBase(C MeshPart   &src , UInt flag_and                            ) : MeshBase() {create(src , flag_and);}
-MeshBase::MeshBase(C MeshLod    &src , UInt flag_and                            ) : MeshBase() {create(src , flag_and);}
-MeshBase::MeshBase(C PhysPart   &src                                            ) : MeshBase() {create(src);}
+MeshBase::MeshBase(  Int         vtxs, Int edges, Int tris, Int quads, MeshFlag flag) : MeshBase() {create(vtxs, edges, tris, quads, flag);}
+MeshBase::MeshBase(C MeshBase   &src , MeshFlag flag_and                            ) : MeshBase() {create(src , flag_and);}
+MeshBase::MeshBase(C MeshRender &src , MeshFlag flag_and                            ) : MeshBase() {create(src , flag_and);}
+MeshBase::MeshBase(C MeshPart   &src , MeshFlag flag_and                            ) : MeshBase() {create(src , flag_and);}
+MeshBase::MeshBase(C MeshLod    &src , MeshFlag flag_and                            ) : MeshBase() {create(src , flag_and);}
+MeshBase::MeshBase(C PhysPart   &src                                                ) : MeshBase() {create(src);}
 /******************************************************************************/
 void MeshBase::copyVtxs(C MeshBase &src)
 {
@@ -403,9 +403,9 @@ VtxFull& VtxFull::mul(C Matrix &matrix, C Matrix3 &matrix3)
 /******************************************************************************/
 // MESH BASE
 /******************************************************************************/
-UInt MeshBase::flag()C
+MeshFlag MeshBase::flag()C
 {
-   UInt f=0;
+   MeshFlag f=0;
 
    if(vtx.pos     ())f|=VTX_POS;
    if(vtx.nrm     ())f|=VTX_NRM;
@@ -502,7 +502,7 @@ UInt MeshBase::memUsage()C
    }
    return size;
 }
-MeshBase& MeshBase::include(UInt f)
+MeshBase& MeshBase::include(MeshFlag f)
 {
    if(f&VTX_ALL)
    {
@@ -554,7 +554,7 @@ MeshBase& MeshBase::include(UInt f)
    }
    return T;
 }
-MeshBase& MeshBase::exclude(UInt f)
+MeshBase& MeshBase::exclude(MeshFlag f)
 {
    if(f&VTX_ALL)
    {
@@ -608,13 +608,13 @@ MeshBase& MeshBase::exclude(UInt f)
    if(!(f&QUAD_ALL))quad._elms=0;
    return T;
 }
-MeshBase& MeshBase::keepOnly(UInt f) {return exclude(~f);}
+MeshBase& MeshBase::keepOnly(MeshFlag f) {return exclude(~f);}
 /******************************************************************************/
 MeshBase& MeshBase::del()
 {
    return keepOnly(0);
 }
-MeshBase& MeshBase::create(Int vtxs, Int edges, Int tris, Int quads, UInt flag)
+MeshBase& MeshBase::create(Int vtxs, Int edges, Int tris, Int quads, MeshFlag flag)
 {
    del();
 
@@ -627,9 +627,9 @@ MeshBase& MeshBase::create(Int vtxs, Int edges, Int tris, Int quads, UInt flag)
    return T;
 }
 /******************************************************************************/
-T1(TYPE) static void Set(C Byte* &v, Int i, TYPE *data, UInt flag) {if(data)data[i]=*(TYPE*)v; if(flag)v+=SIZE(TYPE);}
+T1(TYPE) static void Set(C Byte* &v, Int i, TYPE *data, MeshFlag flag) {if(data)data[i]=*(TYPE*)v; if(flag)v+=SIZE(TYPE);}
 
-Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, /*MeshRender::BoneSplit *bone_split, Int bone_splits, */UInt flag_and)
+Bool MeshBase::createVtx(C VtxBuf &vb, MeshFlag flag, UInt storage, /*MeshRender::BoneSplit *bone_split, Int bone_splits, */MeshFlag flag_and)
 {
    exclude(VTX_ALL);
 
@@ -714,7 +714,7 @@ Bool MeshBase::createInd(C IndBuf &ib)
    return false;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C MeshRender &src, UInt flag_and)
+MeshBase& MeshBase::create(C MeshRender &src, MeshFlag flag_and)
 {
    del();
    if(createVtx(src._vb, src.flag(), src._storage, flag_and))
@@ -722,7 +722,7 @@ MeshBase& MeshBase::create(C MeshRender &src, UInt flag_and)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::createPhys(C MeshLod &src, UInt flag_and, Bool set_face_id_from_part_index, Bool skip_hidden_parts)
+MeshBase& MeshBase::createPhys(C MeshLod &src, MeshFlag flag_and, Bool set_face_id_from_part_index, Bool skip_hidden_parts)
 {
    UInt part_flag=MSHP_NO_PHYS_BODY; if(skip_hidden_parts)part_flag|=MSHP_HIDDEN;
    REPA(src)if(src.parts[i].part_flag&part_flag) // if at least one needs to be removed
@@ -825,11 +825,11 @@ MeshBase& MeshBase::create(C PhysPart &part)
    return del();
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C MeshBase *src[], Int elms, UInt flag_and, Bool set_face_id_from_part_index)
+MeshBase& MeshBase::create(C MeshBase *src[], Int elms, MeshFlag flag_and, Bool set_face_id_from_part_index)
 {
    if(!src)elms=0;
 
-   UInt     flag=0;
+   MeshFlag flag=0;
    Int      vtxs=0, edges=0, tris=0, quads=0;
    MeshBase temp;
 
@@ -953,13 +953,13 @@ MeshBase& MeshBase::create(C MeshBase *src[], Int elms, UInt flag_and, Bool set_
    }
    Swap(temp, T); return T;
 }
-MeshBase& MeshBase::create(C MeshBase *src, Int elms, UInt flag_and, Bool set_face_id_from_part_index)
+MeshBase& MeshBase::create(C MeshBase *src, Int elms, MeshFlag flag_and, Bool set_face_id_from_part_index)
 {
    if(!src)elms=0;
    Memt<C MeshBase*, 1024> mesh_ptr; mesh_ptr.setNum(elms); REPAO(mesh_ptr)=&src[i];
    return create(mesh_ptr.data(), mesh_ptr.elms(), flag_and, set_face_id_from_part_index);
 }
-MeshBase& MeshBase::create(C MeshBase &src, UInt flag_and)
+MeshBase& MeshBase::create(C MeshBase &src, MeshFlag flag_and)
 {
    if(this==&src)keepOnly(flag_and);else
    {
@@ -971,7 +971,7 @@ MeshBase& MeshBase::create(C MeshBase &src, UInt flag_and)
    }
    return T;
 }
-MeshBase& MeshBase::create(C MeshLod &src, UInt flag_and, Bool set_face_id_from_part_index)
+MeshBase& MeshBase::create(C MeshLod &src, MeshFlag flag_and, Bool set_face_id_from_part_index)
 {
    Memb<  MeshBase       > temp    ; // use 'Memb' because we're storing pointers to elms
    Memt<C MeshBase*, 1024> mesh_ptr; mesh_ptr.setNum(src.parts.elms());
@@ -983,13 +983,13 @@ MeshBase& MeshBase::create(C MeshLod &src, UInt flag_and, Bool set_face_id_from_
    }
    return create(mesh_ptr.data(), mesh_ptr.elms(), flag_and, set_face_id_from_part_index);
 }
-MeshBase& MeshBase::create(C MeshPart &src, UInt flag_and)
+MeshBase& MeshBase::create(C MeshPart &src, MeshFlag flag_and)
 {
    if(src.base  .is())return create(src.base  , flag_and);
    if(src.render.is())return create(src.render, flag_and);
                       return del();
 }
-MeshBase& MeshBase::copyFace(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, UInt flag_and)C
+MeshBase& MeshBase::copyFace(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, MeshFlag flag_and)C
 {
  C Int *p;
 
@@ -1017,7 +1017,7 @@ MeshBase& MeshBase::copyFace(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr
    Swap(dest, temp); return dest;
 }
 /******************************************************************************/
-static void CopyId(MeshBase &dest, C MeshBase &src, Int id, Memt<Bool> &edge_is, Memt<Bool> &tri_is, Memt<Bool> &quad_is, UInt flag_and)
+static void CopyID(MeshBase &dest, C MeshBase &src, Int id, Memt<Bool> &edge_is, Memt<Bool> &tri_is, Memt<Bool> &quad_is, MeshFlag flag_and)
 {
    edge_is.setNum(src.edges());
     tri_is.setNum(src.tris ());
@@ -1042,21 +1042,21 @@ static void CopyId(MeshBase &dest, C MeshBase &src, Int id, Memt<Bool> &edge_is,
       flag++; e_id++;
    }*/
 }
-void MeshBase::copyId(MeshBase &dest, Int id, UInt flag_and)C
+void MeshBase::copyID(MeshBase &dest, Int id, MeshFlag flag_and)C
 {
    Memt<Bool> edge_is, tri_is, quad_is;
-   CopyId(dest, T, id, edge_is, tri_is, quad_is, flag_and);
+   CopyID(dest, T, id, edge_is, tri_is, quad_is, flag_and);
 }
-void MeshBase::copyId(MeshLod &dest, UInt flag_and)C
+void MeshBase::copyID(MeshLod &dest, MeshFlag flag_and)C
 {
    Memt<Bool> edge_is, tri_is, quad_is;
-   dest.create(maxId()+1); REPA(dest)CopyId(dest.parts[i].base, T, i, edge_is, tri_is, quad_is, flag_and);
+   dest.create(maxID()+1); REPA(dest)CopyID(dest.parts[i].base, T, i, edge_is, tri_is, quad_is, flag_and);
 }
-void MeshBase::copyId(Mesh &dest, UInt flag_and)C
+void MeshBase::copyID(Mesh &dest, MeshFlag flag_and)C
 {
    dest.del();
    
-   MeshLod &d=dest; copyId(d, flag_and);
+   MeshLod &d=dest; copyID(d, flag_and);
    dest.setBox();
 }
 /******************************************************************************/

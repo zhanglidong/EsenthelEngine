@@ -257,9 +257,9 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    // MESH
    /******************************************************************************/
+   #include "Mesh/Mesh Base.h"
    #include "Mesh/Mesh Csg.h"
    #include "Mesh/Mesh Render.h"
-   #include "Mesh/Mesh Base.h"
    #include "Mesh/Mesh Part.h"
    #include "Mesh/Mesh Lod.h"
    #include "Mesh/Mesh Mesh.h"
