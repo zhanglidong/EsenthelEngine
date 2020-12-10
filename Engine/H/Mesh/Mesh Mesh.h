@@ -33,23 +33,23 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    // manage
    Mesh& del   (                                              ); // delete manually
    Mesh& create(  Int        parts                            ); // create with 'parts' empty MeshParts
-   Mesh& create(C Mesh      &src        , MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
-   Mesh& create(C MeshGroup &src        , MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
-   Mesh& create(C Mesh *mesh, Int meshes, MeshFlag flag_and=~0); // create from mesh array, 'flag_and'=MESH_BASE_FLAG
+   Mesh& create(C Mesh      &src        , MeshFlag flag_and=~0); // create from 'src'     , 'flag_and'=MESH_FLAG
+   Mesh& create(C MeshGroup &src        , MeshFlag flag_and=~0); // create from 'src'     , 'flag_and'=MESH_FLAG
+   Mesh& create(C Mesh *mesh, Int meshes, MeshFlag flag_and=~0); // create from mesh array, 'flag_and'=MESH_FLAG
 
    void copyParams(C Mesh &src); // copy only parameters without meshes
 
 #if EE_PRIVATE
    void zero();
 
-   Mesh& include (MeshFlag flag); // include   elements specified with 'flag' MESH_BASE_FLAG
+   Mesh& include (MeshFlag flag); // include   elements specified with 'flag' MESH_FLAG
 #endif
-   Mesh& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
-   Mesh& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
+   Mesh& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_FLAG
+   Mesh& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_FLAG
 
    // get
-   MeshFlag flag    ()C; // get MESH_BASE_FLAG of all LODs
-   UInt     memUsage()C; // get memory usage   of all LODs
+   MeshFlag flag    ()C; // get MESH_FLAG    of all LODs
+   UInt     memUsage()C; // get memory usage of all LODs
 
  C MeshLod& getDrawLod (C Matrix  &matrix)C; // get          Level of Detail which should be used for drawing with current camera and given object 'matrix'
  C MeshLod& getDrawLod (C MatrixM &matrix)C; // get          Level of Detail which should be used for drawing with current camera and given object 'matrix'
@@ -129,10 +129,10 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    // operations
 #if EE_PRIVATE
    Mesh& weldEdge     (); // weld edges
-   Mesh& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   Mesh& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 #endif
-   Mesh& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
-   Mesh& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   Mesh& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   Mesh& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
    Mesh& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 

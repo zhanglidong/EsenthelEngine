@@ -10,7 +10,7 @@ struct MeshGroup // Mesh Group (array of Meshes)
 
    // manage
    MeshGroup& del   (                                      ); // delete
-   MeshGroup& create(C MeshGroup &src, MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_BASE_FLAG
+   MeshGroup& create(C MeshGroup &src, MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_FLAG
 
    MeshGroup& create(C Mesh &src, C VecI &cells); // create from 'src' partitioned into "cells.x * cells.y * cells.z" meshes
 
@@ -19,14 +19,14 @@ struct MeshGroup // Mesh Group (array of Meshes)
 
    void copyParams(C MeshGroup &src); // copy only parameters without meshes
 
-   MeshGroup& include (MeshFlag flag); // include   elements specified with 'flag' MESH_BASE_FLAG
+   MeshGroup& include (MeshFlag flag); // include   elements specified with 'flag' MESH_FLAG
 #endif
-   MeshGroup& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_BASE_FLAG
-   MeshGroup& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_BASE_FLAG
+   MeshGroup& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_FLAG
+   MeshGroup& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_FLAG
 
    // get
    Bool     is       ()C {return meshes.elms()>0;} // if has any meshes
-   MeshFlag flag     ()C; // get MESH_BASE_FLAG
+   MeshFlag flag     ()C; // get MESH_FLAG
    Int      vtxs     ()C; // get total number of vertexes
 #if EE_PRIVATE
    Int      baseVtxs ()C; // get total number of vertexes in MeshBase only, without MeshRender
@@ -73,10 +73,10 @@ struct MeshGroup // Mesh Group (array of Meshes)
 
    // operations
 #if EE_PRIVATE
-   MeshGroup& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtx2D    (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 #endif
-   MeshGroup& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
-   MeshGroup& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_BASE_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtx      (MeshFlag flag=0, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshGroup& weldVtxValues(MeshFlag flag  , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld (MESH_FLAG), 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
    MeshGroup& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 

@@ -30,7 +30,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    Bool createRaw(C MeshBase    &src  ,           MeshFlag flag_and=~0, Bool optimize=true , Bool compress=true);
    Bool create   (C MeshBase    &src  ,           MeshFlag flag_and=~0, Bool optimize=true , Bool compress=true);
    Bool create   (C MeshRender  &src                                                                           );
-   Bool create   (C MeshRender  *src[], Int elms, MeshFlag flag_and=~0, Bool optimize=false, Bool compress=true); // create from 'src' array, 'flag_and'=MESH_BASE_FLAG
+   Bool create   (C MeshRender  *src[], Int elms, MeshFlag flag_and=~0, Bool optimize=false, Bool compress=true); // create from 'src' array, 'flag_and'=MESH_FLAG
 #endif
 
    // get
@@ -40,9 +40,9 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
 
    UInt memUsage(                )C {return _vb.memUsage()+_ib.memUsage();} // get memory usage of the mesh (in bytes)
    Int  vtxSize (                )C {return _vb.vtxSize ()               ;} // get size of a single vertex
-   Int  vtxOfs  (MeshFlag elm    )C;                                        // get offset of a specified vertex component in the vertex data, -1 if not found, 'elm'=one of MESH_BASE_FLAG enums
+   Int  vtxOfs  (MeshFlag elm    )C;                                        // get offset of a specified vertex component in the vertex data, -1 if not found, 'elm'=one of MESH_FLAG enums
    Bool indBit16(                )C {return _ib.bit16()                  ;} // if  indices are 16-bit (false for 32-bit)
-   MeshFlag flag(                )C {return _flag                        ;} // get MESH_BASE_FLAG that this mesh has
+   MeshFlag flag(                )C {return _flag                        ;} // get MESH_FLAG that this mesh has
    Bool   getBox(Box &box        )C;                                        // get box encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
    Flt      area(Vec *center=null)C;                                        // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
 
@@ -56,7 +56,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
 
    // operations
  C Byte* vtxLockedData(                              )C {return _vb.lockedData(    );} //    get vertex data if it's already locked, null on fail
- C Byte* vtxLockedElm (MeshFlag  elm                 )C;                               //    get vertex data if it's already locked offsetted by specified vertex component in the vertex data according to 'vtxOfs' method, 'elm'=one of MESH_BASE_FLAG enums, null on fail (if the vertex buffer is not locked or if the component was not found)
+ C Byte* vtxLockedElm (MeshFlag  elm                 )C;                               //    get vertex data if it's already locked offsetted by specified vertex component in the vertex data according to 'vtxOfs' method, 'elm'=one of MESH_FLAG enums, null on fail (if the vertex buffer is not locked or if the component was not found)
    Byte* vtxLock      (LOCK_MODE lock=LOCK_READ_WRITE)  {return _vb.lock      (lock);} //   lock vertex data and return it, this method may be used to directly modify values of hardware mesh vertexes after getting their offset in the data by using 'vtxOfs' method (currently you should use it only for 'VTX_POS' as 'Vec', 'VTX_TEX' as 'Vec2' and 'VTX_COLOR' as 'Color' components, as others may be stored in compressed format), null on fail
  C Byte* vtxLockRead  (                              )C {return _vb.lockRead  (    );} //   lock vertex data and return it, this method may be used to directly access values of hardware mesh vertexes after getting their offset in the data by using 'vtxOfs' method (currently you should use it only for 'VTX_POS' as 'Vec', 'VTX_TEX' as 'Vec2' and 'VTX_COLOR' as 'Color' components, as others may be stored in compressed format), null on fail
    void  vtxUnlock    (                              )C {       _vb.unlock    (    );} // unlock vertex data
