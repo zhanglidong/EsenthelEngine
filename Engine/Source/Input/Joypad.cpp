@@ -406,11 +406,11 @@ static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: t
                {
                   if(BSTR DeviceID=SysAllocString(L"DeviceID"))
                   {
-                     IWbemClassObject *pDevices[16]={0};
-                     for(;;) // Loop over all devices
+                     IWbemClassObject *pDevices[16];
+                  again:
+                     DWORD returned=0; if(OK(pEnumDevices->Next(10000, Elms(pDevices), pDevices, &returned)) && returned)
                      {
-                        DWORD returned=0; if(!OK(pEnumDevices->Next(10000, Elms(pDevices), pDevices, &returned)) || !returned)break;
-                        FREP( returned) // check each device
+                        FREP(returned) // check each device
                         {
                            if(!xinput)
                            {
@@ -433,6 +433,7 @@ static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: t
                            }
                            RELEASE(pDevices[i]);
                         }
+                        if(!xinput)goto again;
                      }
                      SysFreeString(DeviceID);
                   }
