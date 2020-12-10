@@ -26,11 +26,11 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    MeshRender& del();
 #if EE_PRIVATE
    void zero     ();
-   Bool create   (Int vtxs, Int tris,             MeshFlag flag       ,                      Bool compress=true);
-   Bool createRaw(C MeshBase    &src  ,           MeshFlag flag_and=~0, Bool optimize=true , Bool compress=true);
-   Bool create   (C MeshBase    &src  ,           MeshFlag flag_and=~0, Bool optimize=true , Bool compress=true);
-   Bool create   (C MeshRender  &src                                                                           );
-   Bool create   (C MeshRender  *src[], Int elms, MeshFlag flag_and=~0, Bool optimize=false, Bool compress=true); // create from 'src' array, 'flag_and'=MESH_FLAG
+   Bool create   (Int vtxs, Int tris,             MeshFlag flag             ,                      Bool compress=true);
+   Bool createRaw(C MeshBase    &src  ,           MeshFlag flag_and=MESH_ALL, Bool optimize=true , Bool compress=true);
+   Bool create   (C MeshBase    &src  ,           MeshFlag flag_and=MESH_ALL, Bool optimize=true , Bool compress=true);
+   Bool create   (C MeshRender  &src                                                                                 );
+   Bool create   (C MeshRender  *src[], Int elms, MeshFlag flag_and=MESH_ALL, Bool optimize=false, Bool compress=true); // create from 'src' array, 'flag_and'=MESH_FLAG
 #endif
 
    // get
@@ -108,7 +108,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    Bool save     (  File &f   )C; // save binary, false on fail
    Bool load     (  File &f   ) ; // load binary, false on fail
 
-   explicit MeshRender(C MeshBase &mshb, MeshFlag flag_and=~0, Bool optimize=true) : MeshRender() {create(mshb, flag_and, optimize);}
+   explicit MeshRender(C MeshBase &mshb, MeshFlag flag_and=MESH_ALL, Bool optimize=true) : MeshRender() {create(mshb, flag_and, optimize);}
 #endif
 
               ~MeshRender() {del();}

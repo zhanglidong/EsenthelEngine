@@ -25,8 +25,8 @@ struct MeshPart // Mesh Base + Mesh Render
    Byte       part_flag; // MSHP_FLAG
 
    // manage
-   MeshPart& del   (                                     ); // delete
-   MeshPart& create(C MeshPart &src, MeshFlag flag_and=~0); // create from 'src', 'flag_and'=MESH_FLAG
+   MeshPart& del   (                                           ); // delete
+   MeshPart& create(C MeshPart &src, MeshFlag flag_and=MESH_ALL); // create from 'src', 'flag_and'=MESH_FLAG
 
    void copyParams(C MeshPart &src, Bool copy_shaders=false); // copy parameters (without meshes - 'base' and 'render'), 'copy_shaders'=if also copy shaders (if set to true then you must make sure that the 'dest.render' has all required data as 'this.render')
 
