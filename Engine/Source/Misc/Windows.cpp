@@ -1608,7 +1608,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       {
          if(wParam==DBT_DEVICEARRIVAL
          || wParam==DBT_DEVICEREMOVECOMPLETE
-         || wParam==DBT_DEVNODES_CHANGED)App.addFuncCall(ListJoypads); // can't call 'ListJoypads' directly here, because we're inside a Windows callback, and when using Direct Input then 'IsXInputDevice' will not function well (might not detect XInput devices correctly due to errors "An outgoing call cannot be made since the application is dispatching an input-synchronous call.", also it could trigger 'WindowMsg' again as a nested call). We could call this directly only if DirectInput Joypads were not used.
+         || wParam==DBT_DEVNODES_CHANGED)App.addFuncCall(ListJoypads); // can't call 'ListJoypads' directly here, because we're inside a Windows callback, and when using Direct Input then 'IsXInputDevice' will not function well (might not detect XInput devices correctly due to errors "An outgoing call cannot be made since the application is dispatching an input-synchronous call.", also it could trigger 'WindowMsg' again as a nested call). Also on UWP during the 'OnGamepadAdded' and 'OnGamepadRemoved' callbacks the results were outdated in tests (from previous frame) so in case the same problem would occur here (Windows could break stuff), then better recheck joypads at a later stage.
       }break;
    }
 def:

@@ -540,8 +540,8 @@ ref struct FrameworkView sealed : IFrameworkView
    }
 #endif
 
-   void OnGamepadAdded  (Object^ sender, Gamepad ^gamepad) {ListJoypads();}
-   void OnGamepadRemoved(Object^ sender, Gamepad ^gamepad) {ListJoypads();}
+   void OnGamepadAdded  (Object^ sender, Gamepad ^gamepad) {App.addFuncCall(ListJoypads);} // can't call 'ListJoypads' directly because at this stage the XInput state might still be old, and return results from previous frame while the JoyPad is still unavailable (this happened during testing)
+   void OnGamepadRemoved(Object^ sender, Gamepad ^gamepad) {App.addFuncCall(ListJoypads);} // can't call 'ListJoypads' directly because at this stage the XInput state might still be old, and return results from previous frame while the JoyPad is still   available (this happened during testing)
 
    void OnAccelerometerChanged(Sensors::Accelerometer^ accelerometer, AccelerometerReadingChangedEventArgs^ args)
    {
