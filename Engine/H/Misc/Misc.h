@@ -29,6 +29,56 @@ struct OSUserGetter
 #endif
 #endif
 /******************************************************************************/
+T2(FLAG, STORAGE) struct Flags
+{
+   STORAGE data;
+
+   operator Bool ()C {return data!=0;}
+   operator UInt ()C=delete;
+   operator ULong()C=delete;
+
+   Flags() {}
+   Flags(FLAG data) {T.data=data;}
+
+   Flags& operator|=(FLAG  flag ) {data|=flag      ; return T;}
+   Flags& operator|=(Flags flags) {data|=flags.data; return T;}
+   Flags& operator&=(FLAG  flag ) {data&=flag      ; return T;}
+   Flags& operator&=(Flags flags) {data&=flags.data; return T;}
+   Flags& operator^=(FLAG  flag ) {data^=flag      ; return T;}
+   Flags& operator^=(Flags flags) {data^=flags.data; return T;}
+
+   friend Flags<FLAG, STORAGE> operator| (FLAG                 a, Flags<FLAG, STORAGE> b) {return FLAG(STORAGE(a)|b.data);}
+   friend Flags<FLAG, STORAGE> operator& (FLAG                 a, Flags<FLAG, STORAGE> b) {return FLAG(STORAGE(a)&b.data);}
+   friend Flags<FLAG, STORAGE> operator^ (FLAG                 a, Flags<FLAG, STORAGE> b) {return FLAG(STORAGE(a)^b.data);}
+   friend Flags<FLAG, STORAGE> operator| (Flags<FLAG, STORAGE> a, FLAG                 b) {return FLAG(a.data|STORAGE(b));}
+   friend Flags<FLAG, STORAGE> operator& (Flags<FLAG, STORAGE> a, FLAG                 b) {return FLAG(a.data&STORAGE(b));}
+   friend Flags<FLAG, STORAGE> operator^ (Flags<FLAG, STORAGE> a, FLAG                 b) {return FLAG(a.data^STORAGE(b));}
+   friend Flags<FLAG, STORAGE> operator| (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data|    b.data);}
+   friend Flags<FLAG, STORAGE> operator& (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data&    b.data);}
+   friend Flags<FLAG, STORAGE> operator^ (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data^    b.data);}
+   friend Flags<FLAG, STORAGE> operator~ (Flags<FLAG, STORAGE> a                        ) {return FLAG(~a.data          );}
+};
+
+#define FLAGS_OPERATORS(FLAG, STORAGE)                                                          \
+   inline Flags<FLAG, STORAGE> operator|(FLAG a, FLAG b) {return FLAG( STORAGE(a)|STORAGE(b));} \
+   inline Flags<FLAG, STORAGE> operator&(FLAG a, FLAG b) {return FLAG( STORAGE(a)&STORAGE(b));} \
+   inline Flags<FLAG, STORAGE> operator^(FLAG a, FLAG b) {return FLAG( STORAGE(a)^STORAGE(b));} \
+   inline Flags<FLAG, STORAGE> operator~(FLAG a        ) {return FLAG(~STORAGE(a)           );}
+
+#define DECLARE_FLAGS(FLAG, STORAGE, TYPE) \
+   FLAGS_OPERATORS(FLAG, STORAGE) \
+   typedef Flags<FLAG, STORAGE> TYPE;
+
+T2(TA,TB   ) inline Bool FlagTest   (TA  flags, TB f           ) {return (flags&f)!=0;}                                   // check if 'f' flag is enabled                in 'flags', in case 'f' contains multiple options then this will succeed if any of them are enabled
+T2(TA,TB   ) inline Bool FlagAll    (TA  flags, TB f           ) {return (flags&f)==f;}                                   // check if 'f' flag is enabled                in 'flags', in case 'f' contains multiple options then this will succeed if all of them are enabled
+T2(TA,TB   ) inline void FlagEnable (TA &flags, TB f           ) {flags|= f;}                                             // enable   'f' flag                           in 'flags'
+T2(TA,TB   ) inline void FlagDisable(TA &flags, TB f           ) {flags&=~f;}                                             // disable  'f' flag                           in 'flags'
+T2(TA,TB   ) inline void FlagToggle (TA &flags, TB f           ) {flags^= f;}                                             // toggle   'f' flag                           in 'flags'
+T2(TA,TB   ) inline void FlagSet    (TA &flags, TB f, Bool on  ) {if(on)FlagEnable(flags, f);else FlagDisable(flags, f);} // set      'f' flag to be enabled or disabled in 'flags'
+T3(TA,TB,TC) inline void FlagCopy   (TA &flags, TB f, TC   mask) {flags=(flags&~mask)|(f&mask);}                          // copy     'f' flags                          to 'flags' using specified mask
+
+inline UInt IndexToFlag(Int i) {return 1<<i;} // convert index to flag
+/******************************************************************************/
 template<typename TYPE, Int elms>   constexpr Int Elms(C TYPE (&Array)[elms]) {return elms;} // get number of elements in array
 
 constexpr Bool InRange(Int   i, Byte  elms) {return UInt (i)<UInt (elms);} // if 'i' index is in range "0..elms-1", this assumes that "elms>=0"
@@ -40,9 +90,9 @@ constexpr Bool InRange(Long  i, Long  elms) {return ULong(i)<ULong(elms);} // if
 constexpr Bool InRange(Long  i, ULong elms) {return ULong(i)<ULong(elms);} // if 'i' index is in range "0..elms-1", this assumes that "elms>=0"
 constexpr Bool InRange(ULong i, ULong elms) {return ULong(i)<ULong(elms);} // if 'i' index is in range "0..elms-1", this assumes that "elms>=0"
 
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(Int  i, TYPE enum_value) {return UInt (i)<UInt(enum_value);} // template specialization for enum's
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(Long i, TYPE enum_value) {return ULong(i)<UInt(enum_value);} // template specialization for enum's
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(TYPE i, TYPE enum_value) {return UInt (i)<UInt(enum_value);} // template specialization for enum's
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(Int  i, TYPE enum_value) {return UInt (i)<UInt (enum_value);} // template specialization for enum's
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(Long i, TYPE enum_value) {return ULong(i)<ULong(enum_value);} // template specialization for enum's
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(TYPE i, TYPE enum_value) {return UInt (i)<UInt (enum_value);} // template specialization for enum's
 
 T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(Int   i, C TYPE &container); // if 'i' index is in range of container, 'container' can be of many types, for example a C++ array (x[]), memory container ('Memc', 'Memb', ..) or any other type for which 'Elms' function was defined
 T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(UInt  i, C TYPE &container); // if 'i' index is in range of container, 'container' can be of many types, for example a C++ array (x[]), memory container ('Memc', 'Memb', ..) or any other type for which 'Elms' function was defined
@@ -89,16 +139,6 @@ Bool HasRemote(CChar *path);   Bool HasRemote(CChar8 *path); // if path contains
 Bool FullPath (CChar *path);   Bool FullPath (CChar8 *path); // if path is a full path (has a drive or is remote)
 
 T3(TA,TB,TC) inline TA& Clamp(TA &x, TB min, TC max) {if(x<min)x=min;else if(x>max)x=max; return x;} // clamp 'x' to "min..max" range
-
-T2(TA,TB   ) inline Bool FlagTest   (TA  flags, TB f           ) {return (flags&f)!=0;}                                   // check if 'f' flag is enabled                in 'flags', in case 'f' contains multiple options then this will succeed if any of them are enabled
-T2(TA,TB   ) inline Bool FlagAll    (TA  flags, TB f           ) {return (flags&f)==f;}                                   // check if 'f' flag is enabled                in 'flags', in case 'f' contains multiple options then this will succeed if all of them are enabled
-T2(TA,TB   ) inline void FlagEnable (TA &flags, TB f           ) {flags|= f;}                                             // enable   'f' flag                           in 'flags'
-T2(TA,TB   ) inline void FlagDisable(TA &flags, TB f           ) {flags&=~f;}                                             // disable  'f' flag                           in 'flags'
-T2(TA,TB   ) inline void FlagToggle (TA &flags, TB f           ) {flags^= f;}                                             // toggle   'f' flag                           in 'flags'
-T2(TA,TB   ) inline void FlagSet    (TA &flags, TB f, Bool on  ) {if(on)FlagEnable(flags, f);else FlagDisable(flags, f);} // set      'f' flag to be enabled or disabled in 'flags'
-T3(TA,TB,TC) inline void FlagCopy   (TA &flags, TB f, TC   mask) {flags=(flags&~mask)|(f&mask);}                          // copy     'f' flags                          to 'flags' using specified mask
-
-inline UInt IndexToFlag(Int i) {return 1<<i;} // convert index to flag
 
 inline Int   DivFloor(Int   x, Int   y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
 inline Long  DivFloor(Long  x, Long  y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
