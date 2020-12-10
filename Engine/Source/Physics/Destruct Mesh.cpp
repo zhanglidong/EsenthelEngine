@@ -43,7 +43,7 @@ DestructMesh& DestructMesh::create(Mesh &mesh, Int cuts, C MaterialPtr &material
 {
    del();
 
-   UInt       flag_and=(VTX_POS|VTX_NRM_TAN_BIN|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SIZE);
+   MeshFlag   flag_and=(VTX_POS|VTX_NRM_TAN_BIN|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_SIZE);
    Bool       cur=false;
    Memb<Mesh> temp[2]; // use Memb so 'New' will not change memory address of previous elements
    FREP(cuts) // order is important
