@@ -26,21 +26,21 @@ struct MeshPart // Mesh Base + Mesh Render
 
    // manage
    MeshPart& del   (                                           ); // delete
-   MeshPart& create(C MeshPart &src, MeshFlag flag_and=MESH_ALL); // create from 'src', 'flag_and'=MESH_FLAG
+   MeshPart& create(C MeshPart &src, MeshFlag flag_and=MESH_ALL); // create from 'src', 'flag_and'=data to copy
 
    void copyParams(C MeshPart &src, Bool copy_shaders=false); // copy parameters (without meshes - 'base' and 'render'), 'copy_shaders'=if also copy shaders (if set to true then you must make sure that the 'dest.render' has all required data as 'this.render')
 
 #if EE_PRIVATE
    void scaleParams(Flt scale);
 
-   MeshPart& include (MeshFlag flag); // include   elements specified with 'flag' MESH_FLAG
+   MeshPart& include (MeshFlag flag); // include   elements specified with 'flag'
 #endif
-   MeshPart& exclude (MeshFlag flag); // exclude   elements specified with 'flag' MESH_FLAG
-   MeshPart& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_FLAG
+   MeshPart& exclude (MeshFlag flag); // exclude   elements specified with 'flag'
+   MeshPart& keepOnly(MeshFlag flag); // keep only elements specified with 'flag'
 
    // get
    Bool     is           (                )C {return base.is() || render.is();} // if  has any data
-   MeshFlag flag         (                )C;                                   // get MESH_FLAG
+   MeshFlag flag         (                )C;                                   // get available data
    UInt     memUsage     (                )C;                                   // get memory usage
    Int      vtxs         (                )C;                                   // get total number of vertexes
    Int      edges        (                )C;                                   // get total number of edges
