@@ -209,6 +209,7 @@ namespace EE // Esenthel Engine namespace
    #include "Math/Shapes/Cone.h"
    #include "Math/Shapes/Pyramid.h"
    #include "Math/Shapes/Torus.h"
+   #include "Mesh/Mesh Base.h"
    #include "Math/Shapes/Polygon.h"
    #include "Math/Shape.h"
    #include "Math/Number.h"
@@ -239,6 +240,7 @@ namespace EE // Esenthel Engine namespace
    #include "Graphics/Light.h"
    #include "Graphics/Shader.h"
    #include "Graphics/Shader Compiler.h"
+   #include "Graphics/Shader Main.h"
    #include "Graphics/Vertex Index Buffer Ex.h"
    #include "Graphics/Vertex Index Buffer.h"
    #include "Graphics/Sun.h"
@@ -256,7 +258,6 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    // MESH
    /******************************************************************************/
-   #include "Mesh/Mesh Base.h"
    #include "Mesh/Mesh Csg.h"
    #include "Mesh/Mesh Render.h"
    #include "Mesh/Mesh Part.h"
@@ -285,7 +286,6 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    //
    /******************************************************************************/
-   #include "Graphics/Shader Main.h"
    #include "Math/Frustum.h"
    #include "Misc/Application.h"
    #include "Misc/Windows.h"
