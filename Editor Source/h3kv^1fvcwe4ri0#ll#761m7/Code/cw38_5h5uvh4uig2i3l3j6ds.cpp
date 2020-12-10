@@ -900,13 +900,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void MeshSetPos       (ObjView &editor) {editor.meshSetPos     ();}   void meshSetPos    ();
    static void MeshReverse      (ObjView &editor) {editor.meshReverse    ();}   void meshReverse   ();
    static void MeshReverseNrm   (ObjView &editor) {editor.meshReverseNrm ();}   void meshReverseNrm();
-   static void MeshSetNormalFa  (ObjView &editor) {editor.meshSetNrmFace (        );}   void meshSetNrmFace();
-   static void MeshSetNormalN   (ObjView &editor) {editor.meshSetNrm     (VTX_NRM );}   void meshSetNrm    (MeshFlag vtx_test);
-   static void MeshSetNormalP   (ObjView &editor) {editor.meshSetNrm     (VTX_POS );}
-   static void MeshSetNormalT   (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0);}
-   static void MeshSetNormal    (ObjView &editor) {editor.meshSetNrm     (       0);}
-   static void MeshSetNormalH   (ObjView &editor) {editor.meshSetNrmH    (        );}   void meshSetNrmH();
-   static void MeshNormalY      (ObjView &editor) {editor.meshNrmY         ();}   void meshNrmY         ();
+   static void MeshSetNormalFa  (ObjView &editor) {editor.meshSetNrmFace (         );}   void meshSetNrmFace();
+   static void MeshSetNormalN   (ObjView &editor) {editor.meshSetNrm     (VTX_NRM  );}   void meshSetNrm    (MeshFlag vtx_test);
+   static void MeshSetNormalP   (ObjView &editor) {editor.meshSetNrm     (VTX_POS  );}
+   static void MeshSetNormalT   (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0 );}
+   static void MeshSetNormal    (ObjView &editor) {editor.meshSetNrm     (MESH_NONE);}
+   static void MeshSetNormalH   (ObjView &editor) {editor.meshSetNrmH    (         );}   void meshSetNrmH();
+   static void MeshNormalY      (ObjView &editor) {editor.meshNrmY       (         );}   void meshNrmY   ();
    static void MeshSetVtxAO     (ObjView &editor) {MeshAO.activate();}
    static void MeshCreateFace   (ObjView &editor) {editor.meshCreateFace   ();}   void meshCreateFace   ();
    static void MeshMergeFaces   (ObjView &editor) {editor.meshMergeFaces   ();}   void meshMergeFaces   ();
@@ -1167,12 +1167,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(!(p.flag()&VTX_DUP) || vtx_dup_mode!=vtx_face_sel_mode())
          {
             mesh.exclude(VTX_DUP); // need to remove for all lods & parts
-            MeshFlag flag=0;
+            MeshFlag flag=MESH_NONE;
             switch(vtx_dup_mode=vtx_face_sel_mode())
             {
-               case 1: flag=VTX_NRM ; break; // must share the same normal
-               case 2: flag=VTX_TEX0; break; // must share the same UV
-               case 3: flag=       0; break; // no requirements
+               case 1: flag=VTX_NRM  ; break; // must share the same normal
+               case 2: flag=VTX_TEX0 ; break; // must share the same UV
+               case 3: flag=MESH_NONE; break; // no requirements
             }
             p.base.setVtxDup(flag, vtxDupPosEps(), 0.99);
          }
@@ -3701,7 +3701,7 @@ cur_skel_to_saved_skel.renameBone(old_name, new_name);
       if(getPhysElm() && phys)
       {
          phys_undos.set("mesh");
-         MeshBase m; physMesh(m); m.weldVtx(0, 0.005).simplify(1, 0.01, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
+         MeshBase m; physMesh(m); m.weldVtx(MESH_NONE, 0.005).simplify(1, 0.01, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
          {CacheLock cl(PhysBodies); if(phys->del().parts.New().createMeshTry(m))phys->setBox();else phys->del();}
          setChangedPhys(); setPhys(-1);
       }

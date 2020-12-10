@@ -1593,8 +1593,8 @@ class Project
                {
                   MeshPart &part=lod.parts[i]; if(!material || HasMaterial(part, material))
                   {
-                     uint flag =((part.base.flag()|part.render.flag())&VTX_TAN_BIN); part.setAutoTanBin();
-                     if(  flag!=((part.base.flag()|part.render.flag())&VTX_TAN_BIN))changed=true;
+                     MeshFlag flag =((part.base.flag()|part.render.flag())&VTX_TAN_BIN); part.setAutoTanBin();
+                     if(      flag!=((part.base.flag()|part.render.flag())&VTX_TAN_BIN))changed=true;
                   }
                }
             }

@@ -33,6 +33,7 @@ extern const bool          MiscOnTop,
                     WebBC7           , // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
                     ImportRemovedElms, 
                     RenameAnimBonesOnSkelChange;
+extern const MeshFlag      MeshJoinAllTestVtxFlag;
 extern const Edit::Material::TEX_QUALITY MinMtrlTexQualityBase0    , // minimum texture compression quality for Material Base0  Texture (RGBA              ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
                                 MinMtrlTexQualityBase1   , // minimum texture compression quality for Material Base1  Texture (NxNy              ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
                                 MinMtrlTexQualityBase2 , // minimum texture compression quality for Material Base2  Texture (SmoothReflBumpGlow) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
@@ -49,6 +50,8 @@ extern int ObjAccessNamesElms;
 extern const cchar8 *ElmNameMesh,
              *ElmNameSkel,
              *ElmNamePhys;
+extern const MeshFlag EditMeshFlagAnd, // TanBin are not needed in Edit because they're always re-created if needed
+               GameMeshFlagAnd;
 extern const    ImagePtr    ImageNull;
 extern const MaterialPtr MaterialNull;
 extern bool          IsServer;

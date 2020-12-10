@@ -226,7 +226,7 @@ void Simplify(Mesh &mesh)
       if(build&AREA_REBUILD_HM_PHYS)if(!FastTerrainPhys) // creating terrain phys from original mesh is much slower
       {
          if(builder.io_thread.wantStop())return;
-         MeshBase temp; temp.createPhys   (hm_mesh).weldVtx(0, 0.01f, EPS_COL_COS, -1).simplify(1, 0.10f, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
+         MeshBase temp; temp.createPhys   (hm_mesh).weldVtx(MESH_NONE, 0.01f, EPS_COL_COS, -1).simplify(1, 0.10f, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
                      hm_phys.createMeshTry(   temp);
       }
       if(build&AREA_REBUILD_HM_MESH_SIMPLIFY)
@@ -237,7 +237,7 @@ void Simplify(Mesh &mesh)
       if(build&AREA_REBUILD_HM_PHYS)if(FastTerrainPhys) // creating terrain phys from a simplified mesh is much faster, but we need to use different 'max_distance'
       {
          if(builder.io_thread.wantStop())return;
-         MeshBase temp; temp.createPhys   (hm_mesh).weldVtx(0, 0.01f, EPS_COL_COS, -1).simplify(1, 0.05f, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
+         MeshBase temp; temp.createPhys   (hm_mesh).weldVtx(MESH_NONE, 0.01f, EPS_COL_COS, -1).simplify(1, 0.05f, 1, 1, 1, 1, PI, true, SIMPLIFY_PLANES);
                      hm_phys.createMeshTry(   temp);
       }
       if(build&AREA_REBUILD_EMBED_OBJ)

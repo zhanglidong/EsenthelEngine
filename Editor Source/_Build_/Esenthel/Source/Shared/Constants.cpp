@@ -4,41 +4,41 @@
                                  // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str ClientServerString="Esenthel Editor";
 /******************************************************************************/
-const cchar8*WorldVerSuffix     ="\\Data",
-            *ProjectsBuildPath  =  "_Build_\\", // !! this will     get deleted in 'CleanAll' !!
-            *ProjectsPublishPath="_Publish_\\", // !! this will     get deleted in 'CleanAll' !!
-            *ProjectsCodePath   =   "_Code_\\", // !! this will NOT get deleted in 'CleanAll' !!
-            *EsenthelProjectExt ="EsenthelProject", 
-            *CodeExt            =".cpp", // cpp was selected, because unlike other ideas: "code", "txt" only "cpp" gets correct coloring when opened in Visual Studio
-            *CodeSyncExt        =CodeExt;
-const Str    NullName      ="<None>",
-             UnknownName   ="<Unknown>",
-             MultipleName  ="<Multiple Values>",
-             EsenthelStoreURL="https://esenthel.com/store.php";
-const flt    StateFadeTime=0.2f,
-             SkelSlotSize=0.2f,
-             WaypointRadius=0.5f,
-             FlushWaypointsDelay=4,
-             FlushWaterDelay=4,
-             BuyFullVersionTime=10*60, // 10 min
-             AutoSaveTime=5*60, // 5 min
-             MaxGameViewRange=2000,
-             PropElmNameWidth=0.325f, // value width of property having element name
-             SendAreasDelay=1.0f,
-             VtxDupPosEps=0.0002f, 
-             DefaultFOV=DegToRad(70),
-             PreviewFOV=DegToRad(50);
-const bool   MiscOnTop=false,
-             CodeMenuOnTop=false,
-             ModeTabsAlwaysVisible=false,
-             RequireAllCodeMatchForSync=true,
-             TolerantSecondaryServer=false, // will ignore DeviceID when getting confirmation from secondary authentication server
-             SupportBC7       =true , // if support BC7 compression
-             WebBC7           =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-             ImportRemovedElms=false, 
-             RenameAnimBonesOnSkelChange=true; // See also: FIND_ANIM_BY_NAME_ONLY in the Engine
-                                     // min size of mesh box (in meters) to split it
-                                      // this is because of "Leaf" shader which works differently depending on existence of these components, testing for color/skin is not needed because parts that don't have them will have default values set (WHITE color, 0-bone/matrix)
+const cchar8  *WorldVerSuffix     ="\\Data",
+              *ProjectsBuildPath  =  "_Build_\\", // !! this will     get deleted in 'CleanAll' !!
+              *ProjectsPublishPath="_Publish_\\", // !! this will     get deleted in 'CleanAll' !!
+              *ProjectsCodePath   =   "_Code_\\", // !! this will NOT get deleted in 'CleanAll' !!
+              *EsenthelProjectExt ="EsenthelProject", 
+              *CodeExt            =".cpp", // cpp was selected, because unlike other ideas: "code", "txt" only "cpp" gets correct coloring when opened in Visual Studio
+              *CodeSyncExt        =CodeExt;
+const Str      NullName      ="<None>",
+               UnknownName   ="<Unknown>",
+               MultipleName  ="<Multiple Values>",
+               EsenthelStoreURL="https://esenthel.com/store.php";
+const flt      StateFadeTime=0.2f,
+               SkelSlotSize=0.2f,
+               WaypointRadius=0.5f,
+               FlushWaypointsDelay=4,
+               FlushWaterDelay=4,
+               BuyFullVersionTime=10*60, // 10 min
+               AutoSaveTime=5*60, // 5 min
+               MaxGameViewRange=2000,
+               PropElmNameWidth=0.325f, // value width of property having element name
+               SendAreasDelay=1.0f,
+               VtxDupPosEps=0.0002f, 
+               DefaultFOV=DegToRad(70),
+               PreviewFOV=DegToRad(50);
+const bool     MiscOnTop=false,
+               CodeMenuOnTop=false,
+               ModeTabsAlwaysVisible=false,
+               RequireAllCodeMatchForSync=true,
+               TolerantSecondaryServer=false, // will ignore DeviceID when getting confirmation from secondary authentication server
+               SupportBC7       =true , // if support BC7 compression
+               WebBC7           =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
+               ImportRemovedElms=false, 
+               RenameAnimBonesOnSkelChange=true; // See also: FIND_ANIM_BY_NAME_ONLY in the Engine
+                                       // min size of mesh box (in meters) to split it
+const MeshFlag MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE; // this is because of "Leaf" shader which works differently depending on existence of these components, testing for color/skin is not needed because parts that don't have them will have default values set (WHITE color, 0-bone/matrix)
 
 const Edit::Material::TEX_QUALITY MinMtrlTexQualityBase0 =Edit::Material::LOW   , // minimum texture compression quality for Material Base0  Texture (RGBA              ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
                                 MinMtrlTexQualityBase1 =Edit::Material::HIGH  , // minimum texture compression quality for Material Base1  Texture (NxNy              ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
@@ -64,6 +64,9 @@ int ObjAccessNamesElms=Elms(ObjAccessNames);
 const cchar8 *ElmNameMesh="mesh",
              *ElmNameSkel="skel",
              *ElmNamePhys="phys";
+
+const MeshFlag EditMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL|VTX_TAN_BIN), // TanBin are not needed in Edit because they're always re-created if needed
+               GameMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL);
 
 const    ImagePtr    ImageNull;
 const MaterialPtr MaterialNull;

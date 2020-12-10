@@ -271,7 +271,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Box"); part.base.create(Box(0.5f), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Box"); part.base.create(Box(0.5f), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -281,7 +281,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.create(Ball(0.5f), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.create(Ball(0.5f), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -291,7 +291,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.create2(Ball(0.5f), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.create2(Ball(0.5f), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -301,7 +301,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.createIco(Ball(0.5f), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Ball"); part.base.createIco(Ball(0.5f), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -311,7 +311,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Capsule"); part.base.create(Capsule(0.3f, 1), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Capsule"); part.base.create(Capsule(0.3f, 1), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -321,7 +321,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Tube"); part.base.create(Tube(0.3f, 1), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Tube"); part.base.create(Tube(0.3f, 1), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -331,7 +331,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Cone"); part.base.create(Cone(0.5f, 0, 1), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Cone"); part.base.create(Cone(0.5f, 0, 1), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }
@@ -341,7 +341,7 @@
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Torus"); part.base.create(Torus(0.5f, 0.2f), ~0); part.setRender();
+         MeshPart &part=ObjEdit.getLod().parts.New(); Set(part.name, "Torus"); part.base.create(Torus(0.5f, 0.2f), MESH_ALL); part.setRender();
          ObjEdit.mesh.setBox();
          ObjEdit.setChangedMesh(true);
       }

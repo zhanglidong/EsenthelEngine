@@ -709,7 +709,7 @@ void ObjView::meshDelDblSide()
    {
       MeshPart &part=lod.parts[i];
       MeshBase &base=part.base, temp; temp.create(base).triToQuad();
-      int faces =temp.faces(); temp.setVtxDup(0, pos_eps).removeDoubleSideFaces().exclude(VTX_DUP);
+      int faces =temp.faces(); temp.setVtxDup(MESH_NONE, pos_eps).removeDoubleSideFaces().exclude(VTX_DUP);
       if( faces!=temp.faces())
       {
          Swap(base, temp);

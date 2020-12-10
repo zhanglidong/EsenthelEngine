@@ -342,7 +342,7 @@ Bool PhysMesh::createConvexTry(MeshBase &mshb, Bool mesh_is_already_convex)
       if(!cookConvex(&mshb, mesh_is_already_convex))return false;
    #else
       New(_base);
-      if(mesh_is_already_convex)_base->create      (mshb          ,           0).quadToTri();
+      if(mesh_is_already_convex)_base->create      (mshb          ,   MESH_NONE).quadToTri();
       else                      _base->createConvex(mshb.vtx.pos(), mshb.vtxs()).quadToTri();
    #endif
 
@@ -362,7 +362,7 @@ Bool PhysMesh::createMeshTry(MeshBase &mshb, Bool keep_face_indexes)
    #if PHYSX
       if(!cookMesh(&mshb, keep_face_indexes))return false;
    #else
-      New(_base)->create(mshb, 0).quadToTri();
+      New(_base)->create(mshb, MESH_NONE).quadToTri();
    #endif
 
       T._type=PHYS_MESH;
