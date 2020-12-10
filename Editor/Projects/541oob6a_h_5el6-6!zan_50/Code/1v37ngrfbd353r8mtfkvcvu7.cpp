@@ -45,8 +45,8 @@ bool Init()
 {
    Create(A, a_type);
    Create(B, b_type);
-   material_red  .reset(); material_red  .color.v3().set(1.0, 0.5, 0.5); material_red  .validate();
-   material_green.reset(); material_green.color.v3().set(0.5, 1.0, 0.5); material_green.validate();
+   material_red  .reset(); material_red  .colorS(Vec4(1.0, 0.5, 0.5, 1)); material_red  .validate();
+   material_green.reset(); material_green.colorS(Vec4(0.5, 1.0, 0.5, 1)); material_green.validate();
    return true;
 }
 /******************************************************************************/
