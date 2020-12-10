@@ -163,7 +163,7 @@ Int SetVtxDup(MemPtr<VtxDupNrm> vtxs, C Box &box, Flt pos_eps, Flt nrm_cos)
    return unique;
 }
 /******************************************************************************/
-MeshBase& MeshBase::setVtxDup2D(MeshFlag flag, Flt pos_eps, Flt nrm_cos)
+MeshBase& MeshBase::setVtxDup2D(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
    flag&=(T.flag()&(VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_SIZE|VTX_SKIN|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)); // only these are tested
@@ -229,11 +229,11 @@ MeshBase& MeshBase::setVtxDup2D(MeshFlag flag, Flt pos_eps, Flt nrm_cos)
    }
    return T;
 }
-MeshBase& MeshBase::setVtxDup  (MeshFlag flag, Flt pos_eps, Flt nrm_cos                                                                             ) {return setVtxDupEx(flag, pos_eps, nrm_cos);}
-MeshBase& MeshBase::setVtxDupEx(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt tan_cos, Flt bin_cos, Bool tex_wrap, Bool smooth_groups_in_vtx_material)
+MeshBase& MeshBase::setVtxDup  (MESH_FLAG flag, Flt pos_eps, Flt nrm_cos                                                                             ) {return setVtxDupEx(flag, pos_eps, nrm_cos);}
+MeshBase& MeshBase::setVtxDupEx(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt tan_cos, Flt bin_cos, Bool tex_wrap, Bool smooth_groups_in_vtx_material)
 {
    include(VTX_DUP); // vtx dup doesn't need to be initialized here, because the algorithm works in a way that only processed vertexes are tested
-   MeshFlag t_flag=T.flag();
+   MESH_FLAG t_flag=T.flag();
    flag                         &=(t_flag&(VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_SIZE|VTX_SKIN|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)); // only these are tested
    smooth_groups_in_vtx_material&=FlagTest(t_flag, VTX_MATERIAL);
    if(nrm_cos<=-1)FlagDisable(flag, VTX_NRM); // disable vtx normal   tests if we have tolerant 'nrm_cos'

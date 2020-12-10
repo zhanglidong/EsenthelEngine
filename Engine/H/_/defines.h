@@ -36,6 +36,7 @@
 #define  CAST(      Class, object)     dynamic_cast<Class*>(object)  // perform a dynamic cast of 'object' to 'Class' class
 #define SCAST(      Class, object)      static_cast<Class&>(object)  // perform a  static cast of 'object' to 'Class' class
 #define ELMS(       Array        )      (SIZE(Array)/SIZE(Array[0])) // get number of elements in array (this is the compile-time version, use 'Elms' instead of 'ELMS' whenever possible)
+#define ENUM_TYPE(  Enum         )     std::underlying_type_t<Enum>  // get the actual type of an enum
 
 T1(TYPE) TYPE& ConstCast(C TYPE &x) {return const_cast<TYPE&>(x);} // remove the const modifier
 T1(TYPE) TYPE* ConstCast(C TYPE *x) {return const_cast<TYPE*>(x);} // remove the const modifier
@@ -73,55 +74,55 @@ T1(TYPE) TYPE&& RValue(TYPE & x) {return (TYPE&&)x;}
 #define  ENABLE_IF_ENUM(ENUM, RESULT) typename std::enable_if< std::is_enum<ENUM>::value, RESULT>::type
 #define DISABLE_IF_ENUM(ENUM, RESULT) typename std::enable_if<!std::is_enum<ENUM>::value, RESULT>::type
 
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (TYPE  a, TYPE  b) {return Int  (a)- Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (Bool  a, TYPE  b) {return       a + Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (Bool  a, TYPE  b) {return       a * Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (Int   a, TYPE  b) {return       a + Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (Int   a, TYPE  b) {return       a - Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (Int   a, TYPE  b) {return       a * Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator/ (Int   a, TYPE  b) {return       a / Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator+ (UInt  a, TYPE  b) {return       a + UInt (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator- (UInt  a, TYPE  b) {return       a - UInt (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator* (UInt  a, TYPE  b) {return       a * UInt (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator/ (UInt  a, TYPE  b) {return       a / UInt (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator+ (ULong a, TYPE  b) {return       a + ULong(b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator- (ULong a, TYPE  b) {return       a - ULong(b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator* (ULong a, TYPE  b) {return       a * ULong(b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator/ (ULong a, TYPE  b) {return       a / ULong(b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator+ (Flt   a, TYPE  b) {return       a + Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator- (Flt   a, TYPE  b) {return       a - Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator* (Flt   a, TYPE  b) {return       a * Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator/ (Flt   a, TYPE  b) {return       a / Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator+ (Dbl   a, TYPE  b) {return       a + Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator- (Dbl   a, TYPE  b) {return       a - Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator* (Dbl   a, TYPE  b) {return       a * Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator/ (Dbl   a, TYPE  b) {return       a / Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (TYPE  a, Bool  b) {return Int  (a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (TYPE  a, Bool  b) {return Int  (a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (TYPE  a, Int   b) {return Int  (a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (TYPE  a, Int   b) {return Int  (a)-       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (TYPE  a, Int   b) {return Int  (a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator/ (TYPE  a, Int   b) {return Int  (a)/       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator+ (TYPE  a, UInt  b) {return UInt (a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator- (TYPE  a, UInt  b) {return UInt (a)-       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator* (TYPE  a, UInt  b) {return UInt (a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator/ (TYPE  a, UInt  b) {return UInt (a)/       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator+ (TYPE  a, ULong b) {return ULong(a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator- (TYPE  a, ULong b) {return ULong(a)-       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator* (TYPE  a, ULong b) {return ULong(a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator/ (TYPE  a, ULong b) {return ULong(a)/       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator+ (TYPE  a, Flt   b) {return Int  (a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator- (TYPE  a, Flt   b) {return Int  (a)-       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator* (TYPE  a, Flt   b) {return Int  (a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator/ (TYPE  a, Flt   b) {return Int  (a)/       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator+ (TYPE  a, Dbl   b) {return Int  (a)+       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator- (TYPE  a, Dbl   b) {return Int  (a)-       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator* (TYPE  a, Dbl   b) {return Int  (a)*       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator/ (TYPE  a, Dbl   b) {return Int  (a)/       b ;}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt& ) operator*=(Flt  &a, TYPE  b) {return       a *=Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt& ) operator/=(Flt  &a, TYPE  b) {return       a /=Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl& ) operator*=(Dbl  &a, TYPE  b) {return       a *=Int  (b);}
-T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl& ) operator/=(Dbl  &a, TYPE  b) {return       a /=Int  (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (TYPE  a, TYPE  b) {return Int            (a)- Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (Bool  a, TYPE  b) {return                 a + Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (Bool  a, TYPE  b) {return                 a * Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (Int   a, TYPE  b) {return                 a + Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (Int   a, TYPE  b) {return                 a - Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (Int   a, TYPE  b) {return                 a * Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator/ (Int   a, TYPE  b) {return                 a / Int            (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator+ (UInt  a, TYPE  b) {return                 a + UInt           (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator- (UInt  a, TYPE  b) {return                 a - UInt           (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator* (UInt  a, TYPE  b) {return                 a * UInt           (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator/ (UInt  a, TYPE  b) {return                 a / UInt           (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator+ (ULong a, TYPE  b) {return                 a + ULong          (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator- (ULong a, TYPE  b) {return                 a - ULong          (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator* (ULong a, TYPE  b) {return                 a * ULong          (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator/ (ULong a, TYPE  b) {return                 a / ULong          (b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator+ (Flt   a, TYPE  b) {return                 a + ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator- (Flt   a, TYPE  b) {return                 a - ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator* (Flt   a, TYPE  b) {return                 a * ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator/ (Flt   a, TYPE  b) {return                 a / ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator+ (Dbl   a, TYPE  b) {return                 a + ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator- (Dbl   a, TYPE  b) {return                 a - ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator* (Dbl   a, TYPE  b) {return                 a * ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator/ (Dbl   a, TYPE  b) {return                 a / ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (TYPE  a, Bool  b) {return Int            (a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (TYPE  a, Bool  b) {return Int            (a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator+ (TYPE  a, Int   b) {return Int            (a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator- (TYPE  a, Int   b) {return Int            (a)-                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator* (TYPE  a, Int   b) {return Int            (a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Int  ) operator/ (TYPE  a, Int   b) {return Int            (a)/                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator+ (TYPE  a, UInt  b) {return UInt           (a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator- (TYPE  a, UInt  b) {return UInt           (a)-                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator* (TYPE  a, UInt  b) {return UInt           (a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, UInt ) operator/ (TYPE  a, UInt  b) {return UInt           (a)/                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator+ (TYPE  a, ULong b) {return ULong          (a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator- (TYPE  a, ULong b) {return ULong          (a)-                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator* (TYPE  a, ULong b) {return ULong          (a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, ULong) operator/ (TYPE  a, ULong b) {return ULong          (a)/                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator+ (TYPE  a, Flt   b) {return ENUM_TYPE(TYPE)(a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator- (TYPE  a, Flt   b) {return ENUM_TYPE(TYPE)(a)-                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator* (TYPE  a, Flt   b) {return ENUM_TYPE(TYPE)(a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt  ) operator/ (TYPE  a, Flt   b) {return ENUM_TYPE(TYPE)(a)/                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator+ (TYPE  a, Dbl   b) {return ENUM_TYPE(TYPE)(a)+                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator- (TYPE  a, Dbl   b) {return ENUM_TYPE(TYPE)(a)-                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator* (TYPE  a, Dbl   b) {return ENUM_TYPE(TYPE)(a)*                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl  ) operator/ (TYPE  a, Dbl   b) {return ENUM_TYPE(TYPE)(a)/                 b ;}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt& ) operator*=(Flt  &a, TYPE  b) {return                 a *=ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Flt& ) operator/=(Flt  &a, TYPE  b) {return                 a /=ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl& ) operator*=(Dbl  &a, TYPE  b) {return                 a *=ENUM_TYPE(TYPE)(b);}
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Dbl& ) operator/=(Dbl  &a, TYPE  b) {return                 a /=ENUM_TYPE(TYPE)(b);}
 
 T2(ENUM0, ENUM1) constexpr typename std::enable_if< std::is_enum<ENUM0>::value && std::is_enum<ENUM1>::value, Int>::type operator+ (ENUM0 a, ENUM1 b) {return Int(a)+Int(b);} // ENUM0+ENUM1
 /******************************************************************************/

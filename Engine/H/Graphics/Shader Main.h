@@ -525,9 +525,9 @@ struct DefaultShaders
         tesselate;
    Byte materials, layout, bump, ambient, fx;
 
-   void      init(C Material *material[4], MeshFlag mesh_base_flag, Int lod_index, Bool heightmap);
-   DefaultShaders(C Material *material[4], MeshFlag mesh_base_flag, Int lod_index, Bool heightmap) {init(material, mesh_base_flag, lod_index, heightmap);}
-   DefaultShaders(C Material *material   , MeshFlag mesh_base_flag, Int lod_index, Bool heightmap);
+   void      init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
+   DefaultShaders(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap) {init(material, mesh_flag, lod_index, heightmap);}
+   DefaultShaders(C Material *material   , MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
 
    Shader* EarlyZ ()C;
    Shader* Solid  (Bool mirror=false)C;

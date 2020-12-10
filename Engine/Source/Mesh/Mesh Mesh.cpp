@@ -198,7 +198,7 @@ Mesh& Mesh::create(Int parts)
    super::create(parts);
    return T;
 }
-Mesh& Mesh::create(C Mesh &src, MeshFlag flag_and)
+Mesh& Mesh::create(C Mesh &src, MESH_FLAG flag_and)
 {
    if(this==&src)keepOnly(flag_and);else
    {
@@ -207,11 +207,11 @@ Mesh& Mesh::create(C Mesh &src, MeshFlag flag_and)
    }
    return T;
 }
-Mesh& Mesh::create(C MeshGroup &src, MeshFlag flag_and)
+Mesh& Mesh::create(C MeshGroup &src, MESH_FLAG flag_and)
 {
    return create(src.meshes.data(), src.meshes.elms(), flag_and);
 }
-Mesh& Mesh::create(C Mesh *mesh, Int meshes, MeshFlag flag_and)
+Mesh& Mesh::create(C Mesh *mesh, Int meshes, MESH_FLAG flag_and)
 {
    if(!mesh || meshes<=0)del();else
    {
@@ -260,14 +260,14 @@ void Mesh::copyParams(C Mesh &src)
    }
 }
 /******************************************************************************/
-Mesh& Mesh::include (MeshFlag flag) {REP(lods())lod(i).include (flag); return T;}
-Mesh& Mesh::exclude (MeshFlag flag) {REP(lods())lod(i).exclude (flag); return T;}
-Mesh& Mesh::keepOnly(MeshFlag flag) {REP(lods())lod(i).keepOnly(flag); return T;}
+Mesh& Mesh::include (MESH_FLAG flag) {REP(lods())lod(i).include (flag); return T;}
+Mesh& Mesh::exclude (MESH_FLAG flag) {REP(lods())lod(i).exclude (flag); return T;}
+Mesh& Mesh::keepOnly(MESH_FLAG flag) {REP(lods())lod(i).keepOnly(flag); return T;}
 /******************************************************************************/
 // GET
 /******************************************************************************/
-MeshFlag Mesh::flag    ()C {MeshFlag flag=MESH_NONE; REP(lods())flag|=lod(i).flag    (); return flag;}
-UInt     Mesh::memUsage()C {UInt     size=        0; REP(lods())size+=lod(i).memUsage(); return size;}
+MESH_FLAG Mesh::flag    ()C {MESH_FLAG flag=MESH_NONE; REP(lods())flag|=lod(i).flag    (); return flag;}
+UInt      Mesh::memUsage()C {UInt      size=        0; REP(lods())size+=lod(i).memUsage(); return size;}
 
 C MeshLod& Mesh::getDrawLod()C
 {
@@ -360,10 +360,10 @@ Bool  Mesh::setBox        (Bool skip_hidden_parts )
    lod_center.zero();
    return false;
 }
-Mesh& Mesh::setVtxDup2D                           (MeshFlag flag, Flt pos_eps, Flt nrm_cos) {REP(lods())lod(i).setVtxDup2D                           (flag, pos_eps, nrm_cos); return T;}
-Mesh& Mesh::setVtxDup                             (MeshFlag flag, Flt pos_eps, Flt nrm_cos) {REP(lods())lod(i).setVtxDup                             (flag, pos_eps, nrm_cos); return T;}
-Mesh& Mesh::setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                   ) {REP(lods())lod(i).setVtxColorAlphaAsTesselationIntensity(tesselate_edges       ); return T;}
-Mesh& Mesh::setAdjacencies                        (Bool faces, Bool edges                 ) {REP(lods())lod(i).setAdjacencies                        (faces, edges          ); return T;}
+Mesh& Mesh::setVtxDup2D                           (MESH_FLAG flag, Flt pos_eps, Flt nrm_cos) {REP(lods())lod(i).setVtxDup2D                           (flag, pos_eps, nrm_cos); return T;}
+Mesh& Mesh::setVtxDup                             (MESH_FLAG flag, Flt pos_eps, Flt nrm_cos) {REP(lods())lod(i).setVtxDup                             (flag, pos_eps, nrm_cos); return T;}
+Mesh& Mesh::setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                    ) {REP(lods())lod(i).setVtxColorAlphaAsTesselationIntensity(tesselate_edges       ); return T;}
+Mesh& Mesh::setAdjacencies                        (Bool faces, Bool edges                  ) {REP(lods())lod(i).setAdjacencies                        (faces, edges          ); return T;}
 
 Mesh& Mesh::setBase  (Bool only_if_empty     ) {REP(lods())lod(i).setBase  (only_if_empty); return T;}
 Mesh& Mesh::setRender(Bool optimize          ) {REP(lods())lod(i).setRender(optimize, i  ); return T;}
@@ -372,8 +372,8 @@ Mesh& Mesh::material (C MaterialPtr &material) {REP(lods())lod(i).material (mate
 /******************************************************************************/
 // JOIN / SPLIT
 /******************************************************************************/
-Mesh& Mesh::join   (Int i0, Int i1                                                                  , Flt weld_pos_eps) {           super::join   (i0, i1                                                  , weld_pos_eps); return T;}
-Mesh& Mesh::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag, Flt weld_pos_eps) {REP(lods())lod(i).joinAll(test_material, test_draw_group, test_name, test_vtx_flag, weld_pos_eps); return T;}
+Mesh& Mesh::join   (Int i0, Int i1                                                                   , Flt weld_pos_eps) {           super::join   (i0, i1                                                  , weld_pos_eps); return T;}
+Mesh& Mesh::joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MESH_FLAG test_vtx_flag, Flt weld_pos_eps) {REP(lods())lod(i).joinAll(test_material, test_draw_group, test_name, test_vtx_flag, weld_pos_eps); return T;}
 /******************************************************************************/
 // TEXTURIZE
 /******************************************************************************/
@@ -415,9 +415,9 @@ Mesh& Mesh::rightToLeft() {REP(lods())lod(i).rightToLeft(); ext.rightToLeft(); l
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-Mesh& Mesh::weldVtx2D    (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtx2D    (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-Mesh& Mesh::weldVtx      (MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtx      (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
-Mesh& Mesh::weldVtxValues(MeshFlag flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtxValues(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+Mesh& Mesh::weldVtx2D    (MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtx2D    (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+Mesh& Mesh::weldVtx      (MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtx      (flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
+Mesh& Mesh::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt remove_degenerate_faces_eps) {REP(lods())lod(i).weldVtxValues(flag, pos_eps, nrm_cos, remove_degenerate_faces_eps); return T;}
 
 Mesh& Mesh::weldEdge   () {REP(lods())lod(i).weldEdge   (); return T;}
 Mesh& Mesh::explodeVtxs() {REP(lods())lod(i).explodeVtxs(); return T;}

@@ -95,11 +95,11 @@ namespace EE{
 /******************************************************************************/
 static Int Compare(C VtxFormatKey &a, C VtxFormatKey &b)
 {
-   if(a.flag.data<b.flag.data)return -1;
-   if(a.flag.data>b.flag.data)return +1;
-   if(a.compress <b.compress )return -1;
-   if(a.compress >b.compress )return +1;
-                              return  0;
+   if(a.flag    <b.flag    )return -1;
+   if(a.flag    >b.flag    )return +1;
+   if(a.compress<b.compress)return -1;
+   if(a.compress>b.compress)return +1;
+                            return  0;
 }
 static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {return vf.create(key.flag, key.compress);}
 /******************************************************************************/
@@ -284,7 +284,7 @@ void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
 Bool VtxFormat::create(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
 void VtxFormat::bind(C VtxBuf &vb) {if(vf)vf->bind(vb);}
 #endif
-Bool VtxFormat::create(MeshFlag flag, UInt compress)
+Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
 {
    // TODO: use R10G10B10A2 for compressed Nrm and Tan, however there's no signed format for that, so probably have to forget it
 #if DX11
@@ -510,7 +510,7 @@ Bool VtxBuf::createNum(Int vtx_size, Int vtx_num, Bool dynamic, CPtr data)
    }
    return false;
 }
-Bool VtxBuf::create(Int vertexes, MeshFlag flag, UInt compress, Bool dynamic)
+Bool VtxBuf::create(Int vertexes, MESH_FLAG flag, UInt compress, Bool dynamic)
 {
    Int size=0;
                                      if(flag&VTX_POS     )size+=SIZE(Vec  );

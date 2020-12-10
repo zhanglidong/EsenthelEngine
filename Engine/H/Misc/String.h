@@ -108,10 +108,10 @@ struct Str // Text String (16-bit per character)
    Str(C VecSB4 &v);   Str& operator=(C VecSB4 &v);   Str& operator+=(C VecSB4 &v);   Str operator+(C VecSB4 &v)C;
    Str(C BStr   &s);   Str& operator=(C BStr   &s);   Str& operator+=(C BStr   &s);   Str operator+(C BStr   &s)C;
 
-   T1(TYPE) Str(TYPE i, ENABLE_IF_ENUM(TYPE, Ptr ) dummy=null)       : Str(Int(i)) {}
-   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str&) operator =(TYPE i)  {T =Int(i); return T;}
-   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str&) operator+=(TYPE i)  {T+=Int(i); return T;}
-   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str ) operator+ (TYPE i)C {return T+Int(i);}
+   T1(TYPE) Str(TYPE i, ENABLE_IF_ENUM(TYPE, Ptr ) dummy=null)       : Str(ENUM_TYPE(TYPE)(i)) {}
+   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str&) operator =(TYPE i)  {T =ENUM_TYPE(TYPE)(i); return T;}
+   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str&) operator+=(TYPE i)  {T+=ENUM_TYPE(TYPE)(i); return T;}
+   T1(TYPE)             ENABLE_IF_ENUM(TYPE, Str ) operator+ (TYPE i)C {return T+ENUM_TYPE(TYPE)(i);}
 
    // io
    Bool save(File &f)C; // save string using f.putStr(T), false on fail
@@ -202,5 +202,5 @@ inline Str&& operator+(Str &&a, C VecI4  &b) {return RValue(a+=b);}
 inline Str&& operator+(Str &&a, C VecB4  &b) {return RValue(a+=b);}
 inline Str&& operator+(Str &&a, C VecSB4 &b) {return RValue(a+=b);}
 inline Str&& operator+(Str &&a, C BStr   &b) {return RValue(a+=b);}
-T1(TYPE) ENABLE_IF_ENUM(TYPE, Str&&) operator+(Str &&a, TYPE b) {return RValue(a+=Int(b));}
+T1(TYPE) ENABLE_IF_ENUM(TYPE, Str&&) operator+(Str &&a, TYPE b) {return RValue(a+=ENUM_TYPE(TYPE)(b));}
 /******************************************************************************/

@@ -274,7 +274,7 @@ public:
    static void MeshReverse      (ObjView &editor);void meshReverse   ();
    static void MeshReverseNrm   (ObjView &editor);void meshReverseNrm();
    static void MeshSetNormalFa  (ObjView &editor);         void meshSetNrmFace();
-   static void MeshSetNormalN   (ObjView &editor);         void meshSetNrm    (MeshFlag vtx_test);
+   static void MeshSetNormalN   (ObjView &editor);         void meshSetNrm    (MESH_FLAG vtx_test);
    static void MeshSetNormalP   (ObjView &editor);      
    static void MeshSetNormalT   (ObjView &editor);      
    static void MeshSetNormal    (ObjView &editor);      
@@ -327,7 +327,7 @@ public:
 
    void modeS(int i);
 
-   void remVtx(MeshFlag flag, bool only_selected=false, C MaterialPtr &mtrl=null);
+   void remVtx(MESH_FLAG flag, bool only_selected=false, C MaterialPtr &mtrl=null);
 
    static void MeshUndo(ObjView &editor);
    static void MeshRedo(ObjView &editor);

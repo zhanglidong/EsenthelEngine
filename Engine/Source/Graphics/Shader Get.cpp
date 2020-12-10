@@ -60,11 +60,11 @@ static Int Layout(C Material &material) // Textures
    }                     return 0;
    // 'base_1' is normal map and doesn't affect texture layout
 }
-static Int BumpMode(C Material &material, MeshFlag mesh_base_flag)
+static Int BumpMode(C Material &material, MESH_FLAG mesh_flag)
 {
-   if(mesh_base_flag&VTX_NRM)
+   if(mesh_flag&VTX_NRM)
    {
-      if((mesh_base_flag&VTX_TEX0) && (mesh_base_flag&VTX_TAN) && D.bumpMode()>=BUMP_NORMAL && material.base_1) // normal in 'base_1' #MaterialTextureLayout
+      if((mesh_flag&VTX_TEX0) && (mesh_flag&VTX_TAN) && D.bumpMode()>=BUMP_NORMAL && material.base_1) // normal in 'base_1' #MaterialTextureLayout
       {
          if(D.bumpMode()>BUMP_NORMAL && material.bump>EPS_MATERIAL_BUMP && material.base_2) // bump in 'base_2' #MaterialTextureLayout
          {
@@ -82,17 +82,17 @@ static Bool Macro      (C Material &material) {return  material. macro_map;}
 static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL8;}
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 
-static MeshFlag FlagHeightmap(MeshFlag mesh_base_flag, Bool heightmap)
+static MESH_FLAG FlagHeightmap(MESH_FLAG mesh_flag, Bool heightmap)
 {
    if(heightmap)
    {
-      if(mesh_base_flag&VTX_POS)mesh_base_flag|=VTX_TEX0; // heightmap shaders generate tex from pos
-      if(mesh_base_flag&VTX_NRM)mesh_base_flag|=VTX_TAN ; // heightmap shaders generate tan from nrm
+      if(mesh_flag&VTX_POS)mesh_flag|=VTX_TEX0; // heightmap shaders generate tex from pos
+      if(mesh_flag&VTX_NRM)mesh_flag|=VTX_TAN ; // heightmap shaders generate tan from nrm
    }
-   return mesh_base_flag;
+   return mesh_flag;
 }
 /******************************************************************************/
-DefaultShaders::DefaultShaders(C Material *material, MeshFlag mesh_base_flag, Int lod_index, Bool heightmap)
+DefaultShaders::DefaultShaders(C Material *material, MESH_FLAG mesh_flag, Int lod_index, Bool heightmap)
 {
  C Material *materials[4]=
    {
@@ -101,33 +101,33 @@ DefaultShaders::DefaultShaders(C Material *material, MeshFlag mesh_base_flag, In
       null    ,
       null    ,
    };
-   init(materials, mesh_base_flag, lod_index, heightmap);
+   init(materials, mesh_flag, lod_index, heightmap);
 }
-void DefaultShaders::init(C Material *material[4], MeshFlag mesh_base_flag, Int lod_index, Bool heightmap)
+void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap)
 {
    // !! Never return the same shader for Multi-Materials as Single-Materials !!
-   if(!mesh_base_flag){set_empty: valid=false; return;}
+   if(!mesh_flag){set_empty: valid=false; return;}
  C Material *m=(material ? material[0] : null); if(!m){if(D.drawNullMaterials())m=&MaterialDefault;else goto set_empty;}
-   mesh_base_flag=FlagHeightmap(mesh_base_flag, heightmap);
+   mesh_flag=FlagHeightmap(mesh_flag, heightmap);
    valid    =true;
  T.heightmap=heightmap;
    materials=1;
-   tex      =FlagTest(mesh_base_flag, VTX_TEX0 );
-   normal   =FlagTest(mesh_base_flag, VTX_NRM  );
-   color    =FlagTest(mesh_base_flag, VTX_COLOR);
-   size     =FlagTest(mesh_base_flag, VTX_SIZE );
+   tex      =FlagTest(mesh_flag, VTX_TEX0 );
+   normal   =FlagTest(mesh_flag, VTX_NRM  );
+   color    =FlagTest(mesh_flag, VTX_COLOR);
+   size     =FlagTest(mesh_flag, VTX_SIZE );
 
-   layout=Layout(*m); bump=BumpMode(*m, mesh_base_flag); detail=Detail(*m); macro=Macro(*m); reflect=Reflect(*m); ambient=AmbientMode(*m);
-   if(material && material[1]) // && (mesh_base_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have 'umm', as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because 'ShaderBase.shader_index' would point to wrong container
+   layout=Layout(*m); bump=BumpMode(*m, mesh_flag); detail=Detail(*m); macro=Macro(*m); reflect=Reflect(*m); ambient=AmbientMode(*m);
+   if(material && material[1]) // && (mesh_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have 'umm', as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because 'ShaderBase.shader_index' would point to wrong container
    {
-      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); reflect|=Reflect(*material[1]); MAX(ambient, AmbientMode(*material[1]));
+      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); reflect|=Reflect(*material[1]); MAX(ambient, AmbientMode(*material[1]));
       if(material[2])
       {
-         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); reflect|=Reflect(*material[2]); MAX(ambient, AmbientMode(*material[2]));
+         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); reflect|=Reflect(*material[2]); MAX(ambient, AmbientMode(*material[2]));
       #if MAX_MTRLS>=4
          if(material[3])
          {
-            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); reflect|=Reflect(*material[3]); MAX(ambient, AmbientMode(*material[3]));
+            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); reflect|=Reflect(*material[3]); MAX(ambient, AmbientMode(*material[3]));
          }
       #endif
       }
@@ -145,16 +145,16 @@ void DefaultShaders::init(C Material *material[4], MeshFlag mesh_base_flag, Int 
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient
 
-   skin             =(FlagAll(mesh_base_flag, VTX_SKIN)           && materials==1 &&              !heightmap                             );
-   fur              =(normal && tex                               && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
-   blend            =(                                               materials==1 &&              !heightmap && m->technique==MTECH_BLEND); // this shouldn't require a texture, we can do alpha blending with just material color
-   grass            =(normal                             && !skin && materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
-   leaf             =(normal && (mesh_base_flag&VTX_HLP) && !skin && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
-   alpha            =(                                               materials==1 && layout>=1 && !heightmap && m->hasAlpha            ()); // this is about having alpha channel in material textures so we need a texture
-   alpha_test       =(                                               materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
-   alpha_blend      =(                                               materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
-   alpha_blend_light=(                                               materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
-    mtrl_blend      =(                                               materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
+   skin             =(FlagAll(mesh_flag, VTX_SKIN)           && materials==1 &&              !heightmap                             );
+   fur              =(normal && tex                          && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
+   blend            =(                                          materials==1 &&              !heightmap && m->technique==MTECH_BLEND); // this shouldn't require a texture, we can do alpha blending with just material color
+   grass            =(normal                        && !skin && materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
+   leaf             =(normal && (mesh_flag&VTX_HLP) && !skin && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
+   alpha            =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlpha            ()); // this is about having alpha channel in material textures so we need a texture
+   alpha_test       =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
+   alpha_blend      =(                                          materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
+   alpha_blend_light=(                                          materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
+    mtrl_blend      =(                                          materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
    tesselate        =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
    fx               =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (m->hasLeaf2D() ? (size ? FX_LEAFS_2D : FX_LEAF_2D) : (size ? FX_LEAFS_3D : FX_LEAF_3D)) : FX_NONE);
 

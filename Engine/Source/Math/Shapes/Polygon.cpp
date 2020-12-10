@@ -388,7 +388,7 @@ void Triangulate(C CMemPtr<Vec> &poly, MeshBase &mesh, Bool convex)
       mesh.del();
    }
 }
-void Triangulate(C CMemPtr<VtxFull> &poly, MeshBase &mesh, MeshFlag flag_and, Bool convex)
+void Triangulate(C CMemPtr<VtxFull> &poly, MeshBase &mesh, MESH_FLAG flag_and, Bool convex)
 {
    if(poly.elms()>=3)
    {
@@ -531,7 +531,7 @@ void Triangulate(C CMemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps
    }
    mesh.weldVtx(VTX_ALL, weld_pos_eps);
 }
-void Triangulate(C CMemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, MeshFlag flag_and, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
+void Triangulate(C CMemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, MESH_FLAG flag_and, Flt weld_pos_eps, Bool convex, C Byte *poly_flags)
 {
    // count number of vertexes and triangles
    Int vtxs=0, max_vtxs=0,

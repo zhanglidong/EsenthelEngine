@@ -1746,7 +1746,7 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, UInt flag, BuildMemSo
          MtrlCombo &mtrl_combo=builder.mtrl_combos[i];
          MeshPart  &part      =    lod.parts      [i];
 
-         MeshFlag mesh_flag=VTX_POS|VTX_NRM|TRI_IND;
+         MESH_FLAG mesh_flag=VTX_POS|VTX_NRM|TRI_IND;
          if(!VTX_HEIGHTMAP)mesh_flag|=VTX_TEX0|VTX_TAN;
          if(ambient_occlusion || color.is())mesh_flag|=VTX_COLOR;
          if( mtrl_combo.mtrl_index.y/* || mtrl_combo.mtrl_index.z || mtrl_combo.mtrl_index.w*/)mesh_flag|=VTX_MATERIAL;else // 'mtrl_index' in 'mtrl_combo' is always sorted, so we only need to check if 2nd material is not null

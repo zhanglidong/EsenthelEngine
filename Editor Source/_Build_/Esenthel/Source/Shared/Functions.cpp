@@ -2382,14 +2382,14 @@ SOUND_CODEC TextSoundCodec(C Str &t)
 /******************************************************************************/
 // MESH
 /******************************************************************************/
-int      VisibleVtxs      (C MeshLod &mesh) {int      num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].vtxs           (); return num ;}
-int      VisibleTris      (C MeshLod &mesh) {int      num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].tris           (); return num ;}
-int      VisibleTrisTotal (C MeshLod &mesh) {int      num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].trisTotal      (); return num ;}
-int      VisibleQuads     (C MeshLod &mesh) {int      num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].quads          (); return num ;}
-int      VisibleSize      (C MeshLod &mesh) {int      size=        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))size+=mesh.parts[i].render.memUsage(); return size;}
-MeshFlag VisibleFlag      (C MeshLod &mesh) {MeshFlag flag=MESH_NONE; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))flag|=mesh.parts[i].flag           (); return flag;}
-MeshFlag VisibleFlag      (C Mesh    &mesh) {MeshFlag flag=MESH_NONE; REP (mesh.lods()                                   )flag|=VisibleFlag       (mesh.lod(i)); return flag;}
-flt      VisibleLodQuality(C Mesh    &mesh, int lod_index)
+int       VisibleVtxs      (C MeshLod &mesh) {int       num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].vtxs           (); return num ;}
+int       VisibleTris      (C MeshLod &mesh) {int       num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].tris           (); return num ;}
+int       VisibleTrisTotal (C MeshLod &mesh) {int       num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].trisTotal      (); return num ;}
+int       VisibleQuads     (C MeshLod &mesh) {int       num =        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))num +=mesh.parts[i].quads          (); return num ;}
+int       VisibleSize      (C MeshLod &mesh) {int       size=        0; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))size+=mesh.parts[i].render.memUsage(); return size;}
+MESH_FLAG VisibleFlag      (C MeshLod &mesh) {MESH_FLAG flag=MESH_NONE; REPA(mesh)if(!(mesh.parts[i].part_flag&MSHP_HIDDEN))flag|=mesh.parts[i].flag           (); return flag;}
+MESH_FLAG VisibleFlag      (C Mesh    &mesh) {MESH_FLAG flag=MESH_NONE; REP (mesh.lods()                                   )flag|=VisibleFlag       (mesh.lod(i)); return flag;}
+flt       VisibleLodQuality(C Mesh    &mesh, int lod_index)
 {
    Clamp(lod_index, 0, mesh.lods());
  C MeshLod &base=mesh,

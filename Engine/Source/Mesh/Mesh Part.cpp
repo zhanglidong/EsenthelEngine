@@ -347,7 +347,7 @@ MeshPart& MeshPart::del()
    REPAO(_materials).clear();
    zero(); return T;
 }
-MeshPart& MeshPart::create(C MeshPart &src, MeshFlag flag_and)
+MeshPart& MeshPart::create(C MeshPart &src, MESH_FLAG flag_and)
 {
    if(this==&src)base.keepOnly(flag_and);else
    {
@@ -358,9 +358,9 @@ MeshPart& MeshPart::create(C MeshPart &src, MeshFlag flag_and)
 
       // if creating from 'render' fails (for example we're on OpenGL ES and we can't read from GPU data) then try creating from MeshBase using 'setRender'
       flag_and|=VTX_POS;
-      MeshFlag src_render_flag=(src.render.flag()&VTX_MSHR),
-               new_render_flag=(src_render_flag  &flag_and);
-      if(      src_render_flag==new_render_flag)
+      MESH_FLAG src_render_flag=(src.render.flag()&VTX_MSHR),
+                new_render_flag=(src_render_flag  &flag_and);
+      if(       src_render_flag==new_render_flag)
       {
          if(!render.create(src.render))setRender();
       }else
@@ -391,23 +391,23 @@ void MeshPart::copyParams(C MeshPart &src, Bool copy_shaders)
    }
 }
 void MeshPart::scaleParams(Flt scale) {}
-MeshPart& MeshPart::include (MeshFlag flag) {                                     Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.include(flag);                                                     return T;} // don't create 'render' from uninitialized data
-MeshPart& MeshPart::exclude (MeshFlag flag) {if((base.flag()|render.flag())&flag){Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.exclude(flag); if(render.is())setRender(); if(!base_is)delBase();} return T;}
-MeshPart& MeshPart::keepOnly(MeshFlag flag) {return exclude(~flag);}
+MeshPart& MeshPart::include (MESH_FLAG flag) {                                     Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.include(flag);                                                     return T;} // don't create 'render' from uninitialized data
+MeshPart& MeshPart::exclude (MESH_FLAG flag) {if((base.flag()|render.flag())&flag){Bool base_is=base.is(); if(!base_is && render.is())base.create(render); base.exclude(flag); if(render.is())setRender(); if(!base_is)delBase();} return T;}
+MeshPart& MeshPart::keepOnly(MESH_FLAG flag) {return exclude(~flag);}
 /******************************************************************************/
 // GET
 /******************************************************************************/
-MeshFlag MeshPart::flag     (           )C {return base.is() ? base.flag     () : render.flag();}
-UInt     MeshPart::memUsage (           )C {return base.memUsage()              + render.memUsage();}
-Int      MeshPart::vtxs     (           )C {return base.is() ? base.vtxs     () : render.vtxs();}
-Int      MeshPart::edges    (           )C {return             base.edges    ()                ;}
-Int      MeshPart::tris     (           )C {return base.is() ? base.tris     () : render.tris();}
-Int      MeshPart::quads    (           )C {return             base.quads    ()                ;}
-Int      MeshPart::faces    (           )C {return base.is() ? base.faces    () : render.tris();}
-Int      MeshPart::trisTotal(           )C {return base.is() ? base.trisTotal() : render.tris();}
-Bool     MeshPart::getBox   (Box &box   )C {return base.getBox(box) || render.getBox(box);}
-Flt      MeshPart::area     (Vec *center)C {return base.is() ? base.area(center) : render.area(center);}
-Int      MeshPart::drawGroup(           )C {return _draw_mask ? BitHi(_draw_mask) : -1;}
+MESH_FLAG MeshPart::flag     (           )C {return base.is() ? base.flag     () : render.flag();}
+UInt      MeshPart::memUsage (           )C {return base.memUsage()              + render.memUsage();}
+Int       MeshPart::vtxs     (           )C {return base.is() ? base.vtxs     () : render.vtxs();}
+Int       MeshPart::edges    (           )C {return             base.edges    ()                ;}
+Int       MeshPart::tris     (           )C {return base.is() ? base.tris     () : render.tris();}
+Int       MeshPart::quads    (           )C {return             base.quads    ()                ;}
+Int       MeshPart::faces    (           )C {return base.is() ? base.faces    () : render.tris();}
+Int       MeshPart::trisTotal(           )C {return base.is() ? base.trisTotal() : render.tris();}
+Bool      MeshPart::getBox   (Box &box   )C {return base.getBox(box) || render.getBox(box);}
+Flt       MeshPart::area     (Vec *center)C {return base.is() ? base.area(center) : render.area(center);}
+Int       MeshPart::drawGroup(           )C {return _draw_mask ? BitHi(_draw_mask) : -1;}
 
 C MaterialPtr& MeshPart::multiMaterial(Int i)C
 {

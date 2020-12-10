@@ -901,7 +901,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void MeshReverse      (ObjView &editor) {editor.meshReverse    ();}   void meshReverse   ();
    static void MeshReverseNrm   (ObjView &editor) {editor.meshReverseNrm ();}   void meshReverseNrm();
    static void MeshSetNormalFa  (ObjView &editor) {editor.meshSetNrmFace (         );}   void meshSetNrmFace();
-   static void MeshSetNormalN   (ObjView &editor) {editor.meshSetNrm     (VTX_NRM  );}   void meshSetNrm    (MeshFlag vtx_test);
+   static void MeshSetNormalN   (ObjView &editor) {editor.meshSetNrm     (VTX_NRM  );}   void meshSetNrm    (MESH_FLAG vtx_test);
    static void MeshSetNormalP   (ObjView &editor) {editor.meshSetNrm     (VTX_POS  );}
    static void MeshSetNormalT   (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0 );}
    static void MeshSetNormal    (ObjView &editor) {editor.meshSetNrm     (MESH_NONE);}
@@ -971,7 +971,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       }
    }
 
-   void remVtx(MeshFlag flag, bool only_selected=false, C MaterialPtr &mtrl=null)
+   void remVtx(MESH_FLAG flag, bool only_selected=false, C MaterialPtr &mtrl=null)
    {
       mesh_undos.set("remove");
       bool changed=false;
@@ -1167,7 +1167,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(!(p.flag()&VTX_DUP) || vtx_dup_mode!=vtx_face_sel_mode())
          {
             mesh.exclude(VTX_DUP); // need to remove for all lods & parts
-            MeshFlag flag=MESH_NONE;
+            MESH_FLAG flag=MESH_NONE;
             switch(vtx_dup_mode=vtx_face_sel_mode())
             {
                case 1: flag=VTX_NRM  ; break; // must share the same normal
@@ -2415,8 +2415,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(mode()==LOD)a.add(S+mesh.lods()+" LOD"+CountS(mesh.lods()));
          if(mesh.is())
          {
-            Str      s="Vertex Data: ";
-            MeshFlag flag=(visibleLodSelection() ? VisibleFlag(lod) : VisibleFlag(mesh));
+            Str       s="Vertex Data: ";
+            MESH_FLAG flag=(visibleLodSelection() ? VisibleFlag(lod) : VisibleFlag(mesh));
             if(flag&VTX_POS     )Add(s, "Position"); if(flag&VTX_HLP )Add(s, "Helper"); if(flag&VTX_NRM)Add(s, "Normal");
           //if(flag&VTX_TAN     )Add(s, "Tangent" ); if(flag&VTX_BIN )Add(s, "Binormal"); ignore these as they're always set in the Editor
             if(flag&VTX_TEX0    )Add(s, "TexCoord"); if(flag&VTX_TEX1)Add(s, "TexCoord1"); if(flag&VTX_TEX2)Add(s, "TexCoord2");

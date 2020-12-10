@@ -824,7 +824,7 @@ MeshBase& MeshBase::quadToTri(Flt cos)
 
       exclude(ADJ_ALL);
 
-      MeshFlag f=flag();
+      MESH_FLAG f=flag();
       if(f&QUAD_NRM )f|=TRI_NRM ;
       if(f&QUAD_FLAG)f|=TRI_FLAG;
       if(f&QUAD_ID  )f|=TRI_ID  ;
@@ -967,7 +967,7 @@ MeshBase& MeshBase::quadToTri(C CMemPtr<Int> &quads)
 
       exclude(ADJ_ALL);
 
-      MeshFlag f=flag();
+      MESH_FLAG f=flag();
       if(f&QUAD_NRM )f|=TRI_NRM ;
       if(f&QUAD_FLAG)f|=TRI_FLAG;
       if(f&QUAD_ID  )f|=TRI_ID  ;

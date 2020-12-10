@@ -32,7 +32,7 @@ void MeshBase::corridor(MeshBase &mshb, Int e0, Int e1) // add 'mshb' and create
    }
 }
 /******************************************************************************/
-void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, MeshFlag flag_and)C
+void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, MESH_FLAG flag_and)C
 {
  C Int *p;
 
@@ -98,12 +98,12 @@ void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, MeshFlag flag
       }
    }
 }
-void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C VecI &cells, MeshFlag flag_and)C
+void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C VecI &cells, MESH_FLAG flag_and)C
 {
    split(meshes, Boxes(Box(T), cells), flag_and);
 }
 /******************************************************************************/
-void MeshBase::splitVtxs(MeshBase &dest, C CMemPtr<Bool> &vtx_is, MeshFlag flag_and)
+void MeshBase::splitVtxs(MeshBase &dest, C CMemPtr<Bool> &vtx_is, MESH_FLAG flag_and)
 {
    if(this!=&dest)
    {
@@ -139,7 +139,7 @@ void MeshBase::splitVtxs(MeshBase &dest, C CMemPtr<Bool> &vtx_is, MeshFlag flag_
       }
    }
 }
-void MeshBase::splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, MeshFlag flag_and)
+void MeshBase::splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bool> &tri_is, C CMemPtr<Bool> &quad_is, MESH_FLAG flag_and)
 {
    if(this!=&dest)
    {
@@ -160,7 +160,7 @@ void MeshBase::splitFaces(MeshBase &dest, C CMemPtr<Bool> &edge_is, C CMemPtr<Bo
       }
    }
 }
-void MeshBase::splitBone(MeshBase &dest, Int bone, MeshFlag flag_and)
+void MeshBase::splitBone(MeshBase &dest, Int bone, MESH_FLAG flag_and)
 {
    if(this!=&dest)
    {

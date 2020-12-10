@@ -9,9 +9,9 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    Mems<MeshPart> parts; // mesh parts
 
    // manage
-   MeshLod& del   (                                          ); // delete
-   MeshLod& create(  Int      num                            ); // create with 'num' empty MeshParts
-   MeshLod& create(C MeshLod &src, MeshFlag flag_and=MESH_ALL); // create from 'src', 'flag_and'=data to copy
+   MeshLod& del   (                                           ); // delete
+   MeshLod& create(  Int      num                             ); // create with 'num' empty MeshParts
+   MeshLod& create(C MeshLod &src, MESH_FLAG flag_and=MESH_ALL); // create from 'src', 'flag_and'=data to copy
 
    void copyParams(C MeshLod &src); // copy only parameters without meshes
 
@@ -20,32 +20,32 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
    void scaleParams(Flt scale);
 
-   MeshLod& include (MeshFlag flag); // include   elements specified with 'flag'
+   MeshLod& include (MESH_FLAG flag); // include   elements specified with 'flag'
 #endif
-   MeshLod& exclude (MeshFlag flag); // exclude   elements specified with 'flag'
-   MeshLod& keepOnly(MeshFlag flag); // keep only elements specified with 'flag'
+   MeshLod& exclude (MESH_FLAG flag); // exclude   elements specified with 'flag'
+   MeshLod& keepOnly(MESH_FLAG flag); // keep only elements specified with 'flag'
 
    // get
-   Bool     is       (                                     )C {return parts.elms()>0;}    // if  has any parts
-   MeshFlag flag     (                                     )C;                            // get available data
-   UInt     memUsage (                                     )C;                            // get memory usage
-   Int      vtxs     (                                     )C;                            // get total number of vertexes
+   Bool      is       (                                     )C {return parts.elms()>0;}    // if  has any parts
+   MESH_FLAG flag     (                                     )C;                            // get available data
+   UInt      memUsage (                                     )C;                            // get memory usage
+   Int       vtxs     (                                     )C;                            // get total number of vertexes
 #if EE_PRIVATE
-   Int      baseVtxs (                                     )C;                            // get total number of vertexes in MeshBase only, without MeshRender
+   Int       baseVtxs (                                     )C;                            // get total number of vertexes in MeshBase only, without MeshRender
 #endif
-   Int      edges    (                                     )C;                            // get total number of edges
-   Int      tris     (                                     )C;                            // get total number of triangles
-   Int      quads    (                                     )C;                            // get total number of quads
-   Int      faces    (                                     )C;                            // get total number of faces                    , faces    =(triangles + quads  )
-   Int      trisTotal(                                     )C;                            // get total number of triangles including quads, trisTotal=(triangles + quads*2)
-   Bool     getBox   (Box &box, Bool skip_hidden_parts=true)C;                            // get box   encapsulating the MeshLod, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail (if no vertexes are present)
-   Flt      area     (Vec *center=null                     )C;                            // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
-   Flt      dist     (                                     )C;   MeshLod& dist(Flt dist); // get/set LOD distance
+   Int       edges    (                                     )C;                            // get total number of edges
+   Int       tris     (                                     )C;                            // get total number of triangles
+   Int       quads    (                                     )C;                            // get total number of quads
+   Int       faces    (                                     )C;                            // get total number of faces                    , faces    =(triangles + quads  )
+   Int       trisTotal(                                     )C;                            // get total number of triangles including quads, trisTotal=(triangles + quads*2)
+   Bool      getBox   (Box &box, Bool skip_hidden_parts=true)C;                            // get box   encapsulating the MeshLod, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail (if no vertexes are present)
+   Flt       area     (Vec *center=null                     )C;                            // get surface area of all mesh faces, 'center'=if specified then it will be calculated as the average surface center
+   Flt       dist     (                                     )C;   MeshLod& dist(Flt dist); // get/set LOD distance
 
    Bool hasDrawGroup    ( Int draw_group_index)C; // check if at least one MeshPart has specified draw group enum index
    Bool hasDrawGroupMask(UInt draw_group_mask )C; // check if at least one MeshPart has specified draw group enum mask
 
-   Int partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag=MESH_NONE, Bool skip_hidden=true)C; // calculate how many parts this mesh will have after 'joinAll' would be called with specified parameters, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'skip_hidden'=if skip calculating hidden parts
+   Int partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, MESH_FLAG test_vtx_flag=MESH_NONE, Bool skip_hidden=true)C; // calculate how many parts this mesh will have after 'joinAll' would be called with specified parameters, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'skip_hidden'=if skip calculating hidden parts
 
    // set
 #if EE_PRIVATE
@@ -59,11 +59,11 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& setAutoTanBin (                                       ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
 
 #if EE_PRIVATE
-   MeshLod& setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                                             ); // set vertex color alpha   (vtx.color.a) as tesselation intensity, 'tesselate_edges'=if tesselate non continuous edges
-   MeshLod& setVtxDup2D                           (MeshFlag flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
+   MeshLod& setVtxColorAlphaAsTesselationIntensity(Bool tesselate_edges                                              ); // set vertex color alpha   (vtx.color.a) as tesselation intensity, 'tesselate_edges'=if tesselate non continuous edges
+   MeshLod& setVtxDup2D                           (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
 #endif
-   MeshLod& setVtxDup     (MeshFlag flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)
-   MeshLod& setAdjacencies(Bool faces=true, Bool edges=false                                ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
+   MeshLod& setVtxDup     (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)
+   MeshLod& setAdjacencies(Bool faces=true, Bool edges=false                                 ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
 
    MeshLod& delBase  (                                        ); // delete all software meshes (MeshBase  ) in this mesh
    MeshLod& delRender(                                        ); // delete all hardware meshes (MeshRender) in this mesh
@@ -105,8 +105,8 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& texRotate(  Flt   angle, Byte tex_index=0); // rotate texture UV's
 
    // join / split
-   MeshLod& join   (Int i0, Int i1                                                                            , Flt weld_pos_eps=EPS); // join i0-th and i1-th parts together, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
-   MeshLod& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MeshFlag test_vtx_flag=MESH_NONE, Flt weld_pos_eps=EPS); // join all parts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
+   MeshLod& join   (Int i0, Int i1                                                                             , Flt weld_pos_eps=EPS); // join i0-th and i1-th parts together, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
+   MeshLod& joinAll(Bool test_material, Bool test_draw_group, Bool test_name, MESH_FLAG test_vtx_flag=MESH_NONE, Flt weld_pos_eps=EPS); // join all parts, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'weld_pos_eps'=epsilon used for welding vertexes after joining (use <0 to disable welding)
 
 #if EE_PRIVATE
    MeshPart* splitVtxs (Int i, C CMemPtr<Bool> &vtx_is                                                    ); // split i-th part by given 'is' array of vertexes to a new MeshPart, pointer to that MeshPart is returned or null if it wasn't created
@@ -120,10 +120,10 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    // operations
 #if EE_PRIVATE
    MeshLod& weldEdge     (); // weld edges
-   MeshLod& weldVtx2D    (MeshFlag flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshLod& weldVtx2D    (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 2D vertexes     , this function will weld vertexes together if they share the same position (ignoring Z), 'flag'=if selected elements aren't equal then don't weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 #endif
-   MeshLod& weldVtx      (MeshFlag flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
-   MeshLod& weldVtxValues(MeshFlag flag          , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshLod& weldVtx      (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld 3D vertexes     , this function will weld vertexes together if they share the same position             , 'flag'=if selected elements aren't equal then don't weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
+   MeshLod& weldVtxValues(MESH_FLAG flag          , Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS, Flt remove_degenerate_faces_eps=EPS); // weld    vertex values, this function will weld values of vertexes which  share the same position             , 'flag'=                                 elements to weld, 'remove_degenerate_faces_eps'=epsilon used for removing degenerate faces which may occur after welding vertexes (use <0 to disable removal)
 
    MeshLod& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 

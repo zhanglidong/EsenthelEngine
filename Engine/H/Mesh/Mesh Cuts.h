@@ -68,20 +68,20 @@ struct CutsCache
    NO_COPY_CONSTRUCTOR(CutsCache);
 };
 /******************************************************************************/
-DIST_TYPE DistPointMesh(C Vec2 &point, C MeshBase  &mshb, MeshFlag flag, Flt *dist=null, Int *index=null, UInt test_flag=0); // 'flag' specifies what to test(can be combination of VTX_POS,EDGE_IND,TRI_IND,QUAD_IND), 'dist'=pointer to distance, 'index'=pointer to nearest element(vtx/edge/tri/quad), 'test_flag'=TEST_FLAG
-DIST_TYPE DistPointMesh(C Vec  &point, C MeshBase  &mshb, MeshFlag flag, Flt *dist=null, Int *index=null                  ); // 'flag' specifies what to test(can be combination of VTX_POS,EDGE_IND,TRI_IND,QUAD_IND), 'dist'=pointer to distance, 'index'=pointer to nearest element(vtx/edge/tri/quad)
+DIST_TYPE DistPointMesh(C Vec2 &point, C MeshBase  &mshb, MESH_FLAG flag, Flt *dist=null, Int *index=null, UInt test_flag=0); // 'flag' specifies what to test(can be combination of VTX_POS,EDGE_IND,TRI_IND,QUAD_IND), 'dist'=pointer to distance, 'index'=pointer to nearest element(vtx/edge/tri/quad), 'test_flag'=TEST_FLAG
+DIST_TYPE DistPointMesh(C Vec  &point, C MeshBase  &mshb, MESH_FLAG flag, Flt *dist=null, Int *index=null                  ); // 'flag' specifies what to test(can be combination of VTX_POS,EDGE_IND,TRI_IND,QUAD_IND), 'dist'=pointer to distance, 'index'=pointer to nearest element(vtx/edge/tri/quad)
 
-Bool      CutsPointMesh(C Vec2 &point, C MeshBase  &mshb,                Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mshb, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
-Bool      CutsPointMesh(C Vec  &point, C MeshBase  &mshb,                Flt *dist=null,             CutsCache *cache=null); // if point 3D is inside mshb, 'dist'=distance to mesh, 'cache'    =helper object created on the base of 'mshb' for function improved performance
+Bool      CutsPointMesh(C Vec2 &point, C MeshBase  &mshb,                 Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mshb, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
+Bool      CutsPointMesh(C Vec  &point, C MeshBase  &mshb,                 Flt *dist=null,             CutsCache *cache=null); // if point 3D is inside mshb, 'dist'=distance to mesh, 'cache'    =helper object created on the base of 'mshb' for function improved performance
 
-Bool      CutsPointMesh(C Vec2 &point, C MeshLod   &mesh,                Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mesh, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
-Bool      CutsPointMesh(C Vec  &point, C MeshLod   &mesh,                Flt *dist=null                                   ); // if point 3D is inside mesh, 'dist'=distance to mesh
+Bool      CutsPointMesh(C Vec2 &point, C MeshLod   &mesh,                 Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mesh, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
+Bool      CutsPointMesh(C Vec  &point, C MeshLod   &mesh,                 Flt *dist=null                                   ); // if point 3D is inside mesh, 'dist'=distance to mesh
 
-Bool      CutsPointMesh(C Vec2 &point, C Mesh      &mesh,                Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mesh, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
-Bool      CutsPointMesh(C Vec  &point, C Mesh      &mesh,                Flt *dist=null                                   ); // if point 3D is inside mesh, 'dist'=distance to mesh
+Bool      CutsPointMesh(C Vec2 &point, C Mesh      &mesh,                 Flt *dist=null,                  UInt test_flag=0); // if point 2D is inside mesh, 'dist'=distance to mesh, 'test_flag'=TEST_FLAG
+Bool      CutsPointMesh(C Vec  &point, C Mesh      &mesh,                 Flt *dist=null                                   ); // if point 3D is inside mesh, 'dist'=distance to mesh
 
-Bool      CutsPointMesh(C Vec2 &point, C MeshGroup &mshg,                                                 UInt test_flag=0); // if point 2D is inside mshg
-Bool      CutsPointMesh(C Vec  &point, C MeshGroup &mshg                                                                  ); // if point 3D is inside mshg
+Bool      CutsPointMesh(C Vec2 &point, C MeshGroup &mshg,                                                  UInt test_flag=0); // if point 2D is inside mshg
+Bool      CutsPointMesh(C Vec  &point, C MeshGroup &mshg                                                                   ); // if point 3D is inside mshg
 /******************************************************************************/
 // if moving 2D point cuts through a static mesh, 'hit_frac'=0..1, 'hit_pos'=hit position, 'hit_edge'=index of hit edge
 Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb,                                     Flt *hit_frac=null, Vec2 *hit_pos=null, Int *hit_edge=null);

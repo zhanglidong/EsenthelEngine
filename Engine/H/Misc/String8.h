@@ -79,10 +79,10 @@ struct Str8 // Text String (8-bit per character)
    Str8(C VecSB4 &v);   Str8& operator=(C VecSB4 &v);   Str8& operator+=(C VecSB4 &v);   Str8 operator+(C VecSB4 &v)C;
    Str8(C BStr   &s);   Str8& operator=(C BStr   &s);   Str8& operator+=(C BStr   &s);   Str  operator+(C BStr   &s)C;
 
-   T1(TYPE) Str8(TYPE i, ENABLE_IF_ENUM(TYPE, Ptr  ) dummy=null)      : Str8(Int(i)) {}
-   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8&) operator =(TYPE i)  {T =Int(i); return T;}
-   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8&) operator+=(TYPE i)  {T+=Int(i); return T;}
-   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8 ) operator+ (TYPE i)C {return T+Int(i);}
+   T1(TYPE) Str8(TYPE i, ENABLE_IF_ENUM(TYPE, Ptr  ) dummy=null)      : Str8(ENUM_TYPE(TYPE)(i)) {}
+   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8&) operator =(TYPE i)  {T =ENUM_TYPE(TYPE)(i); return T;}
+   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8&) operator+=(TYPE i)  {T+=ENUM_TYPE(TYPE)(i); return T;}
+   T1(TYPE)              ENABLE_IF_ENUM(TYPE, Str8 ) operator+ (TYPE i)C {return T+ENUM_TYPE(TYPE)(i);}
 
    // io
    Bool save(File &f)C; // save string using f.putStr(T), false on fail
@@ -137,5 +137,5 @@ inline Str8&& operator+(Str8 &&a, C VecI4  &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a, C VecB4  &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a, C VecSB4 &b) {return RValue(a+=b);}
 inline Str    operator+(Str8 &&a, C BStr   &b) {return        a+ b ;}
-T1(TYPE) ENABLE_IF_ENUM(TYPE, Str8&&) operator+(Str8 &&a, TYPE b) {return RValue(a+=Int(b));}
+T1(TYPE) ENABLE_IF_ENUM(TYPE, Str8&&) operator+(Str8 &&a, TYPE b) {return RValue(a+=ENUM_TYPE(TYPE)(b));}
 /******************************************************************************/

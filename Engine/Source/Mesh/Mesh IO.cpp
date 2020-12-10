@@ -198,11 +198,11 @@ Bool MeshBase::saveData(File &f)C
 {
    f.cmpUIntV(3); // version
 
-   MeshFlag flag =T.flag (); f.putUInt (flag.data);
-   Int      vtxs =T.vtxs (); f.cmpUIntV(vtxs );
-   Int      edges=T.edges(); f.cmpUIntV(edges);
-   Int      tris =T.tris (); f.cmpUIntV(tris );
-   Int      quads=T.quads(); f.cmpUIntV(quads);
+   MESH_FLAG flag =T.flag (); f.putUInt (flag );
+   Int       vtxs =T.vtxs (); f.cmpUIntV(vtxs );
+   Int       edges=T.edges(); f.cmpUIntV(edges);
+   Int       tris =T.tris (); f.cmpUIntV(tris );
+   Int       quads=T.quads(); f.cmpUIntV(quads);
 
    if(flag&VTX_POS     )f.putN(vtx.pos     (), vtxs);
    if(flag&VTX_NRM     )f.putN(vtx.nrm     (), vtxs);
@@ -249,11 +249,11 @@ Bool MeshBase::loadData(File &f)
    {
       case 3:
       {
-         MeshFlag flag =(MESH_FLAG)f.getUInt();
-         Int      vtxs =f.decUIntV(),
-                  edges=f.decUIntV(),
-                  tris =f.decUIntV(),
-                  quads=f.decUIntV();
+         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         Int       vtxs =f.decUIntV(),
+                   edges=f.decUIntV(),
+                   tris =f.decUIntV(),
+                   quads=f.decUIntV();
          create(vtxs, edges, tris, quads, flag);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -297,11 +297,11 @@ Bool MeshBase::loadData(File &f)
 
       case 2:
       {
-         MeshFlag flag =(MESH_FLAG)f.getUInt();
-         Int      vtxs =f.getInt(),
-                  edges=f.getInt(),
-                  tris =f.getInt(),
-                  quads=f.getInt();
+         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         Int       vtxs =f.getInt(),
+                   edges=f.getInt(),
+                   tris =f.getInt(),
+                   quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -345,11 +345,11 @@ Bool MeshBase::loadData(File &f)
 
       case 1:
       {
-         MeshFlag flag =(MESH_FLAG)f.getUInt();
-         Int      vtxs =f.getInt(),
-                  edges=f.getInt(),
-                  tris =f.getInt(),
-                  quads=f.getInt();
+         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         Int       vtxs =f.getInt(),
+                   edges=f.getInt(),
+                   tris =f.getInt(),
+                   quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -395,11 +395,11 @@ Bool MeshBase::loadData(File &f)
       {
          f.getByte(); // part of old U16 version byte
 
-         MeshFlag flag =(MESH_FLAG)f.getUInt();
-         Int      vtxs =f.getInt(),
-                  edges=f.getInt(),
-                  tris =f.getInt(),
-                  quads=f.getInt();
+         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         Int       vtxs =f.getInt(),
+                   edges=f.getInt(),
+                   tris =f.getInt(),
+                   quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -632,7 +632,7 @@ Bool MeshRender::loadData(File &f)
             Int  vtx_size    = f.getInt ();
             Int  tri_ind_size= f.getInt ();
             Mems<BoneSplit> bone_split; bone_split.setNum(f.getInt());
-            MeshFlag flag    =(MESH_FLAG)f.getUInt();
+            MESH_FLAG flag   =(MESH_FLAG)f.getUInt();
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
@@ -661,10 +661,10 @@ Bool MeshRender::loadData(File &f)
          Int vtxs,   tris; f>>vtxs>>tris;
          if( vtxs && tris)
          {
-            Bool     bit16       =!f.getBool();
-            Int      vtx_size    = f.getInt ();
-            Int      tri_ind_size= f.getInt ();
-            MeshFlag flag        =(MESH_FLAG)f.getUInt();
+            Bool      bit16       =!f.getBool();
+            Int       vtx_size    = f.getInt ();
+            Int       tri_ind_size= f.getInt ();
+            MESH_FLAG flag        =(MESH_FLAG)f.getUInt();
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))

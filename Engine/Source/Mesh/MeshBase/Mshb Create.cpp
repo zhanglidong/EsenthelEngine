@@ -2,7 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-MeshBase& MeshBase::createPlane(Int x, Int y, MeshFlag flag)
+MeshBase& MeshBase::createPlane(Int x, Int y, MESH_FLAG flag)
 {
    MAX(x, 2);
    MAX(y, 2);
@@ -89,7 +89,7 @@ MeshBase& MeshBase::createFast(C Box &box)
 
    return T;
 }
-MeshBase& MeshBase::createBox(C Matrix &matrix, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::createBox(C Matrix &matrix, MESH_FLAG flag, Int resolution)
 {
    Matrix m; MeshBase mesh[6]; REPA(mesh)
    {
@@ -102,10 +102,10 @@ MeshBase& MeshBase::createBox(C Matrix &matrix, MeshFlag flag, Int resolution)
    if(!(flag&(VTX_TAN_BIN|VTX_TEX0)))weldVtx(VTX_ALL, EPS, EPS_COL_COS, -1);
    return T;
 }
-MeshBase& MeshBase::create(C  Box & box, MeshFlag flag, Int resolution) {return createBox(Matrix(     box.size(),      box.min)            , flag, resolution);}
-MeshBase& MeshBase::create(C OBox &obox, MeshFlag flag, Int resolution) {return createBox(Matrix(obox.box.size(), obox.box.min)*obox.matrix, flag, resolution);}
+MeshBase& MeshBase::create(C  Box & box, MESH_FLAG flag, Int resolution) {return createBox(Matrix(     box.size(),      box.min)            , flag, resolution);}
+MeshBase& MeshBase::create(C OBox &obox, MESH_FLAG flag, Int resolution) {return createBox(Matrix(obox.box.size(), obox.box.min)*obox.matrix, flag, resolution);}
 /******************************************************************************/
-MeshBase& MeshBase::create(C Ball &ball, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::create(C Ball &ball, MESH_FLAG flag, Int resolution)
 {
    if(resolution<0)resolution=7;else MAX(resolution, 2); // default size else min size
    Int face_vtxs=resolution*resolution;
@@ -161,7 +161,7 @@ MeshBase& MeshBase::create(C Ball &ball, MeshFlag flag, Int resolution)
    if(flag&VTX_TAN_BIN)setTanBin(); // if(flag&VTX_TAN)setTangents(); if(flag&VTX_BIN)setBinormals();
    return T;
 }
-MeshBase& MeshBase::createHalf(C Ball &ball, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::createHalf(C Ball &ball, MESH_FLAG flag, Int resolution)
 {
    if(resolution<0)resolution=7;else MAX(resolution, 2); // default size else min size
 #if 1 // floor
@@ -238,7 +238,7 @@ MeshBase& MeshBase::createHalf(C Ball &ball, MeshFlag flag, Int resolution)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create2(C Ball &ball, MeshFlag flag, Int resolution, Int resolution2)
+MeshBase& MeshBase::create2(C Ball &ball, MESH_FLAG flag, Int resolution, Int resolution2)
 {
    if(resolution <0)resolution =24;else MAX(resolution , 3); // default size else min size
    if(resolution2<0)resolution2=13;else MAX(resolution2, 3); // default size else min size
@@ -300,7 +300,7 @@ static const VecI IcoTris[]=
 };
 #undef X
 #undef Y
-MeshBase& MeshBase::createIco(C Ball &ball, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::createIco(C Ball &ball, MESH_FLAG flag, Int resolution)
 {
    if(resolution< 0)resolution=3; // default
    if(resolution<=0) // simple
@@ -356,7 +356,7 @@ MeshBase& MeshBase::createIco(C Ball &ball, MeshFlag flag, Int resolution)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::createIcoHalf(C Ball &ball, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::createIcoHalf(C Ball &ball, MESH_FLAG flag, Int resolution)
 {
    createIco(Ball(1), MESH_NONE, resolution);
    Memt<Bool> is; is.setNumZero(vtxs());
@@ -379,7 +379,7 @@ MeshBase& MeshBase::createIcoHalf(C Ball &ball, MeshFlag flag, Int resolution)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C Capsule &capsule, MeshFlag flag, Int resolution, Int resolution2)
+MeshBase& MeshBase::create(C Capsule &capsule, MESH_FLAG flag, Int resolution, Int resolution2)
 {
    if(resolution <0)resolution =12;else MAX(resolution , 3);
    if(resolution2<0)resolution2= 5;else MAX(resolution2, 2);
@@ -453,7 +453,7 @@ MeshBase& MeshBase::createFast(C Tube &tube, Int resolution)
    transform(Matrix().setPosUp(tube.pos, tube.up));
    return T;
 }
-MeshBase& MeshBase::create(C Tube &tube, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::create(C Tube &tube, MESH_FLAG flag, Int resolution)
 {
    if(resolution<0)resolution=12;else MAX(resolution, 3);
    Int offset,
@@ -532,7 +532,7 @@ MeshBase& MeshBase::create(C Tube &tube, MeshFlag flag, Int resolution)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C Cone &cone, MeshFlag flag, Int resolution)
+MeshBase& MeshBase::create(C Cone &cone, MESH_FLAG flag, Int resolution)
 {
    if( resolution<0)resolution=12;else MAX(resolution, 3);
    Int resolution1 =resolution+1,
@@ -724,7 +724,7 @@ MeshBase& MeshBase::create(C Cone &cone, MeshFlag flag, Int resolution)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C Torus &torus, MeshFlag flag, Int resolution, Int resolution2)
+MeshBase& MeshBase::create(C Torus &torus, MESH_FLAG flag, Int resolution, Int resolution2)
 {
    if(resolution <0)resolution =12;else MAX(resolution , 3);
    if(resolution2<0)resolution2=12;else MAX(resolution2, 3);
@@ -774,7 +774,7 @@ MeshBase& MeshBase::createEdge(C Rect &rect, Bool solid)
    return T;
 }
 /******************************************************************************/
-MeshBase& MeshBase::create(C Shape &shape, MeshFlag flag, Int resolution, Int resolution2)
+MeshBase& MeshBase::create(C Shape &shape, MESH_FLAG flag, Int resolution, Int resolution2)
 {
    switch(shape.type)
    {
