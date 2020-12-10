@@ -321,7 +321,7 @@ MeshBase& MeshBase::weldEdge()
               id  = (edge.id  ()!=null);
          Int  num =T.edges();
          exclude(EDGE_ALL|FACE_ADJ_EDGE); edge._elms=edges;
-         include(EDGE_IND| (nrm ? EDGE_NRM : 0) | (flag ? EDGE_FLAG : 0) | (id ? EDGE_ID : 0));
+         include(EDGE_IND| (nrm ? EDGE_NRM : MESH_NONE) | (flag ? EDGE_FLAG : MESH_NONE) | (id ? EDGE_ID : MESH_NONE));
          edges=0;         FREP(num)if(edge_is[i])edge.ind (edges++)= w_edge[i].ind;
          edges=0; if(nrm )FREP(num)if(edge_is[i])edge.nrm (edges++)=!w_edge[i].nrm;
          edges=0; if(flag)FREP(num)if(edge_is[i])edge.flag(edges++)= w_edge[i].flag;

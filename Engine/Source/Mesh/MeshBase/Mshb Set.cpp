@@ -270,7 +270,7 @@ MeshBase& MeshBase::setTanBin()
    if(C Vec2 *tex=vtx.tex0()) // and tex coords
    {
       // when calculating tangents/binormals, we can't use any duplicates, because they have no knowledge about mirrored triangles, to detect them, tangents/binormals are needed, so first we set tan/bin per triangle, then we detect which go in same way, and then we merge
-      include((set_tan ? VTX_TAN : 0)|(set_bin ? VTX_BIN : 0));
+      include((set_tan ? VTX_TAN : 0)|(set_bin ? VTX_BIN : MESH_NONE));
       if(set_tan)ZeroN(vtx.tan(), vtxs());
       if(set_bin)ZeroN(vtx.bin(), vtxs());
 

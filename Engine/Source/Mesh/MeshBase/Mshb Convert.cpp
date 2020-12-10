@@ -504,7 +504,7 @@ MeshBase& MeshBase::edgeToDepth(Bool tex_align)
    }
 
    temp.quad._elms=wall.elms();
-   temp.include(QUAD_IND|(eid ? QUAD_ID : 0));
+   temp.include(QUAD_IND|(eid ? QUAD_ID : MESH_NONE));
    REPA(wall)
    {
       EdgeWall &w=wall[i];
