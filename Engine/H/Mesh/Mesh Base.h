@@ -4,7 +4,7 @@
       It contains vertexes, edges, triangles and quads.
 
 /******************************************************************************/
-enum VTX_FLAG // flags of a single vertex 'MeshVtxs.flag'
+enum VTX_FLAGS // flags of a single vertex 'MeshVtxs.flag'
 {
    VTX_FLAG_CLOTH=0x1, // when converting MeshBase to ClothMesh then use the vertex in physical cloth creation
 };
@@ -16,7 +16,8 @@ enum ETQ_FLAG // Edge-Triangle-Quad Flag
 
    ETQ_LR=ETQ_L|ETQ_R,
 };
-enum MESH_FLAG // Mesh Flag
+typedef UInt MeshFlag;
+enum         MESH_FLAG // Mesh Flag
 {
    VTX_POS     =1<< 0, // vertex position
    VTX_NRM     =1<< 1, // vertex normal
@@ -80,7 +81,6 @@ enum MESH_FLAG // Mesh Flag
    VTX_MSHR=VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_MATRIX|VTX_BLEND|VTX_SIZE, // vertex values which can be stored in MeshRender
 #endif
 };
-typedef UInt MeshFlag;
 enum MESH_SIMPLIFY : Byte
 {
    SIMPLIFY_QUADRIC, // vertex distances are calculated based on quadric matrixes
@@ -175,8 +175,8 @@ struct MeshVtxs // Mesh Vertexes
  C VecB4* blend   ()C {return _blend   ;}   C VecB4& blend   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, their sum must be equal to 255 !!
    Flt  * size    ()  {return _size    ;}     Flt  & size    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
  C Flt  * size    ()C {return _size    ;}   C Flt  & size    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
-   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAG
- C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAG
+   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex flag
+ C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex flag
    Int  * dup     ()  {return _dup     ;}     Int  & dup     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
  C Int  * dup     ()C {return _dup     ;}   C Int  & dup     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
 
@@ -302,24 +302,24 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& keepOnly(MeshFlag flag); // keep only elements specified with 'flag' MESH_FLAG
 
    // create
-   MeshBase& createPlane (  Int x=2, Int y=2, MeshFlag flag=0                                       ); // create mesh as 3D plane from (0,0,0) to (1,1,0) vertex positions using quads, 'x, y'=vertex resolution, 'flag'=VTX_FLAG
-   MeshBase& create      (C Box     &box    , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=VTX_FLAG
-   MeshBase& create      (C OBox    &obox   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=VTX_FLAG
-   MeshBase& create      (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& create2     (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& createIco   (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=VTX_FLAG
-   MeshBase& create      (C Capsule &capsule, MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=VTX_FLAG
-   MeshBase& create      (C Tube    &tube   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=VTX_FLAG
-   MeshBase& create      (C Cone    &cone   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=VTX_FLAG
-   MeshBase& create      (C Torus   &torus  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=VTX_FLAG
-   MeshBase& create      (C Shape   &shape  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=VTX_FLAG
+   MeshBase& createPlane (  Int x=2, Int y=2, MeshFlag flag=0                                       ); // create mesh as 3D plane from (0,0,0) to (1,1,0) vertex positions using quads, 'x, y'=vertex resolution, 'flag'=MESH_FLAG
+   MeshBase& create      (C Box     &box    , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=MESH_FLAG
+   MeshBase& create      (C OBox    &obox   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=MESH_FLAG
+   MeshBase& create      (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=MESH_FLAG
+   MeshBase& create2     (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=MESH_FLAG
+   MeshBase& createIco   (C Ball    &ball   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=MESH_FLAG
+   MeshBase& create      (C Capsule &capsule, MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=MESH_FLAG
+   MeshBase& create      (C Tube    &tube   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=MESH_FLAG
+   MeshBase& create      (C Cone    &cone   , MeshFlag flag=0, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=MESH_FLAG
+   MeshBase& create      (C Torus   &torus  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=MESH_FLAG
+   MeshBase& create      (C Shape   &shape  , MeshFlag flag=0, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=MESH_FLAG
    MeshBase& createConvex(C Vec     *point  , Int      points, Int max_points=-1                    ); // create mesh as 3D convex mesh created from 'point' array of 'points' elements, you can optionally limit the maximum number of generated points to 'max_points' by setting it to a value different than -1
 #if EE_PRIVATE
    MeshBase& createGrid    (  Int x=2, Int y=2, Bool fast=false                   ); // create mesh as 2D grid from (0,0) to (1,1) vertex positions using edges, 'x, y'=vertex resolution
    MeshBase& createFast    (C Box    &box                                         ); // create mesh as 3D box (fast version - only vertex position and quad indexes are set)
-   MeshBase& createBox     (C Matrix &matrix , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D box              , 'flag'=VTX_FLAG
-   MeshBase& createHalf    (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
-   MeshBase& createIcoHalf (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=VTX_FLAG
+   MeshBase& createBox     (C Matrix &matrix , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D box              , 'flag'=MESH_FLAG
+   MeshBase& createHalf    (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=MESH_FLAG
+   MeshBase& createIcoHalf (C Ball   &ball   , MeshFlag flag=0 , Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=MESH_FLAG
    MeshBase& createFast    (C Tube   &tube   ,                   Int resolution=-1); // create mesh as 3D tube (fast)
    MeshBase& createEdge    (C Rect   &rect   , Bool solid=false                   ); // create mesh as 2D edged-rectangle
    MeshBase& createEdge    (C Circle &circle , Bool solid=false, Int resolution=-1); // create mesh as 2D edged-circle

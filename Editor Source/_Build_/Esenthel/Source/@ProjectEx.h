@@ -359,7 +359,7 @@ public:
 
    void reload(Memc<UID> &elm_ids);
    void cancelReload(C MemPtr<UID> &elm_ids);
-   void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag);
+   void removeMeshVtx(C MemPtr<UID> &elm_ids, MeshFlag flag);
    void disableLQLODs(C MemPtr<UID> &elm_ids);
    void meshMergeCoplanarFaces(C MemPtr<UID> &elm_ids);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative);

@@ -248,7 +248,7 @@ void ObjView::meshSetNrmFace()
    }
    if(changed)setChangedMesh(true, false);
 }
-void ObjView::meshSetNrm(uint vtx_test)
+void ObjView::meshSetNrm(MeshFlag vtx_test)
 {
    const bool avg=false;
    bool changed=false;

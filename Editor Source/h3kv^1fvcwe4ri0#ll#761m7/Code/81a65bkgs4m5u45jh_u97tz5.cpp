@@ -1270,7 +1270,7 @@ class ProjectEx : ProjectHierarchy
       Importer.cancel(elm_ids);
       refresh(false, false);
    }
-   void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag)
+   void removeMeshVtx(C MemPtr<UID> &elm_ids, MeshFlag flag)
    {
       if(flag)REPA(elm_ids)if(Elm *obj_elm=findElm(elm_ids[i], ELM_OBJ))if(ElmObj *obj_data=obj_elm.objData())if(Elm *mesh_elm=findElm(obj_data.mesh_id, ELM_MESH))
       {

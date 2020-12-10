@@ -197,7 +197,7 @@
 			<StringPooling>true</StringPooling>
 			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -241,7 +241,7 @@
 			<BasicRuntimeChecks>Default</BasicRuntimeChecks>
 			<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -287,7 +287,7 @@
 			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -336,7 +336,7 @@
 			<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -474,7 +474,7 @@
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<FloatingPointModel>Fast</FloatingPointModel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -518,7 +518,7 @@
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<FloatingPointModel>Fast</FloatingPointModel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -567,7 +567,7 @@
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -616,7 +616,7 @@
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
-			<AdditionalOptions>/J</AdditionalOptions>
+			<AdditionalOptions>/J /permissive</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
