@@ -375,6 +375,9 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_PVRTC1_4_SRGB  :
          return IMAGE_R8G8B8A8_SRGB;
 
+      case IMAGE_F16_3:
+         return IMAGE_F16_4;
+
       // Warning: these require IC_CONVERT_GAMMA
       case IMAGE_F32_3_SRGB: return IMAGE_F32_3;
       case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
@@ -396,7 +399,7 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC6:
-         return IMAGE_F16_4; // IMAGE_F16_3 is not supported on DX11 and may not be supported on other API's
+         return IMAGE_F16_3;
    }
 }
 IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type)
@@ -1583,11 +1586,16 @@ error:
 Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
 {
    if(createTryEx(w, h, d, type, mode, mip_maps, 1))return true;
-   if(rgba_on_fail && w>0 && h>0)if(IMAGE_TYPE type_on_fail=ImageTypeOnFail(type))
-      if(createTryEx(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d, type_on_fail, mode, mip_maps, 1)) // we must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
+   if(rgba_on_fail && w>0 && h>0 && d>0)
    {
-      adjustInfo(w, h, d, type);
-      return true;
+      Int pw=PaddedWidth (w, h, 0, type), // must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
+          ph=PaddedHeight(w, h, 0, type);
+      for(IMAGE_TYPE alt_type=type; alt_type=ImageTypeOnFail(alt_type); )
+         if(createTryEx(pw, ph, d, alt_type, mode, mip_maps, 1))
+      {
+         adjustInfo(w, h, d, type);
+         return true;
+      }
    }
    return false;
 }
