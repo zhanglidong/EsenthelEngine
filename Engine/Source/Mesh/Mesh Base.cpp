@@ -405,7 +405,7 @@ VtxFull& VtxFull::mul(C Matrix &matrix, C Matrix3 &matrix3)
 /******************************************************************************/
 MeshFlag MeshBase::flag()C
 {
-   MeshFlag f=0;
+   MeshFlag f=MESH_NONE;
 
    if(vtx.pos     ())f|=VTX_POS;
    if(vtx.nrm     ())f|=VTX_NRM;
@@ -612,7 +612,7 @@ MeshBase& MeshBase::keepOnly(MeshFlag f) {return exclude(~f);}
 /******************************************************************************/
 MeshBase& MeshBase::del()
 {
-   return keepOnly(0);
+   return keepOnly(MESH_NONE);
 }
 MeshBase& MeshBase::create(Int vtxs, Int edges, Int tris, Int quads, MeshFlag flag)
 {
@@ -812,7 +812,7 @@ MeshBase& MeshBase::create(C PhysPart &part)
 {
    switch(part.type())
    {
-      case PHYS_SHAPE: return create(part.shape, 0, (part.shape.type==SHAPE_BALL) ? 16 : ShapeTypeRound(part.shape.type) ? 32 : -1);
+      case PHYS_SHAPE: return create(part.shape, MESH_NONE, (part.shape.type==SHAPE_BALL) ? 16 : ShapeTypeRound(part.shape.type) ? 32 : -1);
 
       case PHYS_CONVEX:
       case PHYS_MESH  : if(part._pm)
@@ -829,7 +829,7 @@ MeshBase& MeshBase::create(C MeshBase *src[], Int elms, MeshFlag flag_and, Bool 
 {
    if(!src)elms=0;
 
-   MeshFlag flag=0;
+   MeshFlag flag=MESH_NONE;
    Int      vtxs=0, edges=0, tris=0, quads=0;
    MeshBase temp;
 

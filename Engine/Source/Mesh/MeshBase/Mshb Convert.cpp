@@ -719,7 +719,7 @@ MeshBase& MeshBase::edgeToTri(Bool set_id) // assumes: weldVtx, removeUnusedVtxs
 
       // free & create
       exclude(ADJ_ALL|FACE_ALL); tri._elms=ett.mtri.elms();
-      include(TRI_IND|(set_id ? TRI_ID : 0));
+      include(TRI_IND | (set_id ? TRI_ID : MESH_NONE));
       FREPA(ett.mtri)
       {
          ETT_TRI &et=ett.mtri[i];

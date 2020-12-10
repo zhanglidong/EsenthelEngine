@@ -270,7 +270,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    // manage
    MeshBase& del       (                                                                                                                                      ); // delete manually
-   MeshBase& create    (  Int         vtxs, Int edges, Int tris, Int quads, MeshFlag flag=MESH_NONE                                                           ); // create, 'vtxs'=number of vertexes, 'edges'=number of edges, 'tris'=number of triangles, 'quads'=number of quads, 'flag'=MESH_FLAG (here VTX_POS, EDGE_IND, TRI_IND, QUAD_IND are always created automatically so you don't have to specify them manually)
+   MeshBase& create    (  Int         vtxs, Int edges, Int tris, Int quads, MeshFlag flag=MESH_NONE                                                           ); // create, 'vtxs'=number of vertexes, 'edges'=number of edges, 'tris'=number of triangles, 'quads'=number of quads, 'flag'=type of data to allocate (here VTX_POS, EDGE_IND, TRI_IND, QUAD_IND are always created automatically so you don't have to specify them manually)
    MeshBase& create    (C MeshBase   &src ,           MeshFlag flag_and=MESH_ALL                                                                              ); // create from 'src'      , 'flag_and'=MESH_FLAG
    MeshBase& create    (C MeshRender &src ,           MeshFlag flag_and=MESH_ALL                                                                              ); // create from 'src'      , 'flag_and'=MESH_FLAG
    MeshBase& create    (C MeshPart   &src ,           MeshFlag flag_and=MESH_ALL                                                                              ); // create from 'src'      , 'flag_and'=MESH_FLAG
@@ -306,23 +306,23 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    // create
    MeshBase& createPlane (  Int x=2, Int y=2, MeshFlag flag=MESH_NONE                                       ); // create mesh as 3D plane from (0,0,0) to (1,1,0) vertex positions using quads, 'x, y'=vertex resolution, 'flag'=MESH_FLAG
-   MeshBase& create      (C Box     &box    , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=MESH_FLAG
-   MeshBase& create      (C OBox    &obox   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=MESH_FLAG
-   MeshBase& create      (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=MESH_FLAG
-   MeshBase& create2     (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=MESH_FLAG
-   MeshBase& createIco   (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=MESH_FLAG
-   MeshBase& create      (C Capsule &capsule, MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=MESH_FLAG
-   MeshBase& create      (C Tube    &tube   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=MESH_FLAG
-   MeshBase& create      (C Cone    &cone   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=MESH_FLAG
-   MeshBase& create      (C Torus   &torus  , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=MESH_FLAG
-   MeshBase& create      (C Shape   &shape  , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=MESH_FLAG
+   MeshBase& create      (C Box     &box    , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D box                                  , 'flag'=data to set in the mesh
+   MeshBase& create      (C OBox    &obox   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D oriented box                         , 'flag'=data to set in the mesh
+   MeshBase& create      (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D ball in cube      mode and UV mapping, 'flag'=data to set in the mesh
+   MeshBase& create2     (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D ball in spherical mode and UV mapping, 'flag'=data to set in the mesh
+   MeshBase& createIco   (C Ball    &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D ball in icosphere mode and UV mapping, 'flag'=data to set in the mesh
+   MeshBase& create      (C Capsule &capsule, MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D capsule                              , 'flag'=data to set in the mesh
+   MeshBase& create      (C Tube    &tube   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D tube                                 , 'flag'=data to set in the mesh
+   MeshBase& create      (C Cone    &cone   , MeshFlag flag=MESH_NONE, Int resolution=-1                    ); // create mesh as 3D cone                                 , 'flag'=data to set in the mesh
+   MeshBase& create      (C Torus   &torus  , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D torus                                , 'flag'=data to set in the mesh
+   MeshBase& create      (C Shape   &shape  , MeshFlag flag=MESH_NONE, Int resolution=-1, Int resolution2=-1); // create mesh as 3D shape                                , 'flag'=data to set in the mesh
    MeshBase& createConvex(C Vec     *point  , Int      points        , Int max_points=-1                    ); // create mesh as 3D convex mesh created from 'point' array of 'points' elements, you can optionally limit the maximum number of generated points to 'max_points' by setting it to a value different than -1
 #if EE_PRIVATE
    MeshBase& createGrid    (  Int x=2, Int y=2, Bool fast=false                          ); // create mesh as 2D grid from (0,0) to (1,1) vertex positions using edges, 'x, y'=vertex resolution
    MeshBase& createFast    (C Box    &box                                                ); // create mesh as 3D box (fast version - only vertex position and quad indexes are set)
-   MeshBase& createBox     (C Matrix &matrix , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D box              , 'flag'=MESH_FLAG
-   MeshBase& createHalf    (C Ball   &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=MESH_FLAG
-   MeshBase& createIcoHalf (C Ball   &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=MESH_FLAG
+   MeshBase& createBox     (C Matrix &matrix , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D box              , 'flag'=data to set in the mesh
+   MeshBase& createHalf    (C Ball   &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=data to set in the mesh
+   MeshBase& createIcoHalf (C Ball   &ball   , MeshFlag flag=MESH_NONE, Int resolution=-1); // create mesh as 3D ball's upper half, 'flag'=data to set in the mesh
    MeshBase& createFast    (C Tube   &tube   ,                          Int resolution=-1); // create mesh as 3D tube (fast)
    MeshBase& createEdge    (C Rect   &rect   , Bool solid=false                          ); // create mesh as 2D edged-rectangle
    MeshBase& createEdge    (C Circle &circle , Bool solid=false,        Int resolution=-1); // create mesh as 2D edged-circle
@@ -338,7 +338,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    Int  faces    ()C {return                              tri.elms()  + quad.elms()  ;} // get number of faces
    Int  trisTotal()C {return                              tri.elms()  + quad.elms()*2;} // get number of triangles including quads (each quad can be represented by 2 triangles)
 
-   MeshFlag flag        (                                 )C; // get MESH_FLAG
+   MeshFlag flag        (                                 )C; // get data available in the mesh
    UInt     memUsage    (                                 )C; // get memory usage
    Bool     getBox      (Box  &box                        )C; // get box  encapsulating the mesh, this method iterates through all vertexes, false on fail (if no vertexes are present)
    Bool     getBox      (Box  &box , C Matrix &mesh_matrix)C; // get box  encapsulating the mesh, this method iterates through all vertexes, 'mesh_matrix'=matrix affecting vertex positions, false on fail (if no vertexes are present)

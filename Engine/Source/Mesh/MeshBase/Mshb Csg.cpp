@@ -801,8 +801,8 @@ void Csg(MeshLod &a, C MeshLod &b, UInt sel, MeshLod *dest, Bool detect_self_int
    FREPA(a)materials.add(a.parts[i]);
    FREPA(b)materials.add(b.parts[i]);
 
-   MeshBase a_base; a_base.create(a, ~0, true);
-   MeshBase b_base; b_base.create(b, ~0, true);
+   MeshBase a_base; a_base.create(a, MESH_ALL, true);
+   MeshBase b_base; b_base.create(b, MESH_ALL, true);
 
    REPA(b_base.edge)b_base.edge.id(i)+=a.parts.elms();
    REPA(b_base.tri )b_base.tri .id(i)+=a.parts.elms();

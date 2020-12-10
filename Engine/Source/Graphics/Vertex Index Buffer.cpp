@@ -95,11 +95,11 @@ namespace EE{
 /******************************************************************************/
 static Int Compare(C VtxFormatKey &a, C VtxFormatKey &b)
 {
-   if(a.flag    <b.flag    )return -1;
-   if(a.flag    >b.flag    )return +1;
-   if(a.compress<b.compress)return -1;
-   if(a.compress>b.compress)return +1;
-                            return  0;
+   if(a.flag.data<b.flag.data)return -1;
+   if(a.flag.data>b.flag.data)return +1;
+   if(a.compress <b.compress )return -1;
+   if(a.compress >b.compress )return +1;
+                              return  0;
 }
 static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {return vf.create(key.flag, key.compress);}
 /******************************************************************************/

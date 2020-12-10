@@ -680,7 +680,7 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
 {
    if(faces || edges)
    {
-      include((faces ? FACE_ADJ_FACE : 0)|(edges ? FACE_ADJ_EDGE : 0));
+      include((faces ? FACE_ADJ_FACE : MESH_NONE) | (edges ? FACE_ADJ_EDGE : MESH_NONE));
       if(faces)
       {
          SetMemN(tri .adjFace(), 0xFF, tris ());

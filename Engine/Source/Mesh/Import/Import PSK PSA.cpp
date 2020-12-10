@@ -156,7 +156,7 @@ Bool ImportPSK(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XMaterial> ma
             }
          }
 
-         MeshBase base(faces.elms()*3, 0, faces.elms(), 0, VTX_TEX0|(skins.elms() ? VTX_SKIN : 0)|TRI_ID);
+         MeshBase base(faces.elms()*3, 0, faces.elms(), 0, VTX_TEX0 | (skins.elms() ? VTX_SKIN : MESH_NONE) | TRI_ID);
 
          FREPA(faces)
          {

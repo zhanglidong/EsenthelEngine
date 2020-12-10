@@ -33,7 +33,7 @@ void LayeredClouds::create()
    {Flt v=scaleY(); _scale_y=-1; scaleY(v);}
 
    MeshBase mshb;
-   mshb.createIcoHalf(Ball(1), 0, 3); // 3 give 'dist'=0.982246876
+   mshb.createIcoHalf(Ball(1), MESH_NONE, 3); // 3 give 'dist'=0.982246876
   _mshr.create(mshb.reverse());
 #if DEBUG && 0 // calculate actual distance
    Flt dist=1; C Vec *pos=mshb.vtx.pos();

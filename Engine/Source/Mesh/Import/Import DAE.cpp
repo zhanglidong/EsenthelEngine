@@ -1193,7 +1193,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=triangles.p.elms()/triangles.inputs.elms()/3;
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:0)|(tex[0]?VTX_TEX0:0)|(tex[1]?VTX_TEX1:0)|(tex[2]?VTX_TEX2:0)|((skinning.elms()||node_anim)?VTX_SKIN:0));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
             REPA(base.tri)
             {
                Int a=i*3, b=a+1, c=b+1,
@@ -1295,7 +1295,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=0; REPA(polys.vcount)tris+=Max(0, polys.vcount[i]-2);
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:0)|(tex[0]?VTX_TEX0:0)|(tex[1]?VTX_TEX1:0)|(tex[2]?VTX_TEX2:0)|((skinning.elms()||node_anim)?VTX_SKIN:0));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
 
             Memb<Vtx> poly;
 
@@ -1429,7 +1429,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=0; REPA(polys.p)tris+=Max(0, polys.p[i].elms()/polys.inputs.elms()-2);
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:0)|(tex[0]?VTX_TEX0:0)|(tex[1]?VTX_TEX1:0)|(tex[2]?VTX_TEX2:0)|((skinning.elms()||node_anim)?VTX_SKIN:0));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
 
             Memb<Vtx> poly;
 

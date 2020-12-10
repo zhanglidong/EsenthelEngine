@@ -61,6 +61,7 @@ T2(FLAG, STORAGE) struct Flags
    friend Bool operator!= (FLAG                 a, Flags<FLAG, STORAGE> b) {return STORAGE(a)!=b.data;}
    friend Bool operator== (Flags<FLAG, STORAGE> a, FLAG                 b) {return a.data==STORAGE(b);}
    friend Bool operator!= (Flags<FLAG, STORAGE> a, FLAG                 b) {return a.data!=STORAGE(b);}
+   friend Bool operator!= (Flags<FLAG, STORAGE> a, Int                  b) {return a.data!=        b ;}
    friend Bool operator== (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return a.data==    b.data;}
    friend Bool operator!= (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return a.data!=    b.data;}
 

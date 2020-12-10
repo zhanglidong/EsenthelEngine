@@ -78,7 +78,7 @@ static void InitMshr()
                    MshrBox .create(mshb);
    mshb.reverse(); MshrBoxR.create(mshb);
 
-   mshb.create(Ball(1), 0, 12);
+   mshb.create(Ball(1), MESH_NONE, 12);
    MshrBall.create(mshb);
 }
 static void ShutMshr()

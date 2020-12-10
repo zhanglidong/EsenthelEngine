@@ -1961,7 +1961,7 @@ void InitLight()
 
    MeshBase mshb;
 
-   mshb.createIco(Ball(LIGHT_MESH_BALL_RADIUS), 0, LIGHT_MESH_BALL_RES); LightMeshBall.create(mshb);
+   mshb.createIco(Ball(LIGHT_MESH_BALL_RADIUS), MESH_NONE, LIGHT_MESH_BALL_RES); LightMeshBall.create(mshb);
 #if DEBUG && 0 // calculate actual distance
    mshb.createIco(Ball(1), 0, LIGHT_MESH_BALL_RES);
    Flt dist=1; C Vec *pos=mshb.vtx.pos();
@@ -1970,7 +1970,7 @@ void InitLight()
    int z=0;
 #endif
 
-   mshb.create(Cone(0, LIGHT_MESH_CONE_RADIUS, 1, VecZero, Vec(0,0,1)), 0, LIGHT_MESH_CONE_RES); LightMeshCone.create(mshb);
+   mshb.create(Cone(0, LIGHT_MESH_CONE_RADIUS, 1, VecZero, Vec(0,0,1)), MESH_NONE, LIGHT_MESH_CONE_RES); LightMeshCone.create(mshb);
 #if DEBUG && 0 // calculate actual distance
    mshb.createEdge(Circle(1), false, LIGHT_MESH_CONE_RES); // use a circle
    Flt dist=1; C Vec *pos=mshb.vtx.pos();

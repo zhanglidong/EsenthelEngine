@@ -1240,7 +1240,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    {
       PROF(INIT);
       Int      mtrl_groups_elms=mtrl_groups.elms(); // how many material groups are there, remember this because 'mtrl_groups' will be deleted
-      MeshFlag mtrl_groups_flag=0; REPA(mtrl_groups)mtrl_groups_flag|=mtrl_groups[i].flag; // what vtx components are we processing
+      MeshFlag mtrl_groups_flag=MESH_NONE; REPA(mtrl_groups)mtrl_groups_flag|=mtrl_groups[i].flag; // what vtx components are we processing
       REPA(tris) // set actual triangle flag after adding all meshes, because they may modify the mtrl group flag
       {
          Triangle &tri=tris[i]; tri.flag=mtrl_groups[tri.mtrl_group].flag;
@@ -1355,7 +1355,11 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       T.max_skin    =FltToByte(max_skin);
       T.max_normal  =Cos(Mid(max_normal, 0.0f, PI));
       T.keep_border =keep_border;
-      T.test_flag   =((T.max_uv2<1-EPS) ? VTX_TEX_ALL : 0)|((T.max_color<1-EPS) ? VTX_COLOR : 0)|((T.max_material<1-EPS) ? VTX_MATERIAL : 0)|((T.max_skin<255) ? VTX_SKIN : 0)|((T.max_normal>-1+EPS) ? VTX_NRM : 0);
+      T.test_flag   =((T.max_uv2     < 1-EPS) ? VTX_TEX_ALL  : MESH_NONE)
+                    |((T.max_color   < 1-EPS) ? VTX_COLOR    : MESH_NONE)
+                    |((T.max_material< 1-EPS) ? VTX_MATERIAL : MESH_NONE)
+                    |((T.max_skin    < 255  ) ? VTX_SKIN     : MESH_NONE)
+                    |((T.max_normal  >-1+EPS) ? VTX_NRM      : MESH_NONE);
       Real max_error  =Max(0.0f, max_distance);
       Int  target_tris=Mid(visible_tris-RoundPos(visible_tris*intensity), 0, visible_tris);
       if(mode==SIMPLIFY_QUADRIC) // quadric method operates on squared errors
@@ -1467,7 +1471,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
    void store(MeshBase &mesh, MeshFlag flag_and=MESH_ALL)
    {
-      MeshFlag flags=0; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
+      MeshFlag flags=MESH_NONE; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
       mesh.create(tris.elms()*3, 0, tris.elms(), 0, flags&(VTX_ALL&~(VTX_TAN_BIN|VTX_DUP)));
       Int tri_index=0;
    #if 0
@@ -1500,7 +1504,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       struct PartInfo
       {
          Int      tris=0;
-         MeshFlag flag=0;
+         MeshFlag flag=MESH_NONE;
       };
       MemtN<PartInfo, 256> part_infos;
 

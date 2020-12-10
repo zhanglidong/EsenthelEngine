@@ -263,7 +263,7 @@ Bool ImportMS3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animati
             if(part_material_index)part_material_index.add(InRange(group.materialIndex, material_num) ? group.materialIndex : -1);
 
             Set(part.name, group.name);
-            base.create(group.triangleIndices.size()*3, 0, group.triangleIndices.size(), 0, VTX_POS|VTX_NRM|VTX_TEX0|TRI_IND|(bones ? VTX_SKIN : 0));
+            base.create(group.triangleIndices.size()*3, 0, group.triangleIndices.size(), 0, VTX_POS|VTX_NRM|VTX_TEX0|TRI_IND|(bones ? VTX_SKIN : MESH_NONE));
             FREPA(base.tri)
             {
                Int t=group.triangleIndices[i]; if(!InRange(t, tris))goto invalid;
