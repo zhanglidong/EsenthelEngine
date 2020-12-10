@@ -57,7 +57,7 @@ Bool ImportXPS(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XMaterial> ma
          f.getLine(s); Int vtxs=TextInt(s); if(vtxs<0)goto error;
          if(part)
          {
-            MeshBase &base=part->base.create(vtxs, 0, 0, 0, VTX_POS|VTX_NRM|VTX_COLOR|(bones ? VTX_SKIN : 0)|((uv_layers>=1) ? VTX_TEX0 : 0)|((uv_layers>=2) ? VTX_TEX1 : 0));
+            MeshBase &base=part->base.create(vtxs, 0, 0, 0, VTX_POS|VTX_NRM|VTX_COLOR|(bones ? VTX_SKIN : MESH_NONE)|((uv_layers>=1) ? VTX_TEX0 : MESH_NONE)|((uv_layers>=2) ? VTX_TEX1 : MESH_NONE));
             FREP(vtxs)
             {
                f.getLine(s); base.vtx.pos  (i)= TextVec  (s);

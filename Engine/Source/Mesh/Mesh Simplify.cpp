@@ -420,7 +420,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       MeshFlag flag;
       Ptr      multi_mtrls[4];
 
-      MtrlGroup(MeshFlag flag=0, C MeshPart *part=null)
+      MtrlGroup(MeshFlag flag=MESH_NONE, C MeshPart *part=null)
       {
          T.flag=flag;
          REPAO(multi_mtrls)=(part ? part->multiMaterial(i)() : null);
@@ -1465,7 +1465,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       }
    }
 
-   void store(MeshBase &mesh, MeshFlag flag_and=~0)
+   void store(MeshBase &mesh, MeshFlag flag_and=MESH_ALL)
    {
       MeshFlag flags=0; REPA(tris)flags|=tris[i].flag; flags&=flag_and;
       mesh.create(tris.elms()*3, 0, tris.elms(), 0, flags&(VTX_ALL&~(VTX_TAN_BIN|VTX_DUP)));

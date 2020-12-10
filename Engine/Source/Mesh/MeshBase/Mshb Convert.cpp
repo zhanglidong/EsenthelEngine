@@ -297,7 +297,7 @@ MeshBase& MeshBase::inflateEdges(TEX_MODE x_tex_coords, TEX_MODE y_tex_coords, B
                        );
    if(to_edges) // create from edges
    {
-      create(fat_edge.elms()*2, fat_edge.elms(), 0, 0, EDGE_FLAG | (set_tex_coords ? VTX_TEX0 : 0) | (vtx.color() ? VTX_COLOR : 0));
+      create(fat_edge.elms()*2, fat_edge.elms(), 0, 0, EDGE_FLAG | (set_tex_coords ? VTX_TEX0 : MESH_NONE) | (vtx.color() ? VTX_COLOR : MESH_NONE));
       REPA(fat_edge)
       {
          if(vtx.tex0())
@@ -317,7 +317,7 @@ MeshBase& MeshBase::inflateEdges(TEX_MODE x_tex_coords, TEX_MODE y_tex_coords, B
       }
    }else // create from faces
    {
-      create(fat_tri.elms()*3+fat_quad.elms()*4, 0, fat_tri.elms(), fat_quad.elms(), (set_tex_coords ? VTX_TEX0 : 0) | (vtx.color() ? VTX_COLOR : 0));
+      create(fat_tri.elms()*3+fat_quad.elms()*4, 0, fat_tri.elms(), fat_quad.elms(), (set_tex_coords ? VTX_TEX0 : MESH_NONE) | (vtx.color() ? VTX_COLOR : MESH_NONE));
       Int ofs=0;
       FREPA(fat_tri)
       {

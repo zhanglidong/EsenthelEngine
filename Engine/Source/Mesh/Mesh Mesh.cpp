@@ -266,8 +266,8 @@ Mesh& Mesh::keepOnly(MeshFlag flag) {REP(lods())lod(i).keepOnly(flag); return T;
 /******************************************************************************/
 // GET
 /******************************************************************************/
-MeshFlag Mesh::flag    ()C {MeshFlag flag=0; REP(lods())flag|=lod(i).flag    (); return flag;}
-UInt     Mesh::memUsage()C {UInt     size=0; REP(lods())size+=lod(i).memUsage(); return size;}
+MeshFlag Mesh::flag    ()C {MeshFlag flag=MESH_NONE; REP(lods())flag|=lod(i).flag    (); return flag;}
+UInt     Mesh::memUsage()C {UInt     size=        0; REP(lods())size+=lod(i).memUsage(); return size;}
 
 C MeshLod& Mesh::getDrawLod()C
 {

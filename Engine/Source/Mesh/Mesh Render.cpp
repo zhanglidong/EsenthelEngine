@@ -46,7 +46,7 @@ void MeshRender::zero()
 #endif
   _storage=0;
   _tris=0;
-  _flag=0;
+  _flag=MESH_NONE;
   _vf=null;
 }
 MeshRender::MeshRender(                 )                {zero();}
@@ -418,11 +418,11 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, MeshFlag flag_and, Bool o
 
    // do fast merge
    Int      vtxs=0, tris=0;
-   MeshFlag flag_all=0;
+   MeshFlag flag_all=MESH_NONE;
    REP(elms)if(C MeshRender *mesh=src[i])
    {
-      vtxs+=mesh->vtxs();
-      tris+=mesh->tris();
+      vtxs    +=mesh->vtxs();
+      tris    +=mesh->tris();
       flag_all|=mesh->flag();
    }
    Bool ok=true;

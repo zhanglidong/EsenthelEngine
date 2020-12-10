@@ -358,7 +358,7 @@ MeshBase& MeshBase::createIco(C Ball &ball, MeshFlag flag, Int resolution)
 /******************************************************************************/
 MeshBase& MeshBase::createIcoHalf(C Ball &ball, MeshFlag flag, Int resolution)
 {
-   createIco(Ball(1), 0, resolution);
+   createIco(Ball(1), MESH_NONE, resolution);
    Memt<Bool> is; is.setNumZero(vtxs());
    REPA(tri)
    {
@@ -761,7 +761,7 @@ MeshBase& MeshBase::create(C Torus &torus, MeshFlag flag, Int resolution, Int re
 /******************************************************************************/
 MeshBase& MeshBase::createEdge(C Rect &rect, Bool solid)
 {
-   create(4, 4, 0, 0, solid ? EDGE_FLAG : 0);
+   create(4, 4, 0, 0, solid ? EDGE_FLAG : MESH_NONE);
    vtx .pos(0).set(rect.min.x, rect.max.y, 0);
    vtx .pos(1).set(rect.max.x, rect.max.y, 0);
    vtx .pos(2).set(rect.max.x, rect.min.y, 0);
@@ -792,7 +792,7 @@ MeshBase& MeshBase::create(C Shape &shape, MeshFlag flag, Int resolution, Int re
 MeshBase& MeshBase::createEdge(C Circle &circle, Bool solid, Int resolution)
 {
    if(resolution<0)resolution=24;else MAX(resolution, 3);
-   create(resolution, resolution, 0, 0, solid ? EDGE_FLAG : 0);
+   create(resolution, resolution, 0, 0, solid ? EDGE_FLAG : MESH_NONE);
    FREP(resolution)
    {
       Vec2 v; CosSin(v.x, v.y, i*-PI2/resolution);
@@ -806,7 +806,7 @@ MeshBase& MeshBase::createEdge(C Circle &circle, Bool solid, Int resolution)
 MeshBase& MeshBase::createEdgeStar(Flt r1, Flt r2, Bool solid, Int resolution)
 {
    MAX(resolution, 3); resolution*=2;
-   create(resolution, resolution, 0, 0, solid ? EDGE_FLAG : 0);
+   create(resolution, resolution, 0, 0, solid ? EDGE_FLAG : MESH_NONE);
    FREP(resolution)
    {
       Flt x, y; CosSin(x, y, PI_2-i*PI2/resolution);

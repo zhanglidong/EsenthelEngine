@@ -45,15 +45,15 @@ MeshLod& MeshLod::keepOnly(MeshFlag flag) {REPAO(parts).keepOnly(flag); return T
 /******************************************************************************/
 // GET
 /******************************************************************************/
-MeshFlag MeshLod::flag     ()C {MeshFlag flag =0; REPA(T)flag |=parts[i].flag     (); return flag ;}
-UInt     MeshLod::memUsage ()C {UInt     size =0; REPA(T)size +=parts[i].memUsage (); return size ;}
-Int      MeshLod::vtxs     ()C {Int      vtxs =0; REPA(T)vtxs +=parts[i].vtxs     (); return vtxs ;}
-Int      MeshLod::baseVtxs ()C {Int      vtxs =0; REPA(T)vtxs +=parts[i].base.vtxs(); return vtxs ;}
-Int      MeshLod::edges    ()C {Int      edges=0; REPA(T)edges+=parts[i].edges    (); return edges;}
-Int      MeshLod::tris     ()C {Int      tris =0; REPA(T)tris +=parts[i].tris     (); return tris ;}
-Int      MeshLod::quads    ()C {Int      quads=0; REPA(T)quads+=parts[i].quads    (); return quads;}
-Int      MeshLod::faces    ()C {Int      faces=0; REPA(T)faces+=parts[i].faces    (); return faces;}
-Int      MeshLod::trisTotal()C {Int      tris =0; REPA(T)tris +=parts[i].trisTotal(); return tris ;}
+MeshFlag MeshLod::flag     ()C {MeshFlag flag =MESH_NONE; REPA(T)flag |=parts[i].flag     (); return flag ;}
+UInt     MeshLod::memUsage ()C {UInt     size =        0; REPA(T)size +=parts[i].memUsage (); return size ;}
+Int      MeshLod::vtxs     ()C {Int      vtxs =        0; REPA(T)vtxs +=parts[i].vtxs     (); return vtxs ;}
+Int      MeshLod::baseVtxs ()C {Int      vtxs =        0; REPA(T)vtxs +=parts[i].base.vtxs(); return vtxs ;}
+Int      MeshLod::edges    ()C {Int      edges=        0; REPA(T)edges+=parts[i].edges    (); return edges;}
+Int      MeshLod::tris     ()C {Int      tris =        0; REPA(T)tris +=parts[i].tris     (); return tris ;}
+Int      MeshLod::quads    ()C {Int      quads=        0; REPA(T)quads+=parts[i].quads    (); return quads;}
+Int      MeshLod::faces    ()C {Int      faces=        0; REPA(T)faces+=parts[i].faces    (); return faces;}
+Int      MeshLod::trisTotal()C {Int      tris =        0; REPA(T)tris +=parts[i].trisTotal(); return tris ;}
 
 Flt MeshLod::area(Vec *center)C
 {

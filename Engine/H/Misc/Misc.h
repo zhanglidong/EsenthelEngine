@@ -56,7 +56,15 @@ T2(FLAG, STORAGE) struct Flags
    friend Flags<FLAG, STORAGE> operator| (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data|    b.data);}
    friend Flags<FLAG, STORAGE> operator& (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data&    b.data);}
    friend Flags<FLAG, STORAGE> operator^ (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return FLAG(a.data^    b.data);}
-   friend Flags<FLAG, STORAGE> operator~ (Flags<FLAG, STORAGE> a                        ) {return FLAG(~a.data          );}
+
+   friend Flags<FLAG, STORAGE> operator== (FLAG                 a, Flags<FLAG, STORAGE> b) {return STORAGE(a)==b.data;}
+   friend Flags<FLAG, STORAGE> operator!= (FLAG                 a, Flags<FLAG, STORAGE> b) {return STORAGE(a)!=b.data;}
+   friend Flags<FLAG, STORAGE> operator== (Flags<FLAG, STORAGE> a, FLAG                 b) {return a.data==STORAGE(b);}
+   friend Flags<FLAG, STORAGE> operator!= (Flags<FLAG, STORAGE> a, FLAG                 b) {return a.data!=STORAGE(b);}
+   friend Flags<FLAG, STORAGE> operator== (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return a.data==    b.data;}
+   friend Flags<FLAG, STORAGE> operator!= (Flags<FLAG, STORAGE> a, Flags<FLAG, STORAGE> b) {return a.data!=    b.data;}
+
+   friend Flags<FLAG, STORAGE> operator~ (Flags<FLAG, STORAGE> a) {return FLAG(~a.data);}
 };
 
 #define FLAGS_OPERATORS(FLAG, STORAGE)                                                          \

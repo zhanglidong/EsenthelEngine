@@ -470,7 +470,7 @@ void Triangulate(C CMemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps
 
    // build mesh
    Memt<Int> temp;
-   mesh.create(vtxs, 0, tris, 0, poly_flags ? FACE_FLAG : 0); mesh.tri._elms=0; Vec *pos=mesh.vtx.pos();
+   mesh.create(vtxs, 0, tris, 0, poly_flags ? FACE_FLAG : MESH_NONE); mesh.tri._elms=0; Vec *pos=mesh.vtx.pos();
    vtxs=0;
    FREPA(polys)
    {
@@ -549,7 +549,7 @@ void Triangulate(C CMemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, MeshFlag fla
 
    // build mesh
    Memt<Int> temp;
-   mesh.create(vtxs, 0, tris, 0, flag_and & ((VTX_ALL&~(VTX_FLAG|VTX_DUP)) | (poly_flags ? FACE_FLAG : 0))); mesh.tri._elms=0; Vec *pos=mesh.vtx.pos();
+   mesh.create(vtxs, 0, tris, 0, flag_and & ((VTX_ALL&~(VTX_FLAG|VTX_DUP)) | (poly_flags ? FACE_FLAG : MESH_NONE))); mesh.tri._elms=0; Vec *pos=mesh.vtx.pos();
    vtxs=0;
    FREPA(polys)
    {

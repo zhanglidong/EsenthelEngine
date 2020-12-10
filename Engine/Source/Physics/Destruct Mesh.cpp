@@ -94,10 +94,10 @@ DestructMesh& DestructMesh::create(Mesh &mesh, Int cuts, C MaterialPtr &material
       Mesh &src=temp[cur][i];
       if(   src.lods()==1)
       {
-         MeshBase   joined ; joined.create(src, ~0, true).setVtxDup(); // create 1 part from all parts (and keep id as index of the part)
-         Index      vtx_vtx; joined.linkVtxVtxOnFace(vtx_vtx);         // link all vertexes together
-         Memc<Bool> vtxs   ; vtxs  .setNumZero(joined.vtxs());         // array of selected vertexes
-         SelectNeighbors(vtx_vtx, vtxs, 0);                            // select 0-th vertex and all its neighbors
+         MeshBase   joined ; joined.create(src, MESH_ALL, true).setVtxDup(); // create 1 part from all parts (and keep ID as index of the part)
+         Index      vtx_vtx; joined.linkVtxVtxOnFace(vtx_vtx);               // link all vertexes together
+         Memc<Bool> vtxs   ; vtxs  .setNumZero(joined.vtxs());               // array of selected vertexes
+         SelectNeighbors(vtx_vtx, vtxs, 0);                                  // select 0-th vertex and all its neighbors
 
          // set connected triangles and quads
          Memt<Bool> tris, quads; tris.setNum(joined.tris()); quads.setNum(joined.quads());

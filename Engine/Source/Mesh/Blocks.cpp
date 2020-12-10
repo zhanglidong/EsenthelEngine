@@ -712,7 +712,7 @@ Blocks& Blocks::setMesh(Flt tex_scale, C BlocksOcclusion *occl, C BoxI *local_bo
          if(optimize)
          {
             MeshBase optimized(base); optimized.weldCoplanarFaces(EPS_COL_COS, -1, false, max_face_length);
-            mpart.render.create(optimized, ~0, false);
+            mpart.render.create(optimized, MESH_ALL, false);
             mpart.setShader(0);
          }else mpart.setRender(false);
       }

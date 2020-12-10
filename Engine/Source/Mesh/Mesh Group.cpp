@@ -97,14 +97,14 @@ void MeshGroup::copyParams(C MeshGroup &src)
 /******************************************************************************/
 // GET
 /******************************************************************************/
-MeshFlag MeshGroup::flag     ()C {MeshFlag flag=0; REPA(T)flag|=meshes[i].flag     (); return flag;}
-Int      MeshGroup::vtxs     ()C {Int      n   =0; REPA(T)n   +=meshes[i].vtxs     (); return n   ;}
-Int      MeshGroup::baseVtxs ()C {Int      n   =0; REPA(T)n   +=meshes[i].baseVtxs (); return n   ;}
-Int      MeshGroup::edges    ()C {Int      n   =0; REPA(T)n   +=meshes[i].edges    (); return n   ;}
-Int      MeshGroup::tris     ()C {Int      n   =0; REPA(T)n   +=meshes[i].tris     (); return n   ;}
-Int      MeshGroup::quads    ()C {Int      n   =0; REPA(T)n   +=meshes[i].quads    (); return n   ;}
-Int      MeshGroup::faces    ()C {Int      n   =0; REPA(T)n   +=meshes[i].faces    (); return n   ;}
-Int      MeshGroup::trisTotal()C {Int      n   =0; REPA(T)n   +=meshes[i].trisTotal(); return n   ;}
+MeshFlag MeshGroup::flag     ()C {MeshFlag flag=MESH_NONE; REPA(T)flag|=meshes[i].flag     (); return flag;}
+Int      MeshGroup::vtxs     ()C {Int      n   =        0; REPA(T)n   +=meshes[i].vtxs     (); return n   ;}
+Int      MeshGroup::baseVtxs ()C {Int      n   =        0; REPA(T)n   +=meshes[i].baseVtxs (); return n   ;}
+Int      MeshGroup::edges    ()C {Int      n   =        0; REPA(T)n   +=meshes[i].edges    (); return n   ;}
+Int      MeshGroup::tris     ()C {Int      n   =        0; REPA(T)n   +=meshes[i].tris     (); return n   ;}
+Int      MeshGroup::quads    ()C {Int      n   =        0; REPA(T)n   +=meshes[i].quads    (); return n   ;}
+Int      MeshGroup::faces    ()C {Int      n   =        0; REPA(T)n   +=meshes[i].faces    (); return n   ;}
+Int      MeshGroup::trisTotal()C {Int      n   =        0; REPA(T)n   +=meshes[i].trisTotal(); return n   ;}
 /******************************************************************************/
 // JOIN
 /******************************************************************************/

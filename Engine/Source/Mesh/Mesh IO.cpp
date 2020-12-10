@@ -198,7 +198,7 @@ Bool MeshBase::saveData(File &f)C
 {
    f.cmpUIntV(3); // version
 
-   MeshFlag flag =T.flag (); f.putUInt (flag );
+   MeshFlag flag =T.flag (); f.putUInt (flag.data);
    Int      vtxs =T.vtxs (); f.cmpUIntV(vtxs );
    Int      edges=T.edges(); f.cmpUIntV(edges);
    Int      tris =T.tris (); f.cmpUIntV(tris );
@@ -249,7 +249,7 @@ Bool MeshBase::loadData(File &f)
    {
       case 3:
       {
-         MeshFlag flag =f.getUInt ();
+         MeshFlag flag =(MESH_FLAG)f.getUInt();
          Int      vtxs =f.decUIntV(),
                   edges=f.decUIntV(),
                   tris =f.decUIntV(),
@@ -297,11 +297,11 @@ Bool MeshBase::loadData(File &f)
 
       case 2:
       {
-         MeshFlag flag =f.getUInt();
-         Int      vtxs =f.getInt (),
-                  edges=f.getInt (),
-                  tris =f.getInt (),
-                  quads=f.getInt ();
+         MeshFlag flag =(MESH_FLAG)f.getUInt();
+         Int      vtxs =f.getInt(),
+                  edges=f.getInt(),
+                  tris =f.getInt(),
+                  quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -345,11 +345,11 @@ Bool MeshBase::loadData(File &f)
 
       case 1:
       {
-         MeshFlag flag =f.getUInt();
-         Int      vtxs =f.getInt (),
-                  edges=f.getInt (),
-                  tris =f.getInt (),
-                  quads=f.getInt ();
+         MeshFlag flag =(MESH_FLAG)f.getUInt();
+         Int      vtxs =f.getInt(),
+                  edges=f.getInt(),
+                  tris =f.getInt(),
+                  quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -395,11 +395,11 @@ Bool MeshBase::loadData(File &f)
       {
          f.getByte(); // part of old U16 version byte
 
-         MeshFlag flag =f.getUInt();
-         Int      vtxs =f.getInt (),
-                  edges=f.getInt (),
-                  tris =f.getInt (),
-                  quads=f.getInt ();
+         MeshFlag flag =(MESH_FLAG)f.getUInt();
+         Int      vtxs =f.getInt(),
+                  edges=f.getInt(),
+                  tris =f.getInt(),
+                  quads=f.getInt();
          create(vtxs, edges, tris, quads, flag&~ID_ALL);
 
          if(flag&VTX_POS     )f.getN(vtx.pos     (), vtxs);
@@ -616,7 +616,7 @@ Bool MeshRender::loadData(File &f)
             Int  vtx_size    = f.getInt ();
             Int  tri_ind_size= f.getInt ();
             Mems<BoneSplit> bone_split; bone_split.setNum(f.getInt());
-            MeshFlag flag    = f.getUInt();
+            MeshFlag flag    =(MESH_FLAG)f.getUInt();
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
@@ -632,7 +632,7 @@ Bool MeshRender::loadData(File &f)
 
                Fix(T, true, true);
 
-               MeshBase mshb(T); create(mshb, ~0, false);
+               MeshBase mshb(T); create(mshb, MESH_ALL, false);
              //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh::loadData)
                if(f.ok())return true;
             }
@@ -648,7 +648,7 @@ Bool MeshRender::loadData(File &f)
             Bool     bit16       =!f.getBool();
             Int      vtx_size    = f.getInt ();
             Int      tri_ind_size= f.getInt ();
-            MeshFlag flag        = f.getUInt();
+            MeshFlag flag        =(MESH_FLAG)f.getUInt();
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
@@ -663,7 +663,7 @@ Bool MeshRender::loadData(File &f)
 
                Fix(T, true, true);
 
-               MeshBase mshb(T); create(mshb, ~0, false);
+               MeshBase mshb(T); create(mshb, MESH_ALL, false);
              //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
                if(f.ok())return true;
             }
