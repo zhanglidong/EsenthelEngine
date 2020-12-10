@@ -384,7 +384,7 @@ static Joypad& GetJoypad(UInt id, Bool &added)
    return *joypad;
 }
 #if WINDOWS_OLD
-static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput)
+static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: this might trigger calling 'WindowMsg' !!
 {
    Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
 
