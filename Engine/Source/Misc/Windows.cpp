@@ -1608,7 +1608,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       {
          if(wParam==DBT_DEVICEARRIVAL
          || wParam==DBT_DEVICEREMOVECOMPLETE
-         || wParam==DBT_DEVNODES_CHANGED)ListJoypads();
+         || wParam==DBT_DEVNODES_CHANGED)App.addFuncCall(ListJoypads); // can't call 'ListJoypads' directly here, because we're inside a Windows callback, and when using Direct Input then 'IsXInputDevice' will not function well (might not detect XInput devices correctly, and also it could trigger 'WindowMsg' again as a nested call). We could call this directly only if DirectInput Joypads were not used.
       }break;
    }
 def:
