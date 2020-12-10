@@ -487,7 +487,7 @@ MeshPart& MeshPart::delRender(                            ) {render.del(); retur
 MeshPart& MeshPart::setBase  (Bool only_if_empty          ) {if(only_if_empty ? !base.is() : true)base.create(render); return T;}
 MeshPart& MeshPart::setRender(Bool optimize, Int lod_index)
 {
-   render.create(base, ~0, optimize, true);
+   render.create(base, MESH_ALL, optimize, true);
    setShader(lod_index);
    return T;
 }

@@ -255,7 +255,7 @@ static void ProcessNodes(Memx<NODE> &nodes, Memc<MeshPart> &parts, MemPtr<Int> p
             {
                MeshPart &part=parts.New(); Set(part.name, node.name); if(part_material_index)part_material_index.add(tris.brush);
                MeshBase &mshb=part .base;
-               mshb.create(mesh.vrt.elms(), 0, tris.ind.elms(), 0, (mesh.has_nrm?VTX_NRM:0)|((mesh.tex_coords>=1)?VTX_TEX0:0)|((mesh.tex_coords>=2)?VTX_TEX1:0)|(mesh.bones.elms()?VTX_SKIN:0));
+               mshb.create(mesh.vrt.elms(), 0, tris.ind.elms(), 0, (mesh.has_nrm?VTX_NRM:MESH_NONE) | ((mesh.tex_coords>=1)?VTX_TEX0:MESH_NONE) | ((mesh.tex_coords>=2)?VTX_TEX1:MESH_NONE) | (mesh.bones.elms()?VTX_SKIN:MESH_NONE));
 
                // vertexes
                                      REPA(mesh.vrt)mshb.vtx.pos (i)=mesh.vrt[i].pos*node.global_matrix ;

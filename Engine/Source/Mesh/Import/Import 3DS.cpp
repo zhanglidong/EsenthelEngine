@@ -221,7 +221,7 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                      UInt group=mesh.tri_smooth_groups[i]; // get smoothing groups of that face
                    C VecI &t=tri[i]; REPA(t)mesh.vtx.material(t.c[i]).u=group; // apply smoothing groups onto triangle vertexes
                   }
-                  mesh.setVtxDupEx(0, EPSD, EPS_COL_COS, EPS_TAN_COS, EPS_BIN_COS, false, true); // generate vertex duplicates based on smoothing groups, use small pos epsilon in case mesh is scaled down
+                  mesh.setVtxDupEx(MESH_NONE, EPSD, EPS_COL_COS, EPS_TAN_COS, EPS_BIN_COS, false, true); // generate vertex duplicates based on smoothing groups, use small pos epsilon in case mesh is scaled down
                   mesh.exclude(VTX_MATERIAL); // remove no longer needed vertex material
                   mesh.setNormals(); // for smooth groups we use 'setNormals' (which operates on duplicates based on smooth groups) instead of 'setNormalsAuto', call before 'setTanBin' as it depends on normals
                   mesh.exclude(VTX_DUP);

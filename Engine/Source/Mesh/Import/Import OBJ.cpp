@@ -214,7 +214,7 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
             Group    &cur =groups[i];
             MeshPart &part=mesh->parts[i]; Set(part.name, cur.name);
             MeshBase &base=part.base;
-            base.create(cur.tri.elms()*3+cur.quad.elms()*4, 0, cur.tri.elms(), cur.quad.elms(), (vnrm.elms() ? VTX_NRM : 0)|(vtex.elms() ? VTX_TEX0 : 0));
+            base.create(cur.tri.elms()*3+cur.quad.elms()*4, 0, cur.tri.elms(), cur.quad.elms(), (vnrm.elms() ? VTX_NRM : MESH_NONE) | (vtex.elms() ? VTX_TEX0 : MESH_NONE));
             Vec   *pos =base.vtx .pos ();
             Vec   *nrm =base.vtx .nrm ();
             Vec2  *tex =base.vtx .tex0();
