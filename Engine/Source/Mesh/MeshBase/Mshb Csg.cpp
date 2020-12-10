@@ -538,7 +538,7 @@ struct CSG // Constructive Solid Geometry
          }
       }
    }
-   void build(MeshBase &mshb, UInt flag)
+   void build(MeshBase &mshb, MeshFlag flag)
    {
       mshb.create(face_done.elms()*3, 0, face_done.elms(), 0, flag);
       FREPA(face_done)
@@ -761,7 +761,7 @@ struct CSG // Constructive Solid Geometry
       setCutFacesSolid  (a, b);
 
       // build data
-      Bool               id=(((a.flag()|b.flag())&FACE_ID)!=0);
+      Bool               id=FlagTest(a.flag()|b.flag(), FACE_ID);
       MeshBase           temp;
       build             (temp, ((a.flag()|b.flag())&VTX_ALL) | TRI_FLAG | (id ? FACE_ID : 0));
       setSolid          (temp, a, b);
