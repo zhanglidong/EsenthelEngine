@@ -514,6 +514,22 @@ Bool MeshRender::loadData(File &f)
    ASSERT(SIZE(_flag)==4);
    del(); switch(f.decUIntV()) // version
    {
+      /*case 7:
+      {
+         if(_vb.load(f))
+         if(_ib.load(f))
+         {
+            if(_vb._vtx_num || _ib._ind_num)
+            {
+               f.getMulti(_storage, _flag); ASSERT(SIZE(_flag)==8);
+              _tris=_ib._ind_num/3;
+               if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
+            }
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in 'Mesh.loadData')
+            if(f.ok())return true;
+         }
+      }break;*/
+
       case 6:
       {
          if(_vb.load(f))

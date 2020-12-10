@@ -97,7 +97,7 @@ enum MESH_FLAG // Mesh Flag
    VTX_MSHR=VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_MATRIX|VTX_BLEND|VTX_SIZE, // vertex values which can be stored in MeshRender
 #endif
 };
-DECLARE_FLAGS(MESH_FLAG, ULong, MeshFlag);
+DECLARE_FLAGS(MESH_FLAG, UInt, MeshFlag);
 /******************************************************************************/
 void SetSkin(C MemPtrN<IndexWeight, 256> &skin, VecB4 &matrix, VecB4 &blend, C Skeleton *skeleton); // set 'matrix' and 'blend' skinning values from 'skin' and 'skeleton' (optional)
 /******************************************************************************/
