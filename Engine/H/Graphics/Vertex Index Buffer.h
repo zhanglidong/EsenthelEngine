@@ -93,7 +93,7 @@ struct Vtx3DFull
 {
    Vec   pos, hlp, nrm;
    Vec4  tan; // tan.xyz=tangent, tan.w=binormal direction (should be -1 or +1)
-   Vec2  tex0, tex1, tex2;
+   Vec2  tex0, tex1, tex2, tex3;
    Color color;
    VecB4 material, matrix, blend;
    Flt   size;

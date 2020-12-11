@@ -1118,11 +1118,12 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC( 4) Vec2  _tex     :ATTR4 ;
    LOC( 5) Vec2  _tex1    :ATTR5 ;
    LOC( 6) Vec2  _tex2    :ATTR6 ;
-   LOC( 7) Half  _size    :ATTR7 ;
-   LOC( 8) Vec4  _bone    :ATTR8 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
-   LOC( 9) Vec4  _weight  :ATTR9 ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
-   LOC(10) VecH4 _material:ATTR10;
-   LOC(11) VecH4 _color   :ATTR11;
+   LOC( 7) Vec2  _tex3    :ATTR7 ;
+   LOC( 8) Half  _size    :ATTR8 ;
+   LOC( 9) Vec4  _bone    :ATTR9 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
+   LOC(10) Vec4  _weight  :ATTR10; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
+   LOC(11) VecH4 _material:ATTR11;
+   LOC(12) VecH4 _color   :ATTR12;
 #else
    // !! IF MAKING ANY CHANGE (EVEN PRECISION) THEN DON'T FORGET TO RE-CREATE 'VS_Code' FOR 'CreateInputLayout', see #VTX_INPUT_LAYOUT !!
    Vec4  _pos     :POSITION0   ;
@@ -1132,6 +1133,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  _tex     :TEXCOORD0   ;
    Vec2  _tex1    :TEXCOORD1   ;
    Vec2  _tex2    :TEXCOORD2   ;
+   Vec2  _tex3    :TEXCOORD3   ;
    Half  _size    :PSIZE       ;
    VecU4 _bone    :BLENDINDICES;
    Vec4  _weight  :BLENDWEIGHT ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
@@ -1153,6 +1155,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  tex      (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _tex                              ;} // tex coords 0
    Vec2  tex1     (                                        ) {return                                     _tex1                             ;} // tex coords 1
    Vec2  tex2     (                                        ) {return                                     _tex2                             ;} // tex coords 2
+   Vec2  tex3     (                                        ) {return                                     _tex3                             ;} // tex coords 3
 #if GL
    VecU  bone     (                                        ) {return VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #else

@@ -30,48 +30,49 @@ enum MESH_AO_FUNC : Byte
    MAF_LINEAR_REV, // 2-2/(x+1)
    MAF_SQUARE_REV, // 1-Sqr(1-x)
 };
-enum MESH_FLAG : UInt // Mesh Flag
+enum MESH_FLAG : ULong // Mesh Flag
 {
-   VTX_POS     =1<< 0, // vertex position
-   VTX_NRM     =1<< 1, // vertex normal
-   VTX_TAN     =1<< 2, // vertex tangent
-   VTX_BIN     =1<< 3, // vertex binormal
-   VTX_HLP     =1<<28, // vertex helper
-   VTX_TEX0    =1<< 4, // vertex texture UV 0
-   VTX_TEX1    =1<< 5, // vertex texture UV 1
-   VTX_TEX2    =1u<<31, // vertex texture UV 2
-   VTX_COLOR   =1<<29, // vertex color
-   VTX_MATERIAL=1<<27, // vertex material blend
-   VTX_MATRIX  =1<< 6, // vertex matrix index
-   VTX_BLEND   =1<< 7, // vertex matrix blend
-   VTX_SIZE    =1<< 8, // vertex size
-   VTX_FLAG    =1<<30, // vertex flag
-   VTX_DUP     =1<< 9, // vertex duplicate
+   VTX_POS     =1ull<< 0, // vertex position
+   VTX_NRM     =1ull<< 1, // vertex normal
+   VTX_TAN     =1ull<< 2, // vertex tangent
+   VTX_BIN     =1ull<< 3, // vertex binormal
+   VTX_HLP     =1ull<< 4, // vertex helper
+   VTX_TEX0    =1ull<< 5, // vertex texture UV 0
+   VTX_TEX1    =1ull<< 6, // vertex texture UV 1
+   VTX_TEX2    =1ull<< 7, // vertex texture UV 2
+   VTX_TEX3    =1ull<< 8, // vertex texture UV 3
+   VTX_COLOR   =1ull<< 9, // vertex color
+   VTX_MATERIAL=1ull<<10, // vertex material blend
+   VTX_MATRIX  =1ull<<11, // vertex matrix index
+   VTX_BLEND   =1ull<<12, // vertex matrix blend
+   VTX_SIZE    =1ull<<13, // vertex size
+   VTX_FLAG    =1ull<<14, // vertex flag
+   VTX_DUP     =1ull<<15, // vertex duplicate
 
-   EDGE_IND     =1<<10, // edge vertex index
-   EDGE_ADJ_FACE=1<<11, // edge adjacent face
-   EDGE_NRM     =1<<12, // edge normal
-   EDGE_FLAG    =1<<13, // edge flag
-   EDGE_ID      =1<<14, // edge ID
+   EDGE_IND     =1ull<<16, // edge vertex index
+   EDGE_ADJ_FACE=1ull<<17, // edge adjacent face
+   EDGE_NRM     =1ull<<18, // edge normal
+   EDGE_FLAG    =1ull<<19, // edge flag
+   EDGE_ID      =1ull<<20, // edge ID
 
-   TRI_IND     =1<<15, // triangle vertex index
-   TRI_ADJ_FACE=1<<16, // triangle adjacent face
-   TRI_ADJ_EDGE=1<<17, // triangle adjacent edge
-   TRI_NRM     =1<<18, // triangle normal
-   TRI_FLAG    =1<<19, // triangle flag
-   TRI_ID      =1<<20, // triangle ID
+   TRI_IND     =1ull<<21, // triangle vertex index
+   TRI_ADJ_FACE=1ull<<22, // triangle adjacent face
+   TRI_ADJ_EDGE=1ull<<23, // triangle adjacent edge
+   TRI_NRM     =1ull<<24, // triangle normal
+   TRI_FLAG    =1ull<<25, // triangle flag
+   TRI_ID      =1ull<<26, // triangle ID
 
-   QUAD_IND     =1<<21, // quad vertex index
-   QUAD_ADJ_FACE=1<<22, // quad adjacent face
-   QUAD_ADJ_EDGE=1<<23, // quad adjacent edge
-   QUAD_NRM     =1<<24, // quad normal
-   QUAD_FLAG    =1<<25, // quad flag
-   QUAD_ID      =1<<26, // quad ID
+   QUAD_IND     =1ull<<27, // quad vertex index
+   QUAD_ADJ_FACE=1ull<<28, // quad adjacent face
+   QUAD_ADJ_EDGE=1ull<<29, // quad adjacent edge
+   QUAD_NRM     =1ull<<30, // quad normal
+   QUAD_FLAG    =1ull<<31, // quad flag
+   QUAD_ID      =1ull<<32, // quad ID
 
-   VTX_TEX_ALL    =VTX_TEX0  |VTX_TEX1|VTX_TEX2,
-   VTX_TAN_BIN    =VTX_TAN   |VTX_BIN          ,
-   VTX_NRM_TAN_BIN=VTX_NRM   |VTX_TAN_BIN      ,
-   VTX_SKIN       =VTX_MATRIX|VTX_BLEND        ,
+   VTX_TEX_ALL    =VTX_TEX0  |VTX_TEX1|VTX_TEX2|VTX_TEX3,
+   VTX_TAN_BIN    =VTX_TAN   |VTX_BIN                   ,
+   VTX_NRM_TAN_BIN=VTX_NRM   |VTX_TAN_BIN               ,
+   VTX_SKIN       =VTX_MATRIX|VTX_BLEND                 ,
 
    FACE_IND     =TRI_IND     |QUAD_IND     ,
    FACE_ADJ_FACE=TRI_ADJ_FACE|QUAD_ADJ_FACE,
@@ -91,7 +92,7 @@ enum MESH_FLAG : UInt // Mesh Flag
      ID_ALL=          EDGE_ID  |TRI_ID  |QUAD_ID  ,
 
    MESH_NONE= 0,
-   MESH_ALL =~0u,
+   MESH_ALL =~0ull,
 
 #if EE_PRIVATE
    VTX_MSHR=VTX_POS|VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX_ALL|VTX_COLOR|VTX_MATERIAL|VTX_MATRIX|VTX_BLEND|VTX_SIZE, // vertex values which can be stored in MeshRender
@@ -131,7 +132,7 @@ UInt EtqFlagSwap(UInt flag); // swap sides of ETQ_FLAG
 struct VtxFull // Vertex containing all possible data
 {
    Vec   pos, nrm, tan, bin, hlp;
-   Vec2  tex0, tex1, tex2;
+   Vec2  tex0, tex1, tex2, tex3;
    Color color;
    VecB4 material, matrix, blend;
    Flt   size;
@@ -168,6 +169,8 @@ struct MeshVtxs // Mesh Vertexes
  C Vec2 * tex1    ()C {return _tex1    ;}   C Vec2 & tex1    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex1    [i];} // get i-th vertex texture UV 1
    Vec2 * tex2    ()  {return _tex2    ;}     Vec2 & tex2    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
  C Vec2 * tex2    ()C {return _tex2    ;}   C Vec2 & tex2    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
+   Vec2 * tex3    ()  {return _tex3    ;}     Vec2 & tex3    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tex3    [i];} // get i-th vertex texture UV 3
+ C Vec2 * tex3    ()C {return _tex3    ;}   C Vec2 & tex3    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex3    [i];} // get i-th vertex texture UV 3
    Color* color   ()  {return _color   ;}     Color& color   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
  C Color* color   ()C {return _color   ;}   C Color& color   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
    VecB4* material()  {return _material;}     VecB4& material(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _material[i];} // get i-th vertex material blend
@@ -187,7 +190,7 @@ struct MeshVtxs // Mesh Vertexes
 #if !EE_PRIVATE
 private:
 #endif
-   Int _elms; Vec *_pos, *_nrm, *_tan, *_bin, *_hlp; Vec2 *_tex0, *_tex1, *_tex2; Color *_color; VecB4 *_material, *_matrix, *_blend; Flt *_size; Byte *_flag; Int *_dup;
+   Int _elms; Vec *_pos, *_nrm, *_tan, *_bin, *_hlp; Vec2 *_tex0, *_tex1, *_tex2, *_tex3; Color *_color; VecB4 *_material, *_matrix, *_blend; Flt *_size; Byte *_flag; Int *_dup;
    NO_COPY_CONSTRUCTOR(MeshVtxs);
 };
 /******************************************************************************/
