@@ -14,6 +14,7 @@ MeshBase& MeshBase::addVtx(C Vec &pos)
    if(vtx._tex0    )ReallocZero1(vtx._tex0    , vtxs());
    if(vtx._tex1    )ReallocZero1(vtx._tex1    , vtxs());
    if(vtx._tex2    )ReallocZero1(vtx._tex2    , vtxs());
+   if(vtx._tex3    )ReallocZero1(vtx._tex3    , vtxs());
    if(vtx._matrix  )ReallocZero1(vtx._matrix  , vtxs());
    if(vtx._blend   )ReallocZero1(vtx._blend   , vtxs());
    if(vtx._size    )ReallocZero1(vtx._size    , vtxs());
@@ -673,6 +674,7 @@ static Bool VertexValueTest(MeshBase &mshb, Int mid, Int pa, Int pb, Flt cos_vtx
       if(mshb.vtx.tex0() && Dist2(Lerp(mshb.vtx.tex0(pa), mshb.vtx.tex0(pb), step), mshb.vtx.tex0(mid))>tex_eps2)return true;
       if(mshb.vtx.tex1() && Dist2(Lerp(mshb.vtx.tex1(pa), mshb.vtx.tex1(pb), step), mshb.vtx.tex1(mid))>tex_eps2)return true;
       if(mshb.vtx.tex2() && Dist2(Lerp(mshb.vtx.tex2(pa), mshb.vtx.tex2(pb), step), mshb.vtx.tex2(mid))>tex_eps2)return true;
+      if(mshb.vtx.tex3() && Dist2(Lerp(mshb.vtx.tex3(pa), mshb.vtx.tex3(pb), step), mshb.vtx.tex3(mid))>tex_eps2)return true;
 
       if(mshb.vtx.material())
       {
@@ -705,7 +707,7 @@ Bool MeshBase::weldCoplanarFaces(Flt cos_face, Flt cos_vtx, Bool safe, Flt max_f
    setFaceNormals();
    exclude       (EDGE_ADJ_FACE|FACE_ADJ_EDGE);
    Bool    vtx_nrm_test=(vtx.nrm() && cos_vtx>-1),
-         vtx_value_test=(vtx_nrm_test || vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.material() || vtx.color()),
+         vtx_value_test=(vtx_nrm_test || vtx.tex0() || vtx.tex1() || vtx.tex2() || vtx.tex3() || vtx.material() || vtx.color()),
        face_length_test=(max_face_length>=0); max_face_length*=max_face_length; // it's now squared
  C Vec *pos=vtx.pos();
    Memt<Bool>  tri_is;  tri_is.setNum(tris ()); SetMemN( tri_is.data(), true,  tri_is.elms());

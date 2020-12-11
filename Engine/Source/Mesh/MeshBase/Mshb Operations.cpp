@@ -157,6 +157,7 @@ MeshBase& MeshBase::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt 
             if(flag&VTX_TEX0    )vtx.tex0    (i)*=weight;
             if(flag&VTX_TEX1    )vtx.tex1    (i)*=weight;
             if(flag&VTX_TEX2    )vtx.tex2    (i)*=weight;
+            if(flag&VTX_TEX3    )vtx.tex3    (i)*=weight;
             if(flag&VTX_SIZE    )vtx.size    (i)*=weight;
             if(flag&VTX_COLOR   )color       [i] =weight*vtx.color(i);
          }
@@ -180,6 +181,7 @@ MeshBase& MeshBase::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt 
             if(flag&VTX_TEX0    )vtx.tex0    (d)+=weight*vtx.tex0    (i);
             if(flag&VTX_TEX1    )vtx.tex1    (d)+=weight*vtx.tex1    (i);
             if(flag&VTX_TEX2    )vtx.tex2    (d)+=weight*vtx.tex2    (i);
+            if(flag&VTX_TEX3    )vtx.tex3    (d)+=weight*vtx.tex3    (i);
             if(flag&VTX_SIZE    )vtx.size    (d)+=weight*vtx.size    (i);
             if(flag&VTX_COLOR   )color       [d]+=weight*vtx.color   (i);
          }
@@ -203,6 +205,7 @@ MeshBase& MeshBase::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt 
             if(flag&VTX_TEX0    )vtx.tex0    (i)*=weight;
             if(flag&VTX_TEX1    )vtx.tex1    (i)*=weight;
             if(flag&VTX_TEX2    )vtx.tex2    (i)*=weight;
+            if(flag&VTX_TEX3    )vtx.tex3    (i)*=weight;
             if(flag&VTX_SIZE    )vtx.size    (i)*=weight;
             if(flag&VTX_COLOR   )vtx.color   (i) =weight*color[i];
          }
@@ -224,6 +227,7 @@ MeshBase& MeshBase::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt 
             if(flag&VTX_TEX0    )vtx.tex0    (i)=vtx.tex0    (d);
             if(flag&VTX_TEX1    )vtx.tex1    (i)=vtx.tex1    (d);
             if(flag&VTX_TEX2    )vtx.tex2    (i)=vtx.tex2    (d);
+            if(flag&VTX_TEX3    )vtx.tex3    (i)=vtx.tex3    (d);
             if(flag&VTX_SIZE    )vtx.size    (i)=vtx.size    (d);
             if(flag&VTX_COLOR   )vtx.color   (i)=vtx.color   (d);
          }
@@ -247,6 +251,7 @@ void MeshBase::copyVtx(Int i, MeshBase &dest, Int dest_i)C
       if(dest.vtx.tex0    ())dest.vtx.tex0    (dest_i)=(vtx.tex0    () ? vtx.tex0    (i) : 0);
       if(dest.vtx.tex1    ())dest.vtx.tex1    (dest_i)=(vtx.tex1    () ? vtx.tex1    (i) : 0);
       if(dest.vtx.tex2    ())dest.vtx.tex2    (dest_i)=(vtx.tex2    () ? vtx.tex2    (i) : 0);
+      if(dest.vtx.tex3    ())dest.vtx.tex3    (dest_i)=(vtx.tex3    () ? vtx.tex3    (i) : 0);
       if(dest.vtx.matrix  ())dest.vtx.matrix  (dest_i)=(vtx.matrix  () ? vtx.matrix  (i) : 0);
       if(dest.vtx.blend   ())dest.vtx.blend   (dest_i)=(vtx.blend   () ? vtx.blend   (i) : VecB4(255, 0, 0, 0)); // !! sum must be equal to 255 !!
       if(dest.vtx.size    ())dest.vtx.size    (dest_i)=(vtx.size    () ? vtx.size    (i) : 0);
@@ -632,7 +637,9 @@ MeshBase& MeshBase::tesselate()
            *tex1_src=temp.vtx.tex1(),
            *tex1_dst=temp.vtx.tex1(),
            *tex2_src=temp.vtx.tex2(),
-           *tex2_dst=temp.vtx.tex2();
+           *tex2_dst=temp.vtx.tex2(),
+           *tex3_src=temp.vtx.tex3(),
+           *tex3_dst=temp.vtx.tex3();
 
       VecB4 * mt_src=temp.vtx.matrix  (),
             * mt_dst=temp.vtx.matrix  ();
@@ -671,6 +678,7 @@ MeshBase& MeshBase::tesselate()
       if(tex0_dst){CopyN(tex0_dst, vtx.tex0    (), vtxs); tex0_dst+=vtxs;}
       if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
       if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
+      if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
       if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
       if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
       if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
@@ -777,6 +785,14 @@ MeshBase& MeshBase::tesselate()
             tex2_dst[1]=Avg(t1, t2);
             tex2_dst[2]=Avg(t2, t0);
             tex2_dst+=3;
+         }
+         if(tex3_dst)
+         {
+            Vec2 t0=tex3_src[ind.x], t1=tex3_src[ind.y], t2=tex3_src[ind.z];
+            tex3_dst[0]=Avg(t0, t1);
+            tex3_dst[1]=Avg(t1, t2);
+            tex3_dst[2]=Avg(t2, t0);
+            tex3_dst+=3;
          }
          if(siz_dst)
          {
@@ -963,6 +979,16 @@ MeshBase& MeshBase::tesselate()
             tex2_dst[4]=Avg(t0, t1, t2, t3);
             tex2_dst+=5;
          }
+         if(tex3_dst)
+         {
+            Vec2 t0=tex3_src[ind.x], t1=tex3_src[ind.y], t2=tex3_src[ind.z], t3=tex3_src[ind.w];
+            tex3_dst[0]=Avg(t0, t1);
+            tex3_dst[1]=Avg(t1, t2);
+            tex3_dst[2]=Avg(t2, t3);
+            tex3_dst[3]=Avg(t3, t0);
+            tex3_dst[4]=Avg(t0, t1, t2, t3);
+            tex3_dst+=5;
+         }
          if(siz_dst)
          {
             Flt s0=siz_src[ind.x], s1=siz_src[ind.y], s2=siz_src[ind.z], s3=siz_src[ind.w];
@@ -1111,7 +1137,7 @@ MeshBase& MeshBase::subdivide()
              tri_vtx_offset=vtxs,
             quad_vtx_offset= tri_vtx_offset+(tri_as_quad ? tris : 0),
             edge_vtx_offset=quad_vtx_offset+quads;
-   MeshBase temp(vtxs + (tri_as_quad ? tris : 0)+quads + edges, 0, tri_as_quad ? 0 : tris*4, (tri_as_quad ? tris*3 : 0)+quads*4, (VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX0|VTX_TEX1|VTX_TEX2|VTX_MATRIX|VTX_BLEND|VTX_SIZE|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)&flag());
+   MeshBase temp(vtxs + (tri_as_quad ? tris : 0)+quads + edges, 0, tri_as_quad ? 0 : tris*4, (tri_as_quad ? tris*3 : 0)+quads*4, (VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX0|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_MATRIX|VTX_BLEND|VTX_SIZE|VTX_MATERIAL|VTX_COLOR|VTX_FLAG)&flag());
    MemtN<IndexWeight, 256> skin;
 
    Vec  * pos_src=temp.vtx.pos (),
@@ -1129,7 +1155,9 @@ MeshBase& MeshBase::subdivide()
         *tex1_src=temp.vtx.tex1(),
         *tex1_dst=temp.vtx.tex1(),
         *tex2_src=temp.vtx.tex2(),
-        *tex2_dst=temp.vtx.tex2();
+        *tex2_dst=temp.vtx.tex2(),
+        *tex3_src=temp.vtx.tex3(),
+        *tex3_dst=temp.vtx.tex3();
 
    VecB4 * mt_src=temp.vtx.matrix  (),
          * mt_dst=temp.vtx.matrix  ();
@@ -1160,6 +1188,7 @@ MeshBase& MeshBase::subdivide()
    if(tex0_dst){CopyN(tex0_dst, vtx.tex0    (), vtxs); tex0_dst+=vtxs;}
    if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
    if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
+   if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
    if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
    if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
    if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
@@ -1189,6 +1218,7 @@ MeshBase& MeshBase::subdivide()
       if(tex0_dst)*tex0_dst++=Avg (tex0_src[p0],tex0_src[p1],tex0_src[p2]);
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2]);
+      if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2]);
       if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2]);
       if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2]);
@@ -1219,6 +1249,7 @@ MeshBase& MeshBase::subdivide()
       if(tex0_dst)*tex0_dst++=Avg (tex0_src[p0],tex0_src[p1],tex0_src[p2],tex0_src[p3]);
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2],tex1_src[p3]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2],tex2_src[p3]);
+      if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2],tex3_src[p3]);
       if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2], siz_src[p3]);
       if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2], mtl_src[p3]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2], col_src[p3]);
@@ -1246,6 +1277,7 @@ MeshBase& MeshBase::subdivide()
       if(tex0_dst)tex0_dst[i]=Avg (tex0_src[p0],tex0_src[p1]);
       if(tex1_dst)tex1_dst[i]=Avg (tex1_src[p0],tex1_src[p1]);
       if(tex2_dst)tex2_dst[i]=Avg (tex2_src[p0],tex2_src[p1]);
+      if(tex3_dst)tex3_dst[i]=Avg (tex3_src[p0],tex3_src[p1]);
       if( siz_dst) siz_dst[i]=Avg ( siz_src[p0], siz_src[p1]);
       if( mtl_dst) mtl_dst[i]=AvgI( mtl_src[p0], mtl_src[p1]);
       if( col_dst) col_dst[i]=Avg ( col_src[p0], col_src[p1]);
@@ -1403,7 +1435,7 @@ MeshBase& MeshBase::subdivideEdge(Bool freeze_z, C CMemPtr<Bool> &is)
    Int      vtxs =T.vtxs (),
             edges=T.edges(),
             num  =(is ? CountIs(is) : edges);
-   MeshBase temp(vtxs+num, edges+num, 0, 0, (VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX0|VTX_TEX1|VTX_TEX2|VTX_MATRIX|VTX_BLEND|VTX_SIZE|VTX_MATERIAL|VTX_COLOR|VTX_FLAG|EDGE_FLAG|EDGE_ID)&flag());
+   MeshBase temp(vtxs+num, edges+num, 0, 0, (VTX_NRM_TAN_BIN|VTX_HLP|VTX_TEX0|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_MATRIX|VTX_BLEND|VTX_SIZE|VTX_MATERIAL|VTX_COLOR|VTX_FLAG|EDGE_FLAG|EDGE_ID)&flag());
    MemtN<IndexWeight, 256> skin;
 
    // original points
@@ -1414,6 +1446,7 @@ MeshBase& MeshBase::subdivideEdge(Bool freeze_z, C CMemPtr<Bool> &is)
    CopyN(temp.vtx.tex0    (), vtx.tex0    (), vtxs);
    CopyN(temp.vtx.tex1    (), vtx.tex1    (), vtxs);
    CopyN(temp.vtx.tex2    (), vtx.tex2    (), vtxs);
+   CopyN(temp.vtx.tex3    (), vtx.tex3    (), vtxs);
    CopyN(temp.vtx.matrix  (), vtx.matrix  (), vtxs);
    CopyN(temp.vtx.blend   (), vtx.blend   (), vtxs);
    CopyN(temp.vtx.size    (), vtx.size    (), vtxs);
@@ -1438,6 +1471,7 @@ MeshBase& MeshBase::subdivideEdge(Bool freeze_z, C CMemPtr<Bool> &is)
       if(temp.vtx.tex0    ())temp.vtx.tex0    (vtxs+j)=Avg (vtx.tex0    (p0),vtx.tex0    (p1));
       if(temp.vtx.tex1    ())temp.vtx.tex1    (vtxs+j)=Avg (vtx.tex1    (p0),vtx.tex1    (p1));
       if(temp.vtx.tex2    ())temp.vtx.tex2    (vtxs+j)=Avg (vtx.tex2    (p0),vtx.tex2    (p1));
+      if(temp.vtx.tex3    ())temp.vtx.tex3    (vtxs+j)=Avg (vtx.tex3    (p0),vtx.tex3    (p1));
       if(temp.vtx.size    ())temp.vtx.size    (vtxs+j)=Avg (vtx.size    (p0),vtx.size    (p1));
       if(temp.vtx.material())temp.vtx.material(vtxs+j)=AvgI(vtx.material(p0),vtx.material(p1));
       if(temp.vtx.color   ())temp.vtx.color   (vtxs+j)=Avg (vtx.color   (p0),vtx.color   (p1));

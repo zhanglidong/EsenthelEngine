@@ -212,6 +212,7 @@ MeshBase& MeshBase::setVtxDup2D(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos)
                      if(flag&VTX_TEX0     && !EqualTex(vtx.tex0    (ind_cur), vtx.tex0    (ind_test))            )continue;
                      if(flag&VTX_TEX1     && !EqualTex(vtx.tex1    (ind_cur), vtx.tex1    (ind_test))            )continue;
                      if(flag&VTX_TEX2     && !EqualTex(vtx.tex2    (ind_cur), vtx.tex2    (ind_test))            )continue;
+                     if(flag&VTX_TEX3     && !EqualTex(vtx.tex3    (ind_cur), vtx.tex3    (ind_test))            )continue;
                      if(flag&VTX_SIZE     && !Equal   (vtx.size    (ind_cur), vtx.size    (ind_test))            )continue;
                      if(flag&VTX_BLEND    &&           vtx.blend   (ind_cur)!=vtx.blend   (ind_test)             )continue;
                      if(flag&VTX_MATRIX   &&           vtx.matrix  (ind_cur)!=vtx.matrix  (ind_test)             )continue;
@@ -304,6 +305,7 @@ MeshBase& MeshBase::setVtxDupEx(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Flt ta
                      if(flag&VTX_TEX0     && !EqualTex(vtx.tex0    (ind_cur), vtx.tex0    (ind_test), tex_wrap))continue;
                      if(flag&VTX_TEX1     && !EqualTex(vtx.tex1    (ind_cur), vtx.tex1    (ind_test), tex_wrap))continue;
                      if(flag&VTX_TEX2     && !EqualTex(vtx.tex2    (ind_cur), vtx.tex2    (ind_test), tex_wrap))continue;
+                     if(flag&VTX_TEX3     && !EqualTex(vtx.tex3    (ind_cur), vtx.tex3    (ind_test), tex_wrap))continue;
                      if(flag&VTX_SIZE     && !Equal   (vtx.size    (ind_cur), vtx.size    (ind_test))          )continue;
                      if(flag&VTX_BLEND    &&           vtx.blend   (ind_cur)!=vtx.blend   (ind_test)           )continue;
                      if(flag&VTX_MATRIX   &&           vtx.matrix  (ind_cur)!=vtx.matrix  (ind_test)           )continue;

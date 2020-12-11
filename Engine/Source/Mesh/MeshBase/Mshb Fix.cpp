@@ -113,8 +113,8 @@ struct VTX
 };
 MeshBase& MeshBase::fixTexWrapping(Byte tex_index)
 {
-   if(InRange(tex_index, 3))
-      if(Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : vtx.tex2()))
+   if(InRange(tex_index, 4))
+      if(Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : (tex_index==2) ? vtx.tex2() : vtx.tex3()))
    {
       Int *p, p0, p1, p2, p3, j;
       Memt<VTX> vs; vs.setNum(vtxs());
@@ -155,7 +155,7 @@ MeshBase& MeshBase::fixTexWrapping(Byte tex_index)
       // copy mshb
       {
          MeshBase temp(vtxs()+dups, 0, 0, 0, flag()); temp.copyVtxs(T);
-         tex=((tex_index==0) ? temp.vtx.tex0() : (tex_index==1) ? temp.vtx.tex1() : temp.vtx.tex2());
+         tex=((tex_index==0) ? temp.vtx.tex0() : (tex_index==1) ? temp.vtx.tex1() : (tex_index==2) ? temp.vtx.tex2() : temp.vtx.tex3());
          FREPA(vtx)if(vs[i].dup)
          {
             j=vs[i].dup; copyVtx(i, temp, j);
@@ -219,8 +219,8 @@ MeshBase& MeshBase::fixTexWrapping(Byte tex_index)
 /******************************************************************************/
 MeshBase& MeshBase::fixTexOffset(Byte tex_index)
 {
-   if(InRange(tex_index, 3))
-      if(Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : vtx.tex2()))
+   if(InRange(tex_index, 4))
+      if(Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : (tex_index==2) ? vtx.tex2() : vtx.tex3()))
    {
       exclude(VTX_DUP);
 

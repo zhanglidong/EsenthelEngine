@@ -728,6 +728,12 @@ struct CSG // Constructive Solid Geometry
                   CHS(mshb.vtx.tex2(ind.y).x);
                   CHS(mshb.vtx.tex2(ind.z).x);
                }
+               if(mshb.vtx.tex3())
+               {
+                  CHS(mshb.vtx.tex3(ind.x).x);
+                  CHS(mshb.vtx.tex3(ind.y).x);
+                  CHS(mshb.vtx.tex3(ind.z).x);
+               }
             }
          }
       }
