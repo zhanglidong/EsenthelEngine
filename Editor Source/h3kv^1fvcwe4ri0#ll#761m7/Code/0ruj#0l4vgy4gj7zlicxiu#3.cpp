@@ -2386,15 +2386,15 @@ Str EditToGamePath(  Str  path)
 /******************************************************************************/
 cchar8 *FormatSuffixes[]=
 {
-   "_BC1",
-   "_BC3", // for Web
-   "_ETC2_R",
-   "_ETC2_RG",
-   "_ETC2_RGB",
-   "_ETC2_RGBA",
-   "_PVRTC1_2",
-   "_PVRTC1_4",
-   "_SIMPLE", // used for simplified Materials
+   "_BC1"      , // for DX11 UWP, Web
+   "_BC3"      , // for DX11 UWP, Web
+   "_ETC2_R"   , // for Android, iOS
+   "_ETC2_RG"  , // for Android, iOS
+   "_ETC2_RGB" , // for Android, iOS
+   "_ETC2_RGBA", // for Android, iOS
+   "_PVRTC1_2" , // for iOS
+   "_PVRTC1_4" , // for iOS
+   "_SIMPLE"   , // used for simplified Materials
 };  int FormatSuffixElms=Elms(FormatSuffixes);
 cchar8* FormatSuffixSimple() {return "_SIMPLE";}
 cchar8* FormatSuffix(IMAGE_TYPE type)

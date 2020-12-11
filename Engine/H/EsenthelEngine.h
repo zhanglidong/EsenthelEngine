@@ -5,20 +5,18 @@
 /******************************************************************************
 
    Following defines are available, they are always set to 0 (disabled) or 1 (enabled)
-      WINDOWS         - Windows                       platform
-      WINDOWS_DESKTOP - Windows Desktop               platform
-      WINDOWS_PHONE   - Windows Phone                 platform
-      MAC             - Mac OS X                      platform
-      IOS             - iOS                           platform
-      LINUX           - Linux                         platform
-      ANDROID         - Android                       platform
-      SWITCH          - Nintendo Switch               platform
-      WEB             - Web                           platform
-      DESKTOP         - Windows Desktop, Mac, Linux   platform
-      MOBILE          - Windows Phone  , iOS, Android platform
-      APPLE           - Mac, iOS                      platform
-      X64             - 64-bit                        platform
-      DEBUG           - Debug mode
+      WINDOWS - Windows                       platform
+      MAC     - Mac OS                        platform
+      IOS     - iOS                           platform
+      LINUX   - Linux                         platform
+      ANDROID - Android                       platform
+      SWITCH  - Nintendo Switch               platform
+      WEB     - Web                           platform
+      DESKTOP - Windows, Mac, Linux           platform
+      MOBILE  - Android, iOS, Nintendo Switch platform
+      APPLE   - Mac, iOS                      platform
+      X64     - 64-bit                        platform
+      DEBUG   - Debug mode
 
    Sample Usage:
 
@@ -107,14 +105,12 @@
 #endif
 
 // Other
-#define WINDOWS         (WINDOWS_OLD || WINDOWS_NEW)
-#define WINDOWS_PHONE   (WINDOWS     &&  ARM       ) // can't use WINAPI_FAMILY_PHONE_APP because that's only for Win8
-#define WINDOWS_DESKTOP (WINDOWS     && !ARM       )
+#define WINDOWS (WINDOWS_OLD || WINDOWS_NEW)
 
 #define APPLE (MAC || IOS)
 
-#define DESKTOP (WINDOWS_DESKTOP || MAC || LINUX            )
-#define MOBILE  (WINDOWS_PHONE   || IOS || ANDROID || SWITCH)
+#define DESKTOP (WINDOWS || MAC || LINUX )
+#define MOBILE  (ANDROID || IOS || SWITCH)
 
 #if (WINDOWS+MAC+IOS+LINUX+ANDROID+SWITCH+WEB)!=1
    #error Unsupported platform detected

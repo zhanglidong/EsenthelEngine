@@ -2254,8 +2254,8 @@ Str EditToGamePath(  Str  path)
 /******************************************************************************/
 cchar8 *FormatSuffixes[]=
 {
-   "_BC1",
-   "_BC3", // for Web
+   "_BC1", // for DX11 UWP, Web
+   "_BC3", // for DX11 UWP, Web
    "_ETC2_R",
    "_ETC2_RG",
    "_ETC2_RGB",

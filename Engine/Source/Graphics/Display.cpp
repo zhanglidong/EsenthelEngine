@@ -821,7 +821,7 @@ void DisplayClass::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_cl
 DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 {
    // there's only one 'DisplayClass' global 'D' and it doesn't need clearing members to zero
-  _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
+  _full            =MOBILE; // by default request fullscreen for MOBILE
   _sync            =true;
   _exclusive       =true;
   _color_space     =COLOR_SPACE_NONE;
