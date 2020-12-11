@@ -268,14 +268,14 @@ Bool ImportMS3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animati
             {
                Int t=group.triangleIndices[i]; if(!InRange(t, tris))goto invalid;
                ms3d_triangle_t &triangle=*ms3d.GetTriangle(t); REPA(triangle.vertexIndices)if(!InRange(triangle.vertexIndices[i], vtxs))goto invalid;
-               ms3d_vertex_t   &vertex0 =*ms3d.GetVertex  (triangle.vertexIndices[0]);
-               ms3d_vertex_t   &vertex1 =*ms3d.GetVertex  (triangle.vertexIndices[1]);
-               ms3d_vertex_t   &vertex2 =*ms3d.GetVertex  (triangle.vertexIndices[2]);
+               ms3d_vertex_t   &vtx0    =*ms3d.GetVertex  (triangle.vertexIndices[0]);
+               ms3d_vertex_t   &vtx1    =*ms3d.GetVertex  (triangle.vertexIndices[1]);
+               ms3d_vertex_t   &vtx2    =*ms3d.GetVertex  (triangle.vertexIndices[2]);
 
                Int v=i*3;
-               base.vtx.pos(v+0).set(vertex0.vertex[0], vertex0.vertex[1], vertex0.vertex[2]);
-               base.vtx.pos(v+1).set(vertex1.vertex[0], vertex1.vertex[1], vertex1.vertex[2]);
-               base.vtx.pos(v+2).set(vertex2.vertex[0], vertex2.vertex[1], vertex2.vertex[2]);
+               base.vtx.pos(v+0).set(vtx0.vertex[0], vtx0.vertex[1], vtx0.vertex[2]);
+               base.vtx.pos(v+1).set(vtx1.vertex[0], vtx1.vertex[1], vtx1.vertex[2]);
+               base.vtx.pos(v+2).set(vtx2.vertex[0], vtx2.vertex[1], vtx2.vertex[2]);
 
                base.vtx.nrm(v+0).set(triangle.vertexNormals[0][0], triangle.vertexNormals[0][1], triangle.vertexNormals[0][2]);
                base.vtx.nrm(v+1).set(triangle.vertexNormals[1][0], triangle.vertexNormals[1][1], triangle.vertexNormals[1][2]);
@@ -287,9 +287,9 @@ Bool ImportMS3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animati
 
                if(base.vtx.matrix() && base.vtx.blend())
                {
-                  SetSkin(base.vtx.matrix(v+0), base.vtx.blend(v+0), ms3d, vertex0, old_to_new, skel);
-                  SetSkin(base.vtx.matrix(v+1), base.vtx.blend(v+1), ms3d, vertex1, old_to_new, skel);
-                  SetSkin(base.vtx.matrix(v+2), base.vtx.blend(v+2), ms3d, vertex2, old_to_new, skel);
+                  SetSkin(base.vtx.matrix(v+0), base.vtx.blend(v+0), ms3d, vtx0, old_to_new, skel);
+                  SetSkin(base.vtx.matrix(v+1), base.vtx.blend(v+1), ms3d, vtx1, old_to_new, skel);
+                  SetSkin(base.vtx.matrix(v+2), base.vtx.blend(v+2), ms3d, vtx2, old_to_new, skel);
                }
 
                base.tri.ind(i).set(v+0, v+1, v+2);

@@ -350,6 +350,12 @@ void MeshBase::drawAuto(C Material *material)C
             v[1].tex2=vtx.tex2(p.y);
             v[2].tex2=vtx.tex2(p.z);
          }
+         if(vtx.tex3())
+         {
+            v[0].tex3=vtx.tex3(p.x);
+            v[1].tex3=vtx.tex3(p.y);
+            v[2].tex3=vtx.tex3(p.z);
+         }
          if(vtx.blend() && vtx.matrix())
          {
             v[0].blend =vtx.blend (p.x);
@@ -448,6 +454,13 @@ void MeshBase::drawAuto(C Material *material)C
             v[1].tex2=vtx.tex2(p.y);
             v[2].tex2=vtx.tex2(p.z);
             v[3].tex2=vtx.tex2(p.w);
+         }
+         if(vtx.tex3())
+         {
+            v[0].tex3=vtx.tex3(p.x);
+            v[1].tex3=vtx.tex3(p.y);
+            v[2].tex3=vtx.tex3(p.z);
+            v[3].tex3=vtx.tex3(p.w);
          }
          if(vtx.blend() && vtx.matrix())
          {

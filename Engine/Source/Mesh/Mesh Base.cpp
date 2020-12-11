@@ -53,6 +53,7 @@ void MeshBase::copyVtxs(C MeshBase &src)
    CopyN(vtx.tex0    (), src.vtx.tex0    (), elms);
    CopyN(vtx.tex1    (), src.vtx.tex1    (), elms);
    CopyN(vtx.tex2    (), src.vtx.tex2    (), elms);
+   CopyN(vtx.tex3    (), src.vtx.tex3    (), elms);
    CopyN(vtx.matrix  (), src.vtx.matrix  (), elms);
    CopyN(vtx.blend   (), src.vtx.blend   (), elms);
    CopyN(vtx.size    (), src.vtx.size    (), elms);
@@ -72,6 +73,7 @@ void MeshBase::copyVtxs(C MeshBase &src, C CMemPtr<Bool> &is)
    CopyIs(vtx.tex0    (), src.vtx.tex0    (), is);
    CopyIs(vtx.tex1    (), src.vtx.tex1    (), is);
    CopyIs(vtx.tex2    (), src.vtx.tex2    (), is);
+   CopyIs(vtx.tex3    (), src.vtx.tex3    (), is);
    CopyIs(vtx.matrix  (), src.vtx.matrix  (), is);
    CopyIs(vtx.blend   (), src.vtx.blend   (), is);
    CopyIs(vtx.size    (), src.vtx.size    (), is);
@@ -294,6 +296,7 @@ VtxFull& VtxFull::from(C MeshBase &mshb, Int i)
       if(mshb.vtx.tex0    ())tex0    =mshb.vtx.tex0    (i);else tex0.zero();
       if(mshb.vtx.tex1    ())tex1    =mshb.vtx.tex1    (i);else tex1.zero();
       if(mshb.vtx.tex2    ())tex2    =mshb.vtx.tex2    (i);else tex2.zero();
+      if(mshb.vtx.tex3    ())tex3    =mshb.vtx.tex3    (i);else tex3.zero();
       if(mshb.vtx.color   ())color   =mshb.vtx.color   (i);else color=WHITE;
       if(mshb.vtx.material())material=mshb.vtx.material(i);else material.set(255, 0, 0, 0); // !! 'material.sum' must be exactly equal to 255 !!
       if(mshb.vtx.matrix  ())matrix  =mshb.vtx.matrix  (i);else matrix  .zero();
@@ -314,6 +317,7 @@ void VtxFull::to(MeshBase &mshb, Int i)C
       if(mshb.vtx.tex0    ())mshb.vtx.tex0    (i)=tex0;
       if(mshb.vtx.tex1    ())mshb.vtx.tex1    (i)=tex1;
       if(mshb.vtx.tex2    ())mshb.vtx.tex2    (i)=tex2;
+      if(mshb.vtx.tex3    ())mshb.vtx.tex3    (i)=tex3;
       if(mshb.vtx.color   ())mshb.vtx.color   (i)=color;
       if(mshb.vtx.material())mshb.vtx.material(i)=material;
       if(mshb.vtx.matrix  ())mshb.vtx.matrix  (i)=matrix;
@@ -332,6 +336,7 @@ VtxFull& VtxFull::avg(C VtxFull &a, C VtxFull &b)
    tex0    =Avg (a.tex0    , b.tex0    );
    tex1    =Avg (a.tex1    , b.tex1    );
    tex2    =Avg (a.tex2    , b.tex2    );
+   tex3    =Avg (a.tex3    , b.tex3    );
    size    =Avg (a.size    , b.size    );
    color   =Avg (a.color   , b.color   );
    material=AvgI(a.material, b.material);
@@ -354,6 +359,7 @@ VtxFull& VtxFull::lerp(C VtxFull &a, C VtxFull &b, Flt step)
    tex0    =     a.tex0*step1 + b.tex0*step;
    tex1    =     a.tex1*step1 + b.tex1*step;
    tex2    =     a.tex2*step1 + b.tex2*step;
+   tex3    =     a.tex3*step1 + b.tex3*step;
    size    =     a.size*step1 + b.size*step;
    color   =Lerp(a.color   , b.color   , step);
    material=Lerp(a.material, b.material, step);
@@ -379,6 +385,7 @@ VtxFull& VtxFull::lerp(C VtxFull &a, C VtxFull &b, C VtxFull &c, C Vec &blend)
    T.tex0    =  a.tex0*ba + b.tex0*bb + c.tex0*bc ;
    T.tex1    =  a.tex1*ba + b.tex1*bb + c.tex1*bc ;
    T.tex2    =  a.tex2*ba + b.tex2*bb + c.tex2*bc ;
+   T.tex3    =  a.tex3*ba + b.tex3*bb + c.tex3*bc ;
    T.size    =  a.size*ba + b.size*bb + c.size*bc ;
    T.color   =Lerp(a.color   , b.color   , c.color   , blend);
    T.material=Lerp(a.material, b.material, c.material, blend);
@@ -415,6 +422,7 @@ MESH_FLAG MeshBase::flag()C
    if(vtx.tex0    ())f|=VTX_TEX0;
    if(vtx.tex1    ())f|=VTX_TEX1;
    if(vtx.tex2    ())f|=VTX_TEX2;
+   if(vtx.tex3    ())f|=VTX_TEX3;
    if(vtx.matrix  ())f|=VTX_MATRIX;
    if(vtx.blend   ())f|=VTX_BLEND;
    if(vtx.size    ())f|=VTX_SIZE;
@@ -459,6 +467,7 @@ UInt MeshBase::memUsage()C
       if(vtx.tex0    ())s+=SIZE(*vtx.tex0    ());
       if(vtx.tex1    ())s+=SIZE(*vtx.tex1    ());
       if(vtx.tex2    ())s+=SIZE(*vtx.tex2    ());
+      if(vtx.tex3    ())s+=SIZE(*vtx.tex3    ());
       if(vtx.matrix  ())s+=SIZE(*vtx.matrix  ());
       if(vtx.blend   ())s+=SIZE(*vtx.blend   ());
       if(vtx.size    ())s+=SIZE(*vtx.size    ());
@@ -515,6 +524,7 @@ MeshBase& MeshBase::include(MESH_FLAG f)
       if(f&VTX_TEX0     && !vtx._tex0    )Alloc(vtx._tex0    , elms);
       if(f&VTX_TEX1     && !vtx._tex1    )Alloc(vtx._tex1    , elms);
       if(f&VTX_TEX2     && !vtx._tex2    )Alloc(vtx._tex2    , elms);
+      if(f&VTX_TEX3     && !vtx._tex3    )Alloc(vtx._tex3    , elms);
       if(f&VTX_MATRIX   && !vtx._matrix  )Alloc(vtx._matrix  , elms);
       if(f&VTX_BLEND    && !vtx._blend   )Alloc(vtx._blend   , elms);
       if(f&VTX_SIZE     && !vtx._size    )Alloc(vtx._size    , elms);
@@ -566,6 +576,7 @@ MeshBase& MeshBase::exclude(MESH_FLAG f)
       if(f&VTX_TEX0    )Free(vtx._tex0    );
       if(f&VTX_TEX1    )Free(vtx._tex1    );
       if(f&VTX_TEX2    )Free(vtx._tex2    );
+      if(f&VTX_TEX3    )Free(vtx._tex3    );
       if(f&VTX_MATRIX  )Free(vtx._matrix  );
       if(f&VTX_BLEND   )Free(vtx._blend   );
       if(f&VTX_SIZE    )Free(vtx._size    );
@@ -649,6 +660,7 @@ Bool MeshBase::createVtx(C VtxBuf &vb, MESH_FLAG flag, UInt storage, /*MeshRende
             Set(v, i, vtx.tex0    (), flag&VTX_TEX0    );
             Set(v, i, vtx.tex1    (), flag&VTX_TEX1    );
             Set(v, i, vtx.tex2    (), flag&VTX_TEX2    );
+            Set(v, i, vtx.tex3    (), flag&VTX_TEX3    );
             Set(v, i, vtx.matrix  (), flag&VTX_MATRIX  );
             Set(v, i, vtx.blend   (), flag&VTX_BLEND   );
             Set(v, i, vtx.size    (), flag&VTX_SIZE    );
@@ -667,6 +679,7 @@ Bool MeshBase::createVtx(C VtxBuf &vb, MESH_FLAG flag, UInt storage, /*MeshRende
             Set(v, i, vtx.tex0    (), flag&VTX_TEX0    );
             Set(v, i, vtx.tex1    (), flag&VTX_TEX1    );
             Set(v, i, vtx.tex2    (), flag&VTX_TEX2    );
+            Set(v, i, vtx.tex3    (), flag&VTX_TEX3    );
             Set(v, i, vtx.matrix  (), flag&VTX_MATRIX  );
             Set(v, i, vtx.blend   (), flag&VTX_BLEND   );
             Set(v, i, vtx.size    (), flag&VTX_SIZE    );
@@ -853,6 +866,7 @@ MeshBase& MeshBase::create(C MeshBase *src[], Int elms, MESH_FLAG flag_and, Bool
    Vec2  *vtx_tex0    =temp.vtx.tex0    ();
    Vec2  *vtx_tex1    =temp.vtx.tex1    ();
    Vec2  *vtx_tex2    =temp.vtx.tex2    ();
+   Vec2  *vtx_tex3    =temp.vtx.tex3    ();
    VecB4 *vtx_matrix  =temp.vtx.matrix  ();
    VecB4 *vtx_blend   =temp.vtx.blend   ();
    Flt   *vtx_size    =temp.vtx.size    ();
@@ -886,6 +900,7 @@ MeshBase& MeshBase::create(C MeshBase *src[], Int elms, MESH_FLAG flag_and, Bool
       if(vtx_tex0    ){CopyN(vtx_tex0    , mesh->vtx.tex0    (), vtxs); vtx_tex0    +=vtxs;}
       if(vtx_tex1    ){CopyN(vtx_tex1    , mesh->vtx.tex1    (), vtxs); vtx_tex1    +=vtxs;}
       if(vtx_tex2    ){CopyN(vtx_tex2    , mesh->vtx.tex2    (), vtxs); vtx_tex2    +=vtxs;}
+      if(vtx_tex3    ){CopyN(vtx_tex3    , mesh->vtx.tex3    (), vtxs); vtx_tex3    +=vtxs;}
       if(vtx_matrix  ){CopyN(vtx_matrix  , mesh->vtx.matrix  (), vtxs); vtx_matrix  +=vtxs;}
       if(vtx_size    ){CopyN(vtx_size    , mesh->vtx.size    (), vtxs); vtx_size    +=vtxs;}
       if(vtx_flag    ){CopyN(vtx_flag    , mesh->vtx.flag    (), vtxs); vtx_flag    +=vtxs;}

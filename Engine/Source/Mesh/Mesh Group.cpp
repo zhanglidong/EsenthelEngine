@@ -238,6 +238,7 @@ MeshGroup& MeshGroup::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Fl
             if(flag&VTX_TEX0    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)*=weight;
             if(flag&VTX_TEX1    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)*=weight;
             if(flag&VTX_TEX2    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)*=weight;
+            if(flag&VTX_TEX3    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.tex3    (vn.index.x)*=weight;
             if(flag&VTX_SIZE    )         meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)*=weight;
             if(flag&VTX_COLOR   )vn.color=meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x)* weight;
          }
@@ -262,6 +263,7 @@ MeshGroup& MeshGroup::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Fl
             if(flag&VTX_TEX0    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x);
             if(flag&VTX_TEX1    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x);
             if(flag&VTX_TEX2    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x);
+            if(flag&VTX_TEX3    )meshes[vd.index.z].parts[vd.index.y].base.vtx.tex3    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.tex3    (vn.index.x);
             if(flag&VTX_SIZE    )meshes[vd.index.z].parts[vd.index.y].base.vtx.size    (vd.index.x)+=weight*meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x);
             if(flag&VTX_COLOR   )vd                                           .color               +=weight*vn                                           .color               ;
          }
@@ -285,6 +287,7 @@ MeshGroup& MeshGroup::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Fl
             if(flag&VTX_TEX0    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)*=weight;
             if(flag&VTX_TEX1    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)*=weight;
             if(flag&VTX_TEX2    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)*=weight;
+            if(flag&VTX_TEX3    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex3    (vn.index.x)*=weight;
             if(flag&VTX_SIZE    )meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)*=weight;
             if(flag&VTX_COLOR   )meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x) =weight*vn.color;
          }
@@ -307,6 +310,7 @@ MeshGroup& MeshGroup::weldVtxValues(MESH_FLAG flag, Flt pos_eps, Flt nrm_cos, Fl
             if(flag&VTX_TEX0    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex0    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex0    (vd.index.x);
             if(flag&VTX_TEX1    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex1    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex1    (vd.index.x);
             if(flag&VTX_TEX2    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex2    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex2    (vd.index.x);
+            if(flag&VTX_TEX3    )meshes[vn.index.z].parts[vn.index.y].base.vtx.tex3    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.tex3    (vd.index.x);
             if(flag&VTX_SIZE    )meshes[vn.index.z].parts[vn.index.y].base.vtx.size    (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.size    (vd.index.x);
             if(flag&VTX_COLOR   )meshes[vn.index.z].parts[vn.index.y].base.vtx.color   (vn.index.x)=meshes[vd.index.z].parts[vd.index.y].base.vtx.color   (vd.index.x);
          }

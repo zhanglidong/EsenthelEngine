@@ -1271,6 +1271,7 @@ Bool MeshBase::saveTxt(FileText &f)C
    if(vtx.tex0    ()){f.putLine("VTX_TEX0"    ); f++; FREPA(vtx)f.put(S, vtx.tex0    (i)); f--;}
    if(vtx.tex1    ()){f.putLine("VTX_TEX1"    ); f++; FREPA(vtx)f.put(S, vtx.tex1    (i)); f--;}
    if(vtx.tex2    ()){f.putLine("VTX_TEX2"    ); f++; FREPA(vtx)f.put(S, vtx.tex2    (i)); f--;}
+   if(vtx.tex3    ()){f.putLine("VTX_TEX3"    ); f++; FREPA(vtx)f.put(S, vtx.tex3    (i)); f--;}
    if(vtx.matrix  ()){f.putLine("VTX_MATRIX"  ); f++; FREPA(vtx)f.put(S, vtx.matrix  (i)); f--;}
    if(vtx.blend   ()){f.putLine("VTX_BLEND"   ); f++; FREPA(vtx)f.put(S, vtx.blend   (i)); f--;}
    if(vtx.size    ()){f.putLine("VTX_SIZE"    ); f++; FREPA(vtx)f.put(S, vtx.size    (i)); f--;}
@@ -1313,6 +1314,7 @@ Bool MeshBase::loadTxt(FileText &f)
       if(f.cur("VTX_TEX0"    ) && f.getIn()){include(VTX_TEX0    ); FREPA(vtx)f.get(vtx.tex0    (i)); f.getOut();}else
       if(f.cur("VTX_TEX1"    ) && f.getIn()){include(VTX_TEX1    ); FREPA(vtx)f.get(vtx.tex1    (i)); f.getOut();}else
       if(f.cur("VTX_TEX2"    ) && f.getIn()){include(VTX_TEX2    ); FREPA(vtx)f.get(vtx.tex2    (i)); f.getOut();}else
+      if(f.cur("VTX_TEX3"    ) && f.getIn()){include(VTX_TEX3    ); FREPA(vtx)f.get(vtx.tex3    (i)); f.getOut();}else
       if(f.cur("VTX_MATRIX"  ) && f.getIn()){include(VTX_MATRIX  ); FREPA(vtx)f.get(vtx.matrix  (i)); f.getOut();}else
       if(f.cur("VTX_BLEND"   ) && f.getIn()){include(VTX_BLEND   ); FREPA(vtx)f.get(vtx.blend   (i)); f.getOut();}else
       if(f.cur("VTX_SIZE"    ) && f.getIn()){include(VTX_SIZE    ); FREPA(vtx)f.get(vtx.size    (i)); f.getOut();}else

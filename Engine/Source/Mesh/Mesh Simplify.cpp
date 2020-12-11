@@ -189,7 +189,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 {
    struct Weights
    {
-      Flt hlp, tex0, tex1, tex2, color, material, size; // no need to keep weight for pos (managed separately), nrm (will be normalized), skin (weights stored per bone/matrix)
+      Flt hlp, tex0, tex1, tex2, tex3, color, material, size; // no need to keep weight for pos (managed separately), nrm (will be normalized), skin (weights stored per bone/matrix)
 
       Weights() {}
       Weights(Flt weight)
@@ -198,6 +198,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          tex0    =weight;
          tex1    =weight;
          tex2    =weight;
+         tex3    =weight;
          color   =weight;
          material=weight;
          size    =weight;
@@ -206,7 +207,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
    struct VtxData
    {
       Vec   hlp, nrm;
-      Vec2  tex0, tex1, tex2;
+      Vec2  tex0, tex1, tex2, tex3;
       Vec4  color, material; // here material is allowed to be 0, because 'to' method supports that case
       VecB4 matrix, blend;
       Flt   size;
@@ -229,6 +230,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(mshb.vtx.tex0    ())tex0    =mshb.vtx.tex0    (i);else tex0.zero();
             if(mshb.vtx.tex1    ())tex1    =mshb.vtx.tex1    (i);else tex1.zero();
             if(mshb.vtx.tex2    ())tex2    =mshb.vtx.tex2    (i);else tex2.zero();
+            if(mshb.vtx.tex3    ())tex3    =mshb.vtx.tex3    (i);else tex3.zero();
             if(mshb.vtx.color   ())color   =mshb.vtx.color   (i);else color=1;
             if(mshb.vtx.material())material=mshb.vtx.material(i)/255.0f;else material.zero();
             if(mshb.vtx.matrix  ())matrix  =mshb.vtx.matrix  (i);else matrix.zero();
@@ -248,6 +250,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(mshb.vtx.tex0    ())mshb.vtx.tex0    (i)=tex0;
             if(mshb.vtx.tex1    ())mshb.vtx.tex1    (i)=tex1;
             if(mshb.vtx.tex2    ())mshb.vtx.tex2    (i)=tex2;
+            if(mshb.vtx.tex3    ())mshb.vtx.tex3    (i)=tex3;
             if(mshb.vtx.color   ())mshb.vtx.color   (i)=color;
             if(mshb.vtx.matrix  ())mshb.vtx.matrix  (i)=matrix;
             if(mshb.vtx.blend   ())mshb.vtx.blend   (i)=blend;
@@ -274,12 +277,13 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             FREPA(b.matrix)skin.New().set(b.matrix.c[i], b.blend.c[i]*step );
             SetSkin(skin, matrix, blend, null);
          }
-         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
          {
             if(flag&VTX_HLP )hlp =a.hlp *step1 + b.hlp *step;
             if(flag&VTX_SIZE)size=a.size*step1 + b.size*step;
             if(flag&VTX_TEX1)tex1=a.tex1*step1 + b.tex1*step;
             if(flag&VTX_TEX2)tex2=a.tex2*step1 + b.tex2*step;
+            if(flag&VTX_TEX3)tex3=a.tex3*step1 + b.tex3*step;
          }
       }
       void lerp(C VtxData &a, C VtxData &b, C VtxData &c, C Vec &blend, MESH_FLAG flag)
@@ -296,12 +300,13 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             FREPA(c.matrix)skin.New().set(c.matrix.c[i], c.blend.c[i]*blend.z);
             SetSkin(skin, T.matrix, T.blend, null);
          }
-         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
          {
             if(flag&VTX_HLP )hlp =a.hlp *blend.x + b.hlp *blend.y + c.hlp *blend.z;
             if(flag&VTX_SIZE)size=a.size*blend.x + b.size*blend.y + c.size*blend.z;
             if(flag&VTX_TEX1)tex1=a.tex1*blend.x + b.tex1*blend.y + c.tex1*blend.z;
             if(flag&VTX_TEX2)tex2=a.tex2*blend.x + b.tex2*blend.y + c.tex2*blend.z;
+            if(flag&VTX_TEX3)tex3=a.tex3*blend.x + b.tex3*blend.y + c.tex3*blend.z;
          }
       }
       void normalize(C Weights &weight, MESH_FLAG flag)
@@ -311,11 +316,12 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          if(flag&VTX_TEX0    )tex0    /=weight.tex0;
          if(flag&VTX_COLOR   )color   /=weight.color;
          if(flag&VTX_MATERIAL)material/=weight.material;
-         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+         if(flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
          {
             if(flag&VTX_HLP )hlp /=weight.hlp;
             if(flag&VTX_TEX1)tex1/=weight.tex1;
             if(flag&VTX_TEX2)tex2/=weight.tex2;
+            if(flag&VTX_TEX3)tex3/=weight.tex3;
             if(flag&VTX_SIZE)size/=weight.size;
          }
       }
@@ -348,6 +354,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                *vtx_tex0,
                *vtx_tex1,
                *vtx_tex2,
+               *vtx_tex3,
                *vtx_skin,
                *vtx_color,
                *vtx_material,
@@ -355,7 +362,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
 
       TrianglePtr& set(Triangle &tri) {T.tri=&tri; return T;}
 
-      void clear() {vtx_hlp=vtx_nrm=vtx_tex0=vtx_tex1=vtx_tex2=vtx_skin=vtx_color=vtx_material=vtx_size=null;}
+      void clear() {vtx_hlp=vtx_nrm=vtx_tex0=vtx_tex1=vtx_tex2=vtx_tex3=vtx_skin=vtx_color=vtx_material=vtx_size=null;}
    };
    enum BORDER
    {
@@ -632,11 +639,12 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                      if((add_flag&VTX_COLOR   ) && !Equal    (v.color   , v2.color                  ))FlagDisable(add_flag, VTX_COLOR   );
                      if((add_flag&VTX_MATERIAL) && !Equal    (v.material, v2.material               ))FlagDisable(add_flag, VTX_MATERIAL);
                      if((add_flag&VTX_SKIN    ) && !EqualSkin(v.matrix, v.blend, v2.matrix, v2.blend))FlagDisable(add_flag, VTX_SKIN    );
-                     if( add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+                     if( add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
                      {
                         if((add_flag&VTX_HLP ) && !Equal(v.hlp , v2.hlp ))FlagDisable(add_flag, VTX_HLP );
                         if((add_flag&VTX_TEX1) && !Equal(v.tex1, v2.tex1))FlagDisable(add_flag, VTX_TEX1);
                         if((add_flag&VTX_TEX2) && !Equal(v.tex2, v2.tex2))FlagDisable(add_flag, VTX_TEX2);
+                        if((add_flag&VTX_TEX3) && !Equal(v.tex3, v2.tex3))FlagDisable(add_flag, VTX_TEX3);
                         if((add_flag&VTX_SIZE) && !Equal(v.size, v2.size))FlagDisable(add_flag, VTX_SIZE);
                      }
                   }
@@ -648,11 +656,12 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
             if(add_flag&VTX_COLOR   ){tri.vtx_new.color   +=trip2.vtx_mid.color   ; trip2.vtx_color   =&tri.vtx_new; weight.color   +=tri2.weight;}
             if(add_flag&VTX_MATERIAL){tri.vtx_new.material+=trip2.vtx_mid.material; trip2.vtx_material=&tri.vtx_new; weight.material+=tri2.weight;}
             if(add_flag&VTX_SKIN    ){AddSkin(skin, trip2.vtx_mid.matrix, trip2.vtx_mid.blend, tri2.weight); trip2.vtx_skin=&tri.vtx_new;}
-            if(add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+            if(add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
             {
                if(add_flag&VTX_HLP ){tri.vtx_new.hlp +=trip2.vtx_mid.hlp ; trip2.vtx_hlp =&tri.vtx_new; weight.hlp +=tri2.weight;}
                if(add_flag&VTX_TEX1){tri.vtx_new.tex1+=trip2.vtx_mid.tex1; trip2.vtx_tex1=&tri.vtx_new; weight.tex1+=tri2.weight;}
                if(add_flag&VTX_TEX2){tri.vtx_new.tex2+=trip2.vtx_mid.tex2; trip2.vtx_tex2=&tri.vtx_new; weight.tex2+=tri2.weight;}
+               if(add_flag&VTX_TEX3){tri.vtx_new.tex3+=trip2.vtx_mid.tex3; trip2.vtx_tex3=&tri.vtx_new; weight.tex3+=tri2.weight;}
                if(add_flag&VTX_SIZE){tri.vtx_new.size+=trip2.vtx_mid.size; trip2.vtx_size=&tri.vtx_new; weight.size+=tri2.weight;}
             }
          }
@@ -674,6 +683,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
       if(trip.vtx_tex0    ){tri.vtx_new.tex0    =trip.vtx_tex0    ->tex0    ;                                         FlagDisable(set_flag, VTX_TEX0    );}
       if(trip.vtx_tex1    ){tri.vtx_new.tex1    =trip.vtx_tex1    ->tex1    ;                                         FlagDisable(set_flag, VTX_TEX1    );}
       if(trip.vtx_tex2    ){tri.vtx_new.tex2    =trip.vtx_tex2    ->tex2    ;                                         FlagDisable(set_flag, VTX_TEX2    );}
+      if(trip.vtx_tex3    ){tri.vtx_new.tex3    =trip.vtx_tex3    ->tex3    ;                                         FlagDisable(set_flag, VTX_TEX3    );}
       if(trip.vtx_skin    ){tri.vtx_new.matrix  =trip.vtx_skin    ->matrix  ; tri.vtx_new.blend=trip.vtx_skin->blend; FlagDisable(set_flag, VTX_SKIN    );}
       if(trip.vtx_color   ){tri.vtx_new.color   =trip.vtx_color   ->color   ;                                         FlagDisable(set_flag, VTX_COLOR   );}
       if(trip.vtx_material){tri.vtx_new.material=trip.vtx_material->material;                                         FlagDisable(set_flag, VTX_MATERIAL);}
@@ -687,6 +697,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          if(set_flag&VTX_TEX0    ){tri.vtx_new.tex0    =trip.vtx_mid.tex0    ; weight.tex0    =tri.weight;}
          if(set_flag&VTX_TEX1    ){tri.vtx_new.tex1    =trip.vtx_mid.tex1    ; weight.tex1    =tri.weight;}
          if(set_flag&VTX_TEX2    ){tri.vtx_new.tex2    =trip.vtx_mid.tex2    ; weight.tex2    =tri.weight;}
+         if(set_flag&VTX_TEX3    ){tri.vtx_new.tex3    =trip.vtx_mid.tex3    ; weight.tex3    =tri.weight;}
          if(set_flag&VTX_COLOR   ){tri.vtx_new.color   =trip.vtx_mid.color   ; weight.color   =tri.weight;}
          if(set_flag&VTX_MATERIAL){tri.vtx_new.material=trip.vtx_mid.material; weight.material=tri.weight;}
          if(set_flag&VTX_SIZE    ){tri.vtx_new.size    =trip.vtx_mid.size    ; weight.size    =tri.weight;}
@@ -721,11 +732,12 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                            if((add_flag&VTX_COLOR   ) &&                                    Equal    (v.color   , v2.color                  )){tri.vtx_new.color   +=trip2.vtx_mid.color   ; weight.color   +=tri2.weight;}
                            if((add_flag&VTX_MATERIAL) && tri.mtrl_group==tri2.mtrl_group && Equal    (v.material, v2.material               )){tri.vtx_new.material+=trip2.vtx_mid.material; weight.material+=tri2.weight;}
                            if((add_flag&VTX_SKIN    ) &&                                    EqualSkin(v.matrix, v.blend, v2.matrix, v2.blend))AddSkin(skin, trip2.vtx_mid.matrix, trip2.vtx_mid.blend, tri2.weight);
-                           if( add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_SIZE)) // uncommon
+                           if( add_flag&(VTX_HLP|VTX_TEX1|VTX_TEX2|VTX_TEX3|VTX_SIZE)) // uncommon
                            {
                               if((add_flag&VTX_HLP ) && Equal(v.hlp , v2.hlp )){tri.vtx_new.hlp +=trip2.vtx_mid.hlp ; weight.hlp +=tri2.weight;}
                               if((add_flag&VTX_TEX1) && Equal(v.tex1, v2.tex1)){tri.vtx_new.tex1+=trip2.vtx_mid.tex1; weight.tex1+=tri2.weight;}
                               if((add_flag&VTX_TEX2) && Equal(v.tex2, v2.tex2)){tri.vtx_new.tex2+=trip2.vtx_mid.tex2; weight.tex2+=tri2.weight;}
+                              if((add_flag&VTX_TEX3) && Equal(v.tex3, v2.tex3)){tri.vtx_new.tex3+=trip2.vtx_mid.tex3; weight.tex3+=tri2.weight;}
                               if((add_flag&VTX_SIZE) && Equal(v.size, v2.size)){tri.vtx_new.size+=trip2.vtx_mid.size; weight.size+=tri2.weight;}
                            }
                            break;
@@ -774,7 +786,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                   Vec2 got_tex=vtx_n.tex0*blend.x + vtx1.tex0*blend.y + vtx2.tex0*blend.z;
                   if(Dist2(got_tex, vtx0.tex0)>max_uv2)return false;
                }
-               if(test_flag&(VTX_TEX1|VTX_TEX2))
+               if(test_flag&(VTX_TEX1|VTX_TEX2|VTX_TEX3))
                {
                   if(test_flag&VTX_TEX1)
                   {
@@ -785,6 +797,11 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                   {
                      Vec2 got_tex=vtx_n.tex2*blend.x + vtx1.tex2*blend.y + vtx2.tex2*blend.z;
                      if(Dist2(got_tex, vtx0.tex2)>max_uv2)return false;
+                  }
+                  if(test_flag&VTX_TEX3)
+                  {
+                     Vec2 got_tex=vtx_n.tex3*blend.x + vtx1.tex3*blend.y + vtx2.tex3*blend.z;
+                     if(Dist2(got_tex, vtx0.tex3)>max_uv2)return false;
                   }
                }
                if(test_flag&VTX_COLOR)
@@ -820,7 +837,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                   Vec2 expected_tex=tri.vtxs[0].tex0*blend.x + tri.vtxs[1].tex0*blend.y + tri.vtxs[2].tex0*blend.z;
                   if(Dist2(expected_tex, vtx_n.tex0)>max_uv2)return false;
                }
-               if(test_flag&(VTX_TEX1|VTX_TEX2))
+               if(test_flag&(VTX_TEX1|VTX_TEX2|VTX_TEX3))
                {
                   if(test_flag&VTX_TEX1)
                   {
@@ -831,6 +848,11 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                   {
                      Vec2 expected_tex=tri.vtxs[0].tex2*blend.x + tri.vtxs[1].tex2*blend.y + tri.vtxs[2].tex2*blend.z;
                      if(Dist2(expected_tex, vtx_n.tex2)>max_uv2)return false;
+                  }
+                  if(test_flag&VTX_TEX3)
+                  {
+                     Vec2 expected_tex=tri.vtxs[0].tex3*blend.x + tri.vtxs[1].tex3*blend.y + tri.vtxs[2].tex3*blend.z;
+                     if(Dist2(expected_tex, vtx_n.tex3)>max_uv2)return false;
                   }
                }
                if(test_flag&VTX_COLOR)

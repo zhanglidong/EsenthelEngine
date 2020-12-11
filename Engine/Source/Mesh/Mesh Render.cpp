@@ -64,6 +64,7 @@ Int MeshRender::vtxOfs(MESH_FLAG elm)C
       if(_flag&VTX_TEX0    ){if(elm&VTX_TEX0    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_TEX1    ){if(elm&VTX_TEX1    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_TEX2    ){if(elm&VTX_TEX2    )return ofs; ofs+=SIZE(Vec2 );}
+      if(_flag&VTX_TEX3    ){if(elm&VTX_TEX3    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_MATRIX  ){if(elm&VTX_MATRIX  )return ofs; ofs+=SIZE(VecB4);}
       if(_flag&VTX_BLEND   ){if(elm&VTX_BLEND   )return ofs; ofs+=SIZE(VecB4);}
       if(_flag&VTX_SIZE    ){if(elm&VTX_SIZE    )return ofs; ofs+=SIZE(Flt  );}
@@ -79,6 +80,7 @@ Int MeshRender::vtxOfs(MESH_FLAG elm)C
       if(_flag&VTX_TEX0    ){if(elm&VTX_TEX0    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_TEX1    ){if(elm&VTX_TEX1    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_TEX2    ){if(elm&VTX_TEX2    )return ofs; ofs+=SIZE(Vec2 );}
+      if(_flag&VTX_TEX3    ){if(elm&VTX_TEX3    )return ofs; ofs+=SIZE(Vec2 );}
       if(_flag&VTX_MATRIX  ){if(elm&VTX_MATRIX  )return ofs; ofs+=SIZE(VecB4);}
       if(_flag&VTX_BLEND   ){if(elm&VTX_BLEND   )return ofs; ofs+=SIZE(VecB4);}
       if(_flag&VTX_SIZE    ){if(elm&VTX_SIZE    )return ofs; ofs+=SIZE(Flt  );}
@@ -206,6 +208,7 @@ Bool MeshRender::createRaw(C MeshBase &src, MESH_FLAG flag_and, Bool optimize, B
              C Vec2  *vtx_tex0    =((flag()&VTX_TEX0    ) ? src.vtx.tex0    () : null);
              C Vec2  *vtx_tex1    =((flag()&VTX_TEX1    ) ? src.vtx.tex1    () : null);
              C Vec2  *vtx_tex2    =((flag()&VTX_TEX2    ) ? src.vtx.tex2    () : null);
+             C Vec2  *vtx_tex3    =((flag()&VTX_TEX3    ) ? src.vtx.tex3    () : null);
              C VecB4 *vtx_matrix  =((flag()&VTX_MATRIX  ) ? src.vtx.matrix  () : null);
              C VecB4 *vtx_blend   =((flag()&VTX_BLEND   ) ? src.vtx.blend   () : null);
              C Flt   *vtx_size    =((flag()&VTX_SIZE    ) ? src.vtx.size    () : null);
@@ -221,6 +224,7 @@ Bool MeshRender::createRaw(C MeshBase &src, MESH_FLAG flag_and, Bool optimize, B
                   Set(v, i, vtx_tex0    );
                   Set(v, i, vtx_tex1    );
                   Set(v, i, vtx_tex2    );
+                  Set(v, i, vtx_tex3    );
                   Set(v, i, vtx_matrix  );
              BlendSet(v, i, vtx_blend   );
                   Set(v, i, vtx_size    );
@@ -238,6 +242,7 @@ Bool MeshRender::createRaw(C MeshBase &src, MESH_FLAG flag_and, Bool optimize, B
           C Vec2  *vtx_tex0    =((flag()&VTX_TEX0    ) ? src.vtx.tex0    () : null);
           C Vec2  *vtx_tex1    =((flag()&VTX_TEX1    ) ? src.vtx.tex1    () : null);
           C Vec2  *vtx_tex2    =((flag()&VTX_TEX2    ) ? src.vtx.tex2    () : null);
+          C Vec2  *vtx_tex3    =((flag()&VTX_TEX3    ) ? src.vtx.tex3    () : null);
           C VecB4 *vtx_matrix  =((flag()&VTX_MATRIX  ) ? src.vtx.matrix  () : null);
           C VecB4 *vtx_blend   =((flag()&VTX_BLEND   ) ? src.vtx.blend   () : null);
           C Flt   *vtx_size    =((flag()&VTX_SIZE    ) ? src.vtx.size    () : null);
@@ -254,6 +259,7 @@ Bool MeshRender::createRaw(C MeshBase &src, MESH_FLAG flag_and, Bool optimize, B
                Set(v, i, vtx_tex0    );
                Set(v, i, vtx_tex1    );
                Set(v, i, vtx_tex2    );
+               Set(v, i, vtx_tex3    );
                Set(v, i, vtx_matrix  );
           BlendSet(v, i, vtx_blend   );
                Set(v, i, vtx_size    );
@@ -450,6 +456,7 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, MESH_FLAG flag_and, Bool 
                       vtx_tex0    =mesh->vtxOfs(VTX_TEX0    ),
                       vtx_tex1    =mesh->vtxOfs(VTX_TEX1    ),
                       vtx_tex2    =mesh->vtxOfs(VTX_TEX2    ),
+                      vtx_tex3    =mesh->vtxOfs(VTX_TEX3    ),
                       vtx_matrix  =mesh->vtxOfs(VTX_MATRIX  ),
                       vtx_blend   =mesh->vtxOfs(VTX_BLEND   ),
                       vtx_size    =mesh->vtxOfs(VTX_SIZE    ),
@@ -509,6 +516,7 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, MESH_FLAG flag_and, Bool 
                      if(temp.flag()&VTX_TEX0    )if(vtx_tex0    >=0)Set(v, *(Vec2 *)(src+vtx_tex0    ));else Set(v, Vec2Zero);
                      if(temp.flag()&VTX_TEX1    )if(vtx_tex1    >=0)Set(v, *(Vec2 *)(src+vtx_tex1    ));else Set(v, Vec2Zero);
                      if(temp.flag()&VTX_TEX2    )if(vtx_tex2    >=0)Set(v, *(Vec2 *)(src+vtx_tex2    ));else Set(v, Vec2Zero);
+                     if(temp.flag()&VTX_TEX3    )if(vtx_tex3    >=0)Set(v, *(Vec2 *)(src+vtx_tex3    ));else Set(v, Vec2Zero);
                      if(temp.flag()&VTX_MATRIX  )if(vtx_matrix  >=0)Set(v, *(VecB4*)(src+vtx_matrix  ));else Set(v, VecB4(  0, 0, 0, 0));
                      if(temp.flag()&VTX_BLEND   )if(vtx_blend   >=0)Set(v, *(VecB4*)(src+vtx_blend   ));else Set(v, VecB4(255, 0, 0, 0));
                      if(temp.flag()&VTX_SIZE    )if(vtx_size    >=0)Set(v, *(Flt  *)(src+vtx_size    ));else Set(v, Flt(0));
@@ -862,9 +870,9 @@ void MeshRender::setNormalHeightmap(Image &height,Image *l,Image *r,Image *b,Ima
 /******************************************************************************/
 void MeshRender::texMove(C Vec2 &move, Byte tex_index)
 {
-   if(InRange(tex_index, 3) && move.any())
+   if(InRange(tex_index, 4) && move.any())
    {
-      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : (tex_index==2) ? VTX_TEX2 : VTX_TEX3);
       if( ofs>=0)if(Byte *vtx=vtxLock())
       {
          vtx+=ofs; REP(vtxs()){*(Vec2*)vtx+=move; vtx+=vtxSize();}
@@ -874,9 +882,9 @@ void MeshRender::texMove(C Vec2 &move, Byte tex_index)
 }
 void MeshRender::texScale(C Vec2 &scale, Byte tex_index)
 {
-   if(InRange(tex_index, 3) && scale!=1)
+   if(InRange(tex_index, 4) && scale!=1)
    {
-      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : (tex_index==2) ? VTX_TEX2 : VTX_TEX3);
       if( ofs>=0)if(Byte *vtx=vtxLock())
       {
          vtx+=ofs; REP(vtxs()){*(Vec2*)vtx*=scale; vtx+=vtxSize();}
@@ -886,9 +894,9 @@ void MeshRender::texScale(C Vec2 &scale, Byte tex_index)
 }
 void MeshRender::texRotate(Flt angle, Byte tex_index)
 {
-   if(InRange(tex_index, 3) && angle)
+   if(InRange(tex_index, 4) && angle)
    {
-      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : VTX_TEX2);
+      Int ofs =vtxOfs((tex_index==0) ? VTX_TEX0 : (tex_index==1) ? VTX_TEX1 : (tex_index==2) ? VTX_TEX2 : VTX_TEX3);
       if( ofs>=0)if(Byte *vtx=vtxLock())
       {
          Flt cos, sin; CosSin(cos, sin, angle);
