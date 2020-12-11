@@ -1193,7 +1193,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=triangles.p.elms()/triangles.inputs.elms()/3;
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | (tex[3]?VTX_TEX3:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
             REPA(base.tri)
             {
                Int a=i*3, b=a+1, c=b+1,
@@ -1245,6 +1245,12 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                   base.vtx.tex2(b)=tex[2]->source->getVec2(Safe(triangles.p, tb+tex[2]->offset));
                   base.vtx.tex2(c)=tex[2]->source->getVec2(Safe(triangles.p, tc+tex[2]->offset));
                }
+               if(tex[3])
+               {
+                  base.vtx.tex3(a)=tex[3]->source->getVec2(Safe(triangles.p, ta+tex[3]->offset));
+                  base.vtx.tex3(b)=tex[3]->source->getVec2(Safe(triangles.p, tb+tex[3]->offset));
+                  base.vtx.tex3(c)=tex[3]->source->getVec2(Safe(triangles.p, tc+tex[3]->offset));
+               }
                base.tri.ind(i).set(a, b, c); if(reverse)base.tri.ind(i).reverse();
             }
 
@@ -1295,7 +1301,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=0; REPA(polys.vcount)tris+=Max(0, polys.vcount[i]-2);
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | (tex[3]?VTX_TEX3:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
 
             Memb<Vtx> poly;
 
@@ -1327,6 +1333,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                   if(tex[0])vtx.tex[0]=tex[0]  ->source->getVec2(Safe(polys.p, v+tex[0]->offset));
                   if(tex[1])vtx.tex[1]=tex[1]  ->source->getVec2(Safe(polys.p, v+tex[1]->offset));
                   if(tex[2])vtx.tex[2]=tex[2]  ->source->getVec2(Safe(polys.p, v+tex[2]->offset));
+                  if(tex[3])vtx.tex[3]=tex[3]  ->source->getVec2(Safe(polys.p, v+tex[3]->offset));
                   v+=polys.inputs.elms();
                }
                for(; poly.elms()>=3; )
@@ -1375,6 +1382,12 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                      base.vtx.tex2(p0)=v0.tex[2];
                      base.vtx.tex2(p1)=v1.tex[2];
                      base.vtx.tex2(p2)=v2.tex[2];
+                  }
+                  if(tex[3])
+                  {
+                     base.vtx.tex3(p0)=v0.tex[3];
+                     base.vtx.tex3(p1)=v1.tex[3];
+                     base.vtx.tex3(p2)=v2.tex[3];
                   }
 
                   base.tri.ind(tris).set(p0, p1, p2); if(reverse)base.tri.ind(tris).reverse(); tris++;
@@ -1429,7 +1442,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
 
             // set base
             Int tris=0; REPA(polys.p)tris+=Max(0, polys.p[i].elms()/polys.inputs.elms()-2);
-            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
+            base.create(tris*3, 0, tris, 0, (normal?VTX_NRM:MESH_NONE) | (tex[0]?VTX_TEX0:MESH_NONE) | (tex[1]?VTX_TEX1:MESH_NONE) | (tex[2]?VTX_TEX2:MESH_NONE) | (tex[3]?VTX_TEX3:MESH_NONE) | ((skinning.elms()||node_anim)?VTX_SKIN:MESH_NONE));
 
             Memb<Vtx> poly;
 
@@ -1463,6 +1476,7 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                   if(tex[0])vtx.tex[0]=tex[0]  ->source->getVec2(Safe(polys_p, v+tex[0]->offset));
                   if(tex[1])vtx.tex[1]=tex[1]  ->source->getVec2(Safe(polys_p, v+tex[1]->offset));
                   if(tex[2])vtx.tex[2]=tex[2]  ->source->getVec2(Safe(polys_p, v+tex[2]->offset));
+                  if(tex[3])vtx.tex[3]=tex[3]  ->source->getVec2(Safe(polys_p, v+tex[3]->offset));
                   v+=polys.inputs.elms();
                }
                for(; poly.elms()>=3; )
@@ -1502,15 +1516,21 @@ void DAE::create(::Mesh &mesh, MemPtr<Int> part_material_index, ::Skeleton &skel
                   }
                   if(tex[1])
                   {
-                     base.vtx.tex0(p0)=v0.tex[1];
-                     base.vtx.tex0(p1)=v1.tex[1];
-                     base.vtx.tex0(p2)=v2.tex[1];
+                     base.vtx.tex1(p0)=v0.tex[1];
+                     base.vtx.tex1(p1)=v1.tex[1];
+                     base.vtx.tex1(p2)=v2.tex[1];
                   }
                   if(tex[2])
                   {
-                     base.vtx.tex0(p0)=v0.tex[2];
-                     base.vtx.tex0(p1)=v1.tex[2];
-                     base.vtx.tex0(p2)=v2.tex[2];
+                     base.vtx.tex2(p0)=v0.tex[2];
+                     base.vtx.tex2(p1)=v1.tex[2];
+                     base.vtx.tex2(p2)=v2.tex[2];
+                  }
+                  if(tex[3])
+                  {
+                     base.vtx.tex3(p0)=v0.tex[3];
+                     base.vtx.tex3(p1)=v1.tex[3];
+                     base.vtx.tex3(p2)=v2.tex[3];
                   }
 
                   base.tri.ind(tris).set(p0, p1, p2); if(reverse)base.tri.ind(tris).reverse(); tris++;
