@@ -30,6 +30,7 @@ extern const bool          MiscOnTop,
                     RequireAllCodeMatchForSync,
                     TolerantSecondaryServer, // will ignore DeviceID when getting confirmation from secondary authentication server
                     SupportBC7        , // if support BC7 compression
+                    UWPBC7           , // if support BC7 compression for UWP TODO: enable this once DX12 support has been added (because DX11 is limited to FeatureLevel 10.0 on Xbox and doesn't support BC6/7)
                     WebBC7           , // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
                     ImportRemovedElms, 
                     RenameAnimBonesOnSkelChange;
