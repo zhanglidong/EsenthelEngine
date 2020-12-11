@@ -194,6 +194,20 @@ Bool XSkeleton::load(File &f)
 /******************************************************************************/
 // MSHB
 /******************************************************************************/
+static MESH_FLAG MeshFlagOld(File &f)
+{
+   static const MESH_FLAG old[]=
+   {
+      VTX_POS, VTX_NRM, VTX_TAN, VTX_BIN, VTX_TEX0, VTX_TEX1, VTX_MATRIX, VTX_BLEND, VTX_SIZE, VTX_DUP,
+      EDGE_IND, EDGE_ADJ_FACE, EDGE_NRM, EDGE_FLAG, EDGE_ID,
+      TRI_IND, TRI_ADJ_FACE, TRI_ADJ_EDGE, TRI_NRM, TRI_FLAG, TRI_ID,
+      QUAD_IND, QUAD_ADJ_FACE, QUAD_ADJ_EDGE, QUAD_NRM, QUAD_FLAG, QUAD_ID,
+      VTX_HLP, VTX_MATERIAL, VTX_COLOR, VTX_FLAG, VTX_TEX2
+   };
+   MESH_FLAG flag=MESH_NONE; UInt bit=1, u; f.getFast(u); FREPA(old){if(u&bit)flag|=old[i]; bit<<=1;}
+   return    flag;
+}
+/******************************************************************************/
 Bool MeshBase::saveData(File &f)C
 {
    f.cmpUIntV(3); // version
@@ -249,7 +263,7 @@ Bool MeshBase::loadData(File &f)
    {
       case 3:
       {
-         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         MESH_FLAG flag =MeshFlagOld(f);
          Int       vtxs =f.decUIntV(),
                    edges=f.decUIntV(),
                    tris =f.decUIntV(),
@@ -297,7 +311,7 @@ Bool MeshBase::loadData(File &f)
 
       case 2:
       {
-         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         MESH_FLAG flag =MeshFlagOld(f);
          Int       vtxs =f.getInt(),
                    edges=f.getInt(),
                    tris =f.getInt(),
@@ -345,7 +359,7 @@ Bool MeshBase::loadData(File &f)
 
       case 1:
       {
-         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         MESH_FLAG flag =MeshFlagOld(f);
          Int       vtxs =f.getInt(),
                    edges=f.getInt(),
                    tris =f.getInt(),
@@ -395,7 +409,7 @@ Bool MeshBase::loadData(File &f)
       {
          f.getByte(); // part of old U16 version byte
 
-         MESH_FLAG flag =(MESH_FLAG)f.getUInt();
+         MESH_FLAG flag =MeshFlagOld(f);
          Int       vtxs =f.getInt(),
                    edges=f.getInt(),
                    tris =f.getInt(),
@@ -537,7 +551,8 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               f.getMulti(_storage, _flag);
+               f>>_storage;
+              _flag=MeshFlagOld(f);
               _tris=_ib._ind_num/3;
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
             }
@@ -553,7 +568,8 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               Byte storage; f.getMulti(storage, _flag); _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+               Byte storage; f>>storage; _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+              _flag=MeshFlagOld(f);
                Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
                adjustToPlatform(FlagTest(storage, 1<<0), FlagTest(storage, 1<<1), FlagTest(storage, 1<<2), bone_split);
@@ -571,7 +587,8 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               Byte storage; f.getMulti(storage, _flag); _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+               Byte storage; f>>storage; _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+              _flag=MeshFlagOld(f);
                Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
                adjustToPlatform(FlagTest(storage, 1<<0), FlagTest(storage, 1<<1), FlagTest(storage, 1<<2), bone_split);
@@ -591,7 +608,7 @@ Bool MeshRender::loadData(File &f)
             if(_vb._vtx_num || _ib._ind_num)
             {
                Bool compressed, dx10; f>>compressed>>dx10; _storage=(compressed?MSHR_COMPRESS:0);
-               f>>_flag;
+              _flag=MeshFlagOld(f);
                Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
                adjustToPlatform(compressed, dx10, !dx10, bone_split);
@@ -611,7 +628,7 @@ Bool MeshRender::loadData(File &f)
             if(_vb._vtx_num || _ib._ind_num)
             {
                Bool compressed; f>>compressed; _storage=(compressed?MSHR_COMPRESS:0);
-               f>>_flag;
+              _flag=MeshFlagOld(f);
                Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
                adjustToPlatform(compressed, false, true, bone_split);
@@ -632,7 +649,7 @@ Bool MeshRender::loadData(File &f)
             Int  vtx_size    = f.getInt ();
             Int  tri_ind_size= f.getInt ();
             Mems<BoneSplit> bone_split; bone_split.setNum(f.getInt());
-            MESH_FLAG flag   =(MESH_FLAG)f.getUInt();
+            MESH_FLAG flag   =MeshFlagOld(f);
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
@@ -664,7 +681,7 @@ Bool MeshRender::loadData(File &f)
             Bool      bit16       =!f.getBool();
             Int       vtx_size    = f.getInt ();
             Int       tri_ind_size= f.getInt ();
-            MESH_FLAG flag        =(MESH_FLAG)f.getUInt();
+            MESH_FLAG flag        =MeshFlagOld(f);
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
