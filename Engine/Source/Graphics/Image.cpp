@@ -154,6 +154,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"R11G11B10F"     , false, true ,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"      , false, true ,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
 }; ASSERT(IMAGE_ALL_TYPES==72);
+Bool ImageTypeInfo::_usage_known=false;
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -483,6 +484,33 @@ IMAGE_TYPE ImageTypeHighPrec(IMAGE_TYPE type)
    if(type_info.g)return/*srgb ? IMAGE_F32_2_SRGB :*/IMAGE_F32_2;
    if(type       )return/*srgb ? IMAGE_F32_SRGB   :*/IMAGE_F32  ;
                   return IMAGE_NONE;
+}
+Bool ImageSupported(IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
+{
+   if(!InRange(type, IMAGE_ALL_TYPES))return false; // invalid type
+   if( IsSoft (mode)                 )return true ; // software supports all modes
+   if(!type                          )return true ; // empty type is OK
+   if(!ImageTypeInfo::usageKnown()   )return true ; // if usage unknown then assume it's supported so we can try
+   UInt need=0, got=ImageTI[type].usage();
+   switch(mode)
+   {
+      case IMAGE_2D        : need=ImageTypeInfo::USAGE_IMAGE_2D  ; break;
+      case IMAGE_3D        : need=ImageTypeInfo::USAGE_IMAGE_3D  ; break;
+      case IMAGE_CUBE      : need=ImageTypeInfo::USAGE_IMAGE_CUBE; break;
+    //case IMAGE_SOFT     
+    //case IMAGE_SOFT_CUBE
+      case IMAGE_RT        : need=ImageTypeInfo::USAGE_IMAGE_2D  |ImageTypeInfo::USAGE_IMAGE_RT; break;
+      case IMAGE_RT_CUBE   : need=ImageTypeInfo::USAGE_IMAGE_CUBE|ImageTypeInfo::USAGE_IMAGE_RT; break;
+      case IMAGE_DS        : need=ImageTypeInfo::USAGE_IMAGE_2D  |ImageTypeInfo::USAGE_IMAGE_DS; break;
+      case IMAGE_SHADOW_MAP: need=ImageTypeInfo::USAGE_IMAGE_2D  |ImageTypeInfo::USAGE_IMAGE_DS; break;
+   #if DX11
+      case IMAGE_STAGING   : return true;
+   #elif GL
+      case IMAGE_GL_RB     : return true;
+   #endif
+   }
+   if(samples>1 && !(got&ImageTypeInfo::USAGE_IMAGE_MS))return false; // if need multi-sampling then require USAGE_IMAGE_MS
+   return FlagAll(got, need); // require all flags from 'need'
 }
 #if DX11
 static DXGI_FORMAT Typeless(IMAGE_TYPE type)
@@ -957,7 +985,7 @@ Bool Image::setInfo()
             if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
             if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS (for example it can fail for multi-sampled DS on FeatureLevel 10.0)
          }break;
       }
    }
@@ -1152,6 +1180,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          unlock(); // unlock if was locked
          return true;
       }
+
+      // do a quick check
+      if(!ImageSupported(type, mode, samples))goto error;
 
       // create as new
    #if GL
@@ -1583,10 +1614,10 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 error:
    del(); return false;
 }
-Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
+Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
    if(createTryEx(w, h, d, type, mode, mip_maps, 1))return true;
-   if(rgba_on_fail && w>0 && h>0 && d>0)
+   if(alt_type_on_fail && w>0 && h>0 && d>0)
    {
       Int pw=PaddedWidth (w, h, 0, type), // must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
           ph=PaddedHeight(w, h, 0, type);
@@ -1599,10 +1630,10 @@ Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int
    }
    return false;
 }
-Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
+Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
-   if(!createTry(w, h, d, type, mode, mip_maps, rgba_on_fail))Exit(MLT(S+"Can't create Image "        +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
-                                                                   PL,S+u"Nie można utworzyć obrazka "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
+   if(!createTry(w, h, d, type, mode, mip_maps, alt_type_on_fail))Exit(MLT(S+"Can't create Image "        +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
+                                                                       PL,S+u"Nie można utworzyć obrazka "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
    return T;
 }
 /******************************************************************************/
@@ -1965,7 +1996,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
-   Bool rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
+   Bool alt_type_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
         env=(FlagTest(flags, IC_ENV_CUBE) && IsCube((IMAGE_MODE)mode) && mip_maps>1);
 
    // check if doesn't require conversion
@@ -1980,7 +2011,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    {
       // create destination
       Image temp_dest, &target=((src==&dest) ? temp_dest : dest);
-      if(!target.createTry(w, h, d, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, rgba_on_fail))return false; // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
+      if(!target.createTry(w, h, d, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, alt_type_on_fail))return false; // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
       Bool ignore_gamma=IgnoreGamma(flags, src->hwType(), target.hwType()); // calculate after knowing 'target.hwType'
 
       // copy
@@ -2076,9 +2107,9 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
       if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
       else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
-      Bool  rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
+      Bool  alt_type_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE),
             env=(FlagTest(flags, IC_ENV_CUBE) && mip_maps>1);
-      Image temp; if(temp.createTry(size, size, 1, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, rgba_on_fail)) // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
+      Image temp; if(temp.createTry(size, size, 1, env ? ImageTypeUncompressed(IMAGE_TYPE(type)) : IMAGE_TYPE(type), env ? IMAGE_SOFT_CUBE : IMAGE_MODE(mode), mip_maps, alt_type_on_fail)) // 'env'/'blurCubeMipMaps' requires uncompressed/soft image
       {
          if(layout==CUBE_LAYOUT_ONE)
          {

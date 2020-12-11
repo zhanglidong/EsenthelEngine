@@ -1240,7 +1240,7 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-   const VecB2 ctx_vers[]={{3,2}, {4,0}}; // set highest at the end, 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
+   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}}; // set highest at the end, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
    #if WINDOWS
       // setup dummy functions to prevent null exceptions when GL context failed to create, but we still want to continue
@@ -2072,6 +2072,7 @@ void DisplayClass::getCaps()
       }
       ImageTI[i]._usage=usage;
    }
+   ImageTypeInfo::_usage_known=true;
 
  /*D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
    if(OK(D3D->CheckFeatureSupport(D3D11_FEATURE_SHADER_MIN_PRECISION_SUPPORT, &min_prec, SIZE(min_prec)))) // check for hlsl half support
@@ -2134,6 +2135,7 @@ void DisplayClass::getCaps()
  //int max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
    int max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
    int max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
+   ImageTypeInfo::_usage_known=false;
 
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
    #if WINDOWS
@@ -2154,6 +2156,7 @@ void DisplayClass::getCaps()
             glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE, internalformat, GL_DEPTH_RENDERABLE        , Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_MS;
             ImageTI[i]._usage=usage;
          }
+         ImageTypeInfo::_usage_known=true;
       }
    #endif
 #endif

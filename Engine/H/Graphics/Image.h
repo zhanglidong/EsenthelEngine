@@ -198,7 +198,8 @@ struct ImageTypeInfo // Image Type Information
                          channels      ; // number of channels
    const IMAGE_PRECISION precision     ;
 
-   Byte usage()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11, OpenGL 4.2
+          Byte usage     ()C {return _usage      ;} // get a combination of USAGE_FLAG, valid only if 'usageKnown' (on DX11/12, OpenGL 4.2+)
+   static Bool usageKnown()  {return _usage_known;}
 #if EE_PRIVATE
    constexpr Bool filterable()C {return (!GL_ES) || (precision<IMAGE_PRECISION_32 && !d);} // GLES3 doesn't support filtering F32/Depth textures - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml , "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
 #endif
@@ -212,6 +213,11 @@ private:
 #else
    const UInt format;
 #endif
+#if EE_PRIVATE
+private:
+   friend struct DisplayClass;
+#endif
+   static Bool _usage_known;
 };extern ImageTypeInfo
    ImageTI[]; // Image Type Info Array, allows obtaining information about specified IMAGE_TYPE, sample usage: ImageTI[IMAGE_R8G8B8A8].name -> "R8G8B8A8"
 /******************************************************************************/
@@ -302,17 +308,17 @@ struct Image // Image (Texture)
       #endif
                    );
 #endif
-   Image& del          (                                                                                             );                                                                       // delete
-   Bool   createTry    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
-   Image& create       (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
-   Bool   create2DTry  (Int w, Int h,        IMAGE_TYPE type,                  Int mip_maps=0, Bool rgba_on_fail=true) {return createTry(w, h, 1, type, IMAGE_2D  , mip_maps, rgba_on_fail);} // create hardware 2D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
-   Image& create2D     (Int w, Int h,        IMAGE_TYPE type,                  Int mip_maps=0, Bool rgba_on_fail=true) {return create   (w, h, 1, type, IMAGE_2D  , mip_maps, rgba_on_fail);} // create hardware 2D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
-   Bool   create3DTry  (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1, Bool rgba_on_fail=true) {return createTry(w, h, d, type, IMAGE_3D  , mip_maps, rgba_on_fail);} // create hardware 3D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
-   Image& create3D     (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1, Bool rgba_on_fail=true) {return create   (w, h, d, type, IMAGE_3D  , mip_maps, rgba_on_fail);} // create hardware 3D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
-   Bool   createCubeTry(Int w,               IMAGE_TYPE type,                  Int mip_maps=1, Bool rgba_on_fail=true) {return createTry(w, w, 1, type, IMAGE_CUBE, mip_maps, rgba_on_fail);} // create hardware cube texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
-   Image& createCube   (Int w,               IMAGE_TYPE type,                  Int mip_maps=1, Bool rgba_on_fail=true) {return create   (w, w, 1, type, IMAGE_CUBE, mip_maps, rgba_on_fail);} // create hardware cube texture, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
-   Bool   createSoftTry(Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1                        ) {return createTry(w, h, d, type, IMAGE_SOFT, mip_maps,        false);} // create software        image, 'mip_maps'=number of mip-maps (0=autodetect),                                                                                      false on fail
-   Image& createSoft   (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1                        ) {return create   (w, h, d, type, IMAGE_SOFT, mip_maps,        false);} // create software        image, 'mip_maps'=number of mip-maps (0=autodetect),                                                                                      Exit  on fail
+   Image& del          (                                                                                                 );                                                                           // delete
+   Bool   createTry    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool alt_type_on_fail=true);                                                                           // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, false on fail
+   Image& create       (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool alt_type_on_fail=true);                                                                           // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, Exit  on fail
+   Bool   create2DTry  (Int w, Int h,        IMAGE_TYPE type,                  Int mip_maps=0, Bool alt_type_on_fail=true) {return createTry(w, h, 1, type, IMAGE_2D  , mip_maps, alt_type_on_fail);} // create hardware 2D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, false on fail
+   Image& create2D     (Int w, Int h,        IMAGE_TYPE type,                  Int mip_maps=0, Bool alt_type_on_fail=true) {return create   (w, h, 1, type, IMAGE_2D  , mip_maps, alt_type_on_fail);} // create hardware 2D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, Exit  on fail
+   Bool   create3DTry  (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1, Bool alt_type_on_fail=true) {return createTry(w, h, d, type, IMAGE_3D  , mip_maps, alt_type_on_fail);} // create hardware 3D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, false on fail
+   Image& create3D     (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1, Bool alt_type_on_fail=true) {return create   (w, h, d, type, IMAGE_3D  , mip_maps, alt_type_on_fail);} // create hardware 3D   texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, Exit  on fail
+   Bool   createCubeTry(Int w,               IMAGE_TYPE type,                  Int mip_maps=1, Bool alt_type_on_fail=true) {return createTry(w, w, 1, type, IMAGE_CUBE, mip_maps, alt_type_on_fail);} // create hardware cube texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, false on fail
+   Image& createCube   (Int w,               IMAGE_TYPE type,                  Int mip_maps=1, Bool alt_type_on_fail=true) {return create   (w, w, 1, type, IMAGE_CUBE, mip_maps, alt_type_on_fail);} // create hardware cube texture, 'mip_maps'=number of mip-maps (0=autodetect), 'alt_type_on_fail'=if try using an alternative type if 'type' is not supported, Exit  on fail
+   Bool   createSoftTry(Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1                            ) {return createTry(w, h, d, type, IMAGE_SOFT, mip_maps,            false);} // create software        image, 'mip_maps'=number of mip-maps (0=autodetect),                                                                                 false on fail
+   Image& createSoft   (Int w, Int h, Int d, IMAGE_TYPE type,                  Int mip_maps=1                            ) {return create   (w, h, d, type, IMAGE_SOFT, mip_maps,            false);} // create software        image, 'mip_maps'=number of mip-maps (0=autodetect),                                                                                 Exit  on fail
 
    Bool copyTry(Image &dest, Int w=-1, Int h=-1, Int d=-1, Int type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP)C; // copy to 'dest', -1=keep original value, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE (this method does not support IMAGE_3D), 'mip_maps'=number of mip-maps (0=autodetect), 'flags'=IMAGE_COPY_FLAG, false on fail
    void copy   (Image &dest, Int w=-1, Int h=-1, Int d=-1, Int type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP)C; // copy to 'dest', -1=keep original value, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE (this method does not support IMAGE_3D), 'mip_maps'=number of mip-maps (0=autodetect), 'flags'=IMAGE_COPY_FLAG, Exit  on fail
@@ -786,6 +792,7 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format);
 Int                        TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
+Bool ImageSupported(IMAGE_TYPE type, IMAGE_MODE mode, Byte samples=1);
 Bool IgnoreGamma(UInt flags, IMAGE_TYPE src, IMAGE_TYPE dest);
 Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest, Bool ignore_gamma=false);
 Bool CanDoRawCopy(C Image   &src, C Image   &dest, Bool ignore_gamma=false);
