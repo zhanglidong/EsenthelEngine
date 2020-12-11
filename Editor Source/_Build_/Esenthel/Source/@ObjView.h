@@ -317,12 +317,13 @@ public:
    static void  GotoGroups      (ObjView &editor);
    static void ClearGroups      (ObjView &editor);
    static void ClearBack        (ObjView &editor);
-   static void MeshRemVtxTex0   (ObjView &editor);         
-   static void MeshRemVtxTex1   (ObjView &editor);         
-   static void MeshRemVtxTex2   (ObjView &editor);         
-   static void MeshRemVtxTex12  (ObjView &editor);         
-   static void MeshRemVtxColor  (ObjView &editor);         
-   static void MeshRemVtxSkin   (ObjView &editor);         
+   static void MeshRemVtxTex0   (ObjView &editor);                  
+   static void MeshRemVtxTex1   (ObjView &editor);                  
+   static void MeshRemVtxTex2   (ObjView &editor);                  
+   static void MeshRemVtxTex3   (ObjView &editor);                  
+   static void MeshRemVtxTex123 (ObjView &editor);                  
+   static void MeshRemVtxColor  (ObjView &editor);                  
+   static void MeshRemVtxSkin   (ObjView &editor);                  
    static void MeshDisableLQLODs(ObjView &editor);void meshDisableLQLODs();
 
    void modeS(int i);

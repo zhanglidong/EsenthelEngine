@@ -411,7 +411,8 @@ class ProjectEx : ProjectHierarchy
 
    static void MeshRemVtxTex1        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1 );}
    static void MeshRemVtxTex2        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX2 );}
-   static void MeshRemVtxTex12       (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
+   static void MeshRemVtxTex3        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX3 );}
+   static void MeshRemVtxTex123      (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2|VTX_TEX3);}
    static void MeshRemVtxCol         (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_COLOR);}
    static void MeshRemVtxSkin        (ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_SKIN );}
    static void MeshDisableLQLODs     (ProjectEx &proj) {proj.disableLQLODs         (proj.menu_list_sel);}
@@ -4165,9 +4166,10 @@ class ProjectEx : ProjectHierarchy
                {
                   {
                      Node<MenuElm> &r=(m+="Remove");
-                     r.New().create("Vertex TexCoord1"  , MeshRemVtxTex1 , T);
-                     r.New().create("Vertex TexCoord2"  , MeshRemVtxTex2 , T);
-                     r.New().create("Vertex TexCoord1&2", MeshRemVtxTex12, T);
+                     r.New().create("Vertex TexCoord1"    , MeshRemVtxTex1  , T);
+                     r.New().create("Vertex TexCoord2"    , MeshRemVtxTex2  , T);
+                     r.New().create("Vertex TexCoord3"    , MeshRemVtxTex3  , T);
+                     r.New().create("Vertex TexCoord1&2&3", MeshRemVtxTex123, T);
                      r++;
                      r.New().create("Vertex Color", MeshRemVtxCol, T);
                      r++;

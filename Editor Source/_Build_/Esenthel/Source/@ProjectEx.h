@@ -276,7 +276,8 @@ public:
 
    static void MeshRemVtxTex1        (ProjectEx &proj);
    static void MeshRemVtxTex2        (ProjectEx &proj);
-   static void MeshRemVtxTex12       (ProjectEx &proj);
+   static void MeshRemVtxTex3        (ProjectEx &proj);
+   static void MeshRemVtxTex123      (ProjectEx &proj);
    static void MeshRemVtxCol         (ProjectEx &proj);
    static void MeshRemVtxSkin        (ProjectEx &proj);
    static void MeshDisableLQLODs     (ProjectEx &proj);

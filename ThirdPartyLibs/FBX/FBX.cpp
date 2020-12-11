@@ -677,7 +677,7 @@ struct FBX
                if(polys>0)
                {
                   MeshBase base;
-                  Int      texs=Mid(fbx_mesh->GetElementUVCount(), 0, 3); // EE supports only up to 3
+                  Int      texs=Mid(fbx_mesh->GetElementUVCount(), 0, 4); // EE supports only up to 4
 
                   Bool one_material=true;
                   REP(fbx_mesh->GetElementMaterialCount())
@@ -773,7 +773,7 @@ struct FBX
                   }
 
                   // set mesh
-                  base.create(tris*3 + quads*4, 0, tris, quads, (fbx_mesh->GetElementVertexColorCount() ? VTX_COLOR : 0) | ((texs>=1)?VTX_TEX0:0) | ((texs>=2)?VTX_TEX1:0) | ((texs>=3)?VTX_TEX2:0) | (fbx_mesh->GetElementNormalCount()?VTX_NRM:0) | ((force_skin || vtx_skin.elms())?VTX_SKIN:0) | (one_material?0:FACE_ID));
+                  base.create(tris*3 + quads*4, 0, tris, quads, (fbx_mesh->GetElementVertexColorCount() ? VTX_COLOR : MESH_NONE) | ((texs>=1)?VTX_TEX0:MESH_NONE) | ((texs>=2)?VTX_TEX1:MESH_NONE) | ((texs>=3)?VTX_TEX2:MESH_NONE) | ((texs>=4)?VTX_TEX3:MESH_NONE) | (fbx_mesh->GetElementNormalCount()?VTX_NRM:MESH_NONE) | ((force_skin || vtx_skin.elms())?VTX_SKIN:MESH_NONE) | (one_material?MESH_NONE:FACE_ID));
                   Bool reverse=node.global.mirrored();
 
                   // polys
@@ -878,7 +878,8 @@ struct FBX
                               uv.y=1-uv.y; // FBX uses mirrored Y
                               if(tex==0)base.vtx.tex0(vtxs)=uv;else
                               if(tex==1)base.vtx.tex1(vtxs)=uv;else
-                              if(tex==2)base.vtx.tex2(vtxs)=uv;
+                              if(tex==2)base.vtx.tex2(vtxs)=uv;else
+                              if(tex==3)base.vtx.tex3(vtxs)=uv;
                            }
 
                            // counter
@@ -1001,13 +1002,13 @@ struct FBX
                   }else
                   {
                      MeshLod temp;
-                     base.copyId(temp, ~ID_ALL); // copy to 'temp', ID's are no longer needed
+                     base.copyID(temp, ~ID_ALL); // copy to 'temp', IDs are no longer needed
                      FREPA(temp)
                      {
                         MeshPart &src=temp.parts[i]; if(src.is())
                         {
                            MeshPart &dest=lod.parts.New(); Swap(src, dest); Set(dest.name, part_name);
-                           if(part_material_index)part_material_index.NewAt(pmi_pos++)=i-1; // ID's were created with +1
+                           if(part_material_index)part_material_index.NewAt(pmi_pos++)=i-1; // IDs were created with +1
                         }
                      }
                   }

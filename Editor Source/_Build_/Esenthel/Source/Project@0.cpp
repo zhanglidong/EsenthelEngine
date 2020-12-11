@@ -452,7 +452,8 @@ void DrawProject()
    void ProjectEx::TransformRotYMinBox(ProjectEx &proj) {proj.transformRotYMinBox(proj.menu_list_sel);}
    void ProjectEx::MeshRemVtxTex1(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1 );}
    void ProjectEx::MeshRemVtxTex2(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX2 );}
-   void ProjectEx::MeshRemVtxTex12(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2);}
+   void ProjectEx::MeshRemVtxTex3(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX3 );}
+   void ProjectEx::MeshRemVtxTex123(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_TEX1|VTX_TEX2|VTX_TEX3);}
    void ProjectEx::MeshRemVtxCol(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_COLOR);}
    void ProjectEx::MeshRemVtxSkin(ProjectEx &proj) {proj.removeMeshVtx         (proj.menu_list_sel, VTX_SKIN );}
    void ProjectEx::MeshDisableLQLODs(ProjectEx &proj) {proj.disableLQLODs         (proj.menu_list_sel);}
@@ -4095,9 +4096,10 @@ void DrawProject()
                {
                   {
                      Node<MenuElm> &r=(m+="Remove");
-                     r.New().create("Vertex TexCoord1"  , MeshRemVtxTex1 , T);
-                     r.New().create("Vertex TexCoord2"  , MeshRemVtxTex2 , T);
-                     r.New().create("Vertex TexCoord1&2", MeshRemVtxTex12, T);
+                     r.New().create("Vertex TexCoord1"    , MeshRemVtxTex1  , T);
+                     r.New().create("Vertex TexCoord2"    , MeshRemVtxTex2  , T);
+                     r.New().create("Vertex TexCoord3"    , MeshRemVtxTex3  , T);
+                     r.New().create("Vertex TexCoord1&2&3", MeshRemVtxTex123, T);
                      r++;
                      r.New().create("Vertex Color", MeshRemVtxCol, T);
                      r++;

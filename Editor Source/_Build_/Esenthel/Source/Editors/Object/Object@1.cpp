@@ -844,12 +844,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void  ObjView::GotoGroups(ObjView &editor) {editor.gotoDrawGroupEnum();}
    void ObjView::ClearGroups(ObjView &editor) {editor. setDrawGroupEnum(UIDZero);}
    void ObjView::ClearBack(ObjView &editor) {editor.back_meshes.clear();}
-   void ObjView::MeshRemVtxTex0(ObjView &editor) {editor.remVtx(VTX_TEX0         , true);}
-   void ObjView::MeshRemVtxTex1(ObjView &editor) {editor.remVtx(VTX_TEX1         , true);}
-   void ObjView::MeshRemVtxTex2(ObjView &editor) {editor.remVtx(         VTX_TEX2, true);}
-   void ObjView::MeshRemVtxTex12(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2, true);}
-   void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR        , true);}
-   void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN         , true);}
+   void ObjView::MeshRemVtxTex0(ObjView &editor) {editor.remVtx(VTX_TEX0                  , true);}
+   void ObjView::MeshRemVtxTex1(ObjView &editor) {editor.remVtx(VTX_TEX1                  , true);}
+   void ObjView::MeshRemVtxTex2(ObjView &editor) {editor.remVtx(         VTX_TEX2         , true);}
+   void ObjView::MeshRemVtxTex3(ObjView &editor) {editor.remVtx(                  VTX_TEX3, true);}
+   void ObjView::MeshRemVtxTex123(ObjView &editor) {editor.remVtx(VTX_TEX1|VTX_TEX2|VTX_TEX3, true);}
+   void ObjView::MeshRemVtxColor(ObjView &editor) {editor.remVtx(VTX_COLOR                 , true);}
+   void ObjView::MeshRemVtxSkin(ObjView &editor) {editor.remVtx(VTX_SKIN                  , true);}
    void ObjView::MeshDisableLQLODs(ObjView &editor) {editor.meshDisableLQLODs();}
    void ObjView::modeS(int i)
    {
@@ -1399,12 +1400,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n++;
          {
             Node<MenuElm> &rem=(n+="Remove");
-            rem.New().create("Vertex TexCoord1"  , MeshRemVtxTex1 , T);
-            rem.New().create("Vertex TexCoord2"  , MeshRemVtxTex2 , T);
-            rem.New().create("Vertex TexCoord1&2", MeshRemVtxTex12, T);
-            rem.New().create("Vertex Color"      , MeshRemVtxColor, T);
-            rem.New().create("Vertex Skin"       , MeshRemVtxSkin , T);
-            rem.New().create("Vertex TexCoord0"  , MeshRemVtxTex0 , T);
+            rem.New().create("Vertex TexCoord1"    , MeshRemVtxTex1  , T);
+            rem.New().create("Vertex TexCoord2"    , MeshRemVtxTex2  , T);
+            rem.New().create("Vertex TexCoord3"    , MeshRemVtxTex3  , T);
+            rem.New().create("Vertex TexCoord1&2&3", MeshRemVtxTex123, T);
+            rem.New().create("Vertex Color"        , MeshRemVtxColor , T);
+            rem.New().create("Vertex Skin"         , MeshRemVtxSkin  , T);
+            rem.New().create("Vertex TexCoord0"    , MeshRemVtxTex0  , T);
          }
          mode.tab(MESH)+=mesh_ops.create(Rect_LU(vtx_face_sel_mode.rect().max.x+h, mode.rect().min.y-0.01f, 0.25f, 0.055f), n).focusable(false); mesh_ops.text="Operations"; mesh_ops.flag|=COMBOBOX_CONST_TEXT;
       }
@@ -2300,7 +2302,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             MESH_FLAG flag=(visibleLodSelection() ? VisibleFlag(lod) : VisibleFlag(mesh));
             if(flag&VTX_POS     )Add(s, "Position"); if(flag&VTX_HLP )Add(s, "Helper"); if(flag&VTX_NRM)Add(s, "Normal");
           //if(flag&VTX_TAN     )Add(s, "Tangent" ); if(flag&VTX_BIN )Add(s, "Binormal"); ignore these as they're always set in the Editor
-            if(flag&VTX_TEX0    )Add(s, "TexCoord"); if(flag&VTX_TEX1)Add(s, "TexCoord1"); if(flag&VTX_TEX2)Add(s, "TexCoord2");
+            if(flag&VTX_TEX0    )Add(s, "TexCoord"); if(flag&VTX_TEX1)Add(s, "TexCoord1"); if(flag&VTX_TEX2)Add(s, "TexCoord2"); if(flag&VTX_TEX3)Add(s, "TexCoord3");
             if(flag&VTX_COLOR   )Add(s, "Color");
             if(flag&VTX_MATERIAL)Add(s, "Material");
             if(flag&VTX_SKIN    )Add(s, "Skin");
