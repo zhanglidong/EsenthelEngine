@@ -4,10 +4,10 @@ namespace EE{
 /******************************************************************************/
 MeshBase& MeshBase::texMap(Flt scale, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       REPA(vtx)
       {
          (tex++)->set(pos->x*scale, 1-pos->y*scale);
@@ -18,10 +18,10 @@ MeshBase& MeshBase::texMap(Flt scale, Byte tex_index)
 }
 MeshBase& MeshBase::texMapXZ(Flt scale, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       REPA(vtx)
       {
          (tex++)->set(pos->x*scale, 1-pos->z*scale);
@@ -32,20 +32,20 @@ MeshBase& MeshBase::texMapXZ(Flt scale, Byte tex_index)
 }
 MeshBase& MeshBase::texMap(C Matrix &matrix, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       REPA(vtx)(*tex++)=((*pos++)*matrix).xy;
    }
    return T;
 }
 MeshBase& MeshBase::texMap(C Plane &plane, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2   *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2   *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       Matrix3 matrix; matrix.setDir(plane.normal);
       REPA(vtx)
       {
@@ -58,10 +58,10 @@ MeshBase& MeshBase::texMap(C Plane &plane, Byte tex_index)
 }
 MeshBase& MeshBase::texMap(C Ball &ball, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2 *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       REPA(vtx)
       {
          Vec v=(*pos++)-ball.pos;
@@ -73,10 +73,10 @@ MeshBase& MeshBase::texMap(C Ball &ball, Byte tex_index)
 }
 MeshBase& MeshBase::texMap(C Tube &tube, Byte tex_index)
 {
-   if(InRange(tex_index, 3))
+   if(InRange(tex_index, 4))
    if(C Vec *pos=vtx.pos())
    {
-      Vec2   *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break;}
+      Vec2   *tex; switch(tex_index){default: include(VTX_TEX0); tex=vtx.tex0(); break; case 1: include(VTX_TEX1); tex=vtx.tex1(); break; case 2: include(VTX_TEX2); tex=vtx.tex2(); break; case 3: include(VTX_TEX3); tex=vtx.tex3(); break;}
       Matrix3 matrix; matrix.setDir(tube.up); matrix.z.chs();
       REPA(vtx)
       {
@@ -87,9 +87,9 @@ MeshBase& MeshBase::texMap(C Tube &tube, Byte tex_index)
    }
    return T;
 }
-MeshBase& MeshBase::texMove  (C Vec2 &move , Byte tex_index) {if(InRange(tex_index, 3) && move.any()){Vec2 *tex=(tex_index==0 ? vtx.tex0() : tex_index==1 ? vtx.tex1() : vtx.tex2());                                        if(tex)REPA(vtx)(*tex++)+=move                 ;} return T;}
-MeshBase& MeshBase::texScale (C Vec2 &scale, Byte tex_index) {if(InRange(tex_index, 3) && scale!=1  ){Vec2 *tex=(tex_index==0 ? vtx.tex0() : tex_index==1 ? vtx.tex1() : vtx.tex2());                                        if(tex)REPA(vtx)(*tex++)*=scale                ;} return T;}
-MeshBase& MeshBase::texRotate(  Flt   angle, Byte tex_index) {if(InRange(tex_index, 3) && angle     ){Vec2 *tex=(tex_index==0 ? vtx.tex0() : tex_index==1 ? vtx.tex1() : vtx.tex2()); Flt cos, sin; CosSin(cos, sin, angle); if(tex)REPA(vtx)(*tex++).rotateCosSin(cos, sin);} return T;}
+MeshBase& MeshBase::texMove  (C Vec2 &move , Byte tex_index) {if(InRange(tex_index, 4) && move.any()){Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : (tex_index==2) ? vtx.tex2() : vtx.tex3());                                        if(tex)REPA(vtx)(*tex++)+=move                 ;} return T;}
+MeshBase& MeshBase::texScale (C Vec2 &scale, Byte tex_index) {if(InRange(tex_index, 4) && scale!=1  ){Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : (tex_index==2) ? vtx.tex2() : vtx.tex3());                                        if(tex)REPA(vtx)(*tex++)*=scale                ;} return T;}
+MeshBase& MeshBase::texRotate(  Flt   angle, Byte tex_index) {if(InRange(tex_index, 4) && angle     ){Vec2 *tex=((tex_index==0) ? vtx.tex0() : (tex_index==1) ? vtx.tex1() : (tex_index==2) ? vtx.tex2() : vtx.tex3()); Flt cos, sin; CosSin(cos, sin, angle); if(tex)REPA(vtx)(*tex++).rotateCosSin(cos, sin);} return T;}
 /******************************************************************************/
 }
 /******************************************************************************/
