@@ -100,15 +100,15 @@ Tri2& Tri2::setArrow(Flt direction, Flt angle)
 /******************************************************************************/
 Bool Tri2::valid(Flt eps)C
 {
-   return DistPointStr(p[0], p[1], !(p[2]-p[1]))>eps
-       && DistPointStr(p[1], p[2], !(p[0]-p[2]))>eps
-       && DistPointStr(p[2], p[0], !(p[1]-p[0]))>eps;
+   return DistPointLine(p[0], p[1], !(p[2]-p[1]))>eps
+       && DistPointLine(p[1], p[2], !(p[0]-p[2]))>eps
+       && DistPointLine(p[2], p[0], !(p[1]-p[0]))>eps;
 }
 Bool Tri::valid(Flt eps)C
 {
-   return DistPointStr(p[0], p[1], !(p[2]-p[1]))>eps
-       && DistPointStr(p[1], p[2], !(p[0]-p[2]))>eps
-       && DistPointStr(p[2], p[0], !(p[1]-p[0]))>eps;
+   return DistPointLine(p[0], p[1], !(p[2]-p[1]))>eps
+       && DistPointLine(p[1], p[2], !(p[0]-p[2]))>eps
+       && DistPointLine(p[2], p[0], !(p[1]-p[0]))>eps;
 }
 /******************************************************************************/
 Bool Tri2 ::clockwise()C {return Cross(p[1]-p[0], p[2]-p[0])<0;}

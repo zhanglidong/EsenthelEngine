@@ -398,7 +398,7 @@ Int MeshBase::mergeFaces(Int a, Int b)
                         if(vtx.pos())REP(4) // check if any of the points is inline
                         {
                          C Vec &p0=vtx.pos(q.c[i]), &p1=vtx.pos(q.c[(i+1)%4]), &p2=vtx.pos(q.c[(i+2)%4]);
-                           if(DistPointStr(p1, p0, !(p2-p0))<=EPS)
+                           if(DistPointLine(p1, p0, !(p2-p0))<=EPS)
                            {
                               merged=tris(); // triangle
                               addTri(VecI(q.c[i], q.c[(i+2)%4], q.c[(i+3)%4]));

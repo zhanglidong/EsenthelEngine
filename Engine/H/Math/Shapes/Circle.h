@@ -118,7 +118,7 @@ Bool Cuts(C RectI  &rect , C Circle &circle); // if rectangle cuts circle
 Bool Cuts(C Circle &a    , C Circle &b     ); // if circle    cuts circle
 
 // if straight line cuts circle, return number of contacts
-Int CutsStrCircle(C Vec2 &point, C Vec2 &normal, C Circle &circle, Vec2 *contact_a=null, Vec2 *contact_b=null, Flt *width=null);
+Int CutsLineCircle(C Vec2 &line_pos, C Vec2 &line_nrm, C Circle &circle, Vec2 *contact_a=null, Vec2 *contact_b=null, Flt *width=null);
 
 // if circle cuts circle, returns number of contacts
 Int CutsCircleCircle(C Circle &a, C Circle &b, Vec2 *contact_a=null, Vec2 *contact_b=null, Flt *width=null);

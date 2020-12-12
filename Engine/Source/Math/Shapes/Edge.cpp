@@ -502,95 +502,95 @@ void VoxelWalker::step()
    }
 }
 /******************************************************************************/
-Flt DistPointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir) {return  Abs(DistPointPlane(point, str, Perp(dir))     );}
-Dbl DistPointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir) {return  Abs(DistPointPlane(point, str, Perp(dir))     );}
-Flt DistPointStr(C Vec   &point, C Vec   &str, C Vec   &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
-Dbl DistPointStr(C VecD  &point, C Vec   &str, C Vec   &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
-Dbl DistPointStr(C VecD  &point, C VecD  &str, C VecD  &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
+Flt DistPointLine(C Vec2  &point, C Vec2  &line_pos, C Vec2  &line_dir) {return  Abs(DistPointPlane(point, line_pos, Perp(line_dir))          );}
+Dbl DistPointLine(C VecD2 &point, C VecD2 &line_pos, C VecD2 &line_dir) {return  Abs(DistPointPlane(point, line_pos, Perp(line_dir))          );}
+Flt DistPointLine(C Vec   &point, C Vec   &line_pos, C Vec   &line_dir) {return Dist(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
+Dbl DistPointLine(C VecD  &point, C Vec   &line_pos, C Vec   &line_dir) {return Dist(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
+Dbl DistPointLine(C VecD  &point, C VecD  &line_pos, C VecD  &line_dir) {return Dist(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
 /******************************************************************************/
-Flt Dist2PointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir) {return   Sqr(DistPointPlane(point, str, Perp(dir))     );}
-Dbl Dist2PointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir) {return   Sqr(DistPointPlane(point, str, Perp(dir))     );}
-Flt Dist2PointStr(C Vec   &point, C Vec   &str, C Vec   &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
-Dbl Dist2PointStr(C VecD  &point, C Vec   &str, C Vec   &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
-Dbl Dist2PointStr(C VecD  &point, C VecD  &str, C VecD  &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
+Flt Dist2PointLine(C Vec2  &point, C Vec2  &line_pos, C Vec2  &line_dir) {return   Sqr(DistPointPlane(point, line_pos, Perp(line_dir))          );}
+Dbl Dist2PointLine(C VecD2 &point, C VecD2 &line_pos, C VecD2 &line_dir) {return   Sqr(DistPointPlane(point, line_pos, Perp(line_dir))          );}
+Flt Dist2PointLine(C Vec   &point, C Vec   &line_pos, C Vec   &line_dir) {return Dist2(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
+Dbl Dist2PointLine(C VecD  &point, C Vec   &line_pos, C Vec   &line_dir) {return Dist2(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
+Dbl Dist2PointLine(C VecD  &point, C VecD  &line_pos, C VecD  &line_dir) {return Dist2(  PointOnPlane(point, line_pos,      line_dir ), line_pos);}
 /******************************************************************************/
-Flt DistStrStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b)
+Flt DistLineLine(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b)
 {
    Vec normal=Cross(dir_a, dir_b);
    if( normal.normalize())return Abs(DistPointPlane(pos_b, pos_a, normal));
-                          return     Dist          (pos_a, NearestPointOnStr(pos_a, pos_b, dir_b)); // if they're parallel, find closest point on straight 'pos_b' towards point 'pos_a' and return distance between them
+                          return     Dist          (pos_a, NearestPointOnLine(pos_a, pos_b, dir_b)); // if they're parallel, find closest point on straight 'pos_b' towards point 'pos_a' and return distance between them
 }
 /******************************************************************************/
 Flt DistPointEdge(C Vec2 &point, C Vec2 &edge_a, C Vec2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec2 d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return DistPointLine(point, edge_a, !d);
 }
 Dbl DistPointEdge(C VecD2 &point, C VecD2 &edge_a, C VecD2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    VecD2 d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return DistPointLine(point, edge_a, !d);
 }
 Flt DistPointEdge(C Vec &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return DistPointLine(point, edge_a, !d);
 }
 Dbl DistPointEdge(C VecD &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return DistPointLine(point, edge_a, !d);
 }
 Dbl DistPointEdge(C VecD &point, C VecD &edge_a, C VecD &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    VecD d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return DistPointLine(point, edge_a, !d);
 }
 /******************************************************************************/
 Flt Dist2PointEdge(C Vec2 &point, C Vec2 &edge_a, C Vec2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec2 d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointLine(point, edge_a, !d);
 }
 Dbl Dist2PointEdge(C VecD2 &point, C VecD2 &edge_a, C VecD2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    VecD2 d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointLine(point, edge_a, !d);
 }
 Flt Dist2PointEdge(C Vec &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointLine(point, edge_a, !d);
 }
 Dbl Dist2PointEdge(C VecD &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointLine(point, edge_a, !d);
 }
 Dbl Dist2PointEdge(C VecD &point, C VecD &edge_a, C VecD &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    VecD d=edge_b-edge_a;
-   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
-   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
-                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2         (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2         (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointLine(point, edge_a, !d);
 }
 /******************************************************************************/
 Flt Dist2(C Edge2 &a, C Edge2 &b)
@@ -623,7 +623,7 @@ Flt Dist2(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
    Edge c;
    Vec  a_dir=a.dir(),
         b_dir=b.dir();
-   if(NearestPointOnStr(a.p[0], a_dir, b.p[0], b_dir, c)) // safe in case 'a' or 'b' are zero length
+   if(NearestPointOnLine(a.p[0], a_dir, b.p[0], b_dir, c)) // safe in case 'a' or 'b' are zero length
    {
       if(DistPointPlane(c.p[0], a.p[0], a_dir)>=0 && DistPointPlane(c.p[0], a.p[1], a_dir)<=0
       && DistPointPlane(c.p[1], b.p[0], b_dir)>=0 && DistPointPlane(c.p[1], b.p[1], b_dir)<=0)return c.length2();
@@ -663,11 +663,11 @@ Vec NearestPointOnEdge(C Vec &point, C Vec &edge_a, C Vec &edge_b)
       return edge_a + dir*DistPointPlane(point, edge_a, dir);
    }
 }
-Vec NearestPointOnStr(C Vec &point, C Vec &str, C Vec &dir)
+Vec NearestPointOnLine(C Vec &point, C Vec &line_pos, C Vec &line_dir)
 {
-   return str + dir*DistPointPlane(point, str, dir);
+   return line_pos + line_dir*DistPointPlane(point, line_pos, line_dir);
 }
-Bool NearestPointOnStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b, Edge &out)
+Bool NearestPointOnLine(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b, Edge &out)
 {
    Vec normal=Cross(dir_a, dir_b);
    if( normal.normalize())
@@ -721,7 +721,7 @@ Bool CutsPointEdge(C VecD2 &point, C EdgeD2_I &ei, VecD2 *cuts)
 }
 Bool CutsPointEdge(C Vec &point, C Edge_I &ei, Vec *cuts)
 {
-   if(DistPointStr(point, ei.p[0], ei.dir)<=EPS)
+   if(DistPointLine(point, ei.p[0], ei.dir)<=EPS)
    {
       const Flt eps=EPS;
       Flt l=DistPointPlane(point, ei.p[0], ei.dir);
@@ -741,7 +741,7 @@ Bool CutsPointEdge(C Vec &point, C Edge_I &ei, Vec *cuts)
 }
 Bool CutsPointEdge(C VecD &point, C EdgeD_I &ei, VecD *cuts)
 {
-   if(DistPointStr(point, ei.p[0], ei.dir)<=EPSD)
+   if(DistPointLine(point, ei.p[0], ei.dir)<=EPSD)
    {
       const Dbl eps=EPSD;
       Dbl l=DistPointPlane(point, ei.p[0], ei.dir);

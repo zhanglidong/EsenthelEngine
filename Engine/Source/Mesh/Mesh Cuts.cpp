@@ -1025,7 +1025,7 @@ Matrix GetRestMatrix(C Memt<C MeshBase*> &meshes, C Memt<C MeshRender*> &gpu_mes
       {
        C Vec &p_org=mesh->vtx.pos(i); Vec p=p_org*matrix;
        //if(!Equal(p, a, min_dist) && !Equal(p, b, min_dist)) // ignore the original points or those close to them, this check is not needed because of the one below
-         if(DistPointStr(p, a, axis3)>min_dist) // ignore points on the same line. Operate on 'p' and 'a' instead of 'p_org' and 'a_org' so we get correct scale for 'min_dist' in case 'matrix' scales
+         if(DistPointLine(p, a, axis3)>min_dist) // ignore points on the same line. Operate on 'p' and 'a' instead of 'p_org' and 'a_org' so we get correct scale for 'min_dist' in case 'matrix' scales
          {
             Vec d=p-a;
             Flt x=Dot(d, right); if(x>0) // if point is on the same side as center of mass
@@ -1047,7 +1047,7 @@ Matrix GetRestMatrix(C Memt<C MeshBase*> &meshes, C Memt<C MeshRender*> &gpu_mes
       {
        C Vec &p_org=*(Vec*)vtx_pos; vtx_pos+=mesh->vtxSize(); Vec p=p_org*matrix;
        //if(!Equal(p, a, min_dist) && !Equal(p, b, min_dist)) // ignore the original points or those close to them, this check is not needed because of the one below
-         if(DistPointStr(p, a, axis3)>min_dist) // ignore points on the same line. Operate on 'p' and 'a' instead of 'p_org' and 'a_org' so we get correct scale for 'min_dist' in case 'matrix' scales
+         if(DistPointLine(p, a, axis3)>min_dist) // ignore points on the same line. Operate on 'p' and 'a' instead of 'p_org' and 'a_org' so we get correct scale for 'min_dist' in case 'matrix' scales
          {
             Vec d=p-a;
             Flt x=Dot(d, right); if(x>0) // if point is on the same side as center of mass

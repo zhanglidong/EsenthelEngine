@@ -18,8 +18,8 @@ static void DrawPlane(C Color &color, Flt cell_size, Int resolution, C VecD &cen
          Vec  dx  =step*matrix.x,
               dz  =step*matrix.z;
          VecD a, b;
-         if(CutsStrBall(lb+dx, matrix.z, ball, &a, &b)==2)VI.line(a, b);
-         if(CutsStrBall(lb+dz, matrix.x, ball, &a, &b)==2)VI.line(a, b);
+         if(CutsLineBall(lb+dx, matrix.z, ball, &a, &b)==2)VI.line(a, b);
+         if(CutsLineBall(lb+dz, matrix.x, ball, &a, &b)==2)VI.line(a, b);
       }
    }else
    {

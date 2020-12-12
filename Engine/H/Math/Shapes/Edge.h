@@ -407,21 +407,21 @@ inline Edge  ::Edge  (C EdgeD  &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
 inline EdgeD ::EdgeD (C Edge   &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
 /******************************************************************************/
 // distance between point and a straight line
-Flt DistPointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir);
-Dbl DistPointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir);
-Flt DistPointStr(C Vec   &point, C Vec   &str, C Vec   &dir);
-Dbl DistPointStr(C VecD  &point, C Vec   &str, C Vec   &dir);
-Dbl DistPointStr(C VecD  &point, C VecD  &str, C VecD  &dir);
+Flt DistPointLine(C Vec2  &point, C Vec2  &line_pos, C Vec2  &line_dir);
+Dbl DistPointLine(C VecD2 &point, C VecD2 &line_pos, C VecD2 &line_dir);
+Flt DistPointLine(C Vec   &point, C Vec   &line_pos, C Vec   &line_dir);
+Dbl DistPointLine(C VecD  &point, C Vec   &line_pos, C Vec   &line_dir);
+Dbl DistPointLine(C VecD  &point, C VecD  &line_pos, C VecD  &line_dir);
 
 // squared distance between point and a straight line
-Flt Dist2PointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir);
-Dbl Dist2PointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir);
-Flt Dist2PointStr(C Vec   &point, C Vec   &str, C Vec   &dir);
-Dbl Dist2PointStr(C VecD  &point, C Vec   &str, C Vec   &dir);
-Dbl Dist2PointStr(C VecD  &point, C VecD  &str, C VecD  &dir);
+Flt Dist2PointLine(C Vec2  &point, C Vec2  &line_pos, C Vec2  &line_dir);
+Dbl Dist2PointLine(C VecD2 &point, C VecD2 &line_pos, C VecD2 &line_dir);
+Flt Dist2PointLine(C Vec   &point, C Vec   &line_pos, C Vec   &line_dir);
+Dbl Dist2PointLine(C VecD  &point, C Vec   &line_pos, C Vec   &line_dir);
+Dbl Dist2PointLine(C VecD  &point, C VecD  &line_pos, C VecD  &line_dir);
 
 // distance between 2 straight lines
-Flt DistStrStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b);
+Flt DistLineLine(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b);
 
 // distance between point and an edge
        Flt DistPointEdge(C Vec2  &point, C Vec2   &edge_a, C Vec2  &edge_b, DIST_TYPE *type=null);
@@ -458,12 +458,12 @@ Flt Dist2(C Edge  &a, C Edge  &b);
 // distance between edge and a plane
 Flt Dist(C Edge &edge, C Plane &plane);
 
-       Vec2 NearestPointOnEdge(C Vec2 &point, C Vec2  &edge_a, C Vec2 &edge_b);                                                          // nearest point on edge
-       Vec  NearestPointOnEdge(C Vec  &point, C Vec   &edge_a, C Vec  &edge_b);                                                          // nearest point on edge
-inline Vec2 NearestPointOnEdge(C Vec2 &point, C Edge2 &edge                  ) {return NearestPointOnEdge(point, edge.p[0], edge.p[1]);} // nearest point on edge
-inline Vec  NearestPointOnEdge(C Vec  &point, C Edge  &edge                  ) {return NearestPointOnEdge(point, edge.p[0], edge.p[1]);} // nearest point on edge
-       Vec  NearestPointOnStr (C Vec  &point, C Vec   &str  , C Vec &dir     );                                                          // nearest point on straight line
-       Bool NearestPointOnStr (C Vec  &pos_a, C Vec   &dir_a, C Vec &pos_b, C Vec &dir_b, Edge &out);                                    // nearest points on straight lines, return true is succesfull, put points to out.p[]
+       Vec2 NearestPointOnEdge(C Vec2 &point, C Vec2  &edge_a, C Vec2 &edge_b);                                                          // nearest point  on edge
+       Vec  NearestPointOnEdge(C Vec  &point, C Vec   &edge_a, C Vec  &edge_b);                                                          // nearest point  on edge
+inline Vec2 NearestPointOnEdge(C Vec2 &point, C Edge2 &edge                  ) {return NearestPointOnEdge(point, edge.p[0], edge.p[1]);} // nearest point  on edge
+inline Vec  NearestPointOnEdge(C Vec  &point, C Edge  &edge                  ) {return NearestPointOnEdge(point, edge.p[0], edge.p[1]);} // nearest point  on edge
+       Vec  NearestPointOnLine(C Vec  &point, C Vec   &line_pos, C Vec &line_dir);                                                       // nearest point  on straight line
+       Bool NearestPointOnLine(C Vec  &pos_a, C Vec   &dir_a, C Vec &pos_b, C Vec &dir_b, Edge &out);                                    // nearest points on straight lines, return true is succesfull, put points to out.p[]
 
 // if points cuts edge (with epsilon)
        Bool CutsPointEdge(C Vec2  &point, C Edge2_I  &ei  , Vec2  *cuts=null);

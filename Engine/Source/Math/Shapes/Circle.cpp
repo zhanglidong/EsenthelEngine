@@ -116,11 +116,11 @@ Bool Cuts(C Circle &a, C Circle &b)
    return Dist2(a.pos, b.pos)<=Sqr(a.r+b.r);
 }
 /******************************************************************************/
-Int CutsStrCircle(C Vec2 &point, C Vec2 &normal, C Circle &circle, Vec2 *contact_a, Vec2 *contact_b, Flt *width)
+Int CutsLineCircle(C Vec2 &line_pos, C Vec2 &line_nrm, C Circle &circle, Vec2 *contact_a, Vec2 *contact_b, Flt *width)
 {
-   Flt  d=DistPointPlane(point, circle.pos, normal),
+   Flt  d=DistPointPlane(line_pos, circle.pos, line_nrm),
         y=Abs(d);
-   Vec2 right(normal.y, -normal.x);
+   Vec2 right(line_nrm.y, -line_nrm.x);
    if(!y)
    {
       right*=circle.r;
@@ -131,12 +131,12 @@ Int CutsStrCircle(C Vec2 &point, C Vec2 &normal, C Circle &circle, Vec2 *contact
    }
    if(y==circle.r)
    {
-      if(contact_a)*contact_a=circle.pos+d*normal;
+      if(contact_a)*contact_a=circle.pos+d*line_nrm;
       if(width    )*width    =0;
       return 1;
    }
    if(y>circle.r)return 0;
-   Vec2 center=circle.pos+d*normal;
+   Vec2 center=circle.pos+d*line_nrm;
    Flt  x     =Sqrt(circle.r*circle.r - y*y);
         right*=x;
    if(contact_a)*contact_a=center+right;
@@ -168,8 +168,8 @@ Int CutsCircleCircle(C Circle &c1, C Circle &c2, Vec2 *contact_a, Vec2 *contact_
    a/=l;
    b/=l;
    c/=l;
-   Vec2 normal(a, b), point(a*c, b*c);
-   return CutsStrCircle(point, normal, c1, contact_a, contact_b, width);
+   Vec2 line_nrm(a, b), line_pos(a*c, b*c);
+   return CutsLineCircle(line_pos, line_nrm, c1, contact_a, contact_b, width);
 }
 /******************************************************************************/
 Bool Inside(C Rect &a, C Circle &b)

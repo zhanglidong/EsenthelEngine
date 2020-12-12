@@ -375,38 +375,38 @@ Bool Cuts(C OBox &obox, C Ball &ball)
    return Cuts(obox.box, temp);
 }
 /******************************************************************************/
-Int CutsStrBall(C Vec &str_pos, C Vec &str_dir, C Ball &ball, Vec *contact_a, Vec *contact_b)
+Int CutsLineBall(C Vec &line_pos, C Vec &line_dir, C Ball &ball, Vec *contact_a, Vec *contact_b)
 {
-   Vec p=PointOnPlane(str_pos, ball.pos, str_dir);
-   Flt s=Dist        (p      , ball.pos         )/ball.r;
+   Vec p=PointOnPlane(line_pos, ball.pos, line_dir);
+   Flt s=Dist        (p       , ball.pos          )/ball.r;
    if(s> 1)return 0;
    if(s==1){if(contact_a)*contact_a=p; return 1;}
    if(contact_a || contact_b)
    {
       s=CosSin(s)*ball.r;
-      if(contact_a)*contact_a=p-s*str_dir;
-      if(contact_b)*contact_b=p+s*str_dir;
+      if(contact_a)*contact_a=p-s*line_dir;
+      if(contact_b)*contact_b=p+s*line_dir;
    }
    return 2;
 }
-Int CutsStrBall(C VecD &str_pos, C VecD &str_dir, C BallM &ball, VecD *contact_a, VecD *contact_b)
+Int CutsLineBall(C VecD &line_pos, C VecD &line_dir, C BallM &ball, VecD *contact_a, VecD *contact_b)
 {
-   VecD p=PointOnPlane(str_pos, ball.pos, str_dir);
-   Dbl  s=Dist        (p      , ball.pos         )/ball.r;
+   VecD p=PointOnPlane(line_pos, ball.pos, line_dir);
+   Dbl  s=Dist        (p       , ball.pos          )/ball.r;
    if(s> 1)return 0;
    if(s==1){if(contact_a)*contact_a=p; return 1;}
    if(contact_a || contact_b)
    {
       s=CosSin(s)*ball.r;
-      if(contact_a)*contact_a=p-s*str_dir;
-      if(contact_b)*contact_b=p+s*str_dir;
+      if(contact_a)*contact_a=p-s*line_dir;
+      if(contact_b)*contact_b=p+s*line_dir;
    }
    return 2;
 }
 Int CutsEdgeBall(C Vec &edge_start, C Vec &edge_end, C Ball &ball, Vec *contact_a, Vec *contact_b)
 {
    Vec c[2], dir=!(edge_end-edge_start);
-   if(Int hit=CutsStrBall(edge_start, dir, ball, &c[0], &c[1]))
+   if(Int hit=CutsLineBall(edge_start, dir, ball, &c[0], &c[1]))
    {
       Bool in[2]={(hit>=1), (hit>=2)};
       REP(2)if(in[i])if(DistPointPlane(c[i], edge_start, dir)<0 || DistPointPlane(c[i], edge_end, dir)>0)in[i]=false;
