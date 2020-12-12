@@ -706,7 +706,7 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshBase &mshb, C Matrix *mesh_matrix, F
       if(hit)
       {
          if(hit_frac)*hit_frac=      frac;
-         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
          if(hit_face)*hit_face=face_index;
          return true;
       }
@@ -729,7 +729,7 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshBase &mshb, C Matrix *
       if(hit)
       {
          if(hit_frac)*hit_frac=         frac;
-         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
          if(hit_face)*hit_face=face_index;
          return true;
       }
@@ -760,7 +760,7 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshRender &mshr, C Matrix *mesh_matrix,
          if(hit)
          {
             if(hit_frac)*hit_frac=      frac;
-            if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+            if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
             if(hit_face)*hit_face=face_index;
          }
          mshr.indUnlock();
@@ -792,7 +792,7 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshRender &mshr, C Matrix
          if(hit)
          {
             if(hit_frac)*hit_frac=         frac;
-            if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+            if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
             if(hit_face)*hit_face=face_index;
          }
          mshr.indUnlock();
@@ -830,7 +830,7 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshLod &mesh, C Matrix *mesh_matrix, Fl
    if(hit)
    {
       if(hit_frac)*hit_frac=      frac;
-      if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+      if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
       if(hit_face)*hit_face=face_index;
       if(hit_part)*hit_part=part_index;
       return true;
@@ -857,7 +857,7 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshLod &mesh, C Matrix *m
    if(hit)
    {
       if(hit_frac)*hit_frac=         frac;
-      if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+      if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
       if(hit_face)*hit_face=face_index;
       if(hit_part)*hit_part=part_index;
       return true;
@@ -936,7 +936,7 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshGroup &mshg, C Matrix *mesh_matrix, 
       if(hit)
       {
          if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
          if(hit_face)*hit_face=face_index;
          if(hit_part)*hit_part=part_index;
          if(hit_mesh)*hit_mesh=mesh_index;
@@ -972,7 +972,7 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshGroup &mshg, C Matrix 
       if(hit)
       {
          if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
+         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop (also this needs to be done always for 'mesh_matrix')
          if(hit_face)*hit_face=face_index;
          if(hit_part)*hit_part=part_index;
          if(hit_mesh)*hit_mesh=mesh_index;
