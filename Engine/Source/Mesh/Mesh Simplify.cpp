@@ -830,8 +830,8 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
                }
             }else // calculate new position in the old triangle
             {
-               Tri old_tri(vtxs[tri.ind.x].pos, vtxs[tri.ind.y].pos, vtxs[tri.ind.z].pos, &tri.nrm);
-               Vec blend=TriBlend(mid_pos, old_tri, false);
+               TriN old_tri(vtxs[tri.ind.x].pos, vtxs[tri.ind.y].pos, vtxs[tri.ind.z].pos, &tri.nrm);
+               Vec  blend=TriBlend(mid_pos, old_tri, false);
                if(test_flag&VTX_TEX0)
                {
                   Vec2 expected_tex=tri.vtxs[0].tex0*blend.x + tri.vtxs[1].tex0*blend.y + tri.vtxs[2].tex0*blend.z;
@@ -1425,7 +1425,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          {
             TrianglePtr &triangle_ptr=all_tris[i];
             Triangle    &triangle    =*triangle_ptr.tri;
-            Tri          tri(vtxs[triangle.ind.x].pos, vtxs[triangle.ind.y].pos, vtxs[triangle.ind.z].pos, &triangle.nrm);
+            TriN         tri(vtxs[triangle.ind.x].pos, vtxs[triangle.ind.y].pos, vtxs[triangle.ind.z].pos, &triangle.nrm);
             Vec          blend=TriBlend(mid_pos, tri, false);
             blend*=triangle.weight; // make 'vtx_mid' vertex data weighted by 'triangle.weight'
             triangle_ptr.vtx_mid.lerp(triangle.vtxs[0], triangle.vtxs[1], triangle.vtxs[2], blend, triangle.flag);

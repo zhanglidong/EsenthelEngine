@@ -83,10 +83,10 @@ DIST_TYPE DistPointMesh(C Vec &point, C MeshBase &mshb, MESH_FLAG flag, Flt *dis
  C VecI4    *quad=mshb.quad.ind();
  C Vec      *tn  =mshb.tri .nrm();
  C Vec      *qn  =mshb.quad.nrm();
-   if(flag& VTX_POS)REPA(mshb.vtx ){             d=Dist         (point,      pos[  i ]                                                      ); if(!type || d<dist){dist=d; type=DIST_POINT; j=i;}}
-   if(flag&EDGE_IND)REPA(mshb.edge){p=edge[i].c; d=DistPointEdge(point,      pos[p[0]], pos[p[1]]                                           ); if(!type || d<dist){dist=d; type=DIST_EDGE ; j=i;}}
-   if(flag& TRI_IND)REPA(mshb.tri ){p=tri [i].c; d=Dist         (point,  Tri(pos[p[0]], pos[p[1]], pos[p[2]]           , tn ? &tn[i] : null)); if(!type || d<dist){dist=d; type=DIST_TRI  ; j=i;}}
-   if(flag&QUAD_IND)REPA(mshb.quad){p=quad[i].c; d=Dist         (point, Quad(pos[p[0]], pos[p[1]], pos[p[2]], pos[p[3]], qn ? &qn[i] : null)); if(!type || d<dist){dist=d; type=DIST_QUAD ; j=i;}}
+   if(flag& VTX_POS)REPA(mshb.vtx ){             d=Dist         (point,       pos[  i ]                                                      ); if(!type || d<dist){dist=d; type=DIST_POINT; j=i;}}
+   if(flag&EDGE_IND)REPA(mshb.edge){p=edge[i].c; d=DistPointEdge(point,       pos[p[0]], pos[p[1]]                                           ); if(!type || d<dist){dist=d; type=DIST_EDGE ; j=i;}}
+   if(flag& TRI_IND)REPA(mshb.tri ){p=tri [i].c; d=Dist         (point,  TriN(pos[p[0]], pos[p[1]], pos[p[2]]           , tn ? &tn[i] : null)); if(!type || d<dist){dist=d; type=DIST_TRI  ; j=i;}}
+   if(flag&QUAD_IND)REPA(mshb.quad){p=quad[i].c; d=Dist         (point, QuadN(pos[p[0]], pos[p[1]], pos[p[2]], pos[p[3]], qn ? &qn[i] : null)); if(!type || d<dist){dist=d; type=DIST_QUAD ; j=i;}}
    if(distance)*distance=dist;
    if(index   )*index   =j   ;
    return type;
@@ -268,7 +268,7 @@ static Bool Add(C VecI &coords, CutsAdd &ca)
       if(  face&SIGN_BIT) // quad
       {
        C Int      *p=ca.mshb->quad.ind(face^SIGN_BIT).c;
-         Quad      quad(ca.pos[p[0]], ca.pos[p[1]], ca.pos[p[2]], ca.pos[p[3]], ca.mshb->quad.nrm() ? &ca.mshb->quad.nrm(face^SIGN_BIT) : null);
+         QuadN     quad(ca.pos[p[0]], ca.pos[p[1]], ca.pos[p[2]], ca.pos[p[3]], ca.mshb->quad.nrm() ? &ca.mshb->quad.nrm(face^SIGN_BIT) : null);
          DIST_TYPE type; Flt d=Dist(ca.point, quad, &type);
          if(!ca.dists->elms() || d<=*ca.dist+EPS)
          {
@@ -279,7 +279,7 @@ static Bool Add(C VecI &coords, CutsAdd &ca)
       else // triangle
       {
        C Int      *p=ca.mshb->tri.ind(face).c;
-         Tri       tri(ca.pos[p[0]], ca.pos[p[1]], ca.pos[p[2]], ca.mshb->tri.nrm() ? &ca.mshb->tri.nrm(face) : null);
+         TriN      tri(ca.pos[p[0]], ca.pos[p[1]], ca.pos[p[2]], ca.mshb->tri.nrm() ? &ca.mshb->tri.nrm(face) : null);
          DIST_TYPE type; Flt d=Dist(ca.point, tri, &type);
          if(!ca.dists->elms() || d<=*ca.dist+EPS)
          {
@@ -294,7 +294,7 @@ static void FindClosest(C Vec &point, C MeshBase &mshb, Int part, Flt &dist, Mem
 {
    FREPA(mshb.tri)
    {
-    C Int      *p=mshb.tri.ind(i).c; Tri tri(mshb.vtx.pos(p[0]), mshb.vtx.pos(p[1]), mshb.vtx.pos(p[2]), mshb.tri.nrm() ? &mshb.tri.nrm(i) : null);
+    C Int      *p=mshb.tri.ind(i).c; TriN tri(mshb.vtx.pos(p[0]), mshb.vtx.pos(p[1]), mshb.vtx.pos(p[2]), mshb.tri.nrm() ? &mshb.tri.nrm(i) : null);
       DIST_TYPE type; Flt d=Dist(point, tri, &type);
       if(!dists.elms() || d<=dist+EPS)
       {
@@ -304,7 +304,7 @@ static void FindClosest(C Vec &point, C MeshBase &mshb, Int part, Flt &dist, Mem
    }
    FREPA(mshb.quad)
    {
-    C Int      *p=mshb.quad.ind(i).c; Quad quad(mshb.vtx.pos(p[0]), mshb.vtx.pos(p[1]), mshb.vtx.pos(p[2]), mshb.vtx.pos(p[3]), mshb.quad.nrm() ? &mshb.quad.nrm(i) : null);
+    C Int      *p=mshb.quad.ind(i).c; QuadN quad(mshb.vtx.pos(p[0]), mshb.vtx.pos(p[1]), mshb.vtx.pos(p[2]), mshb.vtx.pos(p[3]), mshb.quad.nrm() ? &mshb.quad.nrm(i) : null);
       DIST_TYPE type; Flt d=Dist(point, quad, &type);
       if(!dists.elms() || d<=dist+EPS)
       {
@@ -707,8 +707,8 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshBase &mshb, C Matrix *mesh_matrix, F
  C Vec   *quad_nrm=mshb.quad.nrm();
  C Vec   * vtx_pos=mshb.vtx .pos();
 
-   if(vtx_pos &&  tri_ind)REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move, Tri (vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}
-   if(vtx_pos && quad_ind)REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, Quad(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}
+   if(vtx_pos &&  tri_ind)REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}
+   if(vtx_pos && quad_ind)REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}
 
    if(hit)
    {

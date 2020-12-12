@@ -115,7 +115,7 @@ struct CapsuleM // Capsule Shape (mixed precision)
 // distance
        Flt Dist            (C Vec      &point  , C Capsule &capsule             ); // distance between point    and a capsule
        Flt Dist            (C Edge     &edge   , C Capsule &capsule             ); // distance between edge     and a capsule
-       Flt Dist            (C Tri      &tri    , C Capsule &capsule             ); // distance between triangle and a capsule
+       Flt Dist            (C TriN     &tri    , C Capsule &capsule             ); // distance between triangle and a capsule
        Flt Dist            (C Box      &box    , C Capsule &capsule             ); // distance between box      and a capsule
        Flt Dist            (C OBox     &obox   , C Capsule &capsule             ); // distance between box      and a capsule
        Flt Dist            (C Ball     &ball   , C Capsule &capsule             ); // distance between ball     and a capsule
@@ -132,7 +132,7 @@ Bool Cuts(C Vec     &point, C Capsule  &capsule); // if point    cuts a capsule
 Bool Cuts(C VecD    &point, C Capsule  &capsule); // if point    cuts a capsule
 Bool Cuts(C VecD    &point, C CapsuleM &capsule); // if point    cuts a capsule
 Bool Cuts(C Edge    &edge , C Capsule  &capsule); // if edge     cuts a capsule
-Bool Cuts(C Tri     &tri  , C Capsule  &capsule); // if triangle cuts a capsule
+Bool Cuts(C TriN    &tri  , C Capsule  &capsule); // if triangle cuts a capsule
 Bool Cuts(C Box     &box  , C Capsule  &capsule); // if box      cuts a capsule
 Bool Cuts(C OBox    &obox , C Capsule  &capsule); // if box      cuts a capsule
 Bool Cuts(C Ball    &ball , C Capsule  &capsule); // if ball     cuts a capsule
@@ -146,5 +146,5 @@ Bool SweepBallCapsule (C Ball &ball , C Vec &move, C Capsule &capsule, Flt *hit_
 
 Bool SweepCapsuleEdge (C Capsule &capsule, C Vec &move, C Edge  &edge , Flt *hit_frac=null, Vec *hit_normal=null                   ); // if moving capsule cuts through a static edge
 Bool SweepCapsulePlane(C Capsule &capsule, C Vec &move, C Plane &plane, Flt *hit_frac=null, Vec *hit_normal=null, Vec *hit_pos=null); // if moving capsule cuts through a static plane
-Bool SweepCapsuleTri  (C Capsule &capsule, C Vec &move, C Tri   &tri  , Flt *hit_frac=null, Vec *hit_normal=null                   ); // if moving capsule cuts through a static triangle
+Bool SweepCapsuleTri  (C Capsule &capsule, C Vec &move, C TriN  &tri  , Flt *hit_frac=null, Vec *hit_normal=null                   ); // if moving capsule cuts through a static triangle
 /******************************************************************************/

@@ -141,7 +141,7 @@ DestructMesh& DestructMesh::create(Mesh &mesh, Int cuts, C MaterialPtr &material
             REPA(phys_a.tri)
             {
                VecI ind=phys_a.tri.ind(i);
-               Tri  tri_a(phys_a.vtx.pos(ind.x), phys_a.vtx.pos(ind.y), phys_a.vtx.pos(ind.z), &phys_a.tri.nrm(i));
+               TriN tri_a(phys_a.vtx.pos(ind.x), phys_a.vtx.pos(ind.y), phys_a.vtx.pos(ind.z), &phys_a.tri.nrm(i));
                Vec  tri_a_center=tri_a.center();
                REPA(phys_b.tri)
                {
@@ -151,10 +151,10 @@ DestructMesh& DestructMesh::create(Mesh &mesh, Int cuts, C MaterialPtr &material
                      VecI ind=phys_b.tri.ind(i);
                      if(Abs(DistPointPlane(phys_b.vtx.pos(ind.x), tri_a))<=0.03f) // on the same plane
                      {
-                        Tri tri_b(phys_b.vtx.pos(ind.x), phys_b.vtx.pos(ind.y), phys_b.vtx.pos(ind.z), &phys_b.tri.nrm(i));
-                        Vec tri_b_center =tri_b.center();
-                        Tri tri_a_smaller=(tri_a-tri_a_center)*0.9f+tri_a_center,
-                            tri_b_smaller=(tri_b-tri_b_center)*0.9f+tri_b_center;
+                        TriN tri_b(phys_b.vtx.pos(ind.x), phys_b.vtx.pos(ind.y), phys_b.vtx.pos(ind.z), &phys_b.tri.nrm(i));
+                        Vec  tri_b_center =tri_b.center();
+                        TriN tri_a_smaller=(tri_a-tri_a_center)*0.9f+tri_a_center,
+                             tri_b_smaller=(tri_b-tri_b_center)*0.9f+tri_b_center;
                         if(Dist(tri_a_smaller, tri_b_smaller)<=0.01f) // distance between triangles
                         {
                           _joints.New().set(a, b);

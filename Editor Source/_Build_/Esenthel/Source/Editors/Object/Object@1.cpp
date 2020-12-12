@@ -571,8 +571,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      int f=(v.y^SIGN_BIT); if(InRange(f, part.base.quad))
                      {
                       C VecI4 &v=part.base.quad.ind(f); // draw as 2 tris so that VI uses tris everywhere (mixed 'tri' and 'quad' calls at the same time may not be supported)
-                        Tri a(pos[v.x], pos[v.y], pos[v.w], &VecZero),
-                            b(pos[v.y], pos[v.z], pos[v.w], &VecZero);
+                        Tri a(pos[v.x], pos[v.y], pos[v.w]),
+                            b(pos[v.y], pos[v.z], pos[v.w]);
                         if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
                            a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.w]*trans_mesh.trans_normal;
@@ -586,7 +586,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      int f=v.y; if(InRange(f, part.base.tri))
                      {
                       C VecI &v=part.base.tri.ind(f);
-                        Tri a(pos[v.x], pos[v.y], pos[v.z], &VecZero);
+                        Tri a(pos[v.x], pos[v.y], pos[v.z]);
                         if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
                            a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.z]*trans_mesh.trans_normal;

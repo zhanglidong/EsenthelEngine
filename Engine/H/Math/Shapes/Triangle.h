@@ -20,8 +20,10 @@ Vec  GetNormalEdge(C Vec &p0, C Vec &p1           ); // calculate partial normal
 #endif
 
 // calculate triangle area
-Flt TriArea2(C Vec  &p0, C Vec  &p1, C Vec  &p2); // calculate "area of the triangle * 2", this is the same as "GetNormalU(p0, p1, p2).length()"
-Dbl TriArea2(C VecD &p0, C VecD &p1, C VecD &p2); // calculate "area of the triangle * 2", this is the same as "GetNormalU(p0, p1, p2).length()"
+Flt TriArea2(C Vec2  &p0, C Vec2  &p1, C Vec2  &p2); // calculate "area of the triangle * 2", this is the same as "Abs(Cross(p1-p0, p2-p0))"
+Dbl TriArea2(C VecD2 &p0, C VecD2 &p1, C VecD2 &p2); // calculate "area of the triangle * 2", this is the same as "Abs(Cross(p1-p0, p2-p0))"
+Flt TriArea2(C Vec   &p0, C Vec   &p1, C Vec   &p2); // calculate "area of the triangle * 2", this is the same as "GetNormalU(p0, p1, p2).length()"
+Dbl TriArea2(C VecD  &p0, C VecD  &p1, C VecD  &p2); // calculate "area of the triangle * 2", this is the same as "GetNormalU(p0, p1, p2).length()"
 /******************************************************************************/
 struct Tri2 // Triangle 2D
 {
@@ -94,15 +96,13 @@ struct TriD2 // Triangle 2D (double precision)
 /******************************************************************************/
 struct Tri // Triangle 3D
 {
-   Vec p[3], // points
-       n   ; // normal
+   Vec p[3]; // points
 
-   Tri& set      (C Vec &p0, C Vec &p1, C Vec &p2, C Vec *normal=null);
-   Tri& setNormal() {n=getNormal(); return T;} // recalculate normal
+   Tri& set(C Vec &p0, C Vec &p1, C Vec &p2);
 
    // get
    Vec   center    (           )C {return Avg  (p[0], p[1], p[2]          );} // get center
-   Plane plane     (           )C {return Plane(p[0], n                   );} // return as Plane
+   Plane plane     (           )C {return Plane(p[0], getNormal()         );} // return as Plane
    Edge  edge      (Int n      )C {return Edge (p[Mod(n,3)], p[Mod(n+1,3)]);} // get n-th edge
    Edge  edge0     (           )C {return Edge (p[      0 ], p[        1 ]);} // get 0-1  edge
    Edge  edge1     (           )C {return Edge (p[      1 ], p[        2 ]);} // get 1-2  edge
@@ -111,7 +111,7 @@ struct Tri // Triangle 3D
    Vec   getNormalU(           )C {return      GetNormalU(p[0], p[1], p[2]);} // calculate un-normalized normal vector from triangle points (length of the vector is proportional to the area of the triangle)
    Flt   area      (           )C; // get surface area
    Bool  valid     (Flt eps=EPS)C; // if valid (points aren't inline)
-   Bool  coplanar  (C Tri &tri )C; // if coplanar
+   Bool  coplanar  (C TriN &tri)C; // if coplanar
 
    // operations
    void circularLerp(Tri *tri, Int num)C; // set 'tri' 'num' number of triangles as a circular interpolation of the current triangle, interpolation occurs between p[1] and p[2] points, p[0] stays the same as in current triangle
@@ -130,26 +130,52 @@ struct Tri // Triangle 3D
    friend Tri operator/ (C Tri &tri,   Flt  r) {return Tri(tri)/=r;}
 
               Tri() {}
-              Tri(C Vec  &p0, C Vec &p1, C Vec &p2, C Vec *normal=null) {set(p0, p1, p2, normal);}
+              Tri(C Vec  &p0, C Vec &p1, C Vec &p2) {set(p0, p1, p2);}
    CONVERSION Tri(C TriD &tri);
+};
+struct TriN : Tri // Triangle 3D with a Normal
+{
+   Vec n; // normal
+
+   TriN& set      (C Vec &p0, C Vec &p1, C Vec &p2, C Vec *normal=null);
+   TriN& setNormal() {n=getNormal(); return T;} // recalculate normal
+
+   // get
+   Plane plane   (          )C {return Plane(p[0], n);} // return as Plane
+   Bool  coplanar(C Tri &tri)C; // if coplanar
+
+   TriN& operator+=(C Vec &v);
+   TriN& operator-=(C Vec &v);
+   TriN& operator*=(  Flt  r);
+   TriN& operator/=(  Flt  r);
+
+   friend TriN operator+ (C TriN &tri, C Vec &v) {return TriN(tri)+=v;}
+   friend TriN operator- (C TriN &tri, C Vec &v) {return TriN(tri)-=v;}
+   friend TriN operator* (C TriN &tri,   Flt  r) {return TriN(tri)*=r;}
+   friend TriN operator/ (C TriN &tri,   Flt  r) {return TriN(tri)/=r;}
+
+              TriN() {}
+              TriN(C Vec   &p0, C Vec &p1, C Vec &p2, C Vec *normal=null) {set(p0, p1, p2, normal);}
+   CONVERSION TriN(C Tri   &tri);
+   CONVERSION TriN(C TriND &tri);
 };
 /******************************************************************************/
 struct TriD // Triangle 3D (double precision)
 {
-   VecD p[3], // points
-        n   ; // normal
+   VecD p[3]; // points
 
-   TriD& set      (C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null);
-   TriD& setNormal() {n=GetNormal(p[0], p[1], p[2]); return T;} // recalculate normal
+   TriD& set(C VecD &p0, C VecD &p1, C VecD &p2);
 
    // get
-   VecD   center  (           )C {return Avg   (p[0], p[1], p[2]);} // get center
-   PlaneD plane   (           )C {return PlaneD(p[0], n         );} // return as PlaneD
-   EdgeD  edge0   (           )C {return EdgeD (p[0], p[1]      );} // get 0-1 edge
-   EdgeD  edge1   (           )C {return EdgeD (p[1], p[2]      );} // get 1-2 edge
-   EdgeD  edge2   (           )C {return EdgeD (p[2], p[0]      );} // get 2-0 edge
-   Dbl    area    (           )C;                                   // get surface area
-   Bool   coplanar(C TriD &tri)C;                                   // if coplanar
+   VecD   center    (            )C {return Avg       (p[0], p[1], p[2] );} // get center
+   PlaneD plane     (            )C {return PlaneD    (p[0], getNormal());} // return as PlaneD
+   EdgeD  edge0     (            )C {return EdgeD     (p[0], p[1]       );} // get 0-1 edge
+   EdgeD  edge1     (            )C {return EdgeD     (p[1], p[2]       );} // get 1-2 edge
+   EdgeD  edge2     (            )C {return EdgeD     (p[2], p[0]       );} // get 2-0 edge
+   VecD   getNormal (            )C {return GetNormal (p[0], p[1], p[2] );} // calculate    normalized normal vector from triangle points
+   VecD   getNormalU(            )C {return GetNormalU(p[0], p[1], p[2] );} // calculate un-normalized normal vector from triangle points (length of the vector is proportional to the area of the triangle)
+   Dbl    area      (            )C;                                        // get surface area
+   Bool   coplanar  (C TriND &tri)C;                                        // if coplanar
 
    // draw
    void draw(C Color &color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
@@ -165,8 +191,34 @@ struct TriD // Triangle 3D (double precision)
    friend TriD operator/ (C TriD &tri,   Dbl   r) {return TriD(tri)/=r;}
 
               TriD() {}
-              TriD(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null) {set(p0, p1, p2, normal);}
+              TriD(C VecD &p0, C VecD &p1, C VecD &p2) {set(p0, p1, p2);}
    CONVERSION TriD(C Tri  &tri);
+};
+struct TriND : TriD // Triangle 3D with a Normal (double precision)
+{
+   VecD n; // normal
+
+   TriND& set      (C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null);
+   TriND& setNormal() {n=getNormal(); return T;} // recalculate normal
+
+   // get
+   PlaneD plane   (           )C {return PlaneD(p[0], n);} // return as Plane
+   Bool   coplanar(C TriD &tri)C; // if coplanar
+
+   TriND& operator+=(C VecD &v);
+   TriND& operator-=(C VecD &v);
+   TriND& operator*=(  Dbl   r);
+   TriND& operator/=(  Dbl   r);
+
+   friend TriND operator+ (C TriND &tri, C VecD &v) {return TriND(tri)+=v;}
+   friend TriND operator- (C TriND &tri, C VecD &v) {return TriND(tri)-=v;}
+   friend TriND operator* (C TriND &tri,   Dbl   r) {return TriND(tri)*=r;}
+   friend TriND operator/ (C TriND &tri,   Dbl   r) {return TriND(tri)/=r;}
+
+              TriND() {}
+              TriND(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null) {set(p0, p1, p2, normal);}
+   CONVERSION TriND(C TriD &tri);
+   CONVERSION TriND(C Tri  &tri);
 };
 /******************************************************************************/
 // angle
@@ -175,8 +227,8 @@ Flt TriABAngle(Flt a_length, Flt b_length, Flt c_length); // calculate the angle
 // return blending factors 'blend' that (blend.x*tri.p[0] + blend.y*tri.p[1] + blend.z*tri.p[2] == p), these are also known as "barycentric coordinates"
 Vec  TriBlend(C Vec2  &p, C Tri2  &tri);
 VecD TriBlend(C VecD2 &p, C TriD2 &tri);
-Vec  TriBlend(C Vec   &p, C Tri   &tri, Bool pos_on_tri_plane); // 'pos_on_tri_plane'=if 'p' position lies on 'tri' triangle plane (if you're not sure, then set false)
-VecD TriBlend(C VecD  &p, C TriD  &tri, Bool pos_on_tri_plane); // 'pos_on_tri_plane'=if 'p' position lies on 'tri' triangle plane (if you're not sure, then set false)
+Vec  TriBlend(C Vec   &p, C TriN  &tri, Bool pos_on_tri_plane); // 'pos_on_tri_plane'=if 'p' position lies on 'tri' triangle plane (if you're not sure, then set false)
+VecD TriBlend(C VecD  &p, C TriND &tri, Bool pos_on_tri_plane); // 'pos_on_tri_plane'=if 'p' position lies on 'tri' triangle plane (if you're not sure, then set false)
 
 // return blending factors 'blend' that (blend.x*p0 + blend.y*p1 + blend.z*p2 + blend.w*p3 == p), these are also known as "barycentric coordinates"
 Vec4 TetraBlend(C Vec &p, C Vec &p0, C Vec &p1, C Vec &p2, C Vec &p3);
@@ -186,24 +238,26 @@ Flt TetraVolume(C Vec &a, C Vec &b, C Vec &c, C Vec &d);
 
 // distance
 Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *type=null); // distance between point and a triangle
-Flt Dist(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // distance between point and a triangle
-Flt Dist(C Edge &edge , C Tri  &tri); // distance between edge     and a triangle
-Flt Dist(C Tri  &a    , C Tri  &b  ); // distance between triangle and a triangle
+Flt Dist(C Vec  &point, C TriN &tri, DIST_TYPE *type=null); // distance between point and a triangle
+Flt Dist(C Edge &edge , C TriN &tri); // distance between edge     and a triangle
+Flt Dist(C TriN &a    , C TriN &b  ); // distance between triangle and a triangle
 
 Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
-Flt Dist2(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
-Flt Dist2(C Edge &edge , C Tri &tri); // squared distance between edge     and a triangle
-Flt Dist2(C Tri  &a    , C Tri &b  ); // squared distance between triangle and a triangle
+Flt Dist2(C Vec  &point, C TriN &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
+Flt Dist2(C Edge &edge , C TriN &tri); // squared distance between edge     and a triangle
+Flt Dist2(C TriN &a    , C TriN &b  ); // squared distance between triangle and a triangle
 
 // distance between point and plane (from triangle)
-inline Flt DistPointPlane(C Vec  &point, C Tri  &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
-inline Dbl DistPointPlane(C VecD &point, C TriD &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
+inline Flt DistPointPlane(C Vec  &point, C TriN  &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
+inline Dbl DistPointPlane(C VecD &point, C TriND &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
 
 // if points cuts triangle assuming they're coplanar (epsilon=0)
 Bool Cuts(C Vec2  &point, C Tri2  &tri);
 Bool Cuts(C VecD2 &point, C TriD2 &tri);
 Bool Cuts(C Vec   &point, C Tri   &tri);
+Bool Cuts(C Vec   &point, C TriN  &tri);
 Bool Cuts(C VecD  &point, C TriD  &tri);
+Bool Cuts(C VecD  &point, C TriND &tri);
 #if EE_PRIVATE
 Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3]);
 #endif
@@ -211,11 +265,11 @@ Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3]);
 // if points cuts triangle assuming they're coplanar (epsilon=EPS)
 Bool CutsEps(C Vec2  &point, C Tri2  &tri);
 Bool CutsEps(C VecD2 &point, C TriD2 &tri);
-Bool CutsEps(C Vec   &point, C Tri   &tri);
-Bool CutsEps(C VecD  &point, C TriD  &tri);
+Bool CutsEps(C Vec   &point, C TriN  &tri);
+Bool CutsEps(C VecD  &point, C TriND &tri);
 
 // if edge cuts triangle
-Bool Cuts(C Edge &edge, C Tri &tri);
+Bool Cuts(C Edge &edge, C TriN &tri);
 
 // if triangle cuts plane, return number of contacts (-1=co-planar, 0=zero, 1=one, 2=two), and set them as edge.p[]
 Int CutsTriPlane   (C Tri  &tri, C Plane  &plane, Edge  &edge);
@@ -224,10 +278,10 @@ Int CutsTriPlaneEps(C Tri  &tri, C Plane  &plane, Edge  &edge);
 Int CutsTriPlaneEps(C TriD &tri, C PlaneD &plane, EdgeD &edge);
 
 // if moving point cuts static triangle (epsilon=0)
-Bool SweepPointTri(C Vec &point, C Vec &move, C Tri &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false);
+Bool SweepPointTri(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false);
 
 // if moving point cuts static triangle (epsilon=EPS)
-Bool SweepPointTriEps(C Vec &point, C Vec &move, C Tri &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false);
+Bool SweepPointTriEps(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false);
 
 // clip edge inside triangle
 Int Clip(Edge2  &edge, C Tri2  &tri);

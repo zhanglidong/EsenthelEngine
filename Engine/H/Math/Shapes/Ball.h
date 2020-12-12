@@ -98,7 +98,7 @@ Ball Avg(C Ball &a, C Ball &b);
        Flt Dist         (C Vec    &point, C Ball   &ball                ); // distance between point    and a ball
        Dbl Dist         (C VecD   &point, C BallM  &ball                ); // distance between point    and a ball
        Flt Dist         (C Edge   &edge , C Ball   &ball                ); // distance between edge     and a ball
-       Flt Dist         (C Tri    &tri  , C Ball   &ball                ); // distance between triangle and a ball
+       Flt Dist         (C TriN   &tri  , C Ball   &ball                ); // distance between triangle and a ball
        Flt Dist         (C Box    &box  , C Ball   &ball                ); // distance between box      and a ball
        Flt Dist         (C OBox   &obox , C Ball   &ball                ); // distance between box      and a ball
        Flt Dist         (C Extent &ext  , C Ball   &ball                ); // distance between extent   and a ball
@@ -115,7 +115,7 @@ Bool Cuts(C Vec    &point, C Ball  &ball); // if point    cuts a ball
 Bool Cuts(C VecD   &point, C Ball  &ball); // if point    cuts a ball
 Bool Cuts(C VecD   &point, C BallM &ball); // if point    cuts a ball
 Bool Cuts(C Edge   &edge , C Ball  &ball); // if edge     cuts a ball
-Bool Cuts(C Tri    &tri  , C Ball  &ball); // if triangle cuts a ball
+Bool Cuts(C TriN   &tri  , C Ball  &ball); // if triangle cuts a ball
 Bool Cuts(C Box    &box  , C Ball  &ball); // if box      cuts a ball
 Bool Cuts(C OBox   &obox , C Ball  &ball); // if box      cuts a ball
 Bool Cuts(C Extent &ext  , C Ball  &ball); // if extent   cuts a ball

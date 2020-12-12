@@ -162,7 +162,7 @@ struct CSG // Constructive Solid Geometry
       fp.pos_2d=face_matrix.convert(pos, true);
       return i;
    }
-   void triFromEdges(Face &face, TriD &face_tri, MatrixD &face_matrix, Memb<Face> &faces)
+   void triFromEdges(Face &face, TriND &face_tri, MatrixD &face_matrix, Memb<Face> &faces)
    {
       // add base edges
       face_edge.New().set(face_tri.edge0(), face_matrix).flag=ETQ_R;
@@ -308,7 +308,7 @@ struct CSG // Constructive Solid Geometry
       {
          Face   &face=T.face[i];
          BoxI   &boxi=  face.boxi;
-         TriD    face_tri  (vtx[face.ind.x].posd, vtx[face.ind.y].posd, vtx[face.ind.z].posd);
+         TriND   face_tri  (vtx[face.ind.x].posd, vtx[face.ind.y].posd, vtx[face.ind.z].posd);
          PlaneD  face_plane(face_tri.p[0], face_tri.n);
          MatrixD face_matrix; face_matrix.setPosDir(face_tri.p[0], -face_tri.n);
          PlaneD  face_tri_planes[3]=
@@ -399,7 +399,7 @@ struct CSG // Constructive Solid Geometry
          face_edge.clear();
       }
    }
-   Bool overlap(TriD &tri_a, TriD &tri_b)
+   Bool overlap(TriND &tri_a, TriND &tri_b)
    {
    /* we need to use more comples cases, because triangles are created from polygons
          simple algorithm is not enough:
@@ -411,9 +411,9 @@ struct CSG // Constructive Solid Geometry
    #if DEBUG
       if(Kb.b(KB_O))return false;
    #endif
-      Bool  max =(tri_a.area()>tri_b.area());
-      TriD &tri0=(max ? tri_a : tri_b), // bigger
-           &tri1=(max ? tri_b : tri_a); // smaller
+      Bool   max =(tri_a.area()>tri_b.area());
+      TriND &tri0=(max ? tri_a : tri_b), // bigger
+            &tri1=(max ? tri_b : tri_a); // smaller
 
       if(tri1.coplanar(tri0))
       {
@@ -476,7 +476,7 @@ struct CSG // Constructive Solid Geometry
       // detect overlaps
       REPAD(i, face_over)
       {
-         Face &face_i=face_over[i]; TriD tri_i(vtx[face_i.ind.x].posd, vtx[face_i.ind.y].posd, vtx[face_i.ind.z].posd);
+         Face &face_i=face_over[i]; TriND tri_i(vtx[face_i.ind.x].posd, vtx[face_i.ind.y].posd, vtx[face_i.ind.z].posd);
          Bool  face_i_has_a=((face_i.flag&SOLID_A)!=0);
          REPD(j, i)
          {
@@ -485,7 +485,7 @@ struct CSG // Constructive Solid Geometry
 
             if(face_i_has_a!=face_j_has_a && Cuts(face_i.boxi, face_j.boxi))
             {
-               TriD tri_j(vtx[face_j.ind.x].posd, vtx[face_j.ind.y].posd, vtx[face_j.ind.z].posd);
+               TriND tri_j(vtx[face_j.ind.x].posd, vtx[face_j.ind.y].posd, vtx[face_j.ind.z].posd);
                if(overlap(tri_i, tri_j))
                {
 /*#if DEBUG

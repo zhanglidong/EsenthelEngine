@@ -35,12 +35,16 @@ struct EdgeD;
 struct Tri2;
 struct TriD2;
 struct Tri;
+struct TriN;
 struct TriD;
+struct TriND;
 
 struct Quad2;
 struct QuadD2;
 struct Quad;
+struct QuadN;
 struct QuadD;
+struct QuadND;
 
 struct Rect;
 struct RectD;

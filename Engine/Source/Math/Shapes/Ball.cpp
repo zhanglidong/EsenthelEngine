@@ -223,7 +223,7 @@ Flt Dist(C Edge &edge, C Ball &ball)
 {
    return Max(0, Dist(ball.pos, edge)-ball.r);
 }
-Flt Dist(C Tri &tri, C Ball &ball)
+Flt Dist(C TriN &tri, C Ball &ball)
 {
    return Max(0, Dist(ball.pos, tri)-ball.r);
 }
@@ -284,7 +284,7 @@ Bool Cuts(C Edge &edge, C Ball &ball)
 {
    return Dist(ball.pos, edge)<=ball.r;
 }
-Bool Cuts(C Tri &tri, C Ball &ball)
+Bool Cuts(C TriN &tri, C Ball &ball)
 {
    return Dist(ball.pos, tri)<=ball.r;
 }

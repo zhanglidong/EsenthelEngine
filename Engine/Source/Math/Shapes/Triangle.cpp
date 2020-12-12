@@ -2,10 +2,37 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-Tri2 ::Tri2 (C TriD2 &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];}
-TriD2::TriD2(C Tri2  &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];}
-Tri  ::Tri  (C TriD  &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; n=tri.n    ;}
-TriD ::TriD (C Tri   &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; setNormal();}
+Vec  GetNormal (C Vec  &p0, C Vec  &p1, C Vec  &p2) {return CrossN(p1-p0, p2-p0);}
+VecD GetNormal (C VecD &p0, C VecD &p1, C VecD &p2) {return CrossN(p1-p0, p2-p0);}
+Vec  GetNormalU(C Vec  &p0, C Vec  &p1, C Vec  &p2) {return Cross (p1-p0, p2-p0);}
+VecD GetNormalU(C VecD &p0, C VecD &p1, C VecD &p2) {return Cross (p1-p0, p2-p0);}
+Vec  GetNormalU(            C Vec  &p1, C Vec  &p2) {return Cross (p1   , p2   );}
+
+Flt TriArea2(C Vec2  &p0, C Vec2  &p1, C Vec2  &p2) {return Abs(Cross(p1-p0, p2-p0));}
+Dbl TriArea2(C VecD2 &p0, C VecD2 &p1, C VecD2 &p2) {return Abs(Cross(p1-p0, p2-p0));}
+Flt TriArea2(C Vec   &p0, C Vec   &p1, C Vec   &p2) {return     Cross(p1-p0, p2-p0).length();}
+Dbl TriArea2(C VecD  &p0, C VecD  &p1, C VecD  &p2) {return     Cross(p1-p0, p2-p0).length();}
+
+Flt Tri2 ::area()C {return 0.5f*Abs(Cross(p[1]-p[0], p[2]-p[0]));}
+Dbl TriD2::area()C {return 0.5 *Abs(Cross(p[1]-p[0], p[2]-p[0]));}
+Flt Tri  ::area()C {return 0.5f*    Cross(p[1]-p[0], p[2]-p[0]).length();}
+Dbl TriD ::area()C {return 0.5 *    Cross(p[1]-p[0], p[2]-p[0]).length();}
+
+Vec GetNormalEdge(C Vec &p0, C Vec &p1) // this is called the "Newell" method
+{
+   return Vec((p0.y-p1.y)*(p0.z+p1.z),
+              (p0.z-p1.z)*(p0.x+p1.x),
+              (p0.x-p1.x)*(p0.y+p1.y));
+}
+/******************************************************************************/
+Tri2 ::Tri2 (C TriD2 &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];             }
+TriD2::TriD2(C Tri2  &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];             }
+Tri  ::Tri  (C TriD  &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];             }
+TriN ::TriN (C Tri   &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; setNormal();}
+TriN ::TriN (C TriND &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; n=tri.n    ;}
+TriD ::TriD (C Tri   &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2];             }
+TriND::TriND(C TriD  &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; setNormal();}
+TriND::TriND(C Tri   &tri) {p[0]=tri.p[0]; p[1]=tri.p[1]; p[2]=tri.p[2]; setNormal();} // recalculate for high precision instead of using 'tri.n'
 
 Tri2 & Tri2 ::operator+=(C Vec2  &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
 Tri2 & Tri2 ::operator-=(C Vec2  &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
@@ -13,18 +40,33 @@ TriD2& TriD2::operator+=(C VecD2 &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
 TriD2& TriD2::operator-=(C VecD2 &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
 Tri  & Tri  ::operator+=(C Vec   &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
 Tri  & Tri  ::operator-=(C Vec   &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
+TriN & TriN ::operator+=(C Vec   &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
+TriN & TriN ::operator-=(C Vec   &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
 TriD & TriD ::operator+=(C VecD  &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
 TriD & TriD ::operator-=(C VecD  &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
+TriND& TriND::operator+=(C VecD  &v) {p[0]+=v; p[1]+=v; p[2]+=v; return T;}
+TriND& TriND::operator-=(C VecD  &v) {p[0]-=v; p[1]-=v; p[2]-=v; return T;}
 Tri2 & Tri2 ::operator*=(  Flt    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
 Tri2 & Tri2 ::operator/=(  Flt    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
 TriD2& TriD2::operator*=(  Dbl    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
 TriD2& TriD2::operator/=(  Dbl    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
 Tri  & Tri  ::operator*=(  Flt    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
 Tri  & Tri  ::operator/=(  Flt    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
+TriN & TriN ::operator*=(  Flt    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
+TriN & TriN ::operator/=(  Flt    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
 TriD & TriD ::operator*=(  Dbl    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
 TriD & TriD ::operator/=(  Dbl    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
+TriND& TriND::operator*=(  Dbl    r) {p[0]*=r; p[1]*=r; p[2]*=r; return T;}
+TriND& TriND::operator/=(  Dbl    r) {p[0]/=r; p[1]/=r; p[2]/=r; return T;}
 /******************************************************************************/
-Tri& Tri::set(C Vec &p0, C Vec &p1, C Vec &p2, C Vec *nrm)
+Tri& Tri::set(C Vec &p0, C Vec &p1, C Vec &p2)
+{
+   p[0]=p0;
+   p[1]=p1;
+   p[2]=p2;
+   return T;
+}
+TriN& TriN::set(C Vec &p0, C Vec &p1, C Vec &p2, C Vec *nrm)
 {
    p[0]=p0;
    p[1]=p1;
@@ -32,7 +74,14 @@ Tri& Tri::set(C Vec &p0, C Vec &p1, C Vec &p2, C Vec *nrm)
    if(nrm)n=*nrm;else setNormal();
    return T;
 }
-TriD& TriD::set(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *nrm)
+TriD& TriD::set(C VecD &p0, C VecD &p1, C VecD &p2)
+{
+   p[0]=p0;
+   p[1]=p1;
+   p[2]=p2;
+   return T;
+}
+TriND& TriND::set(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *nrm)
 {
    p[0]=p0;
    p[1]=p1;
@@ -48,11 +97,6 @@ Tri2& Tri2::setArrow(Flt direction, Flt angle)
    CosSin(p[2].x, p[2].y, direction-angle);
    return T;
 }
-/******************************************************************************/
-Flt Tri2 ::area()C {return 0.5f*Abs(Cross(p[1]-p[0], p[2]-p[0]));}
-Dbl TriD2::area()C {return 0.5 *Abs(Cross(p[1]-p[0], p[2]-p[0]));}
-Flt Tri  ::area()C {return 0.5f*    Cross(p[1]-p[0], p[2]-p[0]).length();}
-Dbl TriD ::area()C {return 0.5 *    Cross(p[1]-p[0], p[2]-p[0]).length();}
 /******************************************************************************/
 Bool Tri2::valid(Flt eps)C
 {
@@ -70,17 +114,29 @@ Bool Tri::valid(Flt eps)C
 Bool Tri2 ::clockwise()C {return Cross(p[1]-p[0], p[2]-p[0])<0;}
 Bool TriD2::clockwise()C {return Cross(p[1]-p[0], p[2]-p[0])<0;}
 /******************************************************************************/
-Bool Tri::coplanar(C Tri &tri)C
+Bool Tri::coplanar(C TriN &tri)C
 {
    return Abs(DistPointPlane(p[0], tri))<=EPS
        && Abs(DistPointPlane(p[1], tri))<=EPS
        && Abs(DistPointPlane(p[2], tri))<=EPS;
 }
-Bool TriD::coplanar(C TriD &tri)C
+Bool TriN::coplanar(C Tri &tri)C
+{
+   return Abs(DistPointPlane(tri.p[0], T))<=EPS
+       && Abs(DistPointPlane(tri.p[1], T))<=EPS
+       && Abs(DistPointPlane(tri.p[2], T))<=EPS;
+}
+Bool TriD::coplanar(C TriND &tri)C
 {
    return Abs(DistPointPlane(p[0], tri))<=EPSD
        && Abs(DistPointPlane(p[1], tri))<=EPSD
        && Abs(DistPointPlane(p[2], tri))<=EPSD;
+}
+Bool TriND::coplanar(C TriD &tri)C
+{
+   return Abs(DistPointPlane(tri.p[0], T))<=EPSD
+       && Abs(DistPointPlane(tri.p[1], T))<=EPSD
+       && Abs(DistPointPlane(tri.p[2], T))<=EPSD;
 }
 /******************************************************************************/
 void Tri2::circularLerp(Tri2 *tri, Int num)C
@@ -110,7 +166,6 @@ void Tri::circularLerp(Tri *tri, Int num)C
       tri[0    ].p[1]=p[1];
       tri[num-1].p[2]=p[2];
       tri[num-1].p[0]=p[0];
-      tri[num-1].n   =n   ;
       Flt d01=Dist(p[0], p[1]),
           d02=Dist(p[0], p[2]);
       REP(num-1)
@@ -121,7 +176,6 @@ void Tri::circularLerp(Tri *tri, Int num)C
          tri[i  ].p[0]=p[0];
          tri[i  ].p[2]=
          tri[i+1].p[1]=t;
-         tri[i  ].n   =n;
       }
    }
 }
@@ -211,22 +265,6 @@ void TriD::draw(C Color &color, Bool fill)C
    VI.end();
 }
 /******************************************************************************/
-Vec  GetNormal (C Vec  &p0, C Vec  &p1, C Vec  &p2) {return CrossN(p1-p0, p2-p0);}
-VecD GetNormal (C VecD &p0, C VecD &p1, C VecD &p2) {return CrossN(p1-p0, p2-p0);}
-Vec  GetNormalU(C Vec  &p0, C Vec  &p1, C Vec  &p2) {return Cross (p1-p0, p2-p0);}
-VecD GetNormalU(C VecD &p0, C VecD &p1, C VecD &p2) {return Cross (p1-p0, p2-p0);}
-Vec  GetNormalU(            C Vec  &p1, C Vec  &p2) {return Cross (p1   , p2   );}
-
-Flt TriArea2(C Vec  &p0, C Vec  &p1, C Vec  &p2) {return Cross(p1-p0, p2-p0).length();}
-Dbl TriArea2(C VecD &p0, C VecD &p1, C VecD &p2) {return Cross(p1-p0, p2-p0).length();}
-
-Vec GetNormalEdge(C Vec  &p0, C Vec  &p1) // this is called the "Newell" method
-{
-   return Vec((p0.y-p1.y)*(p0.z+p1.z),
-              (p0.z-p1.z)*(p0.x+p1.x),
-              (p0.x-p1.x)*(p0.y+p1.y));
-}
-/******************************************************************************/
 Flt TriABAngle(Flt a_length, Flt b_length, Flt c_length)
 {
    if(Flt div=2*a_length*b_length)return Acos((Sqr(a_length)+Sqr(b_length)-Sqr(c_length))/div);
@@ -251,7 +289,7 @@ VecD TriBlend(C VecD2 &p, C TriD2 &tri)
    blend.z=1-blend.x-blend.y;
    return blend;
 }
-Vec TriBlend(C Vec &p, C Tri &tri, Bool pos_on_tri_plane)
+Vec TriBlend(C Vec &p, C TriN &tri, Bool pos_on_tri_plane)
 {
    if(!pos_on_tri_plane)return TriBlend(PointOnPlane(p, tri.p[0], tri.n), tri, true);
 
@@ -273,7 +311,7 @@ Vec TriBlend(C Vec &p, C Tri &tri, Bool pos_on_tri_plane)
    blend.z=1-blend.x-blend.y;
    return blend;
 }
-VecD TriBlend(C VecD &p, C TriD &tri, Bool pos_on_tri_plane)
+VecD TriBlend(C VecD &p, C TriND &tri, Bool pos_on_tri_plane)
 {
    if(!pos_on_tri_plane)return TriBlend(PointOnPlane(p, tri.p[0], tri.n), tri, true);
 
@@ -348,7 +386,7 @@ Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    }else dist=SqrtFast(dist);
    if(_type)*_type=type; return dist;
 }
-Flt Dist(C Vec &point, C Tri &tri, DIST_TYPE *_type)
+Flt Dist(C Vec &point, C TriN &tri, DIST_TYPE *_type)
 {
    DIST_TYPE t, type=DIST_NONE;
    Flt       d, dist=0;
@@ -380,7 +418,7 @@ Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    }
    if(_type)*_type=type; return dist;
 }
-Flt Dist2(C Vec &point, C Tri &tri, DIST_TYPE *_type)
+Flt Dist2(C Vec &point, C TriN &tri, DIST_TYPE *_type)
 {
    DIST_TYPE t, type=DIST_NONE;
    Flt       d, dist=0;
@@ -396,7 +434,7 @@ Flt Dist2(C Vec &point, C Tri &tri, DIST_TYPE *_type)
    if(_type)*_type=type; return dist;
 }
 /******************************************************************************/
-Flt Dist2(C Edge &edge, C Tri &tri)
+Flt Dist2(C Edge &edge, C TriN &tri)
 {
    // TODO: optimize
    if(Cuts(edge, tri))return 0;
@@ -406,7 +444,7 @@ Flt Dist2(C Edge &edge, C Tri &tri)
                   Dist2(edge.p[0], tri        ),
                   Dist2(edge.p[1], tri        ));
 }
-Flt Dist2(C Tri &a, C Tri &b)
+Flt Dist2(C TriN &a, C TriN &b)
 {
    // TODO: optimize
    return Min(Min(Dist2(a.edge0(), b),
@@ -417,8 +455,8 @@ Flt Dist2(C Tri &a, C Tri &b)
                   Dist2(b.edge2(), a)));
 }
 /******************************************************************************/
-Flt Dist(C Edge &edge, C Tri &tri) {return SqrtFast(Dist2(edge, tri));}
-Flt Dist(C Tri  &a   , C Tri &b  ) {return SqrtFast(Dist2(a   , b  ));}
+Flt Dist(C Edge &edge, C TriN &tri) {return SqrtFast(Dist2(edge, tri));}
+Flt Dist(C TriN &a   , C TriN &b  ) {return SqrtFast(Dist2(a   , b  ));}
 /******************************************************************************/
 Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3])
 {
@@ -446,12 +484,28 @@ Bool Cuts(C VecD2 &point, C TriD2 &tri)
 }
 Bool Cuts(C Vec &point, C Tri &tri)
 {
+   Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+   if(DistPointPlane(point, tri.p[0], Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
+   if(DistPointPlane(point, tri.p[1], Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
+   if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
+   return true;
+}
+Bool Cuts(C Vec &point, C TriN &tri)
+{
    if(DistPointPlane(point, tri.p[0], Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
    if(DistPointPlane(point, tri.p[1], Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
    if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0)return false;
    return true;
 }
 Bool Cuts(C VecD &point, C TriD &tri)
+{
+   VecD tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+   if(DistPointPlane(point, tri.p[0], Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
+   if(DistPointPlane(point, tri.p[1], Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
+   if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
+   return true;
+}
+Bool Cuts(C VecD &point, C TriND &tri)
 {
    if(DistPointPlane(point, tri.p[0], Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
    if(DistPointPlane(point, tri.p[1], Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
@@ -481,7 +535,7 @@ Bool CutsEps(C VecD2 &point, C TriD2 &tri)
                                                       if(    DistPointPlane(p2, !(d02-d21))       >EPSD)return false;
    return true;
 }
-Bool CutsEps(C Vec &point, C Tri &tri)
+Bool CutsEps(C Vec &point, C TriN &tri)
 {
    Vec d10=!(tri.p[0]-tri.p[1]); if(DistPointPlane(point, tri.p[0], Cross(tri.n, d10))>EPS)return false;
    Vec d21=!(tri.p[1]-tri.p[2]); if(DistPointPlane(point, tri.p[1], Cross(tri.n, d21))>EPS)return false;
@@ -491,7 +545,7 @@ Bool CutsEps(C Vec &point, C Tri &tri)
    if(DistPointPlane(point, tri.p[2], !(d02-d21))>EPS)return false;
    return true;
 }
-Bool CutsEps(C VecD &point, C TriD &tri)
+Bool CutsEps(C VecD &point, C TriND &tri)
 {
    VecD d10=!(tri.p[0]-tri.p[1]); if(DistPointPlane(point, tri.p[0], Cross(tri.n, d10))>EPSD)return false;
    VecD d21=!(tri.p[1]-tri.p[2]); if(DistPointPlane(point, tri.p[1], Cross(tri.n, d21))>EPSD)return false;
@@ -502,7 +556,7 @@ Bool CutsEps(C VecD &point, C TriD &tri)
    return true;
 }
 /******************************************************************************/
-Bool Cuts(C Edge &edge, C Tri &tri)
+Bool Cuts(C Edge &edge, C TriN &tri)
 {
    Vec hitp;
    return Cuts(edge, tri.plane(), &hitp) && Cuts(hitp, tri);
@@ -609,7 +663,7 @@ Int CutsTriPlaneEps(C TriD &tri, C PlaneD &plane, EdgeD &edge)
    return 2;
 }
 /******************************************************************************/
-Bool SweepPointTri(C Vec &point, C Vec &move, C Tri &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
+Bool SweepPointTri(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
 {
    Vec hitp;
    if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided))
@@ -620,7 +674,7 @@ Bool SweepPointTri(C Vec &point, C Vec &move, C Tri &tri, Flt *hit_frac, Vec *hi
    }
    return false;
 }
-Bool SweepPointTriEps(C Vec &point, C Vec &move, C Tri &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
+Bool SweepPointTriEps(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
 {
    Vec hitp;
    if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided))

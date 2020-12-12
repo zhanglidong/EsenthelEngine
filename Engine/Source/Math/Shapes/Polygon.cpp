@@ -366,10 +366,10 @@ void Triangulate(C CMemPtr<Vec> &poly, MeshBase &mesh, Bool convex)
                Bool added=false;
                REP(temp.elms()-2)
                {
-                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]);
-                  if(Dot(*normal, tri.n)>0)
+                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                  if(Dot(*normal, tri_nu)>0)
                   {
-                     Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                     Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                      REPAD(t, temp)if(t<i || t>i+2)if(Cuts(pos[temp[t]], tri, cross))goto cuts;
                      {
                         Int t=mesh.tri.elms(); mesh.tri._elms++; mesh.tri.ind(t).set(temp[i], temp[i+1], temp[i+2]);
@@ -433,10 +433,10 @@ void Triangulate(C CMemPtr<VtxFull> &poly, MeshBase &mesh, MESH_FLAG flag_and, B
                Bool added=false;
                REP(temp.elms()-2)
                {
-                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]);
-                  if(Dot(*normal, tri.n)>0)
+                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                  if(Dot(*normal, tri_nu)>0)
                   {
-                     Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                     Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                      REPAD(t, temp)if(t<i || t>i+2)if(Cuts(pos[temp[t]], tri, cross))goto cuts;
                      {
                         Int t=mesh.tri.elms(); mesh.tri._elms++; mesh.tri.ind(t).set(temp[i], temp[i+1], temp[i+2]);
@@ -509,10 +509,10 @@ void Triangulate(C CMemPtr< Memc<Vec> > &polys, MeshBase &mesh, Flt weld_pos_eps
                Bool added=false;
                REP(temp.elms()-2)
                {
-                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]);
-                  if(Dot(nrm, tri.n)>0)
+                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                  if(Dot(nrm, tri_nu)>0)
                   {
-                     Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                     Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                      REPAD(t, temp)if(t<i || t>i+2)if(Cuts(pos[temp[t]], tri, cross))goto cuts;
                      {
                         Int t=mesh.tri.elms(); mesh.tri._elms++; mesh.tri.ind(t).set(temp[i], temp[i+1], temp[i+2]); if(mesh.tri.flag())mesh.tri.flag(t)=flag;
@@ -588,10 +588,10 @@ void Triangulate(C CMemPtr< Memc<VtxFull> > &polys, MeshBase &mesh, MESH_FLAG fl
                Bool added=false;
                REP(temp.elms()-2)
                {
-                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]);
-                  if(Dot(nrm, tri.n)>0)
+                  Tri tri(pos[temp[i]], pos[temp[i+1]], pos[temp[i+2]]); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                  if(Dot(nrm, tri_nu)>0)
                   {
-                     Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                     Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                      REPAD(t, temp)if(t<i || t>i+2)if(Cuts(pos[temp[t]], tri, cross))goto cuts;
                      {
                         Int t=mesh.tri.elms(); mesh.tri._elms++; mesh.tri.ind(t).set(temp[i], temp[i+1], temp[i+2]); if(mesh.tri.flag())mesh.tri.flag(t)=flag;

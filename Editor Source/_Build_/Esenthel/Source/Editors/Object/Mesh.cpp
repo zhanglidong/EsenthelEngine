@@ -424,23 +424,24 @@ void ObjView::meshCreateFace()
          {
             VecI &tri_ind=ind.xyz;
             Tri   tri(unique[0], unique[1], unique[2]);
-            REPAO(tri.p)*=mesh_matrix; tri.setNormal();
-            if(Edit::Viewport4::View *last=v4.last())if(!frontFace(tri.center(), &tri.n, last->camera.matrix)){tri_ind.reverse(); tri.n.chs();}
+            REPAO(tri.p)*=mesh_matrix;
+            Vec   tri_n=tri.getNormal();
+            if(Edit::Viewport4::View *last=v4.last())if(!frontFace(tri.center(), &tri_n, last->camera.matrix)){tri_ind.reverse(); tri_n.chs();}
             base.addTri(tri_ind);
-            if(added_vtxs)face_nrm=tri.n;
+            if(added_vtxs)face_nrm=tri_n;
          }else
          {
             VecI4 &quad_ind=ind;
             Quad   quad(unique[0], unique[1], unique[2], unique[3]);
-            if(Dot(quad.tri013().n, quad.tri123().n)<0)
+            if(Dot(quad.tri013().getNormalU(), quad.tri123().getNormalU())<0)
             {
                Swap(quad_ind.x, quad_ind.y);
                Swap(quad.p[0] , quad.p[1] );
-               if(Dot(quad.tri013().n, quad.tri123().n)<0) // if still not OK
+               if(Dot(quad.tri013().getNormalU(), quad.tri123().getNormalU())<0) // if still not OK
                {
                   Swap(quad_ind.x, quad_ind.z);
                   Swap(quad.p[0] , quad.p[2] );
-                  if(Dot(quad.tri013().n, quad.tri123().n)<0) // if still not OK
+                  if(Dot(quad.tri013().getNormalU(), quad.tri123().getNormalU())<0) // if still not OK
                   {
                      Swap(quad_ind.x, quad_ind.y);
                      Swap(quad.p[0] , quad.p[1] );
@@ -448,10 +449,11 @@ void ObjView::meshCreateFace()
                }
              //quad.setNormal(); not needed since it's called below
             }
-            REPAO(quad.p)*=mesh_matrix; quad.setNormal(); // 'setNormal' also needed because of above
-            if(Edit::Viewport4::View *last=v4.last())if(!frontFace(quad.center(), &quad.n, last->camera.matrix)){quad_ind.reverse(); quad.n.chs();}
+            REPAO(quad.p)*=mesh_matrix;
+            Vec quad_n=quad.getNormal();
+            if(Edit::Viewport4::View *last=v4.last())if(!frontFace(quad.center(), &quad_n, last->camera.matrix)){quad_ind.reverse(); quad_n.chs();}
             base.addQuad(quad_ind);
-            if(added_vtxs)face_nrm=quad.n;
+            if(added_vtxs)face_nrm=quad_n;
          }
          if(added_vtxs)
          {

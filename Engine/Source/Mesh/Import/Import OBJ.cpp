@@ -159,10 +159,10 @@ Bool ImportOBJ(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                   REP(fvtx.elms()-2)
                   {
                      VecI ind(fvtx[i].pos, fvtx[i+1].pos, fvtx[i+2].pos);
-                     Tri  tri(vpos[ind.x], vpos[ind.y], vpos[ind.z]);
-                     if(Dot(nrm, tri.n)>0) // if normal of this triangle is correct
+                     Tri  tri(vpos[ind.x], vpos[ind.y], vpos[ind.z]); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                     if(Dot(nrm, tri_nu)>0) // if normal of this triangle is correct
                      {
-                        Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                        Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                         REPAD(t, fvtx)if(t<i || t>i+2)if(Cuts(vpos[fvtx[t].pos], tri, cross))goto cuts; // if any other vertex intersects with this triangle, then continue
 
                         {

@@ -137,7 +137,7 @@ Flt Dist(C Edge &edge, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Max(0, Dist(capsule.edge(), edge)-capsule.r);
 }
-Flt Dist(C Tri &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
+Flt Dist(C TriN &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Max(0, Dist(capsule.edge(), tri)-capsule.r);
 }
@@ -192,7 +192,7 @@ Bool Cuts(C Edge &edge, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Dist2(capsule.edge(), edge)<=Sqr(capsule.r);
 }
-Bool Cuts(C Tri &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
+Bool Cuts(C TriN &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Dist2(capsule.edge(), tri)<=Sqr(capsule.r);
 }
@@ -289,7 +289,7 @@ Bool SweepCapsulePlane(C Capsule &capsule, C Vec &move, C Plane &plane, Flt *hit
    if(Dot(move, plane.normal)>=0)return false;
    return SweepPointPlane(capsule.nearest(plane.normal), move, plane, hit_frac, hit_normal, hit_pos);
 }
-Bool SweepCapsuleTri(C Capsule &capsule, C Vec &move, C Tri &tri, Flt *hit_frac, Vec *hit_normal)
+Bool SweepCapsuleTri(C Capsule &capsule, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *hit_normal)
 {
    if(Dot(move, tri.n)>=0)return false;
    if(SweepPointTri(capsule.nearest(tri.n), move, tri, hit_frac))
