@@ -881,11 +881,10 @@ Bool Sweep(C VecD &point, C VecD &move, C Mesh &mesh, C MatrixM *mesh_matrix, Fl
    Vec Point, Move; if(mesh_matrix){Point.fromDiv(point, *mesh_matrix); Move.fromDiv(move, mesh_matrix->orn());}else{Point=point; Move=move;}
    if(SweepPointBox(Point, Move, mesh.ext))
    {
-      Flt frac; Vec hp;
-      if(hit_pos && mesh_matrix && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
-      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, (hit_pos && !mesh_matrix) ? &hp : null, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // calculate 'hp' only if we need 'hit_pos' and we don't have 'mesh_matrix' (in that case we will calculate it based on frac)
+      Flt frac; if(hit_pos && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
+      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, null, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // don't calculate 'hit_pos' here but do it later below to have high precision
       {
-         if(hit_pos){if(mesh_matrix)*hit_pos=point+*hit_frac*move;else *hit_pos=hp;} // can't do "*hit_pos=mesh_matrix?:" because of different types and compile fail on Clang
+         if(hit_pos)*hit_pos=point+*hit_frac*move;
          return true;
       }
    }
@@ -900,6 +899,20 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C Mesh &mesh, C Matrix *mesh
       if(CutsLineMesh(LinePos, LineDir, mesh.lod(0), null, hit_frac, mesh_matrix ? null : hit_pos, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // if have 'mesh_matrix' then don't calculate 'hit_pos', we will do it below
       {
          if(hit_pos && mesh_matrix)*hit_pos=line_pos+*hit_frac*line_dir;
+         return true;
+      }
+   }
+   return false;
+}
+Bool CutsLineMesh(C VecD &line_pos, C VecD &line_dir, C Mesh &mesh, C MatrixM *mesh_matrix, Flt *hit_frac, VecD *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
+{
+   Vec LinePos, LineDir; if(mesh_matrix){LinePos.fromDiv(line_pos, *mesh_matrix); LineDir.fromDiv(line_dir, mesh_matrix->orn());}else{LinePos=line_pos; LineDir=line_dir;}
+   if(CutsLineBox(LinePos, LineDir, mesh.ext))
+   {
+      Flt frac; if(hit_pos && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
+      if(CutsLineMesh(LinePos, LineDir, mesh.lod(0), null, hit_frac, null, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // don't calculate 'hit_pos' here but do it later below to have high precision
+      {
+         if(hit_pos)*hit_pos=line_pos+*hit_frac*line_dir;
          return true;
       }
    }
