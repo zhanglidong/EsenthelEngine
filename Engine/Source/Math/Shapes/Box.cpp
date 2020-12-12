@@ -877,6 +877,31 @@ Bool InsideEps(C Box &a, C Box &b)
        && a.min.z>=b.min.z-EPS && a.max.z<=b.max.z+EPS;
 }
 /******************************************************************************/
+Bool CutsLineBox(C Vec &line_pos, C Vec &line_dir, C Box &box)
+{
+   Flt frac;
+   Vec test;
+   if(line_dir.x){frac=(box.min.x-line_pos.x)/line_dir.x; test.set(box.min.x, line_pos.y+line_dir.y*frac, line_pos.z+line_dir.z*frac); if(                         box.includesY(test.y) && box.includesZ(test.z)){return true;}
+                  frac=(box.max.x-line_pos.x)/line_dir.x; test.set(box.max.x, line_pos.y+line_dir.y*frac, line_pos.z+line_dir.z*frac); if(                         box.includesY(test.y) && box.includesZ(test.z)){return true;}}
+   if(line_dir.y){frac=(box.min.y-line_pos.y)/line_dir.y; test.set(line_pos.x+line_dir.x*frac, box.min.y, line_pos.z+line_dir.z*frac); if(box.includesX(test.x) &&                          box.includesZ(test.z)){return true;}
+                  frac=(box.max.y-line_pos.y)/line_dir.y; test.set(line_pos.x+line_dir.x*frac, box.max.y, line_pos.z+line_dir.z*frac); if(box.includesX(test.x) &&                          box.includesZ(test.z)){return true;}}
+   if(line_dir.z){frac=(box.min.z-line_pos.z)/line_dir.z; test.set(line_pos.x+line_dir.x*frac, line_pos.y+line_dir.y*frac, box.min.z); if(box.includesX(test.x) && box.includesY(test.y)                         ){return true;}
+                  frac=(box.max.z-line_pos.z)/line_dir.z; test.set(line_pos.x+line_dir.x*frac, line_pos.y+line_dir.y*frac, box.max.z); if(box.includesX(test.x) && box.includesY(test.y)                         ){return true;}}
+   return false;
+}
+Bool CutsLineExt(C Vec &line_pos, C Vec &line_dir, C Extent &ext)
+{
+   Flt frac, border;
+   Vec test;
+   if(line_dir.x){border=ext.minX(); frac=(border-line_pos.x)/line_dir.x; test.set(border, line_pos.y+line_dir.y*frac, line_pos.z+line_dir.z*frac); if(                         ext.includesY(test.y) && ext.includesZ(test.z)){return true;}
+                  border=ext.maxX(); frac=(border-line_pos.x)/line_dir.x; test.set(border, line_pos.y+line_dir.y*frac, line_pos.z+line_dir.z*frac); if(                         ext.includesY(test.y) && ext.includesZ(test.z)){return true;}}
+   if(line_dir.y){border=ext.minY(); frac=(border-line_pos.y)/line_dir.y; test.set(line_pos.x+line_dir.x*frac, border, line_pos.z+line_dir.z*frac); if(ext.includesX(test.x) &&                          ext.includesZ(test.z)){return true;}
+                  border=ext.maxY(); frac=(border-line_pos.y)/line_dir.y; test.set(line_pos.x+line_dir.x*frac, border, line_pos.z+line_dir.z*frac); if(ext.includesX(test.x) &&                          ext.includesZ(test.z)){return true;}}
+   if(line_dir.z){border=ext.minZ(); frac=(border-line_pos.z)/line_dir.z; test.set(line_pos.x+line_dir.x*frac, line_pos.y+line_dir.y*frac, border); if(ext.includesX(test.x) && ext.includesY(test.y)                         ){return true;}
+                  border=ext.maxZ(); frac=(border-line_pos.z)/line_dir.z; test.set(line_pos.x+line_dir.x*frac, line_pos.y+line_dir.y*frac, border); if(ext.includesX(test.x) && ext.includesY(test.y)                         ){return true;}}
+   return false;
+}
+/******************************************************************************/
 Bool SweepPointBox(C Vec &point, C Vec &move, C Box &box, Flt *hit_frac, Vec *hit_normal, Vec *hit_pos)
 {
    if(Cuts(point, box)){if(hit_frac)*hit_frac=0; if(hit_normal)hit_normal->zero(); if(hit_pos)*hit_pos=point; return true;}

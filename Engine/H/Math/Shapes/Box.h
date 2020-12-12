@@ -524,6 +524,9 @@ Bool Inside   (C BoxD &a, C BoxD &b); // if 'a' is fully inside 'b'
 Bool Inside   (C BoxI &a, C BoxI &b); // if 'a' is fully inside 'b'
 Bool InsideEps(C Box  &a, C Box  &b); // if 'a' is fully inside 'b', with EPS epsilon tolerance
 
+Bool CutsLineBox(C Vec &line_pos, C Vec &line_dir, C Box    &box); // if infinite straight line cuts a  box   , 'line_dir'=straight line direction (doesn't have to be normalized)
+Bool CutsLineExt(C Vec &line_pos, C Vec &line_dir, C Extent &ext); // if infinite straight line cuts an extent, 'line_dir'=straight line direction (doesn't have to be normalized)
+
 // sweep
 Bool SweepPointBox(C Vec &point, C Vec &move, C Box    &box , Flt *hit_frac=null, Vec *hit_normal=null, Vec *hit_pos=null); // if moving point cuts through a static box
 Bool SweepPointBox(C Vec &point, C Vec &move, C OBox   &obox, Flt *hit_frac=null, Vec *hit_normal=null, Vec *hit_pos=null); // if moving point cuts through a static oriented box
