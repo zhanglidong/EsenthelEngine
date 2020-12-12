@@ -353,7 +353,7 @@ void Source::update(C GuiPC &gpc)
                   clearSuggestions();
                }else // in single line only (at cursor)
                {
-                  if(Kb.k.shift()) // backwards
+                  if(Kb.k.shift()) // backward
                   {
                      if(!InRange(cur.y, lines)     )cur.x=0;else
                      if(cur.x>lines[cur.y].length())cur.x=lines[cur.y].length();else

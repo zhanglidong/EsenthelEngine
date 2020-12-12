@@ -228,9 +228,9 @@ void Controller::update(C Vec &velocity, Bool crouch, Flt jump)
             Vec     v(vel.x, 0, vel.z); v.normalize(); v*=width*16; v.y=width*-2-0.1f; // horizontal*16 because when moving almost perpendicular to wall (||) because of smaller radius collision with wall would not be detected, vertical*2 because we need to travel both the radius that we've decreased, and secondary radius for testing (also subtract extra in case the ground is going down, but we're moving forward, so we still can detect the decreasing ground)
             ControllerGroundCallback cgc(T, shape.pos);
             Physics.sweep(shape, v, cgc, Physics.collisionGroups(AG_CONTROLLER));
-            if(onGround() && !cgc.on_ground) // if in the previous frame we were on ground but now no ground was detected, try performing additional sweep test in backwards direction
+            if(onGround() && !cgc.on_ground) // if in the previous frame we were on ground but now no ground was detected, try performing additional sweep test in backward direction
             {
-               cgc.test_slide=false; // we don't want to test sliding in backwards dir
+               cgc.test_slide=false; // we don't want to test sliding in backward dir
                CHS(v.x);
                CHS(v.z);
                Physics.sweep(shape, v, cgc, Physics.collisionGroups(AG_CONTROLLER));

@@ -1601,7 +1601,7 @@ void ReadVarFunc(Symbol *type, Memc<SymbolDef> &symbols, Memc<Token*> &tokens, I
             Bool func_params_setup=false;
             for(; i<tokens.elms(); )
             {
-               Token &op=*tokens[i++]; op.parent=start_parent; // set parent of 'func' '(' ')' in "func(..)" to the class, so when evaluating the symbol of the func and checking from ')' backwards, we start from the same parent as the func parent
+               Token &op=*tokens[i++]; op.parent=start_parent; // set parent of 'func' '(' ')' in "func(..)" to the class, so when evaluating the symbol of the func and checking from ')' backward, we start from the same parent as the func parent
                switch(op[0])
                {
                   case '(': // parameter list or default value declaration

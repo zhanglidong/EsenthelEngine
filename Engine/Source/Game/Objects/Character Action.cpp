@@ -231,7 +231,7 @@ void Chr::updateController()
       Vec wish(dir.z*cx*cy + dir.x*sx, dir.z*sy + dir.y,
                dir.z*sx*cy - dir.x*cx);
 
-      // slow down when running backwards
+      // slow down when running backward
       Flt length=1; if(dir.z<0)length=Lerp(Lerp(1.0f, 0.75f, anim.walk_run), 1.0f, dir.z+1); // if dir.z is in range -1..0
       wish.clipLength(length);
 

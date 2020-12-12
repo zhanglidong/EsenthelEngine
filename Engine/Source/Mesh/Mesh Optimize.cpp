@@ -922,7 +922,7 @@ namespace Forsyth2
             // Check the current cache position, if it is in the cache
             int endpos=cacheTag[v];
             if(endpos<0)endpos=VERTEX_CACHE_SIZE + i;
-            // Move all cache entries from the previous position in the cache to the new target position (i) one step backwards
+            // Move all cache entries from the previous position in the cache to the new target position (i) one step backward
             for(int j=endpos; j>i; j--)
             {
                cache[j]=cache[j-1];

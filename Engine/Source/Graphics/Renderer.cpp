@@ -288,7 +288,7 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest)
    VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
    Int  max_size=size.min()/4;
    Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', inrease *4 in each step
-   FREP(num) // now go backwards, from up to 'max_size' to 1 inclusive
+   FREP(num) // now go backward, from up to 'max_size' to 1 inclusive
    {
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next, null, false);

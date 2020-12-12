@@ -73,7 +73,7 @@ static Bool SetShaderParamChanges(C Memc<ShaderParamChange> *changes=null)
    if(LastChanges!=changes)
    {
       // restore previous changes if any
-      REPAO(RestoreChanges).restore(); // restore in backwards order
+      REPAO(RestoreChanges).restore(); // restore in backward order
       RestoreChanges.clear();
 
       // apply new changes

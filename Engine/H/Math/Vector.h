@@ -87,7 +87,7 @@ enum DIR_ENUM : Byte // Direction Enums
    DIR_UP     , // up
    DIR_DOWN   , // down
    DIR_FORWARD, // forward
-   DIR_BACK   , // backwards
+   DIR_BACK   , // backward
    DIR_NUM    , // number of directions
 };
 enum DIR_FLAG // Direction Flags
@@ -97,7 +97,7 @@ enum DIR_FLAG // Direction Flags
    DIRF_UP     =1<<DIR_UP     , // up
    DIRF_DOWN   =1<<DIR_DOWN   , // down
    DIRF_FORWARD=1<<DIR_FORWARD, // forward
-   DIRF_BACK   =1<<DIR_BACK   , // backwards
+   DIRF_BACK   =1<<DIR_BACK   , // backward
 
    DIRF_X=DIRF_RIGHT  |DIRF_LEFT,
    DIRF_Y=DIRF_UP     |DIRF_DOWN,

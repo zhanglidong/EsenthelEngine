@@ -450,8 +450,8 @@ struct PhysXVehicle // Physical actor of vehicle type (this class is available o
    Flt    wheelCompress(WHEEL_TYPE wheel)C;                                   // get     wheel   compression, value <0 means wheel is loose in air, value 0 means wheel is at rest, value 1 means wheel is fully compressed
    Flt    wheelLongSlip(WHEEL_TYPE wheel)C;                                   // get     wheel   longitudinal slip (how much does the wheel slip on ground in "forward" direction)
    Flt    wheelLatSlip (WHEEL_TYPE wheel)C;                                   // get     wheel   lateral      slip (how much does the wheel slip on ground in "side   " direction)
-   Flt            speed()C;                                                   // get     vehicle forward  speed (this value is positive when moving forward and negative when moving backwards)
-   Flt        sideSpeed()C;                                                   // get     vehicle side     speed (this value is positive when moving right   and negative when moving left     )
+   Flt            speed()C;                                                   // get     vehicle forward  speed (this value is positive when moving forward and negative when moving backward)
+   Flt        sideSpeed()C;                                                   // get     vehicle side     speed (this value is positive when moving right   and negative when moving left    )
    Flt      engineSpeed()C;                                                   // get     engine  rotation speed (in radians per second)
    Flt      engineFrac ()C {return engineSpeed()/engineMaxSpeed();}           // get     engine  rotation speed fraction (0..1) this can be useful information when changing gears manually (for example: for fraction < 0.5 you can gear down, for fraction > 0.65 you can gear up)
    Int            gears()C;                                                   // get     number of gears

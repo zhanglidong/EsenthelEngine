@@ -66,8 +66,8 @@ const_mem_addr struct Vehicle // Physical actor of vehicle type !! must be store
    Flt      wheelLongSlip(WHEEL_TYPE wheel)C;                            // get     wheel   longitudinal slip (how much does the wheel slip on ground in "forward" direction)
    Flt      wheelLatSlip (WHEEL_TYPE wheel)C;                            // get     wheel   lateral      slip (how much does the wheel slip on ground in "side   " direction)
 #endif
-   Flt              speed()C;                                            // get     vehicle forward  speed (this value is positive when moving forward and negative when moving backwards)
-   Flt          sideSpeed()C;                                            // get     vehicle side     speed (this value is positive when moving right   and negative when moving left     )
+   Flt              speed()C;                                            // get     vehicle forward  speed (this value is positive when moving forward and negative when moving backward)
+   Flt          sideSpeed()C;                                            // get     vehicle side     speed (this value is positive when moving right   and negative when moving left    )
    Flt              accel()C;   Vehicle&          accel(Flt   accel   ); // get/set           acceleration      , -1..1
    Flt              brake()C;   Vehicle&          brake(Flt   brake   ); // get/set current         brake       ,  0..1
    Flt              angle()C;   Vehicle&          angle(Flt   angle   ); // get/set current   steer angle       , -1..1
