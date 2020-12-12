@@ -376,9 +376,9 @@ Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    Flt       d, dist=0;
    UInt         sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
 
-   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec2 p1=point-tri.p[1]; if(Xor(DistPointPlane(p1             , Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                           if(Xor(DistPointPlane(p1             , Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                           if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
          type=DIST_PLANE;
@@ -391,9 +391,9 @@ Flt Dist(C Vec &point, C TriN &tri, DIST_TYPE *_type)
    DIST_TYPE t, type=DIST_NONE;
    Flt       d, dist=0;
 
-   Vec p=point-tri.p[1]; if(DistPointPlane(p    ,           Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                         if(DistPointPlane(p    ,           Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                         if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                          if(DistPointPlane(p1             , Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                          if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
          type=DIST_PLANE;
@@ -408,9 +408,9 @@ Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    Flt       d, dist=0;
    UInt         sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
 
-   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec2 p1=point-tri.p[1]; if(Xor(DistPointPlane(p1             , Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                           if(Xor(DistPointPlane(p1             , Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                           if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
       type=DIST_PLANE;
@@ -423,9 +423,9 @@ Flt Dist2(C Vec &point, C TriN &tri, DIST_TYPE *_type)
    DIST_TYPE t, type=DIST_NONE;
    Flt       d, dist=0;
 
-   Vec p=point-tri.p[1]; if(DistPointPlane(p    ,           Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                         if(DistPointPlane(p    ,           Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                         if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                          if(DistPointPlane(p1             , Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                          if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
       type=DIST_PLANE;
@@ -460,56 +460,56 @@ Flt Dist(C TriN &a   , C TriN &b  ) {return SqrtFast(Dist2(a   , b  ));}
 /******************************************************************************/
 Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3])
 {
-   if(DistPointPlane(point, tri.p[0], tri_cross[0])>0)return false;
-   if(DistPointPlane(point, tri.p[1], tri_cross[1])>0)return false;
-   if(DistPointPlane(point, tri.p[2], tri_cross[2])>0)return false;
+   Vec p1=point-tri.p[1]; if(DistPointPlane(p1             , tri_cross[0])>0)return false;
+                          if(DistPointPlane(p1             , tri_cross[1])>0)return false;
+                          if(DistPointPlane(point, tri.p[2], tri_cross[2])>0)return false;
    return true;
 }
 /******************************************************************************/
 Bool Cuts(C Vec2 &point, C Tri2 &tri)
 {
    UInt sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
-   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0)return false;
-                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0)return false;
-                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0)return false;
+   Vec2 p1=point-tri.p[1]; if(Xor(DistPointPlane(p1             , Perp(tri.p[0]-tri.p[1])), sign)>0)return false;
+                           if(Xor(DistPointPlane(p1             , Perp(tri.p[1]-tri.p[2])), sign)>0)return false;
+                           if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0)return false;
    return true;
 }
 Bool Cuts(C VecD2 &point, C TriD2 &tri)
 {
    UInt  sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
-   VecD2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0)return false;
-                           if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0)return false;
-                           if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0)return false;
+   VecD2 p1=point-tri.p[1]; if(Xor(DistPointPlane(p1             , Perp(tri.p[0]-tri.p[1])), sign)>0)return false;
+                            if(Xor(DistPointPlane(p1             , Perp(tri.p[1]-tri.p[2])), sign)>0)return false;
+                            if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0)return false;
    return true;
 }
 Bool Cuts(C Vec &point, C Tri &tri)
 {
    Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
-   if(DistPointPlane(point, tri.p[0], Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
-   if(DistPointPlane(point, tri.p[1], Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
-   if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
+   Vec p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
+                          if(DistPointPlane(p1             , Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
+                          if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
    return true;
 }
 Bool Cuts(C Vec &point, C TriN &tri)
 {
-   if(DistPointPlane(point, tri.p[0], Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
-   if(DistPointPlane(point, tri.p[1], Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
-   if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0)return false;
+   Vec p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
+                          if(DistPointPlane(p1             , Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
+                          if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0)return false;
    return true;
 }
 Bool Cuts(C VecD &point, C TriD &tri)
 {
    VecD tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
-   if(DistPointPlane(point, tri.p[0], Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
-   if(DistPointPlane(point, tri.p[1], Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
-   if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
+   VecD p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri_nu, tri.p[0]-tri.p[1]))>0)return false;
+                           if(DistPointPlane(p1             , Cross(tri_nu, tri.p[1]-tri.p[2]))>0)return false;
+                           if(DistPointPlane(point, tri.p[2], Cross(tri_nu, tri.p[2]-tri.p[0]))>0)return false;
    return true;
 }
 Bool Cuts(C VecD &point, C TriND &tri)
 {
-   if(DistPointPlane(point, tri.p[0], Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
-   if(DistPointPlane(point, tri.p[1], Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
-   if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0)return false;
+   VecD p1=point-tri.p[1]; if(DistPointPlane(p1             , Cross(tri.n, tri.p[0]-tri.p[1]))>0)return false;
+                           if(DistPointPlane(p1             , Cross(tri.n, tri.p[1]-tri.p[2]))>0)return false;
+                           if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0)return false;
    return true;
 }
 /******************************************************************************/
@@ -537,22 +537,22 @@ Bool CutsEps(C VecD2 &point, C TriD2 &tri)
 }
 Bool CutsEps(C Vec &point, C TriN &tri)
 {
-   Vec d10=!(tri.p[0]-tri.p[1]); if(DistPointPlane(point, tri.p[0], Cross(tri.n, d10))>EPS)return false;
-   Vec d21=!(tri.p[1]-tri.p[2]); if(DistPointPlane(point, tri.p[1], Cross(tri.n, d21))>EPS)return false;
-   Vec d02=!(tri.p[2]-tri.p[0]); if(DistPointPlane(point, tri.p[2], Cross(tri.n, d02))>EPS)return false;
-   if(DistPointPlane(point, tri.p[0], !(d10-d02))>EPS)return false;
-   if(DistPointPlane(point, tri.p[1], !(d21-d10))>EPS)return false;
-   if(DistPointPlane(point, tri.p[2], !(d02-d21))>EPS)return false;
+   Vec d10=!(tri.p[0]-tri.p[1]), p0=point-tri.p[0]; if(DistPointPlane(p0, Cross(tri.n, d10))>EPS)return false;
+   Vec d21=!(tri.p[1]-tri.p[2]), p1=point-tri.p[1]; if(DistPointPlane(p1, Cross(tri.n, d21))>EPS)return false;
+   Vec d02=!(tri.p[2]-tri.p[0]), p2=point-tri.p[2]; if(DistPointPlane(p2, Cross(tri.n, d02))>EPS)return false;
+                                                    if(DistPointPlane(p0,        !(d10-d02))>EPS)return false;
+                                                    if(DistPointPlane(p1,        !(d21-d10))>EPS)return false;
+                                                    if(DistPointPlane(p2,        !(d02-d21))>EPS)return false;
    return true;
 }
 Bool CutsEps(C VecD &point, C TriND &tri)
 {
-   VecD d10=!(tri.p[0]-tri.p[1]); if(DistPointPlane(point, tri.p[0], Cross(tri.n, d10))>EPSD)return false;
-   VecD d21=!(tri.p[1]-tri.p[2]); if(DistPointPlane(point, tri.p[1], Cross(tri.n, d21))>EPSD)return false;
-   VecD d02=!(tri.p[2]-tri.p[0]); if(DistPointPlane(point, tri.p[2], Cross(tri.n, d02))>EPSD)return false;
-   if(DistPointPlane(point, tri.p[0], !(d10-d02))>EPSD)return false;
-   if(DistPointPlane(point, tri.p[1], !(d21-d10))>EPSD)return false;
-   if(DistPointPlane(point, tri.p[2], !(d02-d21))>EPSD)return false;
+   VecD d10=!(tri.p[0]-tri.p[1]), p0=point-tri.p[0]; if(DistPointPlane(p0, Cross(tri.n, d10))>EPSD)return false;
+   VecD d21=!(tri.p[1]-tri.p[2]), p1=point-tri.p[1]; if(DistPointPlane(p1, Cross(tri.n, d21))>EPSD)return false;
+   VecD d02=!(tri.p[2]-tri.p[0]), p2=point-tri.p[2]; if(DistPointPlane(p2, Cross(tri.n, d02))>EPSD)return false;
+                                                     if(DistPointPlane(p0,        !(d10-d02))>EPSD)return false;
+                                                     if(DistPointPlane(p1,        !(d21-d10))>EPSD)return false;
+                                                     if(DistPointPlane(p2,        !(d02-d21))>EPSD)return false;
    return true;
 }
 /******************************************************************************/
