@@ -319,14 +319,14 @@ Bool CutsEps(C Vec &point, C QuadN &quad, Bool test_quads_as_2_tris)
       return Cuts(point, quad.Quad::tri013()) || Cuts(point, quad.Quad::tri123()); // use base class func to recalc normal
    }else
    {
-      Vec d10=!(quad.p[0]-quad.p[1]); if(DistPointPlane(point, quad.p[0], Cross(quad.n, d10))>EPS)return false;
-      Vec d21=!(quad.p[1]-quad.p[2]); if(DistPointPlane(point, quad.p[1], Cross(quad.n, d21))>EPS)return false;
-      Vec d32=!(quad.p[2]-quad.p[3]); if(DistPointPlane(point, quad.p[2], Cross(quad.n, d32))>EPS)return false;
-      Vec d03=!(quad.p[3]-quad.p[0]); if(DistPointPlane(point, quad.p[3], Cross(quad.n, d03))>EPS)return false;
-      if(DistPointPlane(point, quad.p[0], !(d10-d03))>EPS)return false;
-      if(DistPointPlane(point, quad.p[1], !(d21-d10))>EPS)return false;
-      if(DistPointPlane(point, quad.p[2], !(d32-d21))>EPS)return false;
-      if(DistPointPlane(point, quad.p[3], !(d03-d32))>EPS)return false;
+      Vec d10=!(quad.p[0]-quad.p[1]), p0=point-quad.p[0]; if(DistPointPlane(p0, Cross(quad.n, d10))>EPS)return false;
+      Vec d21=!(quad.p[1]-quad.p[2]), p1=point-quad.p[1]; if(DistPointPlane(p1, Cross(quad.n, d21))>EPS)return false;
+      Vec d32=!(quad.p[2]-quad.p[3]), p2=point-quad.p[2]; if(DistPointPlane(p2, Cross(quad.n, d32))>EPS)return false;
+      Vec d03=!(quad.p[3]-quad.p[0]), p3=point-quad.p[3]; if(DistPointPlane(p3, Cross(quad.n, d03))>EPS)return false;
+                                                          if(DistPointPlane(p0,         !(d10-d03))>EPS)return false;
+                                                          if(DistPointPlane(p1,         !(d21-d10))>EPS)return false;
+                                                          if(DistPointPlane(p2,         !(d32-d21))>EPS)return false;
+                                                          if(DistPointPlane(p3,         !(d03-d32))>EPS)return false;
    }
    return true;
 }
