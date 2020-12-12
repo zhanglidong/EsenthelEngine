@@ -889,7 +889,7 @@ Bool CutsLineBox(C Vec &line_pos, C Vec &line_dir, C Box &box)
                   frac=(box.max.z-line_pos.z)/line_dir.z; test.set(line_pos.x+line_dir.x*frac, line_pos.y+line_dir.y*frac, box.max.z); if(box.includesX(test.x) && box.includesY(test.y)                         ){return true;}}
    return false;
 }
-Bool CutsLineExt(C Vec &line_pos, C Vec &line_dir, C Extent &ext)
+Bool CutsLineBox(C Vec &line_pos, C Vec &line_dir, C Extent &ext)
 {
    Flt frac, border;
    Vec test;

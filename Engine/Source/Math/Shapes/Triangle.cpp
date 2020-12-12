@@ -666,8 +666,7 @@ Int CutsTriPlaneEps(C TriD &tri, C PlaneD &plane, EdgeD &edge)
 Bool SweepPointTri(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
 {
    Vec hitp;
-   if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided))
-   if(Cuts(hitp, tri))
+   if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided) && Cuts(hitp, tri))
    {
       if(hit_pos)*hit_pos=hitp;
       return true;
@@ -677,8 +676,17 @@ Bool SweepPointTri(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *h
 Bool SweepPointTriEps(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
 {
    Vec hitp;
-   if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided))
-   if(CutsEps(hitp, tri))
+   if(SweepPointPlane(point, move, tri.plane(), hit_frac, null, &hitp, two_sided) && CutsEps(hitp, tri))
+   {
+      if(hit_pos)*hit_pos=hitp;
+      return true;
+   }
+   return false;
+}
+Bool CutsLineTriEps(C Vec &line_pos, C Vec &line_dir, C TriN &tri, Flt *hit_frac, Vec *hit_pos, Bool two_sided)
+{
+   Vec hitp;
+   if(CutsLinePlane(line_pos, line_dir, tri.plane(), hit_frac, null, &hitp, two_sided) && CutsEps(hitp, tri))
    {
       if(hit_pos)*hit_pos=hitp;
       return true;

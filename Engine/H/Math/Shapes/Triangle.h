@@ -283,6 +283,9 @@ Bool SweepPointTri(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac=null, V
 // if moving point cuts static triangle (epsilon=EPS)
 Bool SweepPointTriEps(C Vec &point, C Vec &move, C TriN &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false);
 
+// if straight line cuts static triangle (epsilon=EPS)
+Bool CutsLineTriEps(C Vec &line_pos, C Vec &line_dir, C TriN &tri, Flt *hit_frac=null, Vec *hit_pos=null, Bool two_sided=false); // 'line_dir'=line direction (doesn't have to be normalized)
+
 // clip edge inside triangle
 Int Clip(Edge2  &edge, C Tri2  &tri);
 Int Clip(EdgeD2 &edge, C TriD2 &tri);

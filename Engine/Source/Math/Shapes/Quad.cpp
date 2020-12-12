@@ -333,13 +333,13 @@ Bool CutsEps(C Vec &point, C QuadN &quad, Bool test_quads_as_2_tris)
 /******************************************************************************/
 Bool SweepPointQuad(C Vec &point, C Vec &move, C QuadN &quad, Flt *hit_frac, Vec *hit_pos, Bool test_quads_as_2_tris, Bool two_sided)
 {
-   Vec hitp;
    if(test_quads_as_2_tris)
    {
       return SweepPointTri(point, move, quad.Quad::tri013(), hit_frac, hit_pos, two_sided)  // use base class func to recalc normal
       ||     SweepPointTri(point, move, quad.Quad::tri123(), hit_frac, hit_pos, two_sided); // use base class func to recalc normal
    }else
    {
+      Vec hitp;
       if(SweepPointPlane(point, move, Plane(quad.p[0], quad.n), hit_frac, null, &hitp, two_sided) && Cuts(hitp, quad))
       {
          if(hit_pos)*hit_pos=hitp;
@@ -350,14 +350,31 @@ Bool SweepPointQuad(C Vec &point, C Vec &move, C QuadN &quad, Flt *hit_frac, Vec
 }
 Bool SweepPointQuadEps(C Vec &point, C Vec &move, C QuadN &quad, Flt *hit_frac, Vec *hit_pos, Bool test_quads_as_2_tris, Bool two_sided)
 {
-   Vec hitp;
    if(test_quads_as_2_tris)
    {
       return SweepPointTriEps(point, move, quad.Quad::tri013(), hit_frac, hit_pos, two_sided)  // use base class func to recalc normal
       ||     SweepPointTriEps(point, move, quad.Quad::tri123(), hit_frac, hit_pos, two_sided); // use base class func to recalc normal
    }else
    {
+      Vec hitp;
       if(SweepPointPlane(point, move, Plane(quad.p[0], quad.n), hit_frac, null, &hitp, two_sided) && CutsEps(hitp, quad))
+      {
+         if(hit_pos)*hit_pos=hitp;
+         return true;
+      }
+   }
+   return false;
+}
+Bool CutsLineQuadEps(C Vec &line_pos, C Vec &line_dir, C QuadN &quad, Flt *hit_frac, Vec *hit_pos, Bool test_quads_as_2_tris, Bool two_sided)
+{
+   if(test_quads_as_2_tris)
+   {
+      return CutsLineTriEps(line_pos, line_dir, quad.Quad::tri013(), hit_frac, hit_pos, two_sided)  // use base class func to recalc normal
+      ||     CutsLineTriEps(line_pos, line_dir, quad.Quad::tri123(), hit_frac, hit_pos, two_sided); // use base class func to recalc normal
+   }else
+   {
+      Vec hitp;
+      if(CutsLinePlane(line_pos, line_dir, Plane(quad.p[0], quad.n), hit_frac, null, &hitp, two_sided) && CutsEps(hitp, quad))
       {
          if(hit_pos)*hit_pos=hitp;
          return true;

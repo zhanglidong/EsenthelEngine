@@ -1091,7 +1091,7 @@ class AnimEditor : Viewport4Region
 
       orn_target=bone.to();
 
-      orn_perp=bone.pos-NearestPointOnStr(bone.pos, bone_parent.pos, !(orn_target-bone_parent.pos));
+      orn_perp=bone.pos-NearestPointOnLine(bone.pos, bone_parent.pos, !(orn_target-bone_parent.pos));
       if(!orn_perp.normalize())orn_perp.set(0, 0, 1);
    }
    void setMenu()
@@ -1426,7 +1426,7 @@ class AnimEditor : Viewport4Region
 
                         if(!rotate)
                         {
-                           Vec perp=bone.pos-NearestPointOnStr(bone.pos, bone_parent.pos, !(orn_target-bone_parent.pos));
+                           Vec perp=bone.pos-NearestPointOnLine(bone.pos, bone_parent.pos, !(orn_target-bone_parent.pos));
                            if( perp.normalize()<=EPS)switch(sbon.type)
                            {
                               case BONE_FINGER:

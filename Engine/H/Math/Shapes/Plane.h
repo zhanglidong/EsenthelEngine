@@ -178,6 +178,10 @@ Bool SweepPointPlane(C VecD2 &point, C VecD2 &move, C PlaneD2 &plane, Dbl *hit_f
 Bool SweepPointPlane(C Vec   &point, C Vec   &move, C Plane   &plane, Flt *hit_frac=null, Vec   *hit_normal=null, Vec   *hit_pos=null, Bool two_sided=false);
 Bool SweepPointPlane(C VecD  &point, C VecD  &move, C PlaneD  &plane, Dbl *hit_frac=null, VecD  *hit_normal=null, VecD  *hit_pos=null, Bool two_sided=false);
 
+// if straight line cuts through static plane, 'line_dir'=line direction (doesn't have to be normalized)
+Bool CutsLinePlane(C Vec  &line_pos, C Vec  &line_dir, C Plane  &plane, Flt *hit_frac=null, Vec  *hit_normal=null, Vec  *hit_pos=null, Bool two_sided=false);
+Bool CutsLinePlane(C VecD &line_pos, C VecD &line_dir, C PlaneD &plane, Dbl *hit_frac=null, VecD *hit_normal=null, VecD *hit_pos=null, Bool two_sided=false);
+
 // if moving plane cuts through static point
 inline Bool SweepPlanePoint(C Plane2  &plane, C Vec2  &move, C Vec2  &point, Flt *hit_frac=null) {return SweepPointPlane(point, -move, plane, hit_frac);}
 inline Bool SweepPlanePoint(C PlaneD2 &plane, C VecD2 &move, C VecD2 &point, Dbl *hit_frac=null) {return SweepPointPlane(point, -move, plane, hit_frac);}

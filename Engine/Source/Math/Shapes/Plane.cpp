@@ -141,13 +141,12 @@ Bool SweepPointPlane(C Vec2 &point, C Vec2 &move, C Plane2 &plane, Flt *hit_frac
    ? (dist<0 || dist+way>0)  // distance is already below the plane OR even after movement we still haven't reached the plane
    : (dist>0 || dist+way<0)) // distance is already above the plane OR even after movement we still haven't reached the plane
       return false;
- //if(hit_frac || hit_pos || hit_normal) skip testing this as it's faster this way
+ //if(hit_frac || hit_pos) skip testing this as it's faster this way
    {
       Flt frac=-dist/way;
       if(hit_frac  ) *hit_frac  =      frac;
       if(hit_pos   ) *hit_pos   =point+frac*move;
-      if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
-   }
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
    return true;
 }
 Bool SweepPointPlane(C VecD2 &point, C VecD2 &move, C PlaneD2 &plane, Dbl *hit_frac, VecD2 *hit_normal, VecD2 *hit_pos, Bool two_sided)
@@ -158,13 +157,12 @@ Bool SweepPointPlane(C VecD2 &point, C VecD2 &move, C PlaneD2 &plane, Dbl *hit_f
    ? (dist<0 || dist+way>0)  // distance is already below the plane OR even after movement we still haven't reached the plane
    : (dist>0 || dist+way<0)) // distance is already above the plane OR even after movement we still haven't reached the plane
       return false;
- //if(hit_frac || hit_pos || hit_normal) skip testing this as it's faster this way
+ //if(hit_frac || hit_pos) skip testing this as it's faster this way
    {
       Dbl frac=-dist/way;
       if(hit_frac  ) *hit_frac  =      frac;
       if(hit_pos   ) *hit_pos   =point+frac*move;
-      if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
-   }
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
    return true;
 }
 Bool SweepPointPlane(C Vec &point, C Vec &move, C Plane &plane, Flt *hit_frac, Vec *hit_normal, Vec *hit_pos, Bool two_sided)
@@ -175,13 +173,12 @@ Bool SweepPointPlane(C Vec &point, C Vec &move, C Plane &plane, Flt *hit_frac, V
    ? (dist<0 || dist+way>0)  // distance is already below the plane OR even after movement we still haven't reached the plane
    : (dist>0 || dist+way<0)) // distance is already above the plane OR even after movement we still haven't reached the plane
       return false;
- //if(hit_frac || hit_pos || hit_normal) skip testing this as it's faster this way
+ //if(hit_frac || hit_pos) skip testing this as it's faster this way
    {
       Flt frac=-dist/way;
       if(hit_frac  ) *hit_frac  =      frac;
       if(hit_pos   ) *hit_pos   =point+frac*move;
-      if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
-   }
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
    return true;
 }
 Bool SweepPointPlane(C VecD &point, C VecD &move, C PlaneD &plane, Dbl *hit_frac, VecD *hit_normal, VecD *hit_pos, Bool two_sided)
@@ -192,13 +189,35 @@ Bool SweepPointPlane(C VecD &point, C VecD &move, C PlaneD &plane, Dbl *hit_frac
    ? (dist<0 || dist+way>0)  // distance is already below the plane OR even after movement we still haven't reached the plane
    : (dist>0 || dist+way<0)) // distance is already above the plane OR even after movement we still haven't reached the plane
       return false;
- //if(hit_frac || hit_pos || hit_normal) skip testing this as it's faster this way
+ //if(hit_frac || hit_pos) skip testing this as it's faster this way
    {
       Dbl frac=-dist/way;
       if(hit_frac  ) *hit_frac  =      frac;
       if(hit_pos   ) *hit_pos   =point+frac*move;
-      if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
-   }
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
+   return true;
+}
+/******************************************************************************/
+Bool CutsLinePlane(C Vec &line_pos, C Vec &line_dir, C Plane &plane, Flt *hit_frac, Vec *hit_normal, Vec *hit_pos, Bool two_sided)
+{
+   Flt way=Dot(line_dir, plane.normal); if(two_sided ? (way==0) : (way>=0))return false; // we ignore cases when the point is already on the plane to allow movement along the plane surface, in 'two_sided' mode we skip if we move along the plane surface "way==0", in one sided mode we skip if we move along the plane surface "way==0" or in the same direction as plane normal "way>0"
+   if(hit_frac || hit_pos)
+   {
+      Flt dist=Dist(line_pos, plane), frac=-dist/way;
+      if(hit_frac  ) *hit_frac  =         frac;
+      if(hit_pos   ) *hit_pos   =line_pos+frac*line_dir;
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
+   return true;
+}
+Bool CutsLinePlane(C VecD &line_pos, C VecD &line_dir, C PlaneD &plane, Dbl *hit_frac, VecD *hit_normal, VecD *hit_pos, Bool two_sided)
+{
+   Dbl way=Dot(line_dir, plane.normal); if(two_sided ? (way==0) : (way>=0))return false; // we ignore cases when the point is already on the plane to allow movement along the plane surface, in 'two_sided' mode we skip if we move along the plane surface "way==0", in one sided mode we skip if we move along the plane surface "way==0" or in the same direction as plane normal "way>0"
+   if(hit_frac || hit_pos)
+   {
+      Dbl dist=Dist(line_pos, plane), frac=-dist/way;
+      if(hit_frac  ) *hit_frac  =         frac;
+      if(hit_pos   ) *hit_pos   =line_pos+frac*line_dir;
+   }  if(hit_normal){*hit_normal=plane.normal; if(way>0)hit_normal->chs();}
    return true;
 }
 /******************************************************************************/

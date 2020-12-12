@@ -629,15 +629,14 @@ Bool CutsPointMesh(C Vec &point, C MeshGroup &mshg)
 /******************************************************************************/
 Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, Flt *hit_frac, Vec2 *hit_pos, Int *hit_edge)
 {
- C Vec   *pos =mshb.vtx .pos();
- C Vec   *nrm =mshb.edge.nrm();
- C VecI2 *edge=mshb.edge.ind();
-   if(pos && edge)
+   if(C Vec   *pos =mshb.vtx .pos())
+   if(C VecI2 *edge=mshb.edge.ind())
    {
       Bool hit=false;
       Int  edge_i;
       Flt  f , frac;
       Vec2 hp, hitp;
+    C Vec *nrm=mshb.edge.nrm();
       FREPA(mshb.edge)
       {
        C Int *p=edge[i].c;
@@ -657,10 +656,8 @@ Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, Flt *hit_frac, Vec2 *h
 /******************************************************************************/
 Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, C Rects &rects, C Index &rect_edge, Flt *hit_frac, Vec2 *hit_pos, Int *hit_edge)
 {
- C Vec   *pos =mshb.vtx .pos();
- C Vec   *nrm =mshb.edge.nrm();
- C VecI2 *edge=mshb.edge.ind();
-   if(pos && edge)
+   if(C Vec   *pos =mshb.vtx .pos())
+   if(C VecI2 *edge=mshb.edge.ind())
    {
       Byte  hit=0;
       Int   hit_dist2, edge_i;
@@ -669,6 +666,7 @@ Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, C Rects &rects, C Inde
       Vec2  start =rects.coords(point     ),
             end   =rects.coords(point+move);
       VecI2 starti=Floor(start);
+    C Vec  *nrm   =mshb.edge.nrm();
 
       for(PixelWalkerMask walker(start, end, RectI(0, 0, rects.cells.x-1, rects.cells.y-1)); walker.active(); walker.step())
       {
@@ -695,27 +693,47 @@ Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, C Rects &rects, C Inde
 /******************************************************************************/
 Bool Sweep(C Vec &point, C Vec &move, C MeshBase &mshb, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Bool test_quads_as_2_tris, Bool two_sided)
 {
-   Bool hit=false;
-   Int  face_index;
-   Flt  f , frac;
-   Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
-
- C Int   *p;
- C VecI  * tri_ind=mshb.tri .ind();
- C VecI4 *quad_ind=mshb.quad.ind();
- C Vec   * tri_nrm=mshb.tri .nrm();
- C Vec   *quad_nrm=mshb.quad.nrm();
- C Vec   * vtx_pos=mshb.vtx .pos();
-
-   if(vtx_pos &&  tri_ind)REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}
-   if(vtx_pos && quad_ind)REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}
-
-   if(hit)
+   if(C Vec *vtx_pos=mshb.vtx.pos())
    {
-      if(hit_frac)*hit_frac=frac;
-      if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
-      if(hit_face)*hit_face=face_index;
-      return true;
+      Bool hit=false;
+      Int  face_index;
+      Flt  f , frac;
+      Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+    C Int *p;
+
+      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}}
+      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}}
+
+      if(hit)
+      {
+         if(hit_frac)*hit_frac=frac;
+         if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+         if(hit_face)*hit_face=face_index;
+         return true;
+      }
+   }
+   return false;
+}
+Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshBase &mshb, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Bool test_quads_as_2_tris, Bool two_sided)
+{
+   if(C Vec *vtx_pos=mshb.vtx.pos())
+   {
+      Bool hit=false;
+      Int  face_index;
+      Flt  f , frac;
+      Vec  hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+    C Int *p;
+
+      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(CutsLineTriEps (LinePos, LineDir,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}}
+      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(CutsLineQuadEps(LinePos, LineDir, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}}
+
+      if(hit)
+      {
+         if(hit_frac)*hit_frac=frac;
+         if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+         if(hit_face)*hit_face=face_index;
+         return true;
+      }
    }
    return false;
 }
@@ -723,37 +741,66 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshBase &mshb, C Matrix *mesh_matrix, F
 Bool Sweep(C Vec &point, C Vec &move, C MeshRender &mshr, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Bool two_sided)
 {
    Bool hit=false;
-   Int  face_index;
-   Flt  f , frac;
-   Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
-
-   Int pos_ofs=mshr.vtxOfs(VTX_POS);
-   if( pos_ofs>=0)
+   Int  pos_ofs=mshr.vtxOfs(VTX_POS);
+   if(  pos_ofs>=0)
       if(C Byte *vtx=mshr.vtxLockRead())
    {
-      vtx+=pos_ofs;
       if(CPtr index=mshr.indLockRead())
       {
-         Int p0, p1, p2;
+         Int face_index, p0, p1, p2;
+         Flt f , frac;
+         Vec hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+
+         vtx+=pos_ofs;
          REP(mshr.tris())
          {
             if(mshr._ib.bit16()){U16 *ind=(U16*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
             else                {U32 *ind=(U32*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
             if(SweepPointTriEps(Point, Move, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, &hp, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i; hitp=hp;}
          }
+         if(hit)
+         {
+            if(hit_frac)*hit_frac=frac;
+            if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+            if(hit_face)*hit_face=face_index;
+         }
          mshr.indUnlock();
       }
       mshr.vtxUnlock();
    }
-
-   if(hit)
+   return hit;
+}
+Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshRender &mshr, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Bool two_sided)
+{
+   Bool hit=false;
+   Int  pos_ofs=mshr.vtxOfs(VTX_POS);
+   if(  pos_ofs>=0)
+      if(C Byte *vtx=mshr.vtxLockRead())
    {
-      if(hit_frac)*hit_frac=frac;
-      if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
-      if(hit_face)*hit_face=face_index;
-      return true;
+      if(CPtr index=mshr.indLockRead())
+      {
+         Int face_index, p0, p1, p2;
+         Flt f , frac;
+         Vec hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+
+         vtx+=pos_ofs;
+         REP(mshr.tris())
+         {
+            if(mshr._ib.bit16()){U16 *ind=(U16*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
+            else                {U32 *ind=(U32*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
+            if(CutsLineTriEps(LinePos, LineDir, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, &hp, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i; hitp=hp;}
+         }
+         if(hit)
+         {
+            if(hit_frac)*hit_frac=frac;
+            if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+            if(hit_face)*hit_face=face_index;
+         }
+         mshr.indUnlock();
+      }
+      mshr.vtxUnlock();
    }
-   return false;
+   return hit;
 }
 /******************************************************************************/
 Bool Sweep(C Vec &point, C Vec &move, C MeshPart &part, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
@@ -766,11 +813,10 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshPart &part, C Matrix *mesh_matrix, F
 /******************************************************************************/
 Bool Sweep(C Vec &point, C Vec &move, C MeshLod &mesh, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
 {
-   Int fi, face_index, part_index;
-   Flt f , frac;
-   Vec hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
-
    Bool hit=false;
+   Int  fi, face_index, part_index;
+   Flt  f , frac;
+   Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
    REPA(mesh)
    {
     C MeshPart &part=mesh.parts[i];
@@ -784,8 +830,35 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshLod &mesh, C Matrix *mesh_matrix, Fl
    }
    if(hit)
    {
-      if(hit_frac)*hit_frac=frac ;
+      if(hit_frac)*hit_frac=frac;
       if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+      if(hit_face)*hit_face=face_index;
+      if(hit_part)*hit_part=part_index;
+      return true;
+   }
+   return false;
+}
+Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshLod &mesh, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
+{
+   Bool hit=false;
+   Int  fi, face_index, part_index;
+   Flt  f , frac;
+   Vec  hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+   REPA(mesh)
+   {
+    C MeshPart &part=mesh.parts[i];
+      if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
+      {
+         Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
+         if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
+            part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, &hp, &fi                      , ts) : false)
+            if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=i;}
+      }
+   }
+   if(hit)
+   {
+      if(hit_frac)*hit_frac=frac;
+      if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
       if(hit_face)*hit_face=face_index;
       if(hit_part)*hit_part=part_index;
       return true;
@@ -796,11 +869,10 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshLod &mesh, C Matrix *mesh_matrix, Fl
 Bool Sweep(C Vec &point, C Vec &move, C Mesh &mesh, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
 {
    Vec Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
-
    if(SweepPointBox(Point, Move, mesh.ext))
    {
       Flt frac; if(hit_pos && mesh_matrix && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
-      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, hit_pos, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible))
+      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, mesh_matrix ? null : hit_pos, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // if have 'mesh_matrix' then don't calculate 'hit_pos', we will do it below
       {
          if(hit_pos && mesh_matrix)*hit_pos=point+*hit_frac*move;
          return true;
@@ -811,14 +883,27 @@ Bool Sweep(C Vec &point, C Vec &move, C Mesh &mesh, C Matrix *mesh_matrix, Flt *
 Bool Sweep(C VecD &point, C VecD &move, C Mesh &mesh, C MatrixM *mesh_matrix, Flt *hit_frac, VecD *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
 {
    Vec Point, Move; if(mesh_matrix){Point.fromDiv(point, *mesh_matrix); Move.fromDiv(move, mesh_matrix->orn());}else{Point=point; Move=move;}
-
    if(SweepPointBox(Point, Move, mesh.ext))
    {
       Flt frac; Vec hp;
       if(hit_pos && mesh_matrix && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
-      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, (hit_pos && !mesh_matrix) ? &hp : null, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible))
+      if(Sweep(Point, Move, mesh.lod(0), null, hit_frac, (hit_pos && !mesh_matrix) ? &hp : null, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // calculate 'hp' only if we need 'hit_pos' and we don't have 'mesh_matrix' (in that case we will calculate it based on frac)
       {
          if(hit_pos){if(mesh_matrix)*hit_pos=point+*hit_frac*move;else *hit_pos=hp;} // can't do "*hit_pos=mesh_matrix?:" because of different types and compile fail on Clang
+         return true;
+      }
+   }
+   return false;
+}
+Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C Mesh &mesh, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Int *hit_part, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
+{
+   Vec LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+   if(CutsLineBox(LinePos, LineDir, mesh.ext))
+   {
+      Flt frac; if(hit_pos && mesh_matrix && !hit_frac)hit_frac=&frac; // we will need it for 'hit_pos' calculation
+      if(CutsLineMesh(LinePos, LineDir, mesh.lod(0), null, hit_frac, mesh_matrix ? null : hit_pos, hit_face, hit_part, test_quads_as_2_tris, two_sided, only_visible)) // if have 'mesh_matrix' then don't calculate 'hit_pos', we will do it below
+      {
+         if(hit_pos && mesh_matrix)*hit_pos=line_pos+*hit_frac*line_dir;
          return true;
       }
    }
@@ -861,28 +946,64 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshGroup &mshg, C Matrix *mesh_matrix, 
    }
    return false;
 }
+Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshGroup &mshg, C Matrix *mesh_matrix, Flt *hit_frac, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris, Int two_sided, Bool only_visible)
+{
+   Int fi, face_index, part_index, mesh_index;
+   Flt f , frac;
+   Vec hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+
+   if(CutsLineBox(LinePos, LineDir, mshg.ext))
+   {
+      Bool hit=false;
+      REPA(mshg)
+      {
+       C Mesh &mesh=mshg.meshes[i];
+         if(CutsLineBox(LinePos, LineDir, mesh.ext))REPAD(j, mesh)
+         {
+          C MeshPart &part=mesh.parts[j];
+            if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
+            {
+               Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
+               if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
+                  part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, &hp, &fi                      , ts) : false)
+                  if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=j; mesh_index=i;}
+            }
+         }
+      }
+      if(hit)
+      {
+         if(hit_frac)*hit_frac=frac;
+         if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+         if(hit_face)*hit_face=face_index;
+         if(hit_part)*hit_part=part_index;
+         if(hit_mesh)*hit_mesh=mesh_index;
+         return true;
+      }
+   }
+   return false;
+}
 /******************************************************************************/
 // POS
 /******************************************************************************/
-Bool PosPointMeshXL(C Vec2 &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                   C Box *box, Bool test_quads_as_2_tris) {Box b=(box ? *box : mshb); return Sweep(Vec(     b  .max.x +1, point.y, point.x), Vec(-     b  .w()-2, 0, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
-Bool PosPointMeshXL(C Vec2 &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {                           return Sweep(Vec(mesh.ext.maxX()+1, point.y, point.x), Vec(-mesh.ext.w()-2, 0, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
-Bool PosPointMeshXL(C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {                           return Sweep(Vec(mshg.ext.maxX()+1, point.y, point.x), Vec(-mshg.ext.w()-2, 0, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
+Bool PosPointMeshXL(C Vec &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                               Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(-1, 0, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
+Bool PosPointMeshXL(C Vec &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(-1, 0, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
+Bool PosPointMeshXL(C Vec &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(-1, 0, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
 
-Bool PosPointMeshXR(C Vec2 &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                   C Box *box, Bool test_quads_as_2_tris) {Box b=(box ? *box : mshb); return Sweep(Vec(     b  .min.x -1, point.y, point.x), Vec(      b  .w()+2, 0, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
-Bool PosPointMeshXR(C Vec2 &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {                           return Sweep(Vec(mesh.ext.minX()-1, point.y, point.x), Vec( mesh.ext.w()+2, 0, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
-Bool PosPointMeshXR(C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {                           return Sweep(Vec(mshg.ext.minX()-1, point.y, point.x), Vec( mshg.ext.w()+2, 0, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
+Bool PosPointMeshXR(C Vec &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                               Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec( 1, 0, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
+Bool PosPointMeshXR(C Vec &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec( 1, 0, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
+Bool PosPointMeshXR(C Vec &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec( 1, 0, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
 
-Bool PosPointMeshY (C Vec2 &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                   C Box *box, Bool test_quads_as_2_tris) {Box b=(box ? *box : mshb); return Sweep(Vec(point.x,      b  .max.y +1, point.y), Vec(0, -     b  .h()-2, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
-Bool PosPointMeshY (C Vec2 &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, mesh.ext.maxY()+1, point.y), Vec(0, -mesh.ext.h()-2, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
-Bool PosPointMeshY (C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, mshg.ext.maxY()+1, point.y), Vec(0, -mshg.ext.h()-2, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
+Bool PosPointMeshY (C Vec &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                               Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, -1, 0), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
+Bool PosPointMeshY (C Vec &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, -1, 0), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
+Bool PosPointMeshY (C Vec &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, -1, 0), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
 
-Bool PosPointMeshZF(C Vec2 &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                   C Box *box, Bool test_quads_as_2_tris) {Box b=(box ? *box : mshb); return Sweep(Vec(point.x, point.y,      b  .min.z -1), Vec(0, 0,       b  .d()+2), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
-Bool PosPointMeshZF(C Vec2 &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, point.y, mesh.ext.minZ()-1), Vec(0, 0,  mesh.ext.d()+2), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
-Bool PosPointMeshZF(C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, point.y, mshg.ext.minZ()-1), Vec(0, 0,  mshg.ext.d()+2), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
+Bool PosPointMeshZF(C Vec &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                               Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0,  1), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
+Bool PosPointMeshZF(C Vec &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0,  1), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
+Bool PosPointMeshZF(C Vec &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0,  1), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
 
-Bool PosPointMeshZB(C Vec2 &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                   C Box *box, Bool test_quads_as_2_tris) {Box b=(box ? *box : mshb); return Sweep(Vec(point.x, point.y,      b  .max.z +1), Vec(0, 0, -     b  .d()-2), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
-Bool PosPointMeshZB(C Vec2 &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, point.y, mesh.ext.maxZ()+1), Vec(0, 0, -mesh.ext.d()-2), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
-Bool PosPointMeshZB(C Vec2 &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {                           return Sweep(Vec(point.x, point.y, mshg.ext.maxZ()+1), Vec(0, 0, -mshg.ext.d()-2), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
+Bool PosPointMeshZB(C Vec &point, C MeshBase  &mshb, Vec *hit_pos, Int *hit_face,                               Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0, -1), mshb, null, null, hit_pos, hit_face                    , test_quads_as_2_tris);}
+Bool PosPointMeshZB(C Vec &point, C Mesh      &mesh, Vec *hit_pos, Int *hit_face, Int *hit_part               , Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0, -1), mesh, null, null, hit_pos, hit_face, hit_part          , test_quads_as_2_tris);}
+Bool PosPointMeshZB(C Vec &point, C MeshGroup &mshg, Vec *hit_pos, Int *hit_face, Int *hit_part, Int *hit_mesh, Bool test_quads_as_2_tris) {return CutsLineMesh(point, Vec(0, 0, -1), mshg, null, null, hit_pos, hit_face, hit_part, hit_mesh, test_quads_as_2_tris);}
 /******************************************************************************/
 // REST
 /******************************************************************************/

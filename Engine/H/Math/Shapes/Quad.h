@@ -235,4 +235,7 @@ Bool SweepPointQuad(C Vec &point, C Vec &move, C QuadN &quad, Flt *hit_frac=null
 
 // if moving point cuts through static quad (epsilon=EPS)
 Bool SweepPointQuadEps(C Vec &point, C Vec &move, C QuadN &quad, Flt *hit_frac=null, Vec *hit_pos=null, Bool test_quads_as_2_tris=true, Bool two_sided=false); // if you're sure that quad's are fully valid (their triangles are coplanar) set 'test_quads_as_2_tris'=false for performance boost
+
+// if straight line cuts through static quad (epsilon=EPS)
+Bool CutsLineQuadEps(C Vec &line_pos, C Vec &line_dir, C QuadN &quad, Flt *hit_frac=null, Vec *hit_pos=null, Bool test_quads_as_2_tris=true, Bool two_sided=false); // 'line_dir'=line direction (doesn't have to be normalized), if you're sure that quad's are fully valid (their triangles are coplanar) set 'test_quads_as_2_tris'=false for performance boost
 /******************************************************************************/
