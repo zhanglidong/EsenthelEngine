@@ -378,12 +378,12 @@ Bool Cuts(C OBox &obox, C Ball &ball)
 Int CutsLineBall(C Vec &line_pos, C Vec &line_dir, C Ball &ball, Vec *contact_a, Vec *contact_b)
 {
    Vec p=PointOnPlane(line_pos, ball.pos, line_dir);
-   Flt s=Dist        (p       , ball.pos          )/ball.r;
-   if(s> 1)return 0;
-   if(s==1){if(contact_a)*contact_a=p; return 1;}
+   Flt s=Dist        (p       , ball.pos          );
+   if(s> ball.r)return 0;
+   if(s==ball.r){if(contact_a)*contact_a=p; return 1;}
    if(contact_a || contact_b)
    {
-      s=CosSin(s)*ball.r;
+      s=CosSin(s/ball.r)*ball.r;
       if(contact_a)*contact_a=p-s*line_dir;
       if(contact_b)*contact_b=p+s*line_dir;
    }
@@ -392,12 +392,12 @@ Int CutsLineBall(C Vec &line_pos, C Vec &line_dir, C Ball &ball, Vec *contact_a,
 Int CutsLineBall(C VecD &line_pos, C VecD &line_dir, C BallM &ball, VecD *contact_a, VecD *contact_b)
 {
    VecD p=PointOnPlane(line_pos, ball.pos, line_dir);
-   Dbl  s=Dist        (p       , ball.pos          )/ball.r;
-   if(s> 1)return 0;
-   if(s==1){if(contact_a)*contact_a=p; return 1;}
+   Dbl  s=Dist        (p       , ball.pos          );
+   if(s> ball.r)return 0;
+   if(s==ball.r){if(contact_a)*contact_a=p; return 1;}
    if(contact_a || contact_b)
    {
-      s=CosSin(s)*ball.r;
+      s=CosSin(s/ball.r)*ball.r;
       if(contact_a)*contact_a=p-s*line_dir;
       if(contact_b)*contact_b=p+s*line_dir;
    }
