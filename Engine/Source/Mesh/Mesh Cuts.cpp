@@ -634,19 +634,18 @@ Bool Sweep(C Vec2 &point, C Vec2 &move, C MeshBase &mshb, Flt *hit_frac, Vec2 *h
    {
       Bool hit=false;
       Int  edge_i;
-      Flt  f , frac;
-      Vec2 hp, hitp;
+      Flt  f, frac;
     C Vec *nrm=mshb.edge.nrm();
       FREPA(mshb.edge)
       {
        C Int *p=edge[i].c;
-         if(SweepPointEdge(point, move, Edge2_I(pos[p[0]].xy, pos[p[1]].xy, nrm ? &nrm[i].xy : null), &f, null, &hp))
-            if(!hit || f<frac){hit=true; frac=f; hitp=hp; edge_i=i;}
+         if(SweepPointEdge(point, move, Edge2_I(pos[p[0]].xy, pos[p[1]].xy, nrm ? &nrm[i].xy : null), &f))
+            if(!hit || f<frac){hit=true; frac=f; edge_i=i;}
       }
       if(hit)
       {
          if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =hitp;
+         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
          if(hit_edge)*hit_edge=edge_i;
          return true;
       }
@@ -697,17 +696,17 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshBase &mshb, C Matrix *mesh_matrix, F
    {
       Bool hit=false;
       Int  face_index;
-      Flt  f , frac;
-      Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+      Flt  f, frac;
+      Vec  Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
     C Int *p;
 
-      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}}
-      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}}
+      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(SweepPointTriEps (Point, Move,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, null                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ;}}}
+      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(SweepPointQuadEps(Point, Move, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, null, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT;}}}
 
       if(hit)
       {
-         if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+         if(hit_frac)*hit_frac=      frac;
+         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
          if(hit_face)*hit_face=face_index;
          return true;
       }
@@ -720,17 +719,17 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshBase &mshb, C Matrix *
    {
       Bool hit=false;
       Int  face_index;
-      Flt  f , frac;
-      Vec  hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+      Flt  f, frac;
+      Vec  LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
     C Int *p;
 
-      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(CutsLineTriEps (LinePos, LineDir,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, &hp                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ; hitp=hp;}}}
-      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(CutsLineQuadEps(LinePos, LineDir, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, &hp, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT; hitp=hp;}}}
+      if(C VecI  * tri_ind=mshb.tri .ind()){C Vec * tri_nrm=mshb.tri .nrm(); REPA(mshb.tri ){p= tri_ind[i].c; if(CutsLineTriEps (LinePos, LineDir,  TriN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]],                 tri_nrm ? & tri_nrm[i] : null), &f, null                      , two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i         ;}}}
+      if(C VecI4 *quad_ind=mshb.quad.ind()){C Vec *quad_nrm=mshb.quad.nrm(); REPA(mshb.quad){p=quad_ind[i].c; if(CutsLineQuadEps(LinePos, LineDir, QuadN(vtx_pos[p[0]], vtx_pos[p[1]], vtx_pos[p[2]], vtx_pos[p[3]], quad_nrm ? &quad_nrm[i] : null), &f, null, test_quads_as_2_tris, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i^SIGN_BIT;}}}
 
       if(hit)
       {
-         if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+         if(hit_frac)*hit_frac=         frac;
+         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
          if(hit_face)*hit_face=face_index;
          return true;
       }
@@ -748,20 +747,20 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshRender &mshr, C Matrix *mesh_matrix,
       if(CPtr index=mshr.indLockRead())
       {
          Int face_index, p0, p1, p2;
-         Flt f , frac;
-         Vec hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+         Flt f, frac;
+         Vec Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
 
          vtx+=pos_ofs;
          REP(mshr.tris())
          {
             if(mshr._ib.bit16()){U16 *ind=(U16*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
             else                {U32 *ind=(U32*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
-            if(SweepPointTriEps(Point, Move, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, &hp, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i; hitp=hp;}
+            if(SweepPointTriEps(Point, Move, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, null, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i;}
          }
          if(hit)
          {
-            if(hit_frac)*hit_frac=frac;
-            if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+            if(hit_frac)*hit_frac=      frac;
+            if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
             if(hit_face)*hit_face=face_index;
          }
          mshr.indUnlock();
@@ -780,20 +779,20 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshRender &mshr, C Matrix
       if(CPtr index=mshr.indLockRead())
       {
          Int face_index, p0, p1, p2;
-         Flt f , frac;
-         Vec hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+         Flt f, frac;
+         Vec LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
 
          vtx+=pos_ofs;
          REP(mshr.tris())
          {
             if(mshr._ib.bit16()){U16 *ind=(U16*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
             else                {U32 *ind=(U32*)index; p0=ind[i*3+0]; p1=ind[i*3+1]; p2=ind[i*3+2];}
-            if(CutsLineTriEps(LinePos, LineDir, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, &hp, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i; hitp=hp;}
+            if(CutsLineTriEps(LinePos, LineDir, Tri(*(Vec*)(vtx+p0*mshr.vtxSize()), *(Vec*)(vtx+p1*mshr.vtxSize()), *(Vec*)(vtx+p2*mshr.vtxSize())), &f, null, two_sided))if(!hit || f<frac){hit=true; frac=f; face_index=i;}
          }
          if(hit)
          {
-            if(hit_frac)*hit_frac=frac;
-            if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+            if(hit_frac)*hit_frac=         frac;
+            if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
             if(hit_face)*hit_face=face_index;
          }
          mshr.indUnlock();
@@ -816,22 +815,22 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshLod &mesh, C Matrix *mesh_matrix, Fl
    Bool hit=false;
    Int  fi, face_index, part_index;
    Flt  f , frac;
-   Vec  hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+   Vec  Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
    REPA(mesh)
    {
     C MeshPart &part=mesh.parts[i];
       if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
       {
          Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
-         if(part.base  .is() ? Sweep(Point, Move, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
-            part.render.is() ? Sweep(Point, Move, part.render, null, &f, &hp, &fi                      , ts) : false)
-            if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=i;}
+         if(part.base  .is() ? Sweep(Point, Move, part.base  , null, &f, null, &fi, test_quads_as_2_tris, ts) :
+            part.render.is() ? Sweep(Point, Move, part.render, null, &f, null, &fi                      , ts) : false)
+            if(!hit || f<frac){hit=true; frac=f; face_index=fi; part_index=i;}
       }
    }
    if(hit)
    {
-      if(hit_frac)*hit_frac=frac;
-      if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+      if(hit_frac)*hit_frac=      frac;
+      if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
       if(hit_face)*hit_face=face_index;
       if(hit_part)*hit_part=part_index;
       return true;
@@ -843,22 +842,22 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshLod &mesh, C Matrix *m
    Bool hit=false;
    Int  fi, face_index, part_index;
    Flt  f , frac;
-   Vec  hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+   Vec  LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
    REPA(mesh)
    {
     C MeshPart &part=mesh.parts[i];
       if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
       {
          Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
-         if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
-            part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, &hp, &fi                      , ts) : false)
-            if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=i;}
+         if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, null, &fi, test_quads_as_2_tris, ts) :
+            part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, null, &fi                      , ts) : false)
+            if(!hit || f<frac){hit=true; frac=f; face_index=fi; part_index=i;}
       }
    }
    if(hit)
    {
-      if(hit_frac)*hit_frac=frac;
-      if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+      if(hit_frac)*hit_frac=         frac;
+      if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
       if(hit_face)*hit_face=face_index;
       if(hit_part)*hit_part=part_index;
       return true;
@@ -914,7 +913,7 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshGroup &mshg, C Matrix *mesh_matrix, 
 {
    Int fi, face_index, part_index, mesh_index;
    Flt f , frac;
-   Vec hp, hitp, Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
+   Vec Point=point, Move=move; if(mesh_matrix){Point/=*mesh_matrix; Move/=mesh_matrix->orn();}
 
    if(SweepPointBox(Point, Move, mshg.ext))
    {
@@ -928,16 +927,16 @@ Bool Sweep(C Vec &point, C Vec &move, C MeshGroup &mshg, C Matrix *mesh_matrix, 
             if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
             {
                Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
-               if(part.base  .is() ? Sweep(Point, Move, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
-                  part.render.is() ? Sweep(Point, Move, part.render, null, &f, &hp, &fi                      , ts) : false)
-                  if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=j; mesh_index=i;}
+               if(part.base  .is() ? Sweep(Point, Move, part.base  , null, &f, null, &fi, test_quads_as_2_tris, ts) :
+                  part.render.is() ? Sweep(Point, Move, part.render, null, &f, null, &fi                      , ts) : false)
+                  if(!hit || f<frac){hit=true; frac=f; face_index=fi; part_index=j; mesh_index=i;}
             }
          }
       }
       if(hit)
       {
          if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =(mesh_matrix ? point+frac*move : hitp);
+         if(hit_pos )*hit_pos =point+frac*move; // it's faster to just recalculate it once instead of calculating and storing inside the loop
          if(hit_face)*hit_face=face_index;
          if(hit_part)*hit_part=part_index;
          if(hit_mesh)*hit_mesh=mesh_index;
@@ -950,7 +949,7 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshGroup &mshg, C Matrix 
 {
    Int fi, face_index, part_index, mesh_index;
    Flt f , frac;
-   Vec hp, hitp, LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
+   Vec LinePos=line_pos, LineDir=line_dir; if(mesh_matrix){LinePos/=*mesh_matrix; LineDir/=mesh_matrix->orn();}
 
    if(CutsLineBox(LinePos, LineDir, mshg.ext))
    {
@@ -964,16 +963,16 @@ Bool CutsLineMesh(C Vec &line_pos, C Vec &line_dir, C MeshGroup &mshg, C Matrix 
             if(!(only_visible && (part.part_flag&MSHP_HIDDEN)))
             {
                Bool ts=((two_sided<0) ? (part.material() ? !part.material()->cull : false) : (two_sided!=0));
-               if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, &hp, &fi, test_quads_as_2_tris, ts) :
-                  part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, &hp, &fi                      , ts) : false)
-                  if(!hit || f<frac){hit=true; frac=f; hitp=hp; face_index=fi; part_index=j; mesh_index=i;}
+               if(part.base  .is() ? CutsLineMesh(LinePos, LineDir, part.base  , null, &f, null, &fi, test_quads_as_2_tris, ts) :
+                  part.render.is() ? CutsLineMesh(LinePos, LineDir, part.render, null, &f, null, &fi                      , ts) : false)
+                  if(!hit || f<frac){hit=true; frac=f; face_index=fi; part_index=j; mesh_index=i;}
             }
          }
       }
       if(hit)
       {
          if(hit_frac)*hit_frac=frac;
-         if(hit_pos )*hit_pos =(mesh_matrix ? line_pos+frac*line_dir : hitp);
+         if(hit_pos )*hit_pos =line_pos+frac*line_dir; // it's faster to just recalculate it once instead of calculating and storing inside the loop
          if(hit_face)*hit_face=face_index;
          if(hit_part)*hit_part=part_index;
          if(hit_mesh)*hit_mesh=mesh_index;
