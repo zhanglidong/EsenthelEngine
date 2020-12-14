@@ -49,6 +49,23 @@ class ObjView : Viewport4Region
    static cchar8 *skin_mode_desc[]
 ;
 
+   /******************************************************************************/
+   enum VFS_MODE
+   {
+      VFS_SINGLE,
+      VFS_NRM   ,
+      VFS_TEX0  ,
+      VFS_ALL   ,
+      VFS_TEX1  ,
+      VFS_TEX2  ,
+      VFS_TEX3  ,
+   };
+   static cchar8 *vfs_modes[]
+;
+   static Str vfs_desc[]
+;
+   /******************************************************************************/
+
    class BackMesh
    {
       MeshPtr mesh;
@@ -307,6 +324,9 @@ public:
    static void MeshVFS1         (ObjView &editor);     
    static void MeshVFS2         (ObjView &editor);     
    static void MeshVFS3         (ObjView &editor);     
+   static void MeshVFS4         (ObjView &editor);     
+   static void MeshVFS5         (ObjView &editor);     
+   static void MeshVFS6         (ObjView &editor);     
    static void ShowVtxs         (ObjView &editor);
    static void ShowVtxsF        (ObjView &editor);
    static void ShowVtxsN        (ObjView &editor);

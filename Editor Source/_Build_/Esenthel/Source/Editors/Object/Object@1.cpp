@@ -46,6 +46,26 @@ ObjView ObjEdit;
       "Select target bone\nKeyboard Shortcut: Shift+F2",
       "Apply skin changes\nUse left/right mouse button on mesh vertexes to decrease/increase blend weight for currently selected bone.\nOptionally hold Alt to make instant changes.\n\nKeyboard Shortcut: Shift+F3",
    };
+   cchar8 *ObjView::vfs_modes[]=
+   {
+      "Single",
+      "Normal",
+      "UV"    ,
+      "All"   ,
+      "UV1"   ,
+    //"UV2"   ,
+    //"UV3"   ,
+   };
+   Str ObjView::vfs_desc[]=
+   {
+      S+"This mode selects only single face/vertexes\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+1",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same normal vectors\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+2",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+3",
+      S+"This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+4",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #1\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+5",
+    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #2\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+6",
+    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #3\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+7",
+   };
    cchar8 *ObjView::slot_desc[]=
    {
       "+1",
@@ -275,7 +295,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    Circle   ObjView::vtxSelCircle()C {return Circle(vtx_sel_r, Ms.pos());}
    bool ObjView::showVtxSelCircle()
    {
-      return editMeshParts() && !transMesh() && (lit_vtx>=0 || sel_vtx.elms()) && (mesh_parts.list.selMode()==LSM_INCLUDE || mesh_parts.list.selMode()==LSM_EXCLUDE) && vtx_face_sel_mode()==0 && v4.getView(Gui.ms())!=null;
+      return editMeshParts() && !transMesh() && (lit_vtx>=0 || sel_vtx.elms()) && (mesh_parts.list.selMode()==LSM_INCLUDE || mesh_parts.list.selMode()==LSM_EXCLUDE) && vtx_face_sel_mode()==VFS_SINGLE && v4.getView(Gui.ms())!=null;
    }
    bool ObjView::showChangeSkin()C {return mode()==SKIN && skin_tabs()==SKIN_CHANGE_SKIN;}
    bool ObjView::showChangeSkinShape()  {return showChangeSkin() && v4.getView(Gui.ms())!=null;}
@@ -834,6 +854,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshVFS1(ObjView &editor) {editor.vtx_face_sel_mode.toggle(1);}
    void ObjView::MeshVFS2(ObjView &editor) {editor.vtx_face_sel_mode.toggle(2);}
    void ObjView::MeshVFS3(ObjView &editor) {editor.vtx_face_sel_mode.toggle(3);}
+   void ObjView::MeshVFS4(ObjView &editor) {editor.vtx_face_sel_mode.toggle(4);}
+   void ObjView::MeshVFS5(ObjView &editor) {editor.vtx_face_sel_mode.toggle(5);}
+   void ObjView::MeshVFS6(ObjView &editor) {editor.vtx_face_sel_mode.toggle(6);}
    void ObjView::ShowVtxs(ObjView &editor) {editor.vtxs        .push();}
    void ObjView::ShowVtxsF(ObjView &editor) {editor.vtxs_front  .push();}
    void ObjView::ShowVtxsN(ObjView &editor) {editor.vtxs_normals.push();}
@@ -1065,9 +1088,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             MESH_FLAG flag=MESH_NONE;
             switch(vtx_dup_mode=vtx_face_sel_mode())
             {
-               case 1: flag=VTX_NRM  ; break; // must share the same normal
-               case 2: flag=VTX_TEX0 ; break; // must share the same UV
-               case 3: flag=MESH_NONE; break; // no requirements
+               case VFS_NRM : flag=VTX_NRM  ; break; // must share the same normal
+               case VFS_TEX0: flag=VTX_TEX0 ; break; // must share the same UV
+               case VFS_TEX1: flag=VTX_TEX1 ; break; // must share the same UV1
+               case VFS_TEX2: flag=VTX_TEX2 ; break; // must share the same UV2
+               case VFS_TEX3: flag=VTX_TEX3 ; break; // must share the same UV3
+               case VFS_ALL : flag=MESH_NONE; break; // ALL = no requirements
             }
             p->base.setVtxDup(flag, vtxDupPosEps(), 0.99f);
          }
@@ -1077,12 +1103,76 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::getVtxNeighbors(MemPtr<int> vtxs, int vtx, int part)
    {
       vtxs.clear();
-      if(vtx_face_sel_mode()==0){if(vtx>=0)vtxs.add(vtx);}else if(MeshPart *p=validateDup(part))p->base.getVtxNeighbors(vtx, vtxs);
+      if(Kb.b(KB_Z) && vtx_face_sel_mode()>=VFS_TEX0) // select from entire mesh (not just neighbors)
+      {
+         if(C MeshPart *p=getPart(part))
+         {
+          C MeshBase &base=p->base; if(InRange(vtx, base.vtx))switch(vtx_face_sel_mode())
+            {
+               case VFS_TEX0:
+               case VFS_TEX1:
+               case VFS_TEX2:
+               case VFS_TEX3:
+                  if(C Vec2 *tex=(vtx_face_sel_mode()==VFS_TEX0) ? base.vtx.tex0() : (vtx_face_sel_mode()==VFS_TEX1) ? base.vtx.tex1() : (vtx_face_sel_mode()==VFS_TEX2) ? base.vtx.tex2() : base.vtx.tex3())
+               {
+                C Vec2 &t=tex[vtx]; FREPA(base.vtx)if(Equal(t, tex[i]))vtxs.add(i);
+               }break;
+               case VFS_ALL: vtxs.setNum(base.vtxs()); REPAO(vtxs)=i; break;
+            }
+         }
+      }else
+      if(vtx_face_sel_mode()==VFS_SINGLE){if(vtx>=0)vtxs.add(vtx);}else if(C MeshPart *p=validateDup(part))p->base.getVtxNeighbors(vtx, vtxs);
    }
    void ObjView::getFaceNeighbors(MemPtr<int> faces, int face, int part)
    {
       faces.clear();
-      if(vtx_face_sel_mode()==0){if(face!=-1)faces.add(face);}else if(MeshPart *p=validateDup(part))p->base.getFaceNeighbors(face, faces);
+      if(Kb.b(KB_Z) && vtx_face_sel_mode()>=VFS_TEX0) // select from entire mesh (not just neighbors)
+      {
+         if(C MeshPart *p=getPart(part))
+         {
+          C MeshBase &base=p->base; if((face&SIGN_BIT) ? InRange(face^SIGN_BIT, base.quad) : InRange(face, base.tri))switch(vtx_face_sel_mode())
+            {
+               case VFS_TEX0:
+               case VFS_TEX1:
+               case VFS_TEX2:
+               case VFS_TEX3:
+                  if(C Vec2 *tex=(vtx_face_sel_mode()==VFS_TEX0) ? base.vtx.tex0() : (vtx_face_sel_mode()==VFS_TEX1) ? base.vtx.tex1() : (vtx_face_sel_mode()==VFS_TEX2) ? base.vtx.tex2() : base.vtx.tex3())
+               {
+                C int *ind; int inds; // vtx indexes for selected face
+                  if(face&SIGN_BIT){ind=base.quad.ind(face^SIGN_BIT).c; inds=4;}
+                  else             {ind=base.tri .ind(face         ).c; inds=3;}
+                  if(ind)
+                  {
+                     Vec2 sel_tex[4]; int sel_texs=0; FREP(inds) // list of all unique texture coordinates in selected face
+                     {
+                      C Vec2 &face_vtx_tex=tex[ind[i]]; // face i-th vertex value
+                        REP(sel_texs)if(sel_tex[i]==face_vtx_tex)goto has; // check if has already
+                        sel_tex[sel_texs++]=face_vtx_tex; // not found, so add it
+                     has:;
+                     }
+                     FREPAD(t, base.tri) // iterate all triangles in mesh
+                     {
+                      C VecI &ind=base.tri.ind(t); REPAD(v, ind)
+                        {
+                         C Vec2 &vtx_tex=tex[ind.c[v]]; REPD(s, sel_texs)if(Equal(vtx_tex, sel_tex[s])){faces.add(t); goto added_tri;} // if vertex value is listed in desired selection then add this face
+                        }
+                     added_tri:;
+                     }
+                     FREPAD(q, base.quad) // iterate all quads in mesh
+                     {
+                      C VecI4 &ind=base.quad.ind(q); REPAD(v, ind)
+                        {
+                         C Vec2 &vtx_tex=tex[ind.c[v]]; REPD(s, sel_texs)if(Equal(vtx_tex, sel_tex[s])){faces.add(q^SIGN_BIT); goto added_quad;} // if vertex value is listed in desired selection then add this face
+                        }
+                     added_quad:;
+                     }
+                  }
+               }break;
+               case VFS_ALL: faces.setNum(base.faces()); FREPA(base.tri)faces[i]=i; FREPA(base.quad)faces[base.tris()+i]=i^SIGN_BIT; break;
+            }
+         }
+      }else
+      if(vtx_face_sel_mode()==VFS_SINGLE){if(face!=-1)faces.add(face);}else if(MeshPart *p=validateDup(part))p->base.getFaceNeighbors(face, faces);
    }
    void ObjView::getSelectedVtxs(MemPtr<VecI2> vtxs, bool from_vtxs, bool from_faces)
    {
@@ -1172,7 +1262,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       Memt<int>  vtxs; getVtxNeighbors ( vtxs, lit_vtx , lit_vf_part);
       Memt<int> faces; getFaceNeighbors(faces, lit_face, lit_vf_part);
-      bool      same_pos=(vtx_face_sel_mode()==0);
+      bool      same_pos=(vtx_face_sel_mode()==VFS_SINGLE);
       if(    mesh_parts.list.selMode()==LSM_SET)selVFClear();
       switch(mesh_parts.list.selMode())
       {
@@ -1338,23 +1428,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       mode.tab(MESH)+=trans_mesh.create(true); trans_mesh.move(trans_tabs.rect().down()-Vec2(0, 0.01f)-trans_mesh.rect().up());
 
       // keep to the left because LOD tabs may be visible
-      cchar8 *vfs_modes[]=
-      {
-         "Single",
-         "Normal",
-         "UV",
-         "All",
-      };
-      Str vfs_desc[]=
-      {
-         S+"This mode selects only single face/vertexes\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+1",
-         S+"This mode selects a group of face/vertexes that are connected to each other and have the same normal vectors\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+2",
-         S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+3",
-         S+"This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+4",
-      };
       mode.tab(MESH)+=vtx_face_sel_text.create(Rect(mesh_undo.rect().ld()-Vec2(0, 0.01f+ts.size.y/2)), "Vertex/Face Selection:", &ts).visible(mesh_parts.edit_selected());
-      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.40f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
-      REPA(vfs_desc)vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
+      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.47f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
+      REP(Min(Elms(vfs_desc), Elms(vfs_modes)))vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
 
       {
          Node<MenuElm> n;
@@ -1396,6 +1472,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("VFS1"                          , MeshVFS1         , T).kbsc(KbSc(KB_2, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
          n.New().create("VFS2"                          , MeshVFS2         , T).kbsc(KbSc(KB_3, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
          n.New().create("VFS3"                          , MeshVFS3         , T).kbsc(KbSc(KB_4, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS4"                          , MeshVFS4         , T).kbsc(KbSc(KB_5, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS5"                          , MeshVFS5         , T).kbsc(KbSc(KB_6, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS6"                          , MeshVFS6         , T).kbsc(KbSc(KB_7, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
          n.New().create("MeshAO Preview"                , MeshAOClass::PreviewToggle, MeshAO).kbsc(KbSc(KB_P, KBSC_ALT)).flag(MENU_HIDDEN);
          n++;
          {

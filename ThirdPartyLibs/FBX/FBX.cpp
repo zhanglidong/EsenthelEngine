@@ -194,7 +194,7 @@ struct FBX
                FbxSystemUnit scene_system_unit=global_settings->GetSystemUnit(),
                            desired_system_unit=FbxSystemUnit::m; // meters
                if(scene_system_unit!=desired_system_unit)
-               #if 1
+               #if 0 // this is broken
                   desired_system_unit.ConvertScene(scene);
                #else
                   scale=scene_system_unit.GetScaleFactor()/desired_system_unit.GetScaleFactor();
@@ -929,10 +929,10 @@ struct FBX
                               REP(poly_vtx.elms()-2)
                               {
                                  VecI &ind=base.tri.ind(tris); ind.set(poly_vtx[i], poly_vtx[i+1], poly_vtx[i+2]);
-                                 Tri   tri(base.vtx.pos(ind.x), base.vtx.pos(ind.y), base.vtx.pos(ind.z));
-                                 if(Dot(normal, tri.n)>0) // if normal of this triangle is correct
+                                 Tri   tri(base.vtx.pos(ind.x), base.vtx.pos(ind.y), base.vtx.pos(ind.z)); Vec tri_nu=tri.getNormalU(); // can use 'getNormalU' because here we just need the sign
+                                 if(Dot(normal, tri_nu)>0) // if normal of this triangle is correct
                                  {
-                                    Vec cross[3]={Cross(tri.n, tri.p[0]-tri.p[1]), Cross(tri.n, tri.p[1]-tri.p[2]), Cross(tri.n, tri.p[2]-tri.p[0])};
+                                    Vec cross[3]={Cross(tri_nu, tri.p[0]-tri.p[1]), Cross(tri_nu, tri.p[1]-tri.p[2]), Cross(tri_nu, tri.p[2]-tri.p[0])};
                                     REPAD(t, poly_vtx)if(t<i || t>i+2)if(Cuts(base.vtx.pos(poly_vtx[t]), tri, cross))goto cuts; // if any other vertex intersects with this triangle, then continue
 
                                     if(reverse)ind.reverse();
