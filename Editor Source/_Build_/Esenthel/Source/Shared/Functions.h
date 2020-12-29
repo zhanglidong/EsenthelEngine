@@ -170,7 +170,7 @@ bool SizeDependentTransform(C TextParam &p);
 bool ForcesMono(C Str &file);
 Str BumpFromColTransform(C Str &color_map, int blur);
 bool ExtractResize(MemPtr<FileParams> files, TextParam &resize);
-void AdjustImage(Image &image, bool alpha, bool high_prec);
+void AdjustImage(Image &image, bool rgb, bool alpha, bool high_prec);
 void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box);
 void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box);
 void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box, bool photo=false);

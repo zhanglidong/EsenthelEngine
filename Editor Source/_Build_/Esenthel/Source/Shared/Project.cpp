@@ -708,7 +708,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                      case APPLY_SCALE: mono=(image.typeChannels()<=1 || image.monochromatic()); break;
                   }
 
-                  AdjustImage(image, layer.typeInfo().a>0, layer.highPrecision());
+                  AdjustImage(image, false, layer.typeInfo().a>0, layer.highPrecision());
                   REPD(y, layer.h())
                   REPD(x, layer.w())
                   {

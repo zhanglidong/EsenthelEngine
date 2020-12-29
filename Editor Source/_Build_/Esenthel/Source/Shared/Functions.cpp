@@ -983,9 +983,10 @@ bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
    return false;
 }
 /******************************************************************************/
-void AdjustImage(Image &image, bool alpha, bool high_prec)
+void AdjustImage(Image &image, bool rgb, bool alpha, bool high_prec)
 {
    IMAGE_TYPE   type=image.type();
+   if(rgb      )type=ImageTypeIncludeRGB  (type);
    if(alpha    )type=ImageTypeIncludeAlpha(type);
    if(high_prec)type=ImageTypeHighPrec    (type);
    image.copyTry(image, -1, -1, -1, type);
@@ -1207,7 +1208,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       param.value.clip(at_pos);
    }
 
-   if(HighPrecTransform(param.name))AdjustImage(image, false, true); // if transform might generate high precision values then make sure we can store them
+   if(HighPrecTransform(param.name))AdjustImage(image, false, false, true); // if transform might generate high precision values then make sure we can store them
 
    if(param.name=="crop")
    {
@@ -1370,7 +1371,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(c.elms())
       {
          case 2: {Vec2 ma=LerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
-         case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+         case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
       }
    }else
    if(param.name=="iLerpRGB")
@@ -1379,19 +1380,29 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(c.elms())
       {
          case 2: {Vec2 ma=ILerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
-         case 6: {Vec2 ma[3]={ILerpToMad(TextFlt(c[0]), TextFlt(c[3])), ILerpToMad(TextFlt(c[1]), TextFlt(c[4])), ILerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+         case 6: {Vec2 ma[3]={ILerpToMad(TextFlt(c[0]), TextFlt(c[3])), ILerpToMad(TextFlt(c[1]), TextFlt(c[4])), ILerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
       }
    }else
-   if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){AdjustImage(image, true, false); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
-   if(param.name=="mulRGB")image.mulAdd(Vec4(TextVecEx(param.value), 1), 0, &box);else
-   if(param.name=="addRGB")image.mulAdd(1, Vec4(TextVecEx(param.value), 0), &box);else
+   if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){AdjustImage(image, false, true, false); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
+   if(param.name=="mulRGB")
+   {
+      Vec4 mul(TextVecEx(param.value), 1);
+      if(mul.xyz.anyDifferent())AdjustImage(image, true, false, false);
+      image.mulAdd(mul, Vec4Zero, &box);
+   }else
+   if(param.name=="addRGB")
+   {
+      Vec4 add(TextVecEx(param.value), 0);
+      if(add.xyz.anyDifferent())AdjustImage(image, true, false, false);
+      image.mulAdd(1, add, &box);
+   }else
    if(param.name=="mulAddRGB")
    {
       Memc<Str> c; Split(c, param.value, ',');
       switch(c.elms())
       {
-         case 2: image.mulAdd(Vec4(Vec(TextFlt(c[0])), 1), Vec4(Vec(TextFlt(c[1])), 0), &box); break;
-         case 6: image.mulAdd(Vec4(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2]), 1), Vec4(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5]), 0), &box); break;
+         case 2:                                         image.mulAdd(Vec4(Vec(TextFlt(c[0])), 1), Vec4(Vec(TextFlt(c[1])), 0), &box); break;
+         case 6: AdjustImage(image, true, false, false); image.mulAdd(Vec4(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2]), 1), Vec4(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5]), 0), &box); break;
       }
    }else
    if(param.name=="addMulRGB")
@@ -1400,14 +1411,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       switch(c.elms())
       {
          // x=x*m+a, x=(x+A)*M
-         case 2: {flt add=TextFlt(c[0]), mul=TextFlt(c[1]);                                                               image.mulAdd(Vec4(Vec(mul), 1), Vec4(Vec(add*mul), 0), &box);} break;
-         case 6: {Vec add(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])), mul(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); image.mulAdd(Vec4(    mul , 1), Vec4(    add*mul , 0), &box);} break;
+         case 2: {flt add=TextFlt(c[0]), mul=TextFlt(c[1]);                                                                                                       image.mulAdd(Vec4(Vec(mul), 1), Vec4(Vec(add*mul), 0), &box);} break;
+         case 6: {Vec add(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])), mul(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); AdjustImage(image, true, false, false); image.mulAdd(Vec4(    mul , 1), Vec4(    add*mul , 0), &box);} break;
       }
    }else
    if(param.name=="mulRGBS")
    {
       Vec mul=TextVecEx(param.value);
-      if(mul!=VecOne)
+      if( mul!=VecOne)
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++)
@@ -1444,9 +1455,12 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       Vec g=TextVecEx(param.value);
       if(g!=VecOne)
-      for(int z=box.min.z; z<box.max.z; z++)
-      for(int y=box.min.y; y<box.max.y; y++)
-      for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.xyz.set(PowMax(c.x, g.x), PowMax(c.y, g.y), PowMax(c.z, g.z)); image.color3DF(x, y, z, c);}
+      {
+         if(g.anyDifferent())AdjustImage(image, true, false, false);
+         for(int z=box.min.z; z<box.max.z; z++)
+         for(int y=box.min.y; y<box.max.y; y++)
+         for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); c.xyz.set(PowMax(c.x, g.x), PowMax(c.y, g.y), PowMax(c.z, g.z)); image.color3DF(x, y, z, c);}
+      }
    }else
    if(param.name=="gammaLum")
    {
@@ -1472,6 +1486,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       Vec bright=TextVecEx(param.value), mul; if(bright.any())
       {
+         if(bright.anyDifferent())AdjustImage(image, true, false, false);
          flt (*R)(flt);
          flt (*G)(flt);
          flt (*B)(flt);
@@ -1518,6 +1533,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec4 avg; if(image.stats(null, null, &avg, null, null, null, null, &box))
          {
+            if(contrast.anyDifferent())AdjustImage(image, true, false, false);
             // col=(col-avg)*contrast+avg
             // col=col*contrast+avg*(1-contrast)
             image.mulAdd(Vec4(contrast, 1), Vec4(avg.xyz*(Vec(1)-contrast), 0), &box);
@@ -1530,6 +1546,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec avg; if(image.stats(null, null, null, null, null, &avg, null, &box))
          {
+            if(contrast.anyDifferent())AdjustImage(image, true, false, false);
             image.mulAdd(Vec4(contrast, 1), Vec4(avg*(Vec(1)-contrast), 0), &box);
          }
       }
@@ -1988,6 +2005,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    if(param.name=="min")
    {
       Vec min=TextVecEx(param.value);
+      if( min.anyDifferent())AdjustImage(image, true, false, false);
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++)
@@ -2000,6 +2018,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    if(param.name=="max")
    {
       Vec max=TextVecEx(param.value);
+      if( max.anyDifferent())AdjustImage(image, true, false, false);
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++)

@@ -751,6 +751,8 @@ struct ImageCompare
 /******************************************************************************/
 IMAGE_TYPE BytesToImageType(Int byte_pp); // get IMAGE_TYPE needed to store 'byte_pp' amount of bytes per pixel, which is 1->IMAGE_I8, 2->IMAGE_I16, 3->IMAGE_I24, 4->IMAGE_I32, other->IMAGE_NONE
 
+IMAGE_TYPE ImageTypeIncludeRGB(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has RGB channels
+
 IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has    alpha channel
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has no alpha channel
 

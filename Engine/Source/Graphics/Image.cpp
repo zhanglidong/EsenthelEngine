@@ -198,6 +198,53 @@ Bool IsSByte(IMAGE_TYPE type)
          return true;
    }
 }
+IMAGE_TYPE ImageTypeIncludeRGB(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return type;
+
+      case IMAGE_R8  :
+      case IMAGE_R8G8:
+         return IMAGE_R8G8B8;
+
+      case IMAGE_BC4:
+      case IMAGE_BC5:
+         return IMAGE_BC1;
+
+      case IMAGE_ETC2_R :
+      case IMAGE_ETC2_RG:
+         return IMAGE_ETC2_RGB;
+
+      case IMAGE_R8_SIGN     :
+      case IMAGE_R8G8_SIGN   :
+      case IMAGE_BC4_SIGN    :
+      case IMAGE_BC5_SIGN    :
+      case IMAGE_ETC2_R_SIGN :
+      case IMAGE_ETC2_RG_SIGN:
+         return IMAGE_R8G8B8A8_SIGN; // since there's no IMAGE_R8G8B8_SIGN
+
+      case IMAGE_A8       : return IMAGE_R8G8B8A8;
+      case IMAGE_L8       : return IMAGE_R8G8B8;
+      case IMAGE_L8_SRGB  : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_L8A8     : return IMAGE_R8G8B8A8;
+      case IMAGE_L8A8_SRGB: return IMAGE_R8G8B8A8_SRGB;
+
+      case IMAGE_I8 : return IMAGE_R8G8B8;
+      case IMAGE_I16:
+      case IMAGE_I24:
+      case IMAGE_I32:
+         return IMAGE_F32_3;
+
+      case IMAGE_F16  :
+      case IMAGE_F16_2:
+         return IMAGE_F16_3;
+
+      case IMAGE_F32  :
+      case IMAGE_F32_2:
+         return IMAGE_F32_3;
+   }
+}
 IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
 {
    switch(type)
