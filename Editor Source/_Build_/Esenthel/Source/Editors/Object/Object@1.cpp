@@ -2108,33 +2108,51 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::setMaterial(int part_i, C MaterialPtr &material)
    {
-      bool set_other_lods=!Kb.ctrlCmd();
       MeshLod &lod=getLod();
       if(InRange(part_i, lod))
       {
+         bool set_all_lods =!Kb.ctrlCmd(), // set all LODs
+              set_all_parts= Kb.shift  (); // set all parts (if they match selected part material)
          mesh_undos.set("mtrl");
-         int variation=visibleVariation();
-
-         // set the material of other LODs if they're the same (have same number of parts with same materials and names)
-         if(set_other_lods)REPD(l, mesh.lods())
-         {
-            MeshLod &lod2=mesh.lod(l); if(&lod2!=&lod && lod.parts.elms()==lod2.parts.elms())
-            {
-               REPA(lod2)
-               {
-                C MeshPart &p=lod.parts[i], &p2=lod2.parts[i];
-                  if(p.variation(variation)!=p2.variation(variation) || !Equal(p.name, p2.name))goto different;
-               }
-               MeshPart &part=lod2.parts[part_i];
-               part.variations(mesh.variations()) // first make sure we have room for all variations
-                   .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
-            }
-            different:;
-         }
-
          MeshPart &part=lod.parts[part_i];
-         part.variations(mesh.variations()) // first make sure we have room for all variations
-             .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
+         int variation=visibleVariation();
+         if(set_all_parts)
+         {
+            MaterialPtr old=part.variation(variation);
+            REPD(l, mesh.lods())
+            {
+               MeshLod &lod1=mesh.lod(l); if(set_all_lods || &lod1==&lod)REPA(lod1)
+               {
+                  MeshPart &part1=lod1.parts[i];
+                  if(part1.variation(variation)==old)
+                  {
+                     part1.variations(mesh.variations()) // first make sure we have room for all variations
+                          .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering                  
+                  }
+               }
+            }
+         }else
+         {
+            // set the material of other LODs if they're the same (have same number of parts with same materials and names)
+            if(set_all_lods)REPD(l, mesh.lods())
+            {
+               MeshLod &lod1=mesh.lod(l); if(&lod1!=&lod && lod.parts.elms()==lod1.parts.elms())
+               {
+                  REPA(lod1)
+                  {
+                   C MeshPart &part=lod.parts[i], &part1=lod1.parts[i];
+                     if(part.variation(variation)!=part1.variation(variation) || !Equal(part.name, part1.name))goto different;
+                  }
+                  MeshPart &part1=lod1.parts[part_i];
+                  part1.variations(mesh.variations()) // first make sure we have room for all variations
+                       .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
+               }
+               different:;
+            }
+
+            part.variations(mesh.variations()) // first make sure we have room for all variations
+                .variation (variation, material); //.setAutoTanBin(); not needed because this mesh always has tan/bin for rendering
+         }
          setChangedMesh(true, false);
          Proj.refresh(false, false); // refresh in case the mesh had invalid refs and now it won't
       }
