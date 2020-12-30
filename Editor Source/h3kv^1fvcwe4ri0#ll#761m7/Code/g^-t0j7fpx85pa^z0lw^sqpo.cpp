@@ -798,11 +798,14 @@ class Project
                      case APPLY_SCALE: mono=(image.typeChannels()<=1 || image.monochromatic()); break;
                   }
 
-                  AdjustImage(image, false, layer.typeInfo().a>0, layer.highPrecision());
+                C ImageTypeInfo &layer_ti=layer.typeInfo();
+                  bool expand_r_gb=(layer_ti.r && !layer_ti.g && !layer_ti.b); // if have R but no GB then expand R into GB
+                  AdjustImage(image, layer_ti.g>0 || layer_ti.b>0, layer_ti.a>0, layer.highPrecision());
                   REPD(y, layer.h())
                   REPD(x, layer.w())
                   {
                      Vec4 l=layer.colorF(x, y);
+                     if(expand_r_gb)l.z=l.y=l.x;
                      if(simple_set)
                      {
                         image.colorF(x+pos.x, y+pos.y, l);

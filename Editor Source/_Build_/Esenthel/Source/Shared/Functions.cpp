@@ -985,11 +985,27 @@ bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
 /******************************************************************************/
 void AdjustImage(Image &image, bool rgb, bool alpha, bool high_prec)
 {
-   IMAGE_TYPE   type=image.type();
+   IMAGE_TYPE       type=image.type();
+ C ImageTypeInfo &old_ti=ImageTI[type];
    if(rgb      )type=ImageTypeIncludeRGB  (type);
    if(alpha    )type=ImageTypeIncludeAlpha(type);
    if(high_prec)type=ImageTypeHighPrec    (type);
-   image.copyTry(image, -1, -1, -1, type);
+   if(type!=image.type())
+   {
+      image.copyTry(image, -1, -1, -1, type);
+    C ImageTypeInfo &new_ti=image.typeInfo();
+      if(old_ti.r && !old_ti.g && !old_ti.b && (new_ti.g || new_ti.b)) // expand single channel Red -> Green, Blue
+      {
+         REPD(z, image.d())
+         REPD(y, image.h())
+         REPD(x, image.w())
+         {
+            Vec4 c=image.color3DF(x, y, z);
+            c.z=c.y=c.x;
+            image.color3DF(x, y, z, c);
+         }
+      }
+   }
 }
 void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box)
 {
