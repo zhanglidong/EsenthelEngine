@@ -171,7 +171,6 @@ FileText& FileText::putChar(Char c)
 }
 FileText& FileText::putText(C Str &text)
 {
-   Char temp[65536/SIZE(Char)]; // use Char to force alignment
    switch(_code)
    {
       case ANSI: {Str8 t=text; _f.putN(t(), t.length());} break;
@@ -184,20 +183,20 @@ FileText& FileText::putText(C Str &text)
       #if 0 // slower
          FREPA(text)putChar(text[i]);
       #else // faster
-         Char8 *C  buf     =(Char8*)temp;
-         const Int buf_elms=SIZE(temp)/SIZE(Char8)-2; // use size -2 because we may be writing 3 characters in one step
-         for(Int i=0, buf_pos=0; ; )
+               Char8  temp[65536];
+         const Int    temp_elms=Elms(temp)-2; // use size -2 because we may be writing 3 characters in one step
+         for(Int i=0, temp_pos=0; ; )
          {
             Bool end=(i>=text.length());
-            if(  end || !InRange(buf_pos, buf_elms)) // if finished, or there's no more room in the buffer
+            if(  end || !InRange(temp_pos, temp_elms)) // if finished, or there's no more room in the buffer
             {
-               if(buf_pos){_f.putN(buf, buf_pos); buf_pos=0;} // flush
+               if(temp_pos){_f.putN(temp, temp_pos); temp_pos=0;} // flush
                if(end)break;
             }
             U16 c=text()[i++]; // () avoids range checks
-            if(c<=0x07F) buf[buf_pos++]=c;else
-            if(c<=0x7FF){buf[buf_pos++]=(0xC0 | (c>> 6)); buf[buf_pos++]=(0x80 | ( c    &0x3F));}else
-                        {buf[buf_pos++]=(0xE0 | (c>>12)); buf[buf_pos++]=(0x80 | ((c>>6)&0x3F)); buf[buf_pos++]=(0x80 | (c&0x3F));}
+            if(c<=0x07F) temp[temp_pos++]=c;else
+            if(c<=0x7FF){temp[temp_pos++]=(0xC0 | (c>> 6)); temp[temp_pos++]=(0x80 | ( c    &0x3F));}else
+                        {temp[temp_pos++]=(0xE0 | (c>>12)); temp[temp_pos++]=(0x80 | ((c>>6)&0x3F)); temp[temp_pos++]=(0x80 | (c&0x3F));}
          }
       #endif
       }break;
