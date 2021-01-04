@@ -1028,9 +1028,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          {
             if(Kb.shift()) // Unity (Metal Smoothness)
             {
-               if(tex.type==TEX_COLOR  )images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
-               if(tex.type==TEX_SMOOTH )images[0].params.New().set("channel"  , "a"  ); // get smooth from alpha channel (Unity style)
-               if(tex.type==TEX_REFLECT)images[0].params.New().set("metalToReflect"  ); // convert from metal map
+               if(tex.type==TEX_COLOR  ) images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
+               if(tex.type==TEX_SMOOTH ){images[0].params.New().set("channel"  , "a"  ); if(Kb.alt())images[0].params.New().set("inverseRGB");} // get smooth from alpha channel (Unity style), optionally treat it as roughness on Alt
+               if(tex.type==TEX_REFLECT) images[0].params.New().set("metalToReflect"  ); // convert from metal map
             }else
             if(Kb.alt()) // Unreal - RMA (Roughness Metal AO)
             {
