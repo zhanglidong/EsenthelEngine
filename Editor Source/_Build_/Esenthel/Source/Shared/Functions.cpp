@@ -2062,35 +2062,38 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       int channels=param.value.length();
       if( channels>=1 && channels<=4)
       {
-         int   chn[4]; REPAO(chn)=ChannelIndex(param.value[i]);
-         Image temp;
-         bool  srgb=image.sRGB();
-         if(image.highPrecision())
+         int chn[4]; REPAO(chn)=ChannelIndex(param.value[i]);
+         if(!(chn[0]==0 && chn[1]==1 && chn[2]==2 && (chn[3]==3 || chn[3]==-1 && !image.typeInfo().a))) // ignore identity RGBA and (RGB when image doesn't have alpha)
          {
-            temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_F32 : channels==2 ? IMAGE_F32_2 : channels==3 ? (srgb ? IMAGE_F32_3_SRGB : IMAGE_F32_3) : (srgb ? IMAGE_F32_4_SRGB : IMAGE_F32_4));
-            Vec4 d(0, 0, 0, 1);
-            REPD(z, image.d())
-            REPD(y, image.h())
-            REPD(x, image.w())
+            Image temp;
+            bool  srgb=image.sRGB();
+            if(image.highPrecision())
             {
-               Vec4 c=image.color3DF(x, y, z);
-               REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
-               temp.color3DF(x, y, z, d);
-            }
-         }else
-         {
-            temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_R8 : channels==2 ? IMAGE_R8G8 : channels==3 ? (srgb ? IMAGE_R8G8B8_SRGB : IMAGE_R8G8B8) : (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8));
-            Color d(0, 0, 0, 255);
-            REPD(z, image.d())
-            REPD(y, image.h())
-            REPD(x, image.w())
+               temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_F32 : channels==2 ? IMAGE_F32_2 : channels==3 ? (srgb ? IMAGE_F32_3_SRGB : IMAGE_F32_3) : (srgb ? IMAGE_F32_4_SRGB : IMAGE_F32_4));
+               Vec4 d(0, 0, 0, 1);
+               REPD(z, image.d())
+               REPD(y, image.h())
+               REPD(x, image.w())
+               {
+                  Vec4 c=image.color3DF(x, y, z);
+                  REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
+                  temp.color3DF(x, y, z, d);
+               }
+            }else
             {
-               Color c=image.color3D(x, y, z);
-               REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
-               temp.color3D(x, y, z, d);
+               temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_R8 : channels==2 ? IMAGE_R8G8 : channels==3 ? (srgb ? IMAGE_R8G8B8_SRGB : IMAGE_R8G8B8) : (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8));
+               Color d(0, 0, 0, 255);
+               REPD(z, image.d())
+               REPD(y, image.h())
+               REPD(x, image.w())
+               {
+                  Color c=image.color3D(x, y, z);
+                  REPA(d.c){int ch=chn[i]; if(InRange(ch, c.c))d.c[i]=c.c[ch];}
+                  temp.color3D(x, y, z, d);
+               }
             }
+            Swap(temp, image);
          }
-         Swap(temp, image);
       }
    }else
    if(param.name=="alphaFromBrightness" || param.name=="alphaFromLum" || param.name=="alphaFromLuminance")
