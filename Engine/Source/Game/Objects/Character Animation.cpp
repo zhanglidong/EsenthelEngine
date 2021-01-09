@@ -193,7 +193,7 @@ static Flt AnimTime(Chr &chr) // get global animation time for the character acc
 void Chr::animate()
 {
    // animation blend values
-   Flt b_stand   =           (1-anim.stand_crouch   )*(1-anim.stop_move ),
+   Flt b_stand   =           (1-anim.stand_crouch   )*(1-anim.stop_move )*(1-anim.b_turn_l)*(1-anim.b_turn_r),
        b_crc_stop=           (  anim.stand_crouch   )*(1-anim.stop_move ),
        b_crc_move=           (  anim.stand_crouch   )*(  anim.stop_move ),
        b_turn_l  =           (1-anim.stand_crouch   )*(1-anim.stop_move )*(  anim.b_turn_l),
@@ -252,8 +252,8 @@ void Chr::animate()
                   .animate(sac.fist_l   , time         , 1)
                   .animate(sac.stand    , time         , b_stand)
                   .animate(sac.crouch   , time         , b_crc_stop)
-                  .animate(sac.turn_l   , anim.t_turn_l, b_turn_l, true)
-                  .animate(sac.turn_r   , anim.t_turn_r, b_turn_r, true)
+                  .animate(sac.turn_l   , anim.t_turn_l, b_turn_l)
+                  .animate(sac.turn_r   , anim.t_turn_r, b_turn_r)
                   .animate(sac.walk     , anim.time    , b_walk_f)
                   .animate(sac.walk     ,-anim.time    , b_walk_b)
                   .animate(sac.run      , anim.time    , b_run_f)
@@ -266,8 +266,8 @@ void Chr::animate()
                   .animate(sac.strafe_wr, anim.time    , b_walk_r)
                   .animate(sac.strafe_l , anim.time    , b_run_l)
                   .animate(sac.strafe_r , anim.time    , b_run_r)
-                  .animate(sac.floating , time         , anim.fly, true);
-   if(dodging)skel.animate((dodging<0) ? sac.dodge_l : sac.dodge_r, 1-dodge_step, Sqrt(Sin(dodge_step*PI)), true);
+                  .animate(sac.floating , time         , anim.fly);
+   if(dodging)skel.animate((dodging<0) ? sac.dodge_l : sac.dodge_r, 1-dodge_step, Sqrt(Sin(dodge_step*PI)));
 }
 /******************************************************************************/
 void Chr::updateAnimation()
@@ -286,8 +286,8 @@ void Chr::updateAnimation()
       Flt time    =AnimTime(T);
       Vec pos_foot=skel.skeleton()->bones[sac.toe_l].pos;
       skel.clear  ();
-      skel.animate(sac.stand , time, 1                      ).updateMatrixParents(scale, sac.toe_l); foot_offset=            pos_foot*skel.bones[sac.toe_l].matrix();
-      skel.animate(sac.crouch, time, anim.stand_crouch, true).updateMatrixParents(scale, sac.toe_l); foot_offset=foot_offset-pos_foot*skel.bones[sac.toe_l].matrix(); foot_offset.y=0;
+      skel.animate(sac.stand , time, 1-anim.stand_crouch).updateMatrixParents(scale, sac.toe_l); foot_offset=            pos_foot*skel.bones[sac.toe_l].matrix();
+      skel.animate(sac.crouch, time,   anim.stand_crouch).updateMatrixParents(scale, sac.toe_l); foot_offset=foot_offset-pos_foot*skel.bones[sac.toe_l].matrix(); foot_offset.y=0;
    }
 
    // set animations

@@ -841,7 +841,10 @@ static void ShowElmName(C UID &id, C Rect &rect, C GuiPC &gpc, C VecI2 &range, B
    {
       TextStyleParams ts=CE.ts_small; ts.align=0; ts.color=Theme.colors[TOKEN_ELM_NAME];
       Rect_LU r(rect.lu()+gpc.offset, Max((name.length()+0.5f)*ts.colWidth(), (range.y-range.x+1)*CE.ts.colWidth()), CE.ts.lineHeight()); r+=Vec2(range.x*CE.ts.colWidth(), 0);
-      r.draw(valid ? Theme.colors[TOKEN_ELM_BACKGROUND] : Color(comment ? 70 : 148, 0, 0, Theme.colors[TOKEN_ELM_BACKGROUND].a));
+      Color c=(valid ? Theme.colors[TOKEN_ELM_BACKGROUND] : Color(148, 0, 0));
+      if(comment)c=Lerp(c, Theme.colors[TOKEN_NONE], 0.7f);
+      c.a=Theme.colors[TOKEN_ELM_BACKGROUND].a;
+      r.draw(c);
       D.text(ts, r.center(), name);
    }
 }
