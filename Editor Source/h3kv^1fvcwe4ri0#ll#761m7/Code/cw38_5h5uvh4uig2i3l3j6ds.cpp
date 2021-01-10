@@ -2573,6 +2573,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
              C SkelSlot &skel_slot=skel.slots[lit_slot];
                Str s=S+"Slot \""+skel_slot.name+"\", Bone Parent: "+(InRange(skel_slot.bone, skel.bones) ? S+'"'+skel.bones[skel_slot.bone].name+'"' : S+"none");
                if(skel_slot.bone!=skel_slot.bone1)s+=S+", Bone Parent1: "+(InRange(skel_slot.bone1, skel.bones) ? S+'"'+skel.bones[skel_slot.bone1].name+'"' : S+"none");
+               REPA(slot_meshes)if(slot_meshes[i].name==skel_slot.name){s+=S+", Scale: "+slot_meshes[i].scale; break;}
                a.add(s);
             }
          }
