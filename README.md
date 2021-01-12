@@ -42,8 +42,8 @@ include your organization's logo in the information, and share your application'
 (including trailers, teasers, cinematics and gameplay).
 
 TERMINATION
-If you violate any terms of this agreement, or you are rude to/insult/harass Esenthel Engine authors or their
-family, or you spread false information about the Engine or its authors, or you engage in any patent
+If you violate any terms of this agreement, or you are rude to/insult/harass Esenthel Engine authors or
+their family, or you spread false information about the Engine or its authors, or you engage in any patent
 litigation against Engine authors, then this License and access to Engine files will be terminated.
 
 NO WARRANTY
