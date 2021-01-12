@@ -16,8 +16,8 @@ To continue its development, Esenthel needs your support:
 COPYRIGHT
 Esenthel Engine created by Grzegorz Slazinski, all rights reserved.
 You can use it for free to create games and applications.
-This License is non-exclusive, non-transferable, worldwide and royalty-free - you don't have to share the income
-that you make from your games/apps made with Esenthel Engine.
+This License is non-exclusive, non-transferable, worldwide and royalty-free - you don't have to share the
+income that you make from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
 You can make changes to Esenthel Engine source code.
@@ -29,8 +29,8 @@ but it would be cool if you could.
 
 LIMITATIONS
 Esenthel Engine may NOT be used for - the purpose of/promoting/advertising/selling/assisting in/research/
-development/production/improvement of: terrorism, illegal drugs, smoking, stealing, piracy, gambling, extortion,
-fraud, spam, bullying, harming life (people and animals), polluting environment.
+development/production/improvement of: terrorism, illegal drugs, smoking, stealing, piracy, gambling,
+extortion, fraud, spam, bullying, harming life (people and animals), polluting environment.
 
 You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
@@ -43,8 +43,8 @@ include your organization's logo in the information, and share your application'
 
 TERMINATION
 If you violate any terms of this agreement, or you are rude to/insult/harass Esenthel Engine authors or their
-family, or you spread false information about the Engine or its authors, or you engage in any patent litigation
-against Engine authors, then this License and access to Engine files will be terminated.
+family, or you spread false information about the Engine or its authors, or you engage in any patent
+litigation against Engine authors, then this License and access to Engine files will be terminated.
 
 NO WARRANTY
 This License does not include support or warranty of any kind - This software is provided 'as-is',
