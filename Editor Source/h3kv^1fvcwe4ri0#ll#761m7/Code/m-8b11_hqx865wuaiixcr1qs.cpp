@@ -1170,6 +1170,13 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                   tc_channel[TC_AO   ]=2;
                   multi_channel=true;
                }else
+               if(Contains(name, "ORM", true, WHOLE_WORD_ALPHA))
+               {
+                  tc_channel[TC_AO   ]=0;
+                  tc_channel[TC_ROUGH]=1;
+                  tc_channel[TC_METAL]=2;
+                  multi_channel=true;
+               }else
                {
                   TexChannel tc[TC_NUM];
                   tc[0].set(TC_ROUGH ).find(name, "roughness").find(name, "rough").find(name, "R", true);

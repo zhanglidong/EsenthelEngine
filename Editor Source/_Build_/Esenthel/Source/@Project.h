@@ -191,6 +191,7 @@ class Project
       APPLY_SET_HUE,
       APPLY_SET_HUE_PHOTO,
       APPLY_SUB,
+      APPLY_SUB_RGB,
       APPLY_GAMMA,
       APPLY_BRIGHTNESS,
       APPLY_BRIGHTNESS_LUM,
