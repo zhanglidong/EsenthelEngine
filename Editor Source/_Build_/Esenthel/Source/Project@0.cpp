@@ -2239,13 +2239,20 @@ void DrawProject()
    void ProjectEx::mtrlCreateDetailTexture(EditMaterial &material)
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      Image color, smooth, bump, normal;
-      bool color_ok=loadImage( color, null, material.detail_color , true                                                  ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
-          smooth_ok=loadImage(smooth, null, material.detail_smooth, false, false, &color, null, null   , null, null , null), // load before 'bump'  , here         'smooth' 'bump' are not yet available
-            bump_ok=loadImage(  bump, null, material.detail_bump  , false, false, &color, null, &smooth, null, null , null), // load before 'normal', here                  'bump' is  not yet available
-          normal_ok=loadImage(normal, null, material.detail_normal, false, false, &color, null, &smooth, null, &bump, null);
+      TextParam color_resize, smooth_resize, bump_resize, normal_resize;
+      MtrlImages::ImageResize color, smooth, bump, normal;
+      bool color_ok=loadImages( color, & color_resize, material.detail_color , true                                                                                                   ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
+          smooth_ok=loadImages(smooth, &smooth_resize, material.detail_smooth, false, false, WHITE               , &color, &color_resize, null   , null          , null , null        ), // load before 'bump'  , here         'smooth' 'bump' are not yet available
+            bump_ok=loadImages(  bump, &  bump_resize, material.detail_bump  , false, false, GREY                , &color, &color_resize, &smooth, &smooth_resize, null , null        ), // load before 'normal', here                  'bump' is  not yet available
+          normal_ok=loadImages(normal, &normal_resize, material.detail_normal, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize);
 
-      if(!bump_ok && !material.detail_normal.is())normal_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
+      // process resize
+      if( color_ok) color.setFrom( color_resize);
+      if(smooth_ok)smooth.setFrom(smooth_resize);
+      if(  bump_ok)  bump.setFrom(  bump_resize);
+      if(normal_ok)normal.setFrom(normal_resize);
+
+      if(!bump_ok && !material.detail_normal.is())normal_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump, which is not available, so normal needs to be marked as failed
 
       if(color_ok || smooth_ok || bump_ok || normal_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
