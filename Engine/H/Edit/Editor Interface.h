@@ -227,11 +227,28 @@ struct Material
    Bool hasNormalMap()C {return normal_map  .elms()>0 || hasBumpMap();}
    Bool hasDetailMap()C {return detail_color.elms()>0 || detail_bump.elms()>0 || detail_normal.elms()>0 || detail_smooth.elms()>0;}
 
-   void save(File &f)C;
+   Bool save(File &f)C;
    Bool load(File &f);
 
    Material&   reset(); // reset to default values
    Material() {reset();}
+};
+/******************************************************************************/
+struct SkeletonSlot : OrientP // Skeleton Slot
+{
+   Str name      , //           skeleton slot name
+       bone_name , //           skeleton bone name to which slot belongs, ""=none
+       bone_name1; // secondary skeleton bone name to which slot belongs, ""=none, for best performance this should be set to the same value as 'bone_name' (to have only one parent), if this is different than 'bone_name' then slot will be set as average based on 2 bone parents
+
+   void setParent(C Str &bone) {T.bone_name=T.bone_name1=bone;}
+
+   void setFrom(C SkelSlot &src , C Skeleton &skeleton);
+   void setTo  (  SkelSlot &dest, C Skeleton &skeleton)C;
+
+   Bool save(File &f)C;
+   Bool load(File &f);
+
+   SkeletonSlot();
 };
 /******************************************************************************/
 struct EditorInterface
@@ -348,6 +365,11 @@ struct EditorInterface
       // mesh
       Bool getMesh(C UID &elm_id,   Mesh &mesh, Matrix *matrix=null); // get mesh of 'elm_id' ELM_OBJ ELM_MESH elements in the project, false on fail, 'matrix'=matrix by which the mesh is going to be transformed by the editor
       Bool setMesh(C UID &elm_id, C Mesh &mesh                     ); // set mesh of 'elm_id' ELM_OBJ ELM_MESH elements in the project, false on fail
+
+      // skeleton
+      Bool getSkeleton     (C UID &elm_id,           Skeleton      &skel      ); // get skeleton       of 'elm_id' ELM_OBJ ELM_MESH ELM_SKEL elements in the project, false on fail
+      Bool getSkeletonSlots(C UID &elm_id,    MemPtr<SkeletonSlot>  skel_slots); // get skeleton slots of 'elm_id' ELM_OBJ ELM_MESH ELM_SKEL elements in the project, false on fail
+      Bool setSkeletonSlots(C UID &elm_id, C CMemPtr<SkeletonSlot> &skel_slots); // set skeleton slots of 'elm_id' ELM_OBJ ELM_MESH ELM_SKEL elements in the project, false on fail
 
       // animation
       UID  curAnimation    (                                     ); // get ID of currently opened ELM_ANIM element, 'UIDZero' is returned if no animation is opened
@@ -470,6 +492,9 @@ enum EDITOR_INTERFACE_COMMANDS
    EI_MUL_MTRL_TEX_COL,
    EI_GET_MESH,
    EI_SET_MESH,
+   EI_GET_SKEL,
+   EI_GET_SKEL_SLOTS,
+   EI_SET_SKEL_SLOTS,
    EI_GET_ANIM_CUR,
    EI_SET_ANIM_CUR,
    EI_GET_ANIM,

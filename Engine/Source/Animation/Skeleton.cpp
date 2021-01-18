@@ -432,6 +432,7 @@ Int BoneMap::find(CChar8 *name, BONE_TYPE type, Int type_index, Int type_sub)C
 
 Int       Skeleton::findBoneI(CChar8 *name                                )C {if(Is(name))REPA(bones)if(Equal(bones[i].name, name))return i; return -1;}
 Int       Skeleton::findSlotI(CChar8 *name                                )C {if(Is(name))REPA(slots)if(Equal(slots[i].name, name))return i; return -1;}
+Byte      Skeleton::findBoneB(CChar8 *name                                )C {Int i=findBoneI(name                      ); return InRange(i, 256) ? i : 255;}
 Byte      Skeleton::findSlotB(CChar8 *name                                )C {Int i=findSlotI(name                      ); return InRange(i, 256) ? i : 255;}
 Int       Skeleton:: getBoneI(BONE_TYPE type, Int type_index, Int type_sub)C {Int i=findBoneI(type, type_index, type_sub); if(i<0)Exit(S+"Bone "+BoneName(type)+':'+type_index+':'+type_sub+" not found in skeleton"+SkelName(this)+'.'); return i;}
 Int       Skeleton:: getBoneI(CChar8 *name                                )C {Int i=findBoneI(name                      ); if(i<0)Exit(S+"Bone \""+  name                                +"\" not found in skeleton"+SkelName(this)+'.'); return i;}

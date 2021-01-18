@@ -180,6 +180,7 @@ struct Skeleton // Animation Skeleton - base skeleton used by 'AnimatedSkeleton'
  C SkelBone&  getBone (              BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone           , Exit on fail
 
    Int       findBoneI(CChar8 *name)C; // find bone      index, -1   on fail
+   Byte      findBoneB(CChar8 *name)C; // find bone      index, 255  on fail
    SkelBone* findBone (CChar8 *name) ; // find bone           , null on fail
  C SkelBone* findBone (CChar8 *name)C; // find bone           , null on fail
    Int       findSlotI(CChar8 *name)C; // find slot      index, -1   on fail

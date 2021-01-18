@@ -214,16 +214,20 @@ class Project
    UID  objToMesh(C UID & obj_id) {return  objToMesh(findElm( obj_id));}
    UID  objToSkel(C UID & obj_id) {return  objToSkel(findElm( obj_id));}
 
-   Elm* objToMeshElm(C Elm * obj   ) {return findElm(objToMesh( obj   ), ELM_MESH);}
-   Elm* objToMeshElm(C UID & obj_id) {return findElm(objToMesh( obj_id), ELM_MESH);}
-   Elm* skelToObjElm(C Elm *skel   ) {return findElm(skelToObj(skel   ), ELM_OBJ );}
-   Elm* skelToObjElm(C UID &skel_id) {return findElm(skelToObj(skel_id), ELM_OBJ );}
-   Elm* meshToObjElm(C Elm *mesh   ) {return findElm(meshToObj(mesh   ), ELM_OBJ );}
-   Elm* meshToObjElm(C UID &mesh_id) {return findElm(meshToObj(mesh_id), ELM_OBJ );}
-   Elm* animToObjElm(C Elm *anim   ) {return findElm(animToObj(anim   ), ELM_OBJ );}
-   Elm* animToObjElm(C UID &anim_id) {return findElm(animToObj(anim_id), ELM_OBJ );}
-   Elm* physToObjElm(C Elm *phys   ) {return findElm(physToObj(phys   ), ELM_OBJ );}
-   Elm* physToObjElm(C UID &phys_id) {return findElm(physToObj(phys_id), ELM_OBJ );}
+   Elm*  objToMeshElm(C Elm * obj   ) {return findElm( objToMesh( obj   ), ELM_MESH);}
+   Elm*  objToMeshElm(C UID & obj_id) {return findElm( objToMesh( obj_id), ELM_MESH);}
+   Elm*  skelToObjElm(C Elm *skel   ) {return findElm(skelToObj (skel   ), ELM_OBJ );}
+   Elm*  skelToObjElm(C UID &skel_id) {return findElm(skelToObj (skel_id), ELM_OBJ );}
+   Elm*  meshToObjElm(C Elm *mesh   ) {return findElm(meshToObj (mesh   ), ELM_OBJ );}
+   Elm*  meshToObjElm(C UID &mesh_id) {return findElm(meshToObj (mesh_id), ELM_OBJ );}
+   Elm*  animToObjElm(C Elm *anim   ) {return findElm(animToObj (anim   ), ELM_OBJ );}
+   Elm*  animToObjElm(C UID &anim_id) {return findElm(animToObj (anim_id), ELM_OBJ );}
+   Elm*  physToObjElm(C Elm *phys   ) {return findElm(physToObj (phys   ), ELM_OBJ );}
+   Elm*  physToObjElm(C UID &phys_id) {return findElm(physToObj (phys_id), ELM_OBJ );}
+   Elm*  objToSkelElm(C Elm * obj   ) {return findElm( objToSkel( obj   ), ELM_SKEL);}
+   Elm*  objToSkelElm(C UID & obj_id) {return findElm( objToSkel( obj_id), ELM_SKEL);}
+   Elm* meshToSkelElm(C Elm *mesh   ) {return findElm(meshToSkel(mesh   ), ELM_SKEL);}
+   Elm* meshToSkelElm(C UID &mesh_id) {return findElm(meshToSkel(mesh_id), ELM_SKEL);}
 
    Elm* mtrlToMeshElm(C UID &mtrl_id)
    {

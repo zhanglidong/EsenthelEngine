@@ -1038,7 +1038,7 @@ bool HighPrecTransform(C Str &name)
        || name=="bump" || name=="bumpClamp"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
-       || name=="gamma" || name=="gammaLum"
+       || name=="gamma" || name=="gammaLum" || name=="gammaSat"
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
@@ -1286,6 +1286,31 @@ void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, 
       image.color3DF(x, y, z, c);
    }
 }
+void GammaSat(Image &image, flt gamma, C BoxI &box, bool photo=false)
+{
+   if(gamma!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+       //flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+         flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
+
+         c.xyz=RgbToHsb(c.xyz);
+         c.y=Pow(c.y, gamma);
+         c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+          //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+                                       if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
+         }
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }   
+}
 void MulSat(Image &image, flt mul, C BoxI &box, bool photo=false)
 {
    if(mul!=1 && image.lock())
@@ -1348,12 +1373,15 @@ flt   PowMax   (flt x, flt y) {return (x<=0) ? 0 : Pow(x, y);}
 void TransformImage(Image &image, TextParam param, bool clamp)
 {
    BoxI box(0, image.size3());
-   int at_pos=TextPosI(param.value, '@'); if(at_pos>=0)
    {
-      VecI4 v=TextVecI4(param.value()+at_pos+1); // X,Y,W,H
-      RectI r(v.xy, v.xy+v.zw);
-      box&=BoxI(VecI(r.min, 0), VecI(r.max, box.max.z));
-      param.value.clip(at_pos);
+      Str &s=(param.value.is() ? param.value : param.name);
+      int at_pos=TextPosI(s, '@'); if(at_pos>=0)
+      {
+         VecI4 v=TextVecI4(s()+at_pos+1); // X,Y,W,H
+         RectI r(v.xy, v.xy+v.zw);
+         box&=BoxI(VecI(r.min, 0), VecI(r.max, box.max.z));
+         s.clip(at_pos);
+      }
    }
 
    if(HighPrecTransform(param.name))AdjustImage(image, false, false, true); // if transform might generate high precision values then make sure we can store them
@@ -1881,6 +1909,8 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.unlock();
       }
    }else
+   if(param.name=="gammaSat"     )GammaSat(image, param.asFlt(), box);else
+   if(param.name=="gammaSatPhoto")GammaSat(image, param.asFlt(), box, true);else
    if(param.name=="mulSat"     )MulSat(image, param.asFlt(), box);else
    if(param.name=="mulSatPhoto")MulSat(image, param.asFlt(), box, true);else
    if(param.name=="avgSat" || param.name=="avgSatPhoto")

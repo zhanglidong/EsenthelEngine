@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 42 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 43 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -150,7 +150,7 @@ Material& Material::reset()
    light_map.clear();
    return T;
 }
-void Material::save(File &f)C
+Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
    f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump<<tex_scale
@@ -164,6 +164,7 @@ void Material::save(File &f)C
     <<Encode(detail_smooth)
     <<Encode(macro_map)
     <<Encode(light_map);
+   return f.ok();
 }
 Bool Material::load(File &f)
 {
@@ -185,7 +186,50 @@ Bool Material::load(File &f)
          if(f.ok())return true;
       }break;
    }
-   return false;
+   reset(); return false;
+}
+/******************************************************************************/
+// SKELETON
+/******************************************************************************/
+SkeletonSlot::SkeletonSlot()
+{
+   dir .set (0, 0, 1);
+   perp.set (0, 1, 0);
+   pos .zero(       );
+}
+void SkeletonSlot::setFrom(C SkelSlot &src, C Skeleton &skeleton)
+{
+   SCAST(OrientP, T)=src;
+   name=src.name;
+   if(InRange(src.bone , skeleton.bones))bone_name =skeleton.bones[src.bone ].name;else bone_name .clear();
+   if(InRange(src.bone1, skeleton.bones))bone_name1=skeleton.bones[src.bone1].name;else bone_name1.clear();
+}
+void SkeletonSlot::setTo(SkelSlot &dest, C Skeleton &skeleton)C
+{
+   SCAST(OrientP, dest)=T;
+   Set(dest.name, name);
+   dest.bone =skeleton.findBoneB((Str8)bone_name );
+   dest.bone1=skeleton.findBoneB((Str8)bone_name1);
+}
+Bool SkeletonSlot::save(File &f)C
+{
+   f.cmpUIntV(0);
+   f<<dir<<perp<<pos;
+   f<<name<<bone_name<<bone_name1;
+   return f.ok();
+}
+Bool SkeletonSlot::load(File &f)
+{
+   switch(f.decUIntV())
+   {
+      case 0:
+      {
+         f>>dir>>perp>>pos;
+         f>>name>>bone_name>>bone_name1;
+         if(f.ok())return true;
+      }break;
+   }
+   /*del();*/ return false;
 }
 /******************************************************************************/
 // OBJ DATA
@@ -486,7 +530,7 @@ Bool EditorInterface::reloadResult(C CMemPtr<UID> &elms, MemPtr< IDParam<RELOAD_
       disconnect();
    }
 fail:
-   results.clear(); return !elms.elms(); // OK only if there were no elemenets
+   results.clear(); return !elms.elms(); // OK only if there were no elements
 }
 Bool EditorInterface::forgetReloadResult(C CMemPtr<UID> &elms)
 {
@@ -1065,10 +1109,11 @@ Bool EditorInterface::getMesh(C UID &elm_id, Mesh &mesh, Matrix *matrix)
                return true;
             }
          }
-         return false;
+         goto fail;
       }
       disconnect();
    }
+fail:
    mesh.del(); return !elm_id.valid();
 }
 Bool EditorInterface::setMesh(C UID &elm_id, C Mesh &mesh)
@@ -1079,6 +1124,71 @@ Bool EditorInterface::setMesh(C UID &elm_id, C Mesh &mesh)
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
       if(f.getByte()==EI_SET_MESH)return f.getBool();
+      disconnect();
+   }
+   return false;
+}
+/******************************************************************************/
+// SKELETON
+/******************************************************************************/
+Bool EditorInterface::getSkeleton(C UID &elm_id, Skeleton &skel)
+{
+   if(elm_id.valid() && connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_SKEL).putUID(elm_id).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_SKEL)
+      {
+         if(f.getBool())
+         {
+            if(!f.left()) // object may exist, but its skeleton may not be set yet, in that case OK will be true, but no data available
+            {
+               skel.del();
+               return true;
+            }
+            if(skel.load(f))return true;
+         }
+         goto fail;
+      }
+      disconnect();
+   }
+fail:
+   skel.del(); return !elm_id.valid();
+}
+Bool EditorInterface::getSkeletonSlots(C UID &elm_id, MemPtr<SkeletonSlot> skel_slots)
+{
+   if(elm_id.valid() && connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_SKEL_SLOTS).putUID(elm_id).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_SKEL_SLOTS)
+      {
+         if(f.getBool())
+         {
+            if(!f.left()) // object may exist, but its skeleton may not be set yet, in that case OK will be true, but no data available
+            {
+               skel_slots.clear();
+               return true;
+            }
+            if(skel_slots.load(f))return true;
+         }
+         goto fail;
+      }
+      disconnect();
+   }
+fail:
+   skel_slots.clear(); return !elm_id.valid();
+}
+Bool EditorInterface::setSkeletonSlots(C UID &elm_id, C CMemPtr<SkeletonSlot> &skel_slots)
+{
+   if(elm_id.valid() && connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_SET_SKEL_SLOTS).putUID(elm_id); skel_slots.save(f); f.pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_SET_SKEL_SLOTS)return f.getBool();
       disconnect();
    }
    return false;
@@ -1120,10 +1230,11 @@ Bool EditorInterface::getMaterial(C UID &elm_id, Material &mtrl)
       if(f.getByte()==EI_GET_MTRL)
       {
          if(f.getBool())return mtrl.load(f);
-         return false;
+         goto fail;
       }
       disconnect();
    }
+fail:
    mtrl.reset(); return !elm_id.valid();
 }
 Bool EditorInterface::setMaterial(C UID &elm_id, C Material &mtrl, Bool reload_textures, Bool adjust_params)
@@ -1199,10 +1310,11 @@ Bool EditorInterface::getAnimation(C UID &anim_elm_id, Animation &anim)
       if(f.getByte()==EI_GET_ANIM)
       {
          if(f.getBool())return anim.load(f);
-         return false;
+         goto fail;
       }
       disconnect();
    }
+fail:
    anim.del(); return !anim_elm_id.valid();
 }
 Bool EditorInterface::setAnimation(C UID &anim_elm_id, C Animation &anim)
@@ -1266,10 +1378,11 @@ Bool EditorInterface::getObject(C UID &elm_id, ObjData &obj, Bool include_remove
       if(f.getByte()==EI_GET_OBJ)
       {
          if(f.getBool())return obj.load(f);
-         return false;
+         goto fail;
       }
       disconnect();
    }
+fail:
    obj.reset(); return !elm_id.valid();
 }
 Bool EditorInterface::modifyObject(C UID &elm_id, C CMemPtr<ObjChange> &changes)
