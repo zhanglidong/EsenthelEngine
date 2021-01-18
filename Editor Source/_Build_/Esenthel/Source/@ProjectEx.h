@@ -461,6 +461,7 @@ public:
    void mtrlCreateLightTexture(EditMaterial &material);
    bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light);
    void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light);
+   bool skelGet(C UID &elm_id, Skeleton &skel)C;
    Animation* getAnim(C UID &elm_id, Animation &temp)C;
    bool animGet(C UID &elm_id, Animation &anim)C;
    bool animSet(C UID &elm_id, C Animation &anim);
@@ -618,6 +619,7 @@ public:
    bool imageSet(C UID &elm_id, C Image &image);
    
    bool meshSet(C UID &elm_id, File &data);
+   bool skelSetSlots(C UID &elm_id, C CMemPtr<Edit::SkeletonSlot> &skel_slots);
 
    bool modifyObj(C UID &obj_id, C MemPtr<Edit::ObjChange> &changes);
 

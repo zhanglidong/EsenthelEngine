@@ -626,7 +626,10 @@ void DrawProject()
             makeGameVer(*obj_elm); // because we've assigned a mesh to this object, we need to resave this object too
             if(send_to_server)Server.setElmShort(obj_elm->id);
             if(set_gui)setList();
-            REPAO(WorldEdit.objs).setMeshPhys(); // call at the end
+
+            // call at the end
+            if(ObjEdit.obj_elm==obj_elm)ObjEdit.getMeshElm(); // make sure obj editor has assigned mesh element
+            REPAO(WorldEdit.objs).setMeshPhys();
          }else mesh_elm=findElm(obj_data->mesh_id);
       }
       return mesh_elm;
@@ -655,6 +658,9 @@ void DrawProject()
             makeGameVer(*mesh_elm); // because we've assigned a skel to this mesh, we need to resave this mesh too
             if(send_to_server)Server.setElmShort(mesh_elm->id);
             if(set_gui)setList();
+
+            // call at the end
+            if(ObjEdit.obj_elm==obj_elm)ObjEdit.getSkelElm(); // make sure obj editor has assigned skel element
          }else skel_elm=findElm(mesh_data->skel_id);
       }
       return skel_elm;
@@ -683,6 +689,10 @@ void DrawProject()
             makeGameVer(*obj_elm); // because we've assigned a phys to this object, we need to resave this object too
             if(send_to_server)Server.setElmShort(mesh_elm->id);
             if(set_gui)setList();
+
+            // call at the end
+            if(ObjEdit.obj_elm==obj_elm)ObjEdit.getPhysElm(); // make sure obj editor has assigned phys element
+            REPAO(WorldEdit.objs).setMeshPhys();
          }else phys_elm=findElm(mesh_data->phys_id);
       }
       return phys_elm;
@@ -2380,6 +2390,21 @@ void DrawProject()
    void ProjectEx::mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light)
    {
       FREPA(elm_ids)mtrlReloadTextures(elm_ids[i], base, detail, macro, light);
+   }
+   bool ProjectEx::skelGet(C UID &elm_id, Skeleton &skel)C
+   {
+      if(C Elm *elm=findElm(elm_id, ELM_SKEL))
+      {
+         if(ObjEdit.skel_elm==elm)
+         {
+            if(ObjEdit.mesh_skel)skel=*ObjEdit.mesh_skel;else skel.del();
+            return true;
+         }
+         Str file=gamePath(elm_id);
+         if(C Skeleton *cached=Skeletons.find(file)){skel=*cached; return true;}
+         return skel.load(file);
+      }
+      skel.del(); return !elm_id.valid();
    }
    Animation* ProjectEx::getAnim(C UID &elm_id, Animation &temp)C
    {
@@ -4750,6 +4775,34 @@ void DrawProject()
             meshChanged(*elm);
             Server.setElmLong(elm->id);
             return true;
+         }
+      }
+      return false;
+   }
+   bool ProjectEx::skelSetSlots(C UID &elm_id, C CMemPtr<Edit::SkeletonSlot> &skel_slots)
+   {
+      Elm *elm=findElm(elm_id);
+      if(elm)if(ElmObj  * obj_data=elm-> objData())elm=getObjSkelElm(elm->id); // if this is an object then get its skeleton
+      if(elm)if(ElmSkel *skel_data=elm->skelData()) // skel
+      {
+         if(ObjEdit.skel_elm==elm && ObjEdit.mesh_skel)
+         {
+            ObjEdit.mesh_undos.set();
+            ObjEdit.mesh_skel->slots.setNum(skel_slots.elms()); REPAO(skel_slots).setTo(ObjEdit.mesh_skel->slots[i], *ObjEdit.mesh_skel);
+            ObjEdit.setChangedSkel(false);
+            return true;
+         }else
+         {
+            Skeleton skel; if(skelGet(elm->id, skel))
+            {
+               skel.slots.setNum(skel_slots.elms()); REPAO(skel_slots).setTo(skel.slots[i], skel);
+               Save(skel, gamePath(elm->id));
+               skel_data->file_time.getUTC();
+               skel_data->newVer();
+               skelChanged(*elm);
+               Server.setElmLong(elm->id);
+               return true;
+            }
          }
       }
       return false;

@@ -176,16 +176,20 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
    UID Project::physToObj(C UID &phys_id) {return physToObj (findElm(phys_id));}
    UID  Project::objToMesh(C UID & obj_id) {return  objToMesh(findElm( obj_id));}
    UID  Project::objToSkel(C UID & obj_id) {return  objToSkel(findElm( obj_id));}
-   Elm* Project::objToMeshElm(C Elm * obj   ) {return findElm(objToMesh( obj   ), ELM_MESH);}
-   Elm* Project::objToMeshElm(C UID & obj_id) {return findElm(objToMesh( obj_id), ELM_MESH);}
-   Elm* Project::skelToObjElm(C Elm *skel   ) {return findElm(skelToObj(skel   ), ELM_OBJ );}
-   Elm* Project::skelToObjElm(C UID &skel_id) {return findElm(skelToObj(skel_id), ELM_OBJ );}
-   Elm* Project::meshToObjElm(C Elm *mesh   ) {return findElm(meshToObj(mesh   ), ELM_OBJ );}
-   Elm* Project::meshToObjElm(C UID &mesh_id) {return findElm(meshToObj(mesh_id), ELM_OBJ );}
-   Elm* Project::animToObjElm(C Elm *anim   ) {return findElm(animToObj(anim   ), ELM_OBJ );}
-   Elm* Project::animToObjElm(C UID &anim_id) {return findElm(animToObj(anim_id), ELM_OBJ );}
-   Elm* Project::physToObjElm(C Elm *phys   ) {return findElm(physToObj(phys   ), ELM_OBJ );}
-   Elm* Project::physToObjElm(C UID &phys_id) {return findElm(physToObj(phys_id), ELM_OBJ );}
+   Elm*  Project::objToMeshElm(C Elm * obj   ) {return findElm( objToMesh( obj   ), ELM_MESH);}
+   Elm*  Project::objToMeshElm(C UID & obj_id) {return findElm( objToMesh( obj_id), ELM_MESH);}
+   Elm*  Project::skelToObjElm(C Elm *skel   ) {return findElm(skelToObj (skel   ), ELM_OBJ );}
+   Elm*  Project::skelToObjElm(C UID &skel_id) {return findElm(skelToObj (skel_id), ELM_OBJ );}
+   Elm*  Project::meshToObjElm(C Elm *mesh   ) {return findElm(meshToObj (mesh   ), ELM_OBJ );}
+   Elm*  Project::meshToObjElm(C UID &mesh_id) {return findElm(meshToObj (mesh_id), ELM_OBJ );}
+   Elm*  Project::animToObjElm(C Elm *anim   ) {return findElm(animToObj (anim   ), ELM_OBJ );}
+   Elm*  Project::animToObjElm(C UID &anim_id) {return findElm(animToObj (anim_id), ELM_OBJ );}
+   Elm*  Project::physToObjElm(C Elm *phys   ) {return findElm(physToObj (phys   ), ELM_OBJ );}
+   Elm*  Project::physToObjElm(C UID &phys_id) {return findElm(physToObj (phys_id), ELM_OBJ );}
+   Elm*  Project::objToSkelElm(C Elm * obj   ) {return findElm( objToSkel( obj   ), ELM_SKEL);}
+   Elm*  Project::objToSkelElm(C UID & obj_id) {return findElm( objToSkel( obj_id), ELM_SKEL);}
+   Elm* Project::meshToSkelElm(C Elm *mesh   ) {return findElm(meshToSkel(mesh   ), ELM_SKEL);}
+   Elm* Project::meshToSkelElm(C UID &mesh_id) {return findElm(meshToSkel(mesh_id), ELM_SKEL);}
    Elm* Project::mtrlToMeshElm(C UID &mtrl_id)
    {
       if(mtrl_id.valid())REPA(elms){Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data->mtrl_ids.binaryHas(mtrl_id))return &elm;}

@@ -949,6 +949,53 @@ EditorServer EditServer;
                   f.reset().putByte(Edit::EI_SET_MESH).putBool(ok).pos(0); connection.send(f);
                }break;
 
+               // SKEL
+               case Edit::EI_GET_SKEL:
+               {
+                  File &f=connection.data; UID elm_id=f.getUID();
+                  bool ok=false; File data;
+                  if(Elm *elm=Proj.findElm(elm_id))
+                  {
+                     if(elm && elm->type==ELM_OBJ ){ok=true; elm=Proj. objToSkelElm(elm);} // if this is an object, then set ok to true, in case it has no skel, we will just send empty data
+                     if(elm && elm->type==ELM_MESH){ok=true; elm=Proj.meshToSkelElm(elm);} // if this is a  mesh  , then set ok to true, in case it has no skel, we will just send empty data
+                     if(elm && elm->type==ELM_SKEL)
+                     {
+                     #if 0
+                        ok=data.readTry(Proj.gamePath(*elm));
+                     #else
+                        Skeleton skel; if(ok=Proj.skelGet(elm->id, skel)){skel.save(data.writeMem()); data.pos(0);}
+                     #endif
+                     }
+                  }
+                  f.reset().putByte(Edit::EI_GET_SKEL).putBool(ok); if(ok)data.copy(f); f.pos(0); connection.send(f);
+               }break;
+
+               case Edit::EI_GET_SKEL_SLOTS:
+               {
+                  File &f=connection.data; UID elm_id=f.getUID();
+                  bool ok=false; Mems<Edit::SkeletonSlot> skel_slots;
+                  if(Elm *elm=Proj.findElm(elm_id))
+                  {
+                     if(elm && elm->type==ELM_OBJ ){ok=true; elm=Proj. objToSkelElm(elm);} // if this is an object, then set ok to true, in case it has no skel, we will just send empty data
+                     if(elm && elm->type==ELM_MESH){ok=true; elm=Proj.meshToSkelElm(elm);} // if this is a  mesh  , then set ok to true, in case it has no skel, we will just send empty data
+                     if(elm && elm->type==ELM_SKEL)
+                     {
+                        Skeleton skel; if(ok=Proj.skelGet(elm->id, skel))
+                        {
+                           skel_slots.setNum(skel.slots.elms()); REPAO(skel_slots).setFrom(skel.slots[i], skel);
+                        }
+                     }
+                  }
+                  f.reset().putByte(Edit::EI_GET_SKEL_SLOTS).putBool(ok); if(ok)skel_slots.save(f); f.pos(0); connection.send(f);
+               }break;
+
+               case Edit::EI_SET_SKEL_SLOTS:
+               {
+                  File &f=connection.data; UID elm_id=f.getUID(); Mems<Edit::SkeletonSlot> skel_slots;
+                  bool ok=(skel_slots.load(f) && Proj.skelSetSlots(elm_id, skel_slots));
+                  f.reset().putByte(Edit::EI_SET_SKEL_SLOTS).putBool(ok).pos(0); connection.send(f);
+               }break;
+
                // ANIM
                case Edit::EI_GET_ANIM_CUR:
                {

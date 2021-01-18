@@ -112,16 +112,20 @@ class Project
    UID  objToMesh(C UID & obj_id);
    UID  objToSkel(C UID & obj_id);
 
-   Elm* objToMeshElm(C Elm * obj   );
-   Elm* objToMeshElm(C UID & obj_id);
-   Elm* skelToObjElm(C Elm *skel   );
-   Elm* skelToObjElm(C UID &skel_id);
-   Elm* meshToObjElm(C Elm *mesh   );
-   Elm* meshToObjElm(C UID &mesh_id);
-   Elm* animToObjElm(C Elm *anim   );
-   Elm* animToObjElm(C UID &anim_id);
-   Elm* physToObjElm(C Elm *phys   );
-   Elm* physToObjElm(C UID &phys_id);
+   Elm*  objToMeshElm(C Elm * obj   );
+   Elm*  objToMeshElm(C UID & obj_id);
+   Elm*  skelToObjElm(C Elm *skel   );
+   Elm*  skelToObjElm(C UID &skel_id);
+   Elm*  meshToObjElm(C Elm *mesh   );
+   Elm*  meshToObjElm(C UID &mesh_id);
+   Elm*  animToObjElm(C Elm *anim   );
+   Elm*  animToObjElm(C UID &anim_id);
+   Elm*  physToObjElm(C Elm *phys   );
+   Elm*  physToObjElm(C UID &phys_id);
+   Elm*  objToSkelElm(C Elm * obj   );
+   Elm*  objToSkelElm(C UID & obj_id);
+   Elm* meshToSkelElm(C Elm *mesh   );
+   Elm* meshToSkelElm(C UID &mesh_id);
 
    Elm* mtrlToMeshElm(C UID &mtrl_id);
    UID mtrlToObj(C UID &mtrl_id);
