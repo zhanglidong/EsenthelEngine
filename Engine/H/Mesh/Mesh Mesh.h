@@ -17,7 +17,7 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    Extent ext       ; // bounding box
    Vec    lod_center; // mesh center position used for calculating LOD level, usually equal to "ext.pos"
 
-   Bool     is  (     )C {return     _lods.elms() || super::is()     ;} // if  has any data
+   Bool     is  (     )C {return super::is() || _lods.elms()         ;} // if  has any data
    Int      lods(     )C {return     _lods.elms()+1                  ;} // get number of Level of Details including self
    MeshLod& lod (Int i)  {return i ? _lods[i-1] :                  T ;} // return  i-th  Level of Detail
  C MeshLod& lod (Int i)C {return i ? _lods[i-1] : SCAST(C MeshLod, T);} // return  i-th  Level of Detail
