@@ -548,8 +548,10 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    Bool loadTxt (C Str &name) ; // load text, false on fail
 #endif
 
-   MeshBase& operator*=(C Matrix3    &m  ) {return transform(m  );} // transform by matrix
-   MeshBase& operator*=(C Matrix     &m  ) {return transform(m  );} // transform by matrix
+   MeshBase& operator+=(C Vec        &v  ) {return move     ( v );} // move      by vector
+   MeshBase& operator-=(C Vec        &v  ) {return move     (-v );} // move      by vector
+   MeshBase& operator*=(C Matrix3    &m  ) {return transform( m );} // transform by matrix
+   MeshBase& operator*=(C Matrix     &m  ) {return transform( m );} // transform by matrix
    MeshBase& operator+=(C MeshBase   &src) {return add      (src);} // add 'src'
    MeshBase& operator+=(C MeshRender &src) {return add      (src);} // add 'src'
    MeshBase& operator+=(C MeshPart   &src) {return add      (src);} // add 'src'

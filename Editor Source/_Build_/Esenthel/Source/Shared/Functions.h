@@ -232,6 +232,7 @@ void KeepParams(C Mesh &src, Mesh &dest);
 void RemovePartsAndLods(Mesh &mesh);
 void EditToGameMesh(C Mesh &edit, Mesh &game, Skeleton *skel, Enum *draw_group, C Matrix *matrix);
 bool HasMaterial(C MeshPart &part, C MaterialPtr &material);
+void CleanMesh(Mesh &mesh);
 bool FixVtxNrm(MeshBase &base);
 void FixMesh(Mesh &mesh);
 bool SamePartInAllLods(C Mesh &mesh, int part);

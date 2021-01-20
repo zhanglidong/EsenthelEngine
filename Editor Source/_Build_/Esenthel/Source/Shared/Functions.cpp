@@ -2527,6 +2527,14 @@ bool HasMaterial(C MeshPart &part, C MaterialPtr &material)
    return false;
 }
 /******************************************************************************/
+void CleanMesh(Mesh &mesh)
+{
+   REPD(l, mesh.lods())
+   {
+      MeshLod &lod=mesh.lod(l);
+      REPA(lod)if(!lod.parts[i].is())lod.parts.remove(i, true);
+   }
+}
 bool FixVtxNrm(MeshBase &base)
 {
    bool ok=false; if(base.vtx.nrm())

@@ -4834,7 +4834,9 @@ class ProjectEx : ProjectHierarchy
       {
          Mesh mesh; if(mesh.load(data, game_path))
          {
-            mesh.setBase().delRender().keepOnly(EditMeshFlagAnd).skeleton(null);
+          //mesh.setBase(); don't set base in case some mesh parts were deliberately deleted
+            mesh.delRender().keepOnly(EditMeshFlagAnd).skeleton(null);
+            CleanMesh(mesh);
             mesh_data.draw_group_id=findElmID(Enums.id(mesh.drawGroupEnum()), ELM_ENUM);
             mesh.drawGroupEnum(Enums(gamePath(mesh_data.draw_group_id))); // fix draw group enum
             // fix materials
