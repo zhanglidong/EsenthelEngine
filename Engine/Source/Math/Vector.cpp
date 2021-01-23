@@ -680,6 +680,15 @@ VecB4 Max(C VecB4 &a, C VecB4 &b, C VecB4 &c) {return VecB4(Max(a.x, b.x, c.x), 
 VecB4 Min(C VecB4 &a, C VecB4 &b, C VecB4 &c, C VecB4 &d) {return VecB4(Min(a.x, b.x, c.x, d.x), Min(a.y, b.y, c.y, d.y), Min(a.z, b.z, c.z, d.z), Min(a.w, b.w, c.w, d.w));}
 VecB4 Max(C VecB4 &a, C VecB4 &b, C VecB4 &c, C VecB4 &d) {return VecB4(Max(a.x, b.x, c.x, d.x), Max(a.y, b.y, c.y, d.y), Max(a.z, b.z, c.z, d.z), Max(a.w, b.w, c.w, d.w));}
 /******************************************************************************/
+void Transform(Vec2 *v, C Matrix2 &m, Int num)
+{
+   if(v)for(; --num>=0; v++)
+   {
+      Flt x=v->x, y=v->y;
+      v->x=x*m.x.x + y*m.y.x;
+      v->y=x*m.x.y + y*m.y.y;
+   }
+}
 void Transform(Vec2 *v, C Matrix3 &m, Int num)
 {
    if(v)for(; --num>=0; v++)
@@ -732,6 +741,13 @@ void Transform(VecD *v, C MatrixM &m, Int num)
 void Vec::rightToLeft(                 ) {swapYZ(); CHS(x); CHS(z);}
 void      RightToLeft(Vec *vec, Int num) {if(vec)REP(num)vec[i].rightToLeft();}
 /******************************************************************************/
+Vec2& Vec2::mul(C Matrix2 &m)
+{
+   Flt _x=x, _y=y;
+   x=_x*m.x.x + _y*m.y.x;
+   y=_x*m.x.y + _y*m.y.y;
+   return T;
+}
 Vec2& Vec2::mul(C Matrix3 &m)
 {
    Flt _x=x, _y=y;
@@ -918,6 +934,12 @@ Vec4& Vec4::mul(C Matrix4 &m)
    return T;
 }
 /******************************************************************************/
+Vec2& Vec2::div(C Matrix2 &m)
+{
+   set(Dot(T, m.x)/m.x.length2(),
+       Dot(T, m.y)/m.y.length2());
+   return T;
+}
 Vec2& Vec2::div(C Matrix3 &m)
 {
    Vec t(T, 0);
@@ -947,6 +969,12 @@ VecD2& VecD2::div(C MatrixD &m)
    return T;
 }
 /******************************************************************************/
+Vec2& Vec2::divNormalized(C Matrix2 &m)
+{
+   set(Dot(T, m.x),
+       Dot(T, m.y));
+   return T;
+}
 Vec2& Vec2::divNormalized(C Matrix3 &m)
 {
    Vec t(T, 0);

@@ -11,6 +11,69 @@
    Use 'SetMatrix' to set mesh rendering matrix (use before manual drawing only).
 
 /******************************************************************************/
+struct Matrix2 // Matrix 2x2 (orientation + scale)
+{
+   Vec2 x, // right vector
+        y; // up    vector
+
+   Matrix2& operator*=(  Flt      f);
+   Matrix2& operator/=(  Flt      f);
+   Matrix2& operator*=(C Vec2    &v);
+   Matrix2& operator/=(C Vec2    &v);
+   Matrix2& operator*=(C Matrix2 &m) {return mul(m);}
+   Matrix2& operator/=(C Matrix2 &m) {return div(m);}
+   Bool     operator==(C Matrix2 &m)C;
+   Bool     operator!=(C Matrix2 &m)C;
+
+   friend Matrix2 operator* (C Matrix2 &a, C Matrix2 &b) {Matrix2 temp; a.mul    (b, temp); return temp;} // get a*b
+   friend Matrix2 operator/ (C Matrix2 &a, C Matrix2 &b) {Matrix2 temp; a.div    (b, temp); return temp;} // get a/b
+   friend Matrix2 operator~ (C Matrix2 &m              ) {Matrix2 temp; m.inverse(   temp); return temp;} // get inversed 'm'
+
+   void     mul(C Matrix2 &matrix, Matrix2 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   Matrix2& mul(C Matrix2 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+
+   void     div(C Matrix2 &matrix, Matrix2 &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   Matrix2& div(C Matrix2 &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+
+   void     divNormalized(C Matrix2 &matrix, Matrix2 &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
+   Matrix2& divNormalized(C Matrix2 &matrix               ) {divNormalized(matrix, T); return T;} // divide self by 'matrix'                           , this method is faster than 'div' however 'matrix' must be normalized
+
+   void     inverse(Matrix2 &dest, Bool normalized=false)C;                                   // inverse self to 'dest', if you know that the matrix is normalized then set 'normalized=true' for more performance, this method assumes that matrix is orthogonal
+   Matrix2& inverse(               Bool normalized=false) {inverse(T, normalized); return T;} // inverse self          , if you know that the matrix is normalized then set 'normalized=true' for more performance, this method assumes that matrix is orthogonal
+
+   Matrix2& inverseScale(); // inverse scale
+
+   Matrix2& normalize(             ); // normalize scale           , this sets the length of 'x' 'y' vectors to 1
+   Matrix2& normalize(  Flt   scale); // normalize scale to 'scale', this sets the length of 'x' 'y' vectors to 'scale'
+   Matrix2& normalize(C Vec2 &scale); // normalize scale to 'scale', this sets the length of 'x' 'y' vectors to 'scale.x' 'scale.y'
+
+   Matrix2& scale (  Flt   scale) {T*=scale; return T;} // scale
+   Matrix2& scale (C Vec2 &scale) {T*=scale; return T;} // scale
+   Matrix2& scaleL(C Vec2 &scale);                      // scale in local space
+
+   Matrix2& rotate(Flt angle); // rotate
+
+   // set (set methods reset the full matrix)
+   Matrix2& identity(); // set as identity
+   Matrix2& zero    (); // set all vectors to zero
+
+   Matrix2& setScale(  Flt   scale); // set as scaled identity
+   Matrix2& setScale(C Vec2 &scale); // set as scaled identity
+
+   Matrix2& setRotate(Flt angle); // set as rotated identity
+
+   // get
+   Vec2   scale ()C; // get each    axis scale
+   Vec2   scale2()C; // get each    axis scale squared
+   Flt avgScale ()C; // get average axis scale
+   Flt maxScale ()C; // get maximum axis scale
+
+   Matrix2() {}
+   Matrix2(  Flt   scale) {setScale(scale);}
+   Matrix2(C Vec2 &scale) {setScale(scale);}
+   Matrix2(C Vec2 &x, C Vec2 &y) {T.x=x; T.y=y;}
+};
+/******************************************************************************/
 struct Matrix3 // Matrix 3x3 (orientation + scale)
 {
    Vec x, // right   vector

@@ -483,7 +483,7 @@ ImporterClass Importer;
                }else
                {
                   Str  ext=GetExt(file);
-                  bool transforms=(files.elms() && files[0].params.elms()); // if want to apply any transforms
+                  bool transforms=(files.elms()>1 || (files.elms() && files[0].params.elms())); // if want to apply any transforms
                   if(!transforms && (ext=="jpg" || ext=="jpeg" || ext=="webp"/* || ext=="png"*/)) // images are already in accepted format (even though PNG is compressed, we can achieve much better compression with WEBP)
                   {
                      File f; if(!f.readStdTry(file))break; f.copy(raw.writeMem());
@@ -493,9 +493,8 @@ ImporterClass Importer;
                      return true;
                   }else // import and export as WEBP
                   {
-                     Image image; if(ImportImage(image, file, -1, IMAGE_SOFT, 1, true))
+                     Image image; if(LoadImages(null, image, null, T.file)) // proj null because this is called on secondary thread
                      {
-                        if(files.elms())TransformImage(image, files[0].params, true);
                         image.ExportWEBP(raw.writeMem(), 1, 1); has_color=HasColor(image); has_alpha=HasAlpha(image); return true;
                      }
                   }

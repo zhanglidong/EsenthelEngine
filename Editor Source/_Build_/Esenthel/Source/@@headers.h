@@ -274,6 +274,43 @@ extern Cache<ElmMatrix>ElmMatrixes;
 /******************************************************************************/
 // ENUMS
 /******************************************************************************/
+enum APPLY_MODE
+{
+   APPLY_SET,
+   APPLY_BLEND,
+   APPLY_BLEND_PREMUL,
+   APPLY_MUL,
+   APPLY_MUL_RGB,
+   APPLY_MUL_RGB_SAT,
+   APPLY_MUL_RGB_LIN,
+   APPLY_MUL_A,
+   APPLY_MUL_LUM,
+   APPLY_MUL_SAT,
+   APPLY_MUL_SAT_PHOTO,
+   APPLY_DIV,
+   APPLY_ADD,
+   APPLY_ADD_RGB,
+   APPLY_ADD_LUM,
+   APPLY_ADD_HUE,
+   APPLY_ADD_HUE_PHOTO,
+   APPLY_SET_HUE,
+   APPLY_SET_HUE_PHOTO,
+   APPLY_SUB,
+   APPLY_SUB_RGB,
+   APPLY_GAMMA,
+   APPLY_BRIGHTNESS,
+   APPLY_BRIGHTNESS_LUM,
+   APPLY_AVG,
+   APPLY_MIN,
+   APPLY_MAX,
+   APPLY_MAX_A,
+   APPLY_MASK_MUL,
+   APPLY_MASK_ADD,
+   APPLY_METAL,
+   APPLY_SCALE,
+   APPLY_SKIP,
+};
+/******************************************************************************/
 enum AREA_LOAD_FLAG
 {
    AREA_LOAD_HEIGHTMAP     =1<<0,

@@ -2282,7 +2282,7 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateMacroTexture(EditMaterial &material)
    {
-      Image macro; if(loadImage(macro, null, material.macro_map, true)) // proceed only if loaded ok
+      Image macro; if(loadImages(macro, null, material.macro_map, true)) // proceed only if loaded ok
       {
          macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, IC_WRAP);
          IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, MTRL_MACRO); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
@@ -2300,7 +2300,7 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateLightTexture(EditMaterial &material)
    {
-      Image light; if(loadImage(light, null, material.light_map, true)) // proceed only if loaded ok
+      Image light; if(loadImages(light, null, material.light_map, true)) // proceed only if loaded ok
       {
          light.resize(NearestPow2(light.w()), NearestPow2(light.h()));
          IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, MTRL_LIGHT); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed

@@ -22,6 +22,12 @@ const MatrixM MatrixMIdentity(1);
 
 GpuMatrix *ViewMatrix, *ViewMatrixPrev;
 /******************************************************************************/
+Matrix2& Matrix2::operator*=(Flt f)
+{
+   x*=f;
+   y*=f;
+   return T;
+}
 Matrix3& Matrix3::operator*=(Flt f)
 {
    x*=f;
@@ -34,6 +40,12 @@ MatrixD3& MatrixD3::operator*=(Dbl f)
    x*=f;
    y*=f;
    z*=f;
+   return T;
+}
+Matrix2& Matrix2::operator/=(Flt f)
+{
+   x/=f;
+   y/=f;
    return T;
 }
 Matrix3& Matrix3::operator/=(Flt f)
@@ -98,6 +110,12 @@ MatrixD& MatrixD::operator/=(Dbl f)
    pos/=f;
    return T;
 }
+Matrix2& Matrix2::operator*=(C Vec2 &v)
+{
+   x*=v;
+   y*=v;
+   return T;
+}
 Matrix3& Matrix3::operator*=(C Vec &v)
 {
    x*=v;
@@ -110,6 +128,12 @@ MatrixD3& MatrixD3::operator*=(C VecD &v)
    x*=v;
    y*=v;
    z*=v;
+   return T;
+}
+Matrix2& Matrix2::operator/=(C Vec2 &v)
+{
+   x/=v;
+   y/=v;
    return T;
 }
 Matrix3& Matrix3::operator/=(C Vec &v)
@@ -251,6 +275,8 @@ MatrixD& MatrixD::operator-=(C MatrixD &m)
    return T;
 }
 /******************************************************************************/
+Bool Matrix2 ::operator==(C Matrix2  &m)C {return x==m.x && y==m.y;}
+Bool Matrix2 ::operator!=(C Matrix2  &m)C {return x!=m.x || y!=m.y;}
 Bool Matrix3 ::operator==(C Matrix3  &m)C {return x==m.x && y==m.y && z==m.z;}
 Bool Matrix3 ::operator!=(C Matrix3  &m)C {return x!=m.x || y!=m.y || z!=m.z;}
 Bool MatrixD3::operator==(C MatrixD3 &m)C {return x==m.x && y==m.y && z==m.z;}
@@ -262,6 +288,33 @@ Bool MatrixM ::operator!=(C MatrixM  &m)C {return x!=m.x || y!=m.y || z!=m.z || 
 Bool MatrixD ::operator==(C MatrixD  &m)C {return x==m.x && y==m.y && z==m.z && pos==m.pos;}
 Bool MatrixD ::operator!=(C MatrixD  &m)C {return x!=m.x || y!=m.y || z!=m.z || pos!=m.pos;}
 /******************************************************************************/
+void Matrix2::mul(C Matrix2 &m, Matrix2 &dest)C
+{
+   Flt x, y;
+   if(&dest!=&m) // here it's OK if "&dest==this"
+   {
+               x=T.x.x;  y=T.x.y;
+      dest.x.x=x*m.x.x + y*m.y.x;
+      dest.x.y=x*m.x.y + y*m.y.y;
+
+               x=T.y.x;  y=T.y.y;
+      dest.y.x=x*m.x.x + y*m.y.x;
+      dest.y.y=x*m.x.y + y*m.y.y;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
+   {
+               x=m.x.x;  y=m.y.x;
+      dest.x.x=x*T.x.x + y*T.x.y;
+      dest.y.x=x*T.y.x + y*T.y.y;
+
+               x=m.x.y;  y=m.y.y;
+      dest.x.y=x*T.x.x + y*T.x.y;
+      dest.y.y=x*T.y.x + y*T.y.y;
+   }else // &dest==&m && &dest==this
+   {
+      Matrix2 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrixes are the same
+   }
+}
 void Matrix3::mul(C Matrix3 &m, Matrix3 &dest)C
 {
    Flt x, y, z;
@@ -715,6 +768,33 @@ void Matrix::mulTimes(Int n, C RevMatrix &matrix, Matrix &dest)C
    }
 }
 /******************************************************************************/
+void Matrix2::divNormalized(C Matrix2 &m, Matrix2 &dest)C
+{
+   if(&dest!=&m) // here it's OK if "&dest==this"
+   {
+      Flt x, y;
+               x=T.x.x;  y=T.x.y;
+      dest.x.x=x*m.x.x + y*m.x.y;
+      dest.x.y=x*m.y.x + y*m.y.y;
+
+               x=T.y.x;  y=T.y.y;
+      dest.y.x=x*m.x.x + y*m.x.y;
+      dest.y.y=x*m.y.x + y*m.y.y;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
+   {
+      Flt x_x=m.x.x, x_y=m.x.y;
+                     dest.x.x=x_x*T.x.x + x_y*T.x.y;
+      Flt y_x=m.y.x; dest.y.x=x_x*T.y.x + x_y*T.y.y;
+
+      Flt y_y=m.y.y;
+      dest.x.y=y_x*T.x.x + y_y*T.x.y;
+      dest.y.y=y_x*T.y.x + y_y*T.y.y;
+   }else
+   {
+      Matrix2 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrixes are the same
+   }
+}
 void Matrix3::divNormalized(C Matrix3 &m, Matrix3 &dest)C
 {
    if(&dest!=&m) // here it's OK if "&dest==this"
@@ -898,6 +978,7 @@ void MatrixD::divNormalized(C MatrixD &m, MatrixD &dest)C
    super::divNormalized(m, dest);
 }
 /******************************************************************************/
+void Matrix2 ::div(C Matrix2  &m, Matrix2  &dest)C {Matrix2  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C Matrix3  &m, Matrix3  &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C Matrix   &m, Matrix   &dest)C {Matrix   temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
@@ -915,6 +996,12 @@ void MatrixM ::div(C Matrix   &m, MatrixM  &dest)C {Matrix   temp; m.inverse(tem
 void MatrixM ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD ::div(C MatrixD  &m, MatrixD  &dest)C {MatrixD  temp; m.inverse(temp); mul(temp, dest);}
 /******************************************************************************/
+Matrix2& Matrix2::inverseScale()
+{
+   if(Flt l=x.length2())x/=l;
+   if(Flt l=y.length2())y/=l;
+   return T;
+}
 Matrix3& Matrix3::inverseScale()
 {
    if(Flt l=x.length2())x/=l;
@@ -928,6 +1015,19 @@ MatrixD3& MatrixD3::inverseScale()
    if(Dbl l=y.length2())y/=l;
    if(Dbl l=z.length2())z/=l;
    return T;
+}
+void Matrix2::inverse(Matrix2 &dest, Bool normalized)C
+{
+ //dest=transpose(T);
+ //dest.inverseScale();
+   if(&dest!=this)
+   {
+      dest.x.x=x.x;
+      dest.y.y=y.y;
+   }
+   Flt temp;
+   temp=x.y; dest.x.y=y.x; dest.y.x=temp;
+   if(!normalized)dest.inverseScale();
 }
 void Matrix3::inverse(Matrix3 &dest, Bool normalized)C
 {
@@ -1120,6 +1220,12 @@ Matrix4& Matrix4::transpose()
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::normalize()
+{
+   if(!x.normalize()
+   || !y.normalize())identity();
+   return T;
+}
 Matrix3& Matrix3::normalize()
 {
    if(!x.normalize()
@@ -1134,6 +1240,12 @@ MatrixD3& MatrixD3::normalize()
    || !z.normalize())identity();
    return T;
 }
+Matrix2& Matrix2::normalize(Flt scale)
+{
+   if(!x.setLength(scale)
+   || !y.setLength(scale))setScale(scale);
+   return T;
+}
 Matrix3& Matrix3::normalize(Flt scale)
 {
    if(!x.setLength(scale)
@@ -1146,6 +1258,12 @@ MatrixD3& MatrixD3::normalize(Dbl scale)
    if(!x.setLength(scale)
    || !y.setLength(scale)
    || !z.setLength(scale))setScale(scale);
+   return T;
+}
+Matrix2& Matrix2::normalize(C Vec2 &scale)
+{
+   if(!x.setLength(scale.x)
+   || !y.setLength(scale.y))setScale(scale);
    return T;
 }
 Matrix3& Matrix3::normalize(C Vec &scale)
@@ -1163,6 +1281,12 @@ MatrixD3& MatrixD3::normalize(C VecD &scale)
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::scaleL(C Vec2 &scale)
+{
+   x*=scale.x;
+   y*=scale.y;
+   return T;
+}
 Matrix3& Matrix3::scaleL(C Vec &scale)
 {
    x*=scale.x;
@@ -1240,6 +1364,23 @@ MatrixD& MatrixD::scalePlane(C VecD &nrm, Dbl scale)
 {
             T.scale(scale       ); // first             scale globally
    if(scale)T.scale(nrm, 1/scale); // then perform axis-scale by reverse of 'scale'
+   return T;
+}
+/******************************************************************************/
+Matrix2& Matrix2::rotate(Flt angle)
+{
+   if(Any(angle))
+   {
+      Flt cos, sin; CosSin(cos, sin, angle);
+
+      Flt x=T.x.x, y=T.x.y;
+      T.x.x=x*cos - y*sin;
+      T.x.y=y*cos + x*sin;
+
+      x=T.y.x; y=T.y.y;
+      T.y.x=x*cos - y*sin;
+      T.y.y=y*cos + x*sin;
+   }
    return T;
 }
 /******************************************************************************/
@@ -1688,6 +1829,12 @@ MatrixD3& MatrixD3::rotateZLOrthoNormalized(Dbl angle)
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::zero()
+{
+   x.zero();
+   y.zero();
+   return T;
+}
 Matrix3& Matrix3::zero()
 {
    x.zero();
@@ -1735,6 +1882,12 @@ Matrix4& Matrix4::zero()
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::identity()
+{
+   x.set(1, 0);
+   y.set(0, 1);
+   return T;
+}
 Matrix3& Matrix3::identity()
 {
    x.set(1, 0, 0);
@@ -1902,6 +2055,12 @@ MatrixD& MatrixD::setPos(C VecD &pos)
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::setScale(Flt scale)
+{
+   x.set(scale, 0);
+   y.set(0, scale);
+   return T;
+}
 Matrix3& Matrix3::setScale(Flt scale)
 {
    x.set(scale, 0, 0);
@@ -1942,6 +2101,12 @@ MatrixD& MatrixD::setScale(Dbl scale)
    return T;
 }
 /******************************************************************************/
+Matrix2& Matrix2::setScale(C Vec2 &scale)
+{
+   x.set(scale.x, 0);
+   y.set(0, scale.y);
+   return T;
+}
 Matrix3& Matrix3::setScale(C Vec &scale)
 {
    x.set(scale.x, 0, 0);
@@ -2079,6 +2244,14 @@ MatrixD& MatrixD::setScalePos(C VecD &scale, C VecD &pos)
      x  .set(scale.x, 0, 0);
      y  .set(0, scale.y, 0);
      z  .set(0, 0, scale.z);
+   return T;
+}
+/******************************************************************************/
+Matrix2& Matrix2::setRotate(Flt angle)
+{
+   Flt c, s; CosSin(c, s, angle);
+   x.set( c, s);
+   y.set(-s, c);
    return T;
 }
 /******************************************************************************/
@@ -2464,12 +2637,16 @@ Matrix& Matrix::swapYZ()
    return T;
 }
 /******************************************************************************/
+Vec2 Matrix2 ::   scale ()C {return          Vec2(x.length (), y.length ()             ) ;}
 Vec  Matrix3 ::   scale ()C {return          Vec (x.length (), y.length (), z.length ()) ;}
 VecD MatrixD3::   scale ()C {return          VecD(x.length (), y.length (), z.length ()) ;}
+Vec2 Matrix2 ::   scale2()C {return          Vec2(x.length2(), y.length2()             ) ;}
 Vec  Matrix3 ::   scale2()C {return          Vec (x.length2(), y.length2(), z.length2()) ;}
 VecD MatrixD3::   scale2()C {return          VecD(x.length2(), y.length2(), z.length2()) ;}
+Flt  Matrix2 ::avgScale ()C {return          Avg (x.length (), y.length ()             ) ;}
 Flt  Matrix3 ::avgScale ()C {return          Avg (x.length (), y.length (), z.length ()) ;}
 Dbl  MatrixD3::avgScale ()C {return          Avg (x.length (), y.length (), z.length ()) ;}
+Flt  Matrix2 ::maxScale ()C {return SqrtFast(Max (x.length2(), y.length2()             ));}
 Flt  Matrix3 ::maxScale ()C {return SqrtFast(Max (x.length2(), y.length2(), z.length2()));}
 Dbl  MatrixD3::maxScale ()C {return SqrtFast(Max (x.length2(), y.length2(), z.length2()));}
 /******************************************************************************/

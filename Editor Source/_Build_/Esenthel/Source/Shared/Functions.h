@@ -188,6 +188,8 @@ flt   FloatSelf(flt x);
 flt   PowMax   (flt x, flt y);
 void TransformImage(Image &image, TextParam param, bool clamp);
 void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp);
+bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null);
+bool LoadImages(C Project *proj, Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null);
 bool ValidChar(char c);
 bool ValidText(C Str &text, int min=1, int max=-1);
 bool ValidFileName(C Str &name);

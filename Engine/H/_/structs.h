@@ -66,6 +66,7 @@ struct Pyramid;
 struct Shape;
 struct Poly;
 
+struct Matrix2;
 struct Matrix3;
 struct MatrixD3;
 struct Matrix;
