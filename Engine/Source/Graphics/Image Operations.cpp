@@ -485,6 +485,86 @@ Image& Image::mirrorY()
    return T;
 }
 /******************************************************************************/
+void Image::transform(Image &dest, C Matrix2 &matrix, FILTER_TYPE filter, UInt flags)C
+{
+   if(is())
+   {
+    C Image *src=this;
+      Image  temp;
+      if(compressed())
+         if(copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else return;
+      if(src->lockRead())
+      {
+         Vec2 corner[2*2];
+         corner[0].set(0, 0);
+         corner[1].set(src->w(), 0);
+         corner[2].set(0, src->h());
+         corner[3].set(src->w(), src->h());
+         REPAO(corner)*=matrix;
+         Rect rect; rect.from(corner, Elms(corner));
+
+         Image &work=((src==&dest) ? temp : dest);
+         if(work.createTry(Round(rect.w()), Round(rect.h()), src->d(), src->type(), src->mode(), src->mipMaps()))
+            if(work.lock(LOCK_WRITE))
+         {
+            PtrImageColor ptr_color=GetImageColorF(filter);
+            Bool clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT);
+            Matrix2P m;
+            matrix.inverse(m.orn());
+            // make sure that in 'corner[0]' (relative to 'rect') we get (0,0) UV
+            //(corner[0]-rect.min)*m=0;
+            //(corner[0]-rect.min)*m.orn+m.pos=0;
+            m.pos=-(corner[0]-rect.min)*m.orn();
+
+            // fix pos round (needed when scaling)
+            m.pos+=0.5f*(m.x+m.y);
+
+            // optimize to replace "work.colorF(x, work.h()-1-y, (src->*ptr_color)(coord.x, src->h()-1-coord.y, clamp, alpha_weight));"
+            //             with    "work.colorF(x,            y, (src->*ptr_color)(coord.x,            coord.y, clamp, alpha_weight));"
+            // this is because "Vec2(x, y) POS" refers to "Vec2(x, h-1-y) UV"
+
+            // convert "work.h()-1-y" -> "y"
+               // Vec2& Vec2::mul(C Matrix2P &m)
+               // x*m.x.x + (work.h()-1-y)*m.y.x + m.pos.x;
+               // x*m.x.y + (work.h()-1-y)*m.y.y + m.pos.y;
+               // ->
+               // x*m.x.x + y*(-m.y.x) + (work.h()-1)*m.y.x + m.pos.x;
+               // x*m.x.y + y*(-m.y.y) + (work.h()-1)*m.y.y + m.pos.y;
+
+               m.pos+=(work.h()-1)*m.y;
+               m.y.chs();
+
+            // fix pos round (needed when scaling)
+            m.pos-=0.5f;
+
+            // convert "src->h()-1-coord.y" -> "coord.y"
+               // convert "src->h()-1-coord.y" -> "src->h()-1+coord.y"
+               CHS(m.x.y);
+               CHS(m.y.y);
+               CHS(m.pos.y);
+               // add "src->h()-1"
+               m.pos.y+=src->h()-1;
+
+            //REPD(z, work.d())
+            {
+               Vec coord; //coord.z=z;
+               REPD(y, work.h())
+               REPD(x, work.w())
+               {
+                  coord.xy.set(x, y)*=m;
+                  work.colorF(x, y, (src->*ptr_color)(coord.x, coord.y, clamp, alpha_weight));
+               }
+            }
+            work.unlock();
+            work.updateMipMaps();
+         }
+         src->unlock();
+         if(&work!=&dest)Swap(work, dest);
+      }
+   }
+}
+void Image::rotate(Image &dest, Flt angle, FILTER_TYPE filter, UInt flags)C {transform(dest, Matrix2().setRotate(angle)*2, filter, flags);}
+/******************************************************************************/
 // ALPHA
 /******************************************************************************/
 Image& Image::alphaFromKey(C Color &key)

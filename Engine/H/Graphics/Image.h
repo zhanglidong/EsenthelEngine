@@ -428,6 +428,7 @@ struct Image // Image (Texture)
    Image& resize3D             (               Int w, Int h, Int d, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                    ) ; // resize 3D image, 'flags'=IMAGE_COPY_FLAG
    Image& mirrorX              (                                                                                                                                                                           ) ; // mirror    image horizontally
    Image& mirrorY              (                                                                                                                                                                           ) ; // mirror    image   vertically
+   void   rotate               (  Image &dest, Flt angle, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                              )C; // rotate image by 'angle' and store in 'dest'
    Image& alphaFromKey         (             C Color &key=PURPLE                                                                                                                                           ) ; // transform to ((pixel color==key) ? (0, 0, 0, 0) : (r, g, b, 255))
    Image& alphaFromBrightness  (                                                                                                                                                                           ) ; // transform to (r  , g  , b  , brightness)
    Image& divRgbByAlpha        (                                                                                                                                                                           ) ; // transform to (r/a, g/a, b/a, a)
@@ -436,6 +437,7 @@ struct Image // Image (Texture)
    Bool   monochromatic        (                                                                                                                                                                           )C; // check if image is monochromatic (all RGB values are the same)
    Bool   monochromaticRG      (                                                                                                                                                                           )C; // check if image is monochromatic (all RG  values are the same, Blue values are ignored)
 #if EE_PRIVATE
+   void   transform            (  Image &dest, C Matrix2 &matrix, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                      )C; // transform image by 'matrix' and store in 'dest'
    Bool   extractNonCompressedMipMapNoStretch(Image &dest, Int w, Int h, Int d, Int mip_map, DIR_ENUM cube_face=DIR_RIGHT, Bool clamp=true)C;
 #endif
    Bool   extractMipMap        (  Image &dest, Int type, Int mip_map, DIR_ENUM cube_face=DIR_RIGHT                                                                                                         )C; // extract specified mipmap to   'dest' 0-th mipmap, false on fail, 'type'=IMAGE_TYPE (-1=keep), 'dest' will always be IMAGE_SOFT
