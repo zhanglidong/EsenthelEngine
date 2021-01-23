@@ -198,6 +198,10 @@ RectI& RectI::from(C VecI2 &a, C VecI2 &b)
    MinMax(a.y, b.y, min.y, max.y);
    return T;
 }
+Bool Rect::from(C Vec2 *point, Int points)
+{
+   if(MinMax(point, points, min, max))return true; zero(); return false;
+}
 /******************************************************************************/
 Rect& Rect::rotatePI_2(Int rotations)
 {

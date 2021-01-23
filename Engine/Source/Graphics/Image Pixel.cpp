@@ -304,6 +304,70 @@ static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Fl
    }else color/=weight;
 }
 /******************************************************************************/
+// pointers to class method
+typedef Flt  (Image::*PtrImagePixel    )(Flt x, Flt y,        Bool clamp)C;
+typedef Flt  (Image::*PtrImagePixel3D  )(Flt x, Flt y, Flt z, Bool clamp)C;
+typedef Vec4 (Image::*PtrImageColor    )(Flt x, Flt y,        Bool clamp, Bool alpha_weight)C;
+typedef Vec4 (Image::*PtrImageColor3D  )(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C;
+typedef Vec4 (Image::*PtrImageAreaColor)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C;
+
+static PtrImagePixel GetImagePixelF(FILTER_TYPE filter)
+{
+   switch(filter)
+   {
+      case FILTER_NONE             : return &Image::pixelFNearest        ;
+      case FILTER_LINEAR           : return &Image::pixelFLinear         ;
+      case FILTER_CUBIC_FAST       : return &Image::pixelFCubicFast      ;
+      case FILTER_CUBIC_FAST_SMOOTH: return &Image::pixelFCubicFastSmooth;
+      case FILTER_CUBIC_FAST_SHARP : return &Image::pixelFCubicFastSharp ;
+      default                      : // FILTER_BEST, FILTER_WAIFU
+      case FILTER_CUBIC_PLUS       : return &Image::pixelFCubicPlus      ;
+      case FILTER_CUBIC_PLUS_SHARP : return &Image::pixelFCubicPlusSharp ;
+   }
+}
+static PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter)
+{
+   switch(filter)
+   {
+      case FILTER_NONE             : return &Image::pixel3DFNearest        ;
+      case FILTER_LINEAR           : return &Image::pixel3DFLinear         ;
+      case FILTER_CUBIC_FAST       : return &Image::pixel3DFCubicFast      ;
+      case FILTER_CUBIC_FAST_SMOOTH: return &Image::pixel3DFCubicFastSmooth;
+      case FILTER_CUBIC_FAST_SHARP : return &Image::pixel3DFCubicFastSharp ;
+      default                      : // FILTER_BEST, FILTER_WAIFU
+      case FILTER_CUBIC_PLUS       : return &Image::pixel3DFCubicPlus      ;
+      case FILTER_CUBIC_PLUS_SHARP : return &Image::pixel3DFCubicPlusSharp ;
+   }
+}
+static PtrImageColor GetImageColorF(FILTER_TYPE filter)
+{
+   switch(filter)
+   {
+      case FILTER_NONE             : return &Image::colorFNearest        ;
+      case FILTER_LINEAR           : return &Image::colorFLinear         ;
+      case FILTER_CUBIC_FAST       : return &Image::colorFCubicFast      ;
+      case FILTER_CUBIC_FAST_SMOOTH: return &Image::colorFCubicFastSmooth;
+      case FILTER_CUBIC_FAST_SHARP : return &Image::colorFCubicFastSharp ;
+      default                      : // FILTER_BEST, FILTER_WAIFU
+      case FILTER_CUBIC_PLUS       : return &Image::colorFCubicPlus      ;
+      case FILTER_CUBIC_PLUS_SHARP : return &Image::colorFCubicPlusSharp ;
+   }
+}
+static PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter)
+{
+   switch(filter)
+   {
+      case FILTER_NONE             : return &Image::color3DFNearest        ;
+      case FILTER_LINEAR           : return &Image::color3DFLinear         ;
+      case FILTER_CUBIC_FAST       : return &Image::color3DFCubicFast      ;
+      case FILTER_CUBIC_FAST_SMOOTH: return &Image::color3DFCubicFastSmooth;
+      case FILTER_CUBIC_FAST_SHARP : return &Image::color3DFCubicFastSharp ;
+      default                      : // FILTER_BEST, FILTER_WAIFU
+      case FILTER_CUBIC_PLUS       : return &Image::color3DFCubicPlus      ;
+      case FILTER_CUBIC_PLUS_SHARP : return &Image::color3DFCubicPlusSharp ;
+   }
+}
+/******************************************************************************/
 // PIXEL / COLOR
 /******************************************************************************/
 static inline void SetPixel(Byte *data, Int byte_pp, UInt pixel)
@@ -1509,6 +1573,67 @@ Flt Image::pixel3DFLinear(Flt x, Flt y, Flt z, Bool clamp)C
             +p[1][1][1]*(  x)*(  y)*(  z);
    }
    return 0;
+}
+/******************************************************************************/
+Flt Image::pixelFNearest(Flt x, Flt y, Bool clamp)C
+{
+   Int ix=Round(x), iy=Round(y);
+   if(clamp)
+   {
+      Clamp(ix, 0, lw()-1);
+      Clamp(iy, 0, lh()-1);
+   }else
+   {
+      ix=Mod(ix, lw());
+      iy=Mod(iy, lh());
+   }
+   return pixelF(ix, iy);
+}
+Flt Image::pixel3DFNearest(Flt x, Flt y, Flt z, Bool clamp)C
+{
+   Int ix=Round(x), iy=Round(y), iz=Round(z);
+   if(clamp)
+   {
+      Clamp(ix, 0, lw()-1);
+      Clamp(iy, 0, lh()-1);
+      Clamp(iz, 0, ld()-1);
+   }else
+   {
+      ix=Mod(ix, lw());
+      iy=Mod(iy, lh());
+      iz=Mod(iz, ld());
+   }
+   return pixel3DF(ix, iy, iz);
+}
+Vec4 Image::colorFNearest(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+{
+   Int ix=Round(x), iy=Round(y);
+   if(clamp)
+   {
+      Clamp(ix, 0, lw()-1);
+      Clamp(iy, 0, lh()-1);
+   }else
+   {
+      ix=Mod(ix, lw());
+      iy=Mod(iy, lh());
+   }
+   return colorF(ix, iy);
+}
+Vec4 Image::color3DFNearest(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C
+{
+   Int ix=Round(x), iy=Round(y), iz=Round(z);
+   if(clamp)
+   {
+      Clamp(ix, 0, lw()-1);
+      Clamp(iy, 0, lh()-1);
+      Clamp(iz, 0, ld()-1);
+   }else
+   {
+      ix=Mod(ix, lw());
+      iy=Mod(iy, lh());
+      iz=Mod(iz, ld());
+   }
+   return color3DF(ix, iy, iz);
 }
 /******************************************************************************/
 Vec4 Image::colorFLinear(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
@@ -4536,7 +4661,14 @@ struct CopyContext
 
    Vec2 x_mul_add, y_mul_add, z_mul_add;
    Vec  area_size;
-   Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
+   union // pointer to class method
+   {
+      PtrImagePixel     ptr_pixel;
+      PtrImagePixel3D   ptr_pixel_3D;
+      PtrImageColor     ptr_color;
+      PtrImageColor3D   ptr_color_3D;
+      PtrImageAreaColor ptr_area_color;
+   };
 
    Flt   alpha_limit;
    Flt (*Weight)(Flt x);
@@ -4771,7 +4903,7 @@ struct CopyContext
       Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
       {
          pos.x=x*x_mul_add.x+x_mul_add.y;
-         Vec4 color=(src.*area_color)(pos, area_size.xy, clamp, alpha_weight);
+         Vec4 color=(src.*ptr_area_color)(pos, area_size.xy, clamp, alpha_weight);
          if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
          set_color(dest_data_x, dest.type(), dest.hwType(), color);
          dest_data_x+=dest.bytePP();
@@ -5060,6 +5192,7 @@ struct CopyContext
          }
       }
    }
+
    static void Upsize(IntPtr elm_index, CopyContext &ctx, Int thread_index) {ctx.upsize(elm_index);}
           void upsize(IntPtr elm_index)
    {
@@ -5075,18 +5208,8 @@ struct CopyContext
          FREPD(x, dest.lw()) // iterate forward so we can increase pointers
          {
             Flt  sx=x*x_mul_add.x+x_mul_add.y;
-            Vec4 color;
-            switch(filter)
-            {
-               case FILTER_NONE             : color=((src.ld()<=1) ? src.colorF               (RoundPos(sx), RoundPos(sy)                     ) : src.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-               case FILTER_LINEAR           : color=((src.ld()<=1) ? src.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : src.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST       : color=((src.ld()<=1) ? src.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST_SMOOTH: color=((src.ld()<=1) ? src.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST_SHARP : color=((src.ld()<=1) ? src.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-               default                      : // FILTER_BEST, FILTER_WAIFU
-               case FILTER_CUBIC_PLUS       : color=((src.ld()<=1) ? src.colorFCubicPlus      (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicPlus      (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_PLUS_SHARP : color=((src.ld()<=1) ? src.colorFCubicPlusSharp (         sx ,          sy , clamp, alpha_weight) : src.color3DFCubicPlusSharp (         sx ,          sy ,          sz , clamp)); break;
-            }
+            Vec4 color=((src.ld()<=1) ? (src.*ptr_color   )(sx, sy,     clamp, alpha_weight)
+                                      : (src.*ptr_color_3D)(sx, sy, sz, clamp, alpha_weight));
             SetColor(dest_data_x, dest.type(), dest.hwType(), color);
             dest_data_x+=dest.bytePP();
          }
@@ -5095,18 +5218,8 @@ struct CopyContext
          FREPD(x, dest.lw()) // iterate forward so we can increase pointers
          {
             Flt sx=x*x_mul_add.x+x_mul_add.y;
-            Flt pix;
-            switch(filter)
-            {
-               case FILTER_NONE             : pix=((src.ld()<=1) ? src.pixelF               (RoundPos(sx), RoundPos(sy)       ) : src.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-               case FILTER_LINEAR           : pix=((src.ld()<=1) ? src.pixelFLinear         (         sx ,          sy , clamp) : src.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST       : pix=((src.ld()<=1) ? src.pixelFCubicFast      (         sx ,          sy , clamp) : src.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST_SMOOTH: pix=((src.ld()<=1) ? src.pixelFCubicFastSmooth(         sx ,          sy , clamp) : src.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_FAST_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicFastSharp (         sx ,          sy , clamp) : src.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
-               default                      : // FILTER_BEST, FILTER_WAIFU
-               case FILTER_CUBIC_PLUS       : pix=((src.ld()<=1) ? src.pixelFCubicPlus      (         sx ,          sy , clamp) : src.pixel3DFCubicPlus      (         sx ,          sy ,          sz , clamp)); break;
-               case FILTER_CUBIC_PLUS_SHARP : pix=((src.ld()<=1) ? src.pixelFCubicPlusSharp (         sx ,          sy , clamp) : src.pixel3DFCubicPlusSharp (         sx ,          sy ,          sz , clamp)); break;
-            }
+            Flt pix=((src.ld()<=1) ? (src.*ptr_pixel   )(sx, sy,     clamp)
+                                   : (src.*ptr_pixel_3D)(sx, sy, sz, clamp));
             SetPixelF(dest_data_x, dest.hwType(), pix);
             dest_data_x+=dest.bytePP();
          }
@@ -5347,14 +5460,14 @@ struct CopyContext
                   Bool linear_gamma; // some down-sampling filters operate on linear gamma here
                   switch(filter)
                   {
-                   //case FILTER_AVERAGE          : linear_gamma=false; area_color=&Image::areaColorFAverage        ; break;
-                     case FILTER_LINEAR           : linear_gamma=true ; area_color=&Image::areaColorLLinear         ; break;
-                     case FILTER_CUBIC_FAST       : linear_gamma=true ; area_color=&Image::areaColorLCubicFast      ; break;
-                     case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; area_color=&Image::areaColorLCubicFastSmooth; break;
+                   //case FILTER_AVERAGE          : linear_gamma=false; ptr_area_color=&Image::areaColorFAverage        ; break;
+                     case FILTER_LINEAR           : linear_gamma=true ; ptr_area_color=&Image::areaColorLLinear         ; break;
+                     case FILTER_CUBIC_FAST       : linear_gamma=true ; ptr_area_color=&Image::areaColorLCubicFast      ; break;
+                     case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; ptr_area_color=&Image::areaColorLCubicFastSmooth; break;
                      default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST, FILTER_WAIFU
-                     case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
-                     case FILTER_CUBIC_PLUS       : linear_gamma=false; area_color=&Image::areaColorFCubicPlus      ; break; // FILTER_CUBIC_PLUS       is not suitable for linear gamma
-                     case FILTER_CUBIC_PLUS_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicPlusSharp ; break; // FILTER_CUBIC_PLUS_SHARP is not suitable for linear gamma
+                     case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
+                     case FILTER_CUBIC_PLUS       : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicPlus      ; break; // FILTER_CUBIC_PLUS       is not suitable for linear gamma
+                     case FILTER_CUBIC_PLUS_SHARP : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicPlusSharp ; break; // FILTER_CUBIC_PLUS_SHARP is not suitable for linear gamma
                   }
                   manual_linear_to_srgb=false;
                   set_color=SetColor; // pointer to function
@@ -5391,6 +5504,15 @@ struct CopyContext
                   ImageThreads.init().process(dest.lh()*dest.ld(), UpsizeLinear, T);
                }else
                {
+                  if(NeedMultiChannel(src.type(), dest.type()))
+                  {
+                     if(src.ld()<=1)ptr_color   =GetImageColorF  (filter); // 2D
+                     else           ptr_color_3D=GetImageColor3DF(filter); // 3D
+                  }else
+                  {
+                     if(src.ld()<=1)ptr_pixel   =GetImagePixelF  (filter); // 2D
+                     else           ptr_pixel_3D=GetImagePixel3DF(filter); // 3D
+                  }
                   ImageThreads.init().process(dest.lh()*dest.ld(), Upsize, T);
                }
             }

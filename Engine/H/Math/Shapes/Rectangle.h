@@ -117,25 +117,26 @@ struct Rect // Rectangle Shape
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
    // operations
-   Rect& extendX   (  Flt   e           ); // extend rectangle X's
-   Rect& extendY   (  Flt   e           ); // extend rectangle Y's
-   Rect& extend    (  Flt   e           ); // extend rectangle
-   Rect& extend    (C Vec2 &v           ); // extend rectangle
-   Rect& extend    (  Flt   x  , Flt y  ); // extend rectangle
-   Rect& includeX  (  Flt   x           ); // extend rectangle to include 'x'
-   Rect& includeY  (  Flt   y           ); // extend rectangle to include 'y'
-   Rect& includeX  (  Flt   min, Flt max); // extend rectangle to include min..max X range
-   Rect& includeY  (  Flt   min, Flt max); // extend rectangle to include min..max Y range
-   Rect& include   (C Vec2 &v           ); // extend rectangle to include vector
-   Rect& include   (C Rect &r           ); // extend rectangle to include rectangle
-   Rect& clampX    (  Flt   min, Flt max); // clamp  rectangle to intersect min..max X range
-   Rect& clampY    (  Flt   min, Flt max); // clamp  rectangle to intersect min..max Y range
-   Rect& moveX     (  Flt   dx          ); // move   rectangle X's by 'dx'
-   Rect& moveY     (  Flt   dy          ); // move   rectangle Y's by 'dy'
-   Rect& from      (C Vec2 &a, C Vec2 &b); // create from 2 points
-   Rect& swapX     (                    ); // swap 'min.x' with 'max.x'
-   Rect& swapY     (                    ); // swap 'min.y' with 'max.y'
-   Rect& rotatePI_2(  Int rotations     ); // rotate rectangle by "rotations*PI_2" angle
+   Rect& extendX   (  Flt   e                ); // extend rectangle X's
+   Rect& extendY   (  Flt   e                ); // extend rectangle Y's
+   Rect& extend    (  Flt   e                ); // extend rectangle
+   Rect& extend    (C Vec2 &v                ); // extend rectangle
+   Rect& extend    (  Flt   x  , Flt y       ); // extend rectangle
+   Rect& includeX  (  Flt   x                ); // extend rectangle to include 'x'
+   Rect& includeY  (  Flt   y                ); // extend rectangle to include 'y'
+   Rect& includeX  (  Flt   min, Flt max     ); // extend rectangle to include min..max X range
+   Rect& includeY  (  Flt   min, Flt max     ); // extend rectangle to include min..max Y range
+   Rect& include   (C Vec2 &v                ); // extend rectangle to include vector
+   Rect& include   (C Rect &r                ); // extend rectangle to include rectangle
+   Rect& clampX    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max X range
+   Rect& clampY    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max Y range
+   Rect& moveX     (  Flt   dx               ); // move   rectangle X's by 'dx'
+   Rect& moveY     (  Flt   dy               ); // move   rectangle Y's by 'dy'
+   Rect& from      (C Vec2 &a, C Vec2 &b     ); // create from 2 points
+   Bool  from      (C Vec2 *point, Int points); // set from an array of points, false on fail (if there are no points)
+   Rect& swapX     (                         ); // swap 'min.x' with 'max.x'
+   Rect& swapY     (                         ); // swap 'min.y' with 'max.y'
+   Rect& rotatePI_2(  Int rotations          ); // rotate rectangle by "rotations*PI_2" angle
 
    Rect& validIncludeX(  Flt   x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
    Rect& validIncludeY(  Flt   y); // extend rectangle to include 'y'   , this method is faster than 'includeY' but assumes rectangle is valid
