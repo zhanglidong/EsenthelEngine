@@ -272,33 +272,35 @@ struct Vec2 // Vector 2D
    Vec2& set (Flt r       ) {x=y=r;        return T;}
    Vec2& set (Flt x, Flt y) {T.x=x; T.y=y; return T;}
 
-   Vec2& operator+=(  Flt      r) {x+=  r; y+=  r; return T;}
-   Vec2& operator-=(  Flt      r) {x-=  r; y-=  r; return T;}
-   Vec2& operator*=(  Flt      r) {x*=  r; y*=  r; return T;}
-   Vec2& operator/=(  Flt      r) {x/=  r; y/=  r; return T;}
-   Vec2& operator+=(C Vec2    &v) {x+=v.x; y+=v.y; return T;}
-   Vec2& operator-=(C Vec2    &v) {x-=v.x; y-=v.y; return T;}
-   Vec2& operator*=(C Vec2    &v) {x*=v.x; y*=v.y; return T;}
-   Vec2& operator/=(C Vec2    &v) {x/=v.x; y/=v.y; return T;}
-   Vec2& operator+=(C VecD2   &v);
-   Vec2& operator-=(C VecD2   &v);
-   Vec2& operator*=(C VecD2   &v);
-   Vec2& operator/=(C VecD2   &v);
-   Vec2& operator+=(C VecI2   &v);
-   Vec2& operator-=(C VecI2   &v);
-   Vec2& operator*=(C VecI2   &v);
-   Vec2& operator/=(C VecI2   &v);
-   Vec2& operator*=(C Matrix2 &m) {return mul(m);}
-   Vec2& operator*=(C Matrix3 &m) {return mul(m);}
-   Vec2& operator*=(C Matrix  &m) {return mul(m);}
-   Vec2& operator/=(C Matrix2 &m) {return div(m);}
-   Vec2& operator/=(C Matrix3 &m) {return div(m);}
-   Vec2& operator/=(C Matrix  &m) {return div(m);}
-   Vec2& operator&=(C Rect    &r) ; // intersect
-   Bool  operator==(  Flt      r)C;
-   Bool  operator!=(  Flt      r)C;
-   Bool  operator==(C Vec2    &v)C;
-   Bool  operator!=(C Vec2    &v)C;
+   Vec2& operator+=(  Flt       r) {x+=  r; y+=  r; return T;}
+   Vec2& operator-=(  Flt       r) {x-=  r; y-=  r; return T;}
+   Vec2& operator*=(  Flt       r) {x*=  r; y*=  r; return T;}
+   Vec2& operator/=(  Flt       r) {x/=  r; y/=  r; return T;}
+   Vec2& operator+=(C Vec2     &v) {x+=v.x; y+=v.y; return T;}
+   Vec2& operator-=(C Vec2     &v) {x-=v.x; y-=v.y; return T;}
+   Vec2& operator*=(C Vec2     &v) {x*=v.x; y*=v.y; return T;}
+   Vec2& operator/=(C Vec2     &v) {x/=v.x; y/=v.y; return T;}
+   Vec2& operator+=(C VecD2    &v);
+   Vec2& operator-=(C VecD2    &v);
+   Vec2& operator*=(C VecD2    &v);
+   Vec2& operator/=(C VecD2    &v);
+   Vec2& operator+=(C VecI2    &v);
+   Vec2& operator-=(C VecI2    &v);
+   Vec2& operator*=(C VecI2    &v);
+   Vec2& operator/=(C VecI2    &v);
+   Vec2& operator*=(C Matrix2  &m) {return mul(m);}
+   Vec2& operator*=(C Matrix2P &m) {return mul(m);}
+   Vec2& operator*=(C Matrix3  &m) {return mul(m);}
+   Vec2& operator*=(C Matrix   &m) {return mul(m);}
+   Vec2& operator/=(C Matrix2  &m) {return div(m);}
+   Vec2& operator/=(C Matrix2P &m) {return div(m);}
+   Vec2& operator/=(C Matrix3  &m) {return div(m);}
+   Vec2& operator/=(C Matrix   &m) {return div(m);}
+   Vec2& operator&=(C Rect     &r) ; // intersect
+   Bool  operator==(  Flt       r)C;
+   Bool  operator!=(  Flt       r)C;
+   Bool  operator==(C Vec2     &v)C;
+   Bool  operator!=(C Vec2     &v)C;
 
    friend Vec2 operator+ (C Vec2 &v, Int i) {return Vec2(v.x+i, v.y+i);}
    friend Vec2 operator- (C Vec2 &v, Int i) {return Vec2(v.x-i, v.y-i);}
@@ -325,13 +327,15 @@ struct Vec2 // Vector 2D
    friend Vec2 operator* (C Vec2 &a, C Vec2 &b) {return Vec2(a.x*b.x, a.y*b.y);}
    friend Vec2 operator/ (C Vec2 &a, C Vec2 &b) {return Vec2(a.x/b.x, a.y/b.y);}
 
-   friend Vec2 operator* (C Vec2 &v, C Matrix2 &m) {return Vec2(v)*=m;}
-   friend Vec2 operator* (C Vec2 &v, C Matrix3 &m) {return Vec2(v)*=m;}
-   friend Vec2 operator* (C Vec2 &v, C Matrix  &m) {return Vec2(v)*=m;}
-   friend Vec2 operator/ (C Vec2 &v, C Matrix2 &m) {return Vec2(v)/=m;}
-   friend Vec2 operator/ (C Vec2 &v, C Matrix3 &m) {return Vec2(v)/=m;}
-   friend Vec2 operator/ (C Vec2 &v, C Matrix  &m) {return Vec2(v)/=m;}
-   friend Vec2 operator& (C Vec2 &v, C Rect    &r) {return Vec2(v)&=r;} // intersection
+   friend Vec2 operator* (C Vec2 &v, C Matrix2  &m) {return Vec2(v)*=m;}
+   friend Vec2 operator* (C Vec2 &v, C Matrix2P &m) {return Vec2(v)*=m;}
+   friend Vec2 operator* (C Vec2 &v, C Matrix3  &m) {return Vec2(v)*=m;}
+   friend Vec2 operator* (C Vec2 &v, C Matrix   &m) {return Vec2(v)*=m;}
+   friend Vec2 operator/ (C Vec2 &v, C Matrix2  &m) {return Vec2(v)/=m;}
+   friend Vec2 operator/ (C Vec2 &v, C Matrix2P &m) {return Vec2(v)/=m;}
+   friend Vec2 operator/ (C Vec2 &v, C Matrix3  &m) {return Vec2(v)/=m;}
+   friend Vec2 operator/ (C Vec2 &v, C Matrix   &m) {return Vec2(v)/=m;}
+   friend Vec2 operator& (C Vec2 &v, C Rect     &r) {return Vec2(v)&=r;} // intersection
 
    friend Vec2 operator- (C Vec2 &v) {return Vec2(-v.x, -v.y);}
    friend Vec2 operator! (C Vec2 &v) {       Vec2 ret=v; ret.normalize(); return ret;} // return normalized vector
@@ -360,15 +364,18 @@ struct Vec2 // Vector 2D
    Flt    setLength       (Flt     length  );                        // set       length and return previous length
    Vec2& clipLength       (Flt max_length  );                        // clip      length to 0..max_length range
    Flt       normalize    (                );                        // normalize length and return previous length
-   Vec2&     mul          (C Matrix2 &m    );                        // transform by matrix
-   Vec2&     mul          (C Matrix3 &m    );                        // transform by matrix
-   Vec2&     mul          (C Matrix  &m    );                        // transform by matrix
-   Vec2&     div          (C Matrix2 &m    );                        // transform by matrix inverse
-   Vec2&     div          (C Matrix3 &m    );                        // transform by matrix inverse
-   Vec2&     div          (C Matrix  &m    );                        // transform by matrix inverse
-   Vec2&     divNormalized(C Matrix2 &m    );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
-   Vec2&     divNormalized(C Matrix3 &m    );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
-   Vec2&     divNormalized(C Matrix  &m    );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
+   Vec2&     mul          (C Matrix2  &m   );                        // transform by matrix
+   Vec2&     mul          (C Matrix2P &m   );                        // transform by matrix
+   Vec2&     mul          (C Matrix3  &m   );                        // transform by matrix
+   Vec2&     mul          (C Matrix   &m   );                        // transform by matrix
+   Vec2&     div          (C Matrix2  &m   );                        // transform by matrix inverse
+   Vec2&     div          (C Matrix2P &m   );                        // transform by matrix inverse
+   Vec2&     div          (C Matrix3  &m   );                        // transform by matrix inverse
+   Vec2&     div          (C Matrix   &m   );                        // transform by matrix inverse
+   Vec2&     divNormalized(C Matrix2  &m   );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
+   Vec2&     divNormalized(C Matrix2P &m   );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
+   Vec2&     divNormalized(C Matrix3  &m   );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
+   Vec2&     divNormalized(C Matrix   &m   );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    Vec2&     rotate       (Flt angle       );                        // rotate by angle
    Vec2&     rotateCosSin (Flt cos, Flt sin);                        // rotate by cos and sin of angle
    Vec2&     chs          (                );                        // change sign of all components
@@ -2475,12 +2482,13 @@ void Normalize(Vec   *v, Int num);
 void Normalize(VecD  *v, Int num);
 
 // transform vectors by matrix
-void Transform(Vec2 *v, C Matrix2 &m, Int num);
-void Transform(Vec2 *v, C Matrix3 &m, Int num);
-void Transform(Vec2 *v, C Matrix  &m, Int num);
-void Transform(Vec  *v, C Matrix3 &m, Int num);
-void Transform(Vec  *v, C Matrix  &m, Int num);
-void Transform(VecD *v, C MatrixM &m, Int num);
+void Transform(Vec2 *v, C Matrix2  &m, Int num);
+void Transform(Vec2 *v, C Matrix2P &m, Int num);
+void Transform(Vec2 *v, C Matrix3  &m, Int num);
+void Transform(Vec2 *v, C Matrix   &m, Int num);
+void Transform(Vec  *v, C Matrix3  &m, Int num);
+void Transform(Vec  *v, C Matrix   &m, Int num);
+void Transform(VecD *v, C MatrixM  &m, Int num);
 
 // change sign of vectors
 void Chs(Vec2  *v, Int num);

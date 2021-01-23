@@ -689,6 +689,15 @@ void Transform(Vec2 *v, C Matrix2 &m, Int num)
       v->y=x*m.x.y + y*m.y.y;
    }
 }
+void Transform(Vec2 *v, C Matrix2P &m, Int num)
+{
+   if(v)for(; --num>=0; v++)
+   {
+      Flt x=v->x, y=v->y;
+      v->x=x*m.x.x + y*m.y.x + m.pos.x;
+      v->y=x*m.x.y + y*m.y.y + m.pos.y;
+   }
+}
 void Transform(Vec2 *v, C Matrix3 &m, Int num)
 {
    if(v)for(; --num>=0; v++)
@@ -746,6 +755,13 @@ Vec2& Vec2::mul(C Matrix2 &m)
    Flt _x=x, _y=y;
    x=_x*m.x.x + _y*m.y.x;
    y=_x*m.x.y + _y*m.y.y;
+   return T;
+}
+Vec2& Vec2::mul(C Matrix2P &m)
+{
+   Flt _x=x, _y=y;
+   x=_x*m.x.x + _y*m.y.x + m.pos.x;
+   y=_x*m.x.y + _y*m.y.y + m.pos.y;
    return T;
 }
 Vec2& Vec2::mul(C Matrix3 &m)
@@ -940,6 +956,13 @@ Vec2& Vec2::div(C Matrix2 &m)
        Dot(T, m.y)/m.y.length2());
    return T;
 }
+Vec2& Vec2::div(C Matrix2P &m)
+{
+   T-=m.pos;
+   set(Dot(T, m.x)/m.x.length2(),
+       Dot(T, m.y)/m.y.length2());
+   return T;
+}
 Vec2& Vec2::div(C Matrix3 &m)
 {
    Vec t(T, 0);
@@ -971,6 +994,13 @@ VecD2& VecD2::div(C MatrixD &m)
 /******************************************************************************/
 Vec2& Vec2::divNormalized(C Matrix2 &m)
 {
+   set(Dot(T, m.x),
+       Dot(T, m.y));
+   return T;
+}
+Vec2& Vec2::divNormalized(C Matrix2P &m)
+{
+   T-=m.pos;
    set(Dot(T, m.x),
        Dot(T, m.y));
    return T;

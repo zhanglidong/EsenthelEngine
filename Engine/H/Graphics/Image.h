@@ -786,6 +786,18 @@ struct ImageThreadsClass : Threads
 
 extern const ImagePtr ImageNull;
 
+// pointers to class method
+typedef Flt  (Image::*PtrImagePixel    )(Flt x, Flt y,        Bool clamp)C;
+typedef Flt  (Image::*PtrImagePixel3D  )(Flt x, Flt y, Flt z, Bool clamp)C;
+typedef Vec4 (Image::*PtrImageColor    )(Flt x, Flt y,        Bool clamp, Bool alpha_weight)C;
+typedef Vec4 (Image::*PtrImageColor3D  )(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C;
+typedef Vec4 (Image::*PtrImageAreaColor)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C;
+
+PtrImagePixel   GetImagePixelF  (FILTER_TYPE filter);
+PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter);
+PtrImageColor   GetImageColorF  (FILTER_TYPE filter);
+PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter);
+
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);

@@ -304,14 +304,7 @@ static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Fl
    }else color/=weight;
 }
 /******************************************************************************/
-// pointers to class method
-typedef Flt  (Image::*PtrImagePixel    )(Flt x, Flt y,        Bool clamp)C;
-typedef Flt  (Image::*PtrImagePixel3D  )(Flt x, Flt y, Flt z, Bool clamp)C;
-typedef Vec4 (Image::*PtrImageColor    )(Flt x, Flt y,        Bool clamp, Bool alpha_weight)C;
-typedef Vec4 (Image::*PtrImageColor3D  )(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C;
-typedef Vec4 (Image::*PtrImageAreaColor)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C;
-
-static PtrImagePixel GetImagePixelF(FILTER_TYPE filter)
+PtrImagePixel GetImagePixelF(FILTER_TYPE filter)
 {
    switch(filter)
    {
@@ -325,7 +318,7 @@ static PtrImagePixel GetImagePixelF(FILTER_TYPE filter)
       case FILTER_CUBIC_PLUS_SHARP : return &Image::pixelFCubicPlusSharp ;
    }
 }
-static PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter)
+PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter)
 {
    switch(filter)
    {
@@ -339,7 +332,7 @@ static PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter)
       case FILTER_CUBIC_PLUS_SHARP : return &Image::pixel3DFCubicPlusSharp ;
    }
 }
-static PtrImageColor GetImageColorF(FILTER_TYPE filter)
+PtrImageColor GetImageColorF(FILTER_TYPE filter)
 {
    switch(filter)
    {
@@ -353,7 +346,7 @@ static PtrImageColor GetImageColorF(FILTER_TYPE filter)
       case FILTER_CUBIC_PLUS_SHARP : return &Image::colorFCubicPlusSharp ;
    }
 }
-static PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter)
+PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter)
 {
    switch(filter)
    {
