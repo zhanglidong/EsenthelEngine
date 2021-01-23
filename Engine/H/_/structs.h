@@ -69,6 +69,7 @@ struct Poly;
 struct Matrix2;
 struct Matrix3;
 struct MatrixD3;
+struct Matrix2P;
 struct Matrix;
 struct MatrixM;
 struct MatrixD;

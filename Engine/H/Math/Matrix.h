@@ -1,5 +1,9 @@
 /******************************************************************************
 
+   Use 'Matrix2' to represent 2D objects orientation and scale.
+
+   Use 'Matrix2P' to represent 2D objects orientation, scale and position.
+
    Use 'Matrix3' to represent objects orientation and scale.
 
    Use 'Matrix' to represent objects orientation, scale and position.
@@ -29,11 +33,13 @@ struct Matrix2 // Matrix 2x2 (orientation + scale)
    friend Matrix2 operator/ (C Matrix2 &a, C Matrix2 &b) {Matrix2 temp; a.div    (b, temp); return temp;} // get a/b
    friend Matrix2 operator~ (C Matrix2 &m              ) {Matrix2 temp; m.inverse(   temp); return temp;} // get inversed 'm'
 
-   void     mul(C Matrix2 &matrix, Matrix2 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
-   Matrix2& mul(C Matrix2 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+   void     mul(C Matrix2  &matrix, Matrix2  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   void     mul(C Matrix2P &matrix, Matrix2P &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   Matrix2& mul(C Matrix2  &matrix                ) {mul(matrix, T); return T;} // multiply self by 'matrix'
 
-   void     div(C Matrix2 &matrix, Matrix2 &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
-   Matrix2& div(C Matrix2 &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+   void     div(C Matrix2  &matrix, Matrix2  &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void     div(C Matrix2P &matrix, Matrix2P &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   Matrix2& div(C Matrix2  &matrix                ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
 
    void     divNormalized(C Matrix2 &matrix, Matrix2 &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
    Matrix2& divNormalized(C Matrix2 &matrix               ) {divNormalized(matrix, T); return T;} // divide self by 'matrix'                           , this method is faster than 'div' however 'matrix' must be normalized
@@ -362,6 +368,101 @@ struct MatrixD3 // Matrix 3x3 (orientation + scale, double precision)
    CONVERSION MatrixD3(C QuaternionD &q);
 };
 /******************************************************************************/
+struct Matrix2P : Matrix2 // Matrix 3x2 (orientation + scale + position)
+{
+   Vec2 pos; // position
+
+   Matrix2& orn()  {return T;} // get reference to self as       'Matrix2'
+ C Matrix2& orn()C {return T;} // get reference to self as const 'Matrix2'
+
+   // transform
+   Matrix2P& operator*=(  Flt       f);
+   Matrix2P& operator/=(  Flt       f);
+   Matrix2P& operator*=(C Vec2     &v);
+   Matrix2P& operator/=(C Vec2     &v);
+   Matrix2P& operator+=(C Vec2     &v) {pos+=v; return T;}
+   Matrix2P& operator-=(C Vec2     &v) {pos-=v; return T;}
+   Matrix2P& operator*=(C Matrix2  &m) {return mul(m);}
+   Matrix2P& operator*=(C Matrix2P &m) {return mul(m);}
+   Matrix2P& operator/=(C Matrix2  &m) {return div(m);}
+   Matrix2P& operator/=(C Matrix2P &m) {return div(m);}
+   Bool      operator==(C Matrix2P &m)C;
+   Bool      operator!=(C Matrix2P &m)C;
+
+   friend Matrix2P operator+ (C Matrix2P &m, C Vec2     &v) {return Matrix2P(m)+=v;                         } // get m+v
+   friend Matrix2P operator- (C Matrix2P &m, C Vec2     &v) {return Matrix2P(m)-=v;                         } // get m-v
+   friend Matrix2P operator* (C Matrix2P &a, C Matrix2  &b) {Matrix2P temp; a.mul    (b, temp); return temp;} // get a*b
+   friend Matrix2P operator* (C Matrix2P &a, C Matrix2P &b) {Matrix2P temp; a.mul    (b, temp); return temp;} // get a*b
+   friend Matrix2P operator/ (C Matrix2P &a, C Matrix2  &b) {Matrix2P temp; a.div    (b, temp); return temp;} // get a/b
+   friend Matrix2P operator/ (C Matrix2P &a, C Matrix2P &b) {Matrix2P temp; a.div    (b, temp); return temp;} // get a/b
+   friend Matrix2P operator~ (C Matrix2P &m               ) {Matrix2P temp; m.inverse(   temp); return temp;} // get inversed 'm'
+   friend Matrix2P operator* (C Matrix2  &a, C Matrix2P &b) {Matrix2P temp; a.mul    (b, temp); return temp;} // get a*b
+   friend Matrix2P operator/ (C Matrix2  &a, C Matrix2P &b) {Matrix2P temp; a.div    (b, temp); return temp;} // get a/b
+
+   void      mul(C Matrix2  &matrix, Matrix2P &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   void      mul(C Matrix2P &matrix, Matrix2P &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   Matrix2P& mul(C Matrix2  &matrix                ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+   Matrix2P& mul(C Matrix2P &matrix                ) {mul(matrix, T); return T;} // multiply self by 'matrix'
+
+   void      div(C Matrix2  &matrix, Matrix2P &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void      div(C Matrix2P &matrix, Matrix2P &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   Matrix2P& div(C Matrix2  &matrix                ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+   Matrix2P& div(C Matrix2P &matrix                ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
+
+   void      divNormalized(C Matrix2  &matrix, Matrix2P &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
+   void      divNormalized(C Matrix2P &matrix, Matrix2P &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
+   Matrix2P& divNormalized(C Matrix2  &matrix                ) {divNormalized(matrix, T); return T;} // divide self by 'matrix'                           , this method is faster than 'div' however 'matrix' must be normalized
+   Matrix2P& divNormalized(C Matrix2P &matrix                ) {divNormalized(matrix, T); return T;} // divide self by 'matrix'                           , this method is faster than 'div' however 'matrix' must be normalized
+
+   void      inverse(Matrix2P &dest, Bool normalized=false)C;                                   // inverse self to 'dest', if you know that the matrix is normalized then set 'normalized=true' for more performance, this method assumes that matrix is orthogonal
+   Matrix2P& inverse(                Bool normalized=false) {inverse(T, normalized); return T;} // inverse self          , if you know that the matrix is normalized then set 'normalized=true' for more performance, this method assumes that matrix is orthogonal
+
+   Matrix2P& normalize(             ) {super::normalize(     ); return T;} // normalize scale           , this sets the length of 'x' 'y' 'z' vectors to 1
+   Matrix2P& normalize(  Flt   scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale'
+   Matrix2P& normalize(C Vec2 &scale) {super::normalize(scale); return T;} // normalize scale to 'scale', this sets the length of 'x' 'y' 'z' vectors to 'scale.x' 'scale.y' 'scale.z'
+
+   Matrix2P& move    (Flt x, Flt y) {pos+=Vec2(x, y); return T;} // move
+   Matrix2P& move    (C Vec2 &move) {pos+=move      ; return T;} // move
+   Matrix2P& moveBack(C Vec2 &move) {pos-=move      ; return T;} // move back
+
+   Matrix2P& scale    (  Flt   scale) {           T*=scale ; return T;} // scale
+   Matrix2P& scale    (C Vec2 &scale) {           T*=scale ; return T;} // scale
+   Matrix2P& scaleL   (C Vec2 &scale);                                  // scale in local space
+   Matrix2P& scaleOrn (  Flt   scale) {super::scale (scale); return T;} // scale orientation only
+   Matrix2P& scaleOrn (C Vec2 &scale) {super::scale (scale); return T;} // scale orientation only
+   Matrix2P& scaleOrnL(C Vec2 &scale) {super::scaleL(scale); return T;} // scale orientation only in local space
+
+   Matrix2P& rotate (Flt angle);                                  // rotate
+   Matrix2P& rotateL(Flt angle) {super::rotate(angle); return T;} // rotate in local space
+
+   // set (set methods reset the full matrix)
+   Matrix2P& identity(); // set as identity
+   Matrix2P& zero    (); // set all vectors to zero
+
+   Matrix2P& setPos     (  Flt x, Flt y              ); // set as positioned identity
+   Matrix2P& setPos     (C Vec2 &pos                 ); // set as positioned identity
+   Matrix2P& setScale   (  Flt   scale               ); // set as scaled     identity
+   Matrix2P& setScale   (C Vec2 &scale               ); // set as scaled     identity
+   Matrix2P& setPosScale(C Vec2 &pos  ,   Flt   scale); // set as positioned & scaled identity
+   Matrix2P& setPosScale(C Vec2 &pos  , C Vec2 &scale); // set as positioned & scaled identity
+   Matrix2P& setScalePos(  Flt   scale, C Vec2 &pos  ); // set as scaled & positioned identity
+   Matrix2P& setScalePos(C Vec2 &scale, C Vec2 &pos  ); // set as scaled & positioned identity
+
+   Matrix2P& setRotate(Flt angle); // set as rotated identity
+
+   // get
+   Vec2 scale()C {return super::scale();} // get each axis scale
+
+   Matrix2P() {}
+   Matrix2P(  Flt      scale                  ) {setScale   (scale       );}
+   Matrix2P(C Vec2    &pos                    ) {setPos     (pos         );}
+   Matrix2P(C Vec2    &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
+   Matrix2P(  Flt      scale, C Vec2    &pos  ) {setScalePos(scale, pos  );}
+   Matrix2P(C Vec2    &scale, C Vec2    &pos  ) {setScalePos(scale, pos  );}
+   Matrix2P(C Matrix2 &orn  , C Vec2    &pos  ) {T.orn()=orn;    T.pos=pos;}
+   Matrix2P(C Vec2    &pos  , C Matrix2 &orn  ) {T.orn()=orn;    T.pos=pos;}
+};
+/******************************************************************************/
 struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
 {
    Vec pos; // position
@@ -478,7 +579,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    Matrix& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
    Matrix& zero    (         ); // set all vectors to zero
 
-   Matrix& setPos     (Flt x, Flt y, Flt z        ); // set as positioned identity
+   Matrix& setPos     (  Flt x, Flt y, Flt z      ); // set as positioned identity
    Matrix& setPos     (C Vec2 &pos                ); // set as positioned identity
    Matrix& setPos     (C Vec  &pos                ); // set as positioned identity
    Matrix& setScale   (  Flt   scale              ); // set as scaled     identity
@@ -679,7 +780,7 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
    MatrixM& zero    (         ); // set all vectors to zero
 
-   MatrixM& setPos     (Dbl x, Dbl y, Dbl z          ); // set as positioned identity
+   MatrixM& setPos     (  Dbl x, Dbl y, Dbl z        ); // set as positioned identity
    MatrixM& setPos     (C VecD2 &pos                 ); // set as positioned identity
    MatrixM& setPos     (C VecD  &pos                 ); // set as positioned identity
    MatrixM& setScale   (  Flt    scale               ); // set as scaled     identity
@@ -817,7 +918,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
    MatrixD& identity(); // set as identity
    MatrixD& zero    (); // set all vectors to zero
 
-   MatrixD& setPos     (Dbl x, Dbl y, Dbl z          ); // set as positioned identity
+   MatrixD& setPos     (  Dbl x, Dbl y, Dbl z        ); // set as positioned identity
    MatrixD& setPos     (C VecD2 &pos                 ); // set as positioned identity
    MatrixD& setPos     (C VecD  &pos                 ); // set as positioned identity
    MatrixD& setScale   (  Dbl    scale               ); // set as scaled     identity

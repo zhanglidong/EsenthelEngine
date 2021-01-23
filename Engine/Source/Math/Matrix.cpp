@@ -62,6 +62,13 @@ MatrixD3& MatrixD3::operator/=(Dbl f)
    z/=f;
    return T;
 }
+Matrix2P& Matrix2P::operator*=(Flt f)
+{
+   x  *=f;
+   y  *=f;
+   pos*=f;
+   return T;
+}
 Matrix& Matrix::operator*=(Flt f)
 {
    x  *=f;
@@ -84,6 +91,13 @@ MatrixD& MatrixD::operator*=(Dbl f)
    y  *=f;
    z  *=f;
    pos*=f;
+   return T;
+}
+Matrix2P& Matrix2P::operator/=(Flt f)
+{
+   x  /=f;
+   y  /=f;
+   pos/=f;
    return T;
 }
 Matrix& Matrix::operator/=(Flt f)
@@ -150,6 +164,13 @@ MatrixD3& MatrixD3::operator/=(C VecD &v)
    z/=v;
    return T;
 }
+Matrix2P& Matrix2P::operator*=(C Vec2 &v)
+{
+   x  *=v;
+   y  *=v;
+   pos*=v;
+   return T;
+}
 Matrix& Matrix::operator*=(C Vec &v)
 {
    x  *=v;
@@ -172,6 +193,13 @@ MatrixD& MatrixD::operator*=(C VecD &v)
    y  *=v;
    z  *=v;
    pos*=v;
+   return T;
+}
+Matrix2P& Matrix2P::operator/=(C Vec2 &v)
+{
+   x  /=v;
+   y  /=v;
+   pos/=v;
    return T;
 }
 Matrix& Matrix::operator/=(C Vec &v)
@@ -281,6 +309,8 @@ Bool Matrix3 ::operator==(C Matrix3  &m)C {return x==m.x && y==m.y && z==m.z;}
 Bool Matrix3 ::operator!=(C Matrix3  &m)C {return x!=m.x || y!=m.y || z!=m.z;}
 Bool MatrixD3::operator==(C MatrixD3 &m)C {return x==m.x && y==m.y && z==m.z;}
 Bool MatrixD3::operator!=(C MatrixD3 &m)C {return x!=m.x || y!=m.y || z!=m.z;}
+Bool Matrix2P::operator==(C Matrix2P &m)C {return x==m.x && y==m.y &&           pos==m.pos;}
+Bool Matrix2P::operator!=(C Matrix2P &m)C {return x!=m.x || y!=m.y ||           pos!=m.pos;}
 Bool Matrix  ::operator==(C Matrix   &m)C {return x==m.x && y==m.y && z==m.z && pos==m.pos;}
 Bool Matrix  ::operator!=(C Matrix   &m)C {return x!=m.x || y!=m.y || z!=m.z || pos!=m.pos;}
 Bool MatrixM ::operator==(C MatrixM  &m)C {return x==m.x && y==m.y && z==m.z && pos==m.pos;}
@@ -465,6 +495,11 @@ void Matrix3::mulNormalized(C Matrix3 &m, Matrix3 &dest)C
 }
 #endif
 /******************************************************************************/
+void Matrix2::mul(C Matrix2P &m, Matrix2P &dest)C
+{
+   dest.pos=m.pos;
+   mul(m.orn(), dest.orn());
+}
 void Matrix3::mul(C Matrix &m, Matrix &dest)C
 {
    dest.pos=m.pos;
@@ -481,6 +516,13 @@ void MatrixD3::mul(C MatrixD &m, MatrixD &dest)C
    mul(m.orn(), dest.orn());
 }
 /******************************************************************************/
+void Matrix2P::mul(C Matrix2 &m, Matrix2P &dest)C
+{
+   Flt        x=pos.x , y=pos.y;
+   dest.pos.x=x*m.x.x + y*m.y.x;
+   dest.pos.y=x*m.x.y + y*m.y.y;
+   super::mul(m, dest.orn());
+}
 void Matrix::mul(C Matrix3 &m, Matrix &dest)C
 {
    Flt        x=pos.x , y=pos.y , z=pos.z;
@@ -516,6 +558,13 @@ void Matrix::mulNormalized(C Matrix3 &m, Matrix &dest)C
    super::mulNormalized(m, dest.orn());
 }
 /******************************************************************************/
+void Matrix2P::mul(C Matrix2P &m, Matrix2P &dest)C
+{
+   Flt        x=pos.x , y=pos.y;
+   dest.pos.x=x*m.x.x + y*m.y.x + m.pos.x;
+   dest.pos.y=x*m.x.y + y*m.y.y + m.pos.y;
+   super::mul(m.orn(), dest.orn());
+}
 void Matrix::mul(C Matrix &m, Matrix &dest)C
 {
    Flt        x=pos.x , y=pos.y , z=pos.z;
@@ -896,6 +945,14 @@ void MatrixD3::divNormalized(C MatrixD3 &m, MatrixD3 &dest)C
    }
 }
 /******************************************************************************/
+void Matrix2P::divNormalized(C Matrix2 &m, Matrix2P &dest)C
+{
+   Flt x=pos.x, y=pos.y;
+   dest.pos.x=x*m.x.x + y*m.x.y;
+   dest.pos.y=x*m.y.x + y*m.y.y;
+
+   super::divNormalized(m, dest);
+}
 void Matrix::divNormalized(C Matrix3 &m, Matrix &dest)C
 {
    Flt x=pos.x, y=pos.y, z=pos.z;
@@ -920,6 +977,14 @@ void MatrixD::divNormalized(C MatrixD3 &m, MatrixD &dest)C
    dest.pos.x=x*m.x.x + y*m.x.y + z*m.x.z;
    dest.pos.y=x*m.y.x + y*m.y.y + z*m.y.z;
    dest.pos.z=x*m.z.x + y*m.z.y + z*m.z.z;
+
+   super::divNormalized(m, dest);
+}
+void Matrix2P::divNormalized(C Matrix2P &m, Matrix2P &dest)C
+{
+   Flt x=pos.x-m.pos.x, y=pos.y-m.pos.y;
+   dest.pos.x=x*m.x.x + y*m.x.y;
+   dest.pos.y=x*m.y.x + y*m.y.y;
 
    super::divNormalized(m, dest);
 }
@@ -979,15 +1044,18 @@ void MatrixD::divNormalized(C MatrixD &m, MatrixD &dest)C
 }
 /******************************************************************************/
 void Matrix2 ::div(C Matrix2  &m, Matrix2  &dest)C {Matrix2  temp; m.inverse(temp); mul(temp, dest);}
+void Matrix2 ::div(C Matrix2P &m, Matrix2P &dest)C {Matrix2P temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C Matrix3  &m, Matrix3  &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C Matrix   &m, Matrix   &dest)C {Matrix   temp; m.inverse(temp); mul(temp, dest);}
 void Matrix3 ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD3::div(C Matrix3  &m, MatrixD3 &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD3::div(C MatrixD3 &m, MatrixD3 &dest)C {MatrixD3 temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD3::div(C MatrixD  &m, MatrixD  &dest)C {MatrixD  temp; m.inverse(temp); mul(temp, dest);}
+void Matrix2P::div(C Matrix2  &m, Matrix2P &dest)C {Matrix2  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C Matrix3  &m, Matrix   &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixM ::div(C Matrix3  &m, MatrixM  &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD ::div(C MatrixD3 &m, MatrixD  &dest)C {MatrixD3 temp; m.inverse(temp); mul(temp, dest);}
+void Matrix2P::div(C Matrix2P &m, Matrix2P &dest)C {Matrix2P temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C Matrix   &m, Matrix   &dest)C {Matrix   temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C MatrixM  &m, Matrix   &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
@@ -1130,6 +1198,13 @@ void MatrixD3::inverseNonOrthogonal(MatrixD3 &dest)C
          dest.z.z=det*(x.x*y.y - y.x*x.y);
       }
    }
+}
+void Matrix2P::inverse(Matrix2P &dest, Bool normalized)C
+{
+   super::inverse(dest.orn(), normalized);
+   Flt x=pos.x, y=pos.y;
+   dest.pos.x=-(x*dest.x.x + y*dest.y.x);
+   dest.pos.y=-(x*dest.x.y + y*dest.y.y);
 }
 void Matrix::inverse(Matrix &dest, Bool normalized)C
 {
@@ -1292,6 +1367,15 @@ Matrix3& Matrix3::scaleL(C Vec &scale)
    x*=scale.x;
    y*=scale.y;
    z*=scale.z;
+   return T;
+}
+Matrix2P& Matrix2P::scaleL(C Vec2 &scale)
+{
+   // adjust position before scaling axes, in case 'scale' is zero and would destroy them
+   Vec2 dir; Flt d;
+   if(d=scale.x-1){dir=x; dir.normalize(); pos+=dir*(DistPointPlane(pos, dir)*d);}
+   if(d=scale.y-1){dir=y; dir.normalize(); pos+=dir*(DistPointPlane(pos, dir)*d);}
+   super::scaleL(scale);
    return T;
 }
 Matrix& Matrix::scaleL(C Vec &scale)
@@ -1502,6 +1586,27 @@ MatrixD3& MatrixD3::rotateZ(Dbl angle)
       x=T.z.x; y=T.z.y;
       T.z.x=x*cos - y*sin;
       T.z.y=y*cos + x*sin;
+   }
+   return T;
+}
+/******************************************************************************/
+Matrix2P& Matrix2P::rotate(Flt angle)
+{
+   if(Any(angle))
+   {
+      Flt cos, sin; CosSin(cos, sin, angle);
+
+      Flt x=T.x.x, y=T.x.y;
+      T.x.x=x*cos - y*sin;
+      T.x.y=y*cos + x*sin;
+
+      x=T.y.x; y=T.y.y;
+      T.y.x=x*cos - y*sin;
+      T.y.y=y*cos + x*sin;
+
+      x=pos.x; y=pos.y;
+      pos.x=x*cos - y*sin;
+      pos.y=y*cos + x*sin;
    }
    return T;
 }
@@ -1849,6 +1954,13 @@ MatrixD3& MatrixD3::zero()
    z.zero();
    return T;
 }
+Matrix2P& Matrix2P::zero()
+{
+   x  .zero();
+   y  .zero();
+   pos.zero();
+   return T;
+}
 Matrix& Matrix::zero()
 {
    x  .zero();
@@ -1900,6 +2012,13 @@ MatrixD3& MatrixD3::identity()
    x.set(1, 0, 0);
    y.set(0, 1, 0);
    z.set(0, 0, 1);
+   return T;
+}
+Matrix2P& Matrix2P::identity()
+{
+   x  .set (1, 0);
+   y  .set (0, 1);
+   pos.zero(    );
    return T;
 }
 Matrix& Matrix::identity()
@@ -1980,6 +2099,13 @@ MatrixM& MatrixM::identity(Flt blend)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setPos(Flt x, Flt y)
+{
+   T.pos.set(x, y);
+   T.x  .set(1, 0);
+   T.y  .set(0, 1);
+   return T;
+}
 Matrix& Matrix::setPos(Flt x, Flt y, Flt z)
 {
    T.pos.set(x, y, z);
@@ -2030,6 +2156,13 @@ MatrixD& MatrixD::setPos(C VecD2 &pos)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setPos(C Vec2 &pos)
+{
+   T.pos=pos;
+     x  .set(1, 0);
+     y  .set(0, 1);
+   return T;
+}
 Matrix& Matrix::setPos(C Vec &pos)
 {
    T.pos=pos;
@@ -2076,6 +2209,13 @@ MatrixD3& MatrixD3::setScale(Dbl scale)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setScale(Flt scale)
+{
+   x  .set (scale, 0);
+   y  .set (0, scale);
+   pos.zero(        );
+   return T;
+}
 Matrix& Matrix::setScale(Flt scale)
 {
    x  .set (scale, 0, 0);
@@ -2122,6 +2262,13 @@ MatrixD3& MatrixD3::setScale(C VecD &scale)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setScale(C Vec2 &scale)
+{
+   x  .set (scale.x, 0);
+   y  .set (0, scale.y);
+   pos.zero(          );
+   return T;
+}
 Matrix& Matrix::setScale(C Vec &scale)
 {
    x  .set (scale.x, 0, 0);
@@ -2147,6 +2294,13 @@ MatrixD& MatrixD::setScale(C VecD &scale)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setPosScale(C Vec2 &pos, Flt scale)
+{
+   T.pos.set(pos.x*scale, pos.y*scale);
+     x  .set(scale, 0);
+     y  .set(0, scale);
+   return T;
+}
 Matrix& Matrix::setPosScale(C Vec &pos, Flt scale)
 {
    T.pos.set(pos.x*scale, pos.y*scale, pos.z*scale);
@@ -2172,6 +2326,13 @@ MatrixD& MatrixD::setPosScale(C VecD &pos, Dbl scale)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setPosScale(C Vec2 &pos, C Vec2 &scale)
+{
+   T.pos.set(pos.x*scale.x, pos.y*scale.y);
+     x  .set(scale.x, 0);
+     y  .set(0, scale.y);
+   return T;
+}
 Matrix& Matrix::setPosScale(C Vec &pos, C Vec &scale)
 {
    T.pos.set(pos.x*scale.x, pos.y*scale.y, pos.z*scale.z);
@@ -2197,6 +2358,13 @@ MatrixD& MatrixD::setPosScale(C VecD &pos, C VecD &scale)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setScalePos(Flt scale, C Vec2 &pos)
+{
+   T.pos=pos;
+     x  .set(scale, 0);
+     y  .set(0, scale);
+   return T;
+}
 Matrix& Matrix::setScalePos(Flt scale, C Vec &pos)
 {
    T.pos=pos;
@@ -2222,6 +2390,13 @@ MatrixD& MatrixD::setScalePos(Dbl scale, C VecD &pos)
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setScalePos(C Vec2 &scale, C Vec2 &pos)
+{
+   T.pos=pos;
+     x  .set(scale.x, 0);
+     y  .set(0, scale.y);
+   return T;
+}
 Matrix& Matrix::setScalePos(C Vec &scale, C Vec &pos)
 {
    T.pos=pos;
@@ -2404,6 +2579,8 @@ MatrixD3& MatrixD3::setRotateCosSin(C VecD &axis, Dbl cos, Dbl sin) // !! this m
    return T;
 }
 /******************************************************************************/
+Matrix2P& Matrix2P::setRotate(Flt angle) {super::setRotate(angle); pos.zero(); return T;}
+
 Matrix& Matrix::setRotateX (              Flt angle) {super::setRotateX (      angle); pos.zero(); return T;}
 Matrix& Matrix::setRotateY (              Flt angle) {super::setRotateY (      angle); pos.zero(); return T;}
 Matrix& Matrix::setRotateZ (              Flt angle) {super::setRotateZ (      angle); pos.zero(); return T;}
