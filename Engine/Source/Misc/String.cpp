@@ -1905,7 +1905,7 @@ Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensiti
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[t_length], whole_word)) : true))return pos;
+         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[match_length], whole_word)) : true))return pos;
          last=c;
          src++;
       }
