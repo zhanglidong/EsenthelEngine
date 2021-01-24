@@ -17,6 +17,40 @@ ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerL
 // MAIN SHADER
 /******************************************************************************/
 #if DX11
+void Create2DSampler()
+{
+   D3D11_SAMPLER_DESC sd; Zero(sd);
+   sd.MipLODBias    =D.imageMipBias();
+   sd.MaxAnisotropy =1;
+   sd.MinLOD        =0;
+   sd.MaxLOD        =FLT_MAX;
+   sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
+   sd.Filter        =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_WRAP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_WRAP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
+   SamplerLinearWrap.create(sd);
+
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   SamplerLinearClamp.create(sd);
+}
+void CreateFontSampler()
+{
+   D3D11_SAMPLER_DESC sd; Zero(sd);
+   sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.MipLODBias    =D.fontMipBias();
+   sd.MaxAnisotropy =1;
+   sd.MinLOD        =0;
+   sd.MaxLOD        =FLT_MAX;
+   sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
+   SamplerFont.create(sd);
+}
 void CreateAnisotropicSampler()
 {
    D3D11_SAMPLER_DESC  sd; Zero(sd);
@@ -32,20 +66,6 @@ void CreateAnisotropicSampler()
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerAnisotropic.create(sd);
-}
-void CreateFontSampler()
-{
-   D3D11_SAMPLER_DESC sd; Zero(sd);
-   sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.MipLODBias    =-D.fontSharpness();
-   sd.MaxAnisotropy =1;
-   sd.MinLOD        =0;
-   sd.MaxLOD        =FLT_MAX;
-   sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
-   SamplerFont.create(sd);
 }
 #endif
 /******************************************************************************/
@@ -94,12 +114,6 @@ void MainShaderClass::createSamplers()
 
    sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
    sd.AddressU=D3D11_TEXTURE_ADDRESS_WRAP;
-   sd.AddressV=D3D11_TEXTURE_ADDRESS_WRAP;
-   sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
-   SamplerLinearWrap.create(sd);
-
-   sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-   sd.AddressU=D3D11_TEXTURE_ADDRESS_WRAP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    SamplerLinearWCC.create(sd);
@@ -116,21 +130,16 @@ void MainShaderClass::createSamplers()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
    SamplerLinearCWW.create(sd);
 
-   sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
-   SamplerLinearClamp.create(sd);
-
    sd.Filter  =D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
    sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.ComparisonFunc=(REVERSE_DEPTH ? D3D11_COMPARISON_GREATER_EQUAL : D3D11_COMPARISON_LESS_EQUAL);
    SamplerShadowMap.create(sd);
-   
-   CreateAnisotropicSampler();
+
+   Create2DSampler         ();
    CreateFontSampler       ();
+   CreateAnisotropicSampler();
 #elif GL
    REPAO(SamplerPoint.filter )=GL_NEAREST;
    REPAO(SamplerPoint.address)=GL_CLAMP_TO_EDGE;

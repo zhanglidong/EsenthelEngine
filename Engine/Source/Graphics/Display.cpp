@@ -839,10 +839,11 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
 //_tex_mip_min     =0;
-//_tex_mip_bias    =0;
   _tex_macro       =true;
 //_tex_detail_lod  =false;
-  _font_sharpness  =0.75f;
+//  _tex_mip_bias  = 0.00f;
+  _image_mip_bias  =-0.50f;
+   _font_mip_bias  =-0.75f;
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
@@ -2970,12 +2971,25 @@ DisplayClass& DisplayClass::texMipBias(Flt bias)
    }
    return T;
 }
-/******************************************************************************/
-DisplayClass& DisplayClass::fontSharpness(Flt value)
+DisplayClass& DisplayClass::imageMipBias(Flt bias)
 {
-   if(T._font_sharpness!=value)
+   if(T._image_mip_bias!=bias)
    {
-      T._font_sharpness=value;
+      T._image_mip_bias=bias;
+      if(created())
+      {
+      #if DX11
+         Create2DSampler();
+      #endif
+      }
+   }
+   return T;
+}
+DisplayClass& DisplayClass::fontMipBias(Flt bias)
+{
+   if(T._font_mip_bias!=bias)
+   {
+      T._font_mip_bias=bias;
       if(created())
       {
       #if DX11
