@@ -279,7 +279,7 @@ ListColumn NameDescListColumn[1]= // !! need to define array size because this w
          if(param.name.is() && ResizeTransformAny(param.name))
          {
             size        =GetSize       (param.name, param.value, size3());
-            filter      =GetFilter     (param.name);
+            filter      =GetFilterI    (param.name);
             clamp       =GetClampWrap  (param.name, false);
             alpha_weight=GetAlphaWeight(param.name);
             keep_edges  =GetKeepEdges  (param.name);

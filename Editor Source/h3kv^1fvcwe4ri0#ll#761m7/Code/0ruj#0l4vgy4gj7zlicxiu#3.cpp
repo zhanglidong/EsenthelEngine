@@ -803,7 +803,7 @@ VecI2 GetSize(C Str &name, C Str &value, C VecI &src)
    if(Starts(name, "maxSize")){MIN(size.x, src.x); MIN(size.y, src.y);}
    return size;
 }
-int GetFilter(C Str &name)
+int GetFilterI(C Str &name)
 {
    if(Contains(name, "nearest"  ) || Contains(name, "point") || Contains(name, "FilterNone"))return FILTER_NONE;
    if(Contains(name, "linear"   ))return FILTER_LINEAR;
@@ -812,6 +812,10 @@ int GetFilter(C Str &name)
    if(Contains(name, "waifu"    ))return FILTER_WAIFU;
    if(Contains(name, "NoStretch"))return FILTER_NO_STRETCH;
                                   return -1;
+}
+FILTER_TYPE GetFilter(C Str &name)
+{
+   int i=GetFilterI(name); return InRange(i, FILTER_NUM) ? FILTER_TYPE(i) : FILTER_BEST;
 }
 bool GetClampWrap(C Str &name, bool default_clamp)
 {
@@ -1419,15 +1423,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(ResizeTransformAny(param.name))
    {
-      VecI2 size        =GetSize       (param.name, param.value, image.size3());
-      int   filter      =GetFilter     (param.name);
-      bool  resize_clamp=GetClampWrap  (param.name, clamp);
-      bool  alpha_weight=GetAlphaWeight(param.name);
-      bool  keep_edges  =GetKeepEdges  (param.name);
-      image.resize(size.x, size.y, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP)|(alpha_weight?IC_ALPHA_WEIGHT:0)|(keep_edges?IC_KEEP_EDGES:0));
+      VecI2       size        =GetSize       (param.name, param.value, image.size3());
+      FILTER_TYPE filter      =GetFilter     (param.name);
+      bool        resize_clamp=GetClampWrap  (param.name, clamp);
+      bool        alpha_weight=GetAlphaWeight(param.name);
+      bool        keep_edges  =GetKeepEdges  (param.name);
+      image.resize(size.x, size.y, filter, (resize_clamp?IC_CLAMP:IC_WRAP)|(alpha_weight?IC_ALPHA_WEIGHT:0)|(keep_edges?IC_KEEP_EDGES:0));
    }else
-   if(param.name=="rotate"     )                         image.rotate     (image, DegToRad(param.asFlt())      ); else
-   if(param.name=="rotateScale"){Vec2 rs=param.asVec2(); image.rotateScale(image, DegToRad(rs.x         ), rs.y);}else
+   if(Starts(param.name, "rotateScale")){Vec2 rs=param.asVec2(); image.rotateScale(image, DegToRad(rs.x         ), rs.y, GetFilter(param.name));}else
+   if(Starts(param.name, "rotate"     ))                         image.rotate     (image, DegToRad(param.asFlt())      , GetFilter(param.name)); else
    if(param.name=="tile")image.tile(param.asInt());else
    if(param.name=="inverseRGB")
    {

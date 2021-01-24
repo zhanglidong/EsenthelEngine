@@ -146,7 +146,8 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Imag
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2);
 VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2);
 VecI2 GetSize(C Str &name, C Str &value, C VecI &src);
-int GetFilter(C Str &name);
+int GetFilterI(C Str &name);
+FILTER_TYPE GetFilter(C Str &name);
 bool GetClampWrap(C Str &name, bool default_clamp);
 bool GetAlphaWeight(C Str &name);
 bool GetKeepEdges  (C Str &name);
