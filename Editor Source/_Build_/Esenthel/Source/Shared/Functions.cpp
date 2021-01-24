@@ -922,7 +922,9 @@ bool SizeDependentTransform(C TextParam &p)
    return p.name=="blur" // range depends on size
        || p.name=="sharpen" // range depends on size
        || p.name=="bump" || p.name=="bumpClamp" // range depends on size
-       || p.name=="crop" // coordinates/size depend on size
+       || p.name=="crop"   // coordinates/size depend on size
+       || p.name=="trim"   // coordinates/size depend on size
+       || p.name=="extend" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
        || p.name=="tile" // tile range depends on size
        || (p.name=="pos" || p.name=="position") && p.asVecI2().any() // coordinates depend on size
@@ -953,7 +955,7 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
       if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
-         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
+         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="trim" && p.name!="extend" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
       }
       if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
@@ -1259,6 +1261,30 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       VecI4 v=TextVecI4(param.value);
       image.crop(image, v.x, v.y, v.z, v.w);
    }else
+   if(param.name=="trim")
+   {
+      VecI4 v;
+      Memc<Str> c; Split(c, param.value, ','); switch(c.elms())
+      {
+         case  1: v=        TextInt  (param.value); break;
+         case  2: v.xy=v.zw=TextVecI2(param.value); break;
+         case  4: v=        TextVecI4(param.value); break;
+         default: v=0; break;
+      }
+      image.crop(image, v.x, v.y, image.w()-v.x-v.z, image.h()-v.y-v.w);
+   }else
+   if(param.name=="extend")
+   {
+      VecI4 v;
+      Memc<Str> c; Split(c, param.value, ','); switch(c.elms())
+      {
+         case  1: v=        TextInt  (param.value); break;
+         case  2: v.xy=v.zw=TextVecI2(param.value); break;
+         case  4: v=        TextVecI4(param.value); break;
+         default: v=0; break;
+      }
+      image.crop(image, -v.x, -v.y, image.w()+v.x+v.z, image.h()+v.y+v.w);
+   }else
    if(ResizeTransformAny(param.name))
    {
       VecI2 size        =GetSize       (param.name, param.value, image.size3());
@@ -1268,6 +1294,8 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       bool  keep_edges  =GetKeepEdges  (param.name);
       image.resize(size.x, size.y, InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP)|(alpha_weight?IC_ALPHA_WEIGHT:0)|(keep_edges?IC_KEEP_EDGES:0));
    }else
+   if(param.name=="rotate"     )                         image.rotate     (image, DegToRad(param.asFlt())      ); else
+   if(param.name=="rotateScale"){Vec2 rs=param.asVec2(); image.rotateScale(image, DegToRad(rs.x         ), rs.y);}else
    if(param.name=="tile")image.tile(param.asInt());else
    if(param.name=="inverseRGB")
    {
