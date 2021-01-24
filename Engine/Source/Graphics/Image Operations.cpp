@@ -507,8 +507,22 @@ void Image::transform(Image &dest, C Matrix2 &matrix, FILTER_TYPE filter, UInt f
          if(work.createTry(Round(rect.w()), Round(rect.h()), src->d(), src->type(), src->mode(), src->mipMaps()))
             if(work.lock(LOCK_WRITE))
          {
-            PtrImageColor ptr_color=GetImageColorF(filter);
-            Bool clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT);
+            Vec2 area_size=1/matrix.scale();
+            Bool clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT),
+                 downsize=(filter!=FILTER_NONE && (area_size.x>1+EPS || area_size.y>1+EPS) && src->ld()==1); // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
+            union
+            {
+               PtrImageColor ptr_color;
+               struct
+               {
+                  Bool              linear_gamma;
+                  PtrImageAreaColor ptr_area_color;
+               };
+            };
+            if(downsize)
+            {
+                  ptr_area_color=GetImageAreaColor(filter, linear_gamma);
+            }else ptr_color     =GetImageColorF   (filter);
             Matrix2P m;
             matrix.inverse(m.orn());
             // make sure that in 'corner[0]' (relative to 'rect') we get (0,0) UV
@@ -552,7 +566,17 @@ void Image::transform(Image &dest, C Matrix2 &matrix, FILTER_TYPE filter, UInt f
                REPD(x, work.w())
                {
                   coord.xy.set(x, y)*=m;
-                  work.colorF(x, y, (src->*ptr_color)(coord.x, coord.y, clamp, alpha_weight));
+                  Vec4 color;
+                  if(downsize)
+                  {
+                     color=(src->*ptr_area_color)(coord.xy, area_size, clamp, alpha_weight);
+                     if(linear_gamma)work.colorL(x, y, color);
+                     else            work.colorF(x, y, color);
+                  }else
+                  {
+                     color=(src->*ptr_color)(coord.x, coord.y, clamp, alpha_weight);
+                     work.colorF(x, y, color);
+                  }
                }
             }
             work.unlock();
@@ -563,7 +587,8 @@ void Image::transform(Image &dest, C Matrix2 &matrix, FILTER_TYPE filter, UInt f
       }
    }
 }
-void Image::rotate(Image &dest, Flt angle, FILTER_TYPE filter, UInt flags)C {transform(dest, Matrix2().setRotate(angle)*2, filter, flags);}
+void Image::rotate     (Image &dest, Flt angle,            FILTER_TYPE filter, UInt flags)C {transform(dest, Matrix2().setRotate(angle)             , filter, flags);}
+void Image::rotateScale(Image &dest, Flt angle, Flt scale, FILTER_TYPE filter, UInt flags)C {transform(dest, Matrix2().setRotate(angle).scale(scale), filter, flags);}
 /******************************************************************************/
 // ALPHA
 /******************************************************************************/

@@ -360,6 +360,20 @@ PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter)
       case FILTER_CUBIC_PLUS_SHARP : return &Image::color3DFCubicPlusSharp ;
    }
 }
+PtrImageAreaColor GetImageAreaColor(FILTER_TYPE filter, Bool &linear_gamma)
+{
+   switch(filter)
+   {
+    //case FILTER_AVERAGE          : linear_gamma=false; return &Image::areaColorFAverage        ;
+      case FILTER_LINEAR           : linear_gamma=true ; return &Image::areaColorLLinear         ;
+      case FILTER_CUBIC_FAST       : linear_gamma=true ; return &Image::areaColorLCubicFast      ;
+      case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; return &Image::areaColorLCubicFastSmooth;
+      default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST, FILTER_WAIFU
+      case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; return &Image::areaColorFCubicFastSharp ; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
+      case FILTER_CUBIC_PLUS       : linear_gamma=false; return &Image::areaColorFCubicPlus      ; // FILTER_CUBIC_PLUS       is not suitable for linear gamma
+      case FILTER_CUBIC_PLUS_SHARP : linear_gamma=false; return &Image::areaColorFCubicPlusSharp ; // FILTER_CUBIC_PLUS_SHARP is not suitable for linear gamma
+   }
+}
 /******************************************************************************/
 // PIXEL / COLOR
 /******************************************************************************/
@@ -5231,11 +5245,14 @@ struct CopyContext
          (However some sharpening filters don't do this, because serious artifacts occur)
 
       Vec4 linear_color;
-      if(ignore_gamma) // we don't want to convert gamma
+      if(linear_gamma)
       {
-         if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
-            dest.colorF(x, y, linear_color);
-      }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+         if(ignore_gamma) // we don't want to convert gamma
+         {
+            if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
+               dest.colorF(x, y, linear_color);
+         }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+      }
 
       However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
       So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
@@ -5448,20 +5465,10 @@ struct CopyContext
                   z_mul_add.x=Flt(src.ld())/dest.ld(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
                }
                area_size.set(x_mul_add.x, y_mul_add.x, z_mul_add.x); area_size*=sharp_smooth;
-               if(filter!=FILTER_NONE && (area_size.x>1 || area_size.y>1) && src.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
+               if(filter!=FILTER_NONE && (area_size.x>1+EPS || area_size.y>1+EPS) && src.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
                {
                   Bool linear_gamma; // some down-sampling filters operate on linear gamma here
-                  switch(filter)
-                  {
-                   //case FILTER_AVERAGE          : linear_gamma=false; ptr_area_color=&Image::areaColorFAverage        ; break;
-                     case FILTER_LINEAR           : linear_gamma=true ; ptr_area_color=&Image::areaColorLLinear         ; break;
-                     case FILTER_CUBIC_FAST       : linear_gamma=true ; ptr_area_color=&Image::areaColorLCubicFast      ; break;
-                     case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; ptr_area_color=&Image::areaColorLCubicFastSmooth; break;
-                     default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST, FILTER_WAIFU
-                     case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
-                     case FILTER_CUBIC_PLUS       : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicPlus      ; break; // FILTER_CUBIC_PLUS       is not suitable for linear gamma
-                     case FILTER_CUBIC_PLUS_SHARP : linear_gamma=false; ptr_area_color=&Image::areaColorFCubicPlusSharp ; break; // FILTER_CUBIC_PLUS_SHARP is not suitable for linear gamma
-                  }
+                  ptr_area_color=GetImageAreaColor(filter, linear_gamma);
                   manual_linear_to_srgb=false;
                   set_color=SetColor; // pointer to function
                   if(linear_gamma)

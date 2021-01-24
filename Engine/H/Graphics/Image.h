@@ -428,7 +428,8 @@ struct Image // Image (Texture)
    Image& resize3D             (               Int w, Int h, Int d, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                    ) ; // resize 3D image, 'flags'=IMAGE_COPY_FLAG
    Image& mirrorX              (                                                                                                                                                                           ) ; // mirror    image horizontally
    Image& mirrorY              (                                                                                                                                                                           ) ; // mirror    image   vertically
-   void   rotate               (  Image &dest, Flt angle, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                              )C; // rotate image by 'angle' and store in 'dest'
+   void   rotate               (  Image &dest, Flt angle,            FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                   )C; // rotate image by 'angle'                    and store in 'dest'
+   void   rotateScale          (  Image &dest, Flt angle, Flt scale, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP                                                                                   )C; // rotate image by 'angle', scale by 'scale', and store in 'dest'
    Image& alphaFromKey         (             C Color &key=PURPLE                                                                                                                                           ) ; // transform to ((pixel color==key) ? (0, 0, 0, 0) : (r, g, b, 255))
    Image& alphaFromBrightness  (                                                                                                                                                                           ) ; // transform to (r  , g  , b  , brightness)
    Image& divRgbByAlpha        (                                                                                                                                                                           ) ; // transform to (r/a, g/a, b/a, a)
@@ -795,10 +796,11 @@ typedef Vec4 (Image::*PtrImageColor    )(Flt x, Flt y,        Bool clamp, Bool a
 typedef Vec4 (Image::*PtrImageColor3D  )(Flt x, Flt y, Flt z, Bool clamp, Bool alpha_weight)C;
 typedef Vec4 (Image::*PtrImageAreaColor)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C;
 
-PtrImagePixel   GetImagePixelF  (FILTER_TYPE filter);
-PtrImagePixel3D GetImagePixel3DF(FILTER_TYPE filter);
-PtrImageColor   GetImageColorF  (FILTER_TYPE filter);
-PtrImageColor3D GetImageColor3DF(FILTER_TYPE filter);
+PtrImagePixel     GetImagePixelF   (FILTER_TYPE filter);
+PtrImagePixel3D   GetImagePixel3DF (FILTER_TYPE filter);
+PtrImageColor     GetImageColorF   (FILTER_TYPE filter);
+PtrImageColor3D   GetImageColor3DF (FILTER_TYPE filter);
+PtrImageAreaColor GetImageAreaColor(FILTER_TYPE filter, Bool &linear_gamma);
 
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
