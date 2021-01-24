@@ -1135,7 +1135,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
    return false;
 }
 /****************************************************************************/
-Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word=WHOLE_WORD_NO)
+Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word)
 {
    if(!Is(start))return true;
    if(t)
@@ -1893,7 +1893,7 @@ Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive, WHOLE_WORD who
    return -1;
 }
 /****************************************************************************/
-Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word)
+Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word, WHOLE_WORD whole_word_sub)
 {
    if(src && Is(t))
    {
@@ -1905,7 +1905,7 @@ Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensiti
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[match_length], whole_word)) : true))return pos;
+         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive, whole_word_sub) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[match_length], whole_word)) : true))return pos;
          last=c;
          src++;
       }

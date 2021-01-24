@@ -201,7 +201,7 @@ Int TextPosIN(CChar8 *src, Char8 c, Int i); // get position of i-th 'c' characte
 
 Int TextPosIN(CChar8 *src, CChar8 *t, Int i, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // get position of i-th 't' text in 'src' text (-1 if none)
 
-Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // get position of 't' text in 'src' text (-1 if none)
+Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO, WHOLE_WORD whole_word_sub=WHOLE_WORD_STRICT); // get position of 't' text in 'src' text (-1 if none), 'whole_word'=checks at the start and end of 't', 'whole_word_sub'=checks in the middle of 't' where spaces occur
 #endif
 
 Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // get part of the string located between 'from' and 'to' strings, "" is returned if not found
