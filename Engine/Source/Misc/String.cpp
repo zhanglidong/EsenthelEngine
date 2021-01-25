@@ -1028,7 +1028,7 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, WHOLE_WORD whole_word
       if(case_sensitive)
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1037,7 +1037,7 @@ Bool Starts(CChar8 *t, CChar8 *start, Bool case_sensitive, WHOLE_WORD whole_word
       }else
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1057,7 +1057,7 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, WHOLE_WORD whole_word)
       if(case_sensitive)
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1066,7 +1066,7 @@ Bool Starts(CChar *t, CChar8 *start, Bool case_sensitive, WHOLE_WORD whole_word)
       }else
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1086,7 +1086,7 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
       if(case_sensitive)
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1095,7 +1095,7 @@ Bool Starts(CChar8 *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
       }else
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1115,7 +1115,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
       if(case_sensitive)
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1124,7 +1124,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
       }else
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word))return !CharWholeWord(t[0], whole_word);
             return true;
@@ -1135,7 +1135,7 @@ Bool Starts(CChar *t, CChar *start, Bool case_sensitive, WHOLE_WORD whole_word)
    return false;
 }
 /****************************************************************************/
-Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word)
+Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensitive, WHOLE_WORD whole_word, WHOLE_WORD whole_word_sub)
 {
    if(!Is(start))return true;
    if(t)
@@ -1146,7 +1146,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
       if(case_sensitive)
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word) && CharWholeWord(t[0], whole_word))return false;
             match_length=t-t_start;
@@ -1161,7 +1161,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
                c=*t;
                if(c==' ')continue;
                if(!EqualCSFast(c, last_start)
-               || CharWholeWord(last_t, whole_word) && CharWholeWord(c, whole_word))break; // if both are chars, then we can't merge
+               || CharWholeWord(last_t, whole_word_sub) && CharWholeWord(c, whole_word_sub))break; // if both are chars, then we can't merge
                goto next_cs;
             }
             return false;
@@ -1171,7 +1171,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
       }else
          for(; ; t++, start++)
       {
-         if(!start[0])
+         if(!start[0]) // reached the end
          {
             if(whole_word && CharWholeWord(last_start, whole_word) && CharWholeWord(t[0], whole_word))return false;
             match_length=t-t_start;
@@ -1186,7 +1186,7 @@ Bool StartsSkipSpace(CChar *t, CChar *start, Int &match_length, Bool case_sensit
                c=*t;
                if(c==' ')continue;
                if(!EqualCIFast(c, last_start)
-               || CharWholeWord(last_t, whole_word) && CharWholeWord(c, whole_word))break; // if both are chars, then we can't merge
+               || CharWholeWord(last_t, whole_word_sub) && CharWholeWord(c, whole_word_sub))break; // if both are chars, then we can't merge
                goto next_ci;
             }
             return false;
@@ -1905,7 +1905,7 @@ Int TextPosSkipSpaceI(CChar *src, CChar *t, Int &match_length, Bool case_sensiti
       for(Int pos=0; ; pos++)
       {
          Char c=*src; if(!c)break;
-         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive, whole_word_sub) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[match_length], whole_word)) : true))return pos;
+         if(CharOrderFast(c)==order && StartsSkipSpace(src, t, match_length, case_sensitive, WHOLE_WORD_NO, whole_word_sub) && (whole_word ? (dont_check[0] || !CharWholeWord(last, whole_word)) && (dont_check[1] || !CharWholeWord(src[match_length], whole_word)) : true))return pos;
          last=c;
          src++;
       }
