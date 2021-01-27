@@ -2833,7 +2833,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
        C Skeleton &src=Proj.slot_skel_mem;
          editor.mesh_undos.set("slot");
          dest->addSlots(src);
-         editor.setChangedSkel(true);
+         editor.setChangedSkel(false);
       }
    }
    void ObjView::SlotReplace(ObjView &editor)
@@ -2845,7 +2845,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          editor.mesh_undos.set("slot");
          dest->slots.del();
          dest->addSlots(src);
-         editor.setChangedSkel(true);
+         editor.setChangedSkel(false);
          editor.sel_slot=editor.lit_slot=-1;
       }
    }
@@ -2861,7 +2861,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             if(x)slot->rotateCross(x);
             if(y)slot->rotatePerp (y);
             if(z)slot->rotateDir  (z);
-            setChangedSkel(true);
+            setChangedSkel(false);
          }
       }
    }
@@ -2888,7 +2888,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                if(set_other)Swap(slot, other);
                SCAST(OrientP, *slot)=*other;
                slot->mirrorX();
-               setChangedSkel(true);
+               setChangedSkel(false);
                break;
             }
          }
@@ -3204,21 +3204,29 @@ cur_skel_to_saved_skel.removeBone(bone->name);
          }
       }
    }
-   void ObjView::RotBoneRollR(ObjView &editor) {editor.rotBoneRoll(-PI_2);}
-   void ObjView::RotBoneRoll(ObjView &editor) {editor.rotBoneRoll( PI_2);}
-          void ObjView::rotBoneRoll(flt angle)
+   void ObjView::boneRot(flt x, flt y, flt z)
    {
       if(mesh_skel)
-      if(SkelBone *bone=mesh_skel->bones.addr(sel_bone>=0 ? sel_bone : lit_bone))
       {
-         mesh_undos.set("boneEdit");
-         bone->rotateDir(angle);
-         mesh_skel->setBoneTypes(); // bone orientation may affect bone type indexes
-         setChangedSkel(true);
-         mesh.skeleton(mesh_skel, true).skeleton(null);
-         setChangedMesh(true, false);
+         mesh_undos.set("boneRot");
+         if(SkelBone *bone=mesh_skel->bones.addr(sel_bone>=0 ? sel_bone : lit_bone))
+         {
+            if(x)bone->rotateCross(x);
+            if(y)bone->rotatePerp (y);
+            if(z)bone->rotateDir  (z);
+            mesh_skel->setBoneTypes(); // bone orientation may affect bone type indexes
+            setChangedSkel(true);
+            mesh.skeleton(mesh_skel, true).skeleton(null);
+            setChangedMesh(true, false);
+         }
       }
    }
+   void ObjView::BoneRotX(ObjView &editor) {editor.boneRot( PI_2, 0, 0);}
+   void ObjView::BoneRotXN(ObjView &editor) {editor.boneRot(-PI_2, 0, 0);}
+   void ObjView::BoneRotY(ObjView &editor) {editor.boneRot(0,  PI_2, 0);}
+   void ObjView::BoneRotYN(ObjView &editor) {editor.boneRot(0, -PI_2, 0);}
+   void ObjView::BoneRotZ(ObjView &editor) {editor.boneRot(0, 0,  PI_2);}
+   void ObjView::BoneRotZN(ObjView &editor) {editor.boneRot(0, 0, -PI_2);}
    void ObjView::AdjustBoneOrnsDo(ObjView &editor) {editor.adjust_bone_orns.activate();}
    void ObjView::SkelDelBones(ObjView &editor) {editor.skelDelBones();}
           void ObjView::skelDelBones()
@@ -3299,8 +3307,13 @@ cur_skel_to_saved_skel.bones.del();
          n.New().create("Set Mirrored from Selection", SkelSetMirrorSel, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD           )).desc("This option will set bone transformation from the other side as mirrored version of the selected bone");
          n.New().create("Set Selection from Mirrored", SkelSetSelMirror, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This option will set selected bone transformation as mirrored version of the bone from the other side");
          n++;
-         n.New().create("Rotate Bone Roll"        , RotBoneRoll , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT           )).desc("Rotate bone along its direction");
-         n.New().create("Rotate Bone Roll Reverse", RotBoneRollR, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT|KBSC_SHIFT)).desc("Rotate bone along its direction");
+         n.New().create("Rotate +X", BoneRotX , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT           )).desc("Rotate selected bone along its X axis");
+         n.New().create("Rotate -X", BoneRotXN, T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate selected bone along its -X axis");
+         n.New().create("Rotate +Y", BoneRotY , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT           )).desc("Rotate selected bone along its Y axis");
+         n.New().create("Rotate -Y", BoneRotYN, T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate selected bone along its -Y axis");
+         n.New().create("Rotate +Z", BoneRotZ , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT           )).desc("Rotate selected bone along its Z axis");
+         n.New().create("Rotate -Z", BoneRotZN, T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate selected bone along its -Z axis");
+         n++;
          n.New().create("Adjust Bone Orientations", AdjustBoneOrnsDo, T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD)).desc("With this option you can automatically adjust bone orientations, in case it was not done by the Artist");
          n++;
          n.New().create("Delete Bones", SkelDelBones, T).desc("Delete all Skeleton Bones");

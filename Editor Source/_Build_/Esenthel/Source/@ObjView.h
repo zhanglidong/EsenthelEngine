@@ -537,9 +537,15 @@ public:
    static void SkelSetSelMirror(ObjView &editor);
    static void SkelSetMirrorSel(ObjView &editor);
           void skelSetSelMirror(bool set_other);
-   static void RotBoneRollR(ObjView &editor); 
-   static void RotBoneRoll (ObjView &editor); 
-          void rotBoneRoll (flt angle);
+
+   void boneRot(flt x, flt y, flt z);
+   static void BoneRotX (ObjView &editor);
+   static void BoneRotXN(ObjView &editor);
+   static void BoneRotY (ObjView &editor);
+   static void BoneRotYN(ObjView &editor);
+   static void BoneRotZ (ObjView &editor);
+   static void BoneRotZN(ObjView &editor);
+
    static void AdjustBoneOrnsDo(ObjView &editor);
    static void SkelDelBones    (ObjView &editor);
           void skelDelBones    ();
