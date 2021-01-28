@@ -1,5 +1,6 @@
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\*.pdb
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\*.pri
+rmdir /s /q physx\compiler\vc15uwp32\.vs
 rmdir /s /q physx\compiler\vc15uwp32\Win32
 rmdir /s /q physx\compiler\vc15uwp32\CMakeFiles
 rmdir /s /q "physx\compiler\vc15uwp32\Generated Files"
@@ -25,6 +26,7 @@ del physx\compiler\vc15uwp32\cmake_install.cmake
 
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\*.pdb
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\*.pri
+rmdir /s /q physx\compiler\vc15uwp64\.vs
 rmdir /s /q physx\compiler\vc15uwp64\x64
 rmdir /s /q physx\compiler\vc15uwp64\CMakeFiles
 rmdir /s /q "physx\compiler\vc15uwp64\Generated Files"
@@ -49,6 +51,7 @@ del physx\compiler\vc15uwp64\CMakeCache.txt
 del physx\compiler\vc15uwp64\cmake_install.cmake
 
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\*.pdb
+rmdir /s /q physx\compiler\vc16win32\.vs
 rmdir /s /q physx\compiler\vc16win32\Win32
 rmdir /s /q physx\compiler\vc16win32\CMakeFiles
 rmdir /s /q "physx\compiler\vc16win32\Generated Files"
@@ -73,6 +76,7 @@ del physx\compiler\vc16win32\CMakeCache.txt
 del physx\compiler\vc16win32\cmake_install.cmake
 
 del C:\Esenthel\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\*.pdb
+rmdir /s /q physx\compiler\vc16win64\.vs
 rmdir /s /q physx\compiler\vc16win64\x64
 rmdir /s /q physx\compiler\vc16win64\CMakeFiles
 rmdir /s /q "physx\compiler\vc16win64\Generated Files"

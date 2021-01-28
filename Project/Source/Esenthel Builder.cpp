@@ -527,7 +527,7 @@ void MakeLinuxLibs()
    lib_paths.add(EnginePath+LinuxEngineProject+"build/Release"); // Esenthel Engine
    lib_paths.add(ThirdPartyLibsPath+"PVRTC/PVRTex/Linux_x86_64/Static/build/Release"); // PVRTC (because it's stored inside a separate folder)
    lib_paths.add(ThirdPartyLibsPath+"VP/Linux"); // VP (because it's manually built)
-   if(Options.physics()==PHYS_ENGINE_PHYSX)lib_paths.add(ThirdPartyLibsPath+"PhysX/PhysX/Source/compiler/linux64/build"); // PhysX (because it's stored inside a separate folder and should be linked only if PhysX is selected as physics engine)
+   if(Options.physics()==PHYS_ENGINE_PHYSX)lib_paths.add(ThirdPartyLibsPath+"PhysX/physx/bin/linux.clang/release/obj"); // PhysX (because it's stored inside a separate folder and should be linked only if PhysX is selected as physics engine)
    // iterate all Third Party Libs
    for(FileFind ff(ThirdPartyLibsPath); ff(); )if(ff.type==FSTD_DIR)lib_paths.add(ff.pathName()+"/Linux/build/Release");
 

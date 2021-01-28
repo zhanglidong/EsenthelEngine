@@ -31,3 +31,7 @@ in Visual Studio select all projects in "Physx SDK" folder, properties:
 C/C++ \ General \ Debug Information Format = None
 right-click selected projects and select "Build Selection"
 Libs will get generated in "physx\bin\*\release"
+
+* After building on Linux, run "!Extract Linux OBJ Files.bat"
+
+* After all building, can run "!Clean.bat" to remove temporary files
