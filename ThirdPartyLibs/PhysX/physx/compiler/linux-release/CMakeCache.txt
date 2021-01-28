@@ -97,7 +97,7 @@ CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
 
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PhysX
+CMAKE_INSTALL_PREFIX:PATH=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PhysX
 
 //Path to a program.
 CMAKE_LINKER:FILEPATH=/usr/bin/ld
@@ -135,7 +135,7 @@ CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
 CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
 
 //No help, variable specified on the command line.
-CMAKE_PREFIX_PATH:UNINITIALIZED=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/opengl-linux;/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/targa;/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cg-linux;/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/glew-linux
+CMAKE_PREFIX_PATH:UNINITIALIZED=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/opengl-linux;/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/targa;/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cg-linux;/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/glew-linux
 
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=
@@ -231,7 +231,7 @@ NV_USE_STATIC_WINCRT:BOOL=OFF
 PHYSX_CXX_FLAGS:STRING= -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -fstrict-aliasing -ferror-limit=0 -Wall -Wextra -Wstrict-aliasing=2 -Weverything -Wno-documentation-deprecated-sync -Wno-documentation-unknown-command -Wno-gnu-anonymous-struct -Wno-undef -Wno-unused-function -Wno-nested-anon-types -Wno-float-equal -Wno-padded -Wno-weak-vtables -Wno-cast-align -Wno-conversion -Wno-missing-noreturn -Wno-missing-variable-declarations -Wno-shift-sign-overflow -Wno-covered-switch-default -Wno-exit-time-destructors -Wno-global-constructors -Wno-missing-prototypes -Wno-unreachable-code -Wno-unused-macros -Wno-unused-member-function -Wno-used-but-marked-unused -Wno-weak-template-vtables -Wno-deprecated -Wno-non-virtual-dtor -Wno-invalid-noreturn -Wno-return-type-c-linkage -Wno-reserved-id-macro -Wno-c++98-compat-pedantic -Wno-unused-local-typedef -Wno-old-style-cast -Wno-newline-eof -Wno-unused-private-field -Wno-format-nonliteral -Wno-implicit-fallthrough -Wno-undefined-reinterpret-cast -Wno-disabled-macro-expansion -Wno-zero-as-null-pointer-constant -Wno-shadow -Wno-unknown-warning-option -Wno-atomic-implicit-seq-cst -Wno-extra-semi-stmt
 
 //No help, variable specified on the command line.
-PHYSX_ROOT_DIR:UNINITIALIZED=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx
+PHYSX_ROOT_DIR:UNINITIALIZED=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx
 
 //Generate the samples
 PX_BUILDPUBLICSAMPLES:BOOL=FALSE
@@ -252,10 +252,10 @@ PX_GENERATE_STATIC_LIBRARIES:BOOL=TRUE
 PX_OUTPUT_ARCH:UNINITIALIZED=x86
 
 //No help, variable specified on the command line.
-PX_OUTPUT_BIN_DIR:UNINITIALIZED=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx
+PX_OUTPUT_BIN_DIR:UNINITIALIZED=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx
 
 //No help, variable specified on the command line.
-PX_OUTPUT_LIB_DIR:UNINITIALIZED=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx
+PX_OUTPUT_LIB_DIR:UNINITIALIZED=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx
 
 //Disable SIMD math
 PX_SCALAR_MATH:BOOL=OFF
@@ -279,7 +279,7 @@ PhysXPvdSDK_LIB_DEPENDS:STATIC=general;PhysXFoundation;
 PhysXSDK_BINARY_DIR:STATIC=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/linux-release
 
 //Value Computed by CMake
-PhysXSDK_SOURCE_DIR:STATIC=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
+PhysXSDK_SOURCE_DIR:STATIC=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
 
 //Dependencies for the target
 PhysXVehicle_LIB_DEPENDS:STATIC=general;PhysXFoundation;general;PhysXPvdSDK;
@@ -291,7 +291,7 @@ PhysX_BINARY_DIR:STATIC=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/
 PhysX_LIB_DEPENDS:STATIC=general;PhysXPvdSDK;general;PhysXCommon;general;PhysXFoundation;general;dl;
 
 //Value Computed by CMake
-PhysX_SOURCE_DIR:STATIC=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake
+PhysX_SOURCE_DIR:STATIC=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake
 
 //No help, variable specified on the command line.
 TARGET_BUILD_PLATFORM:UNINITIALIZED=linux
@@ -304,7 +304,7 @@ TARGET_BUILD_PLATFORM:UNINITIALIZED=linux
 //CMakeModules name
 CMAKEMODULES_NAME:INTERNAL=CMakeModules
 //Path to CMakeModules
-CMAKEMODULES_PATH:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cmakemodules
+CMAKEMODULES_PATH:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cmakemodules
 //CMakeModules version from generation batch
 CMAKEMODULES_VERSION:INTERNAL=1.27
 //ADVANCED property for variable: CMAKE_ADDR2LINE
@@ -387,7 +387,7 @@ CMAKE_GENERATOR_PLATFORM:INTERNAL=
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
+CMAKE_HOME_DIRECTORY:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
 //Install .so files without execute permission.
 CMAKE_INSTALL_SO_NO_EXE:INTERNAL=1
 //ADVANCED property for variable: CMAKE_LINKER
@@ -469,17 +469,17 @@ PHYSX_LINUX_PROFILE_COMPILE_DEFS:INTERNAL=NDEBUG;PX_PROFILE=1;PX_NVTX=0;PX_SUPPO
 //Release PhysX preprocessor definitions
 PHYSX_LINUX_RELEASE_COMPILE_DEFS:INTERNAL=NDEBUG;PX_SUPPORT_PVD=0
 //Path to PxShared
-PXSHARED_INSTALL_PREFIX:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PxShared
+PXSHARED_INSTALL_PREFIX:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PxShared
 //Path to PxShared
-PXSHARED_PATH:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../pxshared
+PXSHARED_PATH:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../pxshared
 //Directory to put checked exes in
-PX_EXE_OUTPUT_DIRECTORY_CHECKED:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/checked
+PX_EXE_OUTPUT_DIRECTORY_CHECKED:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/checked
 //Directory to put debug exes in
-PX_EXE_OUTPUT_DIRECTORY_DEBUG:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/debug
+PX_EXE_OUTPUT_DIRECTORY_DEBUG:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/debug
 //Directory to put profile exes in
-PX_EXE_OUTPUT_DIRECTORY_PROFILE:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/profile
+PX_EXE_OUTPUT_DIRECTORY_PROFILE:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/profile
 //Directory to put release exes in
-PX_EXE_OUTPUT_DIRECTORY_RELEASE:INTERNAL=/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/release
+PX_EXE_OUTPUT_DIRECTORY_RELEASE:INTERNAL=/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/release
 //Relative root dir of the exe output directory
 PX_ROOT_EXE_DIR:INTERNAL=bin/linux.clang
 //Relative root of the lib output directory

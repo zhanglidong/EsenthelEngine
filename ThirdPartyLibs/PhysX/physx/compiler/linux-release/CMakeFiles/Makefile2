@@ -44,7 +44,7 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
+CMAKE_SOURCE_DIR = /home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/linux-release

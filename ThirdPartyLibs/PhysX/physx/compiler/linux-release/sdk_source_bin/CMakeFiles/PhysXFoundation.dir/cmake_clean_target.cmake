@@ -1,3 +1,3 @@
 file(REMOVE_RECURSE
-  "/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a"
+  "/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a"
 )

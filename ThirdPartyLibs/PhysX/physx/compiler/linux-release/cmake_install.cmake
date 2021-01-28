@@ -1,8 +1,8 @@
-# Install script for directory: /home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
+# Install script for directory: /home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PhysX")
+  set(CMAKE_INSTALL_PREFIX "/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/install/linux/PhysX")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

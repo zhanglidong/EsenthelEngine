@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/FastXml.dir/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/source/fastxml/src/PsFastXml.cpp.o"
+  "CMakeFiles/FastXml.dir/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/source/fastxml/src/PsFastXml.cpp.o"
 )
 
 # Per-language clean rules from dependency scanning.

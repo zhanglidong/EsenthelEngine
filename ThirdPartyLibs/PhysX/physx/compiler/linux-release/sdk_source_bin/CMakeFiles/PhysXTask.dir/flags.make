@@ -6,5 +6,5 @@ CXX_FLAGS =  -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sec
 
 CXX_DEFINES = -DNDEBUG -DPX_SUPPORT_PVD=0 -D_LIB
 
-CXX_INCLUDES = -I/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/include -I/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/../pxshared/include -I/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/source/foundation/include -I/home/greg/Desktop/Esenthel/ThirdPartyLibs/PhysX/physx/source/cudamanager/include 
+CXX_INCLUDES = -I/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/include -I/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/../pxshared/include -I/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/source/foundation/include -I/home/greg/Esenthel/ThirdPartyLibs/PhysX/physx/source/cudamanager/include 
 
