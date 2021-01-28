@@ -1,0 +1,188 @@
+The target system is: Darwin - 14.3 - 
+The host system is: Darwin - 20.2.0 - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang 
+Build flags: -miphoneos-version-min=8.0;;-fobjc-abi-version=2;-fobjc-arc;-miphoneos-version-min=8.0;;-fobjc-abi-version=2;-fobjc-arc;
+Id flags:  
+
+The output was:
+0
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+
+note: Using new build system
+note: Planning build
+note: Constructing build description
+warning: Traditional headermap style is no longer supported; please migrate to using separate headermaps and set 'ALWAYS_SEARCH_USER_PATHS' to NO. (in target 'CompilerIdC' from project 'CompilerIdC')
+CreateBuildDirectory /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    builtin-create-build-directory /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+
+MkDir /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    /bin/mkdir -p /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-own-target-headers.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-own-target-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-project-headers.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-project-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/all-product-headers.yaml (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/all-product-headers.yaml
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-generated-files.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-generated-files.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-all-target-headers.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-all-target-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-all-non-framework-target-headers.hmap (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CompilerIdC.LinkFileList (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CompilerIdC.LinkFileList
+
+CompileC /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CMakeCCompilerId.o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CMakeCCompilerId.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    export LANG\=en_US.US-ASCII
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios14.3 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -Wno-trigraphs -fpascal-strings -Os -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -iquote /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-generated-files.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-own-target-headers.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-all-target-headers.hmap -iquote /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/CompilerIdC-project-headers.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/include -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/DerivedSources-normal/arm64 -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/DerivedSources/arm64 -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/DerivedSources -F/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk/Developer/Library/Frameworks -MMD -MT dependencies -MF /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CMakeCCompilerId.d --serialize-diagnostics /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CMakeCCompilerId.dia -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CMakeCCompilerId.c -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CMakeCCompilerId.o
+
+Ld /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest/CompilerIdC normal (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -target arm64-apple-ios14.3 -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk -L/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk/Developer/Library/Frameworks -filelist /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CompilerIdC.LinkFileList -dead_strip -Xlinker -object_path_lto -Xlinker /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CompilerIdC_lto.o -framework XCTest -Xlinker -dependency_info -Xlinker /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Objects-normal/arm64/CompilerIdC_dependency_info.dat -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest/CompilerIdC
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh
+
+GenerateDSYMFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest.dSYM /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest/CompilerIdC (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest/CompilerIdC -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest.dSYM
+
+PhaseScriptExecution Run\ Script /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    /bin/sh -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.build/Debug-iphoneos/CompilerIdC.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh
+GCC_VERSION=com.apple.compilers.llvm.clang.1_0
+ARCHS=arm64
+
+RegisterExecutionPolicyException /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    builtin-RegisterExecutionPolicyException /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest
+
+Touch /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest (in target 'CompilerIdC' from project 'CompilerIdC')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC
+    /usr/bin/touch -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest
+
+** BUILD SUCCEEDED **
+
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.xctest/CompilerIdC"
+
+The C compiler identification is AppleClang, found in "/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdC/CompilerIdC.xctest/CompilerIdC"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ 
+Build flags: -miphoneos-version-min=8.0;;-miphoneos-version-min=8.0;;
+Id flags:  
+
+The output was:
+0
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+
+note: Using new build system
+note: Planning build
+note: Constructing build description
+warning: Traditional headermap style is no longer supported; please migrate to using separate headermaps and set 'ALWAYS_SEARCH_USER_PATHS' to NO. (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+CreateBuildDirectory /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    builtin-create-build-directory /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+
+MkDir /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    /bin/mkdir -p /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/all-product-headers.yaml (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/all-product-headers.yaml
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-project-headers.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-project-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-own-target-headers.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-own-target-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-all-target-headers.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-all-target-headers.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-generated-files.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-generated-files.hmap
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-all-non-framework-target-headers.hmap (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-all-non-framework-target-headers.hmap
+
+CompileC /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CMakeCXXCompilerId.o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CMakeCXXCompilerId.cpp normal arm64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    export LANG\=en_US.US-ASCII
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c++ -target arm64-apple-ios14.3 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -Wno-trigraphs -fpascal-strings -Os -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-exit-time-destructors -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wno-newline-eof -Wno-c++11-extensions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk -fstrict-aliasing -Wdeprecated-declarations -Winvalid-offsetof -g -fvisibility-inlines-hidden -Wno-sign-conversion -Wno-infinite-recursion -Wno-move -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-range-loop-analysis -Wno-semicolon-before-method-body -iquote /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-generated-files.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-own-target-headers.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-all-target-headers.hmap -iquote /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/CompilerIdCXX-project-headers.hmap -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/include -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/DerivedSources-normal/arm64 -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/DerivedSources/arm64 -I/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/DerivedSources -F/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk/Developer/Library/Frameworks -MMD -MT dependencies -MF /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CMakeCXXCompilerId.d --serialize-diagnostics /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CMakeCXXCompilerId.dia -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CMakeCXXCompilerId.cpp -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CMakeCXXCompilerId.o
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CompilerIdCXX.LinkFileList (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CompilerIdCXX.LinkFileList
+
+Ld /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest/CompilerIdCXX normal (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -target arm64-apple-ios14.3 -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk -L/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk/Developer/Library/Frameworks -filelist /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CompilerIdCXX.LinkFileList -dead_strip -Xlinker -object_path_lto -Xlinker /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CompilerIdCXX_lto.o -framework XCTest -Xlinker -dependency_info -Xlinker /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Objects-normal/arm64/CompilerIdCXX_dependency_info.dat -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest/CompilerIdCXX
+
+WriteAuxiliaryFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    write-file /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh
+
+GenerateDSYMFile /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest.dSYM /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest/CompilerIdCXX (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest/CompilerIdCXX -o /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest.dSYM
+
+PhaseScriptExecution Run\ Script /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    /bin/sh -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.build/Debug-iphoneos/CompilerIdCXX.build/Script-2C8FEB8E15DC1A1A00E56A5D.sh
+GCC_VERSION=com.apple.compilers.llvm.clang.1_0
+ARCHS=arm64
+
+RegisterExecutionPolicyException /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    builtin-RegisterExecutionPolicyException /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest
+
+Touch /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest (in target 'CompilerIdCXX' from project 'CompilerIdCXX')
+    cd /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX
+    /usr/bin/touch -c /Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest
+
+** BUILD SUCCEEDED **
+
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.xctest/CompilerIdCXX"
+
+The CXX compiler identification is AppleClang, found in "/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/ios64/CMakeFiles/3.19.3/CompilerIdCXX/CompilerIdCXX.xctest/CompilerIdCXX"
+
