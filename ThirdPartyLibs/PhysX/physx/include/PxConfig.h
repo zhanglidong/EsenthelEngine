@@ -30,6 +30,7 @@
 #define PX_CONFIG
 
 #define PX_PHYSX_STATIC_LIB
+#define DISABLE_CUDA_PHYSX
 
 
 #endif  // PX_CONFIG
