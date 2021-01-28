@@ -232,6 +232,14 @@
             <linkerLibFileItem>../../ThirdPartyLibs/FDK-AAC/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/mbedTLS/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>
@@ -248,7 +256,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-static-libstdc++ -nopie -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
+          <commandLine>-static-libstdc++ -nopie</commandLine>
         </linkerTool>
       </compileType>
       <item path="../Source/Esenthel Builder.cpp" ex="false" tool="1" flavor2="0">
@@ -475,6 +483,14 @@
             <linkerLibFileItem>../../ThirdPartyLibs/FDK-AAC/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/mbedTLS/Linux/dist/Release/GNU-Linux/liblinux.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>
@@ -491,7 +507,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-static-libstdc++ -nopie -Wl,--start-group -lPhysX3_x64 -lPhysX3Cooking_x64 -lPhysX3Extensions -lPhysX3CharacterKinematic_x64 -lPhysX3Vehicle -lPhysX3Common_x64 -lSimulationController -lSceneQuery -lLowLevelParticles -lLowLevelCloth -lLowLevelDynamics -lLowLevelAABB -lLowLevel -lPxTask -lPxFoundation_x64 -Wl,--end-group</commandLine>
+          <commandLine>-static-libstdc++ -nopie</commandLine>
         </linkerTool>
       </compileType>
       <item path="../Source/Esenthel Builder.cpp" ex="false" tool="1" flavor2="0">
