@@ -234,12 +234,12 @@
             <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a</linkerLibFileItem>
-            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>
@@ -485,12 +485,12 @@
             <linkerLibFileItem>../../ThirdPartyLibs/Xml2/Linux/libxml2.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a</linkerLibFileItem>
-            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a</linkerLibFileItem>
             <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a</linkerLibFileItem>
+            <linkerLibFileItem>../../ThirdPartyLibs/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a</linkerLibFileItem>
             <linkerLibLibItem>X11</linkerLibLibItem>
             <linkerLibLibItem>Xmu</linkerLibLibItem>
             <linkerLibLibItem>Xxf86vm</linkerLibLibItem>
