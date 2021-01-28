@@ -1194,7 +1194,7 @@ void Image::setGLFont()
       case IMAGE_RT:
       {
          D.texBind      (GL_TEXTURE_2D, _txtr);
-         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -D.fontSharpness());
+         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
          glFlush        (); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
       }break;
    }
