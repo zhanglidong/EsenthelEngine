@@ -2611,10 +2611,7 @@ Bool CodeEditor::generateLinuxMakeProj()
          FCreateDir(bin_dest);
          CChar8 *dlls[]=
          {
-            "libPhysX3_x64.so",
-            "libPhysX3Common_x64.so",
-            "libPhysX3Cooking_x64.so",
-            "libPxFoundation_x64.so",
+            "libPhysXGpu_64.so",
          };
          FREPA(dlls)if(!CopyFile(bin_path+dlls[i], bin_dest+dlls[i]))return false;
       }

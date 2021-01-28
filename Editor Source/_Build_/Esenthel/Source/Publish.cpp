@@ -77,7 +77,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       PublishDataAsPak=true;
    }else // executable
    {
-      bool physx_dll=(PHYSX_DLL && Physics.engine()==PHYS_ENGINE_PHYSX && CodeEdit.appPublishPhysxDll());
+      bool physx_dll=false; //(PHYSX_DLL && Physics.engine()==PHYS_ENGINE_PHYSX && CodeEdit.appPublishPhysxDll());
       if(exe_type==Edit::EXE_EXE || exe_type==Edit::EXE_DLL)
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
@@ -94,17 +94,13 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
             {
                cchar8 *physx_files32[]=
                {
-                  "PhysX3_x86.dll",
-                  "PhysX3Common_x86.dll",
-                  "PhysX3Cooking_x86.dll",
-                  "PxFoundation_x86.dll",
+                  "PhysXDevice.dll",
+                  "PhysXGpu_32.dll",
                };
                cchar8 *physx_files64[]=
                {
-                  "PhysX3_x64.dll",
-                  "PhysX3Common_x64.dll",
-                  "PhysX3Cooking_x64.dll",
-                  "PxFoundation_x64.dll",
+                  "PhysXDevice64.dll",
+                  "PhysXGpu_64.dll",
                };
                if(CodeEdit.config32Bit())FREPA(physx_files32)files.add(physx_files32[i]);
                else                      FREPA(physx_files64)files.add(physx_files64[i]);
