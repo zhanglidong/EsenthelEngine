@@ -447,7 +447,7 @@ void DisplayClass::setShader(C Material *material)
    {
      _set_shader_material=material;
       {Meshes     .lock(); REPA(Meshes     )Meshes     .lockedData(i).setShader(); Meshes     .unlock();}
-      {ClothMeshes.lock(); REPA(ClothMeshes)ClothMeshes.lockedData(i).setShader(); ClothMeshes.unlock();}
+    //{ClothMeshes.lock(); REPA(ClothMeshes)ClothMeshes.lockedData(i).setShader(); ClothMeshes.unlock();}
                                                        if(set_shader)set_shader();
      _set_shader_material=null;
    }

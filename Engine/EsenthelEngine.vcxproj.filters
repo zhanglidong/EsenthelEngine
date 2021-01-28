@@ -214,6 +214,12 @@
     <Filter Include="Source\Shaders\3D">
       <UniqueIdentifier>{5c68c5e3-1f15-4ed1-9b4f-5bacaf913596}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\PhysX\64\Universal">
+      <UniqueIdentifier>{9e8c00cb-0b7e-4e5a-86b8-8410f97ec9e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\PhysX\32\Universal">
+      <UniqueIdentifier>{c1f8d91c-db18-478e-af0f-6af31589a4b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -1292,9 +1298,6 @@
     <ClCompile Include="Source\Physics\Physics.cpp">
       <Filter>Source\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Physics\PhysX Ext.cpp">
-      <Filter>Source\Physics</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Physics\Ragdoll.cpp">
       <Filter>Source\Physics</Filter>
     </ClCompile>
@@ -1884,9 +1887,6 @@
       <Filter>Source\Platforms\Android\Packed</Filter>
     </ClCompile>
     <ClCompile Include="Android\jni\Physics.cpp">
-      <Filter>Source\Platforms\Android\Packed</Filter>
-    </ClCompile>
-    <ClCompile Include="Android\jni\Physics_Ext.cpp">
       <Filter>Source\Platforms\Android\Packed</Filter>
     </ClCompile>
     <ClCompile Include="Android\jni\Platforms.cpp">
@@ -2492,63 +2492,6 @@
     <Library Include="..\ThirdPartyLibs\FDK-AAC\Windows\ARM\Release\FDK-AAC.lib">
       <Filter>H\_\Libs\ARM</Filter>
     </Library>
-    <Library Include="PhysX3_x64.lib">
-      <Filter>H\_\PhysX\64</Filter>
-    </Library>
-    <Library Include="PhysX3Common_x64.lib">
-      <Filter>H\_\PhysX\64</Filter>
-    </Library>
-    <Library Include="PhysX3Cooking_x64.lib">
-      <Filter>H\_\PhysX\64</Filter>
-    </Library>
-    <Library Include="PxFoundation_x64.lib">
-      <Filter>H\_\PhysX\64</Filter>
-    </Library>
-    <Library Include="PxTask_x64.lib">
-      <Filter>H\_\PhysX\64</Filter>
-    </Library>
-    <Library Include="PhysX3Common_x86.lib">
-      <Filter>H\_\PhysX\32</Filter>
-    </Library>
-    <Library Include="PhysX3Cooking_x86.lib">
-      <Filter>H\_\PhysX\32</Filter>
-    </Library>
-    <Library Include="PxFoundation_x86.lib">
-      <Filter>H\_\PhysX\32</Filter>
-    </Library>
-    <Library Include="PxTask_x86.lib">
-      <Filter>H\_\PhysX\32</Filter>
-    </Library>
-    <Library Include="PhysX3_x86.lib">
-      <Filter>H\_\PhysX\32</Filter>
-    </Library>
-    <Library Include="LowLevel.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="LowLevelAABB.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="LowLevelCloth.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="LowLevelDynamics.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="LowLevelParticles.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="SceneQuery.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="SimulationController.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="PhysX3Vehicle.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
-    <Library Include="PhysX3Extensions.lib">
-      <Filter>H\_\PhysX</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\Bullet\Windows\Release Universal\BulletDynamics.lib">
       <Filter>H\_\Bullet\32\Universal</Filter>
     </Library>
@@ -2614,6 +2557,102 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\Tiff\Windows\x64\Release Universal\Tiff.lib">
       <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXVehicle_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCommon_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCharacterKinematic_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXPvdSDK_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXFoundation_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXExtensions_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysX_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCooking_static_64.lib">
+      <Filter>H\_\PhysX\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCooking_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXExtensions_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXFoundation_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXPvdSDK_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXVehicle_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysX_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCharacterKinematic_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCommon_static_64.lib">
+      <Filter>H\_\PhysX\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXExtensions_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXFoundation_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXPvdSDK_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXVehicle_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysX_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCharacterKinematic_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCommon_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCooking_static_32.lib">
+      <Filter>H\_\PhysX\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysX_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCharacterKinematic_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCommon_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCooking_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXExtensions_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXFoundation_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXPvdSDK_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXVehicle_static_32.lib">
+      <Filter>H\_\PhysX\32</Filter>
     </Library>
   </ItemGroup>
 </Project>

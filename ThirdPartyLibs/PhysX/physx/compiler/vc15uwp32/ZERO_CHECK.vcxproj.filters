@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\CMakeFiles\e3aa833e65de9df8692b4b4c5dd223a5\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{940856A9-800A-3056-B35E-16A2964C462F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

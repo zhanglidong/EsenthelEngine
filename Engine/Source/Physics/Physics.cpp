@@ -665,61 +665,12 @@ void PhysxClass::del()
    if(physics      ){physics      ->release(); physics      =null;}
    if(foundation   ){foundation   ->release(); foundation   =null;}
    ignore_map     .del();
-#if PHYSX_DLL_ACTUAL
-   raycast=null;
-   PhysXCooking   .del();
-   PhysX3         .del();
-   PhysXCommon    .delForce(); // PhysX has some bug, that it doesn't release the common DLL after interface creation, however we do need to release it in case we're deleting/updating DLL files (for example installer/patcher) TODO: test if this is still needed
-   PhysXFoundation.del();
-#endif
 }
 Bool PhysxClass::create(Bool hardware)
 {
    Bool ok=false;
-#if PHYSX_DLL_ACTUAL
-   #if WINDOWS
-      dll_path.tailSlash(true);
-      #if X64
-         if(PhysXFoundation.createFile(dll_path+"PxFoundation_x64.dll" ))
-         if(PhysXCommon    .createFile(dll_path+"PhysX3Common_x64.dll" ))
-         if(PhysX3         .createFile(dll_path+"PhysX3_x64.dll"       ))
-         if(PhysXCooking   .createFile(dll_path+"PhysX3Cooking_x64.dll"))
-         if(raycast=PhysXCommon.getFunc("?raycast@PxGeometryQuery@physx@@SAIAEBVPxVec3@2@0AEBVPxGeometry@2@AEBVPxTransform@2@MV?$PxFlags@W4Enum@PxHitFlag@physx@@G@2@IPEIAUPxRaycastHit@2@@Z"))
-      #else
-         if(PhysXFoundation.createFile(dll_path+"PxFoundation_x86.dll" ))
-         if(PhysXCommon    .createFile(dll_path+"PhysX3Common_x86.dll" ))
-         if(PhysX3         .createFile(dll_path+"PhysX3_x86.dll"       ))
-         if(PhysXCooking   .createFile(dll_path+"PhysX3Cooking_x86.dll"))
-         if(raycast=PhysXCommon.getFunc("?raycast@PxGeometryQuery@physx@@SAIABVPxVec3@2@0ABVPxGeometry@2@ABVPxTransform@2@MV?$PxFlags@W4Enum@PxHitFlag@physx@@G@2@IPIAUPxRaycastHit@2@@Z"))
-      #endif
-   #elif LINUX // Warning: because of Linux poor DLL search path mechanism, the paths are hardcoded as "Bin" in project settings, therefore we must ignore the 'dll_path' path here
-      #if X64
-         if(PhysXFoundation.createFile("libPxFoundation_x64.so" ))
-         if(PhysXCommon    .createFile("libPhysX3Common_x64.so" ))
-         if(PhysX3         .createFile("libPhysX3_x64.so"       )) // warning: this file requires "libPhysX3Common_x64.so" and it will fail, unless we specify "Runtime Search Directories" in NetBeans Project Settings
-         if(PhysXCooking   .createFile("libPhysX3Cooking_x64.so")) // warning: this file requires "libPhysX3Common_x64.so" and it will fail, unless we specify "Runtime Search Directories" in NetBeans Project Settings
-         if(raycast=PhysXCommon.getFunc(fix me "_ZN5physx15PxGeometryQuery7raycastERKNS_6PxVec3ES3_RKNS_10PxGeometryERKNS_11PxTransformEfNS_7PxFlagsINS_9PxHitFlag4EnumEtEEjPNS_12PxRaycastHitEb")) // name extracted using Total Commander Hex Viewer (look for 'PxGeometryQuery' and copy everything from ' ' to ' ')
-      #else
-         if(PhysXFoundation.createFile("libPxFoundation_x86.so" ))
-         if(PhysXCommon    .createFile("libPhysX3Common_x86.so" ))
-         if(PhysX3         .createFile("libPhysX3_x86.so"       )) // warning: this file requires "libPhysX3Common_x86.so" and it will fail, unless we specify "Runtime Search Directories" in NetBeans Project Settings
-         if(PhysXCooking   .createFile("libPhysX3Cooking_x86.so")) // warning: this file requires "libPhysX3Common_x86.so" and it will fail, unless we specify "Runtime Search Directories" in NetBeans Project Settings
-         if(raycast=PhysXCommon.getFunc(fix me))
-      #endif
-   #endif
-      if(auto _PxCreateFoundation =(decltype(&PxCreateFoundation ))PhysXFoundation.getFunc("PxCreateFoundation"))
-      #define  PxCreateFoundation _PxCreateFoundation
-      if(auto _PxCreateBasePhysics=(decltype(&PxCreateBasePhysics))PhysX3         .getFunc("PxCreateBasePhysics"))
-      #define  PxCreateBasePhysics _PxCreateBasePhysics
-      if(auto _PxCreateCooking    =(decltype(&PxCreateCooking    ))PhysXCooking   .getFunc("PxCreateCooking"))
-      #define  PxCreateCooking _PxCreateCooking
-      if(auto _PxRegisterCloth    =(decltype(&PxRegisterCloth    ))PhysX3         .getFunc("PxRegisterCloth"))
-      #define  PxRegisterCloth _PxRegisterCloth
-      if(auto _PxRegisterParticles=(decltype(&PxRegisterParticles))PhysX3         .getFunc("PxRegisterParticles"))
-      #define  PxRegisterParticles _PxRegisterParticles
-#endif
-      if(foundation=PxCreateFoundation (PX_FOUNDATION_VERSION, allocator, ErrorCallback))
-      if(physics   =PxCreateBasePhysics(PX_PHYSICS_VERSION   , *foundation, PxTolerancesScale(), false, null))
+   if(foundation=PxCreateFoundation (PX_PHYSICS_VERSION, allocator, ErrorCallback))
+   if(physics   =PxCreateBasePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), false, null))
    {
       PxCookingParams cook_params(physics->getTolerancesScale());
       cook_params.suppressTriangleMeshRemapTable=true; // disable remap
@@ -728,9 +679,6 @@ Bool PhysxClass::create(Bool hardware)
          cook_params.suppressTriangleMeshRemapTable=false; // enable remap
          if(cook[1]=PxCreateCooking(PX_PHYSICS_VERSION, *foundation, cook_params))
          {
-            PxRegisterCloth    (*physics);
-            PxRegisterParticles(*physics);
-
             PxSceneDesc scene_desc(physics->getTolerancesScale());
             scene_desc.flags|=PxSceneFlag::eENABLE_CCD;
 

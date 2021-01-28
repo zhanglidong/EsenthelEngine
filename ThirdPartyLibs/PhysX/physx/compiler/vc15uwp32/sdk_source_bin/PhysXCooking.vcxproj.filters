@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Adjacencies.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Cooking.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\CookingUtils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\EdgeList.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\MeshCleaner.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Quantizer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\BVHStructureBuilder.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\HeightFieldCooking.cpp">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\RTreeCooking.cpp">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\MeshBuilder.cpp">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\TriangleMeshBuilder.cpp">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\GrbTriangleMeshCooking.cpp">
+      <Filter>src\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\BigConvexDataBuilder.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullBuilder.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullLib.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullUtils.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexMeshBuilder.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexPolygonsBuilder.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\QuickHullConvexHullLib.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\VolumeIntegration.cpp">
+      <Filter>src\convex</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxBVH33MidphaseDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxBVH34MidphaseDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\Pxc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxConvexMeshDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxCooking.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxMidphaseDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxTriangleMeshDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\cooking\PxBVHStructureDesc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Adjacencies.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Cooking.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\CookingUtils.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\EdgeList.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\MeshCleaner.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\Quantizer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\BVHStructureBuilder.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\GrbTriangleMeshCooking.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\HeightFieldCooking.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\QuickSelect.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\RTreeCooking.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\MeshBuilder.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\mesh\TriangleMeshBuilder.h">
+      <Filter>src\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\BigConvexDataBuilder.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullBuilder.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullLib.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexHullUtils.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexMeshBuilder.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\ConvexPolygonsBuilder.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\QuickHullConvexHullLib.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\physxcooking\src\convex\VolumeIntegration.h">
+      <Filter>src\convex</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\resource_x86\PhysXCooking.rc">
+      <Filter>resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{5E7466B0-8532-34A1-B0DE-70D586E6867E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{11CDCEB4-9A61-3ED8-A17C-D07C4CBC83C4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4C84F2BC-4C7A-3955-BA22-8888AEC8A287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\convex">
+      <UniqueIdentifier>{DADE3796-72D7-31B0-B244-9E86907A2F9F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mesh">
+      <UniqueIdentifier>{3A0E0732-372D-3C6F-AD0F-FB729322EF9C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

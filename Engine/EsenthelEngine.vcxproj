@@ -487,7 +487,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -518,7 +518,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win32;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win32;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">
@@ -530,7 +529,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -573,7 +572,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -604,7 +603,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">
@@ -616,7 +614,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -660,7 +658,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -691,7 +689,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win64;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win64;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">
@@ -706,7 +703,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -737,7 +734,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">
@@ -750,7 +746,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -795,7 +791,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -840,7 +836,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -875,7 +871,6 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win32;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win32;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">
@@ -888,7 +883,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -937,7 +932,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -974,7 +969,6 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">
@@ -987,7 +981,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1038,7 +1032,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1072,7 +1066,6 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win64;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win64;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">
@@ -1088,7 +1081,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1125,7 +1118,6 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">
@@ -1139,7 +1131,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1185,7 +1177,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1229,7 +1221,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1260,7 +1252,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win32;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win32;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">
@@ -1272,7 +1263,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1318,7 +1309,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1349,7 +1340,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win64;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win64;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">
@@ -1362,7 +1352,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1407,7 +1397,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1440,7 +1430,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win32;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win32;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win32;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">
@@ -1453,7 +1442,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1503,7 +1492,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;..\ThirdPartyLibs\Xbox Live\2018.6.20181010.2;..\ThirdPartyLibs\PhysX\physx\include;..\ThirdPartyLibs\PhysX\pxshared\include;..\ThirdPartyLibs\PhysX\physx\source\foundation\include;..\ThirdPartyLibs\PhysX\physx\source\common\src;..\ThirdPartyLibs\PhysX\physx\source\geomutils\src;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Imath;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Iex;..\ThirdPartyLibs\OpenEXR\lib\IlmBase\Half;..\ThirdPartyLibs\OpenEXR\Windows\OpenEXR\config;..\ThirdPartyLibs\OpenEXR\Windows\IlmBase\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1536,7 +1525,6 @@
     <Lib>
       <AdditionalOptions>/IGNORE:4006,4221,4078 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\ThirdPartyLibs\PhysX\PxShared\bin\vc14win64;..\ThirdPartyLibs\PhysX\PxShared\lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Lib\vc14win64;..\ThirdPartyLibs\PhysX\PhysX\Bin\vc14win64;..\ThirdPartyLibs\PhysX\Dummy\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">
@@ -1550,7 +1538,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\cloth;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\extensions;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Include\vehicle;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXExtensions\src\serialization\Xml;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\core\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXMetaData\extensions\include;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src;..\ThirdPartyLibs\PhysX\PhysX\Source\PhysXVehicle\src\PhysXMetaData\include;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\PhysX\PxShared\src\pvd\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\H\_;..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -2489,32 +2477,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Android\jni\Physics_Ext.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Android\jni\Platforms.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
@@ -3234,7 +3196,6 @@
     <ClCompile Include="Source\Physics\Physics Draw.cpp" />
     <ClCompile Include="Source\Physics\Physics Test.cpp" />
     <ClCompile Include="Source\Physics\Physics.cpp" />
-    <ClCompile Include="Source\Physics\PhysX Ext.cpp" />
     <ClCompile Include="Source\Physics\Ragdoll.cpp" />
     <ClCompile Include="Source\Physics\Vehicle.cpp" />
     <ClCompile Include="Source\Mesh\Blocks.cpp" />
@@ -6128,6 +6089,742 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
     </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCharacterKinematic_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCommon_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXCooking_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXExtensions_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXFoundation_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXPvdSDK_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysXVehicle_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_32.vc142\release\PhysX_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCharacterKinematic_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCommon_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXCooking_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXExtensions_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXFoundation_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXPvdSDK_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysXVehicle_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\uwp.x86_64.vc142\release\PhysX_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCharacterKinematic_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCommon_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXCooking_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXExtensions_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXFoundation_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXPvdSDK_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXVehicle_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysX_static_32.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCharacterKinematic_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCommon_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXCooking_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXExtensions_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXFoundation_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXPvdSDK_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysXVehicle_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_64.vc142.mt\release\PhysX_static_64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+    </Library>
     <Library Include="..\ThirdPartyLibs\QCMS\Windows\Release\QCMS.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
@@ -6397,332 +7094,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Common_x86.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Cooking_x86.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3_x86.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PxFoundation_x86.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PxTask_x86.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="LowLevel.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="LowLevelAABB.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="LowLevelCloth.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="LowLevelDynamics.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="LowLevelParticles.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Common_x64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Cooking_x64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Extensions.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3Vehicle.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PhysX3_x64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PxFoundation_x64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="PxTask_x64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="SceneQuery.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="SimulationController.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
     </Library>
     <Library Include="..\ThirdPartyLibs\Png\Windows\ARM\LIB Release\Png.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>

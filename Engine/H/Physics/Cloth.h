@@ -5,7 +5,7 @@
    'ClothMesh' may not be deleted manually if there's still at least one 'Cloth' using the mesh.
       This means that the 'ClothMesh' may be deleted only after deleting all 'Cloth' objects using the mesh.
 
-/******************************************************************************/
+/******************************************************************************
 const_mem_addr struct ClothMesh // Physical Cloth Mesh, it is created from MeshBase and is used to create Cloth !! must be stored in constant memory address !!
 {
    // manage
@@ -75,7 +75,7 @@ private:
 
    NO_COPY_CONSTRUCTOR(ClothMesh);
 };
-/******************************************************************************/
+/******************************************************************************
 struct Cloth // Physical Cloth
 {
    // manage
@@ -154,6 +154,6 @@ private:
 
    NO_COPY_CONSTRUCTOR(Cloth);
 };
-/******************************************************************************/
+/******************************************************************************
 extern Cache<ClothMesh> ClothMeshes; // ClothMesh Cache
 /******************************************************************************/

@@ -280,19 +280,12 @@ struct PhysxClass
    PxBatchQuery           *batch_query_4;
    Memc<PxVehicleDrive4W*> vehicles;
 #endif
-#if PHYSX_DLL_ACTUAL
-   DLL                     PhysX3, PhysXCommon, PhysXCooking, PhysXFoundation;
-   Ptr                     raycast;
-#endif
 
    PhysxClass()
    {
       foundation=null; physics=null; cook[0]=cook[1]=null; world=null; _mem_leaks=0;
    #if SUPPORT_PHYSX_VEHICLE
       batch_query_4=null;
-   #endif
-   #if PHYSX_DLL_ACTUAL
-      raycast=null;
    #endif
    }
    NO_COPY_CONSTRUCTOR(PhysxClass);

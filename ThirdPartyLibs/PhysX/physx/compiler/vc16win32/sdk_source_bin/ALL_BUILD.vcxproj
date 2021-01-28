@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|Win32">
+      <Configuration>debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="checked|Win32">
+      <Configuration>checked</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="profile|Win32">
+      <Configuration>profile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|Win32">
+      <Configuration>release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FB236917-70C0-3ED1-A8CF-C19BAACDDAC4}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='checked|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='profile|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\CMakeLists.txt">
+      <StdOutEncoding>UTF-8</StdOutEncoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='release|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='release|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc16win32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='release|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\windows\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='release|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\ZERO_CHECK.vcxproj">
+      <Project>{A1B03947-AF3D-3F74-A900-F48B38B29594}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\FastXml.vcxproj">
+      <Project>{6A0AE8E0-4E07-3974-89BB-DC75F055E498}</Project>
+      <Name>FastXml</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\LowLevel.vcxproj">
+      <Project>{9BE4D649-440C-33A1-B415-B27C60A499DC}</Project>
+      <Name>LowLevel</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\LowLevelAABB.vcxproj">
+      <Project>{1D8EB94F-45DB-30EF-B1AD-00A05AB451A6}</Project>
+      <Name>LowLevelAABB</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\LowLevelDynamics.vcxproj">
+      <Project>{81D77B65-9986-365D-A7BD-94CA4C60C157}</Project>
+      <Name>LowLevelDynamics</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysX.vcxproj">
+      <Project>{00D363E6-6729-3148-80EF-629AAD7AA29E}</Project>
+      <Name>PhysX</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXCharacterKinematic.vcxproj">
+      <Project>{476DBF34-5A27-3DB9-9D01-B1789FC616A6}</Project>
+      <Name>PhysXCharacterKinematic</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXCommon.vcxproj">
+      <Project>{6423F247-A6B1-3535-9A8E-641DC278C3F5}</Project>
+      <Name>PhysXCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXCooking.vcxproj">
+      <Project>{489EE6B5-E56B-3753-95F5-5621EF859C3D}</Project>
+      <Name>PhysXCooking</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXExtensions.vcxproj">
+      <Project>{467BE023-EA62-34EF-BF09-63DB4EA2D84A}</Project>
+      <Name>PhysXExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXFoundation.vcxproj">
+      <Project>{E4BB5304-CB42-3073-B935-A550D106C025}</Project>
+      <Name>PhysXFoundation</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXPvdSDK.vcxproj">
+      <Project>{073A353D-4AA2-3C6A-86D9-2F1E17F40C8C}</Project>
+      <Name>PhysXPvdSDK</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXTask.vcxproj">
+      <Project>{477C6B9A-65CC-31C9-88CE-A8EC25831F28}</Project>
+      <Name>PhysXTask</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\PhysXVehicle.vcxproj">
+      <Project>{A96DF5C7-5C8E-3BCE-8D77-882F52380C7D}</Project>
+      <Name>PhysXVehicle</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\SceneQuery.vcxproj">
+      <Project>{7B2FA6E5-0AE8-31C2-810E-106BFB16EB68}</Project>
+      <Name>SceneQuery</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc16win32\sdk_source_bin\SimulationController.vcxproj">
+      <Project>{CE3E914E-6C63-3C27-855D-ABB51196C663}</Project>
+      <Name>SimulationController</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

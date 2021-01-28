@@ -123,7 +123,7 @@ Memc<SkeletonBlendShaderMaterialMeshInstance>  SkeletonBlendShaderMaterialMeshIn
 Memc<SkeletonAmbientInstance                >  SkeletonAmbientInstances;
 
 BlendInstancesClass BlendInstances;
-ClothInstances      SolidClothInstances, ShadowClothInstances;
+//ClothInstances      SolidClothInstances, ShadowClothInstances;
 
 GameObjects PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, AmbientObjects, OutlineObjects, BehindObjects;
 GameAreas   PaletteAreas  , Palette1Areas;
@@ -312,7 +312,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
    }
    // can't clear 'SkeletonSolidInstances' because we might need it for second eye rendering
 
-   // cloth
+   /*// cloth
    if(SolidClothInstances.elms())
    {
       SetOneMatrixAndPrev(); // current cloth shaders might use velocity
@@ -327,7 +327,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
             shader.begin(); ci.cloth->_drawPhysical();
          }
       }
-   }
+   }*/
 
    BeginPrecomputedViewMatrix();
 
@@ -429,7 +429,7 @@ void ClearSolidInstances()
    SkeletonSolidShaderMaterialMeshInstances.clear();
    SkeletonSolidInstances                  .clear();
 
-   SolidClothInstances.clear();
+ //SolidClothInstances.clear();
           SolidObjects.clear();
 }
 void DrawSolidInstances()
@@ -656,7 +656,7 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
    SkeletonShadowShaderMaterialMeshInstances.clear();
    SkeletonShadowInstances                  .clear();
 
-   // physical
+   /*// physical
    if(ShadowClothInstances.elms())
    {
       SetOneMatrixAndPrev(); // current cloth shaders might use velocity
@@ -673,7 +673,7 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
          }
          ShadowClothInstances.clear();
       }
-   }
+   }*/
 }
 /******************************************************************************/
 // BLEND
@@ -972,7 +972,7 @@ void ShutInstances()
 
    BlendInstances.del();
 
-   SolidClothInstances.del(); ShadowClothInstances.del();
+   //SolidClothInstances.del(); ShadowClothInstances.del();
 
    PaletteObjects.del(); Palette1Objects.del(); OverlayObjects.del(); SolidObjects.del(); AmbientObjects.del(); OutlineObjects.del(); BehindObjects.del();
    PaletteAreas  .del(); Palette1Areas  .del();
@@ -1028,7 +1028,7 @@ void ClearInstances()
 
    REPAO(BlendInstances).unlink(); BlendInstances.clear();
 
-   SolidClothInstances.clear(); ShadowClothInstances.clear();
+   //SolidClothInstances.clear(); ShadowClothInstances.clear();
 
    PaletteObjects.clear(); Palette1Objects.clear(); OverlayObjects.clear(); SolidObjects.clear(); AmbientObjects.clear(); OutlineObjects.clear(); BehindObjects.clear();
    PaletteAreas  .clear(); Palette1Areas  .clear();

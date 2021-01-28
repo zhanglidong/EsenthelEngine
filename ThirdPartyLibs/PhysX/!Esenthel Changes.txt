@@ -1,0 +1,29 @@
+* Set Static Lib config:
+Edit: "physx\buildtools\presets\public\*.xml" the target platforms you want:
+	android           <- here also set "ANDROID_NATIVE_API_LEVEL" value="android-18"
+	android-arm64-v8a <- here also set "ANDROID_NATIVE_API_LEVEL" value="android-18"
+	ios64
+	linux
+	mac64
+	vc15uwp32 <- here also set "compiler="vc16""
+	vc15uwp64 <- here also set "compiler="vc16""
+	vc16win32
+	vc16win64
+and set:
+"PX_GENERATE_STATIC_LIBRARIES" value="True"
+"PX_BUILDSNIPPETS" value="False"
+"PX_BUILDPUBLICSAMPLES" value="False"
+
+* Configure for Android
+Edit "physx\generate_projects.bat"
+specify AndroidNDK path, example:
+SET PM_ANDROIDNDK_PATH=C:\Progs\AndroidNDK
+
+* Generate Projects:
+Run "physx\generate_projects.bat"
+
+* On Windows open "physx\compiler\*\PhysXSDK.sln"
+in Visual Studio select all projects in "Physx SDK" folder, properties:
+C/C++ \ General \ Debug Information Format = None
+right-click selected projects and select "Build Selection"
+Libs will get generated in "physx\bin\*\release"

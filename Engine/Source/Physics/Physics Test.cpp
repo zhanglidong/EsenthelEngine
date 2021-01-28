@@ -54,12 +54,6 @@ Bool PhysPart::ray(C Vec &pos, C Vec &move, C Matrix *body_matrix, PhysHitBasic 
    if(_pm)
    {
    #if PHYSX
-   #if PHYSX_DLL_ACTUAL
-      #define PxRaycast (decltype(&PxGeometryQuery::raycast)(Physx.raycast))
-      if(!PxRaycast)Exit("PhysPart.ray\nPhysics hasn't been created");
-   #else
-      #define PxRaycast PxGeometryQuery::raycast
-   #endif
       Vec dir=move; Flt length=dir.normalize();
       PxTransform      transform=Physx.matrix(body_matrix ? *body_matrix : MatrixIdentity);
       Vec              scale    =            (body_matrix ?  body_matrix->scale() : Vec(1));
@@ -76,7 +70,7 @@ Bool PhysPart::ray(C Vec &pos, C Vec &move, C Matrix *body_matrix, PhysHitBasic 
       PxHitFlag::Enum flag=(two_sided ? PxHitFlag::eMESH_BOTH_SIDES : PxHitFlag::Enum(0));
       if(phys_hit)
       {
-         if(PxRaycast(px_pos, px_dir, geom.any(), transform, length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | flag, Elms(hits), hits)>0)
+         if(PxGeometryQuery::raycast(px_pos, px_dir, geom.any(), transform, length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | flag, Elms(hits), hits)>0)
          {
             phys_hit->set(hits[0], length);
             if(phys_hit->face>=0 && _pm->_type==PHYS_MESH)
@@ -91,7 +85,7 @@ Bool PhysPart::ray(C Vec &pos, C Vec &move, C Matrix *body_matrix, PhysHitBasic 
             }
             return true;
          }
-      }else return PxRaycast(px_pos, px_dir, geom.any(), transform, length, PxHitFlag::eMESH_ANY | flag, Elms(hits), hits)>0; // if we don't pass 'hits' then this function won't do anything
+      }else return PxGeometryQuery::raycast(px_pos, px_dir, geom.any(), transform, length, PxHitFlag::eMESH_ANY | flag, Elms(hits), hits)>0; // if we don't pass 'hits' then this function won't do anything
    #else
       switch(_pm->_type)
       {
@@ -465,7 +459,7 @@ Bool PhysicsClass::ray(C Vec &pos, C Vec &move, PhysHit *phys_hit, UInt groups)
       ReadLock          lock(Physics._rws);
       if(phys_hit)
       {
-         if(Physx.world->raycast(Physx.vec(pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX, qfd))
+         if(Physx.world->raycast(Physx.vec(pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX, qfd))
          {
             phys_hit->set(buf.block, length); return true;
          }
@@ -508,7 +502,7 @@ void PhysicsClass::ray(C Vec &pos, C Vec &move, PhysHitCallback &callback, UInt 
       PxRaycastBuffer   buf;
       PxQueryFilterData qfd(PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER); qfd.data.word0=groups;
       ReadLock          lock(Physics._rws);
-      Physx.world->raycast(Physx.vec(pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::eMESH_MULTIPLE, qfd, &NoTemp(RayCallbackAll(callback, length)));
+      Physx.world->raycast(Physx.vec(pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::eMESH_MULTIPLE, qfd, &NoTemp(RayCallbackAll(callback, length)));
    }
 }
 /******************************************************************************/
@@ -536,7 +530,7 @@ Bool PhysicsClass::sweep(C Box &box, C Vec &move, PhysHit *phys_hit, UInt groups
       ReadLock          lock(Physics._rws);
       if(phys_hit)
       {
-         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
+         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
       }else
       {
          qfd.flags|=PxQueryFlag::eANY_HIT;
@@ -555,7 +549,7 @@ Bool PhysicsClass::sweep(C OBox &obox, C Vec &move, PhysHit *phys_hit, UInt grou
       ReadLock          lock(Physics._rws);
       if(phys_hit)
       {
-         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
+         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
       }else
       {
          qfd.flags|=PxQueryFlag::eANY_HIT;
@@ -574,7 +568,7 @@ Bool PhysicsClass::sweep(C Ball &ball, C Vec &move, PhysHit *phys_hit, UInt grou
       ReadLock          lock(Physics._rws);
       if(phys_hit)
       {
-         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
+         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
       }else
       {
          qfd.flags|=PxQueryFlag::eANY_HIT;
@@ -593,7 +587,7 @@ Bool PhysicsClass::sweep(C Capsule &capsule, C Vec &move, PhysHit *phys_hit, UIn
       ReadLock          lock(Physics._rws);
       if(phys_hit)
       {
-         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
+         if(Physx.world->sweep(geom, pose, Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd)){phys_hit->set(buf.block, length); return true;}
       }else
       {
          qfd.flags|=PxQueryFlag::eANY_HIT;
@@ -635,7 +629,7 @@ void PhysicsClass::sweep(C Box &box, C Vec &move, PhysHitCallback &callback, UIn
       PxSweepBuffer     buf;
       PxQueryFilterData qfd(PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER); qfd.data.word0=groups;
       ReadLock          lock(Physics._rws);
-      Physx.world->sweep(PxBoxGeometry(box.w()*0.5f, box.h()*0.5f, box.d()*0.5f), Physx.matrix(box.center()), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
+      Physx.world->sweep(PxBoxGeometry(box.w()*0.5f, box.h()*0.5f, box.d()*0.5f), Physx.matrix(box.center()), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
    }
 }
 void PhysicsClass::sweep(C OBox &obox, C Vec &move, PhysHitCallback &callback, UInt groups)
@@ -646,7 +640,7 @@ void PhysicsClass::sweep(C OBox &obox, C Vec &move, PhysHitCallback &callback, U
       PxSweepBuffer     buf;
       PxQueryFilterData qfd(PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER); qfd.data.word0=groups;
       ReadLock          lock(Physics._rws);
-      Physx.world->sweep(PxBoxGeometry(obox.box.w()*0.5f, obox.box.h()*0.5f, obox.box.d()*0.5f), Physx.matrix(Matrix(obox.center(), obox.matrix.orn())), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
+      Physx.world->sweep(PxBoxGeometry(obox.box.w()*0.5f, obox.box.h()*0.5f, obox.box.d()*0.5f), Physx.matrix(Matrix(obox.center(), obox.matrix.orn())), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
    }
 }
 void PhysicsClass::sweep(C Ball &ball, C Vec &move, PhysHitCallback &callback, UInt groups)
@@ -657,7 +651,7 @@ void PhysicsClass::sweep(C Ball &ball, C Vec &move, PhysHitCallback &callback, U
       PxSweepBuffer     buf;
       PxQueryFilterData qfd(PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER); qfd.data.word0=groups;
       ReadLock          lock(Physics._rws);
-      Physx.world->sweep(PxSphereGeometry(ball.r), Physx.matrix(ball.pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
+      Physx.world->sweep(PxSphereGeometry(ball.r), Physx.matrix(ball.pos), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
    }
 }
 void PhysicsClass::sweep(C Capsule &capsule, C Vec &move, PhysHitCallback &callback, UInt groups)
@@ -668,7 +662,7 @@ void PhysicsClass::sweep(C Capsule &capsule, C Vec &move, PhysHitCallback &callb
       PxSweepBuffer     buf;
       PxQueryFilterData qfd(PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER); qfd.data.word0=groups;
       ReadLock          lock(Physics._rws);
-      Physx.world->sweep(PxCapsuleGeometry(capsule.r, capsule.h*0.5f-capsule.r), Physx.matrix(Matrix().setPosRight(capsule.pos, capsule.up)), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
+      Physx.world->sweep(PxCapsuleGeometry(capsule.r, capsule.h*0.5f-capsule.r), Physx.matrix(Matrix().setPosRight(capsule.pos, capsule.up)), Physx.vec(dir), length, buf, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &NoTemp(SweepCallbackAll(callback, length)));
    }
 }
 /******************************************************************************/
@@ -721,7 +715,7 @@ Bool Actor::sweep(C Vec &move, PhysHit *phys_hit)C
          ReadLock           lock(Physics._rws);
          if(phys_hit)
          {
-            PxSweepHit hit; if(Physx.world->sweepSingle(geom_ptr, poses, FilterData, geoms, Physx.vec(dir), length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, hit, PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER, &asc)){phys_hit->set(hit, length); return true;}
+            PxSweepHit hit; if(Physx.world->sweepSingle(geom_ptr, poses, FilterData, geoms, Physx.vec(dir), length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, hit, PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER, &asc)){phys_hit->set(hit, length); return true;}
          }else
          {
             PxQueryHit hit; return Physx.world->sweepAny(geom_ptr, poses, FilterData, geoms, Physx.vec(dir), length, PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, hit, PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER, &asc);
@@ -779,7 +773,7 @@ void Actor::sweep(C Vec &move, PhysHitCallback &callback)C
          Vec dir=move; Flt length=dir.normalize(); bool blocking;
          ActorSweepCallbackAll asc(callback, *_actor, Physics.collisionGroups(group()));
          ReadLock              lock(Physics._rws);
-         Physx.world->sweepMultiple(geom_ptr, poses, FilterData, geoms, Physx.vec(dir), length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, null, 0, blocking, PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER, &asc);
+         Physx.world->sweepMultiple(geom_ptr, poses, FilterData, geoms, Physx.vec(dir), length, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, null, 0, blocking, PxQueryFlag::eDYNAMIC | PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER | PxQueryFlag::ePOSTFILTER, &asc);
       }
    }
 }
@@ -821,7 +815,7 @@ Bool Actor::sweep(C Vec &move, PhysHit *phys_hit, UInt groups)C
 		      PxSweepBuffer hit;
 		      if(phys_hit)
 		      {
-		         if(Physx.world->sweep(shape->getGeometry().any(), pose, Physx.vec(dir), length, hit, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd, &asc))
+		         if(Physx.world->sweep(shape->getGeometry().any(), pose, Physx.vec(dir), length, hit, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | INITIAL_OVERLAP, qfd, &asc))
 		            if(!have_hit || hit.block.distance<dist_hit)
 	            {
 	               have_hit=true;
@@ -880,7 +874,7 @@ void Actor::sweep(C Vec &move, PhysHitCallback &callback, UInt groups)C
          {
 		      PxTransform   pose=_actor->getGlobalPose()*shape->getLocalPose();
 		      PxSweepBuffer hit;
-	         Physx.world->sweep(shape->getGeometry().any(), pose, Physx.vec(dir), length, hit, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &asc);
+	         Physx.world->sweep(shape->getGeometry().any(), pose, Physx.vec(dir), length, hit, PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eFACE_INDEX | PxHitFlag::ePRECISE_SWEEP | PxHitFlag::eMESH_MULTIPLE | INITIAL_OVERLAP, qfd, &asc);
          }
       }
    }

@@ -1310,7 +1310,7 @@ void VtxIndBuf::create()
       };
      _vf3D_laser.create(ve, Elms(ve));
    }
-   {
+   /*{
       D3D11_INPUT_ELEMENT_DESC ve[]=
       {
          {"POSITION"    , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Cloth::Vtx, pos), D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -1328,7 +1328,7 @@ void VtxIndBuf::create()
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_cloth.create(ve, Elms(ve));
-   }
+   }*/
    {
       D3D11_INPUT_ELEMENT_DESC ve[]=
       {
@@ -1473,12 +1473,12 @@ void VtxIndBuf::create()
       ve.New().set(GL_VTX_NRM, 3, GL_FLOAT, false, OFFSET(Vtx3DLaser, nrm));
      _vf3D_laser.create(ve); ve.clear();
    }
-   {
+   /*{
       ve.New().set(GL_VTX_POS , 3, GL_FLOAT, false, OFFSET(Cloth::Vtx, pos));
       ve.New().set(GL_VTX_NRM , 3, GL_FLOAT, false, OFFSET(Cloth::Vtx, nrm));
       ve.New().set(GL_VTX_TEX0, 2, GL_FLOAT, false, OFFSET(Cloth::Vtx, tex));
      _vf3D_cloth.create(ve); ve.clear();
-   }
+   }*/
    {
       ve.New().set(GL_VTX_POS  , 3, GL_FLOAT        , false, OFFSET(Vtx3DSimple, pos  ));
       ve.New().set(GL_VTX_NRM  , 3, GL_FLOAT        , false, OFFSET(Vtx3DSimple, nrm  ));

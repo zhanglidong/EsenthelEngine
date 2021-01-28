@@ -519,7 +519,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -582,7 +582,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -646,7 +646,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -711,7 +711,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -774,7 +774,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -837,7 +837,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -901,7 +901,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
@@ -969,7 +969,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
@@ -1038,7 +1038,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1103,7 +1103,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1171,7 +1171,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1241,7 +1241,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1309,7 +1309,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1374,7 +1374,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1443,7 +1443,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
@@ -1512,7 +1512,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
@@ -1580,7 +1580,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1643,7 +1643,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1707,7 +1707,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1769,7 +1769,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
@@ -1838,7 +1838,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1902,7 +1902,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1968,7 +1968,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\PhysX\PhysX\Include;..\ThirdPartyLibs\PhysX\PhysX\Include\common;..\ThirdPartyLibs\PhysX\PhysX\Include\geometry;..\ThirdPartyLibs\PhysX\PhysX\Source\Common\src;..\ThirdPartyLibs\PhysX\PhysX\Source\GeomUtils\src;..\ThirdPartyLibs\PhysX\PxShared\include;..\ThirdPartyLibs\PhysX\PxShared\src\foundation\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -2031,7 +2031,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Cg\Win;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\PhysX\H;..\ThirdPartyLibs\PhysX\H\cloth;..\ThirdPartyLibs\PhysX\H\extensions;..\ThirdPartyLibs\PhysX\H\pxtask;..\ThirdPartyLibs\PhysX\H\geometry;..\ThirdPartyLibs\PhysX\H\foundation;..\ThirdPartyLibs\PhysX\H\common;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\include;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\Bullet\lib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -2083,7 +2083,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Esenthel Builder.cpp" />
+    <ClCompile Include="..\..\Users\esent\OneDrive\Code\Tools\Build Private.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">Create</PrecompiledHeader>

@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsAllocator.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsAssert.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsFoundation.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsMathUtils.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsString.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsTempAllocator.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\PsUtilities.cpp">
+      <Filter>src\src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsAtomic.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsCpu.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsFPU.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsMutex.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsPrintString.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsSList.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsSocket.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsSync.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsThread.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\src\windows\PsWindowsTime.cpp">
+      <Filter>src\src\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\Ps.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsAlignedMalloc.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsAlloca.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsAllocator.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsAoS.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsArray.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsAtomic.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsBasicTemplates.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsBitUtils.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsBroadcast.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsCpu.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsFoundation.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsFPU.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsHash.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsHashInternals.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsHashMap.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsHashSet.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsInlineAllocator.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsInlineAoS.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsInlineArray.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsIntrinsics.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsMathUtils.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsMutex.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsPool.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsSList.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsSocket.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsSort.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsSortInternals.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsString.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsSync.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsTempAllocator.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsThread.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsTime.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsUserAllocated.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsUtilities.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecMath.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecMathAoSScalar.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecMathAoSScalarInline.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecMathSSE.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecMathUtilities.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecQuat.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\PsVecTransform.h">
+      <Filter>src\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\PxFoundation.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\foundation\PxAssert.h">
+      <Filter>include\foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\foundation\PxFoundationConfig.h">
+      <Filter>include\foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\include\foundation\PxMathUtils.h">
+      <Filter>include\foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsAoS.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsFPU.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsInclude.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsInlineAoS.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsIntrinsics.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include\windows\PsWindowsTrigConstants.h">
+      <Filter>src\include\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\Px.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxAllocatorCallback.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxProfiler.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxSharedAssert.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxBitAndData.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxBounds3.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxErrorCallback.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxErrors.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxFlags.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxIntrinsics.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxIO.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxMat33.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxMat44.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxMath.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxMemory.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxPlane.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxPreprocessor.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxQuat.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxSimpleTypes.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxStrideIterator.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxTransform.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxUnionCast.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxVec2.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxVec3.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\PxVec4.h">
+      <Filter>shared\include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\pxshared\include\foundation\windows\PxWindowsIntrinsics.h">
+      <Filter>shared\include\windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\resource_x64\PhysXFoundation.rc">
+      <Filter>resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{4FD8E87E-C550-33CD-9D6B-08D6FA0FA3A0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\foundation">
+      <UniqueIdentifier>{9342D6B2-0661-3B71-ABEC-0267308AA829}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{E3FA7130-A09C-35F0-AE1F-28E73F82DF9F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared">
+      <UniqueIdentifier>{5485528F-E863-39F2-B3C3-67824580F9B7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared\include">
+      <UniqueIdentifier>{7728245E-FF54-364E-AB01-48CC83F94F78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared\include\windows">
+      <UniqueIdentifier>{0C5FE20F-AD2C-329C-AEE4-16070936CBB6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{B5A3D94F-3898-3276-8CC9-9CE5B5D4C08E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\include">
+      <UniqueIdentifier>{01F7B2BD-70C3-3AAB-9CB5-2B40D42DB0A5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\include\windows">
+      <UniqueIdentifier>{B5075C8E-798D-3243-A59F-763CD5CE2A2C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\src">
+      <UniqueIdentifier>{18A1367D-5DE0-346A-9D42-50A149B3FD22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\src\windows">
+      <UniqueIdentifier>{C03D2EFF-FFE4-34C3-BE93-EDB815801557}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

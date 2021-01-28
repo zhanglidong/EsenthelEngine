@@ -9,7 +9,7 @@ static Flt Density(Flt density, Bool kinematic) {return (kinematic && density<=0
 /******************************************************************************/
 static Bool Add(PxRigidActor &actor, C Plane &plane)
 {
-   if(PxShape *shape=actor.createShape(PxPlaneGeometry(), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxPlaneGeometry(), *Physics.mtrl_default._m))
    {
       shape->setLocalPose(Physx.matrix(Matrix().setPosRight(plane.pos, plane.normal)));
       shape->setContactOffset(Physics.skin());
@@ -19,7 +19,7 @@ static Bool Add(PxRigidActor &actor, C Plane &plane)
 }
 static Bool Add(PxRigidActor &actor, C Box &box, C Vec *local_pos)
 {
-   if(PxShape *shape=actor.createShape(PxBoxGeometry(box.w()*0.5f, box.h()*0.5f, box.d()*0.5f), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxBoxGeometry(box.w()*0.5f, box.h()*0.5f, box.d()*0.5f), *Physics.mtrl_default._m))
    {
       Matrix local_matrix; if(local_pos)local_matrix.pos=*local_pos;else local_matrix.pos.zero(); local_matrix.orn().identity();
       shape->setLocalPose(Physx.matrix(local_matrix));
@@ -30,7 +30,7 @@ static Bool Add(PxRigidActor &actor, C Box &box, C Vec *local_pos)
 }
 static Bool Add(PxRigidActor &actor, C OBox &obox, C Vec *local_pos)
 {
-   if(PxShape *shape=actor.createShape(PxBoxGeometry(obox.box.w()*0.5f, obox.box.h()*0.5f, obox.box.d()*0.5f), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxBoxGeometry(obox.box.w()*0.5f, obox.box.h()*0.5f, obox.box.d()*0.5f), *Physics.mtrl_default._m))
    {
       Matrix local_matrix; if(local_pos)local_matrix.pos=*local_pos;else local_matrix.pos.zero(); local_matrix.orn()=obox.matrix.orn();
       shape->setLocalPose(Physx.matrix(local_matrix));
@@ -41,7 +41,7 @@ static Bool Add(PxRigidActor &actor, C OBox &obox, C Vec *local_pos)
 }
 static Bool Add(PxRigidActor &actor, C Extent &ext, C Vec *local_pos)
 {
-   if(PxShape *shape=actor.createShape(PxBoxGeometry(Physx.vec(ext.ext)), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxBoxGeometry(Physx.vec(ext.ext)), *Physics.mtrl_default._m))
    {
       Matrix local_matrix; if(local_pos)local_matrix.pos=*local_pos;else local_matrix.pos.zero(); local_matrix.orn().identity();
       shape->setLocalPose(Physx.matrix(local_matrix));
@@ -52,7 +52,7 @@ static Bool Add(PxRigidActor &actor, C Extent &ext, C Vec *local_pos)
 }
 static Bool Add(PxRigidActor &actor, C Ball &ball, C Vec *local_pos)
 {
-   if(PxShape *shape=actor.createShape(PxSphereGeometry(ball.r), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxSphereGeometry(ball.r), *Physics.mtrl_default._m))
    {
       Matrix local_matrix; if(local_pos)local_matrix.pos=*local_pos;else local_matrix.pos.zero(); local_matrix.orn().identity();
       shape->setLocalPose(Physx.matrix(local_matrix));
@@ -63,7 +63,7 @@ static Bool Add(PxRigidActor &actor, C Ball &ball, C Vec *local_pos)
 }
 static Bool Add(PxRigidActor &actor, C Capsule &capsule, C Vec *local_pos)
 {
-   if(PxShape *shape=actor.createShape(PxCapsuleGeometry(capsule.r, capsule.h*0.5f-capsule.r), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxCapsuleGeometry(capsule.r, capsule.h*0.5f-capsule.r), *Physics.mtrl_default._m))
    {
       Matrix local_matrix; if(local_pos)local_matrix.pos=*local_pos;else local_matrix.pos.zero(); local_matrix.orn().setRight(capsule.up);
       shape->setLocalPose(Physx.matrix(local_matrix));
@@ -74,7 +74,7 @@ static Bool Add(PxRigidActor &actor, C Capsule &capsule, C Vec *local_pos)
 }
 static Bool Add(PxRigidActor &actor, PxConvexMesh &mesh, C Vec &scale)
 {
-   if(PxShape *shape=actor.createShape(PxConvexMeshGeometry(&mesh, PxMeshScale(Physx.vec(scale), PxQuat(PxIdentity))), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxConvexMeshGeometry(&mesh, PxMeshScale(Physx.vec(scale), PxQuat(PxIdentity))), *Physics.mtrl_default._m))
    {
       shape->setContactOffset(Physics.skin());
       return true;
@@ -83,7 +83,7 @@ static Bool Add(PxRigidActor &actor, PxConvexMesh &mesh, C Vec &scale)
 }
 static Bool Add(PxRigidActor &actor, PxTriangleMesh &mesh, C Vec &scale)
 {
-   if(PxShape *shape=actor.createShape(PxTriangleMeshGeometry(&mesh, PxMeshScale(Physx.vec(scale), PxQuat(PxIdentity))), *Physics.mtrl_default._m))
+   if(PxShape *shape=PxRigidActorExt::createExclusiveShape(actor, PxTriangleMeshGeometry(&mesh, PxMeshScale(Physx.vec(scale), PxQuat(PxIdentity))), *Physics.mtrl_default._m))
    {
       shape->setContactOffset(Physics.skin());
       return true;

@@ -1,0 +1,337 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|Win32">
+      <Configuration>debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="checked|Win32">
+      <Configuration>checked</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="profile|Win32">
+      <Configuration>profile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|Win32">
+      <Configuration>release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4D97B4C0-EE0C-38DF-B77D-85FA7D75DD98}</ProjectGuid>
+    <ApplicationType>Windows Store</ApplicationType>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <AppContainerApplication>true</AppContainerApplication>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.18362.0</WindowsTargetPlatformMinVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>FastXml</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='checked|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='profile|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">FastXml.dir\debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">FastXml.dir\debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">FastXml</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">FastXml.dir\checked\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">FastXml.dir\checked\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">FastXml</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">FastXml.dir\profile\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">FastXml.dir\profile\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">FastXml</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">FastXml.dir\release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">FastXml.dir\release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='release|Win32'">FastXml</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='release|Win32'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /d2Zi+</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4514;4820;4127;4710;4711;4577;4530;4324</DisableSpecificWarnings>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_DEBUG=1;PX_CHECKED=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR="debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\debug\FastXml_32.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_DEBUG=1;PX_CHECKED=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR=\"debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+    </Lib>
+    <Link>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /d2Zi+</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4514;4820;4127;4710;4711;4577;4530;4324</DisableSpecificWarnings>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_CHECKED=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR="checked";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\checked\FastXml_32.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_CHECKED=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR=\"checked\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+    </Lib>
+    <Link>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /d2Zi+</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4514;4820;4127;4710;4711;4577;4530;4324</DisableSpecificWarnings>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_PROFILE=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR="profile";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\profile\FastXml_32.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_PROFILE=1;PX_NVTX=0;PX_SUPPORT_PVD=1;CMAKE_INTDIR=\"profile\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+    </Lib>
+    <Link>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /d2Zi+</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <DisableSpecificWarnings>4514;4820;4127;4710;4711;4577;4530;4324</DisableSpecificWarnings>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_SUPPORT_PVD=0;CMAKE_INTDIR="release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\release\FastXml_32.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;DISABLE_CUDA_PHYSX;PX_PHYSX_STATIC_LIB;PX_SUPPORT_PVD=0;CMAKE_INTDIR=\"release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Esenthel\ThirdPartyLibs\PhysX\physx\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\..\pxshared\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\foundation\include;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+    </Lib>
+    <Link>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\CMakeLists.txt">
+      <StdOutEncoding>UTF-8</StdOutEncoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='checked|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='profile|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='release|Win32'">Building Custom Rule C:/Esenthel/ThirdPartyLibs/PhysX/physx/source/compiler/cmake/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='release|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/public -BC:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32 --check-stamp-file C:/Esenthel/ThirdPartyLibs/PhysX/physx/compiler/vc15uwp32/sdk_source_bin/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='release|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\GetCompilerAndPlatform.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\NvidiaBuildOptions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\SetOutputPaths.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\externals\cmakemodules\template\PxIncludeTemplate.h;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\SimulationController.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\CMakeLists.txt;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\FastXml.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevel.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelAABB.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\LowLevelDynamics.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysX.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCharacterKinematic.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCommon.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXCooking.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXExtensions.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXFoundation.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXPvdSDK.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXTask.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\PhysXVehicle.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SceneQuery.cmake;C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\compiler\cmake\uwp\SimulationController.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='release|Win32'">C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\sdk_source_bin\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\include\PsFastXml.h" />
+    <ClCompile Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\source\fastxml\src\PsFastXml.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Esenthel\ThirdPartyLibs\PhysX\physx\compiler\vc15uwp32\ZERO_CHECK.vcxproj">
+      <Project>{50F10477-2659-3C1D-A7CD-4BBA3599B50D}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

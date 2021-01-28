@@ -1443,7 +1443,7 @@ void MeshLod::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material)C
       }
    }
 }
-/******************************************************************************/
+/******************************************************************************
 void Cloth::drawSkinned(C AnimatedSkeleton &anim_skel)C
 {
    if(_cloth_mesh)

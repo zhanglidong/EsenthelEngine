@@ -315,7 +315,7 @@ struct BlendInstancesClass : Memc<BlendInstance>
 };
 /******************************************************************************/
 // CLOTH
-/******************************************************************************/
+/******************************************************************************
 struct ClothInstance
 {
  C Cloth      *cloth;
@@ -346,7 +346,7 @@ struct GameAreas : Memc<Game::Area::Data*>
 // VARIABLES
 /******************************************************************************/
 extern BlendInstancesClass BlendInstances;
-extern ClothInstances      SolidClothInstances, ShadowClothInstances;
+//extern ClothInstances      SolidClothInstances, ShadowClothInstances;
 extern    GameObjects      PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, AmbientObjects, OutlineObjects, BehindObjects;
 extern    GameAreas        PaletteAreas  , Palette1Areas;
 /******************************************************************************/

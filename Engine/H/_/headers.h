@@ -1,6 +1,4 @@
 /******************************************************************************/
-#define PHYSX_DLL 0 // if dynamically link PhysX
-
 #if EE_PRIVATE
    // Threads
    #if WEB
@@ -73,17 +71,10 @@
 
    #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 
-   #define PHYSX_DLL_ACTUAL (PHYSX && PHYSX_DLL && (WINDOWS_OLD || LINUX))
-
    #if PHYSX
       #define PHYS_API(physx, bullet) physx
    #else
       #define PHYS_API(physx, bullet) bullet
-   #endif
-
-   #if PHYSX && (WINDOWS || LINUX)
-      #define PX_FOUNDATION_DLL 0
-      #define PX_PHYSX_STATIC_LIB
    #endif
 
    // Sound
@@ -500,70 +491,17 @@
    // Physics
    #if PHYSX // use PhysX
       #ifndef NDEBUG
-         #define NDEBUG
+         #define NDEBUG // specify Release config for PhysX
       #endif
-      #if ARM
-         #include <arm_neon.h> // TODO: remove this once fixed in PhysX, include ARM NEON before PhysX headers, as workaround for https://github.com/NVIDIAGameWorks/PhysX-3.4/issues/77
-      #endif
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxAggregate.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxBatchQuery.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxMaterial.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxPhysics.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxPhysicsVersion.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxRigidDynamic.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxRigidStatic.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxScene.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxShape.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/PxSimulationEventCallback.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxBoxGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxSphereGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxCapsuleGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxPlaneGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxConvexMeshGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxTriangleMeshGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxHeightFieldGeometry.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxConvexMesh.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxTriangleMesh.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxHeightField.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/geometry/PxGeometryQuery.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/cloth/PxCloth.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/cloth/PxClothFabric.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/cloth/PxClothParticleData.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/common/PxTolerancesScale.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/cooking/PxCooking.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxClothFabricCooker.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxDefaultAllocator.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxDefaultErrorCallback.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxDefaultCpuDispatcher.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxDefaultSimulationFilterShader.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxD6Joint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxDistanceJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxFixedJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxPrismaticJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxRigidBodyExt.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxRevoluteJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/extensions/PxSphericalJoint.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/vehicle/PxVehicleDrive4W.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/vehicle/PxVehicleWheels.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/vehicle/PxVehicleUpdate.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/vehicle/PxVehicleTireFriction.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Include/vehicle/PxVehicleUtilControl.h"
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Source/GeomUtils/src/mesh/GuMeshData.h"     // needed for PX_MESH_VERSION
-      #include "../../../ThirdPartyLibs/PhysX/PhysX/Source/GeomUtils/src/convex/GuConvexMesh.h" // needed for PX_CONVEX_VERSION
-      #include "../../../ThirdPartyLibs/PhysX/PxShared/include/foundation/PxFoundation.h"
-      #include "../../../ThirdPartyLibs/PhysX/PxShared/include/foundation/PxFoundationVersion.h"
-      #include "../../../ThirdPartyLibs/PhysX/PxShared/include/foundation/PxIO.h"
-      #include "../../../ThirdPartyLibs/PhysX/PxShared/include/task/PxTask.h"
+      #define PX_PHYSX_STATIC_LIB
+      #include "../../../ThirdPartyLibs/PhysX/physx/include/PxPhysicsAPI.h"
+      #include "../../../ThirdPartyLibs/PhysX/physx/source/geomutils/src/mesh/GuMeshData.h"     // needed for PX_MESH_VERSION
+      #include "../../../ThirdPartyLibs/PhysX/physx/source/geomutils/src/convex/GuConvexMesh.h" // needed for PX_CONVEX_VERSION
       using namespace physx;
    #endif
 
    // always include Bullet to generate optimized PhysBody if needed
-   #pragma warning(push             )
-   #pragma warning(disable:4359     ) // Alignment specifier is less than actual alignment (128), and will be ignored.
-   #pragma warning(disable:4311 4302) // 'type cast': pointer truncation from '' to ''
    #include "../../../ThirdPartyLibs/Bullet/lib/src/btBulletDynamicsCommon.h"
-   #pragma warning(pop)
 
    // Recast/Detour path finding
    #include "../../../ThirdPartyLibs/Recast/Recast/Include/Recast.h"
