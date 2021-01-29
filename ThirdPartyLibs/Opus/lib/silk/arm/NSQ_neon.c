@@ -28,6 +28,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#ifdef OPUS_ARM_MAY_HAVE_NEON
+
 #include <arm_neon.h>
 #include "main.h"
 #include "stack_alloc.h"
@@ -110,3 +112,5 @@ opus_int32 silk_NSQ_noise_shape_feedback_loop_neon(const opus_int32 *data0, opus
     }
     return silk_NSQ_noise_shape_feedback_loop_c(data0, data1, coef, order);
 }
+
+#endif

@@ -29,6 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#ifdef OPUS_ARM_MAY_HAVE_NEON
+
 #include <arm_neon.h>
 #include "SigProc_FIX.h"
 #include "define.h"
@@ -278,3 +280,4 @@ opus_int32 silk_LPC_inverse_pred_gain_neon(         /* O   Returns inverse predi
 
     return invGain_Q30;
 }
+#endif

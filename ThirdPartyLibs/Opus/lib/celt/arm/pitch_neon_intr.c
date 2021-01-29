@@ -29,6 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#ifdef OPUS_ARM_MAY_HAVE_NEON
+
 #include <arm_neon.h>
 #include "pitch.h"
 
@@ -288,3 +290,5 @@ void dual_inner_prod_neon(const opus_val16 *x, const opus_val16 *y01, const opus
 }
 
 #endif /* FIXED_POINT */
+
+#endif

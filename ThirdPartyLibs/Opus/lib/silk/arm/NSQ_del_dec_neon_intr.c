@@ -29,6 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#ifdef OPUS_ARM_MAY_HAVE_NEON
+
 #include <arm_neon.h>
 #ifdef OPUS_CHECK_ASM
 # include <string.h>
@@ -1122,3 +1124,5 @@ static OPUS_INLINE void silk_nsq_del_dec_scale_states_neon(
         NSQ->prev_gain_Q16 = Gains_Q16[ subfr ];
     }
 }
+
+#endif

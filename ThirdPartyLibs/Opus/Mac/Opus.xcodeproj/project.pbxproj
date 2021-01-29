@@ -478,6 +478,16 @@
 		37C112801EFE25FD009A189F /* x86cpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E5861B9432FB00599A73 /* x86cpu.c */; };
 		37C112891EFE2605009A189F /* x86_silk_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E6471B94332200599A73 /* x86_silk_map.c */; };
 		37F436211EFE16C200807FA4 /* x86_silk_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E6471B94332200599A73 /* x86_silk_map.c */; };
+		37F83C5225C40A27000E5568 /* arm_celt_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E5321B9432AA00599A73 /* arm_celt_map.c */; };
+		37F83C5625C40A31000E5568 /* armcpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E5331B9432AA00599A73 /* armcpu.c */; };
+		37F83C5A25C40A3A000E5568 /* celt_mdct_ne10.c in Sources */ = {isa = PBXBuildFile; fileRef = 376506FC25235E0000C579E3 /* celt_mdct_ne10.c */; };
+		37F83C5E25C40A3D000E5568 /* celt_neon_intr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769E5361B9432AA00599A73 /* celt_neon_intr.c */; };
+		37F83C6225C40A42000E5568 /* pitch_neon_intr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3712974B1EFD513C00E99EBB /* pitch_neon_intr.c */; };
+		37F83C6625C40A50000E5568 /* NSQ_del_dec_neon_intr.c in Sources */ = {isa = PBXBuildFile; fileRef = 371297501EFD519000E99EBB /* NSQ_del_dec_neon_intr.c */; };
+		37F83C6725C40A50000E5568 /* arm_silk_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 37877F181DD9B3E500A62A86 /* arm_silk_map.c */; };
+		37F83C6825C40A50000E5568 /* biquad_alt_neon_intr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3712974E1EFD516600E99EBB /* biquad_alt_neon_intr.c */; };
+		37F83C6925C40A50000E5568 /* LPC_inv_pred_gain_neon_intr.c in Sources */ = {isa = PBXBuildFile; fileRef = 371297521EFD51B000E99EBB /* LPC_inv_pred_gain_neon_intr.c */; };
+		37F83C6A25C40A50000E5568 /* NSQ_neon.c in Sources */ = {isa = PBXBuildFile; fileRef = 37877F191DD9B3E500A62A86 /* NSQ_neon.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1424,6 +1434,7 @@
 				3765071325235E5500C579E3 /* celt_lpc_sse4_1.c in Sources */,
 				3769E57D1B9432E300599A73 /* rate.c in Sources */,
 				371297441EFD50DD00E99EBB /* LPC_fit.c in Sources */,
+				37F83C6725C40A50000E5568 /* arm_silk_map.c in Sources */,
 				3769E5731B9432E300599A73 /* mdct.c in Sources */,
 				3769E5241B94327300599A73 /* info.c in Sources */,
 				37580D891C84133F000DDF04 /* pitch_sse2.c in Sources */,
@@ -1431,6 +1442,7 @@
 				3769E6611B94332200599A73 /* code_signs.c in Sources */,
 				3769E78F1B94332200599A73 /* tables_other.c in Sources */,
 				3769E7631B94332200599A73 /* resampler_private_up2_HQ.c in Sources */,
+				37F83C5225C40A27000E5568 /* arm_celt_map.c in Sources */,
 				3769E6731B94332200599A73 /* decode_frame.c in Sources */,
 				3769E65B1B94332200599A73 /* bwexpander_32.c in Sources */,
 				3769E70F1B94332200599A73 /* gain_quant.c in Sources */,
@@ -1438,6 +1450,7 @@
 				3769E7571B94332200599A73 /* resampler_down2.c in Sources */,
 				3769E7151B94332200599A73 /* init_encoder.c in Sources */,
 				3769E6F71B94332200599A73 /* process_gains_FLP.c in Sources */,
+				37F83C6A25C40A50000E5568 /* NSQ_neon.c in Sources */,
 				3769E7511B94332200599A73 /* process_NLSFs.c in Sources */,
 				3769E7371B94332200599A73 /* NLSF_decode.c in Sources */,
 				3769E74B1B94332200599A73 /* pitch_est_tables.c in Sources */,
@@ -1447,6 +1460,7 @@
 				3769E7471B94332200599A73 /* NSQ_del_dec.c in Sources */,
 				3769E5691B9432E300599A73 /* entdec.c in Sources */,
 				3769E6591B94332200599A73 /* bwexpander.c in Sources */,
+				37F83C5E25C40A3D000E5568 /* celt_neon_intr.c in Sources */,
 				3769E7B91B9433C300599A73 /* mlp_data.c in Sources */,
 				3769E55B1B9432E300599A73 /* bands.c in Sources */,
 				3769E6E11B94332200599A73 /* inner_product_FLP.c in Sources */,
@@ -1461,6 +1475,7 @@
 				3769E79B1B94332200599A73 /* VQ_WMat_EC.c in Sources */,
 				3769E57F1B9432E300599A73 /* vq.c in Sources */,
 				3769E6751B94332200599A73 /* decode_indices.c in Sources */,
+				37F83C5A25C40A3A000E5568 /* celt_mdct_ne10.c in Sources */,
 				3769E6F11B94332200599A73 /* noise_shape_analysis_FLP.c in Sources */,
 				3769E7C51B9433C300599A73 /* opus_multistream_decoder.c in Sources */,
 				3769E6F31B94332200599A73 /* pitch_analysis_core_FLP.c in Sources */,
@@ -1474,10 +1489,12 @@
 				3769E73D1B94332200599A73 /* NLSF_stabilize.c in Sources */,
 				3769E7991B94332200599A73 /* VAD.c in Sources */,
 				3769E5751B9432E300599A73 /* modes.c in Sources */,
+				37F83C5625C40A31000E5568 /* armcpu.c in Sources */,
 				3769E7531B94332200599A73 /* quant_LTP_gains.c in Sources */,
 				3769E5611B9432E300599A73 /* celt_lpc.c in Sources */,
 				3769E7011B94332200599A73 /* schur_FLP.c in Sources */,
 				3769E5631B9432E300599A73 /* celt.c in Sources */,
+				37F83C6225C40A42000E5568 /* pitch_neon_intr.c in Sources */,
 				3769E64B1B94332200599A73 /* ana_filt_bank_1.c in Sources */,
 				3769E7751B94332200599A73 /* stereo_encode_pred.c in Sources */,
 				3769E56B1B9432E300599A73 /* entenc.c in Sources */,
@@ -1491,6 +1508,7 @@
 				3769E6771B94332200599A73 /* decode_parameters.c in Sources */,
 				3769E71F1B94332200599A73 /* log2lin.c in Sources */,
 				3769E6D91B94332200599A73 /* find_LPC_FLP.c in Sources */,
+				37F83C6625C40A50000E5568 /* NSQ_del_dec_neon_intr.c in Sources */,
 				3769E76B1B94332200599A73 /* shell_coder.c in Sources */,
 				3769E7C91B9433C300599A73 /* opus_multistream.c in Sources */,
 				3769E5281B94327300599A73 /* opusfile.c in Sources */,
@@ -1503,6 +1521,7 @@
 				3769E6CB1B94332200599A73 /* apply_sine_window_FLP.c in Sources */,
 				3769E6491B94332200599A73 /* A2NLSF.c in Sources */,
 				3769E5261B94327300599A73 /* internal.c in Sources */,
+				37F83C6925C40A50000E5568 /* LPC_inv_pred_gain_neon_intr.c in Sources */,
 				371297481EFD510C00E99EBB /* vq_sse2.c in Sources */,
 				3769E6E31B94332200599A73 /* k2a_FLP.c in Sources */,
 				3769E6E91B94332200599A73 /* LPC_inv_pred_gain_FLP.c in Sources */,
@@ -1533,6 +1552,7 @@
 				3769E7131B94332200599A73 /* init_decoder.c in Sources */,
 				3769E78D1B94332200599A73 /* tables_NLSF_CB_WB.c in Sources */,
 				37F436211EFE16C200807FA4 /* x86_silk_map.c in Sources */,
+				37F83C6825C40A50000E5568 /* biquad_alt_neon_intr.c in Sources */,
 				3769E6F91B94332200599A73 /* regularize_correlations_FLP.c in Sources */,
 				3769E6851B94332200599A73 /* encode_pulses.c in Sources */,
 				3769E5651B9432E300599A73 /* cwrs.c in Sources */,

@@ -29,6 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#ifdef OPUS_ARM_MAY_HAVE_NEON
+
 #include <arm_neon.h>
 #ifdef OPUS_CHECK_ASM
 # include <string.h>
@@ -154,3 +156,4 @@ void silk_biquad_alt_stride2_neon(
     RESTORE_STACK;
 #endif
 }
+#endif
