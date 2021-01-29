@@ -771,31 +771,31 @@ void CompileEditorWindows32DX9 () {CompileVS(EditorSourcePath+VSEditorProject, "
 void CleanEngineWeb    () {build_threads.queue(build_requests.New().set(CleanEngineWebDo), BuildRun);}
 void            WebLibs() {build_threads.queue(build_requests.New().set(MakeWebLibs     ), BuildRun);}
 
-void   CleanEngineApple() {CleanXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine");
-                           CleanXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine Device");
-                           CleanXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine Simulator", "iphonesimulator");
-                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine");
-                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine Device");
-                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine Simulator", "iphonesimulator");}
+void   CleanEngineApple() {CleanXcode(EnginePath      +XcodeEngineProject, "Release", "Mac");
+                           CleanXcode(EnginePath      +XcodeEngineProject, "Release", "iOS");
+                           CleanXcode(EnginePath      +XcodeEngineProject, "Release", "iOS Simulator", "iphonesimulator");
+                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "Mac");
+                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "iOS");
+                           CleanXcode(EnginePath      +XcodeEngineProject, "Debug"  , "iOS Simulator", "iphonesimulator");}
 void   CleanEditorMac  () {CleanXcode(EditorSourcePath+XcodeEditorProject, "Release", "Mac");}
 
-void CopyEngineMac         () {Copy(EnginePath+"Build/Release/EsenthelEngine.a"                          , EditorPath+"Bin/EsenthelEngine.a");}
-void CopyEngineiOS         () {Copy(EnginePath+"Build/Release-iphoneos/EsenthelEngine Device.a"          , EditorPath+"Bin/EsenthelEngine Device.a");}
-void CopyEngineiOSSimulator() {Copy(EnginePath+"Build/Release-iphonesimulator/EsenthelEngine Simulator.a", EditorPath+"Bin/EsenthelEngine Simulator.a");}
+void CopyEngineMac         () {Copy(EnginePath+"Build/Release/EsenthelEngine.a"                , EditorPath+"Bin/EsenthelEngine Mac.a");}
+void CopyEngineiOS         () {Copy(EnginePath+"Build/Release-iphoneos/EsenthelEngine.a"       , EditorPath+"Bin/EsenthelEngine iOS.a");}
+void CopyEngineiOSSimulator() {Copy(EnginePath+"Build/Release-iphonesimulator/EsenthelEngine.a", EditorPath+"Bin/EsenthelEngine iOS Simulator.a");}
 
-void CopyEngineDebugMac         () {Copy(EnginePath+"Build/Debug/EsenthelEngine.a"                          , EditorPath+"Bin/EsenthelEngine.a");}
-void CopyEngineDebugiOS         () {Copy(EnginePath+"Build/Debug-iphoneos/EsenthelEngine Device.a"          , EditorPath+"Bin/EsenthelEngine Device.a");}
-void CopyEngineDebugiOSSimulator() {Copy(EnginePath+"Build/Debug-iphonesimulator/EsenthelEngine Simulator.a", EditorPath+"Bin/EsenthelEngine Simulator.a");}
+void CopyEngineDebugMac         () {Copy(EnginePath+"Build/Debug/EsenthelEngine.a"                , EditorPath+"Bin/EsenthelEngine Mac.a");}
+void CopyEngineDebugiOS         () {Copy(EnginePath+"Build/Debug-iphoneos/EsenthelEngine.a"       , EditorPath+"Bin/EsenthelEngine iOS.a");}
+void CopyEngineDebugiOSSimulator() {Copy(EnginePath+"Build/Debug-iphonesimulator/EsenthelEngine.a", EditorPath+"Bin/EsenthelEngine iOS Simulator.a");}
 
 void CopyEditorMac() {ReplaceDir(EditorSourcePath+"Esenthel.app", EditorPath+"Esenthel.app");}
 
-void CompileEngineMac              () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine"          , ""               , CopyEngineMac);}
-void CompileEngineiOS              () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine Device"   , ""               , CopyEngineiOS);}
-void CompileEngineiOSSimulator     () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "EsenthelEngine Simulator", "iphonesimulator", CopyEngineiOSSimulator);}
-void CompileEngineDebugMac         () {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine"          , ""               , CopyEngineDebugMac);}
-void CompileEngineDebugiOS         () {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine Device"   , ""               , CopyEngineDebugiOS);}
-void CompileEngineDebugiOSSimulator() {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "EsenthelEngine Simulator", "iphonesimulator", CopyEngineDebugiOSSimulator);}
-void CompileEditorMac              () {CompileXcode(EditorSourcePath+XcodeEditorProject, "Release", "Mac"                     , ""               , CopyEditorMac);}
+void CompileEngineMac              () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "Mac"          , ""               , CopyEngineMac);}
+void CompileEngineiOS              () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "iOS"          , ""               , CopyEngineiOS);}
+void CompileEngineiOSSimulator     () {CompileXcode(EnginePath      +XcodeEngineProject, "Release", "iOS Simulator", "iphonesimulator", CopyEngineiOSSimulator);}
+void CompileEngineDebugMac         () {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "Mac"          , ""               , CopyEngineDebugMac);}
+void CompileEngineDebugiOS         () {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "iOS"          , ""               , CopyEngineDebugiOS);}
+void CompileEngineDebugiOSSimulator() {CompileXcode(EnginePath      +XcodeEngineProject, "Debug"  , "iOS Simulator", "iphonesimulator", CopyEngineDebugiOSSimulator);}
+void CompileEditorMac              () {CompileXcode(EditorSourcePath+XcodeEditorProject, "Release", "Mac"          , ""               , CopyEditorMac);}
 
 void    CopyEditorLinux    () {Copy(EditorSourcePath+"Esenthel", EditorPath+"Esenthel");}
 void         CleanLinux    () {build_threads.queue(build_requests.New().set(CleanLinuxDo), BuildRun);}

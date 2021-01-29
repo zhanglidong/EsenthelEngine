@@ -19,7 +19,7 @@
 		378309DA1A0711C8002383BF /* Esenthel Builder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378309D91A0711C8002383BF /* Esenthel Builder.cpp */; };
 		3799264518BD4AB300A933D5 /* iOS.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3799260818BD4AB300A933D5 /* iOS.xib */; };
 		37AD1FB91F52D16900C80985 /* EsenthelEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37AE6A3F18E67FD300319BDA /* EsenthelEngine.a */; };
-		37AE6A4318E67FDF00319BDA /* EsenthelEngine Device.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37AE6A4218E67FDF00319BDA /* EsenthelEngine Device.a */; };
+		37AE6A4318E67FDF00319BDA /* EsenthelEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37AE6A4218E67FDF00319BDA /* EsenthelEngine.a */; };
 		37C573321C868FFA00039CB1 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 37C573311C868FFA00039CB1 /* Icon.icns */; };
 /* End PBXBuildFile section */
 
@@ -38,11 +38,11 @@
 		3799260818BD4AB300A933D5 /* iOS.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = iOS.xib; path = Assets/iOS.xib; sourceTree = "<group>"; };
 		3799260A18BD4AB300A933D5 /* Mac.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Mac.plist; path = Assets/Mac.plist; sourceTree = "<group>"; };
 		37AE6A3F18E67FD300319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release/EsenthelEngine.a; sourceTree = "<group>"; };
-		37AE6A4218E67FDF00319BDA /* EsenthelEngine Device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Device.a"; path = "../Engine/Build/Release-iphoneos/EsenthelEngine Device.a"; sourceTree = "<group>"; };
-		37AE6A4418E67FEA00319BDA /* EsenthelEngine Simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Simulator.a"; path = "../Engine/Build/Release-iphonesimulator/EsenthelEngine Simulator.a"; sourceTree = "<group>"; };
+		37AE6A4218E67FDF00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release-iphoneos/EsenthelEngine.a; sourceTree = "<group>"; };
+		37AE6A4418E67FEA00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release-iphonesimulator/EsenthelEngine.a; sourceTree = "<group>"; };
 		37C573311C868FFA00039CB1 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = Assets/Icon.icns; sourceTree = "<group>"; };
 		37DB7C081922F09D00275AEE /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/build/Debug/EsenthelEngine.a; sourceTree = "<group>"; };
-		37DB7C091922F17500275AEE /* EsenthelEngine Device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Device.a"; path = "../Engine/build/Debug-iphoneos/EsenthelEngine Device.a"; sourceTree = "<group>"; };
+		37DB7C091922F17500275AEE /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/build/Debug-iphoneos/EsenthelEngine.a; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Project.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -51,7 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37AE6A4318E67FDF00319BDA /* EsenthelEngine Device.a in Frameworks */,
+				37AE6A4318E67FDF00319BDA /* EsenthelEngine.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,7 +100,7 @@
 		0BF460B415A52B2D007F127E /* iOS Simulator */ = {
 			isa = PBXGroup;
 			children = (
-				37AE6A4418E67FEA00319BDA /* EsenthelEngine Simulator.a */,
+				37AE6A4418E67FEA00319BDA /* EsenthelEngine.a */,
 			);
 			name = "iOS Simulator";
 			sourceTree = "<group>";
@@ -108,7 +108,7 @@
 		0BF8568F156AAE0E0016EC4B /* iOS Release */ = {
 			isa = PBXGroup;
 			children = (
-				37AE6A4218E67FDF00319BDA /* EsenthelEngine Device.a */,
+				37AE6A4218E67FDF00319BDA /* EsenthelEngine.a */,
 			);
 			name = "iOS Release";
 			sourceTree = "<group>";
@@ -116,7 +116,7 @@
 		0BF85690156AAE260016EC4B /* iOS Debug */ = {
 			isa = PBXGroup;
 			children = (
-				37DB7C091922F17500275AEE /* EsenthelEngine Device.a */,
+				37DB7C091922F17500275AEE /* EsenthelEngine.a */,
 			);
 			name = "iOS Debug";
 			sourceTree = "<group>";

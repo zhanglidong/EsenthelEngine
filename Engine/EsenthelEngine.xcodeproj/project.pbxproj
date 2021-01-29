@@ -1536,8 +1536,8 @@
 		0BFCADF7148C200100A3C772 /* Image Operations.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Image Operations.cpp"; sourceTree = "<group>"; };
 		0BFCADF8148C200100A3C772 /* Image Pixel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Image Pixel.cpp"; sourceTree = "<group>"; };
 		0BFCADF9148C200100A3C772 /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
-		0BFF6C23144E100300C36BC0 /* EsenthelEngine Device.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "EsenthelEngine Device.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0BFF6C24144E100300C36BC0 /* EsenthelEngine Simulator.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "EsenthelEngine Simulator.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BFF6C23144E100300C36BC0 /* EsenthelEngine.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = EsenthelEngine.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BFF6C24144E100300C36BC0 /* EsenthelEngine.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = EsenthelEngine.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3701EA7F1D570B9C00A6C9DB /* Cipher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Cipher.cpp; sourceTree = "<group>"; };
 		3706B2E31E972C000057BFB5 /* libFDK-AAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libFDK-AAC.a"; path = "../ThirdPartyLibs/FDK-AAC/Mac/Build/Release/libFDK-AAC.a"; sourceTree = "<group>"; };
 		3706B2E51E972C0D0057BFB5 /* libFDK-AAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libFDK-AAC.a"; path = "../ThirdPartyLibs/FDK-AAC/Mac/Build/Release-iphoneos/libFDK-AAC.a"; sourceTree = "<group>"; };
@@ -2941,8 +2941,8 @@
 			isa = PBXGroup;
 			children = (
 				0BDE956C144C6B3F00B91FCE /* EsenthelEngine.a */,
-				0BFF6C23144E100300C36BC0 /* EsenthelEngine Device.a */,
-				0BFF6C24144E100300C36BC0 /* EsenthelEngine Simulator.a */,
+				0BFF6C23144E100300C36BC0 /* EsenthelEngine.a */,
+				0BFF6C24144E100300C36BC0 /* EsenthelEngine.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3073,9 +3073,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		0B0063A31238339C005641F5 /* EsenthelEngine Simulator */ = {
+		0B0063A31238339C005641F5 /* iOS Simulator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0B0063A7123833E8005641F5 /* Build configuration list for PBXNativeTarget "EsenthelEngine Simulator" */;
+			buildConfigurationList = 0B0063A7123833E8005641F5 /* Build configuration list for PBXNativeTarget "iOS Simulator" */;
 			buildPhases = (
 				0B0063A01238339C005641F5 /* Headers */,
 				0B0063A11238339C005641F5 /* Sources */,
@@ -3085,14 +3085,14 @@
 			);
 			dependencies = (
 			);
-			name = "EsenthelEngine Simulator";
+			name = "iOS Simulator";
 			productName = "EsenthelEngine Simulator";
-			productReference = 0BFF6C24144E100300C36BC0 /* EsenthelEngine Simulator.a */;
+			productReference = 0BFF6C24144E100300C36BC0 /* EsenthelEngine.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		0B9C17E1120AF568005B146F /* EsenthelEngine */ = {
+		0B9C17E1120AF568005B146F /* Mac */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0B9C17E5120AF587005B146F /* Build configuration list for PBXNativeTarget "EsenthelEngine" */;
+			buildConfigurationList = 0B9C17E5120AF587005B146F /* Build configuration list for PBXNativeTarget "Mac" */;
 			buildPhases = (
 				0B9C17DE120AF568005B146F /* Headers */,
 				0B9C17DF120AF568005B146F /* Sources */,
@@ -3102,14 +3102,14 @@
 			);
 			dependencies = (
 			);
-			name = EsenthelEngine;
+			name = Mac;
 			productName = EsenthelEngine;
 			productReference = 0BDE956C144C6B3F00B91FCE /* EsenthelEngine.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		0BD8E39F121D6DD500850427 /* EsenthelEngine Device */ = {
+		0BD8E39F121D6DD500850427 /* iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0BD8E3A5121D6DF300850427 /* Build configuration list for PBXNativeTarget "EsenthelEngine Device" */;
+			buildConfigurationList = 0BD8E3A5121D6DF300850427 /* Build configuration list for PBXNativeTarget "iOS" */;
 			buildPhases = (
 				0BD8E39C121D6DD500850427 /* Headers */,
 				0BD8E39D121D6DD500850427 /* Sources */,
@@ -3119,9 +3119,9 @@
 			);
 			dependencies = (
 			);
-			name = "EsenthelEngine Device";
+			name = iOS;
 			productName = "EsenthelEngine iPhone";
-			productReference = 0BFF6C23144E100300C36BC0 /* EsenthelEngine Device.a */;
+			productReference = 0BFF6C23144E100300C36BC0 /* EsenthelEngine.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -3147,9 +3147,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0B9C17E1120AF568005B146F /* EsenthelEngine */,
-				0BD8E39F121D6DD500850427 /* EsenthelEngine Device */,
-				0B0063A31238339C005641F5 /* EsenthelEngine Simulator */,
+				0B9C17E1120AF568005B146F /* Mac */,
+				0BD8E39F121D6DD500850427 /* iOS */,
+				0B0063A31238339C005641F5 /* iOS Simulator */,
 			);
 		};
 /* End PBXProject section */
@@ -4100,7 +4100,7 @@
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphonesimulator",
 				);
-				PRODUCT_NAME = "EsenthelEngine Simulator";
+				PRODUCT_NAME = EsenthelEngine;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphonesimulator;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4142,7 +4142,7 @@
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphonesimulator",
 				);
-				PRODUCT_NAME = "EsenthelEngine Simulator";
+				PRODUCT_NAME = EsenthelEngine;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphonesimulator;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4262,7 +4262,7 @@
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
 					../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release,
 				);
-				PRODUCT_NAME = "EsenthelEngine Device";
+				PRODUCT_NAME = EsenthelEngine;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4304,7 +4304,7 @@
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
 					../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release,
 				);
-				PRODUCT_NAME = "EsenthelEngine Device";
+				PRODUCT_NAME = EsenthelEngine;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -4521,7 +4521,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0B0063A7123833E8005641F5 /* Build configuration list for PBXNativeTarget "EsenthelEngine Simulator" */ = {
+		0B0063A7123833E8005641F5 /* Build configuration list for PBXNativeTarget "iOS Simulator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0B0063A51238339D005641F5 /* Debug */,
@@ -4530,7 +4530,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0B9C17E5120AF587005B146F /* Build configuration list for PBXNativeTarget "EsenthelEngine" */ = {
+		0B9C17E5120AF587005B146F /* Build configuration list for PBXNativeTarget "Mac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0B9C17E3120AF569005B146F /* Debug */,
@@ -4539,7 +4539,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0BD8E3A5121D6DF300850427 /* Build configuration list for PBXNativeTarget "EsenthelEngine Device" */ = {
+		0BD8E3A5121D6DF300850427 /* Build configuration list for PBXNativeTarget "iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0BD8E3A1121D6DD500850427 /* Debug */,
