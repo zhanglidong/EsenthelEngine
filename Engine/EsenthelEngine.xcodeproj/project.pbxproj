@@ -4152,6 +4152,7 @@
 		0B9C17E3120AF569005B146F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../ThirdPartyLibs/Bullet/Mac/build/Release,
@@ -4191,6 +4192,7 @@
 		0B9C17E4120AF569005B146F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../ThirdPartyLibs/Bullet/Mac/build/Release,
