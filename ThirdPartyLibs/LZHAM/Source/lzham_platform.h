@@ -2,6 +2,8 @@
 // See Copyright Notice and license at the end of include/lzham.h
 #pragma once
 
+#include <thread> // ESENTHEL CHANGED
+
 bool lzham_is_debugger_present(void);
 void lzham_debug_break(void);
 void lzham_output_debug_string(const char* p);
@@ -24,7 +26,7 @@ void lzham_fail(const char* pExp, const char* pFile, unsigned line);
 #if defined(__GNUC__) && LZHAM_PLATFORM_PC
 extern __inline__ __attribute__((__always_inline__,__gnu_inline__)) void lzham_yield_processor()
 {
-   __asm__ __volatile__("pause");
+   std::this_thread::yield(); // ESENTHEL CHANGED
 }
 #elif LZHAM_PLATFORM_X360
 #define lzham_yield_processor() \
