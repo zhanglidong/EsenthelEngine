@@ -19,8 +19,10 @@ Edit "physx\generate_projects.bat"
 specify AndroidNDK path, example:
 SET PM_ANDROIDNDK_PATH=C:\Progs\AndroidNDK
 
-* Fix for Linux
+* Fix for Clang (Mac/iOS/Linux)
 Edit "physx/source/compiler/cmake/linux/CMakeLists.txt"
+Edit "physx/source/compiler/cmake/mac/CMakeLists.txt"
+Edit "physx/source/compiler/cmake/ios/CMakeLists.txt"
 remove "-Werror" everywhere
 
 * Generate Projects:

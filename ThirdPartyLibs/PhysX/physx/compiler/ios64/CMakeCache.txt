@@ -80,7 +80,7 @@ CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=
 CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //iOS find search path root
-CMAKE_FIND_ROOT_PATH:STRING=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer;/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/opengl-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/targa;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cg-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/glew-linux
+CMAKE_FIND_ROOT_PATH:STRING=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer;/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.4.sdk;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/opengl-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/targa;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cg-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/glew-linux
 
 //Path to a program.
 CMAKE_INSTALL_NAME_TOOL:FILEPATH=/usr/bin/install_name_tool
@@ -128,7 +128,7 @@ CMAKE_OSX_DEPLOYMENT_TARGET:STRING=
 
 //The product will be built against the headers and libraries located
 // inside the indicated SDK.
-CMAKE_OSX_SYSROOT:PATH=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.3.sdk
+CMAKE_OSX_SYSROOT:PATH=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.4.sdk
 
 //No help, variable specified on the command line.
 CMAKE_PREFIX_PATH:UNINITIALIZED=/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/opengl-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/targa;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/cg-linux;/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/../externals/glew-linux
@@ -237,7 +237,7 @@ NV_USE_GAMEWORKS_OUTPUT_DIRS:BOOL=ON
 NV_USE_STATIC_WINCRT:BOOL=OFF
 
 //PhysX CXX
-PHYSX_CXX_FLAGS:STRING=-miphoneos-version-min=8.0  -miphoneos-version-min=8.0   -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -ferror-limit=0 -Wall -Wextra -Werror -fstrict-aliasing -Wstrict-aliasing=2 -Weverything -Wno-unknown-warning-option -Wno-documentation-deprecated-sync -Wno-documentation-unknown-command -Wno-float-equal -Wno-padded -Wno-weak-vtables -Wno-cast-align -Wno-conversion -Wno-missing-noreturn -Wno-missing-variable-declarations -Wno-shift-sign-overflow -Wno-covered-switch-default -Wno-exit-time-destructors -Wno-global-constructors -Wno-missing-prototypes -Wno-unreachable-code -Wno-unused-macros -Wno-unused-member-function -Wno-used-but-marked-unused -Wno-weak-template-vtables -Wno-deprecated -Wno-non-virtual-dtor -Wno-invalid-noreturn -Wno-return-type-c-linkage -Wno-reserved-id-macro -Wno-c++98-compat-pedantic -Wno-unused-local-typedef -Wno-old-style-cast -Wno-newline-eof -Wno-unused-private-field -Wno-undefined-reinterpret-cast -Wno-invalid-offsetof -Wno-zero-as-null-pointer-constant -gdwarf-2
+PHYSX_CXX_FLAGS:STRING=-miphoneos-version-min=8.0  -miphoneos-version-min=8.0   -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -ferror-limit=0 -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing=2 -Weverything -Wno-unknown-warning-option -Wno-documentation-deprecated-sync -Wno-documentation-unknown-command -Wno-float-equal -Wno-padded -Wno-weak-vtables -Wno-cast-align -Wno-conversion -Wno-missing-noreturn -Wno-missing-variable-declarations -Wno-shift-sign-overflow -Wno-covered-switch-default -Wno-exit-time-destructors -Wno-global-constructors -Wno-missing-prototypes -Wno-unreachable-code -Wno-unused-macros -Wno-unused-member-function -Wno-used-but-marked-unused -Wno-weak-template-vtables -Wno-deprecated -Wno-non-virtual-dtor -Wno-invalid-noreturn -Wno-return-type-c-linkage -Wno-reserved-id-macro -Wno-c++98-compat-pedantic -Wno-unused-local-typedef -Wno-old-style-cast -Wno-newline-eof -Wno-unused-private-field -Wno-undefined-reinterpret-cast -Wno-invalid-offsetof -Wno-zero-as-null-pointer-constant -gdwarf-2
 
 //PhysX Checked CXX Flags
 PHYSX_CXX_FLAGS_CHECKED:STRING=-O3 -g
@@ -325,7 +325,7 @@ UNIX:BOOL=TRUE
 ########################
 
 //Stored Xcode object GUID
-ALL_BUILD_GUID_CMAKE:INTERNAL=17300CEA10064A74AC21195F
+ALL_BUILD_GUID_CMAKE:INTERNAL=1DCA558349874A0EB198DDE5
 //CMakeModules name
 CMAKEMODULES_NAME:INTERNAL=CMakeModules
 //Path to CMakeModules
@@ -452,19 +452,19 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_STRIP
 CMAKE_STRIP-ADVANCED:INTERNAL=1
 CMAKE_SYSTEM_NAME:INTERNAL=Darwin
-CMAKE_SYSTEM_VERSION:INTERNAL=14.3
+CMAKE_SYSTEM_VERSION:INTERNAL=14.4
 //uname command
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Stored Xcode object GUID
-FastXml_GUID_CMAKE:INTERNAL=D4A308459BA14991A213F425
+FastXml_GUID_CMAKE:INTERNAL=DA828B7EF53C4FCB89C22FFB
 //Stored Xcode object GUID
-LowLevelAABB_GUID_CMAKE:INTERNAL=454BEB5169D84810829FC568
+LowLevelAABB_GUID_CMAKE:INTERNAL=8C15A8F85556461C900184CF
 //Stored Xcode object GUID
-LowLevelDynamics_GUID_CMAKE:INTERNAL=BD9350453B16408C8344DB4A
+LowLevelDynamics_GUID_CMAKE:INTERNAL=950644DDBBAC4D3096047CE4
 //Stored Xcode object GUID
-LowLevel_GUID_CMAKE:INTERNAL=216EB35A5D814EC5938E3728
+LowLevel_GUID_CMAKE:INTERNAL=D7E9BE47BD174F8C86060236
 //Checked PhysX preprocessor definitions
 PHYSX_IOS_CHECKED_COMPILE_DEFS:INTERNAL=NDEBUG;PX_CHECKED=1;PX_NVTX=0;PX_SUPPORT_PVD=1
 //Base PhysX preprocessor definitions
@@ -476,9 +476,9 @@ PHYSX_IOS_PROFILE_COMPILE_DEFS:INTERNAL=NDEBUG;PX_PROFILE=1;PX_NVTX=0;PX_SUPPORT
 //Release PhysX preprocessor definitions
 PHYSX_IOS_RELEASE_COMPILE_DEFS:INTERNAL=NDEBUG;PX_SUPPORT_PVD=0
 //Stored Xcode object GUID
-PROJECT_PhysXSDK_GUID_CMAKE:INTERNAL=BE8B4D0EC8AC4F58897FF43C
+PROJECT_PhysXSDK_GUID_CMAKE:INTERNAL=0FD944206DA74F78B6C503D7
 //Stored Xcode object GUID
-PROJECT_PhysX_GUID_CMAKE:INTERNAL=F418D9ACCD2C4DCA84E2A780
+PROJECT_PhysX_GUID_CMAKE:INTERNAL=2F38D3BD418A4B65A1CA43EB
 //Path to PxShared
 PXSHARED_INSTALL_PREFIX:INTERNAL=/Applications/Esenthel/ThirdPartyLibs/PhysX/physx/install/ios64/PxShared
 //Path to PxShared
@@ -496,31 +496,31 @@ PX_ROOT_EXE_DIR:INTERNAL=bin/ios.arm_64
 //Relative root of the lib output directory
 PX_ROOT_LIB_DIR:INTERNAL=bin/ios.arm_64
 //Stored Xcode object GUID
-PhysXCharacterKinematic_GUID_CMAKE:INTERNAL=E85E1A7E81394273BB6145BE
+PhysXCharacterKinematic_GUID_CMAKE:INTERNAL=F07B5F0F49014BEAB54A5575
 //Stored Xcode object GUID
-PhysXCommon_GUID_CMAKE:INTERNAL=8508C84BB836433DA1ABDE0D
+PhysXCommon_GUID_CMAKE:INTERNAL=11AB8D5B96744CA58D5976D3
 //Stored Xcode object GUID
-PhysXCooking_GUID_CMAKE:INTERNAL=BA654A02C77C4EBAA3E3A706
+PhysXCooking_GUID_CMAKE:INTERNAL=E4859D54E5214B079684CF86
 //Stored Xcode object GUID
-PhysXExtensions_GUID_CMAKE:INTERNAL=78EF86CACFBC47279148A6A3
+PhysXExtensions_GUID_CMAKE:INTERNAL=42BC2510D59147AD81A4A9FE
 //Stored Xcode object GUID
-PhysXFoundation_GUID_CMAKE:INTERNAL=E756A3AEF9FB4ED98DFCA3EC
+PhysXFoundation_GUID_CMAKE:INTERNAL=2D140D8D951B47A48A447B38
 //Stored Xcode object GUID
-PhysXPvdSDK_GUID_CMAKE:INTERNAL=7DD3855CD9854BBCAEDC3873
+PhysXPvdSDK_GUID_CMAKE:INTERNAL=B7DBEFE851EB4E2286BB6BDE
 //Stored Xcode object GUID
-PhysXTask_GUID_CMAKE:INTERNAL=77D592AAC57F4A1E8157B472
+PhysXTask_GUID_CMAKE:INTERNAL=5D3D8F8F8D404CDA81D041B5
 //Stored Xcode object GUID
-PhysXVehicle_GUID_CMAKE:INTERNAL=93217E3E3AE9404BA2DB5A4F
+PhysXVehicle_GUID_CMAKE:INTERNAL=2BB35FED2D6D408D97F28B9A
 //Stored Xcode object GUID
-PhysX_GUID_CMAKE:INTERNAL=8038F26407674F098105F145
+PhysX_GUID_CMAKE:INTERNAL=F5E9F8E380B14C1EB7E31289
 //Stored Xcode object GUID
-SceneQuery_GUID_CMAKE:INTERNAL=2992651790ED434EA1269BDB
+SceneQuery_GUID_CMAKE:INTERNAL=8774B623CD0C43FFAEE5751D
 //Stored Xcode object GUID
-SimulationController_GUID_CMAKE:INTERNAL=9655B8CFCAA342A1B9628BAB
+SimulationController_GUID_CMAKE:INTERNAL=4444C6B3EEC84B0C831A908F
 //Windows CRT build setting
 WINCRT_DEBUG:INTERNAL=/MD /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG"
 //Stored Xcode object GUID
-ZERO_CHECK_GUID_CMAKE:INTERNAL=159E08B25420450B91BED6E3
+ZERO_CHECK_GUID_CMAKE:INTERNAL=28BFC42B94E14E7497C34267
 //Stored Xcode object GUID
-install_GUID_CMAKE:INTERNAL=DD9604CF9E3145EB9E2982DA
+install_GUID_CMAKE:INTERNAL=76610FC37F9042D7BDF8F3F9
 
