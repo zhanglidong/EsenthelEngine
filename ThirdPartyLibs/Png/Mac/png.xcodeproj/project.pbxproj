@@ -45,6 +45,9 @@
 		376916411EFE619E0013AF3E /* filter_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 3769163E1EFE619E0013AF3E /* filter_neon.S */; };
 		376916441EFE61AE0013AF3E /* filter_sse2_intrinsics.c in Sources */ = {isa = PBXBuildFile; fileRef = 376916421EFE61AE0013AF3E /* filter_sse2_intrinsics.c */; };
 		376916451EFE61AE0013AF3E /* intel_init.c in Sources */ = {isa = PBXBuildFile; fileRef = 376916431EFE61AE0013AF3E /* intel_init.c */; };
+		37F83C7025C40C22000E5568 /* filter_neon_intrinsics.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769163D1EFE619E0013AF3E /* filter_neon_intrinsics.c */; };
+		37F83C7125C40C22000E5568 /* filter_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 3769163E1EFE619E0013AF3E /* filter_neon.S */; };
+		37F83C7225C40C22000E5568 /* arm_init.c in Sources */ = {isa = PBXBuildFile; fileRef = 3769163C1EFE619E0013AF3E /* arm_init.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -226,6 +229,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 08FB7794FE84155DC02AAC07 /* png */;
@@ -269,16 +273,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				376916441EFE61AE0013AF3E /* filter_sse2_intrinsics.c in Sources */,
+				37F83C7025C40C22000E5568 /* filter_neon_intrinsics.c in Sources */,
 				0B835B6911F74D9500D4ABAA /* png.c in Sources */,
 				0B835B6C11F74D9500D4ABAA /* pngerror.c in Sources */,
 				0B835B6D11F74D9500D4ABAA /* pngget.c in Sources */,
 				0B835B6E11F74D9500D4ABAA /* pngmem.c in Sources */,
+				37F83C7225C40C22000E5568 /* arm_init.c in Sources */,
 				0B835B6F11F74D9500D4ABAA /* pngpread.c in Sources */,
 				0B835B7011F74D9500D4ABAA /* pngread.c in Sources */,
 				376916451EFE61AE0013AF3E /* intel_init.c in Sources */,
 				0B835B7111F74D9500D4ABAA /* pngrio.c in Sources */,
 				0B835B7211F74D9500D4ABAA /* pngrtran.c in Sources */,
 				0B835B7311F74D9500D4ABAA /* pngrutil.c in Sources */,
+				37F83C7125C40C22000E5568 /* filter_neon.S in Sources */,
 				0B835B7411F74D9500D4ABAA /* pngset.c in Sources */,
 				0B835B7611F74D9500D4ABAA /* pngtrans.c in Sources */,
 				0B835B7711F74D9500D4ABAA /* pngwio.c in Sources */,
