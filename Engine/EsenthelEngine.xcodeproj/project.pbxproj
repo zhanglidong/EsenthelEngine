@@ -920,7 +920,6 @@
 		378A349A1A2575F40057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349B1A2576050057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
 		378A349C1A2576060057DD1F /* DLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378A34991A2575F40057DD1F /* DLL.cpp */; };
-		378C062D25584ED200281D12 /* libxml2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378C062C25584ED200281D12 /* libxml2.a */; };
 		378EB2F023A5069C0098C290 /* ImageFilterWaifu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378EB2EF23A5069B0098C290 /* ImageFilterWaifu.cpp */; };
 		378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378EB34523A51FAC0098C290 /* libWaifu2x.a */; };
 		379084A51B3E623100B8E7DC /* Obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 379084A41B3E623100B8E7DC /* Obj.cpp */; };
@@ -981,6 +980,7 @@
 		37F5ECC721B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
 		37F5ECC821B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
 		37F83C3825C400CD000E5568 /* libPhysX_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83C3725C400CD000E5568 /* libPhysX_static_64.a */; };
+		37F83D5325C43DA9000E5568 /* libxml2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378C062C25584ED200281D12 /* libxml2.a */; };
 		37FA23961D229F2000EEFAAE /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18994F12DA3FD300499CA9 /* Input.cpp */; };
 		37FA23971D229F2000EEFAAE /* Joypad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995012DA3FD300499CA9 /* Joypad.cpp */; };
 		37FA23981D229F2000EEFAAE /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995112DA3FD300499CA9 /* Keyboard.cpp */; };
@@ -1724,6 +1724,7 @@
 				3716E2CE1BB8EBE80037177D /* libSQLite.a in Frameworks */,
 				3716E2E01BB8EC590037177D /* libVorbis.a in Frameworks */,
 				3716E2AC1BB8EAE00037177D /* libOgg.a in Frameworks */,
+				37F83D5325C43DA9000E5568 /* libxml2.a in Frameworks */,
 				379982331FB5671800B31132 /* libJpegTurbo.a in Frameworks */,
 				378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */,
 				0BED409F17E2FC9100B2DD6C /* libfbxsdk.a in Frameworks */,
@@ -1737,7 +1738,6 @@
 				3716E2BE1BB8EB550037177D /* libRecast.a in Frameworks */,
 				3716E29E1BB8EA8B0037177D /* libLZHAM.a in Frameworks */,
 				3716E2B61BB8EB1B0037177D /* libOpus.a in Frameworks */,
-				378C062D25584ED200281D12 /* libxml2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4129,6 +4129,7 @@
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
 					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/Xml2/Mac,
+					../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = EsenthelEngine;
@@ -4167,6 +4168,7 @@
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
 					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/Xml2/Mac,
+					../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = EsenthelEngine;
@@ -4206,6 +4208,7 @@
 					"../ThirdPartyLibs/Opus/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
+					../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release,
 				);
 				PRODUCT_NAME = "EsenthelEngine Device";
 				SDKROOT = iphoneos;
@@ -4247,6 +4250,7 @@
 					"../ThirdPartyLibs/Opus/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
+					../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release,
 				);
 				PRODUCT_NAME = "EsenthelEngine Device";
 				SDKROOT = iphoneos;
