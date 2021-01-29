@@ -4149,7 +4149,6 @@
 					"../ThirdPartyLibs/LZHAM/Mac/Build/Release-iphonesimulator",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphonesimulator",
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 				);
 				PRODUCT_NAME = "EsenthelEngine Simulator";
 				SDKROOT = iphoneos;
@@ -4192,7 +4191,6 @@
 					"../ThirdPartyLibs/LZHAM/Mac/Build/Release-iphonesimulator",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphonesimulator",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphonesimulator",
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 				);
 				PRODUCT_NAME = "EsenthelEngine Simulator";
 				SDKROOT = iphoneos;
@@ -4232,9 +4230,6 @@
 					../ThirdPartyLibs/ZStd/Mac/build/Release,
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
 					../ThirdPartyLibs/BC/Mac,
-					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
-					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 					../ThirdPartyLibs/Xml2/Mac,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
@@ -4273,9 +4268,6 @@
 					../ThirdPartyLibs/ZStd/Mac/build/Release,
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
 					../ThirdPartyLibs/BC/Mac,
-					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
-					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 					../ThirdPartyLibs/Xml2/Mac,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
@@ -4316,9 +4308,6 @@
 					"../ThirdPartyLibs/Opus/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
-					../ThirdPartyLibs/PhysX/PhysX/Lib/ios64,
-					../ThirdPartyLibs/PhysX/PxShared/lib/ios64,
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 				);
 				PRODUCT_NAME = "EsenthelEngine Device";
 				SDKROOT = iphoneos;
@@ -4360,9 +4349,6 @@
 					"../ThirdPartyLibs/Opus/Mac/Build/Release-iphoneos",
 					"../ThirdPartyLibs/ZStd/Mac/build/Release-iphoneos",
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release-iphoneos",
-					../ThirdPartyLibs/PhysX/PhysX/Lib/ios64,
-					../ThirdPartyLibs/PhysX/PxShared/lib/ios64,
-					../ThirdPartyLibs/PhysX/Dummy/Apple,
 				);
 				PRODUCT_NAME = "EsenthelEngine Device";
 				SDKROOT = iphoneos;
@@ -4435,23 +4421,11 @@
 					../ThirdPartyLibs/Opus/lib/include,
 					../ThirdPartyLibs/Opus/file/include,
 					../ThirdPartyLibs/Theora/include,
-					../ThirdPartyLibs/Cg/Mac,
-					../ThirdPartyLibs/PhysX/PhysX/Include,
-					../ThirdPartyLibs/PhysX/PhysX/Include/cloth,
-					../ThirdPartyLibs/PhysX/PhysX/Include/common,
-					../ThirdPartyLibs/PhysX/PhysX/Include/extensions,
-					../ThirdPartyLibs/PhysX/PhysX/Include/geometry,
-					../ThirdPartyLibs/PhysX/PhysX/Include/vehicle,
-					../ThirdPartyLibs/PhysX/PhysX/Source/Common/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/GeomUtils/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXExtensions/src/serialization/Xml,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXMetaData/core/include,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXMetaData/extensions/include,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXVehicle/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXVehicle/src/PhysXMetaData/include,
-					../ThirdPartyLibs/PhysX/PxShared/include,
-					../ThirdPartyLibs/PhysX/PxShared/src/foundation/include,
-					../ThirdPartyLibs/PhysX/PxShared/src/pvd/include,
+					../ThirdPartyLibs/PhysX/physx/include,
+					../ThirdPartyLibs/PhysX/pxshared/include,
+					../ThirdPartyLibs/PhysX/physx/source/common/src,
+					../ThirdPartyLibs/PhysX/physx/source/foundation/include,
+					../ThirdPartyLibs/PhysX/physx/source/geomutils/src,
 					../ThirdPartyLibs/Facebook/iOS,
 					"../ThirdPartyLibs/FDK-AAC/lib/libPCMutils/include",
 					"../ThirdPartyLibs/FDK-AAC/lib/libSBRdec/include",
@@ -4551,23 +4525,11 @@
 					../ThirdPartyLibs/Opus/lib/include,
 					../ThirdPartyLibs/Opus/file/include,
 					../ThirdPartyLibs/Theora/include,
-					../ThirdPartyLibs/Cg/Mac,
-					../ThirdPartyLibs/PhysX/PhysX/Include,
-					../ThirdPartyLibs/PhysX/PhysX/Include/cloth,
-					../ThirdPartyLibs/PhysX/PhysX/Include/common,
-					../ThirdPartyLibs/PhysX/PhysX/Include/extensions,
-					../ThirdPartyLibs/PhysX/PhysX/Include/geometry,
-					../ThirdPartyLibs/PhysX/PhysX/Include/vehicle,
-					../ThirdPartyLibs/PhysX/PhysX/Source/Common/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/GeomUtils/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXExtensions/src/serialization/Xml,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXMetaData/core/include,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXMetaData/extensions/include,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXVehicle/src,
-					../ThirdPartyLibs/PhysX/PhysX/Source/PhysXVehicle/src/PhysXMetaData/include,
-					../ThirdPartyLibs/PhysX/PxShared/include,
-					../ThirdPartyLibs/PhysX/PxShared/src/foundation/include,
-					../ThirdPartyLibs/PhysX/PxShared/src/pvd/include,
+					../ThirdPartyLibs/PhysX/physx/include,
+					../ThirdPartyLibs/PhysX/pxshared/include,
+					../ThirdPartyLibs/PhysX/physx/source/common/src,
+					../ThirdPartyLibs/PhysX/physx/source/foundation/include,
+					../ThirdPartyLibs/PhysX/physx/source/geomutils/src,
 					../ThirdPartyLibs/Facebook/iOS,
 					"../ThirdPartyLibs/FDK-AAC/lib/libPCMutils/include",
 					"../ThirdPartyLibs/FDK-AAC/lib/libSBRdec/include",
