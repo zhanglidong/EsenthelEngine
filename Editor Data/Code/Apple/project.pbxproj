@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		0B9F062B16CD7C6D006A0106 /* EsenthelEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B9F062A16CD7C6D006A0106 /* EsenthelEngine.a */; };
 		0B80B0021238567700C08944 /* EsenthelEngine Device.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B80B0011238567700C08944 /* EsenthelEngine Device.a */; };
-		0B9F062916CD7C44006A0106 /* EsenthelEngine Simulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B987D3C12385BE500071DE8 /* EsenthelEngine Simulator.a */; };
 		3725F1F125237F1300E1ED89 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3725F1F025237F1300E1ED89 /* StoreKit.framework */; };
 		37307DB821AFDF81009ABBF9 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37307DB721AFDF80009ABBF9 /* WebKit.framework */; };
 		37307DBA21AFDF88009ABBF9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37307DB921AFDF87009ABBF9 /* Security.framework */; };
@@ -57,7 +56,6 @@
 				37307DBA21AFDF88009ABBF9 /* Security.framework in Frameworks */,
 				37307DB821AFDF81009ABBF9 /* WebKit.framework in Frameworks */,
 				0B80B0021238567700C08944 /* EsenthelEngine Device.a in Frameworks */,
-				0B9F062916CD7C44006A0106 /* EsenthelEngine Simulator.a in Frameworks */,
 /* ESENTHEL IOS FRAMEWORKS */
 			);
 			runOnlyForDeploymentPostprocessing = 0;
