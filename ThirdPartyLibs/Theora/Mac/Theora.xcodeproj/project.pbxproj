@@ -73,6 +73,8 @@
 		37B2FF771939531700A63FAD /* x86enc.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B2FF491939531700A63FAD /* x86enc.c */; };
 		37B2FF7B1939531700A63FAD /* x86enquant.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B2FF4B1939531700A63FAD /* x86enquant.c */; };
 		37B2FF7F1939531700A63FAD /* x86state.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B2FF4D1939531700A63FAD /* x86state.c */; };
+		37F83C7D25C4108D000E5568 /* armcpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B2FF351939531700A63FAD /* armcpu.c */; };
+		37F83C7E25C41093000E5568 /* armstate.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B2FF3B1939531700A63FAD /* armstate.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -315,6 +317,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 0867D691FE84028FC02AAC07 /* Theora */;
@@ -401,8 +404,10 @@
 				37B2FF141939530300A63FAD /* encoder_disabled.c in Sources */,
 				37B2FF161939530300A63FAD /* enquant.c in Sources */,
 				37B2FF121939530300A63FAD /* encode.c in Sources */,
+				37F83C7D25C4108D000E5568 /* armcpu.c in Sources */,
 				37B2FF6D1939531700A63FAD /* sse2fdct.c in Sources */,
 				37B2FF1C1939530300A63FAD /* huffdec.c in Sources */,
+				37F83C7E25C41093000E5568 /* armstate.c in Sources */,
 				37B2FF651939531700A63FAD /* mmxidct.c in Sources */,
 				37B2FF7B1939531700A63FAD /* x86enquant.c in Sources */,
 				37B2FF221939530300A63FAD /* info.c in Sources */,
