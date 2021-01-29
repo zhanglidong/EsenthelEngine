@@ -160,6 +160,10 @@
 		37877F201DD9B79B00A62A86 /* jsimd_arm64_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 37546BC01BA41134001C24E1 /* jsimd_arm64_neon.S */; };
 		37877F211DD9B79E00A62A86 /* jsimd_arm64.c in Sources */ = {isa = PBXBuildFile; fileRef = 37546BC11BA41134001C24E1 /* jsimd_arm64.c */; };
 		37AD83621DDAA0B000220636 /* jsimd_none.c in Sources */ = {isa = PBXBuildFile; fileRef = 37AD83601DDAA0AB00220636 /* jsimd_none.c */; };
+		37F83D8125C44BD1000E5568 /* jsimd_arm_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 37546BBC1BA41127001C24E1 /* jsimd_arm_neon.S */; };
+		37F83D8525C44BD5000E5568 /* jsimd_arm.c in Sources */ = {isa = PBXBuildFile; fileRef = 37546BBD1BA41127001C24E1 /* jsimd_arm.c */; };
+		37F83D8925C44BD8000E5568 /* jsimd_arm64_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 37546BC01BA41134001C24E1 /* jsimd_arm64_neon.S */; };
+		37F83D8D25C44BDA000E5568 /* jsimd_arm64.c in Sources */ = {isa = PBXBuildFile; fileRef = 37546BC11BA41134001C24E1 /* jsimd_arm64.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -565,6 +569,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37F83D8925C44BD8000E5568 /* jsimd_arm64_neon.S in Sources */,
 				37546BB61BA410ED001C24E1 /* jcphuff.c in Sources */,
 				0BDA9D6C121EEBC000ED5E97 /* jaricom.c in Sources */,
 				0BDA9D6D121EEBC000ED5E97 /* jcapimin.c in Sources */,
@@ -583,9 +588,11 @@
 				0BDA9D78121EEBC000ED5E97 /* jcomapi.c in Sources */,
 				0BDA9D85121EEBD100ED5E97 /* jcparam.c in Sources */,
 				0BDA9D86121EEBD100ED5E97 /* jcprepct.c in Sources */,
+				37F83D8525C44BD5000E5568 /* jsimd_arm.c in Sources */,
 				0BDA9D87121EEBD100ED5E97 /* jcsample.c in Sources */,
 				0BDA9D88121EEBD100ED5E97 /* jctrans.c in Sources */,
 				0BDA9D89121EEBD100ED5E97 /* jdapimin.c in Sources */,
+				37F83D8125C44BD1000E5568 /* jsimd_arm_neon.S in Sources */,
 				0BDA9D8A121EEBD100ED5E97 /* jdapistd.c in Sources */,
 				0BDA9D8B121EEBD100ED5E97 /* jdarith.c in Sources */,
 				0BDA9D8C121EEBD100ED5E97 /* jdatadst.c in Sources */,
@@ -614,6 +621,7 @@
 				0BDA9DBF121EEC0000ED5E97 /* jmemnobs.c in Sources */,
 				0BDA9DC0121EEC0000ED5E97 /* jquant1.c in Sources */,
 				0BDA9DC1121EEC0000ED5E97 /* jquant2.c in Sources */,
+				37F83D8D25C44BDA000E5568 /* jsimd_arm64.c in Sources */,
 				0BDA9DC2121EEC0000ED5E97 /* jutils.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
