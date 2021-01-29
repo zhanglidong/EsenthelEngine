@@ -15,9 +15,9 @@
 		<key>CFBundleSignature</key>
 		<string>????</string>
 		<key>CFBundleVersion</key>
-		<string>65</string>
+		<string>67</string>
 		<key>CFBundleShortVersionString</key>
-		<string>65</string>
+		<string>67</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSMainNibFile</key>
