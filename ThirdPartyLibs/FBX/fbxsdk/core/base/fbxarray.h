@@ -338,13 +338,14 @@ public:
         FBX_ASSERT_RETURN(pCount >  0);
         FBX_ASSERT_RETURN(pIndex >= 0);
 
-        int lastItem = pIndex + pCount;
+        size_t lastItem = pIndex + pCount;
         FBX_ASSERT_RETURN(lastItem >= 0);
-        FBX_ASSERT_RETURN(lastItem <= size);
+        FBX_ASSERT_RETURN(lastItem <= (size_t)size);
+        FBX_ASSERT_RETURN(lastItem < FBXSDK_INT_MAX);
 
-        if (lastItem < size)
+        if (lastItem < (size_t)size)
         {
-            memmove(&GetArray()[pIndex], &GetArray()[pIndex + pCount], (size - pIndex - pCount) * sizeof(T));
+            memmove(&GetArray()[pIndex], &GetArray()[pIndex + pCount], (size - pIndex - pCount) * (unsigned)sizeof(T));
         }
 
         if (mData)
