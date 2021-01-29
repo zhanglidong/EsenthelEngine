@@ -981,6 +981,19 @@
 		37F5ECC821B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
 		37F83C3825C400CD000E5568 /* libPhysX_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83C3725C400CD000E5568 /* libPhysX_static_64.a */; };
 		37F83D5325C43DA9000E5568 /* libxml2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 378C062C25584ED200281D12 /* libxml2.a */; };
+		37F83D6625C44A25000E5568 /* libPhysXFoundation_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D6425C44A24000E5568 /* libPhysXFoundation_static_64.a */; };
+		37F83D6725C44A25000E5568 /* libPhysXExtensions_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D6525C44A25000E5568 /* libPhysXExtensions_static_64.a */; };
+		37F83D6E25C44A97000E5568 /* libPhysXCooking_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D6B25C44A95000E5568 /* libPhysXCooking_static_64.a */; };
+		37F83D6F25C44A97000E5568 /* libPhysXCharacterKinematic_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D6C25C44A96000E5568 /* libPhysXCharacterKinematic_static_64.a */; };
+		37F83D7025C44A97000E5568 /* libPhysXCommon_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D6D25C44A97000E5568 /* libPhysXCommon_static_64.a */; };
+		37F83D7225C44AA1000E5568 /* libPhysXVehicle_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7125C44AA1000E5568 /* libPhysXVehicle_static_64.a */; };
+		37F83D7A25C44AB7000E5568 /* libPhysX_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7325C44AB5000E5568 /* libPhysX_static_64.a */; };
+		37F83D7B25C44AB7000E5568 /* libPhysXCharacterKinematic_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7425C44AB5000E5568 /* libPhysXCharacterKinematic_static_64.a */; };
+		37F83D7C25C44AB7000E5568 /* libPhysXFoundation_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7525C44AB6000E5568 /* libPhysXFoundation_static_64.a */; };
+		37F83D7D25C44AB7000E5568 /* libPhysXCooking_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7625C44AB6000E5568 /* libPhysXCooking_static_64.a */; };
+		37F83D7E25C44AB7000E5568 /* libPhysXCommon_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7725C44AB6000E5568 /* libPhysXCommon_static_64.a */; };
+		37F83D7F25C44AB7000E5568 /* libPhysXVehicle_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7825C44AB7000E5568 /* libPhysXVehicle_static_64.a */; };
+		37F83D8025C44AB7000E5568 /* libPhysXExtensions_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83D7925C44AB7000E5568 /* libPhysXExtensions_static_64.a */; };
 		37FA23961D229F2000EEFAAE /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18994F12DA3FD300499CA9 /* Input.cpp */; };
 		37FA23971D229F2000EEFAAE /* Joypad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995012DA3FD300499CA9 /* Joypad.cpp */; };
 		37FA23981D229F2000EEFAAE /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995112DA3FD300499CA9 /* Keyboard.cpp */; };
@@ -1672,6 +1685,19 @@
 		37F5ECC521B6269C0045D7DE /* Voxel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Voxel.cpp; sourceTree = "<group>"; };
 		37F5ECC921B626C90045D7DE /* Voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Voxel.h; sourceTree = "<group>"; };
 		37F83C3725C400CD000E5568 /* libPhysX_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysX_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysX_static_64.a; sourceTree = "<group>"; };
+		37F83D6425C44A24000E5568 /* libPhysXFoundation_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXFoundation_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXFoundation_static_64.a; sourceTree = "<group>"; };
+		37F83D6525C44A25000E5568 /* libPhysXExtensions_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXExtensions_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXExtensions_static_64.a; sourceTree = "<group>"; };
+		37F83D6B25C44A95000E5568 /* libPhysXCooking_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCooking_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXCooking_static_64.a; sourceTree = "<group>"; };
+		37F83D6C25C44A96000E5568 /* libPhysXCharacterKinematic_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCharacterKinematic_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXCharacterKinematic_static_64.a; sourceTree = "<group>"; };
+		37F83D6D25C44A97000E5568 /* libPhysXCommon_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCommon_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXCommon_static_64.a; sourceTree = "<group>"; };
+		37F83D7125C44AA1000E5568 /* libPhysXVehicle_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXVehicle_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysXVehicle_static_64.a; sourceTree = "<group>"; };
+		37F83D7325C44AB5000E5568 /* libPhysX_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysX_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysX_static_64.a; sourceTree = "<group>"; };
+		37F83D7425C44AB5000E5568 /* libPhysXCharacterKinematic_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCharacterKinematic_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXCharacterKinematic_static_64.a; sourceTree = "<group>"; };
+		37F83D7525C44AB6000E5568 /* libPhysXFoundation_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXFoundation_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXFoundation_static_64.a; sourceTree = "<group>"; };
+		37F83D7625C44AB6000E5568 /* libPhysXCooking_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCooking_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXCooking_static_64.a; sourceTree = "<group>"; };
+		37F83D7725C44AB6000E5568 /* libPhysXCommon_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXCommon_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXCommon_static_64.a; sourceTree = "<group>"; };
+		37F83D7825C44AB7000E5568 /* libPhysXVehicle_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXVehicle_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXVehicle_static_64.a; sourceTree = "<group>"; };
+		37F83D7925C44AB7000E5568 /* libPhysXExtensions_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysXExtensions_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/ios.arm_64/release/libPhysXExtensions_static_64.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1712,22 +1738,28 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37F83D6725C44A25000E5568 /* libPhysXExtensions_static_64.a in Frameworks */,
 				379982311FB5624500B31132 /* libFlac.a in Frameworks */,
 				0BBA4E6818655CB600C48728 /* libPVRTexLib.a in Frameworks */,
 				3716E2D41BB8EC0D0037177D /* libTheora.a in Frameworks */,
+				37F83D7025C44A97000E5568 /* libPhysXCommon_static_64.a in Frameworks */,
 				3716E2A01BB8EA950037177D /* libLZMA.a in Frameworks */,
 				37F83C3825C400CD000E5568 /* libPhysX_static_64.a in Frameworks */,
 				3716E2BC1BB8EB410037177D /* libPng.a in Frameworks */,
 				37E70CD31FEC8DCE00F10018 /* libmbedTLS.a in Frameworks */,
+				37F83D6E25C44A97000E5568 /* libPhysXCooking_static_64.a in Frameworks */,
 				37CD66AA1EB8007C00B31285 /* libispc_texcomp.a in Frameworks */,
 				3716E2941BB8EA490037177D /* libLZ4.a in Frameworks */,
 				3716E2CE1BB8EBE80037177D /* libSQLite.a in Frameworks */,
+				37F83D7225C44AA1000E5568 /* libPhysXVehicle_static_64.a in Frameworks */,
 				3716E2E01BB8EC590037177D /* libVorbis.a in Frameworks */,
 				3716E2AC1BB8EAE00037177D /* libOgg.a in Frameworks */,
 				37F83D5325C43DA9000E5568 /* libxml2.a in Frameworks */,
 				379982331FB5671800B31132 /* libJpegTurbo.a in Frameworks */,
 				378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */,
 				0BED409F17E2FC9100B2DD6C /* libfbxsdk.a in Frameworks */,
+				37F83D6F25C44A97000E5568 /* libPhysXCharacterKinematic_static_64.a in Frameworks */,
+				37F83D6625C44A25000E5568 /* libPhysXFoundation_static_64.a in Frameworks */,
 				3716E2D61BB8EC200037177D /* libTiff.a in Frameworks */,
 				3716E28A1BB8E9210037177D /* libBullet.a in Frameworks */,
 				3716E2E21BB8EC760037177D /* libWebP.a in Frameworks */,
@@ -1747,26 +1779,33 @@
 			files = (
 				3716E2DE1BB8EC510037177D /* libVorbis.a in Frameworks */,
 				3778B76C21F71218001D764E /* FBSDKCoreKit.a in Frameworks */,
+				37F83D8025C44AB7000E5568 /* libPhysXExtensions_static_64.a in Frameworks */,
 				37DB7BF5190CA38800275AEE /* libGoogleMobileAds.a in Frameworks */,
 				3716E2D21BB8EC060037177D /* libTheora.a in Frameworks */,
 				3716E29C1BB8EA800037177D /* libLZHAM.a in Frameworks */,
 				3716E2881BB8E9080037177D /* libBullet.a in Frameworks */,
 				3716E2AE1BB8EAE80037177D /* libOgg.a in Frameworks */,
+				37F83D7B25C44AB7000E5568 /* libPhysXCharacterKinematic_static_64.a in Frameworks */,
 				3716E2E41BB8EC7E0037177D /* libWebP.a in Frameworks */,
 				3716E2C61BB8EBA00037177D /* libSnappy.a in Frameworks */,
 				37E70CD51FEC8DDE00F10018 /* libmbedTLS.a in Frameworks */,
+				37F83D7F25C44AB7000E5568 /* libPhysXVehicle_static_64.a in Frameworks */,
 				3716E2CC1BB8EBE10037177D /* libSQLite.a in Frameworks */,
 				3716E2A21BB8EA9C0037177D /* libLZMA.a in Frameworks */,
+				37F83D7C25C44AB7000E5568 /* libPhysXFoundation_static_64.a in Frameworks */,
 				37D2A26219E6591400F1092B /* libvpx_arm64.a in Frameworks */,
 				3716E2BA1BB8EB390037177D /* libPng.a in Frameworks */,
+				37F83D7A25C44AB7000E5568 /* libPhysX_static_64.a in Frameworks */,
 				3716E2B41BB8EB130037177D /* libOpus.a in Frameworks */,
 				3747E0AC21AE44650001AFC5 /* libGameAnalytics.a in Frameworks */,
 				37AE2BDB1D30F185004D8A41 /* libZStd.a in Frameworks */,
 				3716E2D81BB8EC270037177D /* libTiff.a in Frameworks */,
+				37F83D7E25C44AB7000E5568 /* libPhysXCommon_static_64.a in Frameworks */,
 				3778B76D21F71218001D764E /* FBSDKLoginKit.a in Frameworks */,
 				3716E2961BB8EA510037177D /* libLZ4.a in Frameworks */,
 				3716E2921BB8EA1D0037177D /* libJpegTurbo.a in Frameworks */,
 				3778B76E21F71218001D764E /* FBSDKShareKit.a in Frameworks */,
+				37F83D7D25C44AB7000E5568 /* libPhysXCooking_static_64.a in Frameworks */,
 				3716E28C1BB8E9530037177D /* libFlac.a in Frameworks */,
 				3716E2C01BB8EB5D0037177D /* libRecast.a in Frameworks */,
 				37834C5623A520F700AE51F1 /* libWaifu2x.a in Frameworks */,
@@ -2958,6 +2997,12 @@
 			isa = PBXGroup;
 			children = (
 				37F83C3725C400CD000E5568 /* libPhysX_static_64.a */,
+				37F83D6C25C44A96000E5568 /* libPhysXCharacterKinematic_static_64.a */,
+				37F83D6D25C44A97000E5568 /* libPhysXCommon_static_64.a */,
+				37F83D6B25C44A95000E5568 /* libPhysXCooking_static_64.a */,
+				37F83D6525C44A25000E5568 /* libPhysXExtensions_static_64.a */,
+				37F83D6425C44A24000E5568 /* libPhysXFoundation_static_64.a */,
+				37F83D7125C44AA1000E5568 /* libPhysXVehicle_static_64.a */,
 			);
 			name = PhysX;
 			sourceTree = "<group>";
@@ -2965,6 +3010,13 @@
 		37F83C3325C40046000E5568 /* PhysX */ = {
 			isa = PBXGroup;
 			children = (
+				37F83D7325C44AB5000E5568 /* libPhysX_static_64.a */,
+				37F83D7425C44AB5000E5568 /* libPhysXCharacterKinematic_static_64.a */,
+				37F83D7725C44AB6000E5568 /* libPhysXCommon_static_64.a */,
+				37F83D7625C44AB6000E5568 /* libPhysXCooking_static_64.a */,
+				37F83D7925C44AB7000E5568 /* libPhysXExtensions_static_64.a */,
+				37F83D7525C44AB6000E5568 /* libPhysXFoundation_static_64.a */,
+				37F83D7825C44AB7000E5568 /* libPhysXVehicle_static_64.a */,
 			);
 			name = PhysX;
 			sourceTree = "<group>";
