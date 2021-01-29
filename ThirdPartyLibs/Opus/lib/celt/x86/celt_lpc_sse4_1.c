@@ -29,16 +29,17 @@
 #include "config.h"
 #endif
 
+#if defined(OPUS_X86_MAY_HAVE_SSE4_1) && defined(FIXED_POINT)
+
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #include <smmintrin.h>
+
 #include "celt_lpc.h"
 #include "stack_alloc.h"
 #include "mathops.h"
 #include "pitch.h"
 #include "x86cpu.h"
-
-#if defined(FIXED_POINT)
 
 void celt_fir_sse4_1(const opus_val16 *x,
          const opus_val16 *num,

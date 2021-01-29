@@ -30,16 +30,16 @@
 #include "config.h"
 #endif
 
+#if defined(OPUS_X86_MAY_HAVE_SSE2) && !defined(FIXED_POINT)
+
 #include <xmmintrin.h>
 #include <emmintrin.h>
+
 #include "celt_lpc.h"
 #include "stack_alloc.h"
 #include "mathops.h"
 #include "vq.h"
 #include "x86cpu.h"
-
-
-#ifndef FIXED_POINT
 
 opus_val16 op_pvq_search_sse2(celt_norm *_X, int *iy, int K, int N, int arch)
 {

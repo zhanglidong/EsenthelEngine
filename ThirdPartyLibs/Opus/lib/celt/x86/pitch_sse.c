@@ -29,15 +29,15 @@
 #include "config.h"
 #endif
 
+#if defined(OPUS_X86_MAY_HAVE_SSE) && !defined(FIXED_POINT)
+
+#include <xmmintrin.h>
+
 #include "macros.h"
 #include "celt_lpc.h"
 #include "stack_alloc.h"
 #include "mathops.h"
 #include "pitch.h"
-
-#if defined(OPUS_X86_MAY_HAVE_SSE) && !defined(FIXED_POINT)
-
-#include <xmmintrin.h>
 #include "arch.h"
 
 void xcorr_kernel_sse(const opus_val16 *x, const opus_val16 *y, opus_val32 sum[4], int len)
