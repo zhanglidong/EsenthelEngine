@@ -866,48 +866,6 @@
 		3754C3111A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
 		3754C3121A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
 		3754C3131A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
-		376EDCB21FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA01FB403A200B77302 /* libPhysX3Cooking.a */; };
-		376EDCB31FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA01FB403A200B77302 /* libPhysX3Cooking.a */; };
-		376EDCB41FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA01FB403A200B77302 /* libPhysX3Cooking.a */; };
-		376EDCB51FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA11FB403A200B77302 /* libPhysX3Extensions.a */; };
-		376EDCB61FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA11FB403A200B77302 /* libPhysX3Extensions.a */; };
-		376EDCB71FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA11FB403A200B77302 /* libPhysX3Extensions.a */; };
-		376EDCB81FB403A400B77302 /* libPhysX3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA21FB403A200B77302 /* libPhysX3.a */; };
-		376EDCB91FB403A400B77302 /* libPhysX3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA21FB403A200B77302 /* libPhysX3.a */; };
-		376EDCBA1FB403A400B77302 /* libPhysX3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA21FB403A200B77302 /* libPhysX3.a */; };
-		376EDCC41FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA61FB403A300B77302 /* libPhysX3Vehicle.a */; };
-		376EDCC51FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA61FB403A300B77302 /* libPhysX3Vehicle.a */; };
-		376EDCC61FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA61FB403A300B77302 /* libPhysX3Vehicle.a */; };
-		376EDCC71FB403A400B77302 /* libPhysX3Common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA71FB403A300B77302 /* libPhysX3Common.a */; };
-		376EDCC81FB403A400B77302 /* libPhysX3Common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA71FB403A300B77302 /* libPhysX3Common.a */; };
-		376EDCC91FB403A400B77302 /* libPhysX3Common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA71FB403A300B77302 /* libPhysX3Common.a */; };
-		376EDCCD1FB413FD00B77302 /* libPxFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA81FB403A400B77302 /* libPxFoundation.a */; };
-		376EDCCE1FB413FD00B77302 /* libPxFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA81FB403A400B77302 /* libPxFoundation.a */; };
-		376EDCCF1FB413FE00B77302 /* libPxFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCA81FB403A400B77302 /* libPxFoundation.a */; };
-		376EDCD11FB416D200B77302 /* libSimulationController.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD01FB416D200B77302 /* libSimulationController.a */; };
-		376EDCD21FB416D200B77302 /* libSimulationController.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD01FB416D200B77302 /* libSimulationController.a */; };
-		376EDCD31FB416D200B77302 /* libSimulationController.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD01FB416D200B77302 /* libSimulationController.a */; };
-		376EDCD51FB4172400B77302 /* libSceneQuery.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD41FB4172400B77302 /* libSceneQuery.a */; };
-		376EDCD61FB4172400B77302 /* libSceneQuery.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD41FB4172400B77302 /* libSceneQuery.a */; };
-		376EDCD71FB4172400B77302 /* libSceneQuery.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD41FB4172400B77302 /* libSceneQuery.a */; };
-		376EDCDD1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD81FB4177000B77302 /* libLowLevelAABB.a */; };
-		376EDCDE1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD81FB4177000B77302 /* libLowLevelAABB.a */; };
-		376EDCDF1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD81FB4177000B77302 /* libLowLevelAABB.a */; };
-		376EDCE01FB4177100B77302 /* libLowLevel.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD91FB4177000B77302 /* libLowLevel.a */; };
-		376EDCE11FB4177100B77302 /* libLowLevel.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD91FB4177000B77302 /* libLowLevel.a */; };
-		376EDCE21FB4177100B77302 /* libLowLevel.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCD91FB4177000B77302 /* libLowLevel.a */; };
-		376EDCE31FB4177100B77302 /* libLowLevelParticles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDA1FB4177000B77302 /* libLowLevelParticles.a */; };
-		376EDCE41FB4177100B77302 /* libLowLevelParticles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDA1FB4177000B77302 /* libLowLevelParticles.a */; };
-		376EDCE51FB4177100B77302 /* libLowLevelParticles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDA1FB4177000B77302 /* libLowLevelParticles.a */; };
-		376EDCE61FB4177100B77302 /* libLowLevelCloth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDB1FB4177100B77302 /* libLowLevelCloth.a */; };
-		376EDCE71FB4177100B77302 /* libLowLevelCloth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDB1FB4177100B77302 /* libLowLevelCloth.a */; };
-		376EDCE81FB4177100B77302 /* libLowLevelCloth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDB1FB4177100B77302 /* libLowLevelCloth.a */; };
-		376EDCE91FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDC1FB4177100B77302 /* libLowLevelDynamics.a */; };
-		376EDCEA1FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDC1FB4177100B77302 /* libLowLevelDynamics.a */; };
-		376EDCEB1FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCDC1FB4177100B77302 /* libLowLevelDynamics.a */; };
-		376EDCED1FB417B100B77302 /* libPxTask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCEC1FB417B100B77302 /* libPxTask.a */; };
-		376EDCEE1FB417B100B77302 /* libPxTask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCEC1FB417B100B77302 /* libPxTask.a */; };
-		376EDCEF1FB417B100B77302 /* libPxTask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 376EDCEC1FB417B100B77302 /* libPxTask.a */; };
 		377360091B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
 		3773600A1B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
 		3773600B1B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
@@ -1022,6 +980,7 @@
 		37F5ECC621B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
 		37F5ECC721B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
 		37F5ECC821B6269C0045D7DE /* Voxel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F5ECC521B6269C0045D7DE /* Voxel.cpp */; };
+		37F83C3825C400CD000E5568 /* libPhysX_static_64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F83C3725C400CD000E5568 /* libPhysX_static_64.a */; };
 		37FA23961D229F2000EEFAAE /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18994F12DA3FD300499CA9 /* Input.cpp */; };
 		37FA23971D229F2000EEFAAE /* Joypad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995012DA3FD300499CA9 /* Joypad.cpp */; };
 		37FA23981D229F2000EEFAAE /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18995112DA3FD300499CA9 /* Keyboard.cpp */; };
@@ -1635,21 +1594,6 @@
 		3747E0AB21AE44640001AFC5 /* libGameAnalytics.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGameAnalytics.a; path = ../ThirdPartyLibs/GameAnalytics/iOS/libGameAnalytics.a; sourceTree = "<group>"; };
 		374B09E7250B736700F37C7B /* HEIF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HEIF.cpp; sourceTree = "<group>"; };
 		3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Animated Skeleton.cpp"; sourceTree = "<group>"; };
-		376EDCA01FB403A200B77302 /* libPhysX3Cooking.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3Cooking.a; sourceTree = "<group>"; };
-		376EDCA11FB403A200B77302 /* libPhysX3Extensions.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3Extensions.a; sourceTree = "<group>"; };
-		376EDCA21FB403A200B77302 /* libPhysX3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3.a; sourceTree = "<group>"; };
-		376EDCA51FB403A300B77302 /* libPhysX3CharacterKinematic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3CharacterKinematic.a; sourceTree = "<group>"; };
-		376EDCA61FB403A300B77302 /* libPhysX3Vehicle.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3Vehicle.a; sourceTree = "<group>"; };
-		376EDCA71FB403A300B77302 /* libPhysX3Common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPhysX3Common.a; sourceTree = "<group>"; };
-		376EDCA81FB403A400B77302 /* libPxFoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPxFoundation.a; sourceTree = "<group>"; };
-		376EDCD01FB416D200B77302 /* libSimulationController.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libSimulationController.a; sourceTree = "<group>"; };
-		376EDCD41FB4172400B77302 /* libSceneQuery.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libSceneQuery.a; sourceTree = "<group>"; };
-		376EDCD81FB4177000B77302 /* libLowLevelAABB.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLowLevelAABB.a; sourceTree = "<group>"; };
-		376EDCD91FB4177000B77302 /* libLowLevel.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLowLevel.a; sourceTree = "<group>"; };
-		376EDCDA1FB4177000B77302 /* libLowLevelParticles.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLowLevelParticles.a; sourceTree = "<group>"; };
-		376EDCDB1FB4177100B77302 /* libLowLevelCloth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLowLevelCloth.a; sourceTree = "<group>"; };
-		376EDCDC1FB4177100B77302 /* libLowLevelDynamics.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLowLevelDynamics.a; sourceTree = "<group>"; };
-		376EDCEC1FB417B100B77302 /* libPxTask.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPxTask.a; sourceTree = "<group>"; };
 		377360071B1822D30026D698 /* AdMob.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AdMob.cpp; sourceTree = "<group>"; };
 		377360081B1822D30026D698 /* Chartboost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Chartboost.cpp; sourceTree = "<group>"; };
 		3778B76621F71213001D764E /* FBSDKLoginKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = FBSDKLoginKit.a; path = ../ThirdPartyLibs/Facebook/iOS/FBSDKLoginKit.a; sourceTree = "<group>"; };
@@ -1727,6 +1671,7 @@
 		37F025622580CC07005583A8 /* HDR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HDR.cpp; sourceTree = "<group>"; };
 		37F5ECC521B6269C0045D7DE /* Voxel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Voxel.cpp; sourceTree = "<group>"; };
 		37F5ECC921B626C90045D7DE /* Voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Voxel.h; sourceTree = "<group>"; };
+		37F83C3725C400CD000E5568 /* libPhysX_static_64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPhysX_static_64.a; path = ../ThirdPartyLibs/PhysX/physx/bin/mac.x86_64/release/libPhysX_static_64.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1736,44 +1681,30 @@
 			files = (
 				3778B76F21F7121A001D764E /* FBSDKCoreKit.a in Frameworks */,
 				3716E2C41BB8EB990037177D /* libSnappy.a in Frameworks */,
-				376EDCB71FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */,
 				3716E2901BB8EA140037177D /* libJpegTurbo.a in Frameworks */,
-				376EDCDF1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */,
 				3716E2B01BB8EAF10037177D /* libOgg.a in Frameworks */,
 				3716E2DA1BB8EC300037177D /* libTiff.a in Frameworks */,
-				376EDCC61FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */,
-				376EDCEF1FB417B100B77302 /* libPxTask.a in Frameworks */,
-				376EDCD71FB4172400B77302 /* libSceneQuery.a in Frameworks */,
 				37AE2BDD1D30F194004D8A41 /* libZStd.a in Frameworks */,
-				376EDCE81FB4177100B77302 /* libLowLevelCloth.a in Frameworks */,
 				3716E2C21BB8EB650037177D /* libRecast.a in Frameworks */,
 				3706B2E81E972C190057BFB5 /* libFDK-AAC.a in Frameworks */,
 				377FCFB81B1826E90007F1BD /* libChartboost.a in Frameworks */,
-				376EDCBA1FB403A400B77302 /* libPhysX3.a in Frameworks */,
 				3716E29A1BB8EA7A0037177D /* libLZHAM.a in Frameworks */,
 				3778B77021F7121A001D764E /* FBSDKLoginKit.a in Frameworks */,
-				376EDCC91FB403A400B77302 /* libPhysX3Common.a in Frameworks */,
 				3716E2B21BB8EB050037177D /* libOpus.a in Frameworks */,
 				3716E28E1BB8E95D0037177D /* libFlac.a in Frameworks */,
 				3747E0AD21AE44BC0001AFC5 /* libGameAnalytics.a in Frameworks */,
 				3716E2DC1BB8EC490037177D /* libVorbis.a in Frameworks */,
-				376EDCB41FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */,
 				37834C5823A5211300AE51F1 /* libWaifu2x.a in Frameworks */,
 				3716E2981BB8EA5A0037177D /* libLZ4.a in Frameworks */,
 				3716E2D01BB8EBFE0037177D /* libTheora.a in Frameworks */,
 				37E70CD71FEC8DF000F10018 /* libmbedTLS.a in Frameworks */,
 				3716E2861BB8E9000037177D /* libBullet.a in Frameworks */,
 				3716E2B81BB8EB310037177D /* libPng.a in Frameworks */,
-				376EDCE51FB4177100B77302 /* libLowLevelParticles.a in Frameworks */,
 				3716E2A41BB8EAA50037177D /* libLZMA.a in Frameworks */,
 				3778B77121F7121A001D764E /* FBSDKShareKit.a in Frameworks */,
-				376EDCCD1FB413FD00B77302 /* libPxFoundation.a in Frameworks */,
 				3716E2E61BB8EC840037177D /* libWebP.a in Frameworks */,
 				37A8F9CC18F782DE00B1A466 /* libGoogleMobileAds.a in Frameworks */,
-				376EDCE21FB4177100B77302 /* libLowLevel.a in Frameworks */,
-				376EDCEB1FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */,
 				3716E2CA1BB8EBDA0037177D /* libSQLite.a in Frameworks */,
-				376EDCD31FB416D200B77302 /* libSimulationController.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1782,43 +1713,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				379982311FB5624500B31132 /* libFlac.a in Frameworks */,
-				376EDCB81FB403A400B77302 /* libPhysX3.a in Frameworks */,
 				0BBA4E6818655CB600C48728 /* libPVRTexLib.a in Frameworks */,
 				3716E2D41BB8EC0D0037177D /* libTheora.a in Frameworks */,
-				376EDCB21FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */,
 				3716E2A01BB8EA950037177D /* libLZMA.a in Frameworks */,
+				37F83C3825C400CD000E5568 /* libPhysX_static_64.a in Frameworks */,
 				3716E2BC1BB8EB410037177D /* libPng.a in Frameworks */,
-				376EDCDD1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */,
-				376EDCCF1FB413FE00B77302 /* libPxFoundation.a in Frameworks */,
 				37E70CD31FEC8DCE00F10018 /* libmbedTLS.a in Frameworks */,
 				37CD66AA1EB8007C00B31285 /* libispc_texcomp.a in Frameworks */,
 				3716E2941BB8EA490037177D /* libLZ4.a in Frameworks */,
 				3716E2CE1BB8EBE80037177D /* libSQLite.a in Frameworks */,
 				3716E2E01BB8EC590037177D /* libVorbis.a in Frameworks */,
-				376EDCC71FB403A400B77302 /* libPhysX3Common.a in Frameworks */,
 				3716E2AC1BB8EAE00037177D /* libOgg.a in Frameworks */,
-				376EDCD51FB4172400B77302 /* libSceneQuery.a in Frameworks */,
 				379982331FB5671800B31132 /* libJpegTurbo.a in Frameworks */,
 				378EB34623A51FAC0098C290 /* libWaifu2x.a in Frameworks */,
 				0BED409F17E2FC9100B2DD6C /* libfbxsdk.a in Frameworks */,
 				3716E2D61BB8EC200037177D /* libTiff.a in Frameworks */,
-				376EDCD11FB416D200B77302 /* libSimulationController.a in Frameworks */,
-				376EDCE61FB4177100B77302 /* libLowLevelCloth.a in Frameworks */,
-				376EDCE91FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */,
 				3716E28A1BB8E9210037177D /* libBullet.a in Frameworks */,
-				376EDCB51FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */,
 				3716E2E21BB8EC760037177D /* libWebP.a in Frameworks */,
-				376EDCE31FB4177100B77302 /* libLowLevelParticles.a in Frameworks */,
-				376EDCED1FB417B100B77302 /* libPxTask.a in Frameworks */,
 				37AE2BD91D30F16A004D8A41 /* libZStd.a in Frameworks */,
 				3716E2C81BB8EBA90037177D /* libSnappy.a in Frameworks */,
-				376EDCE01FB4177100B77302 /* libLowLevel.a in Frameworks */,
 				37B2FF89193987D300A63FAD /* libvpx.a in Frameworks */,
 				3706B2E41E972C000057BFB5 /* libFDK-AAC.a in Frameworks */,
 				3716E2BE1BB8EB550037177D /* libRecast.a in Frameworks */,
 				3716E29E1BB8EA8B0037177D /* libLZHAM.a in Frameworks */,
 				3716E2B61BB8EB1B0037177D /* libOpus.a in Frameworks */,
-				376EDCC41FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */,
 				378C062D25584ED200281D12 /* libxml2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1828,10 +1746,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3716E2DE1BB8EC510037177D /* libVorbis.a in Frameworks */,
-				376EDCE41FB4177100B77302 /* libLowLevelParticles.a in Frameworks */,
-				376EDCCE1FB413FD00B77302 /* libPxFoundation.a in Frameworks */,
 				3778B76C21F71218001D764E /* FBSDKCoreKit.a in Frameworks */,
-				376EDCC51FB403A400B77302 /* libPhysX3Vehicle.a in Frameworks */,
 				37DB7BF5190CA38800275AEE /* libGoogleMobileAds.a in Frameworks */,
 				3716E2D21BB8EC060037177D /* libTheora.a in Frameworks */,
 				3716E29C1BB8EA800037177D /* libLZHAM.a in Frameworks */,
@@ -1839,33 +1754,22 @@
 				3716E2AE1BB8EAE80037177D /* libOgg.a in Frameworks */,
 				3716E2E41BB8EC7E0037177D /* libWebP.a in Frameworks */,
 				3716E2C61BB8EBA00037177D /* libSnappy.a in Frameworks */,
-				376EDCEE1FB417B100B77302 /* libPxTask.a in Frameworks */,
 				37E70CD51FEC8DDE00F10018 /* libmbedTLS.a in Frameworks */,
-				376EDCC81FB403A400B77302 /* libPhysX3Common.a in Frameworks */,
 				3716E2CC1BB8EBE10037177D /* libSQLite.a in Frameworks */,
-				376EDCE11FB4177100B77302 /* libLowLevel.a in Frameworks */,
 				3716E2A21BB8EA9C0037177D /* libLZMA.a in Frameworks */,
 				37D2A26219E6591400F1092B /* libvpx_arm64.a in Frameworks */,
 				3716E2BA1BB8EB390037177D /* libPng.a in Frameworks */,
-				376EDCB91FB403A400B77302 /* libPhysX3.a in Frameworks */,
 				3716E2B41BB8EB130037177D /* libOpus.a in Frameworks */,
 				3747E0AC21AE44650001AFC5 /* libGameAnalytics.a in Frameworks */,
 				37AE2BDB1D30F185004D8A41 /* libZStd.a in Frameworks */,
 				3716E2D81BB8EC270037177D /* libTiff.a in Frameworks */,
 				3778B76D21F71218001D764E /* FBSDKLoginKit.a in Frameworks */,
-				376EDCE71FB4177100B77302 /* libLowLevelCloth.a in Frameworks */,
 				3716E2961BB8EA510037177D /* libLZ4.a in Frameworks */,
 				3716E2921BB8EA1D0037177D /* libJpegTurbo.a in Frameworks */,
 				3778B76E21F71218001D764E /* FBSDKShareKit.a in Frameworks */,
-				376EDCB61FB403A400B77302 /* libPhysX3Extensions.a in Frameworks */,
-				376EDCDE1FB4177100B77302 /* libLowLevelAABB.a in Frameworks */,
-				376EDCD61FB4172400B77302 /* libSceneQuery.a in Frameworks */,
 				3716E28C1BB8E9530037177D /* libFlac.a in Frameworks */,
-				376EDCD21FB416D200B77302 /* libSimulationController.a in Frameworks */,
-				376EDCEA1FB4177100B77302 /* libLowLevelDynamics.a in Frameworks */,
 				3716E2C01BB8EB5D0037177D /* libRecast.a in Frameworks */,
 				37834C5623A520F700AE51F1 /* libWaifu2x.a in Frameworks */,
-				376EDCB31FB403A400B77302 /* libPhysX3Cooking.a in Frameworks */,
 				3706B2E61E972C0D0057BFB5 /* libFDK-AAC.a in Frameworks */,
 				377FCFB71B1826E90007F1BD /* libChartboost.a in Frameworks */,
 			);
@@ -2506,28 +2410,6 @@
 			path = Mac;
 			sourceTree = "<group>";
 		};
-		0B3154EE168F739D00A98795 /* PhysX */ = {
-			isa = PBXGroup;
-			children = (
-				376EDCD91FB4177000B77302 /* libLowLevel.a */,
-				376EDCD81FB4177000B77302 /* libLowLevelAABB.a */,
-				376EDCDB1FB4177100B77302 /* libLowLevelCloth.a */,
-				376EDCDC1FB4177100B77302 /* libLowLevelDynamics.a */,
-				376EDCDA1FB4177000B77302 /* libLowLevelParticles.a */,
-				376EDCA21FB403A200B77302 /* libPhysX3.a */,
-				376EDCA51FB403A300B77302 /* libPhysX3CharacterKinematic.a */,
-				376EDCA71FB403A300B77302 /* libPhysX3Common.a */,
-				376EDCA01FB403A200B77302 /* libPhysX3Cooking.a */,
-				376EDCA11FB403A200B77302 /* libPhysX3Extensions.a */,
-				376EDCA61FB403A300B77302 /* libPhysX3Vehicle.a */,
-				376EDCA81FB403A400B77302 /* libPxFoundation.a */,
-				376EDCEC1FB417B100B77302 /* libPxTask.a */,
-				376EDCD41FB4172400B77302 /* libSceneQuery.a */,
-				376EDCD01FB416D200B77302 /* libSimulationController.a */,
-			);
-			name = PhysX;
-			sourceTree = "<group>";
-		};
 		0B9C1679120AF070005B146F /* H */ = {
 			isa = PBXGroup;
 			children = (
@@ -2951,6 +2833,7 @@
 		0BDA9CF8121EE66400ED5E97 /* Mac */ = {
 			isa = PBXGroup;
 			children = (
+				37F83C3225C40023000E5568 /* PhysX */,
 				3716E2891BB8E9210037177D /* libBullet.a */,
 				0BED409E17E2FC9100B2DD6C /* libfbxsdk.a */,
 				378C062C25584ED200281D12 /* libxml2.a */,
@@ -2984,6 +2867,7 @@
 		0BDA9CFD121EE6A500ED5E97 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				37F83C3325C40046000E5568 /* PhysX */,
 				3778B76521F711F6001D764E /* Facebook */,
 				3716E2871BB8E9080037177D /* libBullet.a */,
 				377FCFB61B1826E90007F1BD /* libChartboost.a */,
@@ -3040,7 +2924,6 @@
 				0BDA9CF8121EE66400ED5E97 /* Mac */,
 				0BDA9CFD121EE6A500ED5E97 /* iOS */,
 				0BC0A1F0183701C600B2E3A4 /* iOS Simulator */,
-				0B3154EE168F739D00A98795 /* PhysX */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -3069,6 +2952,21 @@
 				37AB150818CFD3B400DC4CDE /* Web.cpp */,
 			);
 			name = Web;
+			sourceTree = "<group>";
+		};
+		37F83C3225C40023000E5568 /* PhysX */ = {
+			isa = PBXGroup;
+			children = (
+				37F83C3725C400CD000E5568 /* libPhysX_static_64.a */,
+			);
+			name = PhysX;
+			sourceTree = "<group>";
+		};
+		37F83C3325C40046000E5568 /* PhysX */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = PhysX;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -4232,7 +4130,7 @@
 					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/Xml2/Mac,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = EsenthelEngine;
 			};
 			name = Debug;
@@ -4270,7 +4168,7 @@
 					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/Xml2/Mac,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = EsenthelEngine;
 			};
 			name = Release;
