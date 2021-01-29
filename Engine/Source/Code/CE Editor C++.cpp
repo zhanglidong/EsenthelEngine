@@ -1866,16 +1866,16 @@ Bool CodeEditor::generateXcodeProj()
    }
    if(!OverwriteOnChangeLoud(xml, build_path+"Assets/Mac.plist"))return false;
 
-   str=Replace(str, "path = \"EsenthelEngine.a\""          , UnixPath(S+"path = \""+bin_path+"EsenthelEngine.a\""          ));
-   str=Replace(str, "path = \"EsenthelEngine Device.a\""   , UnixPath(S+"path = \""+bin_path+"EsenthelEngine Device.a\""   ));
-   str=Replace(str, "path = \"EsenthelEngine Simulator.a\"", UnixPath(S+"path = \""+bin_path+"EsenthelEngine Simulator.a\""));
-   str=Replace(str, "path = \"Engine.pak\""                , UnixPath(S+"path = \""+bin_path+"Mobile/Engine.pak\""         ));
-   str=Replace(str, "/* ESENTHEL FRAMEWORK DIRS */"        , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
-   str=Replace(str, "/* ESENTHEL LIBRARY DIRS */"          , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
-   str=Replace(str, "PRODUCT_BUNDLE_IDENTIFIER = \"\";"    , S+"PRODUCT_BUNDLE_IDENTIFIER = \""+CString(app_package       )+"\";");
-   str=Replace(str, "PRODUCT_NAME = \"\";"                 , S+"PRODUCT_NAME = \""             +CString(build_project_name)+"\";");
-   str=Replace(str, "path = Mac.app;"                      , S+"path = \""                     +CString(build_project_name)+".app\";");
-   str=Replace(str, "path = iOS.app;"                      , S+"path = \""                     +CString(build_project_name)+".app\";");
+   str=Replace(str, "path = \"EsenthelEngine Mac.a\""          , UnixPath(S+"path = \""+bin_path+"EsenthelEngine Mac.a\""          ));
+   str=Replace(str, "path = \"EsenthelEngine iOS.a\""          , UnixPath(S+"path = \""+bin_path+"EsenthelEngine iOS.a\""          ));
+   str=Replace(str, "path = \"EsenthelEngine iOS Simulator.a\"", UnixPath(S+"path = \""+bin_path+"EsenthelEngine iOS Simulator.a\""));
+   str=Replace(str, "path = \"Engine.pak\""                    , UnixPath(S+"path = \""+bin_path+"Mobile/Engine.pak\""             ));
+   str=Replace(str, "/* ESENTHEL FRAMEWORK DIRS */"            , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
+   str=Replace(str, "/* ESENTHEL LIBRARY DIRS */"              , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
+   str=Replace(str, "PRODUCT_BUNDLE_IDENTIFIER = \"\";"        , S+"PRODUCT_BUNDLE_IDENTIFIER = \""+CString(app_package       )+"\";");
+   str=Replace(str, "PRODUCT_NAME = \"\";"                     , S+"PRODUCT_NAME = \""             +CString(build_project_name)+"\";");
+   str=Replace(str, "path = Mac.app;"                          , S+"path = \""                     +CString(build_project_name)+".app\";");
+   str=Replace(str, "path = iOS.app;"                          , S+"path = \""                     +CString(build_project_name)+".app\";");
 
    {
       Str lib_dirs;

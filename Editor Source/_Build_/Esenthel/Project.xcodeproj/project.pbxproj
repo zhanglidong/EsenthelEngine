@@ -247,9 +247,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0B9F062A16CD7C6D006A0106 /* EsenthelEngine Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Mac.a"; path = "EsenthelEngine Mac.a"; sourceTree = "<absolute>"; };
-		0B80B0011238567700C08944 /* EsenthelEngine iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine iOS.a"; path = "EsenthelEngine iOS.a"; sourceTree = "<absolute>"; };
-		0B987D3C12385BE500071DE8 /* EsenthelEngine iOS Simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine iOS Simulator.a"; path = "EsenthelEngine iOS Simulator.a"; sourceTree = "<absolute>"; };
+		0B9F062A16CD7C6D006A0106 /* EsenthelEngine Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Mac.a"; path = "../../../Editor/Bin/EsenthelEngine Mac.a"; sourceTree = "<absolute>"; };
+		0B80B0011238567700C08944 /* EsenthelEngine iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine iOS.a"; path = "../../../Editor/Bin/EsenthelEngine iOS.a"; sourceTree = "<absolute>"; };
+		0B987D3C12385BE500071DE8 /* EsenthelEngine iOS Simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine iOS Simulator.a"; path = "../../../Editor/Bin/EsenthelEngine iOS Simulator.a"; sourceTree = "<absolute>"; };
 		3725F1F025237F1300E1ED89 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		37307DB721AFDF80009ABBF9 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		37307DB921AFDF87009ABBF9 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
