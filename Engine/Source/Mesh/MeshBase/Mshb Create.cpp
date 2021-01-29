@@ -836,7 +836,7 @@ struct Convex
       f.tri  .set(p0, p1, p2);
       f.plane.set(pos[p0], GetNormal(pos[p0], pos[p1], pos[p2]));
    }
-   Bool cutsEps(Vec &pos)
+   Bool cutsEps(C Vec &pos)C
    {
       if(face.elms())
       {
@@ -845,7 +845,7 @@ struct Convex
       }
       return false;
    }
-   Flt distPlanar(Vec &pos)
+   Flt distPlanar(C Vec &pos)C
    {
       Flt    d=0; REPA(face)MAX(d, Dist(pos, face[i].plane));
       return d;
@@ -853,7 +853,7 @@ struct Convex
    void include(C Vec &pos)
    {
       Int         pos_index=-1;
-      Memc<VecI2> edge;
+      Memt<VecI2> edge;
       REPA(face) // order is important
       {
          Face &f=face[i];
@@ -871,145 +871,118 @@ struct Convex
       }
 
       // add faces
-      REPA(edge)newFace(pos_index, edge[i].y, edge[i].x);
+    //if(pos_index>=0) no need to check this because below we're iterating 'edge', which will be set only if 'pos_index' was set
+      {
+         REPA(edge)newFace(pos_index, edge[i].y, edge[i].x);
+      }
    }
 };
 MeshBase& MeshBase::createConvex(C Vec *point, Int points, Int max_points)
 {
-   MeshBase temp; // use 'temp' in case the 'point' comes from 'this'
-
-   if(points>=4)
+   // !! Warning: 'point' might come from 'this' for example 'T.vtx.pos' !!
+   Box box; if(getBox(box))
    {
-      Int bound[8]={-1,-1,-1,-1, -1,-1,-1,-1};
-      Flt dist [8];
+      VecI4 tetra=-1; // tetrahedron
 
-      // get center
-      Vec center=0; REP(points)center+=point[i]; center/=points;
-
-      // get boundaries
+      // find point furthest from the center
+      Flt dist2 =-1;
+      Vec center= box.center();
       REP(points)
       {
-         Flt d;
-         Int o=0;
-         Vec D=point[i]-center;
-         d= D.x+D.y+D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d= D.x+D.y-D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d= D.x-D.y+D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d= D.x-D.y-D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d=-D.x+D.y+D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d=-D.x+D.y-D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d=-D.x-D.y+D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
-         d=-D.x-D.y-D.z; if(bound[o]<0 || d>dist[o]){bound[o]=i; dist[o]=d;} o++;
+         Flt d2=Dist2(point[i], center);
+         if( d2>dist2){dist2=d2; tetra.x=i;}
       }
-
-      // move indexes left and remove duplicates
-      Int bounds=0;
+      if(tetra.x>=0) // if found
       {
-         Int bound_new[Elms(bound)];
-         FREPA(bound) // preserve order
+         // find point furthest from 'tetra0'
+       C Vec &tetra0=point[tetra.x];
+         dist2=Sqr(EPS); // don't accept same positions, distance has to bigger than EPS
+         REP(points)
          {
-            Int b=bound[i]; if(b>=0)
+            Flt d2=Dist2(point[i], tetra0);
+            if( d2>dist2){dist2=d2; tetra.y=i;}
+         }
+         if(tetra.y>=0) // if found
+         {
+            // find point furthest from 'tetra0', 'tetra1' line
+          C Vec &tetra1  =point[tetra.y];
+            Vec  line_dir=!(tetra1-tetra0);
+            Flt  dist    =EPS; // don't accept inline points, distance has to bigger than EPS
+            REP(points)
             {
-               REP(bounds)if(bound_new[i]==b)goto skip;
-               bound_new[bounds++]=b;
-            skip:;
+               Flt d=DistPointLine(point[i], tetra0, line_dir);
+               if( d>dist){dist=d; tetra.z=i;}
             }
-         }
-         Swap(bound_new, bound);
-      }
-
-      Convex convex;
-
-      /*TODO: optimize this?
-      if(bounds==8) special case of box
-      {
-      }else*/
-      if(bounds>=4)
-      {
-         // take 3 first
-         VecI trii(bound[0], bound[1], bound[2]);
-         Tri  tri (point[trii.x], point[trii.y], point[trii.z]);
-
-         // from the rest take the most distant
-         Int disti=-1;
-         Flt dist;
-         for(Int i=3; i<bounds; i++)
-         {
-            Flt d=DistPointPlane(point[bound[i]], tri);
-            if(disti<0 || Abs(d)>Abs(dist)){disti=i; dist=d;}
-         }
-         if(dist<=EPS) // if found point is coplanar to the triangle
-            REP(points) // find a point that is most distant from the triangle plane
-         {
-            Flt d=DistPointPlane(point[i], tri);
-            if(Abs(d)>Abs(dist)){bound[disti]=i; dist=d;}
-         }
-
-         // adjust
-         if(dist>0)trii.reverse();
-         Swap(bound[disti], bound[3]);
-
-         // build convex from the 4 points
-         convex.pos.New()=point[trii.x];
-         convex.pos.New()=point[trii.y];
-         convex.pos.New()=point[trii.z];
-         convex.pos.New()=point[bound[3]];
-         convex.newFace(0, 1, 2);
-         convex.newFace(1, 0, 3);
-         convex.newFace(2, 1, 3);
-         convex.newFace(0, 2, 3);
-
-         for(Int i=4; i<bounds; i++)convex.include(point[bound[i]]);
-      }
-
-      if(convex.pos.elms())
-      {
-         Memc<Vec> left; REP(points)
-         {
-            REPD(b, bounds)if(bound[b]==i)goto already_added;
-            left.add(point[i]);
-         already_added:;
-         }
-
-         if(max_points<=0) // insert all
-         {
-            REPA(left)if(convex.cutsEps(left[i]))left.remove(i); // early out
-            REPA(left)   convex.include(left[i]);
-         }
-         else // limit the vtx number
-         {
-            for(; left.elms() && convex.pos.elms()<max_points; )
+            if(tetra.z>=0) // if found
             {
-               // find the most distant
-               Int disti=-1;
-               Flt dist;
-               for(Int i=0; i<Elms(left); ) // order is important
+               // find point furthest from 'tetra0', 'tetra1', 'tetra2' triangle/plane
+             C Vec &tetra2=point[tetra.z];
+               Vec  tri_n =GetNormal(tetra0, tetra1, tetra2);
+               dist=EPS; // don't accept coplanar points, distance has to bigger than EPS
+               REP(points)
                {
-                  Flt d=convex.distPlanar(left[i]);
-                  if( d>EPS) // potentially to be added
-                  {
-                     if(disti<0 || d>dist){disti=i; dist=d;}
-                     i++;
-                  }
-                  else // it's too close so it can be thrown out
-                  {
-                     left.remove(i);
-                  }
+                  Flt d=DistPointPlane(point[i], tetra0, tri_n);
+                  if(Abs(d)>Abs(dist)){dist=d; tetra.w=i;}
                }
-               if(disti<0)break;
-               convex.include(left[disti]);
-               left  .remove (     disti );
+               if(tetra.w>=0) // if found
+               {
+                  // adjust
+                  if(dist>0)tetra.xyz.reverse();
+
+                  // build convex from the 4 points
+                  Convex convex;
+                  convex.pos.New()=point[tetra.x];
+                  convex.pos.New()=point[tetra.y];
+                  convex.pos.New()=point[tetra.z];
+                  convex.pos.New()=point[tetra.w];
+                  convex.newFace(0, 1, 2);
+                  convex.newFace(1, 0, 3);
+                  convex.newFace(2, 1, 3);
+                  convex.newFace(0, 2, 3);
+
+                  // if allowed to insert more points
+                  if(max_points<0 || max_points>convex.pos.elms()) // unlimited or more than current
+                  {
+                     if(max_points<0) // unlimited
+                        REP(points)convex.include(point[i]);
+                     else // limited
+                     {
+                        Memt<Int> outer; outer.setNum(points); REPAO(outer)=i; // points left to process, set all at the start
+                        for(; outer.elms() && convex.pos.elms()<max_points; )
+                        {
+                           // find the most distant
+                           Int disti=-1;
+                           Flt dist = 0;
+                           for(Int i=0; i<outer.elms(); ) // order is important
+                           {
+                              Flt d=convex.distPlanar(point[outer[i]]);
+                              if( d>EPS) // potentially to be added
+                              {
+                                 if(d>dist){dist=d; disti=i;}
+                                 i++; // continue to the next one
+                              }else // it's too close to convex so it can be thrown out
+                              {
+                                 outer.remove(i);
+                              }
+                           }
+                           if(disti<0)break; // didn't found
+                           convex.include(point[outer[disti]]);
+                           outer .remove (            disti  );
+                        }
+                     }
+                  }
+
+                  // create mesh from convex data
+                  create(convex.pos.elms(), 0, convex.face.elms(), 0);
+                  REPA(vtx)vtx.pos(i)=convex.pos [i];
+                  REPA(tri)tri.ind(i)=convex.face[i].tri;
+                  return T;
+               }
             }
          }
-
-         temp.create(convex.pos.elms(), 0, convex.face.elms(), 0);
-         REPA(temp.vtx)temp.vtx.pos(i)=convex.pos [i];
-         REPA(temp.tri)temp.tri.ind(i)=convex.face[i].tri;
       }
    }
-
-   Swap(T, temp);
-   return T;
+   del(); return T;
 }
 /******************************************************************************
    MeshBase& createBlade(                                                          Int resolution=2, Flt width=0.06f, Flt angle=1.0f, Bool center=false, Flt normal_x_add=2, Flt normal_y_add=3); // create mesh as grass blade,                                                                                    'resolution'=resolution, 'width'=blade width, 'angle'=blade bend angle, 'center'=if create center vertexes, 'normal_x_add normal_y_add' offsets to vertex normal
