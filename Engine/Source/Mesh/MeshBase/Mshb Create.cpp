@@ -941,34 +941,30 @@ MeshBase& MeshBase::createConvex(C Vec *point, Int points, Int max_points)
                   convex.newFace(0, 2, 3);
 
                   // if allowed to insert more points
-                  if(max_points<0 || max_points>convex.pos.elms()) // unlimited or more than current
+                  if(max_points<0                )REP(points)convex.include(point[i]);else // unlimited
+                  if(max_points>convex.pos.elms()) // more than current
                   {
-                     if(max_points<0) // unlimited
-                        REP(points)convex.include(point[i]);
-                     else // limited
+                     Memt<Int> outer; outer.setNum(points); REPAO(outer)=i; // points left to process, set all at the start
+                     for(; outer.elms() && convex.pos.elms()<max_points; )
                      {
-                        Memt<Int> outer; outer.setNum(points); REPAO(outer)=i; // points left to process, set all at the start
-                        for(; outer.elms() && convex.pos.elms()<max_points; )
+                        // find the most distant
+                        Int disti=-1;
+                        Flt dist = 0;
+                        for(Int i=0; i<outer.elms(); ) // order is important
                         {
-                           // find the most distant
-                           Int disti=-1;
-                           Flt dist = 0;
-                           for(Int i=0; i<outer.elms(); ) // order is important
+                           Flt d=convex.distPlanar(point[outer[i]]);
+                           if( d>EPS) // potentially to be added
                            {
-                              Flt d=convex.distPlanar(point[outer[i]]);
-                              if( d>EPS) // potentially to be added
-                              {
-                                 if(d>dist){dist=d; disti=i;}
-                                 i++; // continue to the next one
-                              }else // it's too close to convex so it can be thrown out
-                              {
-                                 outer.remove(i);
-                              }
+                              if(d>dist){dist=d; disti=i;}
+                              i++; // continue to the next one
+                           }else // it's too close to convex so it can be thrown out
+                           {
+                              outer.remove(i);
                            }
-                           if(disti<0)break; // didn't found
-                           convex.include(point[outer[disti]]);
-                           outer .remove (            disti  );
                         }
+                        if(disti<0)break; // didn't found
+                        convex.include(point[outer[disti]]);
+                        outer .remove (            disti  );
                      }
                   }
 
