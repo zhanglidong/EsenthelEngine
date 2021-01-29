@@ -1,4 +1,4 @@
-#ifdef __LP64__ // ESENTHEL CHANGED
+#ifdef __aarch64__ // ESENTHEL CHANGED
 
 /*
  * ARMv8 NEON optimizations for libjpeg-turbo
