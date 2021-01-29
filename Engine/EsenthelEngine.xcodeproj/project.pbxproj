@@ -677,9 +677,6 @@
 		0BB71981162EFBA8003FC814 /* Material Palette.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BB71979162EFBA8003FC814 /* Material Palette.cpp */; };
 		0BB71982162EFBA8003FC814 /* Material Palette.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BB71979162EFBA8003FC814 /* Material Palette.cpp */; };
 		0BBA4E6818655CB600C48728 /* libPVRTexLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BBA4E6718655CB600C48728 /* libPVRTexLib.a */; };
-		0BBA4E8C18656ABD00C48728 /* PhysX Ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BBA4E8B18656ABD00C48728 /* PhysX Ext.cpp */; };
-		0BBA4E8D18656ABD00C48728 /* PhysX Ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BBA4E8B18656ABD00C48728 /* PhysX Ext.cpp */; };
-		0BBA4E8E18656ABD00C48728 /* PhysX Ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BBA4E8B18656ABD00C48728 /* PhysX Ext.cpp */; };
 		0BC5286C162F4CFE00F0D548 /* Obj Decal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BC5286B162F4CFE00F0D548 /* Obj Decal.cpp */; };
 		0BC5286D162F4CFE00F0D548 /* Obj Decal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BC5286B162F4CFE00F0D548 /* Obj Decal.cpp */; };
 		0BC5286E162F4CFE00F0D548 /* Obj Decal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BC5286B162F4CFE00F0D548 /* Obj Decal.cpp */; };
@@ -1527,7 +1524,6 @@
 		0BBA4E5318655B4200C48728 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../ThirdPartyLibs/Jpeg/Mac/build/Release/libjpeg.a; sourceTree = "<group>"; };
 		0BBA4E5618655B5000C48728 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = "../ThirdPartyLibs/Jpeg/Mac/build/Release-iphoneos/libjpeg.a"; sourceTree = "<group>"; };
 		0BBA4E6718655CB600C48728 /* libPVRTexLib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPVRTexLib.a; path = ../ThirdPartyLibs/PVRTC/PVRTex/OSX_x86/Static/libPVRTexLib.a; sourceTree = "<group>"; };
-		0BBA4E8B18656ABD00C48728 /* PhysX Ext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "PhysX Ext.cpp"; sourceTree = "<group>"; };
 		0BC5286B162F4CFE00F0D548 /* Obj Decal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Obj Decal.cpp"; sourceTree = "<group>"; };
 		0BC8749F144B427000E2ADB2 /* Pathfind 2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Pathfind 2D.cpp"; sourceTree = "<group>"; };
 		0BD939E7123EBEF5005E1C10 /* Glsl PS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Glsl PS.h"; sourceTree = "<group>"; };
@@ -2763,7 +2759,6 @@
 				0B9D586212009BA700821211 /* Physics Draw.cpp */,
 				0B9D586312009BA700821211 /* Physics Test.cpp */,
 				0B9D586412009BA700821211 /* Physics.cpp */,
-				0BBA4E8B18656ABD00C48728 /* PhysX Ext.cpp */,
 				0B9D586712009BA700821211 /* Ragdoll.cpp */,
 				0BB6E1DE168F6C1200F2FFA9 /* Vehicle.cpp */,
 			);
@@ -3443,7 +3438,6 @@
 				0BFCADD7148C1FEA00A3C772 /* DDS.cpp in Sources */,
 				0BFCADE0148C1FEA00A3C772 /* ETC.cpp in Sources */,
 				0BFCADE6148C1FEA00A3C772 /* JPEG.cpp in Sources */,
-				0BBA4E8E18656ABD00C48728 /* PhysX Ext.cpp in Sources */,
 				0BFCADE9148C1FEA00A3C772 /* PNG.cpp in Sources */,
 				0BFCADEC148C1FEA00A3C772 /* PSD.cpp in Sources */,
 				0BFCADEF148C1FEA00A3C772 /* PVRTC.cpp in Sources */,
@@ -3784,7 +3778,6 @@
 				0BB718EE162EDD82003FC814 /* CE Symbol.cpp in Sources */,
 				0BB718F1162EDD82003FC814 /* CE Token.cpp in Sources */,
 				0BB718F4162EDD82003FC814 /* CE.cpp in Sources */,
-				0BBA4E8C18656ABD00C48728 /* PhysX Ext.cpp in Sources */,
 				3781B0371D9CB38700A1765A /* Spectrometer.cpp in Sources */,
 				0B96AD9A180A4E680056691D /* Sound Record.cpp in Sources */,
 				379084A51B3E623100B8E7DC /* Obj.cpp in Sources */,
@@ -4050,7 +4043,6 @@
 				0BFCADD6148C1FEA00A3C772 /* DDS.cpp in Sources */,
 				0BFCADDF148C1FEA00A3C772 /* ETC.cpp in Sources */,
 				0BFCADE5148C1FEA00A3C772 /* JPEG.cpp in Sources */,
-				0BBA4E8D18656ABD00C48728 /* PhysX Ext.cpp in Sources */,
 				0BFCADE8148C1FEA00A3C772 /* PNG.cpp in Sources */,
 				0BFCADEB148C1FEA00A3C772 /* PSD.cpp in Sources */,
 				0BFCADEE148C1FEA00A3C772 /* PVRTC.cpp in Sources */,
