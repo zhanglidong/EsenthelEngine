@@ -266,7 +266,7 @@
 				CONFIGURATION_BUILD_DIR = .;
 				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Assets/Mac.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
 					"-framework SystemConfiguration",
 					"-framework IOKit",
@@ -297,7 +297,7 @@
 				CONFIGURATION_BUILD_DIR = .;
 				COPY_PHASE_STRIP = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Assets/Mac.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
 					"-framework SystemConfiguration",
 					"-framework IOKit",
