@@ -38,11 +38,11 @@
 		3799260818BD4AB300A933D5 /* iOS.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = iOS.xib; path = Assets/iOS.xib; sourceTree = "<group>"; };
 		3799260A18BD4AB300A933D5 /* Mac.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Mac.plist; path = Assets/Mac.plist; sourceTree = "<group>"; };
 		37AE6A3F18E67FD300319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release/EsenthelEngine.a; sourceTree = "<group>"; };
-		37AE6A4218E67FDF00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release-iphoneos/EsenthelEngine.a; sourceTree = "<group>"; };
-		37AE6A4418E67FEA00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/Build/Release-iphonesimulator/EsenthelEngine.a; sourceTree = "<group>"; };
+		37AE6A4218E67FDF00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = "../Engine/Build/Release-iphoneos/EsenthelEngine.a"; sourceTree = "<group>"; };
+		37AE6A4418E67FEA00319BDA /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = "../Engine/Build/Release-iphonesimulator/EsenthelEngine.a"; sourceTree = "<group>"; };
 		37C573311C868FFA00039CB1 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = Assets/Icon.icns; sourceTree = "<group>"; };
 		37DB7C081922F09D00275AEE /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/build/Debug/EsenthelEngine.a; sourceTree = "<group>"; };
-		37DB7C091922F17500275AEE /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = ../Engine/build/Debug-iphoneos/EsenthelEngine.a; sourceTree = "<group>"; };
+		37DB7C091922F17500275AEE /* EsenthelEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = EsenthelEngine.a; path = "../Engine/build/Debug-iphoneos/EsenthelEngine.a"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Project.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
