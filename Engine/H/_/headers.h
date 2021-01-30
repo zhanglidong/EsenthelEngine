@@ -276,8 +276,10 @@
       #include <StoreKit/StoreKit.h>
       #include <AudioToolbox/AudioToolbox.h>
       #if MAC
-         #include <smmintrin.h>
-         #include <wmmintrin.h>
+         #ifdef __x86_64__
+            #include <smmintrin.h>
+            #include <wmmintrin.h>
+         #endif
          #include <CoreAudio/CoreAudio.h>
          #include <net/if_types.h>
          #include <IOKit/hid/IOHIDLib.h>

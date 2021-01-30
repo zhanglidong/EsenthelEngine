@@ -447,7 +447,6 @@
 				DEVELOPMENT_TEAM = 2KA8LL48VG;
 				INFOPLIST_FILE = "$(SRCROOT)/Assets/Mac.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Project;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = YES;
@@ -457,6 +456,7 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
@@ -511,6 +511,7 @@
 					../ThirdPartyLibs/PhysX/PxShared/src/foundation/include,
 					.,
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-fshort-wchar",
 					"-fpermissive",
@@ -554,6 +555,7 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
