@@ -655,7 +655,7 @@ static void AndroidCreateCert(C Str &name, CodeEditor::AndroidCertificate &ac)
 {
    FDelFile(name);
    ConsoleProcess cp;
-   if(!cp.create(PLATFORM(CE.jdk_path.tailSlash(true)+"bin/keytool.exe", "keytool"), S+"-genkey -keystore \""+name+"\" -storepass \""+ac.pass()+"\" -keypass \""+ac.pass()+"\" -keyalg RSA -keysize 2048 -validity 10000 -alias \"key\" -dname \"o="+ac.org_name()+"\""))
+   if(!cp.create(PLATFORM(CE.jdk_path.tailSlash(true)+"bin/keytool.exe", "keytool"), S+"-genkey -keystore \""+name+"\" -storepass \""+ac.pass()+"\" -keypass \""+ac.pass()+"\" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 10000 -alias \"key\" -dname \"o="+ac.org_name()+"\""))
       {Gui.msgBox(S, "Failed to start the Java Development Kit Certificate Generator."); return;}
    if(cp.wait(-1))
    {
