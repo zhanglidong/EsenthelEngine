@@ -74,6 +74,7 @@ Lock
 !/Editor/Bin/*.exe
 !/Editor/Projects
 !/Editor/Projects/541oob6a_h_5el6-6!zan_50
+/Editor/Projects/541oob6a_h_5el6-6!zan_50/Temp
 
 # Esenthel Builder
 !/Esenthel Builder.exe
