@@ -405,7 +405,7 @@ const_mem_addr struct CodeEditor
    WindowIO          devlog_io;
    MemberDesc        devlog_time_sort;
 
-   Str   projects_build_path, vs_path, devenv_path, android_sdk, android_ndk, jdk_path, netbeans_path, cert_file, cert_pass;
+   Str   projects_build_path, vs_path, devenv_path, android_sdk, android_ndk, jdk_path, netbeans_path, android_cert_file, android_cert_pass, apple_team_id;
    VecI4 devenv_version;
    Bool  devenv_express, devenv_com, build_msbuild;
 
@@ -524,12 +524,12 @@ const_mem_addr struct CodeEditor
 
       TextStyle        ts;
       Tabs             tabs;
-      Text           t_vs_path, t_netbeans_path, t_android_sdk, t_android_ndk, t_jdk_path, t_cert_file, t_cert_pass, t_font_size, t_color_theme, t_export_path_mode, t_import_path_mode;
-      TextLine         vs_path,   netbeans_path,   android_sdk,   android_ndk,   jdk_path,   cert_file,   cert_pass;
-      Button         b_vs_path, b_netbeans_path, b_android_sdk, b_android_ndk, b_jdk_path, b_cert_file, cert_create, facebook_android_key_hash, authenticode, vs_path_auto, netbeans_path_auto, android_sdk_auto, android_ndk_auto, jdk_path_auto, d_vs, d_netbeans, d_android_sdk, d_android_ndk, d_jdk, color_theme_edit, font_edit;
+      Text           t_vs_path, t_netbeans_path, t_android_sdk, t_android_ndk, t_jdk_path, t_android_cert_file, t_android_cert_pass  , t_apple_team_id, t_font_size, t_color_theme, t_export_path_mode, t_import_path_mode;
+      TextLine         vs_path,   netbeans_path,   android_sdk,   android_ndk,   jdk_path,   android_cert_file,   android_cert_pass  ,   apple_team_id;
+      Button         b_vs_path, b_netbeans_path, b_android_sdk, b_android_ndk, b_jdk_path, b_android_cert_file,   android_cert_create, b_apple_team_id, facebook_android_key_hash, authenticode, vs_path_auto, netbeans_path_auto, android_sdk_auto, android_ndk_auto, jdk_path_auto, d_vs, d_netbeans, d_android_sdk, d_android_ndk, d_jdk, color_theme_edit, font_edit;
       ComboBox         font_size, color_theme, export_path_mode, import_path_mode;
       Button           ac_on_enter, simple, imm_scroll, eol_clip, line_numbers, hide_horizontal_slidebar, auto_hide_menu, import_image_mip_maps;
-      WindowIO       w_vs_path, w_netbeans_path, w_android_sdk, w_android_ndk, w_jdk_path, w_cert_file;
+      WindowIO       w_vs_path, w_netbeans_path, w_android_sdk, w_android_ndk, w_jdk_path, w_android_cert_file;
       VSVersions       vs_versions;
       ColorThemeEditor color_theme_editor;
       FontEditor       font_editor;
@@ -680,8 +680,9 @@ const_mem_addr struct CodeEditor
    void setASPath          (C Str &path);
    void setANPath          (C Str &path);
    void setJDKPath         (C Str &path);
-   void setCertPath        (C Str &path);
-   void setCertPass        (C Str &pass);
+   void setAndroidCertPath (C Str &path);
+   void setAndroidCertPass (C Str &pass);
+   void setAppleTeamID     (C Str &id  );
    Bool verifyVS           ();
    Bool verifyXcode        ();
    Bool verifyAndroid      ();

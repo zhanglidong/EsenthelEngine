@@ -435,42 +435,44 @@ Window& CodeEditor::Options::hide()
    if(ce)ce->cei().visibleChangedOptions();
    return T;
 }
-static void  VSDownload    (             CodeEditor::Options &op) {Explore("https://www.visualstudio.com/downloads/download-visual-studio-vs#d-community");}
-static void  NBDownload    (             CodeEditor::Options &op) {Explore("https://netbeans.apache.org/download/index.html");}
-static void EASDownload    (             CodeEditor::Options &op) {Explore("https://esenthel.com/?id=store");}
-static void  ASDownload    (             CodeEditor::Options &op) {Explore("https://developer.android.com/studio/#command-tools");}
-static void  ANDownload    (             CodeEditor::Options &op) {Explore("https://developer.android.com/ndk/downloads/");}
-static void JDKDownload    (             CodeEditor::Options &op) {Explore("https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html");}
-static void   VSChanged    (             CodeEditor::Options &op) {if(op.ce)op.ce->setVSPath  (op.      vs_path());}
-static void   NBChanged    (             CodeEditor::Options &op) {if(op.ce)op.ce->setNBPath  (op.netbeans_path());}
-static void   ASChanged    (             CodeEditor::Options &op) {if(op.ce)op.ce->setASPath  (op.  android_sdk());}
-static void   ANChanged    (             CodeEditor::Options &op) {if(op.ce)op.ce->setANPath  (op.  android_ndk());}
-static void  JDKChanged    (             CodeEditor::Options &op) {if(op.ce)op.ce->setJDKPath (op.     jdk_path());}
-static void CertChangedF   (             CodeEditor::Options &op) {if(op.ce)op.ce->setCertPath(op.    cert_file());}
-static void CertChangedP   (             CodeEditor::Options &op) {if(op.ce)op.ce->setCertPass(op.    cert_pass());}
-static void   VSSelect     (             CodeEditor::Options &op) {op.w_vs_path      .activate();}
-static void   NBSelect     (             CodeEditor::Options &op) {op.w_netbeans_path.activate();}
-static void   ASSelect     (             CodeEditor::Options &op) {op.w_android_sdk  .activate();}
-static void   ANSelect     (             CodeEditor::Options &op) {op.w_android_ndk  .activate();}
-static void  JDKSelect     (             CodeEditor::Options &op) {op.w_jdk_path     .activate();}
-static void CertSelect     (             CodeEditor::Options &op) {op.w_cert_file    .activate();}
-static void   VSLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setVSPath  (path);}
-static void   NBLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setNBPath  (path);}
-static void   ASLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setASPath  (path);}
-static void   ANLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setANPath  (path);}
-static void  JDKLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setJDKPath (path);}
-static void CertLoad       (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setCertPath(path);}
-static void  VSAutodetect  (             CodeEditor::Options &op) {op.vs_versions.activate();}
-static void  ASAutodetect  (             CodeEditor::Options &op) {Str p=GetRegStr(RKG_LOCAL_MACHINE, "Software/Android SDK Tools/Path"); if(p.is())ASLoad(p, op);}
-static void JDKAutodetect  (             CodeEditor::Options &op) {Str p=GetRegStr(RKG_LOCAL_MACHINE, "Software/JavaSoft/Java Development Kit/1.8/JavaHome"); if(p.is())JDKLoad(p, op);}
-static void  ANAutodetect  (             CodeEditor::Options &op)
+static void  VSDownload        (             CodeEditor::Options &op) {Explore("https://www.visualstudio.com/downloads/download-visual-studio-vs#d-community");}
+static void  NBDownload        (             CodeEditor::Options &op) {Explore("https://netbeans.apache.org/download/index.html");}
+static void EASDownload        (             CodeEditor::Options &op) {Explore("https://esenthel.com/?id=store");}
+static void  ASDownload        (             CodeEditor::Options &op) {Explore("https://developer.android.com/studio/#command-tools");}
+static void  ANDownload        (             CodeEditor::Options &op) {Explore("https://developer.android.com/ndk/downloads/");}
+static void JDKDownload        (             CodeEditor::Options &op) {Explore("https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html");}
+static void AppleTeamIDGet     (             CodeEditor::Options &op) {Explore("https://developer.apple.com/account/#/membership/");}
+static void   VSChanged        (             CodeEditor::Options &op) {if(op.ce)op.ce->setVSPath         (op.          vs_path());}
+static void   NBChanged        (             CodeEditor::Options &op) {if(op.ce)op.ce->setNBPath         (op.    netbeans_path());}
+static void   ASChanged        (             CodeEditor::Options &op) {if(op.ce)op.ce->setASPath         (op.      android_sdk());}
+static void   ANChanged        (             CodeEditor::Options &op) {if(op.ce)op.ce->setANPath         (op.      android_ndk());}
+static void  JDKChanged        (             CodeEditor::Options &op) {if(op.ce)op.ce->setJDKPath        (op.         jdk_path());}
+static void AndroidCertChangedF(             CodeEditor::Options &op) {if(op.ce)op.ce->setAndroidCertPath(op.android_cert_file());}
+static void AndroidCertChangedP(             CodeEditor::Options &op) {if(op.ce)op.ce->setAndroidCertPass(op.android_cert_pass());}
+static void AppleTeamIDChanged (             CodeEditor::Options &op) {if(op.ce)op.ce->setAppleTeamID    (op.    apple_team_id());}
+static void   VSSelect         (             CodeEditor::Options &op) {op.w_vs_path          .activate();}
+static void   NBSelect         (             CodeEditor::Options &op) {op.w_netbeans_path    .activate();}
+static void   ASSelect         (             CodeEditor::Options &op) {op.w_android_sdk      .activate();}
+static void   ANSelect         (             CodeEditor::Options &op) {op.w_android_ndk      .activate();}
+static void  JDKSelect         (             CodeEditor::Options &op) {op.w_jdk_path         .activate();}
+static void AndroidCertSelect  (             CodeEditor::Options &op) {op.w_android_cert_file.activate();}
+static void   VSLoad           (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setVSPath         (path);}
+static void   NBLoad           (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setNBPath         (path);}
+static void   ASLoad           (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setASPath         (path);}
+static void   ANLoad           (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setANPath         (path);}
+static void  JDKLoad           (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setJDKPath        (path);}
+static void AndroidCertLoad    (C Str &path, CodeEditor::Options &op) {if(op.ce)op.ce->setAndroidCertPath(path);}
+static void  VSAutodetect      (             CodeEditor::Options &op) {op.vs_versions.activate();}
+static void  ASAutodetect      (             CodeEditor::Options &op) {Str p=GetRegStr(RKG_LOCAL_MACHINE, "Software/Android SDK Tools/Path"); if(p.is())ASLoad(p, op);}
+static void JDKAutodetect      (             CodeEditor::Options &op) {Str p=GetRegStr(RKG_LOCAL_MACHINE, "Software/JavaSoft/Java Development Kit/1.8/JavaHome"); if(p.is())JDKLoad(p, op);}
+static void  ANAutodetect      (             CodeEditor::Options &op)
 {
    Memc<Str> paths; // list of Android SDK paths
    Str p=GetPath(op.android_sdk()); if(p.is())paths.binaryInclude(p, ComparePathCI);
        p=GetPath(GetRegStr(RKG_LOCAL_MACHINE, "Software/Android SDK Tools/Path")); if(p.is())paths.binaryInclude(p, ComparePathCI);
    FREPA(paths)for(FileFind ff(paths[i]); ff(); )if(FExistSystem(ff.pathName()+("/" PLATFORM("ndk-build.cmd", "ndk-build")))){ANLoad(ff.pathName(), op); return;} // check if in same paths there is NDK found
 }
-static void CertCreate            (CodeEditor::Options &op) {if(op.ce)op.ce->android_certificate.activate();}
+static void AndroidCertCreate     (CodeEditor::Options &op) {if(op.ce)op.ce->android_certificate.activate();}
 static void FontSizeChanged       (CodeEditor::Options &op) {if(op.ce)op.ce->  fontChanged();}
 static void ThemeChanged          (CodeEditor::Options &op) {if(op.ce)op.ce-> themeChanged();}
 static void EditCustomTheme       (CodeEditor::Options &op) {op.color_theme_editor.visibleToggleActivate();}
@@ -485,10 +487,10 @@ static void FacebookAndroidKeyHash(CodeEditor::Options &op)
 #if WINDOWS
    if(!CE.jdk_path.is() || !FExistSystem(CE.jdk_path.tailSlash(true)+"bin/keytool.exe")){CE.options.activatePaths(); Gui.msgBox(S, "Path to Java Development Kit was not specified or is invalid."); return;}
 #endif
-   if(!CE.cert_file.is() || !FExistSystem(CE.cert_file)){CE.options.activateCert(); Gui.msgBox(S, "Path to Android Certificate File was not specified or is invalid."); return;}
-   if(!CE.cert_pass.is()                               ){CE.options.activateCert(); Gui.msgBox(S, "Android Certificate Password was not specified."); return;}
+   if(!CE.android_cert_file.is() || !FExistSystem(CE.android_cert_file)){CE.options.activateCert(); Gui.msgBox(S, "Path to Android Certificate File was not specified or is invalid."); return;}
+   if(!CE.android_cert_pass.is()                                       ){CE.options.activateCert(); Gui.msgBox(S, "Android Certificate Password was not specified."); return;}
    ConsoleProcess cp;
-   if(!cp.create(PLATFORM(CE.jdk_path.tailSlash(true)+"bin/keytool.exe", "keytool"), S+"-exportcert -keystore \""+CE.cert_file+"\" -storepass \""+CE.cert_pass+"\" -keypass \""+CE.cert_pass+"\" -alias \"key\"", true, true))
+   if(!cp.create(PLATFORM(CE.jdk_path.tailSlash(true)+"bin/keytool.exe", "keytool"), S+"-exportcert -keystore \""+CE.android_cert_file+"\" -storepass \""+CE.android_cert_pass+"\" -keypass \""+CE.android_cert_pass+"\" -alias \"key\"", true, true))
       {Gui.msgBox(S, "Failed to start the Java Development Kit Key Tool."); return;}
    if(!cp.wait(-1)){Gui.msgBox(S, "Java Development Kit Key Tool timed out."); return;}
    Str out=cp.get(); Memt<Byte> data; data.setNum(out.length()); REPAO(data)=out[i];
@@ -601,12 +603,19 @@ void CodeEditor::Options::create(CodeEditor &ce)
    {
       Tab &tab=tabs.tab(2);
       Flt y=Y-0.05f, w=1.0f, h=0.05f, s=0.06f;
-      tab+=  cert_file.create(Rect_C (clientWidth()*0.5f, y, w, h)).func(CertChangedF, T); y-=s;
-      tab+=t_cert_file.create(cert_file.rect().lu(), "Android Certificate File", &ts); y-=s;
-      tab+=b_cert_file.create(Rect_LU(cert_file.rect().ru(), h, h), "...").func(CertSelect, T);
-      tab+=cert_create.create(Rect_RD(cert_file.rect().ru(), 0.22f, h), "Create").func(CertCreate, T);
-      tab+=  cert_pass.create(Rect_C (clientWidth()*0.5f, y, w, h)).func(CertChangedP, T); y-=s;
-      tab+=t_cert_pass.create(cert_pass.rect().lu(), "Android Certificate Password", &ts); y-=s;
+
+      tab+=  android_cert_file  .create(Rect_C (clientWidth()*0.5f, y, w, h)).func(AndroidCertChangedF, T); y-=s;
+      tab+=t_android_cert_file  .create(android_cert_file.rect().lu(), "Android Certificate File", &ts); y-=s;
+      tab+=b_android_cert_file  .create(Rect_LU(android_cert_file.rect().ru(), h, h), "...").func(AndroidCertSelect, T);
+      tab+=  android_cert_create.create(Rect_RD(android_cert_file.rect().ru(), 0.22f, h), "Create").func(AndroidCertCreate, T);
+
+      tab+=  android_cert_pass  .create(Rect_C (clientWidth()*0.5f, y, w, h)).func(AndroidCertChangedP, T); y-=s;
+      tab+=t_android_cert_pass  .create(android_cert_pass.rect().lu(), "Android Certificate Password", &ts); y-=s;
+
+      tab+=  apple_team_id.create(Rect_C (clientWidth()*0.5f, y, w, h)).func(AppleTeamIDChanged, T); y-=s;
+      tab+=t_apple_team_id.create(apple_team_id.rect().lu(), "Apple Team ID", &ts); y-=s;
+      tab+=b_apple_team_id.create(Rect_LU(apple_team_id.rect().ru(), h*1.5f, h), "Get").func(AppleTeamIDGet, T);
+
       tab+=facebook_android_key_hash.create(Rect_C(clientWidth()*0.5f, y, 0.80f, 0.06f), "Get Android Key Hash for Facebook").func(FacebookAndroidKeyHash, T); y-=s;
       y-=s;
       tab+=authenticode.create(Rect_C(clientWidth()/2, y, 0.60f, 0.06f), "Use Microsoft Authenticode").desc("If automatically sign the application when publishing for Windows EXE platform.\nWindows signtool.exe must be installed together with your Microsoft Windows Authenticode Digital Signature in the Certificate Store.\nSign tool will be used with the /a option making it to choose the best certificate out of all available."); authenticode.mode=BUTTON_TOGGLE; authenticode.set(false); y-=s;
@@ -621,18 +630,18 @@ void CodeEditor::Options::create(CodeEditor &ce)
       tab+=  import_image_mip_maps.create(Rect_C(clientWidth()/2, y, w, h), "Create Image Mip Maps").desc("This option defines if newly imported images should have mip maps created."); import_image_mip_maps.mode=BUTTON_TOGGLE; import_image_mip_maps.set(true); y-=s;
    }
 
-   w_vs_path         .create().modeDirSelect().io(  VSLoad,   VSLoad, T);
-   w_netbeans_path   .create().modeDirSelect().io(  NBLoad,   NBLoad, T);
-   w_android_sdk     .create().modeDirSelect().io(  ASLoad,   ASLoad, T);
-   w_android_ndk     .create().modeDirSelect().io(  ANLoad,   ANLoad, T);
-   w_jdk_path        .create().modeDirSelect().io( JDKLoad,  JDKLoad, T);
-   w_cert_file       .create()                .io(CertLoad, CertLoad, T);
+   w_vs_path          .create().modeDirSelect().io(         VSLoad,          VSLoad, T);
+   w_netbeans_path    .create().modeDirSelect().io(         NBLoad,          NBLoad, T);
+   w_android_sdk      .create().modeDirSelect().io(         ASLoad,          ASLoad, T);
+   w_android_ndk      .create().modeDirSelect().io(         ANLoad,          ANLoad, T);
+   w_jdk_path         .create().modeDirSelect().io(        JDKLoad,         JDKLoad, T);
+   w_android_cert_file.create()                .io(AndroidCertLoad, AndroidCertLoad, T);
           vs_versions.create(ce);
    color_theme_editor.create(  );
           font_editor.create(  );
 }
 /******************************************************************************/
-static void CreateCert(CodeEditor::AndroidCertificate &ac)
+static void AndroidCreateCert(CodeEditor::AndroidCertificate &ac)
 {
 #if WINDOWS
    if(!CE.jdk_path.is() || !FExistSystem(CE.jdk_path.tailSlash(true)+"bin/keytool.exe")){CE.options.activatePaths(); Gui.msgBox(S, "Path to Java Development Kit was not specified or is invalid."); return;}
@@ -642,7 +651,7 @@ static void CreateCert(CodeEditor::AndroidCertificate &ac)
    if(ac.pass().length()<6        ){Gui.msgBox(S, "Password must be at least 6 characters long"  ); return;}
    ac.win_io.save();
 }
-static void CreateCert(C Str &name, CodeEditor::AndroidCertificate &ac)
+static void AndroidCreateCert(C Str &name, CodeEditor::AndroidCertificate &ac)
 {
    FDelFile(name);
    ConsoleProcess cp;
@@ -652,8 +661,8 @@ static void CreateCert(C Str &name, CodeEditor::AndroidCertificate &ac)
    {
       if(!FExistSystem(name)){Gui.msgBox(S, S+"Failed to create certificate:\n"+cp.get()); return;}
       Gui.msgBox("Success", "Certificate created successfully");
-      CE.setCertPath(   name  );
-      CE.setCertPass(ac.pass());
+      CE.setAndroidCertPath(   name  );
+      CE.setAndroidCertPass(ac.pass());
    }
    ac.hide();
 }
@@ -670,8 +679,8 @@ void CodeEditor::AndroidCertificate::create(CodeEditor &ce)
    T+= org_name.create(Rect_C(clientWidth()*0.5f, y, clientWidth()*0.9f, h )); y-=s;
    T+=tpass    .create(Rect_C(clientWidth()*0.5f, y, 0, 0), "Password"      ); y-=s*0.8f;
    T+= pass    .create(Rect_C(clientWidth()*0.5f, y, clientWidth()*0.9f, h )); y-=s*1.4f;
-   T+= save    .create(Rect_C(clientWidth()*0.5f, y,               0.3f, h ), "Create").func(CreateCert, T); y-=s;
-   win_io.create(S, S, SystemPath(SP_DESKTOP), CreateCert, CreateCert, T);
+   T+= save    .create(Rect_C(clientWidth()*0.5f, y,               0.3f, h ), "Create").func(AndroidCreateCert, T); y-=s;
+   win_io.create(S, S, SystemPath(SP_DESKTOP), AndroidCreateCert, AndroidCreateCert, T);
 }
 /******************************************************************************/
 void CodeEditor::hideAll()

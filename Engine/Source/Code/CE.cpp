@@ -1520,7 +1520,7 @@ void CodeEditor::update(Bool active)
                if(  ok) // build succeeded
                {
                   build_phase++;
-                  build_process.create(PLATFORM(jdk_path.tailSlash(true)+"bin/jarsigner.exe", "jarsigner"), S+"-verbose -sigalg MD5withRSA -digestalg SHA1 -storepass \""+cert_pass+"\" -keypass \""+cert_pass+"\" -keystore \""+cert_file+"\" \""+build_exe+"\" \"key\"");
+                  build_process.create(PLATFORM(jdk_path.tailSlash(true)+"bin/jarsigner.exe", "jarsigner"), S+"-verbose -sigalg MD5withRSA -digestalg SHA1 -storepass \""+android_cert_pass+"\" -keypass \""+android_cert_pass+"\" -keystore \""+android_cert_file+"\" \""+build_exe+"\" \"key\"");
                }
             }else
             if(build_phase==(build_debug ? -2 : 2)) // align with zipalign

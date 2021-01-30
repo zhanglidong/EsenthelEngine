@@ -73,9 +73,11 @@ void CodeEditor::saveSettings(TextNode &code)
    TextNode &certs=code.nodes.New().setName("Certificates");
       TextNode &win_cert=certs.nodes.New().setName("Windows");
          win_cert.nodes.New().set("Use", options.authenticode());
-      TextNode &and_cert=certs.nodes.New().setName("Android");
-         and_cert.nodes.New().set("File"    , cert_file);
-         and_cert.nodes.New().set("Password", cert_pass);
+      TextNode &android_cert=certs.nodes.New().setName("Android");
+         android_cert.nodes.New().set("File"    , android_cert_file);
+         android_cert.nodes.New().set("Password", android_cert_pass);
+      TextNode &apple_cert=certs.nodes.New().setName("Apple");
+         apple_cert.nodes.New().set("TeamID", apple_team_id);
 
    TextNode &theme=code.nodes.New().setName("Theme");
       TextNode &font=theme.nodes.New().setName("Font");
@@ -159,8 +161,12 @@ void CodeEditor::loadSettings(C TextNode &code)
       }
       if(C TextNode *android=certificates->findNode("Android"))
       {
-         if(C TextNode *p=android->findNode("File"    ))setCertPath(p->value);
-         if(C TextNode *p=android->findNode("Password"))setCertPass(p->value);
+         if(C TextNode *p=android->findNode("File"    ))setAndroidCertPath(p->value);
+         if(C TextNode *p=android->findNode("Password"))setAndroidCertPass(p->value);
+      }
+      if(C TextNode *apple=certificates->findNode("Apple"))
+      {
+         if(C TextNode *p=apple->findNode("TeamID"))setAppleTeamID(p->value);
       }
    }
    if(C TextNode *proj=code.findNode("View"))

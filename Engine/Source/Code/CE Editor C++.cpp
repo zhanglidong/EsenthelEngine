@@ -64,13 +64,14 @@ void CodeEditor::validateDevEnv()
    }
 }
 /******************************************************************************/
-void CodeEditor::setVSPath  (C Str &path) {      vs_path=path; options.      vs_path.set(path, QUIET); validateDevEnv();}
-void CodeEditor::setNBPath  (C Str &path) {netbeans_path=path; options.netbeans_path.set(path, QUIET);                  }
-void CodeEditor::setASPath  (C Str &path) {  android_sdk=path; options.  android_sdk.set(path, QUIET);                  }
-void CodeEditor::setANPath  (C Str &path) {  android_ndk=path; options.  android_ndk.set(path, QUIET);                  }
-void CodeEditor::setJDKPath (C Str &path) {     jdk_path=path; options.     jdk_path.set(path, QUIET);                  }
-void CodeEditor::setCertPath(C Str &path) {    cert_file=path; options.    cert_file.set(path, QUIET);                  }
-void CodeEditor::setCertPass(C Str &pass) {    cert_pass=pass; options.    cert_pass.set(pass, QUIET);                  }
+void CodeEditor::setVSPath         (C Str &path) {          vs_path=path; options.          vs_path.set(path, QUIET); validateDevEnv();}
+void CodeEditor::setNBPath         (C Str &path) {    netbeans_path=path; options.    netbeans_path.set(path, QUIET);                  }
+void CodeEditor::setASPath         (C Str &path) {      android_sdk=path; options.      android_sdk.set(path, QUIET);                  }
+void CodeEditor::setANPath         (C Str &path) {      android_ndk=path; options.      android_ndk.set(path, QUIET);                  }
+void CodeEditor::setJDKPath        (C Str &path) {         jdk_path=path; options.         jdk_path.set(path, QUIET);                  }
+void CodeEditor::setAndroidCertPath(C Str &path) {android_cert_file=path; options.android_cert_file.set(path, QUIET);                  }
+void CodeEditor::setAndroidCertPass(C Str &pass) {android_cert_pass=pass; options.android_cert_pass.set(pass, QUIET);                  }
+void CodeEditor::setAppleTeamID    (C Str &id  ) {    apple_team_id=id  ; options.    apple_team_id.set(id  , QUIET);                  }
 /******************************************************************************/
 static Bool ValidPackage(C Str &name)
 {
@@ -2919,8 +2920,8 @@ void CodeEditor::build(BUILD_MODE mode)
          if(  sign)
          {
             // certificate file, certificate password, JDK
-            if(!cert_file.is() || !FExistSystem(cert_file)                                  ){options.activateCert (); Error("Certificate file was not specified or was not found."); return;}
-            if( cert_pass.length()<6                                                        ){options.activateCert (); Error("Certificate password must be at least 6 characters long."); return;}
+            if(!android_cert_file.is() || !FExistSystem(android_cert_file)                  ){options.activateCert (); Error("Android Certificate File was not specified or was not found."); return;}
+            if( android_cert_pass.length()<6                                                ){options.activateCert (); Error("Android Certificate Password must be at least 6 characters long."); return;}
          #if WINDOWS
             if(!jdk_path.is() || !FExistSystem(jdk_path.tailSlash(true)+"bin/jarsigner.exe")){options.activatePaths(); Error("Path to Java Development Kit was not specified or is invalid."); return;}
          #endif
