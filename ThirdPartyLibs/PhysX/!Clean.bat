@@ -99,3 +99,7 @@ rmdir /s /q physx\compiler\vc16win64\sdk_source_bin\SceneQuery.dir
 rmdir /s /q physx\compiler\vc16win64\sdk_source_bin\SimulationController.dir
 del physx\compiler\vc16win64\CMakeCache.txt
 del physx\compiler\vc16win64\cmake_install.cmake
+
+rmdir /s /q physx\compiler\android-arm64-v8a-checked
+rmdir /s /q physx\compiler\android-arm64-v8a-debug
+rmdir /s /q physx\compiler\android-arm64-v8a-profile

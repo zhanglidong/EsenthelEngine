@@ -3567,7 +3567,7 @@ PX_FORCE_INLINE VecU32V V4U32SplatElement(VecU32V a)
 template <int index>
 PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)
 {
-#if PX_UWP
+#if 1//PX_UWP ESENTHEL CHANGED
 	if(index == 0)
 	{
 		return vdupq_lane_f32(vget_low_f32(a), 0);

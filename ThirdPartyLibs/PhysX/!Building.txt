@@ -14,16 +14,18 @@ and set:
 "PX_BUILDSNIPPETS" value="False"
 "PX_BUILDPUBLICSAMPLES" value="False"
 
-* Configure for Android
-Edit "physx\generate_projects.bat"
-specify AndroidNDK path, example:
-SET PM_ANDROIDNDK_PATH=C:\Progs\AndroidNDK
-
 * Fix for Clang (Mac/iOS/Linux)
 Edit "physx/source/compiler/cmake/linux/CMakeLists.txt"
 Edit "physx/source/compiler/cmake/mac/CMakeLists.txt"
 Edit "physx/source/compiler/cmake/ios/CMakeLists.txt"
 remove "-Werror" everywhere
+
+* Configure for Android
+Edit "physx\generate_projects.bat"
+specify AndroidNDK path, example:
+SET PM_ANDROIDNDK_PATH=C:\Progs\AndroidNDK
+!! PhysX for Android as of now requires NDK ver 11c or lower - https://github.com/NVIDIAGameWorks/PhysX/issues/386 !!
+SET PM_ANDROIDNDK_PATH=C:\Progs\android-ndk-r11c
 
 * Generate Projects:
 Run "physx\generate_projects.bat"
@@ -34,6 +36,29 @@ C/C++ \ General \ Debug Information Format = None
 right-click selected projects and select "Build Selection"
 Libs will get generated in "physx\bin\*\release"
 
-* After building on Linux, run "!Extract Linux OBJ Files.bat"
+* Compiling for Linux
+go to "physx\compiler\linux-release"
+run "make"
+After building, run "!Extract Linux OBJ Files.bat"
+
+* Compiling for Mac/iOS
+go to "physx\compiler\ios64"
+go to "physx\compiler\mac64"
+open "PhysXSDK.xcodeproj"
+at the top select target "ALL_BUILD"
+Menu \ Product \ Scheme \ Edit Scheme
+Select Profile on left, and on right "Build Configuration" as "release"
+Build for profiling
+
+* Compiling for Android on Windows
+Official Nvidia instructions need MinGW:
+Compiling needs MinGW, install "MinGW Installation Manager (mingw-get)" from - https://osdn.net/projects/mingw/releases/
+Run and select "Basic Setup \ mingw32-base-bin"
+Menu \ Installation \ Apply Changes
+Add "C:\MinGW\bin" to system environment path
+open "physx\compiler\android-arm64-v8a-release" in terminal/powershell
+run "mingw32-make"
+
+Alternatively can use Esenthel Generated solution inside "Android" folder
 
 * After all building, can run "!Clean.bat" to remove temporary files
