@@ -19,6 +19,19 @@
 		3790A50D22A3DE7F003F81E2 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3790A50C22A3DE7F003F81E2 /* Images.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		0B9F05BA16CD7377006A0106 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+/* ESENTHEL MAC DYLIBS */
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0B9F062A16CD7C6D006A0106 /* EsenthelEngine Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine Mac.a"; path = "EsenthelEngine Mac.a"; sourceTree = "<absolute>"; };
 		0B80B0011238567700C08944 /* EsenthelEngine iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "EsenthelEngine iOS.a"; path = "EsenthelEngine iOS.a"; sourceTree = "<absolute>"; };
@@ -61,19 +74,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		0B9F05BA16CD7377006A0106 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 6;
-			files = (
-/* ESENTHEL MAC DYLIBS */
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXGroup section */
 		0B9F063316CD7D6D006A0106 /* H */ = {
@@ -181,8 +181,12 @@
 			attributes = {
 				LastUpgradeCheck = 0410;
 				TargetAttributes = {
+					0B9F05BE16CD7377006A0106 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
 					0BDA9C7E121EE06400ED5E97 = {
-						DevelopmentTeam = 2KA8LL48VG;
+						DevelopmentTeam = "";
 						SystemCapabilities = {
 							com.apple.InAppPurchase = {
 								enabled = 1;
@@ -262,8 +266,11 @@
 				ARCHS = x86_64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				CONFIGURATION_BUILD_DIR = .;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Assets/Mac.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -285,6 +292,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
@@ -294,8 +302,11 @@
 				ARCHS = x86_64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				CONFIGURATION_BUILD_DIR = .;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Assets/Mac.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -317,6 +328,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};

@@ -1877,6 +1877,14 @@ Bool CodeEditor::generateXcodeProj()
    str=Replace(str, "PRODUCT_NAME = \"\";"                     , S+"PRODUCT_NAME = \""             +CString(build_project_name)+"\";");
    str=Replace(str, "path = Mac.app;"                          , S+"path = \""                     +CString(build_project_name)+".app\";");
    str=Replace(str, "path = iOS.app;"                          , S+"path = \""                     +CString(build_project_name)+".app\";");
+   if(apple_team_id.is())
+   {
+      str=Replace(str, "DevelopmentTeam = \"\";", S+"DevelopmentTeam = \""+CString(apple_team_id)+"\";", true, WHOLE_WORD_STRICT);
+      str=Replace(str, "DEVELOPMENT_TEAM = \"\";", S+"DEVELOPMENT_TEAM = \""+CString(apple_team_id)+"\";", true, WHOLE_WORD_STRICT);
+      str=Replace(str, "ProvisioningStyle = Manual;", "ProvisioningStyle = Automatic;", true, WHOLE_WORD_STRICT);
+      str=Replace(str, "CODE_SIGN_IDENTITY = \"-\";", "CODE_SIGN_IDENTITY = \"Apple Development\";", true, WHOLE_WORD_STRICT);
+      str=Replace(str, "CODE_SIGN_STYLE = Manual;", "CODE_SIGN_STYLE = Automatic;", true, WHOLE_WORD_STRICT);
+   }
 
    {
       Str lib_dirs;
