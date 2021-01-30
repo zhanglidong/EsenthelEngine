@@ -12,7 +12,7 @@ EXTERNAL_LIBS
 include $(CLEAR_VARS)
 LOCAL_MODULE           := Project
 LOCAL_SRC_FILES        := Main.cpp
-LOCAL_LDLIBS           := -llog -landroid -lEGL -lGLESv3 -lz -lOpenSLES -Wl,--no-wchar-size-warning
+LOCAL_LDLIBS           := -llog -landroid -lEGL -lGLESv3 -lz -lOpenSLES
 LOCAL_STATIC_LIBRARIES := EsenthelEngine android_native_app_glue cpufeatures EXTERNAL_STATIC_LIB_NAMES
 LOCAL_SHARED_LIBRARIES := EXTERNAL_SHARED_LIB_NAMES
 LOCAL_CFLAGS           := -I.. INCLUDE_DIRS -fshort-wchar -ffast-math -fomit-frame-pointer -fpermissive
