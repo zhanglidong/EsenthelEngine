@@ -2231,7 +2231,7 @@ Bool CodeEditor::generateAndroidProj()
          Str p;
        //#AndroidArchitecture
        //p=android_path+"EsenthelEngine-armeabi.a"    ; CopyFile(p, lib_path+SkipStartPath(p, android_path)); // copy from "Bin" to 'projects_build_path'
-         p=android_path+"EsenthelEngine-armeabi-v7a.a"; CopyFile(p, lib_path+SkipStartPath(p, android_path)); // copy from "Bin" to 'projects_build_path'
+       //p=android_path+"EsenthelEngine-armeabi-v7a.a"; CopyFile(p, lib_path+SkipStartPath(p, android_path)); // copy from "Bin" to 'projects_build_path'
          p=android_path+"EsenthelEngine-arm64-v8a.a"  ; CopyFile(p, lib_path+SkipStartPath(p, android_path)); // copy from "Bin" to 'projects_build_path'
        //p=android_path+"EsenthelEngine-x86.a"        ; CopyFile(p, lib_path+SkipStartPath(p, android_path)); // copy from "Bin" to 'projects_build_path'
          lib_path=GetRelativePath(build_path+"Android/jni", lib_path);
@@ -2288,7 +2288,7 @@ Bool CodeEditor::generateAndroidProj()
       {
          src.fullLine(s);
          s=Replace(s, "RELEASE_CONDITION", build_debug ? "ifeq (false, true)" : "ifeq (true, true)", true, WHOLE_WORD_STRICT);
-         s=Replace(s, "ABI", "armeabi-v7a arm64-v8a", true, WHOLE_WORD_STRICT); // #AndroidArchitecture arm64-v8a x86
+         s=Replace(s, "ABI", "arm64-v8a", true, WHOLE_WORD_STRICT); // #AndroidArchitecture "armeabi-v7a arm64-v8a x86"
          ft.putLine(s);
       }
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/jni/Application.mk"))return false;

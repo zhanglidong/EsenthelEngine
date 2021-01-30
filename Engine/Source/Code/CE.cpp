@@ -1505,7 +1505,7 @@ void CodeEditor::update(Bool active)
             {
                // can't use 'exit_code' because it's always zero, #AndroidArchitecture
              //if(!FExistSystem(build_path+"Android/libs/armeabi/libProject.so"    ))BuildError("Failed to build armeabi shared library"    , at_end);else
-               if(!FExistSystem(build_path+"Android/libs/armeabi-v7a/libProject.so"))BuildError("Failed to build armeabi-v7a shared library", at_end);else
+             //if(!FExistSystem(build_path+"Android/libs/armeabi-v7a/libProject.so"))BuildError("Failed to build armeabi-v7a shared library", at_end);else
                if(!FExistSystem(build_path+"Android/libs/arm64-v8a/libProject.so"  ))BuildError("Failed to build arm64-v8a shared library"  , at_end);else
              //if(!FExistSystem(build_path+"Android/libs/x86/libProject.so"        ))BuildError("Failed to build x86 shared library"        , at_end);else
                {

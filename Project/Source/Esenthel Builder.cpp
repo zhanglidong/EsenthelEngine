@@ -572,9 +572,15 @@ void MakeAndroidLibs(C Str &abi)
 void MakeAndroidLibs()
 {
    // #AndroidArchitecture
-   MakeAndroidLibs("armeabi-v7a");
    MakeAndroidLibs("arm64-v8a");
-#if 0
+
+#if 0 // Arm-32
+   MakeAndroidLibs("armeabi-v7a");
+#else
+   FDelFile(EngineAndroidLibName("armeabi-v7a"));
+#endif
+
+#if 0 // x86
    MakeAndroidLibs("x86");
 #else
    FDelFile(EngineAndroidLibName("x86"));
