@@ -2908,6 +2908,7 @@ void CodeEditor::build(BUILD_MODE mode)
       }else
       if(build_exe_type==EXE_MAC || build_exe_type==EXE_IOS)
       {
+         if(build_exe_type==EXE_IOS)if(!apple_team_id.is()){options.activateCert(); Error("Apple Team ID was not specified."); return;}
          build_phases=1;
          build_steps =3; FREPA(build_files)if(build_files[i].mode==BuildFile::SOURCE)build_steps++; // stdafx.cpp, linking, wait for end, *.cpp
 
