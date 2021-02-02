@@ -1,7 +1,6 @@
 /******************************************************************************/
 #include "stdafx.h"
 /*#if ANDROID
-   #include <thread>
    #include <cpu-features.h>
 #endif*/
 namespace EE{
@@ -15,8 +14,8 @@ void CPU::set()
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 #endif
 }
-#if MAC
-void __cpuid(int regs[4], int cpuid_leaf)
+#if MAC && !ARM
+static void __cpuid(int regs[4], int cpuid_leaf)
 {
 	int eax, ebx, ecx, edx;
 	asm(
@@ -45,7 +44,7 @@ void __cpuid(int regs[4], int cpuid_leaf)
    regs[2]=ecx;
    regs[3]=edx;
 }
-#elif LINUX
+#elif LINUX && !ARM
    #undef   __cpuid
 static void __cpuid(int regs[4], int cpuid_leaf)
 {
@@ -100,7 +99,7 @@ CPU::CPU()
    #endif
 #endif
 
-#if (WINDOWS && !ARM) || MAC || LINUX
+#if (WINDOWS || MAC || LINUX) && !ARM
    Int CPUInfo[4];
 
    // constants taken from cpuid.h
@@ -121,8 +120,8 @@ CPU::CPU()
    if(CPUInfo[3]&(1<<31))_flag|=CPU_3DNOW;
    
    char string[64]; Zero(string);
-   __cpuid(CPUInfo, 0x80000000); UInt ids=CPUInfo[0];
-   for(UInt i=0x80000002; i<=Min(ids, 0x80000004); i++)
+   __cpuid(CPUInfo, 0x80000000); UInt ids=Min(CPUInfo[0], 0x80000004);
+   for(UInt i=0x80000002; i<=ids; i++)
    {
       __cpuid(CPUInfo, i);
       if(i==0x80000002)CopyFast(string   , CPUInfo, SIZE(CPUInfo));else
