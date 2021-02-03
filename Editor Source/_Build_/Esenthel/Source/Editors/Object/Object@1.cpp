@@ -3198,7 +3198,10 @@ cur_skel_to_saved_skel.removeBone(bone->name);
                bone->offset=other->offset;
                bone->shape =other->shape ;
                bone->mirrorX();
+               mesh_skel->setBoneTypes(); // bone orientation may affect bone type indexes
                setChangedSkel(true);
+               mesh.skeleton(mesh_skel, true).skeleton(null);
+               setChangedMesh(true, false);
                break;
             }
          }
