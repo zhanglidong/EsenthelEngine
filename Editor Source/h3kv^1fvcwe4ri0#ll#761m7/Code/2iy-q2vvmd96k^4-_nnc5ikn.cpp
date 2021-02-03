@@ -262,12 +262,18 @@ class AnimEditor : Viewport4Region
                   }
 
                   D.clip();
+                  bool   editing=false; if(Ms.b(1))if(Edit.Viewport4.View *view=AnimEdit.v4.getView(Gui.ms()))editing=true;
                   Vec2         p=AnimEdit.screenPos()+Vec2(0.01, -0.25);
-                  int       bone=AnimEdit.lit_bone;
+                  int       bone=(editing ? AnimEdit.sel_bone : AnimEdit.lit_bone);
                   Skeleton *skel=AnimEdit.skel;
                   flt frame, frames; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame) && AnimEdit.timeToFrame(anim.length(), frames))frame_t=S+", "+Round(frame)+'/'+Round(frames)+"f";
                                                        D.text(ObjEdit.ts, p, S+"Time: "+AnimEdit.animTime()+'/'+anim.length()+"s ("+Round(AnimEdit.timeToFrac(AnimEdit.animTime())*100)+'%'+frame_t+')'); p.y-=ObjEdit.ts.size.y;
-                  if(skel && InRange(bone, skel.bones))D.text(ObjEdit.ts, p, S+"Bone \""+skel.bones[bone].name+"\", Parent: "+(InRange(skel.bones[bone].parent, skel.bones) ? S+'"'+skel.bones[skel.bones[bone].parent].name+'"' : S+"none"));
+                  if(skel && InRange(bone, skel.bones))
+                  {
+                     D.text(ObjEdit.ts, p, S+"Bone \""+skel.bones[bone].name+"\", Parent: "+(InRange(skel.bones[bone].parent, skel.bones) ? S+'"'+skel.bones[skel.bones[bone].parent].name+'"' : S+"none")); p.y-=ObjEdit.ts.size.y;
+                     if(editing && AnimEdit.op()==OP_POS && InRange(bone, AnimEdit.anim_skel.bones))
+                        D.text(ObjEdit.ts, p, S+"Offset: "+AnimEdit.anim_skel.bones[bone].pos);
+                  }
                   if(Gui.ms()==this)
                   {
                      flt frac=Frac(LerpR(r.min.x, r.max.x, Ms.pos().x)), time=frac*anim.length();
@@ -1513,6 +1519,7 @@ class AnimEditor : Viewport4Region
 
                      case OP_POS:
                      {
+                        Ms.freeze();
                         undos.set("pos");
                         AnimKeys.Pos *pos=((all && keys.poss.elms()) ? null : &GetPos(*keys, animTime(), asbon.pos)); // if there are no keys then create
                         mul*=CamMoveScale(v4.perspective())*MoveScale(*view);
@@ -1542,6 +1549,7 @@ class AnimEditor : Viewport4Region
 
                      case OP_SCALE:
                      {
+                        Ms.freeze();
                         undos.set("scale");
                         AnimKeys.Scale *scale=((all && keys.scales.elms()) ? null : &GetScale(*keys, animTime(), asbon.scale)); // if there are no keys then create
                         Vec d=0;
