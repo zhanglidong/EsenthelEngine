@@ -933,7 +933,7 @@ AnimEditor AnimEdit;
       if(ElmAnim *d=data())if(d->fps>0)
       {
          frame=time*d->fps;
-         FileParams fps=d->src_file; if(C TextParam *p=fps.findParam("speed"))frame*=p->asFlt();
+         FileParams fps=d->src_file; if(C TextParam *p=fps.findParam("speed"))frame*=Abs(p->asFlt());
          return true;
       }
       frame=0; return false;
