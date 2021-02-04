@@ -3196,6 +3196,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
                      case SLOT_ROT:
                      {
+                        Ms.freeze();
                         flt mul=(Kb.shift() ? 0.1 : 1.0)*0.5;
                         switch(slot_axis)
                         {
@@ -3209,6 +3210,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
                      case SLOT_SCALE:
                      {
+                        Ms.freeze();
                         REPA(slot_meshes)if(slot_meshes[i].name==mesh_skel.slots[sel_slot].name)slot_meshes[i].scale*=ScaleFactor(MT.ad(i).sum());
                       //setChangedSkel(); this doesn't change the skeleton but items put in slots
                      }break;
