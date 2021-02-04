@@ -334,8 +334,13 @@ Skeleton& Skeleton::transform(C Matrix &matrix)
 }
 Skeleton& Skeleton::animate(C AnimatedSkeleton &skel)
 {
-   REPAO(bones)*=skel.bones[i].matrix();
-   REPAO(slots) =skel.slots[i];
+   if(bones.elms()==skel.bones.elms())REPAO(bones)*=skel.bones[i].matrix();
+   if(slots.elms()==skel.slots.elms())REPA (slots)
+   {
+      SkelSlot &slot=slots[i];
+      slot=skel.slots[i];
+      slot.fix(); // fix in case 'skel.slot' was scaled or not orthogonal
+   }
    return T;
 }
 Skeleton& Skeleton::mirrorX()
