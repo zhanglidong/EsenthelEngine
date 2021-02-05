@@ -16,8 +16,8 @@ To continue its development, Esenthel needs your support:
 COPYRIGHT
 Esenthel Engine created by Grzegorz Slazinski, all rights reserved.
 You can use it for free to create games and applications.
-This License is non-exclusive, non-transferable, worldwide and royalty-free - you don't have to share the
-income that you make from your games/apps made with Esenthel Engine.
+This License is non-exclusive, non-transferable, worldwide and royalty-free - you don't have to
+share the income that you make from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
 You can make changes to Esenthel Engine source code.
@@ -28,32 +28,38 @@ You don't have to show Esenthel Logo or mention the Engine anywhere in your game
 but it would be cool if you could.
 
 LIMITATIONS
-Esenthel Engine may NOT be used for - the purpose of/promoting/advertising/selling/assisting in/research/
-development/production/improvement of: terrorism, illegal drugs, smoking, stealing, piracy, gambling,
-extortion, fraud, spam, bullying, harming life (people and animals), polluting environment.
-
-You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
 You may NOT remove or change any copyright messages or this License text from the source code.
-You may NOT copy the source code, change its name, and sell it as your own.
 
-Esenthel Engine authors are allowed to publicly share that you are using Esenthel Engine,
+GAME ENGINES
+You may NOT integrate the source code into other game engines, that are not based on Esenthel Engine. 
+You can create your own game engines based on Esenthel, however they must clearly state that they're
+"based on Esenthel Engine" with the name linking to:
+http://esenthel.com or https://github.com/Esenthel/EsenthelEngine and 30% of income generated from
+your engine and engine related services (including but not limited to: donations, license sales,
+adding features, providing support) must be shared with Esenthel Engine creator.
+
+SHARING
+Esenthel Engine creator is allowed to publicly share that you are using Esenthel Engine,
 include your organization's logo in the information, and share your application's screenshots and videos
 (including trailers, teasers, cinematics and gameplay).
 
+CONTRIBUTING
+By submitting any source code patches to Esenthel creator, you agree that they can be integrated
+free of any charge into Esenthel Engine, and as part of the Engine be covered by this License.
+
 TERMINATION
-If you violate any terms of this agreement, or you are rude to/insult/harass Esenthel Engine authors or
-their family, or you spread false information about the Engine or its authors, or you engage in any patent
-litigation against Engine authors, then this License and access to Engine files will be terminated.
+If you violate any terms of this agreement, or you engage in any patent litigation against Engine creator,
+then this License and access to Engine files will be terminated.
 
 NO WARRANTY
 This License does not include support or warranty of any kind - This software is provided 'as-is',
-without any express or implied warranty. In no event will the authors be held liable
-for any damages arising from the use of this software.
+without any express or implied warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
 
 THIRD PARTY LIBRARIES
-Esenthel Engine uses many third-party libraries located in "ThirdPartyLibs" folder, majority are completely
-free to use, except the following which have some requirements:
+Esenthel Engine uses many third-party libraries located in "ThirdPartyLibs" folder, they're covered by
+their own licenses, majority are completely free to use, except the following which have some requirements:
 Fraunhofer FDK AAC Sound Codec - please read its license carefully, it uses patented technology,
 do not use the AAC sound codec unless you have a patent license.
 Thank you to all of the third-party library developers!
