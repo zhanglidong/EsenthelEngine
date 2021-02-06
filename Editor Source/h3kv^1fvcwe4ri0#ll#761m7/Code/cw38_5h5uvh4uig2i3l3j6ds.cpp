@@ -863,7 +863,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       editor.mesh_parts.modeChanged();
       if(editor.mode()!=LOD )NewLod.hide();
       if(editor.mode()!=MESH)MeshAO.hide();
-      if((editor.mode()==TRANSFORM || editor.mode()==SLOTS /*|| editor.mode()==BONES*/ || editor.mode()==RAGDOLL) && editor.mesh_elm)
+      if((editor.mode()==TRANSFORM /*|| editor.mode()==SLOTS /*|| editor.mode()==BONES*/ || editor.mode()==RAGDOLL) && editor.mesh_elm)
          if(ElmMesh *mesh_data=editor.mesh_elm.meshData())
             if(mesh_data.body_id.valid())
       {
