@@ -899,6 +899,7 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::SkelBonePosPaste(AnimEditor &editor) {editor.skelBonePosPaste(Vec(1, 1, 1));}
    void AnimEditor::SkelBonePosPasteX(AnimEditor &editor) {editor.skelBonePosPaste(Vec(1, 0, 0));}
+   void AnimEditor::SkelBonePosPasteY(AnimEditor &editor) {editor.skelBonePosPaste(Vec(0, 1, 0));}
    void AnimEditor::SkelBonePosPasteZ(AnimEditor &editor) {editor.skelBonePosPaste(Vec(0, 0, 1));}
           void AnimEditor::skelBonePosPaste(C Vec &mask)
    {
@@ -1055,6 +1056,7 @@ AnimEditor AnimEdit;
       n.New().create("Paste Bone Position"         , SkelBonePosPaste , T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD));
       n.New().create("Paste Bone Position Z"       , SkelBonePosPasteZ, T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD|KBSC_SHIFT));
       n.New().create("Paste Bone Position X"       , SkelBonePosPasteX, T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD|KBSC_WIN_CTRL));
+      n.New().create("Paste Bone Position Y"       , SkelBonePosPasteY, T).kbsc(KbSc(KB_V, KBSC_CTRL_CMD|KBSC_ALT));
       n++;
       n.New().create("Set Root From Body Z"      , RootFromBodyZ , T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD));
       n.New().create("Set Root From Body X"      , RootFromBodyX , T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_SHIFT));

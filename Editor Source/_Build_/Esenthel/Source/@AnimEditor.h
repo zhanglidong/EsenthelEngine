@@ -275,6 +275,7 @@ public:
           void skelBonePosCopy (bool relative);
    static void SkelBonePosPaste (AnimEditor &editor);
    static void SkelBonePosPasteX(AnimEditor &editor);
+   static void SkelBonePosPasteY(AnimEditor &editor);
    static void SkelBonePosPasteZ(AnimEditor &editor);
           void skelBonePosPaste (C Vec &mask);
 
