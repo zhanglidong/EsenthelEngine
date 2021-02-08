@@ -205,20 +205,20 @@ AnimatedSkeleton& AnimatedSkeleton::clear(Flt blend)
    }
    return T;
 }
-struct AnimParamsEx : AnimParams
+/******************************************************************************/
+struct AnimParamsBlend : AnimParams
 {
- //Bool replace;
-   Flt  blend  ;
- //Flt  blend1 ;
+   Flt blend;
 
-   AnimParamsEx(C Animation &animation, Flt time, Flt blend/*, Bool replace*/) : AnimParams(animation, time)
-   {
-    //T.replace=      replace;
-      T.blend  =      blend ; // allow ranges >1 for example for big relative rotations
-    //T.blend1 =Sat(1-blend); // this needs to be clamped to 0..1 range because old keyframes are multiplied by this
-   }
+   AnimParamsBlend(C Animation &animation, Flt time, Flt blend) : AnimParams(animation, time), blend(blend) {}
 };
-static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsEx &params)
+struct AnimParamsReplace : AnimParams
+{
+   Flt blend, blend1;
+
+   AnimParamsReplace(C Animation &animation, Flt time, Flt blend) : AnimParams(animation, time), blend(blend), blend1(Sat(1-blend)) {} // 'blend1' needs to be clamped to 0..1 range because old keyframes are multiplied by this
+};
+static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParams &params)
 {
    if(!asbon._disabled)
    {
@@ -226,24 +226,21 @@ static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsEx &param
       if(keys.orns.elms())
       {
          Orient &bone_orn=asbon.orn, orn; keys.orn(orn, params);
-       //if(params.replace)bone_orn*=params.blend1;
-                           bone_orn+=params.blend*orn;
+         bone_orn+=orn;
       }
 
       // position
       if(keys.poss.elms())
       {
          Vec &bone_pos=asbon.pos, pos; keys.pos(pos, params);
-       //if(params.replace)bone_pos*=params.blend1;
-                           bone_pos+=params.blend*pos;
+         bone_pos+=pos;
       }
 
       // scale
       if(keys.scales.elms())
       {
          Vec &bone_scale=asbon.scale, scale; keys.scale(scale, params);
-       //if(params.replace)bone_scale*=params.blend1;
-                           bone_scale+=params.blend*scale;
+         bone_scale+=scale;
       }
 
    #if HAS_ANIM_ROT
@@ -251,8 +248,7 @@ static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsEx &param
       if(keys.rots.elms())
       {
          AxisRoll &bone_rot=asbon.rot, rot; keys.rot(rot, params);
-       //if(params.replace)bone_rot.v4()*=params.blend1;
-                           bone_rot.v4()+=params.blend*rot.v4();
+         bone_rot.v4()+=rot.v4();
       }
    #endif
 
@@ -261,8 +257,104 @@ static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsEx &param
       if(keys.colors.elms())
       {
          Vec4 &bone_color=asbon.color, color; keys.color(color, params);
-       /*if(params.replace)*/bone_color*=params.blend1; // colors are always replaced
-                             bone_color+=params.blend*color;
+         bone_color=color; // colors are always replaced
+      }
+   #endif
+   }
+}
+static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsBlend &params)
+{
+   if(!asbon._disabled)
+   {
+      // orientation
+      if(keys.orns.elms())
+      {
+         Orient &bone_orn=asbon.orn, orn; keys.orn(orn, params);
+         bone_orn+=params.blend*orn;
+      }
+
+      // position
+      if(keys.poss.elms())
+      {
+         Vec &bone_pos=asbon.pos, pos; keys.pos(pos, params);
+         bone_pos+=params.blend*pos;
+      }
+
+      // scale
+      if(keys.scales.elms())
+      {
+         Vec &bone_scale=asbon.scale, scale; keys.scale(scale, params);
+         bone_scale+=params.blend*scale;
+      }
+
+   #if HAS_ANIM_ROT
+      // rotation
+      if(keys.rots.elms())
+      {
+         AxisRoll &bone_rot=asbon.rot, rot; keys.rot(rot, params);
+         bone_rot.v4()+=params.blend*rot.v4();
+      }
+   #endif
+
+   #if HAS_ANIM_COLOR
+      // color
+      if(keys.colors.elms())
+      {
+         Vec4 &bone_color=asbon.color, color; keys.color(color, params);
+         bone_color*=1-params.blend      ; // colors are always replaced
+         bone_color+=  params.blend*color; // colors are always replaced
+      }
+   #endif
+   }
+}
+static void Animate(AnimSkelBone &asbon, C AnimKeys &keys, C AnimParamsReplace &params)
+{
+   if(!asbon._disabled)
+   {
+      // orientation
+      if(keys.orns.elms())
+      {
+         asbon.keep01(params.blend1);
+
+         Orient &bone_orn=asbon.orn, orn; keys.orn(orn, params);
+       //bone_orn*=params.blend1; done in 'keep01' above
+         bone_orn+=params.blend*orn;
+      }
+
+      // position
+      if(keys.poss.elms())
+      {
+         Vec &bone_pos=asbon.pos, pos; keys.pos(pos, params);
+       //bone_pos*=params.blend1; done in 'keep01' above
+         bone_pos+=params.blend*pos;
+      }
+
+      // scale
+      if(keys.scales.elms())
+      {
+         Vec &bone_scale=asbon.scale, scale; keys.scale(scale, params);
+       //bone_scale*=params.blend1; done in 'keep01' above
+         bone_scale+=params.blend*scale;
+      }
+
+   #if HAS_ANIM_ROT
+      // rotation
+      if(keys.rots.elms())
+      {
+         AxisRoll &bone_rot=asbon.rot, rot; keys.rot(rot, params);
+       //bone_rot.v4()*=params.blend1; done in 'keep01' above
+         bone_rot.v4()+=params.blend*rot.v4();
+      }
+   #endif
+
+   #if HAS_ANIM_COLOR
+      // color
+      if(keys.colors.elms())
+      {
+         Vec4 &bone_color=asbon.color, color; keys.color(color, params);
+         this is wrong because 'keep01' already replaced towards Vec4(1)
+         bone_color*=params.blend1;
+         bone_color+=params.blend*color;
       }
    #endif
    }
@@ -272,7 +364,7 @@ static void AnimRoot(AnimatedSkeleton &anim_skel, C Animation *animation, Flt ti
  //if(blend>EPS_ANIM_BLEND) // this is already checked in methods calling this function
       if(animation)
    {
-      AnimParamsEx params(*animation, time, blend);
+      AnimParamsBlend params(*animation, time, blend);
       Animate(anim_skel.root, animation->keys, params); // animate root
    }
 }
@@ -282,13 +374,26 @@ AnimatedSkeleton& AnimatedSkeleton::animate(C SkelAnim &skel_anim, Flt time, Flt
    if(blend>EPS_ANIM_BLEND)
       if(C Animation *animation=skel_anim.animation())
    {
-      AnimParamsEx params(*animation, time, blend);
-
-    //Animate(root, animation->keys, params); // animate root - this is no longer done here, instead, root animations need to be processed manually
-      REPA(animation->bones)                  // animate bones
+      if(blend==1)
       {
-         Byte sbon=skel_anim.abonToSbon(i);
-         if(InRange(sbon, bones))Animate(bones[sbon], animation->bones[i], params);
+         AnimParams params(*animation, time);
+
+       //Animate(root, animation->keys, params); // animate root - this is no longer done here, instead, root animations need to be processed manually
+         REPA(animation->bones)                  // animate bones
+         {
+            Byte sbon=skel_anim.abonToSbon(i);
+            if(InRange(sbon, bones))Animate(bones[sbon], animation->bones[i], params);
+         }
+      }else
+      {
+         AnimParamsBlend params(*animation, time, blend);
+
+       //Animate(root, animation->keys, params); // animate root - this is no longer done here, instead, root animations need to be processed manually
+         REPA(animation->bones)                  // animate bones
+         {
+            Byte sbon=skel_anim.abonToSbon(i);
+            if(InRange(sbon, bones))Animate(bones[sbon], animation->bones[i], params);
+         }
       }
    }
    return T;
@@ -297,7 +402,7 @@ AnimatedSkeleton& AnimatedSkeleton::animate(C SkelAnim &skel_anim, Flt time, Flt
 AnimatedSkeleton& AnimatedSkeleton::animateRoot(C Animation *anim, Flt time) {if(anim)animateRoot(*anim, time); return T;}
 AnimatedSkeleton& AnimatedSkeleton::animateRoot(C Animation &anim, Flt time)
 {
-   AnimParamsEx params(anim, time, 1);
+   AnimParams params(anim, time);
    Animate(root, anim.keys, params); // animate root
    return T;
 }
@@ -305,7 +410,7 @@ AnimatedSkeleton& AnimatedSkeleton::animateEx(C SkelAnim &skel_anim, Flt time, B
 {
    if(C Animation *animation=skel_anim.animation())
    {
-      AnimParamsEx params(*animation, time, 1); if(exact_time)params.time=time; // re-apply time to remove possible fraction
+      AnimParams params(*animation, time); if(exact_time)params.time=time; // re-apply time to remove possible fraction
 
       if(animate_root )Animate(root, animation->keys, params); // animate root
       if(animate_bones)REPA(animation->bones)                  // animate bones
@@ -316,10 +421,29 @@ AnimatedSkeleton& AnimatedSkeleton::animateEx(C SkelAnim &skel_anim, Flt time, B
    }
    return T;
 }
-AnimatedSkeleton& AnimatedSkeleton::animate(C SkelAnim *skel_anim, Flt time, Flt blend) {if(skel_anim                                )              T.animate(*skel_anim             ,        time,            blend  ); return T;}
-AnimatedSkeleton& AnimatedSkeleton::animate(C Motion   &motion                        ) {if(motion   .is   ()                        )              T.animate(*motion.skel_anim      , motion.time, motion.animBlend()); return T;}
-AnimatedSkeleton& AnimatedSkeleton::animate(C Str      &anim_name, Flt time, Flt blend) {if(anim_name.is   () && blend>EPS_ANIM_BLEND)if(skeleton())T.animate(*getSkelAnim(anim_name),        time,            blend  );else AnimRoot(T, Animations(anim_name), time, blend); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
-AnimatedSkeleton& AnimatedSkeleton::animate(C UID      &anim_id  , Flt time, Flt blend) {if(anim_id  .valid() && blend>EPS_ANIM_BLEND)if(skeleton())T.animate(*getSkelAnim(anim_id  ),        time,            blend  );else AnimRoot(T, Animations(anim_id  ), time, blend); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
+AnimatedSkeleton& AnimatedSkeleton::animate(C SkelAnim *skel_anim, Flt time, Flt blend) {if(skel_anim                                )              animate(*skel_anim             ,        time,            blend  ); return T;}
+AnimatedSkeleton& AnimatedSkeleton::animate(C Motion   &motion                        ) {if(motion   .is   ()                        )              animate(*motion.skel_anim      , motion.time, motion.animBlend()); return T;}
+AnimatedSkeleton& AnimatedSkeleton::animate(C Str      &anim_name, Flt time, Flt blend) {if(anim_name.is   () && blend>EPS_ANIM_BLEND)if(skeleton())animate(*getSkelAnim(anim_name),        time,            blend  );else AnimRoot(T, Animations(anim_name), time, blend); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
+AnimatedSkeleton& AnimatedSkeleton::animate(C UID      &anim_id  , Flt time, Flt blend) {if(anim_id  .valid() && blend>EPS_ANIM_BLEND)if(skeleton())animate(*getSkelAnim(anim_id  ),        time,            blend  );else AnimRoot(T, Animations(anim_id  ), time, blend); return T;} // in these methods check 'blend' first to avoid unnecessary animation loads
+/******************************************************************************/
+AnimatedSkeleton& AnimatedSkeleton::animateReplace(C SkelAnim &skel_anim, Flt time, Flt blend)
+{
+   if(blend>EPS_ANIM_BLEND)
+      if(C Animation *animation=skel_anim.animation())
+   {
+      AnimParamsReplace params(*animation, time, blend);
+
+    //Animate(root, animation->keys, params); // animate root - this is no longer done here, instead, root animations need to be processed manually
+      REPA(animation->bones)                  // animate bones
+      {
+         Byte sbon=skel_anim.abonToSbon(i);
+         if(InRange(sbon, bones))Animate(bones[sbon], animation->bones[i], params);
+      }
+   }
+   return T;
+}
+AnimatedSkeleton& AnimatedSkeleton::animateReplace(C SkelAnim *skel_anim, Flt time, Flt blend) {if(skel_anim     )animateReplace(*skel_anim       ,        time,            blend  ); return T;}
+AnimatedSkeleton& AnimatedSkeleton::animateReplace(C Motion   &motion                        ) {if(motion   .is())animateReplace(*motion.skel_anim, motion.time, motion.animBlend()); return T;}
 /******************************************************************************/
 static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C MatrixM &body_matrix)
 {
