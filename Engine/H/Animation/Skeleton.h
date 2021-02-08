@@ -282,6 +282,7 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
 #if EE_PRIVATE
    void operator+=(C VecD &d) {_matrix+=d; _matrix_prev+=d; /*_world_pos+=d;*/}
    void zero() {Zero(T);}
+   void keep01(Flt blend); // same as "clear(1-blend)", assumes 0<=blend<=1
 #endif
 
 #if !EE_PRIVATE

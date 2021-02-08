@@ -17,22 +17,23 @@ void AnimatedSkeletonBone::clear()
 #endif
   _force_matrix=_world_space_transform=false;
 }
+void AnimatedSkeletonBone::keep01(Flt blend)
+{
+   orn  *=blend;
+   rot  *=blend;
+   pos  *=blend;
+   scale*=blend;
+#if HAS_ANIM_COLOR
+   color*=blend; color+=1-blend; // color=Lerp(Vec4(1), color, blend)
+#endif
+   if(_world_space_transform)_world_space_transform_matrix.keep01(blend);
+}
 void AnimatedSkeletonBone::clear(Flt blend)
 {
    if(blend>0)
    {
-      if(blend>=1)clear();else
-      {
-         Flt    blend1=1-blend;
-         orn  *=blend1;
-         rot  *=blend1;
-         pos  *=blend1;
-         scale*=blend1;
-      #if HAS_ANIM_COLOR
-         color*=blend1; color+=blend; // color=Vec4(1)*blend + color*(1-blend);
-      #endif
-         if(_world_space_transform)_world_space_transform_matrix.identity(blend);
-      }
+      if(blend>=1)clear ();
+      else        keep01(1-blend);
    }
 }
 /*
@@ -193,8 +194,15 @@ AnimatedSkeleton& AnimatedSkeleton::clear()
 }
 AnimatedSkeleton& AnimatedSkeleton::clear(Flt blend)
 {
-         root  .clear(blend);
-   REPAO(bones).clear(blend);
+   if(blend>0)
+   {
+      if(blend>=1)clear();else
+      {
+         Flt blend1=1-blend;
+               root  .keep01(blend1);
+         REPAO(bones).keep01(blend1);
+      }
+   }
    return T;
 }
 struct AnimParamsEx : AnimParams

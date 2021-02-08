@@ -2054,23 +2054,36 @@ Matrix4& Matrix4::identity()
    return T;
 }
 /******************************************************************************/
+Matrix3& Matrix3::keep01(Flt blend)
+{
+   // orientation
+   Vec axis; Flt angle=axisAngle(axis);
+
+   // scale
+   Vec  scale=T.scale();
+   REPA(scale)scale.c[i]=ScaleFactor(ScaleFactorR(scale.c[i])*blend);
+
+   return setRotate(axis, angle*blend).scaleL(scale);
+}
+Matrix& Matrix::keep01(Flt blend)
+{
+   super::keep01(blend);
+   pos*=blend;
+   return T;
+}
+MatrixM& MatrixM::keep01(Flt blend)
+{
+   super::keep01(blend);
+   pos*=blend;
+   return T;
+}
+/******************************************************************************/
 Matrix3& Matrix3::identity(Flt blend)
 {
    if(blend>0)
    {
-      if(blend>=1)identity();else
-      {
-         Flt blend1=1-blend;
-
-         // orientation
-         Vec axis; Flt angle=axisAngle(axis);
-
-         // scale
-         Vec  scale=T.scale();
-         REPA(scale)scale.c[i]=ScaleFactor(ScaleFactorR(scale.c[i])*blend1);
-
-         setRotate(axis, angle*blend1).scaleL(scale);
-      }
+      if(blend>=1)identity();
+      else        keep01  (1-blend);
    }
    return T;
 }
@@ -2078,11 +2091,8 @@ Matrix& Matrix::identity(Flt blend)
 {
    if(blend>0)
    {
-      if(blend>=1)identity();else
-      {
-         pos*=1-blend;
-         super::identity(blend);
-      }
+      if(blend>=1)identity();
+      else        keep01  (1-blend);
    }
    return T;
 }
@@ -2090,11 +2100,8 @@ MatrixM& MatrixM::identity(Flt blend)
 {
    if(blend>0)
    {
-      if(blend>=1)identity();else
-      {
-         pos*=1-blend;
-         super::identity(blend);
-      }
+      if(blend>=1)identity();
+      else        keep01  (1-blend);
    }
    return T;
 }

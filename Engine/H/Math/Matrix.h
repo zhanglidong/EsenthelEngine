@@ -163,6 +163,9 @@ struct Matrix3 // Matrix 3x3 (orientation + scale)
    Matrix3& identity(         ); // set as identity
    Matrix3& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
    Matrix3& zero    (         ); // set all vectors to zero
+#if EE_PRIVATE
+   Matrix3& keep01(Flt blend); // same as "identity(1-blend)", assumes 0<=blend<=1
+#endif
 
    Matrix3& setScale(  Flt  scale); // set as scaled identity
    Matrix3& setScale(C Vec &scale); // set as scaled identity
@@ -578,6 +581,9 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    Matrix& identity(         ); // set as identity
    Matrix& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
    Matrix& zero    (         ); // set all vectors to zero
+#if EE_PRIVATE
+   Matrix& keep01(Flt blend); // same as "identity(1-blend)", assumes 0<=blend<=1
+#endif
 
    Matrix& setPos     (  Flt x, Flt y, Flt z      ); // set as positioned identity
    Matrix& setPos     (C Vec2 &pos                ); // set as positioned identity
@@ -779,6 +785,9 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM& identity(         ); // set as identity
    MatrixM& identity(Flt blend); // set as identity, this method is similar to 'identity()' however it does not perform full reset of the matrix. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
    MatrixM& zero    (         ); // set all vectors to zero
+#if EE_PRIVATE
+   MatrixM& keep01(Flt blend); // same as "identity(1-blend)", assumes 0<=blend<=1
+#endif
 
    MatrixM& setPos     (  Dbl x, Dbl y, Dbl z        ); // set as positioned identity
    MatrixM& setPos     (C VecD2 &pos                 ); // set as positioned identity
