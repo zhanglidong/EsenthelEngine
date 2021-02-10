@@ -165,8 +165,8 @@ void PixelWalker::start(C VecI2 &start, C VecI2 &end)
 
   _active   =true;
   _side_step=false;
-  _axis     =(adelta.maxI()==1);
-  _steps    = adelta.max ();
+  _axis     =adelta.maxI();
+  _steps    =adelta.max ();
   _main_sign=Sign(delta.c[_axis]);
   _pos      =start;
   _posr     =start+0.5f;
@@ -182,8 +182,8 @@ void PixelWalker::start(C Vec2 &start, C Vec2 &end)
 
   _active   =true;
   _side_step=false;
-  _axis     =(adelta.maxI()==1);
-  _steps    = adelta.max (); // Abs(delta.c[_axis]);
+  _axis     =adelta.maxI();
+  _steps    =adelta.max (); // Abs(delta.c[_axis]);
   _main_sign=Sign(delta.c[_axis]);
   _step     =end-start; if(_steps)_step/=_steps;
   _pos_temp =_pos;
@@ -274,7 +274,7 @@ void PixelWalkerEdge::start(C Vec2 &start, C Vec2 &end)
 
   _active   =true;
   _side_step=false;
-  _axis     =((adelta.x>adelta.y) ? 0 : (adelta.y>adelta.x) ? 1 : (Abs(end-start).maxI()==1)); // _axis=(adelta.maxI()==1);
+  _axis     =((adelta.x>adelta.y) ? 0 : (adelta.y>adelta.x) ? 1 : Abs(end-start).maxI()); // _axis=adelta.maxI();
   _steps    =adelta.max(); // Abs(delta.c[_axis]);
   _posr     =    start;
   _pos_end  =end      ;
