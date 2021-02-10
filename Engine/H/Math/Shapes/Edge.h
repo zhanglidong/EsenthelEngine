@@ -296,9 +296,8 @@ struct EdgeD_I : EdgeD // Edge 3D + information (double precision)
 struct PixelWalker // iterates through pixels of a rasterized edge
 {
    // get
-   Bool   active  ()C {return _active   ;} // if  walker still active
-   Bool   sideStep()C {return _side_step;} // if  last move was a side step (not along the main axis)
- C VecI2& pos     ()C {return _pos_temp ;} // get current position
+   Bool   active()C {return _active  ;} // if  walker still active
+ C VecI2& pos   ()C {return _pos_temp;} // get current position
 
    // set
    void start(C VecI2 &start, C VecI2 &end); // start walking from 'start' to 'end'
@@ -339,9 +338,8 @@ private:
 struct PixelWalkerEdge // iterates through pixels of a rasterized line and returns intersections with the edges
 {
    // get
-   Bool  active  ()C {return _active   ;} // if  walker still active
-   Bool  sideStep()C {return _side_step;} // if  last move was a side step (not along the main axis)
- C Vec2& pos     ()C {return _posr     ;} // get current position
+   Bool  active()C {return _active;} // if  walker still active
+ C Vec2& pos   ()C {return _posr  ;} // get current position
 
    // set
    void start(C Vec2 &start, C Vec2 &end); // start walking from 'start' to 'end'
@@ -377,9 +375,8 @@ private:
 struct VoxelWalker // iterates through voxels of a rasterized edge
 {
    // get
-   Bool  active  ()C {return _active      ;} // if  walker still active
-   Bool  sideStep()C {return _side_step!=0;} // if  last move was a side step (not along the main axis)
- C VecI& pos     ()C {return _pos_temp    ;} // get current position
+   Bool  active()C {return _active  ;} // if  walker still active
+ C VecI& pos   ()C {return _pos_temp;} // get current position
 
    // set
    void start(C VecI &start, C VecI &end); // start walking from 'start' to 'end'

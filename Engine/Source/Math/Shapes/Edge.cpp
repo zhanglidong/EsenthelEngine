@@ -317,9 +317,12 @@ void PixelWalkerEdge::step()
          if(_steps==0) // if this is the last step, then check if we have to perform a side-step
          {
            _pos_next=_pos_end;
-           _steps= 1; step();
-           _steps=-1; // make sure we will not make any more attempts
-            if(sideStep())return;
+           _steps=1; step();
+            if(_side_step) // if still have a side step to perform
+            {
+              _steps=-1; // make sure we will not make any more attempts
+               return; // return now to don't disable '_active' below
+            }
          }
         _active=false;
       }else
