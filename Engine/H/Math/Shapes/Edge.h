@@ -308,8 +308,8 @@ struct PixelWalker // iterates through pixels of a rasterized edge
    void step(); // make a single step
 
    PixelWalker(                            ) {_active=false;}
-   PixelWalker(C VecI2 &start, C VecI2 &end) {_active=false; T.start(start, end);}
-   PixelWalker(C Vec2  &start, C Vec2  &end) {_active=false; T.start(start, end);}
+   PixelWalker(C VecI2 &start, C VecI2 &end) {T.start(start, end);}
+   PixelWalker(C Vec2  &start, C Vec2  &end) {T.start(start, end);}
 
 #if !EE_PRIVATE
 private:
@@ -350,7 +350,7 @@ struct PixelWalkerEdge // iterates through pixels of a rasterized line and retur
    void step(); // make a single step
 
    PixelWalkerEdge(                          ) {_active=false;}
-   PixelWalkerEdge(C Vec2 &start, C Vec2 &end) {_active=false; T.start(start, end);}
+   PixelWalkerEdge(C Vec2 &start, C Vec2 &end) {T.start(start, end);}
 
 #if !EE_PRIVATE
 private:
@@ -389,8 +389,8 @@ struct VoxelWalker // iterates through voxels of a rasterized edge
    void step(); // make a single step
 
    VoxelWalker(                          ) {_active=false;}
-   VoxelWalker(C VecI &start, C VecI &end) {_active=false; T.start(start, end);}
-   VoxelWalker(C Vec  &start, C Vec  &end) {_active=false; T.start(start, end);}
+   VoxelWalker(C VecI &start, C VecI &end) {T.start(start, end);}
+   VoxelWalker(C Vec  &start, C Vec  &end) {T.start(start, end);}
 
 private:
    Bool _active;
