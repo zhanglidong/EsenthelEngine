@@ -223,8 +223,7 @@ Bool CutsLinePlane(C VecD &line_pos, C VecD &line_dir, C PlaneD &plane, Dbl *hit
 /******************************************************************************/
 void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals)
 {
-   Flt dist= 0; // find biggest distance (furthest from zero) that's <0 (intersecting)
-   Int find=-1; REP(normals)
+   Flt dist=0; Int find=-1; REP(normals) // find biggest distance (furthest from zero) that's <0 (intersecting)
    {
       Flt d=Dot(move, normal[i]);
       if( d<dist){dist=d; find=i;} // if intersecting (and distance bigger than previous)
@@ -236,8 +235,10 @@ void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals)
       REP(normals)if(i!=find) // check all normals but skip the one we processed already
       {
        C Vec2 &nrm=normal[i];
-         if(Dot(move        , nrm)<0        // if still intersecting
-         && Dot(furthest_nrm, nrm)<EPS_COS) // and not the same normal
+         Flt dot=Dot(move, nrm);
+         if( dot                   <-EPS      // if still intersecting ( fully)
+         || (dot                   <0         // if still intersecting (barely)
+          && Dot(furthest_nrm, nrm)<EPS_COS)) // and not the same normal
             {move.zero(); break;} // can't move
       }
    }
@@ -258,8 +259,10 @@ void SlideMovement(Vec &move, C Vec *normal, Int normals)
          REPD(i1, normals)if(i0!=i1) // check all normals but skip the one we processed already
          {
           C Vec &nrm1=normal[i1];
-            if(Dot(slide0, nrm1)<0        // if still intersecting
-            && Dot(nrm0  , nrm1)<EPS_COS) // and not the same normal
+            Flt dot=Dot(slide0, nrm1);
+            if( dot            <-EPS      // if still intersecting ( fully)
+            || (dot            <0         // if still intersecting (barely)
+             && Dot(nrm0, nrm1)<EPS_COS)) // and not the same normal
             {
                    hit1   =true;
                Vec slide1 =CrossN(nrm0, nrm1  );
@@ -267,9 +270,11 @@ void SlideMovement(Vec &move, C Vec *normal, Int normals)
                REPD(i2, normals)if(i0!=i2 && i1!=i2) // check all normals but skip the one we processed already
                {
                 C Vec &nrm2=normal[i2];
-                  if(Dot(slide1, nrm2)<0        // if still intersecting
-                  && Dot(nrm0  , nrm2)<EPS_COS  // and not the same normal
-                  && Dot(nrm1  , nrm2)<EPS_COS) // and not the same normal
+                  Flt dot=Dot(slide1, nrm2);
+                  if( dot            <-EPS      // if still intersecting ( fully)
+                  || (dot            <0         // if still intersecting (barely)
+                   && Dot(nrm0, nrm2)<EPS_COS   // and not the same normal
+                   && Dot(nrm1, nrm2)<EPS_COS)) // and not the same normal
                      goto hit2; // can't move this way
                }
                if(!slide_valid || slide1.length2()>slide.length2()){slide_valid=true; slide=slide1;}
