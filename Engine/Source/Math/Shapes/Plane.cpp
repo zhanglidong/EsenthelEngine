@@ -223,56 +223,68 @@ Bool CutsLinePlane(C VecD &line_pos, C VecD &line_dir, C PlaneD &plane, Dbl *hit
 /******************************************************************************/
 void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals)
 {
-   Flt dist;
+   Flt dist= 0; // find biggest distance (furthest from zero) that's <0 (intersecting)
    Int find=-1; REP(normals)
    {
       Flt d=Dot(move, normal[i]);
-      if( d<0)if(find<0 || d<dist){find=i; dist=d;}
+      if( d<dist){dist=d; find=i;} // if intersecting (and distance bigger than previous)
    }
    if(find>=0)
    {
-      move-=(dist-EPS)*normal[find];
-      REP(normals)if(i!=find && Dot(move, normal[i])<0 && Dot(normal[i], normal[find])<1-EPS){move.zero(); return;}
+    C Vec2 &furthest_nrm=normal[find];
+      move-=dist*furthest_nrm;
+      REP(normals)if(i!=find) // check all normals but skip the one we processed already
+      {
+       C Vec2 &nrm=normal[i];
+         if(Dot(move        , nrm)<0        // if still intersecting
+         && Dot(furthest_nrm, nrm)<EPS_COS) // and not the same normal
+            {move.zero(); break;} // can't move
+      }
    }
 }
 /******************************************************************************/
 void SlideMovement(Vec &move, C Vec *normal, Int normals)
 {
    Vec  slide;
-   Bool hit =false,
-        hit0=false;
+   Bool slide_valid=false, hit0=false;
    REPD(i0, normals)
    {
-      Flt d=Dot(move, normal[i0]); if(d<0)
+    C Vec &nrm0=normal[i0];
+      Flt d=Dot(move, nrm0); if(d<0) // if intersecting
       {
-              hit0  =true;
+              hit0  =true ; // have any intersection
          Bool hit1  =false;
-         Vec  slide0=move-(d-EPS)*normal[i0];
-         REPD(i1, normals)if(i0!=i1 && Dot(slide0, normal[i1])<0 && Dot(normal[i0], normal[i1])<1-EPS)
+         Vec  slide0=move-d*nrm0;
+         REPD(i1, normals)if(i0!=i1) // check all normals but skip the one we processed already
          {
-                 hit1   =true;
-            Bool hit2   =false;
-            Vec  slide1 =CrossN(normal[i0], normal[i1]);
-                 slide1*=Dot   (move      , slide1    );
-            REPD(i2, normals)if(i0!=i2 && i1!=i2 && Dot(slide1, normal[i2])<0 && Dot(normal[i0], normal[i2])<1-EPS && Dot(normal[i1], normal[i2])<1-EPS)
+          C Vec &nrm1=normal[i1];
+            if(Dot(slide0, nrm1)<0        // if still intersecting
+            && Dot(nrm0  , nrm1)<EPS_COS) // and not the same normal
             {
-               hit2=true;
-               break;
-            }
-            if(!hit2)
-            {
-               if(!hit || slide1.length2()>slide.length2()){hit=true; slide=slide1;}
+                   hit1   =true;
+               Vec slide1 =CrossN(nrm0, nrm1  );
+                   slide1*=Dot   (move, slide1);
+               REPD(i2, normals)if(i0!=i2 && i1!=i2) // check all normals but skip the one we processed already
+               {
+                C Vec &nrm2=normal[i2];
+                  if(Dot(slide1, nrm2)<0        // if still intersecting
+                  && Dot(nrm0  , nrm2)<EPS_COS  // and not the same normal
+                  && Dot(nrm1  , nrm2)<EPS_COS) // and not the same normal
+                     goto hit2; // can't move this way
+               }
+               if(!slide_valid || slide1.length2()>slide.length2()){slide_valid=true; slide=slide1;}
+            hit2:;
             }
          }
          if(!hit1)
          {
-            if(!hit || slide0.length2()>slide.length2()){hit=true; slide=slide0;}
+            if(!slide_valid || slide0.length2()>slide.length2()){slide_valid=true; slide=slide0;}
          }
       }
    }
    if(hit0)
    {
-      if(hit)move=slide;else move.zero();
+      if(slide_valid)move=slide;else move.zero();
    }
 }
 /******************************************************************************/

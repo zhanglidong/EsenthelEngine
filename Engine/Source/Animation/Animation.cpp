@@ -1292,7 +1292,7 @@ struct TimeClip
 };
 AnimKeys& AnimKeys::clip(Bool anim_loop, Bool anim_linear, Flt anim_length, Flt start_time, Flt end_time)
 {
-   if(end_time<start_time)Swap(start_time, end_time); TimeClip tc(start_time, end_time);
+   Bool reverse; if(reverse=(end_time<start_time))Swap(start_time, end_time); TimeClip tc(start_time, end_time);
    AnimParams params(anim_loop, anim_linear, anim_length, 0);
    Int before_start, after_end;
 
@@ -1415,7 +1415,8 @@ AnimKeys& AnimKeys::clip(Bool anim_loop, Bool anim_linear, Flt anim_length, Flt 
    }
 #endif
 
-   return setTangents(anim_loop, end_time-start_time);
+   if(reverse)T.reverse(tc.length);
+   return setTangents(anim_loop, tc.length);
 }
 /******************************************************************************/
 void AnimKeys::includeTimes(MemPtr<Flt, 16384> orn_times, MemPtr<Flt, 16384> pos_times, MemPtr<Flt, 16384> scale_times)C
@@ -2992,11 +2993,10 @@ Animation& Animation::clip(Flt start_time, Flt end_time, Bool remove_unused_bone
 {
  //if(start_time!=0 || end_time!=length()) don't check this, because we may have keyframe data outside of this range that needs to be removed
    {
-      if(end_time<start_time)Swap(start_time, end_time);
             keys  .clip(loop(), linear(), length(), start_time, end_time);
       REPAO(bones).clip(loop(), linear(), length(), start_time, end_time);
       if(remove_unused_bones)removeUnused();
-     _length=end_time-start_time;
+     _length=Abs(end_time-start_time);
       setRootMatrix();
    }
    return T;
