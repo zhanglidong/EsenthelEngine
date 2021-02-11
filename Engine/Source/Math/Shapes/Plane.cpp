@@ -292,6 +292,79 @@ void SlideMovement(Vec &move, C Vec *normal, Int normals)
       if(slide_valid)move=slide;else move.zero();
    }
 }
+/******************************************************************************
+This doesn't always find the movement
+void SlideMovement1(Vec &move, C Vec *normal, Int normals)
+{
+   Flt dist=0; Int i0=-1; REP(normals) // find biggest distance (furthest from zero) that's <0 (intersecting)
+   {
+      Flt d=Dot(move, normal[i]);
+      if( d<dist){dist=d; i0=i;} // if intersecting (and distance bigger than previous)
+   }
+   if(i0>=0)
+   {
+    C Vec  &nrm0=normal[i0];
+      Vec slide0=move-dist*nrm0;
+      dist=0; Int i1=-1; REP(normals)if(i!=i0) // check all normals but skip the one we processed already
+      {
+       C Vec &nrm=normal[i];
+         Flt d=Dot(slide0, nrm);
+         if( d<dist){dist=d; i1=i;} // if intersecting (and distance bigger than previous)
+      }
+      if(i1>=0)
+      {
+       C Vec &nrm1=normal[i1];
+         if(dist           <-EPS     // big distance
+         || Dot(nrm0, nrm1)<EPS_COS) // not the same normal
+         {
+            Vec slide1 =CrossN(nrm0, nrm1  );
+                slide1*=Dot   (move, slide1);
+            REPD(i2, normals)if(i0!=i2 && i1!=i2) // check all normals but skip the one we processed already
+            {
+             C Vec &nrm2=normal[i2];
+               Flt dot=Dot(slide1, nrm2);
+               if( dot            <-EPS      // if still intersecting ( fully)
+               || (dot            <0         // if still intersecting (barely)
+                && Dot(nrm0, nrm2)<EPS_COS   // and not the same normal
+                && Dot(nrm1, nrm2)<EPS_COS)) // and not the same normal
+                  {move.zero(); return;} // can't move this way
+            }
+            move=slide1; return;
+         }
+      }
+      move=slide0;
+   }
+}
+static void Test()
+{
+   Random.seed.set(1,2,3,4);
+   REP(10000000)
+   {
+      Vec normal[6]; Int normals=Random(6);
+      REP(normals)normal[i]=Random(Ball(1), false);
+      Vec dir=Random(Ball(1), false);
+      Vec d0=dir; SlideMovement (d0, normal, normals);
+      Vec d1=dir; SlideMovement1(d1, normal, normals);
+      REP(normals)
+      {
+         Flt dot;
+         dot=Dot(d0, normal[i]); if(dot<-EPS)
+            int z=0;
+         dot=Dot(d1, normal[i]); if(dot<-EPS)
+            int z=0;
+      }
+      Flt D0=Dot(dir, !d0);
+      Flt D1=Dot(dir, !d1);
+      if(!Equal(d0.length(), D0, 0.001f))
+         int z=0;
+      if(!Equal(d1.length(), D1, 0.001f))
+         int z=0;
+      if(!Equal(d0, d1))
+      {
+         d1=dir; SlideMovement1(d1, normal, normals);
+      }
+   }
+}
 /******************************************************************************/
 }
 /******************************************************************************/
