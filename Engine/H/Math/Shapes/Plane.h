@@ -191,4 +191,7 @@ inline Bool SweepPlanePoint(C PlaneD  &plane, C VecD  &move, C VecD  &point, Dbl
 // slide 'move' movement by colliding normals, this function adjusts desired 'move' vector according to colliding planes with their normals, so that 'move' vector will slide along the planes if needed, and not move through them
 void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals);
 void SlideMovement(Vec  &move, C Vec  *normal, Int normals);
+
+// slide 'circle' 'move' movement by geometry, this function returns circle position after movement
+Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm=null); // 'edge_nrm'=optional edge normals (must be normalized)
 /******************************************************************************/

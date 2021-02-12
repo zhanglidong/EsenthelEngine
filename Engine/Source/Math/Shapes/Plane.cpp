@@ -366,5 +366,136 @@ static void Test()
    }
 }
 /******************************************************************************/
+#define EPS_NRM_DOT 0.999999f // using EPS_COS 0.9999995f was insufficient
+Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm)
+{
+   if(Flt move_len=move.length2())
+   {
+      move_len=SqrtFast(move_len);
+      Int  step=0;
+      Vec2 cur_pos=circle.pos;
+      Vec2 move_n=move/move_len;
+      Flt  circle_r2=Sqr(circle.r);
+      Vec2 hit_nrm_prev;
+   again:
+      Flt  hit_len=move_len; // find only smaller than move length
+      Vec2 hit_nrm;
+      // edges
+      REPD(e, edges)
+      {
+       C VecI2 &edge=edge_ind[e];
+       C Vec2  &edge_p0=vtx_pos[edge.x],
+               &edge_p1=vtx_pos[edge.y];
+         Vec2   edge_nrm_temp;
+       C Vec2  &edge_n=(edge_nrm ? edge_nrm[e] : edge_nrm_temp=PerpN(edge_p0-edge_p1));
+         Flt    move_dot=Dot(move_n, edge_n); if(move_dot<0) // if moving towards edge
+         {
+            Flt dist_nrm=DistPointPlane(cur_pos, edge_p0, edge_n); if(dist_nrm>=0) // if outside the edge
+            {
+               if(step && Dot(edge_n, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_edge; // if same normal as from previous step, then ignore this edge
+
+                  dist_nrm-=circle.r;
+               if(dist_nrm<=0) // circle intersecting edge
+               {
+                  Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
+                  if(DistPointPlane(cur_pos, edge_p0, edge_dir)>=0
+                  && DistPointPlane(cur_pos, edge_p1, edge_dir)<=0)
+                  {
+                     cur_pos-=edge_n*dist_nrm; // move circle along edge normal to avoid intersection
+                     hit_len=0;
+                     hit_nrm=edge_n;
+                     goto hit_found;
+                  }
+                  // Don't check edge points here, instead check them later in points section
+               }else
+               {
+                  Flt dist_move=-dist_nrm/move_dot; if(dist_move<hit_len) // if less than previous distance
+                  {
+                     Vec2 closest=cur_pos-edge_n*circle.r; // closest point on circle to the edge
+                          closest+=move_n*dist_move;
+                     Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
+                     if(DistPointPlane(closest, edge_p0, edge_dir)>=0
+                     && DistPointPlane(closest, edge_p1, edge_dir)<=0)
+                     {
+                        hit_len=dist_move;
+                        hit_nrm=edge_n;
+                     }
+                  }
+               }
+            }
+         }
+      ignore_edge:;
+      }
+      // points
+      {
+         Vec2 move_r=Perp(move_n);
+         Vec2 circle_rel(Dot(cur_pos, move_r), Dot(cur_pos, move_n)); // circle position in space relative to movement
+         REPD(v, vtxs)
+         {
+          C Vec2 &pos=vtx_pos[v];
+            Vec2  pos_rel;
+            pos_rel.x=Dot(pos, move_r)-circle_rel.x; // check X first because this will eliminate more vertexes
+            if(Abs(pos_rel.x)<circle.r) // consider only vertexes along the movement line
+            {
+               pos_rel.y=Dot(pos, move_n); // check Y
+               if(pos_rel.y>circle_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and vtx_pos are the same and movement would always be stuck no matter what direction
+               {
+                  Flt dist_move=pos_rel.y-circle_rel.y; // !! Warning: this is not yet complete !!
+                  if( dist_move<hit_len+circle.r) // if can potentially have smaller distance
+                  {
+                        dist_move-=CosSin(pos_rel.x/circle.r)*circle.r; // finish calculation
+                     if(dist_move<hit_len) // if less than previous distance
+                     {
+                        if(dist_move<=0) // circle intersecting point
+                        {
+                           Vec2 delta=cur_pos-pos; Flt delta_len2=delta.length2(); if(!delta_len2)goto ignore_vtx; // if length is zero then cur pos and vtx pos are the same so just ignore it, this check is also needed for div by 0
+                         //if(delta_len2<circle_r2) shouldn't be needed at this stage
+                           {
+                              Flt  delta_len=SqrtFast(delta_len2);
+                              Vec2 nrm=delta/delta_len;
+                              if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_vtx; // if same normal as from previous step, then ignore this vertex
+
+                              hit_len=0;
+                              hit_nrm=nrm;
+                              cur_pos+=hit_nrm*(circle.r-delta_len); // move circle away from point
+                              goto hit_found;
+                           }
+                        }
+
+                        Vec2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
+                        if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_vtx; // if same normal as from previous step, then ignore this vertex
+
+                        hit_len=dist_move;
+                        hit_nrm=nrm;
+                     }
+                  }
+               }
+            }
+         ignore_vtx:;
+         }
+      }
+      if(hit_len<move_len) // collision
+      {
+      hit_found:
+         cur_pos+=move_n*hit_len;
+         if(step==0)
+         {
+            move_len-=hit_len; // moved this already
+            move_n*=move_len; // remaining move
+            move_n-=Dot(move_n, hit_nrm)*hit_nrm;
+            if(move_len=move_n.normalize())
+            {
+               step++;
+               hit_nrm_prev=hit_nrm;
+               goto again;
+            }
+         }
+         return cur_pos;
+      }
+      return cur_pos+(step ? move_n*hit_len : move); // no collision = move all the way
+   }
+   return circle.pos;
+}
+/******************************************************************************/
 }
 /******************************************************************************/
