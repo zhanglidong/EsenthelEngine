@@ -2046,105 +2046,105 @@ struct VecI4 // Vector 4D (integer)
 /******************************************************************************/
 // truncate, remove fractional part, Sample Usage: Trunc(7.3) -> 7, Trunc(7.9) -> 7
 #if EE_PRIVATE
-       Dbl   TruncD (  Dbl    x);                   // truncate and return as Dbl
+          Dbl   TruncD (  Dbl    x);                   // truncate and return as Dbl
 #endif
-inline Int   Trunc  (  Int    x) {return       x ;} // truncate and return as Int
-inline Int   Trunc  (  Flt    x) {return Int  (x);} // truncate and return as Int
-inline Int   Trunc  (  Dbl    x) {return Int  (x);} // truncate and return as Int
-inline UInt  TruncU (  UInt   x) {return       x ;} // truncate and return as UInt
-inline UInt  TruncU (  Flt    x) {return UInt (x);} // truncate and return as UInt
-inline UInt  TruncU (  Dbl    x) {return UInt (x);} // truncate and return as UInt
-inline Long  TruncL (  Dbl    x) {return Long (x);} // truncate and return as Long
-inline ULong TruncUL(  Dbl    x) {return ULong(x);} // truncate and return as ULong
-inline VecI2 Trunc  (C Vec2  &v) {return VecI2(Trunc(v.x), Trunc(v.y)                        );}
-inline VecI2 Trunc  (C VecD2 &v) {return VecI2(Trunc(v.x), Trunc(v.y)                        );}
-inline VecI  Trunc  (C Vec   &v) {return VecI (Trunc(v.x), Trunc(v.y), Trunc(v.z)            );}
-inline VecI  Trunc  (C VecD  &v) {return VecI (Trunc(v.x), Trunc(v.y), Trunc(v.z)            );}
-inline VecI4 Trunc  (C Vec4  &v) {return VecI4(Trunc(v.x), Trunc(v.y), Trunc(v.z), Trunc(v.w));}
-inline VecI4 Trunc  (C VecD4 &v) {return VecI4(Trunc(v.x), Trunc(v.y), Trunc(v.z), Trunc(v.w));}
+constexpr Int   Trunc  (  Int    x) {return       x ;} // truncate and return as Int
+constexpr Int   Trunc  (  Flt    x) {return Int  (x);} // truncate and return as Int
+constexpr Int   Trunc  (  Dbl    x) {return Int  (x);} // truncate and return as Int
+constexpr UInt  TruncU (  UInt   x) {return       x ;} // truncate and return as UInt
+constexpr UInt  TruncU (  Flt    x) {return UInt (x);} // truncate and return as UInt
+constexpr UInt  TruncU (  Dbl    x) {return UInt (x);} // truncate and return as UInt
+constexpr Long  TruncL (  Dbl    x) {return Long (x);} // truncate and return as Long
+constexpr ULong TruncUL(  Dbl    x) {return ULong(x);} // truncate and return as ULong
+inline    VecI2 Trunc  (C Vec2  &v) {return VecI2(Trunc(v.x), Trunc(v.y)                        );}
+inline    VecI2 Trunc  (C VecD2 &v) {return VecI2(Trunc(v.x), Trunc(v.y)                        );}
+inline    VecI  Trunc  (C Vec   &v) {return VecI (Trunc(v.x), Trunc(v.y), Trunc(v.z)            );}
+inline    VecI  Trunc  (C VecD  &v) {return VecI (Trunc(v.x), Trunc(v.y), Trunc(v.z)            );}
+inline    VecI4 Trunc  (C Vec4  &v) {return VecI4(Trunc(v.x), Trunc(v.y), Trunc(v.z), Trunc(v.w));}
+inline    VecI4 Trunc  (C VecD4 &v) {return VecI4(Trunc(v.x), Trunc(v.y), Trunc(v.z), Trunc(v.w));}
 
 // round, round to nearest integer, Sample Usage: Round(7.3) -> 7, Round(7.9) -> 8
-inline Int   Round  (  Int    x) {return x;}
-inline Int   Round  (  Flt    x) {return (x>=0) ? Trunc  (x+0.5f) : Trunc (x-0.5f);} // faster than 'lroundf'
-inline Int   Round  (  Dbl    x) {return (x>=0) ? Trunc  (x+0.5 ) : Trunc (x-0.5 );} // faster than 'lround'
-inline UInt  RoundU (  UInt   x) {return x;}
-inline UInt  RoundU (  Flt    x) {return          TruncU (x+0.5f);}
-inline UInt  RoundU (  Dbl    x) {return          TruncU (x+0.5 );}
-inline Long  RoundL (  Dbl    x) {return (x>=0) ? TruncL (x+0.5 ) : TruncL(x-0.5 );}
-inline ULong RoundUL(  Dbl    x) {return          TruncUL(x+0.5 );}
-inline VecI2 Round  (C Vec2  &x) {return VecI2(Round(x.x), Round(x.y)                        );}
-inline VecI2 Round  (C VecD2 &x) {return VecI2(Round(x.x), Round(x.y)                        );}
-inline VecI  Round  (C Vec   &x) {return VecI (Round(x.x), Round(x.y), Round(x.z)            );}
-inline VecI  Round  (C VecD  &x) {return VecI (Round(x.x), Round(x.y), Round(x.z)            );}
-inline VecI4 Round  (C Vec4  &x) {return VecI4(Round(x.x), Round(x.y), Round(x.z), Round(x.w));}
-inline VecI4 Round  (C VecD4 &x) {return VecI4(Round(x.x), Round(x.y), Round(x.z), Round(x.w));}
+constexpr Int   Round  (  Int    x) {return x;}
+constexpr Int   Round  (  Flt    x) {return (x>=0) ? Trunc  (x+0.5f) : Trunc (x-0.5f);} // faster than 'lroundf'
+constexpr Int   Round  (  Dbl    x) {return (x>=0) ? Trunc  (x+0.5 ) : Trunc (x-0.5 );} // faster than 'lround'
+constexpr UInt  RoundU (  UInt   x) {return x;}
+constexpr UInt  RoundU (  Flt    x) {return          TruncU (x+0.5f);}
+constexpr UInt  RoundU (  Dbl    x) {return          TruncU (x+0.5 );}
+constexpr Long  RoundL (  Dbl    x) {return (x>=0) ? TruncL (x+0.5 ) : TruncL(x-0.5 );}
+constexpr ULong RoundUL(  Dbl    x) {return          TruncUL(x+0.5 );}
+inline    VecI2 Round  (C Vec2  &x) {return VecI2(Round(x.x), Round(x.y)                        );}
+inline    VecI2 Round  (C VecD2 &x) {return VecI2(Round(x.x), Round(x.y)                        );}
+inline    VecI  Round  (C Vec   &x) {return VecI (Round(x.x), Round(x.y), Round(x.z)            );}
+inline    VecI  Round  (C VecD  &x) {return VecI (Round(x.x), Round(x.y), Round(x.z)            );}
+inline    VecI4 Round  (C Vec4  &x) {return VecI4(Round(x.x), Round(x.y), Round(x.z), Round(x.w));}
+inline    VecI4 Round  (C VecD4 &x) {return VecI4(Round(x.x), Round(x.y), Round(x.z), Round(x.w));}
 #if EE_PRIVATE
-inline Int   RoundEps(  Flt   x, Flt eps) {return (x>=0) ? Trunc(x+eps) : Trunc(x-eps);}
-inline Int   RoundPos(  Flt   x) {return Trunc(x+0.5f);} // doesn't care if round of negative value will not be precise, but unlike 'RoundU' the result will still be negative
-inline Int   RoundPos(  Dbl   x) {return Trunc(x+0.5 );} // doesn't care if round of negative value will not be precise, but unlike 'RoundU' the result will still be negative
-inline Int   RoundGPU(  Flt   x) {return Round(x-0.0001f);} // if the coordinate is located exactly between 2 pixels "Frac(x)==0.5" then due to numerical precision issues sometimes this can be rounded up and sometimes down, and flickering can occur for example when window is moved on the screen, to prevent that, apply a small offset, the value "0.0001f" has been tested having a Window and a button at 0.5 coordinates, then moving the window around the screen and noticing when does it stop flickering, keep as "-offset" instead of "+offset" because it works better with clipping (for example if Region draws a pixel border and it is located exactly between 2 pixels, then its children may overlap the border because the clipping has 1 extra pixel)
-inline VecI2 RoundPos(C Vec2 &x) {return VecI2(RoundPos(x.x), RoundPos(x.y)               );}
-inline VecI  RoundPos(C Vec  &x) {return VecI (RoundPos(x.x), RoundPos(x.y), RoundPos(x.z));}
-inline VecI2 RoundGPU(C Vec2 &v) {return VecI2(RoundGPU(v.x), RoundGPU(v.y)               );}
+constexpr Int   RoundEps(  Flt   x, Flt eps) {return (x>=0) ? Trunc(x+eps) : Trunc(x-eps);}
+constexpr Int   RoundPos(  Flt   x) {return Trunc(x+0.5f);} // doesn't care if round of negative value will not be precise, but unlike 'RoundU' the result will still be negative
+constexpr Int   RoundPos(  Dbl   x) {return Trunc(x+0.5 );} // doesn't care if round of negative value will not be precise, but unlike 'RoundU' the result will still be negative
+constexpr Int   RoundGPU(  Flt   x) {return Round(x-0.0001f);} // if the coordinate is located exactly between 2 pixels "Frac(x)==0.5" then due to numerical precision issues sometimes this can be rounded up and sometimes down, and flickering can occur for example when window is moved on the screen, to prevent that, apply a small offset, the value "0.0001f" has been tested having a Window and a button at 0.5 coordinates, then moving the window around the screen and noticing when does it stop flickering, keep as "-offset" instead of "+offset" because it works better with clipping (for example if Region draws a pixel border and it is located exactly between 2 pixels, then its children may overlap the border because the clipping has 1 extra pixel)
+inline    VecI2 RoundPos(C Vec2 &x) {return VecI2(RoundPos(x.x), RoundPos(x.y)               );}
+inline    VecI  RoundPos(C Vec  &x) {return VecI (RoundPos(x.x), RoundPos(x.y), RoundPos(x.z));}
+inline    VecI2 RoundGPU(C Vec2 &v) {return VecI2(RoundGPU(v.x), RoundGPU(v.y)               );}
 #endif
 
 // floor, round to nearest integer which is smaller or equal to value, Sample Usage: Floor(7.3) -> 7, Floor(7.9) -> 7
-inline Int   Floor (  Int    x) {return x;}
-inline Int   Floor (  Flt    x) {return (Int )floorf(x);}
-inline Int   Floor (  Dbl    x) {return (Int )floor (x);}
-inline Long  FloorL(  Dbl    x) {return (Long)floor (x);}
-inline VecI2 Floor (C Vec2  &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
-inline VecI2 Floor (C VecD2 &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
-inline VecI  Floor (C Vec   &x) {return VecI (Floor(x.x), Floor(x.y), Floor(x.z)            );}
-inline VecI  Floor (C VecD  &x) {return VecI (Floor(x.x), Floor(x.y), Floor(x.z)            );}
-inline VecI4 Floor (C Vec4  &x) {return VecI4(Floor(x.x), Floor(x.y), Floor(x.z), Floor(x.w));}
-inline VecI4 Floor (C VecD4 &x) {return VecI4(Floor(x.x), Floor(x.y), Floor(x.z), Floor(x.w));}
+constexpr Int   Floor (  Int    x) {return x;}
+inline    Int   Floor (  Flt    x) {return (Int )floorf(x);}
+inline    Int   Floor (  Dbl    x) {return (Int )floor (x);}
+inline    Long  FloorL(  Dbl    x) {return (Long)floor (x);}
+inline    VecI2 Floor (C Vec2  &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
+inline    VecI2 Floor (C VecD2 &x) {return VecI2(Floor(x.x), Floor(x.y)                        );}
+inline    VecI  Floor (C Vec   &x) {return VecI (Floor(x.x), Floor(x.y), Floor(x.z)            );}
+inline    VecI  Floor (C VecD  &x) {return VecI (Floor(x.x), Floor(x.y), Floor(x.z)            );}
+inline    VecI4 Floor (C Vec4  &x) {return VecI4(Floor(x.x), Floor(x.y), Floor(x.z), Floor(x.w));}
+inline    VecI4 Floor (C VecD4 &x) {return VecI4(Floor(x.x), Floor(x.y), Floor(x.z), Floor(x.w));}
 
 // ceil, round to nearest integer which is greater or equal to value, Sample Usage: Ceil(7.3) -> 8, Ceil(7.9) -> 8
-inline Int   Ceil (  Int    x) {return x;}
-inline Int   Ceil (  Flt    x) {return (Int )ceilf(x);}
-inline Int   Ceil (  Dbl    x) {return (Int )ceil (x);}
-inline Long  CeilL(  Dbl    x) {return (Long)ceil (x);}
-inline VecI2 Ceil (C Vec2  &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
-inline VecI2 Ceil (C VecD2 &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
-inline VecI  Ceil (C Vec   &x) {return VecI (Ceil(x.x), Ceil(x.y), Ceil(x.z)           );}
-inline VecI  Ceil (C VecD  &x) {return VecI (Ceil(x.x), Ceil(x.y), Ceil(x.z)           );}
-inline VecI4 Ceil (C Vec4  &x) {return VecI4(Ceil(x.x), Ceil(x.y), Ceil(x.z), Ceil(x.w));}
-inline VecI4 Ceil (C VecD4 &x) {return VecI4(Ceil(x.x), Ceil(x.y), Ceil(x.z), Ceil(x.w));}
+constexpr Int   Ceil (  Int    x) {return x;}
+inline    Int   Ceil (  Flt    x) {return (Int )ceilf(x);}
+inline    Int   Ceil (  Dbl    x) {return (Int )ceil (x);}
+inline    Long  CeilL(  Dbl    x) {return (Long)ceil (x);}
+inline    VecI2 Ceil (C Vec2  &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
+inline    VecI2 Ceil (C VecD2 &x) {return VecI2(Ceil(x.x), Ceil(x.y)                      );}
+inline    VecI  Ceil (C Vec   &x) {return VecI (Ceil(x.x), Ceil(x.y), Ceil(x.z)           );}
+inline    VecI  Ceil (C VecD  &x) {return VecI (Ceil(x.x), Ceil(x.y), Ceil(x.z)           );}
+inline    VecI4 Ceil (C Vec4  &x) {return VecI4(Ceil(x.x), Ceil(x.y), Ceil(x.z), Ceil(x.w));}
+inline    VecI4 Ceil (C VecD4 &x) {return VecI4(Ceil(x.x), Ceil(x.y), Ceil(x.z), Ceil(x.w));}
 
 #if EE_PRIVATE
-inline Int FloorSpecial(Flt x) {return Ceil (x-1);} // this works in a similar way to "Floor(x)" however if a value falls exactly on integer (which means that fraction==0) then previous integer is chosen
-inline Int  CeilSpecial(Flt x) {return Floor(x+1);} // this works in a similar way to "Ceil (x)" however if a value falls exactly on integer (which means that fraction==0) then next     integer is chosen
+inline    Int FloorSpecial(Flt x) {return Ceil (x-1);} // this works in a similar way to "Floor(x)" however if a value falls exactly on integer (which means that fraction==0) then previous integer is chosen
+inline    Int  CeilSpecial(Flt x) {return Floor(x+1);} // this works in a similar way to "Ceil (x)" however if a value falls exactly on integer (which means that fraction==0) then next     integer is chosen
 #endif
 
 // get fraction, gets fractional part of a real value, Sample Usage: Frac(7.3) -> 0.3, Frac(7.9) -> 0.9
-inline Flt  Frac(  Flt   x) {return x-floorf(x);} // [0..1), use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
-inline Dbl  Frac(  Dbl   x) {return x-floor (x);} // [0..1), use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
-inline Vec2 Frac(C Vec2 &v) {return Vec2(Frac(v.x), Frac(v.y)                      );}
-inline Vec  Frac(C Vec  &v) {return Vec (Frac(v.x), Frac(v.y), Frac(v.z)           );}
-inline Vec4 Frac(C Vec4 &v) {return Vec4(Frac(v.x), Frac(v.y), Frac(v.z), Frac(v.w));}
+inline    Flt  Frac(  Flt   x) {return x-floorf(x);} // [0..1), use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Dbl  Frac(  Dbl   x) {return x-floor (x);} // [0..1), use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Vec2 Frac(C Vec2 &v) {return Vec2(Frac(v.x), Frac(v.y)                      );}
+inline    Vec  Frac(C Vec  &v) {return Vec (Frac(v.x), Frac(v.y), Frac(v.z)           );}
+inline    Vec4 Frac(C Vec4 &v) {return Vec4(Frac(v.x), Frac(v.y), Frac(v.z), Frac(v.w));}
 
-inline Flt FracS(Flt x) {return x-Trunc(x);} // (-1..1) (sign preserving)
-inline Dbl FracS(Dbl x) {return x-Trunc(x);} // (-1..1) (sign preserving)
+constexpr Flt FracS(Flt x) {return x-Trunc(x);} // (-1..1) (sign preserving)
+constexpr Dbl FracS(Dbl x) {return x-Trunc(x);} // (-1..1) (sign preserving)
 
-inline Flt Frac (Flt x, Flt range) {return Frac (x/range)*range;} // [     0..range)
-inline Dbl Frac (Dbl x, Dbl range) {return Frac (x/range)*range;} // [     0..range)
-inline Flt FracS(Flt x, Flt range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
-inline Dbl FracS(Dbl x, Dbl range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
+inline    Flt Frac (Flt x, Flt range) {return Frac (x/range)*range;} // [     0..range)
+inline    Dbl Frac (Dbl x, Dbl range) {return Frac (x/range)*range;} // [     0..range)
+inline    Flt FracS(Flt x, Flt range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
+inline    Dbl FracS(Dbl x, Dbl range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
 
 // align
-inline Int AlignTrunc(Flt x, Int align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-inline Flt AlignTrunc(Flt x, Flt align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-inline Dbl AlignTrunc(Dbl x, Dbl align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-inline Int AlignRound(Flt x, Int align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-inline Flt AlignRound(Flt x, Flt align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-inline Dbl AlignRound(Dbl x, Dbl align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-inline Int AlignFloor(Flt x, Int align) {return Floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor
-inline Flt AlignFloor(Flt x, Flt align) {return floorf(x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
-inline Dbl AlignFloor(Dbl x, Dbl align) {return floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
-inline Int AlignCeil (Flt x, Int align) {return Ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil
-inline Flt AlignCeil (Flt x, Flt align) {return ceilf (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
-inline Dbl AlignCeil (Dbl x, Dbl align) {return ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
+constexpr Int AlignTrunc(Flt x, Int align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Flt AlignTrunc(Flt x, Flt align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Dbl AlignTrunc(Dbl x, Dbl align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Int AlignRound(Flt x, Int align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Flt AlignRound(Flt x, Flt align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Dbl AlignRound(Dbl x, Dbl align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+inline    Int AlignFloor(Flt x, Int align) {return Floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Flt AlignFloor(Flt x, Flt align) {return floorf(x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Dbl AlignFloor(Dbl x, Dbl align) {return floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Int AlignCeil (Flt x, Int align) {return Ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Flt AlignCeil (Flt x, Flt align) {return ceilf (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
+inline    Dbl AlignCeil (Dbl x, Dbl align) {return ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
