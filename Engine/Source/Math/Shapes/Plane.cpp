@@ -367,15 +367,14 @@ static void Test()
 }
 /******************************************************************************/
 #define EPS_NRM_DOT 0.999999f // using EPS_COS 0.9999995f was insufficient
-Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm)
+Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C Circle *circle)
 {
    if(Flt move_len=move.length2())
    {
       move_len=SqrtFast(move_len);
       Int  step=0;
-      Vec2 cur_pos=circle.pos;
+      Vec2 cur_pos=object.pos;
       Vec2 move_n=move/move_len;
-      Flt  circle_r2=Sqr(circle.r);
       Vec2 hit_nrm_prev;
    again:
       Flt  hit_len=move_len; // find only smaller than move length
@@ -394,14 +393,14 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
             {
                if(step && Dot(edge_n, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_edge; // if same normal as from previous step, then ignore this edge
 
-                  dist_nrm-=circle.r;
-               if(dist_nrm<=0) // circle intersecting edge
+                  dist_nrm-=object.r;
+               if(dist_nrm<=0) // object intersecting edge
                {
                   Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
                   if(DistPointPlane(cur_pos, edge_p0, edge_dir)>=0
                   && DistPointPlane(cur_pos, edge_p1, edge_dir)<=0)
                   {
-                     cur_pos-=edge_n*dist_nrm; // move circle along edge normal to avoid intersection
+                     cur_pos-=edge_n*dist_nrm; // move object along edge normal to avoid intersection
                      hit_len=0;
                      hit_nrm=edge_n;
                      goto hit_found;
@@ -411,7 +410,7 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
                {
                   Flt dist_move=-dist_nrm/move_dot; if(dist_move<hit_len) // if less than previous distance
                   {
-                     Vec2 closest=cur_pos-edge_n*circle.r; // closest point on circle to the edge
+                     Vec2 closest=cur_pos-edge_n*object.r; // closest point on object to the edge
                           closest+=move_n*dist_move;
                      Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
                      if(DistPointPlane(closest, edge_p0, edge_dir)>=0
@@ -426,30 +425,30 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
          }
       ignore_edge:;
       }
-      // points
+      // points and circles
       {
          Vec2 move_r=Perp(move_n);
-         Vec2 circle_rel(Dot(cur_pos, move_r), Dot(cur_pos, move_n)); // circle position in space relative to movement
+         Vec2 object_rel(Dot(cur_pos, move_r), Dot(cur_pos, move_n)); // object position in space relative to movement
          REPD(v, vtxs)
          {
           C Vec2 &pos=vtx_pos[v];
             Vec2  pos_rel;
-            pos_rel.x=Dot(pos, move_r)-circle_rel.x; // check X first because this will eliminate more vertexes
-            if(Abs(pos_rel.x)<circle.r) // consider only vertexes along the movement line
+            pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more vertexes
+            if(Abs(pos_rel.x)<object.r) // consider only vertexes along the movement line
             {
                pos_rel.y=Dot(pos, move_n); // check Y
-               if(pos_rel.y>circle_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and vtx_pos are the same and movement would always be stuck no matter what direction
+               if(pos_rel.y>object_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and vtx_pos are the same and movement would always be stuck no matter what direction
                {
-                  Flt dist_move=pos_rel.y-circle_rel.y; // !! Warning: this is not yet complete !!
-                  if( dist_move<hit_len+circle.r) // if can potentially have smaller distance
+                  Flt dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
+                  if( dist_move<hit_len+object.r) // if can potentially have smaller distance
                   {
-                        dist_move-=CosSin(pos_rel.x/circle.r)*circle.r; // finish calculation
+                        dist_move-=CosSin(pos_rel.x/object.r)*object.r; // finish calculation
                      if(dist_move<hit_len) // if less than previous distance
                      {
-                        if(dist_move<=0) // circle intersecting point
+                        if(dist_move<=0) // object intersecting point
                         {
                            Vec2 delta=cur_pos-pos; Flt delta_len2=delta.length2(); if(!delta_len2)goto ignore_vtx; // if length is zero then cur pos and vtx pos are the same so just ignore it, this check is also needed for div by 0
-                         //if(delta_len2<circle_r2) shouldn't be needed at this stage
+                         //if(delta_len2<Sqr(object.r)) shouldn't be needed at this stage
                            {
                               Flt  delta_len=SqrtFast(delta_len2);
                               Vec2 nrm=delta/delta_len;
@@ -457,7 +456,7 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
 
                               hit_len=0;
                               hit_nrm=nrm;
-                              cur_pos+=hit_nrm*(circle.r-delta_len); // move circle away from point
+                              cur_pos+=hit_nrm*(object.r-delta_len); // move object away from point
                               goto hit_found;
                            }
                         }
@@ -472,6 +471,51 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
                }
             }
          ignore_vtx:;
+         }
+         REPD(c, circles)
+         {
+          C Circle &circ=circle[c];
+            Flt     r   =circ.r+object.r;
+          C Vec2   &pos =circ.pos;
+            Vec2    pos_rel;
+            pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more circles
+            if(Abs(pos_rel.x)<r) // consider only circles along the movement line
+            {
+               pos_rel.y=Dot(pos, move_n); // check Y
+               if(pos_rel.y>object_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and circle_pos are the same and movement would always be stuck no matter what direction
+               {
+                  Flt dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
+                  if( dist_move<hit_len+r) // if can potentially have smaller distance
+                  {
+                        dist_move-=CosSin(pos_rel.x/r)*r; // finish calculation
+                     if(dist_move<hit_len) // if less than previous distance
+                     {
+                        if(dist_move<=0) // object intersecting circle
+                        {
+                           Vec2 delta=cur_pos-pos; Flt delta_len2=delta.length2(); if(!delta_len2)goto ignore_circle; // if length is zero then cur pos and circle pos are the same so just ignore it, this check is also needed for div by 0
+                         //if(delta_len2<Sqr(r)) shouldn't be needed at this stage
+                           {
+                              Flt  delta_len=SqrtFast(delta_len2);
+                              Vec2 nrm=delta/delta_len;
+                              if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_circle; // if same normal as from previous step, then ignore this circle
+
+                              hit_len=0;
+                              hit_nrm=nrm;
+                              cur_pos+=hit_nrm*(r-delta_len); // move object away from circle
+                              goto hit_found;
+                           }
+                        }
+
+                        Vec2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
+                        if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_circle; // if same normal as from previous step, then ignore this circle
+
+                        hit_len=dist_move;
+                        hit_nrm=nrm;
+                     }
+                  }
+               }
+            }
+         ignore_circle:;
          }
       }
       if(hit_len<move_len) // collision
@@ -494,7 +538,7 @@ Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
       }
       return cur_pos+(step ? move_n*hit_len : move); // no collision = move all the way
    }
-   return circle.pos;
+   return object.pos;
 }
 /******************************************************************************/
 }

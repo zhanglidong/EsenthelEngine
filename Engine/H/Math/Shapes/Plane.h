@@ -192,6 +192,6 @@ inline Bool SweepPlanePoint(C PlaneD  &plane, C VecD  &move, C VecD  &point, Dbl
 void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals);
 void SlideMovement(Vec  &move, C Vec  *normal, Int normals);
 
-// slide 'circle' 'move' movement by geometry, this function returns circle position after movement
-Vec2 SlideMovement(C Circle &circle, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm=null); // 'edge_nrm'=optional edge normals (must be normalized)
+// move 'object' along 'move' movement while sliding with geometry, this function returns object position after movement
+Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm=null, Int circles=0, C Circle *circle=null); // 'edge_nrm'=optional edge normals (can be null, if specified then must be normalized)
 /******************************************************************************/
