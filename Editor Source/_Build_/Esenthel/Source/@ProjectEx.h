@@ -148,6 +148,7 @@ public:
    MenuBar              menu;
    Node<MenuElm>        obj_class_node, param_type_node, font_node;
    Sound                sound;
+   Matrix                    mesh_matrix;
    Mesh                      mesh_mem; // use 'Mesh' so it can store 'BoneMap'
    Skeleton                  skel_mem;
    EditSkeleton         edit_skel_mem;

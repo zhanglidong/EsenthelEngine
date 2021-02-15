@@ -512,7 +512,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
           C MeshPart &part=lod.parts[p]; if(partVisible(p, part))
             {
                bool lit=(p==lit_part), sel=partSel(p);
-               Matrix m=transformMatrix(partOp(p)), cam=ActiveCam.matrix*~m; SetMatrix(m);
+               Matrix m=transformMatrix(partOp(p)), cam=ActiveCam.matrix/m; SetMatrix(m);
                VI.color(GetLitSelCol(lit, sel));
                REPA(part.base.vtx)
                {
@@ -554,7 +554,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   if(C Vec *pos=base.vtx.pos())
                   if(C Vec *nrm=base.vtx.nrm())
                   {
-                     Matrix m=transformMatrix(partOp(p)), cam=ActiveCam.matrix*~m; SetMatrix(m);
+                     Matrix m=transformMatrix(partOp(p)), cam=ActiveCam.matrix/m; SetMatrix(m);
                      flt    l=length/m.avgScale();
                      REPA(base.vtx)
                      {
@@ -574,7 +574,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if(sel_vtx.elms() || sel_face.elms())
       {
          D.depthLock(false);
-         Matrix matrix=transformMatrix(true), cam=ActiveCam.matrix*~matrix;
+         Matrix matrix=transformMatrix(true), cam=ActiveCam.matrix/matrix;
          SetMatrix(matrix);
        C MeshLod &lod=getLod();
 
@@ -642,7 +642,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(lit_vtx>=0 || lit_face!=-1)if(C MeshPart *part=getPart(lit_vf_part))if(C Vec *pos=part->base.vtx.pos())
       {
          D.depthLock(false);
-         Matrix matrix=transformMatrix(partOp(lit_vf_part)), cam=ActiveCam.matrix*~matrix; SetMatrix(matrix);
+         Matrix matrix=transformMatrix(partOp(lit_vf_part)), cam=ActiveCam.matrix/matrix; SetMatrix(matrix);
          Memt<int> lit;
 
          // vertexes
@@ -960,7 +960,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          MeshLod &lod=getLod();
          view->setViewportCamera();
-         Matrix matrix=transformMatrix(), cam=ActiveCam.matrix*~matrix;
+         Matrix matrix=transformMatrix(), cam=ActiveCam.matrix/matrix;
          flt dist=0, d;
          if(hit_vtx)
          {
@@ -1004,7 +1004,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          MeshLod &lod=getLod();
          view->setViewportCamera();
-         Matrix matrix=transformMatrix(), cam=ActiveCam.matrix*~matrix;
+         Matrix matrix=transformMatrix(), cam=ActiveCam.matrix/matrix;
          REPAD(p, lod)
          {
           C MeshPart &part=lod.parts[p]; if(partVisible(p, part))if(part.base.vtx.pos())REPA(part.base.vtx)
@@ -2545,7 +2545,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   case  1: trans.trans.pos.y+=AlignDirToCamEx(    trans.matrix.y, Ms.d()*mul); break;
                   case  2: trans.trans.pos.z+=AlignDirToCamEx(    trans.matrix.z, Ms.d()*mul); break;
                   default: trans.trans.pos  +=               (ActiveCam.matrix.x*Ms.d().x*mul.x
-                                                             +ActiveCam.matrix.y*Ms.d().y*mul.y)*~trans.matrix.orn(); break;
+                                                             +ActiveCam.matrix.y*Ms.d().y*mul.y)/trans.matrix.orn(); break;
                }
             }break;
 

@@ -283,6 +283,7 @@ class ProjectEx : ProjectHierarchy
    MenuBar              menu;
    Node<MenuElm>        obj_class_node, param_type_node, font_node;
    Sound                sound;
+   Matrix                    mesh_matrix(1);
    Mesh                      mesh_mem; // use 'Mesh' so it can store 'BoneMap'
    Skeleton                  skel_mem;
    EditSkeleton         edit_skel_mem;
@@ -5112,7 +5113,7 @@ class ProjectEx : ProjectHierarchy
       HideProject();
 
       elm_undos.del();
-      mesh_mem.del();
+      mesh_mem.del(); mesh_matrix.identity();
       sound.close();
       lit_elm_id.zero(); lit_elm_name.clear();
       ObjEdit.back_meshes.clear();

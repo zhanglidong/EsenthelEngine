@@ -147,14 +147,16 @@ class LodRegion : Region
       if(ObjEdit.obj_elm && contains(focus_obj))REPAD(l, lods)if(lods[l].contains(focus_obj))
       {
          REPA(elms)
-            if(Elm *elm=Proj.findElm(elms[i], ELM_OBJ))
-               if(ElmObj *obj_data=elm.objData())
-                  if(obj_data.mesh_id.valid())
+            if(Elm *obj_elm=Proj.findElm(elms[i], ELM_OBJ))
+               if(ElmObj *obj_data=obj_elm.objData())
+                  if(Elm *mesh_elm=Proj.findElm(obj_data.mesh_id, ELM_MESH))
+                     if(ElmMesh *mesh_data=mesh_elm.meshData())
          {
-            Mesh src; if(Load(src, Proj.editPath(obj_data.mesh_id), Proj.game_path))if(src.is())
+            Mesh src; if(Load(src, Proj.editPath(mesh_elm.id), Proj.game_path))if(src.is())
             {
                ObjEdit.mesh_undos.set("lod");
                ObjEdit.getMeshElm(); // make sure mesh exists
+               src.transform(mesh_data.transform()/ObjEdit.mesh_matrix);
                src.skeleton(ObjEdit.mesh_skel).skeleton(null); // set skeleton to remap bones to match the original mesh
                src.setTanBin().setRender(); // set tan/bin because src mesh from disk doesn't have them
                // keep original matrix as the 'mesh' matrix is identity

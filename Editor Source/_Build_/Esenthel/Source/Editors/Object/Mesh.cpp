@@ -724,6 +724,7 @@ void ObjView::meshDelDblSide()
 void ObjView::meshCopyLods()
 {
    Proj.mesh_mem.create(mesh);
+   Proj.mesh_matrix=mesh_matrix;
 }
 void ObjView::meshReplaceLods()
 {
@@ -858,7 +859,7 @@ void ObjView::meshCopyParts()
          {
             int old_parts=getLod().parts.elms();
             src_mesh.drawGroupEnum(null);
-            src_mesh.transform(src_mesh_data->transform() * ~dest_mesh_data->transform());
+            src_mesh.transform(src_mesh_data->transform() / dest_mesh_data->transform());
             if(mesh_skel && mesh_skel->bones.elms())src_mesh.skeleton(mesh_skel); // adjust to the new skeleton
             else                                   src_mesh.exclude(VTX_SKIN).clearSkeleton(); // remove completely
             if(mode()==LOD && (mesh.lods()>1 || mesh.parts.elms())) // if in LOD mode, and mesh has anything (lods or parts), then add to current LOD only

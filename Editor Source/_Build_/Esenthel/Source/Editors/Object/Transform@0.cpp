@@ -189,7 +189,7 @@
          {
             ObjEdit.mesh_undos.set("transform");
             MeshLod &lod=ObjEdit.getLod();
-            Matrix matrix=ObjEdit.mesh_matrix*T.matrix*~ObjEdit.mesh_matrix; // "edit mesh" is in 'MatrixIdentity' however we're expecting it to be in 'mesh_matrix'
+            Matrix matrix=ObjEdit.mesh_matrix*T.matrix/ObjEdit.mesh_matrix; // "edit mesh" is in 'MatrixIdentity' however we're expecting it to be in 'mesh_matrix'
 
             if(ObjEdit.mesh_parts.edit_selected())
             {

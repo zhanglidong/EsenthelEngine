@@ -174,6 +174,7 @@ class MeshParts : Window
    }
    static void CopyMem()
    {
+      Proj.mesh_matrix=ObjEdit.mesh_matrix;
       Mesh &dest=Proj.mesh_mem; C MeshLod &src=ObjEdit.getLod(); dest.create(ObjEdit.mesh).setLods(1).parts.del(); // use 'Mesh.create' to copy 'BoneMap'
       FREPA(src)if(ObjEdit.mesh_parts.partSel(i))dest.parts.New().create(src.parts[i]);
    }
@@ -387,7 +388,7 @@ class MeshParts : Window
       ObjEdit.mesh_undos.set("add");
       if(ObjEdit.getMeshElm())
       {
-         Mesh temp; temp.create(Proj.mesh_mem);
+         Mesh temp; temp.create(Proj.mesh_mem).transform(Proj.mesh_matrix/ObjEdit.mesh_matrix);
          if( ObjEdit.mesh_skel && ObjEdit.mesh_skel.is())temp.skeleton(ObjEdit.mesh_skel).skeleton(null);else temp.clearSkeleton().exclude(VTX_SKIN); // call 'skeleton' to reassign bone mapping or remove it if not present
          if(!ObjEdit.mesh.is())Swap(ObjEdit.mesh, temp);else // if this mesh is empty, then just create from 'temp', this will copy all variations
          {

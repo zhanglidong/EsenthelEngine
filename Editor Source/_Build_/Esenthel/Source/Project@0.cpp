@@ -5024,7 +5024,7 @@ void DrawProject()
       HideProject();
 
       elm_undos.del();
-      mesh_mem.del();
+      mesh_mem.del(); mesh_matrix.identity();
       sound.close();
       lit_elm_id.zero(); lit_elm_name.clear();
       ObjEdit.back_meshes.clear();
@@ -5119,7 +5119,7 @@ void DrawProject()
       Importer.investigate(root); // call after setting list because may rely on hierarchy
       resumeServer();
    }
-ProjectEx::ProjectEx() : filter_is_id(false), filter_id(UIDZero), lit_elm_id(UIDZero), list_cur(UIDZero), list_cur_item(null), save_time(0), elm_undos(false, this), file_size_getter_step(false) {}
+ProjectEx::ProjectEx() : filter_is_id(false), filter_id(UIDZero), lit_elm_id(UIDZero), list_cur(UIDZero), list_cur_item(null), mesh_matrix(1), save_time(0), elm_undos(false, this), file_size_getter_step(false) {}
 
 ProjectEx::OuterRegion::OuterRegion() : resize_on(false) {}
 
