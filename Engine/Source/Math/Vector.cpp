@@ -101,12 +101,16 @@ Vec4 AvgF(C VecI4 &a, C VecI4 &b) {return Avg(Vec4(a), Vec4(b));}
 Flt Dist (C Vec2  &a, C Vec2  &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C VecI2 &a, C Vec2  &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C Vec2  &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
+Dbl Dist (C Vec2  &a, C VecD2 &b) {return Dist (a.x-b.x, a.y-b.y);}
+Dbl Dist (C VecD2 &a, C Vec2  &b) {return Dist (a.x-b.x, a.y-b.y);}
 Dbl Dist (C VecD2 &a, C VecD2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Dbl Dist (C VecD2 &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C VecI2 &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist2(C Vec2  &a, C Vec2  &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Flt Dist2(C VecI2 &a, C Vec2  &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Flt Dist2(C Vec2  &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
+Dbl Dist2(C Vec2  &a, C VecD2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
+Dbl Dist2(C VecD2 &a, C Vec2  &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Dbl Dist2(C VecD2 &a, C VecD2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Dbl Dist2(C VecD2 &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Int Dist2(C VecI2 &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
