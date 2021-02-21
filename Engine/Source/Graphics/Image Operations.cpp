@@ -485,6 +485,41 @@ Image& Image::mirrorY()
    return T;
 }
 /******************************************************************************/
+Image& Image::mirrorXY()
+{
+   if(is())
+   {
+    C Image *src=this;
+      Image  temp;
+      if(compressed())
+         if(copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else return T;
+      if(src->lockRead())
+      {
+         Bool  ok=false;
+         Image mirror; if(mirror.createTry(src->w(), src->h(), src->d(), src->type(), src->mode(), src->mipMaps()))
+            if(mirror.lock(LOCK_WRITE))
+         {
+            if(mirror.highPrecision())
+            {
+               REPD(z, mirror.d())
+               REPD(y, mirror.h())
+               REPD(x, mirror.w())mirror.color3DF(x, y, z, src->color3DF(mirror.w()-1-x, mirror.h()-1-y, z));
+            }else
+            {
+               REPD(z, mirror.d())
+               REPD(y, mirror.h())
+               REPD(x, mirror.w())mirror.color3D(x, y, z, src->color3D(mirror.w()-1-x, mirror.h()-1-y, z));
+            }
+            mirror.unlock().updateMipMaps();
+            ok=mirror.copyTry(mirror, w(), h(), d(), type(), mode(), mipMaps());
+         }
+         src->unlock();
+         if(ok)Swap(T, mirror);
+      }
+   }
+   return T;
+}
+/******************************************************************************/
 void Image::transform(Image &dest, C Matrix2 &matrix, FILTER_TYPE filter, UInt flags)C
 {
    if(is())
