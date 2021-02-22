@@ -1042,7 +1042,7 @@ bool HighPrecTransform(C Str &name)
        || name=="bump" || name=="bumpClamp"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
-       || name=="gamma" || name=="gammaA" || name=="gammaLum" || name=="gammaSat"
+       || name=="gamma" || name=="gammaA" || name=="gammaLum" || name=="gammaLumPhoto" || name=="gammaSat"
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
@@ -1686,6 +1686,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); if(flt lum=c.xyz.max()){c.xyz*=PowMax(lum, g)/lum; image.color3DF(x, y, z, c);}}
+   }else
+   if(param.name=="gammaLumPhoto")
+   {
+      flt g=param.asFlt();
+      if(g!=1)
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++){Vec4 c=image.color3DF(x, y, z); if(flt lum=SRGBLumOfSRGBColor(c.xyz)){c.xyz*=PowMax(lum, g)/lum; image.color3DF(x, y, z, c);}}
    }else
    if(param.name=="SRGBToLinear")
    {
