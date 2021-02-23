@@ -516,10 +516,6 @@ UID& UID::randomize()
 #elif LINUX || ANDROID
    if(DR.set(this, SIZE(T)))return T;
 #elif SWITCH
-   nn::util::Uuid uuid=nn::util::GenerateUuid();
-   ASSERT(SIZE(uuid)==SIZE(T));
-   T=(UID&)uuid;
-   return T;
 #elif WEB
    if(EM_ASM_INT(var crypto=window.crypto || window.msCrypto; return typeof(crypto)!=='undefined' && typeof(crypto.getRandomValues)!=='undefined'))
    {
