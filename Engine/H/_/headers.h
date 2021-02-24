@@ -446,10 +446,10 @@
       #include <sys/ioctl.h>
       #include <sys/socket.h>
       #include <sys/wait.h>
-      #include <netdb.h>
       #include <nn/os.h>
       #include <nn/util/util_Uuid.h>
       #include <nn/socket/sys/cdefs.h>
+      #include <netdb.h>
       #include <netinet/in.h>
       #include <netinet/tcp.h>
       #include <nn/socket/netinet6/in6.h>
