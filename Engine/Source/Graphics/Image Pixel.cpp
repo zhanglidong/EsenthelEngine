@@ -5233,7 +5233,7 @@ struct CopyContext
       }
    }
 
-   CopyContext(C Image &src, Image &dest, FILTER_TYPE filter, UInt flags) : src(src), dest(dest), filter(filter), flags(flags),
+   CopyContext(C Image &src, Image &dest, FILTER_TYPE filter, UInt flags) : src(src), dest(dest),
       clamp(IcClamp(flags)),
       keep_edges(FlagTest(flags, IC_KEEP_EDGES)),
       alpha_weight(FlagTest(flags, IC_ALPHA_WEIGHT) && src.typeInfo().a), // only if source has alpha
@@ -5259,7 +5259,9 @@ struct CopyContext
       ignore_gamma_ds(ignore_gamma && !(src_srgb && dest_srgb)), // if both are sRGB then disable 'ignore_gamma_ds'
 
       src_high_prec(src.highPrecision()), high_prec((src_high_prec && dest.highPrecision()) || !ignore_gamma),
+      filter(filter),
       src_faces1(src.faces()-1),
+      flags(flags),
       SetColor(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL) // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
    {}
    Bool process(Int max_mip_maps, Flt sharp_smooth)

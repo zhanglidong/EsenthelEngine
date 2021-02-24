@@ -94,7 +94,7 @@ RendererClass::Context::Sub::Sub()
    proj_matrix_prev=ProjMatrix; // copy from current (needed for MotionBlur and TAA)
 }
 /******************************************************************************/
-RendererClass::RendererClass() : highlight(null), material_color_l(null)
+RendererClass::RendererClass() : material_color_l(null), highlight(null)
 {
 #if 0 // there's only one 'RendererClass' global 'Renderer' and it doesn't need clearing members to zero
    stage=RS_DEFAULT;

@@ -978,6 +978,9 @@ struct Builder
 
    Memt<MtrlCombo> mtrl_combos;
 
+   Mems<MeshPart> *lod_parts;
+   Image          &height, &mtrl_index;
+
 #if VMC_CONTINUOUS
    UInt         vmc_elms, // number of vmc currently used
                 vmc_first[MAX_HM_RES][MAX_HM_RES]; // [y][x] index of the first vmc for a given vertex location, ~0 if none
@@ -985,9 +988,6 @@ struct Builder
 #else
    VtxMtrlCombos (&vmc)[MAX_HM_RES][MAX_HM_RES];
 #endif
-
-   Mems<MeshPart> *lod_parts;
-   Image          &height, &mtrl_index;
 
    Builder(Image &height, Image &mtrl_index
    #if !VMC_CONTINUOUS

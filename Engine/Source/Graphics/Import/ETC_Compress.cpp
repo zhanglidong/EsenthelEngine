@@ -86,7 +86,7 @@ struct ETCContext
    Int block_size;
 #endif
    
-   ETCContext(C Image &src, Image &dest, Int quality) : src(src), dest(dest), quality(quality) {}
+   ETCContext(C Image &src, Image &dest, Int quality) : quality(quality), src(src), dest(dest) {}
 
    static void Process(IntPtr elm_index, ETCContext &ctx, Int thread_index) {ctx.process(elm_index);}
           void process(Int    by)
