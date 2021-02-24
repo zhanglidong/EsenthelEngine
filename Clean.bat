@@ -30,6 +30,7 @@ rmdir /s /q "Project\x64"
 rmdir /s /q "x64"
 
 del "Engine\*.lib"
+del "Engine\*.sdf"
 del "Project\*.pdb"
 
 rmdir /s /q "Editor\Projects\_Build_"
