@@ -1562,12 +1562,8 @@ Bool Pak::create(C CMemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *
 }
 /******************************************************************************/
 // TODO: use binarySearch, make sure Editor passes files sorted in order and that name from UID is sorted too
-static Int ComparePath(C PakFileData* &a, C PakFileData* &b)
-{
-   return ComparePath(a->name, b->name);
-}
-static      PakNode * FindElm         (Memb<PakNode> &nodes, Str name) {REPA(nodes)if(nodes[i].name==name)return &nodes[i]; return null;}
-static Memb<PakNode>* FindNodeChildren(Memb<PakNode> &nodes, Str path) // find 'children' container of 'path' node, null if not found (don't create new elements)
+static      PakNode * FindElm         (Memb<PakNode> &nodes, C Str &name) {REPA(nodes)if(nodes[i].name==name)return &nodes[i]; return null;}
+static Memb<PakNode>* FindNodeChildren(Memb<PakNode> &nodes, C Str &path) // find 'children' container of 'path' node, null if not found (don't create new elements)
 {
    Str start=_GetStart(path); if(!start.is())return &nodes;
    if(PakNode *node=FindElm(nodes, start))return FindNodeChildren(node->children, GetStartNot(path));
