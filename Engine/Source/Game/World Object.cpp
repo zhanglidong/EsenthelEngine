@@ -216,7 +216,7 @@ struct ObjGetBall
    Flt           ball_r2 ; // squared radius for faster calculations
    MemPtr<Obj*> &objects ;
 
-   ObjGetBall(MemPtr<Obj*> &objects, C Ball &ball, Int obj_type) : objects(objects), obj_type(obj_type) {ball_pos=ball.pos; ball_r2=Sqr(ball.r);}
+   ObjGetBall(MemPtr<Obj*> &objects, C Ball &ball, Int obj_type) : obj_type(obj_type), objects(objects) {ball_pos=ball.pos; ball_r2=Sqr(ball.r);}
 };
 static void ObjGetAddBall(Cell<Area> &cell, ObjGetBall &oq)
 {
@@ -238,7 +238,7 @@ struct ObjGetCapsule
    Flt           radius  ;
    MemPtr<Obj*> &objects ;
 
-   ObjGetCapsule(MemPtr<Obj*> &objects, C Capsule &capsule, Int obj_type) : objects(objects), obj_type(obj_type)
+   ObjGetCapsule(MemPtr<Obj*> &objects, C Capsule &capsule, Int obj_type) : obj_type(obj_type), objects(objects)
    {
       Vec up=(capsule.h*0.5f-capsule.r)*capsule.up;
       edge.p[0]= capsule.pos-up;
@@ -265,7 +265,7 @@ struct ObjGetBox
    Box           box     ;
    MemPtr<Obj*> &objects ;
    
-   ObjGetBox(MemPtr<Obj*> &objects, C Box &box, Int obj_type) : objects(objects), box(box), obj_type(obj_type) {}
+   ObjGetBox(MemPtr<Obj*> &objects, C Box &box, Int obj_type) : obj_type(obj_type), box(box), objects(objects) {}
 };
 static void ObjGetAddBox(Cell<Area> &cell, ObjGetBox &oq)
 {
@@ -286,7 +286,7 @@ struct ObjGetOBox
    OBox          obox    ;
    MemPtr<Obj*> &objects ;
 
-   ObjGetOBox(MemPtr<Obj*> &objects, C OBox &obox, Int obj_type) : objects(objects), obox(obox), obj_type(obj_type) {}
+   ObjGetOBox(MemPtr<Obj*> &objects, C OBox &obox, Int obj_type) : obj_type(obj_type), obox(obox), objects(objects) {}
 };
 static void ObjGetAddOBox(Cell<Area> &cell, ObjGetOBox &oq)
 {
