@@ -1642,11 +1642,11 @@ Bool CompressRaw(File &src, File &dest, COMPRESS_TYPE type, Int compression_leve
    #if SUPPORT_LZHAM
       case COMPRESS_LZHAM : return  LZHAMCompress(src, dest, compression_level, multi_threaded, callback);
    #endif
-   #if SUPPORT_BROTLI
-      case COMPRESS_BROTLI: return BrotliCompress(src, dest, compression_level                , callback);
-   #endif
    #if SUPPORT_ZSTD
       case COMPRESS_ZSTD  : return   ZSTDCompress(src, dest, compression_level                , callback);
+   #endif
+   #if SUPPORT_BROTLI
+      case COMPRESS_BROTLI: return BrotliCompress(src, dest, compression_level                , callback);
    #endif
       default             : return false;
    }
@@ -1678,11 +1678,11 @@ Bool DecompressRaw(File &src, File &dest, COMPRESS_TYPE type, ULong compressed_s
    #if SUPPORT_LZHAM
       case COMPRESS_LZHAM : return  LZHAMDecompress(src, dest, compressed_size, decompressed_size, callback);
    #endif
-   #if SUPPORT_BROTLI
-      case COMPRESS_BROTLI: return BrotliDecompress(src, dest, compressed_size, decompressed_size, callback);
-   #endif
    #if SUPPORT_ZSTD
       case COMPRESS_ZSTD  : return   ZSTDDecompress(src, dest, compressed_size, decompressed_size, callback);
+   #endif
+   #if SUPPORT_BROTLI
+      case COMPRESS_BROTLI: return BrotliDecompress(src, dest, compressed_size, decompressed_size, callback);
    #endif
       default             : return false;
    }
@@ -1868,10 +1868,10 @@ VecI2 CompressionLevels(COMPRESS_TYPE type)
    #if SUPPORT_LIZARD
       case COMPRESS_LIZARD: return VecI2(LIZARD_MIN_CLEVEL, LIZARD_MAX_CLEVEL);
    #endif
-      case COMPRESS_BROTLI: return VecI2(0, 11); // taken from "enc/encode.h" header
    #if SUPPORT_ZSTD
       case COMPRESS_ZSTD  : return VecI2(ZSTD_minCLevel(), ZSTD_maxCLevel());
    #endif
+      case COMPRESS_BROTLI: return VecI2(0, 11); // taken from "enc/encode.h" header
    }
 }
 UInt CompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncompressed_size)
