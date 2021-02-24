@@ -11,8 +11,8 @@ ShelfBinPack::ShelfBinPack()
 :binWidth(0),
 binHeight(0),
 allowRotate(false),
-useWasteMap(false),
 currentY(0),
+useWasteMap(false),
 usedSurfaceArea(0)
 {
 }

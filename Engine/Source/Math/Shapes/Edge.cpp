@@ -600,9 +600,7 @@ Flt Dist2(C Edge2 &a, C Edge2 &b)
 {
    // check if they're cutting each other
    Vec2 a_dir =a.delta(); Flt a_length=a_dir.normalize();
-   Vec2 b_dir =b.dir  (),
-        a_perp=Perp(a_dir),
-        b_perp=Perp(b_dir);
+   Vec2 a_perp=Perp(a_dir);
    Flt d0=DistPointPlane(b.p[0], a.p[0], a_perp); Int s0=Sign(d0);
    Flt d1=DistPointPlane(b.p[1], a.p[0], a_perp); Int s1=Sign(d1);
    if( s0==-s1 && s0)

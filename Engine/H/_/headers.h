@@ -435,17 +435,22 @@
       #undef LOCK_READ
       #undef LOCK_WRITE
    #elif SWITCH // Nintendo Switch
+      #define _KERNEL
       #include <unistd.h>
       #include <pthread.h>
       #include <dirent.h>
+      #include <sys/types.h>
       #include <sys/stat.h>
       #include <sys/statvfs.h>
       #include <sys/time.h>
+      #include <sys/ioctl.h>
       #include <sys/socket.h>
-      #include <netinet/in.h>
-      #include <nn/socket/netinet6/in6.h>
+      #include <sys/wait.h>
       #include <nn/os.h>
       #include <nn/util/util_Uuid.h>
+      #include <nn/socket/sys/cdefs.h>
+      #include <netinet/in.h>
+      #include <nn/socket/netinet6/in6.h>
       #if GL
          #include <EGL/egl.h>
          #include <EGL/eglext.h>

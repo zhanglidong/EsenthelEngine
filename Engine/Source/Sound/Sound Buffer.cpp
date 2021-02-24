@@ -772,7 +772,7 @@ Bool ListenerClass::create()
 }
 /******************************************************************************/
 // MAIN
-/******************************************************************************/
+/******************************************************************************
 #pragma runtime_checks("", off)
 static UInt GetSpeakerConfig()
 {
@@ -787,6 +787,7 @@ static UInt GetSpeakerConfig()
    return 0;
 }
 #pragma runtime_checks("", restore)
+/******************************************************************************/
 void InitSound()
 {
    if(SoundFunc)return; // return if it was already created

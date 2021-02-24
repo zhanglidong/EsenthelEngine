@@ -96,6 +96,7 @@ Randomizer::Randomizer(C UID &seed                         ) : seed(seed        
 INLINE static ULong rotl(ULong x, UInt k) {return (x<<k) | (x>>(64-k));}
 INLINE static ULong rotr(ULong x, UInt k) {return (x>>k) | (x<<(64-k));}
 
+#if USE_XORSHIFT
 static ULong SolveXorShr(ULong y, UInt s) // solve the formula "y=x^(x>>s)" and return x, assumes s!=0
 {
    ULong x=0; // start with zero
@@ -118,6 +119,7 @@ static ULong SolveXorShl(ULong y, UInt s) // solve the formula "y=x^(x<<s)" and 
    }
    return x;
 }
+#endif
 
 #pragma runtime_checks("", off)
 UInt Randomizer::operator()()
@@ -503,17 +505,17 @@ Vec Randomizer::operator()(C Cone &cone, Bool inside)
       {
          // normally 'step' should be calculated from formula : "step=Cbrt(f(1))"
          // however since top and bottom of the cone can have different radius values, that's why we need to add the "missing piece" (in it calculate the limit values of radiuses, and randomize a point in this step range)
-         Flt r0=0,
-             r1=Min(cone.r_low, cone.r_high),
-             r2=Max(cone.r_low, cone.r_high);
-         if( r1<=EPS)
+         Flt //r0=0,
+               r1=Min(cone.r_low, cone.r_high),
+               r2=Max(cone.r_low, cone.r_high);
+         if(   r1<=EPS)
          {
             y_step=Cbrt(f(1));
          }else
          {
             Flt dr=(r2-r1)/cone.h, // radius increase on unit of height
 
-                h0=0,
+              //h0=0,
                 h1=r1/dr,
                 h2=h1+cone.h;
 
@@ -566,17 +568,17 @@ Vec Randomizer::operator()(C Cone &cone, Bool inside)
       {
          // normally 'step' should be calculated from formula : "step=Sqrt(f(1))"
          // however since top and bottom of the cone can have different radius values, that's why we need to add the "missing piece" (in it calculate the limit values of radiuses, and randomize a point in this step range)
-         Flt r0=0,
-             r1=Min(cone.r_low, cone.r_high),
-             r2=Max(cone.r_low, cone.r_high);
-         if( r1<=EPS)
+         Flt //r0=0,
+               r1=Min(cone.r_low, cone.r_high),
+               r2=Max(cone.r_low, cone.r_high);
+         if(   r1<=EPS)
          {
             y_step=Sqrt(T.f(1));
          }else
          {
             Flt dr=(r2-r1)/cone.h, // radius increase on unit of height
 
-                h0=0,
+              //h0=0,
                 h1=r1/dr,
                 h2=h1+cone.h;
 

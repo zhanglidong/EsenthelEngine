@@ -119,8 +119,8 @@ T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(ULong i, C TYPE &container) {return
 /******************************************************************************/
 T1(TYPE) struct ClassFunc // various basic functions used by many classes
 {
-   static void New      (Ptr elm                        ) {    new(        elm )     TYPE            ;}
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->  ~TYPE(          );}
+   static void New      (Ptr elm                        ) {    new(        elm )         TYPE        ;}
+   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->TYPE::~TYPE(      );}
    static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src       ;}
    static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->   load(file      );}
    static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->   load(file, user);}

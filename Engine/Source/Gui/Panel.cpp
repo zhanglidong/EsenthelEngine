@@ -312,8 +312,7 @@ void Panel::draw(C Color &color, C Rect &rect)C
    Byte  shadow_opacity=        (T.shadow_opacity* color.a+128)/255;
    Color center_color  =ColorMul(T.center_color  , color),
          border_color  =ColorMul(T.border_color  , color),
-           side_color  =ColorMul(T.  side_color  , color),
-           blur_color  =ColorMul(T.  blur_color  , color);
+           side_color  =ColorMul(T.  side_color  , color);
 
    Rect r=rect; if(side_stretch)
    {
@@ -322,7 +321,8 @@ void Panel::draw(C Color &color, C Rect &rect)C
    }
 
 #if !MOBILE // too slow
-   if(blur_color.a)
+   Color blur_color=ColorMul(T.blur_color, color);
+   if(   blur_color.a)
    {
       const Bool    hi   =true;
       const Int     shift=(hi ? 1 : 2);

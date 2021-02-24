@@ -313,7 +313,7 @@ void CodeEnvironment::SetupChildren()
    // sort the children by the token index (to make sure that they are in the correct order)
    FREPA(Symbols)Symbols.lockedData(i).children.sort(CompareTokenIndex);
 }
-/******************************************************************************/
+/******************************************************************************
 // TODO: call this for 32/64
 static void SetArchitecture(Bool config_32_bit)
 {
