@@ -126,7 +126,8 @@ static Bool ZLIBDecompress(CPtr src, UIntPtr src_size, Ptr dest, UIntPtr &dest_s
    uLongf size=dest_size; Bool   ok=(uncompress((Byte*)dest, &size, (Byte*)src, src_size)==Z_OK);
      dest_size=     size; return ok;
 }
-/******************************************************************************/
+/******************************************************************************
+* Ignore Mem functions because we always want Stream versions, which are required by ZIP format
 NOINLINE static Bool ZLIBCompressMem(File &src, File &dest, Int compression_level)
 {
    Memt<Byte,                    BUF_SIZE > s;
