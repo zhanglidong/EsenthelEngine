@@ -58,7 +58,7 @@ private:
    sockaddr_in6& v6()  {return *(sockaddr_in6*)_data;}
  C sockaddr_in6& v6()C {return *(sockaddr_in6*)_data;}
 
-#if APPLE
+#if APPLE || SWITCH
    INLINE U8& family()  {return (U8&)v4().sin_family;}
    INLINE U8  family()C {return (U8&)v4().sin_family;}
    ASSERT(MEMBER_SIZE(sockaddr_in, sin_family)==SIZE(U8) && MEMBER_SIZE(sockaddr_in6, sin6_family)==SIZE(U8) && OFFSET(sockaddr_in, sin_family)==OFFSET(sockaddr_in6, sin6_family));

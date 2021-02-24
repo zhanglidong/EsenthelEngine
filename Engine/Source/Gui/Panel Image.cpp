@@ -500,7 +500,7 @@ struct PanelImageCreate
                        side_line[2]; // [x]
 
    PanelImageCreate(PanelImage &panel_image, C PanelImageParams &params, Image *depth_map_ptr, Int super_sample)
-   : panel_image(panel_image), params(params), depth_map_ptr(depth_map_ptr), image(panel_image.image), last(sps[Elms(sps)-1]),
+   : panel_image(panel_image), params(params), image(panel_image.image), depth_map_ptr(depth_map_ptr), last(sps[Elms(sps)-1]),
      full_frac_mul(last.frac_mul), full_norm_mul(last.norm_mul), full_norm_add(last.norm_add) // last section is always full
    {
       if(depth_map_ptr)depth_map_ptr->del();

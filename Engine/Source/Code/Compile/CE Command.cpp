@@ -4,7 +4,7 @@ namespace EE{
 namespace Edit{
 /******************************************************************************/
 // WRITE COMMANDS
-/******************************************************************************/
+/******************************************************************************
 static Str TextTokens(Memc<Token*> &tokens, Int from, Int to)
 {
    Str text; TOKEN_TYPE last_type=TOKEN_NONE;
@@ -17,7 +17,6 @@ static Str TextTokens(Memc<Token*> &tokens, Int from, Int to)
    }
    return text;
 }
-/******************************************************************************
 static void ListCommands(FileText &ft, Memc<Command> &cmds, Memc<Token*> &tokens)
 {
    FREPA(cmds)

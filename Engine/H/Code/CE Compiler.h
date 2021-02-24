@@ -113,11 +113,11 @@ struct Compiler // Function Compiler
                  scope_label, // index of the label at which current scope ends (changed during compilation)
                   stack_size, // current stack size (increased during compilation by local variables)
                    recursive; // recursive function depth during compiling
-   Source            *source; // source file of the tokens to compile
    Memc<Local  >      locals; // all detected local variables (named and temporaries)
    Memc<Int    > live_locals; // index of locals that are live and need to be destroyed
    Memc<Message>       &msgs; // compilation messages
    Memc<Token* >     &tokens; // source tokens
+   Source            *source; // source file of the tokens to compile
    CompilerContext      *ctx;
 
    Compiler(Memc<Message> &msgs, Memc<Token*> &tokens, Source *source, CompilerContext *ctx) : msgs(msgs), tokens(tokens), source(source), ctx(ctx) {strict=true; quiet=false; allow_cast=true; allow_func_lists=false; final=-1; labels=0; cmd_index=0; scope_label=-1; stack_size=0; recursive=0; source=null;}

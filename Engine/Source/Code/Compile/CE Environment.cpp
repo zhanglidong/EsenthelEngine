@@ -97,7 +97,9 @@ void CodeEnvironment::Thread::call(FuncBody &func, Int param_stack_offset, Ptr f
       if(debug)
       {
          Gui.msgBox("Error", msg);
+      #if !SWITCH
          throw(0);
+      #endif
       }else
       {
          msg+="\nCall stack:";

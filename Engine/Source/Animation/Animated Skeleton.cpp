@@ -85,10 +85,10 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, C MatrixM &init
       slots.setNum(skeleton->slots.elms()); REPAO(slots).zero();
       bones.setNum(skeleton->bones.elms()); REPA (bones)
       {
-           C SkelBone &sbon=skeleton->bones[i];
          AnimSkelBone &bone=bones[i]; bone.zero();
          bone._matrix_prev=bone._matrix=temp;
       #if WORLD_POS
+           C SkelBone &sbon=skeleton->bones[i];
          bone._world_pos  =sbon.pos*bone.matrix();
       #endif
       }

@@ -2022,7 +2022,7 @@ T1(TYPE)  Int  Elms(C Game::ObjMap<TYPE> &obj_map) {return obj_map.elms();}
 /******************************************************************************/
 T1(TYPE)  _List&  _List::setData    (TYPE       *data, Int elms, C CMemPtr<Bool> &visible, Bool keep_cur) {return _setData(     data  ,      elms  ,     SIZE(TYPE), visible, keep_cur);}
 T1(TYPE)  _List&  _List::setData    (Mems<TYPE> &mems,           C CMemPtr<Bool> &visible, Bool keep_cur) {return _setData(mems.data(), mems.elms(), mems.elmSize(), visible, keep_cur);}
-T1(TYPE)  _List&  _List::setDataNode(Memx<TYPE> &memx,           C CMemPtr<Bool> &visible, Bool keep_cur) {return _setData(memx       ,      OFFSET(TYPE, children), visible, keep_cur); Memx<TYPE> &temp=MEMBER(TYPE, children);} // temp assignment verifies that 'children' member can be casted to 'Memx<TYPE>' which is a requirement
+T1(TYPE)  _List&  _List::setDataNode(Memx<TYPE> &memx,           C CMemPtr<Bool> &visible, Bool keep_cur) {return _setData(memx       ,      OFFSET(TYPE, children), visible, keep_cur); SCAST(Memx<TYPE>, MEMBER(TYPE, children));} // cast verifies that 'children' member can be casted to 'Memx<TYPE>' which is a requirement
 /******************************************************************************/
 // INTERPOLATOR
 /******************************************************************************/
