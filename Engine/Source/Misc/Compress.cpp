@@ -111,7 +111,7 @@ static void CompressFree (Ptr p, Ptr    data) {       Free (data);}
 // ZLIB
 /******************************************************************************/
 #if SUPPORT_ZLIB
-
+/******************************************************************************
 #define ZLIB_COMPRESSBOUND(x) ((x) + ((x)>>12) + ((x)>>14) + ((x)>>25) + 13) // taken from source code
 
 static UIntPtr ZLIBSize(UIntPtr src_size) {return compressBound(src_size);}  // get size needed for 'dest' buffer when compressing 'src_size' bytes
@@ -599,6 +599,7 @@ Int CmpUIntVSize(UInt u)
    Int    i=1; for(; u>=128; u>>=7)i++;
    return i;
 }
+/******************************************************************************
 static void CmpUIntV(UInt u, Byte *data, UIntPtr &pos)
 {
    data[pos++]=(u&127)|((u>=128)<<7);
@@ -640,7 +641,7 @@ static Bool DecUIntV(UInt &u, C Byte *data, UIntPtr size, UIntPtr &pos)
    }
    return true;
 }
-/******************************************************************************/
+/******************************************************************************
 static UIntPtr RLESize(UIntPtr src_size) {return src_size+MaxCmpUIntVSize;}
 
 static Bool RLECompress(CPtr src, UIntPtr src_size, Ptr dest, UIntPtr &dest_size) // compress data, 'src'=source buffer, 'src_size'=source size, 'dest'=destination buffer, 'dest_size'=destination size, before calling it should be set to maximum 'dest' buffer capacity, after calling it'll be set to compressed size, false on fail

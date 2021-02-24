@@ -127,7 +127,7 @@ static PxFilterFlags FilterFunc(PxFilterObjectAttributes attributes0, PxFilterDa
    return PxFilterFlags();
 }
 
-static PxQueryHitType::Enum VehicleWheelRaycastFilterFunc(PxFilterData vehicle_susp, PxFilterData shape_fd, const void* constantBlock, PxU32 constantBlockSize, PxHitFlags& filterFlags)
+static PxQueryHitType::Enum VehicleWheelRaycastFilterFunc(PxFilterData vehicle_susp, PxFilterData shape_fd, const void *constantBlock, PxU32 constantBlockSize, PxHitFlags &filterFlags)
 {
    return (vehicle_susp.word1==shape_fd.word1) ? PxQueryHitType::eNONE : PxQueryHitType::eBLOCK; // ignore actors of same actor_id
 }
