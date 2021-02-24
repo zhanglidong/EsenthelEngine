@@ -434,6 +434,28 @@
       #endif
       #undef LOCK_READ
       #undef LOCK_WRITE
+   #elif SWITCH // Nintendo Switch
+      #include <unistd.h>
+      #include <pthread.h>
+      #include <dirent.h>
+      #include <sys/stat.h>
+      #include <sys/statvfs.h>
+      #include <sys/time.h>
+      #include <sys/socket.h>
+      #include <netinet/in.h>
+      #include <nn/socket/netinet6/in6.h>
+      #include <nn/os.h>
+      #include <nn/util/util_Uuid.h>
+      #if GL
+         #include <EGL/egl.h>
+         #include <EGL/eglext.h>
+         #if GL_ES
+            #include <GLES3/gl32.h>
+         #else
+            #include <GL/gl.h>
+            #include <GL/glext.h>
+         #endif
+      #endif
    #elif WEB // Web
       #include <emscripten.h>
       #include <emscripten/html5.h>

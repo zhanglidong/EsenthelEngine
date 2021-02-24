@@ -220,6 +220,9 @@
     <Filter Include="H\_\PhysX\32\Universal">
       <UniqueIdentifier>{c1f8d91c-db18-478e-af0f-6af31589a4b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Platforms\Switch">
+      <UniqueIdentifier>{672d11b3-1109-4cc3-bf75-fe3e0bb699f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -1031,6 +1034,9 @@
     </ClInclude>
     <ClInclude Include="H\Net\Xbox Live.h">
       <Filter>H\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NintendoSwitch\Switch.h">
+      <Filter>H\Platforms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2129,6 +2135,9 @@
     <ClCompile Include="Source\Graphics\Import\HDR.cpp">
       <Filter>Source\Graphics\Import</Filter>
     </ClCompile>
+    <ClCompile Include="..\NintendoSwitch\Switch.cpp">
+      <Filter>Source\Platforms\Switch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">
@@ -2164,110 +2173,6 @@
     <None Include="Source\Platforms\iOS\MyViewController.mm">
       <Filter>Source\Platforms\iOS</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\ThirdPartyLibs\Ogg\Windows\Release\Ogg.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Theora\Windows\Release\Theora.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Vorbis\Windows\Release\Vorbis.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Vorbis\Windows\Release\Vorbis File.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Ogg\Windows\x64\Release\Ogg.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Theora\Windows\x64\Release\Theora.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Vorbis\Windows\x64\Release\Vorbis.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Vorbis\Windows\x64\Release\Vorbis File.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\Release\BulletCollision.lib">
-      <Filter>H\_\Bullet\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\Release\BulletDynamics.lib">
-      <Filter>H\_\Bullet\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\Release\LinearMath.lib">
-      <Filter>H\_\Bullet\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\BulletCollision.lib">
-      <Filter>H\_\Bullet\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\BulletDynamics.lib">
-      <Filter>H\_\Bullet\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\LinearMath.lib">
-      <Filter>H\_\Bullet\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Jpeg\Windows\Release\Jpeg.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Png\Windows\LIB Release\Png.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\PVRTC\Windows\Release\PVRTC.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Webp\Windows\Release\WebP.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Webp\Windows\x64\Release\WebP.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Jpeg\Windows\x64\Release\Jpeg.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Png\Windows\x64\LIB Release\Png.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\PVRTC\Windows\x64\Release\PVRTC.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\LZ4\Windows\x64\Release\LZ4.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\LZMA\Windows\x64\Release\lzma.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Snappy\Windows\x64\Release\Snappy.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Zlib\Windows\x64\Release\Zlib.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\LZ4\Windows\Release\LZ4.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\LZMA\Windows\Release\lzma.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Snappy\Windows\Release\Snappy.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Zlib\Windows\Release\Zlib.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Recast\Windows\Release\Recast.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\Recast\Windows\x64\Release\Recast.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\SQLite\Windows\Release\SQLite.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release\SQLite.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\ThirdPartyLibs\VP\Windows32\Win32\Release\vpxmt.lib">
@@ -2653,6 +2558,108 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\PhysX\physx\bin\win.x86_32.vc142.mt\release\PhysXVehicle_static_32.lib">
       <Filter>H\_\PhysX\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\Release\LinearMath.lib">
+      <Filter>H\_\Bullet\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\Release\BulletCollision.lib">
+      <Filter>H\_\Bullet\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\Release\BulletDynamics.lib">
+      <Filter>H\_\Bullet\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\BulletCollision.lib">
+      <Filter>H\_\Bullet\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\BulletDynamics.lib">
+      <Filter>H\_\Bullet\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\LinearMath.lib">
+      <Filter>H\_\Bullet\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Jpeg\Windows\Release\Jpeg.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\LZ4\Windows\Release\LZ4.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\LZMA\Windows\Release\lzma.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Ogg\Windows\Release\Ogg.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Png\Windows\LIB Release\Png.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PVRTC\Windows\Release\PVRTC.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Recast\Windows\Release\Recast.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Snappy\Windows\Release\Snappy.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\SQLite\Windows\Release\SQLite.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Theora\Windows\Release\Theora.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Vorbis\Windows\Release\Vorbis File.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Vorbis\Windows\Release\Vorbis.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Webp\Windows\Release\WebP.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Zlib\Windows\Release\Zlib.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Jpeg\Windows\x64\Release\Jpeg.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\LZ4\Windows\x64\Release\LZ4.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\LZMA\Windows\x64\Release\lzma.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Ogg\Windows\x64\Release\Ogg.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Png\Windows\x64\LIB Release\Png.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\PVRTC\Windows\x64\Release\PVRTC.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Recast\Windows\x64\Release\Recast.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Snappy\Windows\x64\Release\Snappy.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release\SQLite.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Theora\Windows\x64\Release\Theora.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Vorbis\Windows\x64\Release\Vorbis File.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Vorbis\Windows\x64\Release\Vorbis.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Webp\Windows\x64\Release\WebP.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\Zlib\Windows\x64\Release\Zlib.lib">
+      <Filter>H\_\Libs\64</Filter>
     </Library>
   </ItemGroup>
 </Project>

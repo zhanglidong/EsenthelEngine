@@ -492,6 +492,7 @@ static struct DevRandom
   ~DevRandom() {if(initialized){initialized=false  ; close(fd); fd=-1;}}
 }DR;
 #endif
+#if !SWITCH
 UID& UID::randomize()
 {
 #if WINDOWS_OLD
@@ -515,7 +516,6 @@ UID& UID::randomize()
    }
 #elif LINUX || ANDROID
    if(DR.set(this, SIZE(T)))return T;
-#elif SWITCH
 #elif WEB
    if(EM_ASM_INT(var crypto=window.crypto || window.msCrypto; return typeof(crypto)!=='undefined' && typeof(crypto.getRandomValues)!=='undefined'))
    {
@@ -536,6 +536,7 @@ UID& UID::randomize()
 
    return T;
 }
+#endif
 UID& UID::randomizeValid()
 {
    for(;;)

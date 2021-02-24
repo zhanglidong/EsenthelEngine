@@ -482,7 +482,7 @@ inline void bc1_refine(int pe[2], float block[48], uint32 bits, float dc[3])
 			shifted_bits >>= 2;
 
             float x = 3-q;
-            float y = q;
+          //float y = q;
             
 			sum_q += q;
 			sum_qq += q*q;
@@ -1256,7 +1256,7 @@ void opt_endpoints(float ep[], float block[64], uniform int bits, uint32 qblock[
 			if ((mask_shifted&1) == 0) continue;
 		
 			int x = (levels-1)-q;
-			int y = q;
+		 //int y = q;
             
 			sum_q += q;
 			sum_qq += q*q;
@@ -1503,7 +1503,7 @@ void channel_opt_endpoints(float ep[2], float block[16], uniform int bits, uint3
 			qbits_shifted >>= 4;
 
 			int x = (levels-1)-q;
-			int y = q;
+		 //int y = q;
             
 			sum_q += q;
 			sum_qq += q*q;
@@ -3015,8 +3015,8 @@ void bc6h_pack(uint32 packed[], int qep[], int mode)
 void bc6h_code_2p(uint32 data[5], int qep[], uint32 qblock[2], int part_id, int mode)
 {
 	uniform int bits = 3;
-    uniform int pairs = 2;
-    uniform int channels = 3;
+ //uniform int pairs = 2;
+ //uniform int channels = 3;
 
     int flips = bc7_code_apply_swap_mode01237(qep, qblock, 1, part_id);
 
