@@ -734,6 +734,7 @@ const KB_KEY ScanCodeToQwertyKey[0x90]=
    KB_NONE, // 0x8F
 };
 #endif
+#if MAC || LINUX
 static const KB_KEY VariableKeys[]= // keys that may change depending on layout
 {
    KB_OEM_102, // !! put this first on the list so it's processed last in REPA loop (to avoid selecting it unless necessary, because it's uncommon key) !!
@@ -745,6 +746,7 @@ static const KB_KEY VariableKeys[]= // keys that may change depending on layout
    KB_A, KB_S, KB_D, KB_F, KB_G, KB_H, KB_J, KB_K, KB_L, KB_SEMI, KB_APO,
    KB_Z, KB_X, KB_C, KB_V, KB_B, KB_N, KB_M, KB_COMMA, KB_DOT, KB_SLASH,
 };
+#endif
 struct KeyData
 {
    Byte scan_code, cs;

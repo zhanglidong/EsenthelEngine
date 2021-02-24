@@ -708,7 +708,7 @@ struct FontDraw
  C Image *src;
    Image &dest;
 
-   FontDraw(Image &dest, Int mip_map, Bool sub_pixel) : dest(dest), mip_map(Max(0, mip_map)), sub_pixel(sub_pixel) {rects=0; clip.set(0, 0, dest.w(), dest.h()); clear();}
+   FontDraw(Image &dest, Int mip_map, Bool sub_pixel) : mip_map(Max(0, mip_map)), sub_pixel(sub_pixel), dest(dest) {rects=0; clip.set(0, 0, dest.w(), dest.h()); clear();}
   ~FontDraw() {unlock();}
 
    void setCode(C TextCodeData *code, C TextStyleParams &text_style)
