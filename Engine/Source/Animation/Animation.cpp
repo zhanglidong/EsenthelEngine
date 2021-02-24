@@ -735,10 +735,7 @@ AnimKeys& AnimKeys::setTangents(Bool anim_loop, Flt anim_length)
    return T;
 }
 /******************************************************************************/
-static Flt MinDotBetween(C Orient &a, C Orient &b) // this operates on 'Min' because the same vectors will give Dot=1, going down to -1 for vectors having some angle between them
-{
-   return Min(Dot(a.dir, b.dir), Dot(a.perp, b.perp));
-}
+// Here operate on Angles instead of Dot, because precision for Flt is too low (example: dot_eps=Cos(angle_eps); for angle_eps=0.0002f gives dot_eps=1.0f)
 static Flt MaxAbsAngleBetween(C Orient &a, C Orient &b)
 {
    return Max(AbsAngleBetweenN(a.dir, b.dir), AbsAngleBetweenN(a.perp, b.perp));
@@ -778,10 +775,6 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    // orientation
    if(angle_eps>=0)
    {
-   #define USE_DOT 0 // don't use Dot, because even though it is faster, the precision for Flt is too low (example: dot_eps=Cos(angle_eps); for angle_eps=0.0002f gives dot_eps=1.0f)
-   #if     USE_DOT
-      Flt dot_eps=Cos(angle_eps);
-   #endif
       optimized.setNumDiscard(orns.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
@@ -845,11 +838,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                }
                test.fix();
 
-            #if USE_DOT
-               if(MinDotBetween     (test, orn)<  dot_eps)goto orn_needed;
-            #else
                if(MaxAbsAngleBetween(test, orn)>angle_eps)goto orn_needed;
-            #endif
             }
          }
 
@@ -883,11 +872,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                #endif
                }
                test.fix();
-            #if USE_DOT
-               if(MinDotBetween     (test, orn.orn)<  dot_eps)goto orn_needed;
-            #else
                if(MaxAbsAngleBetween(test, orn.orn)>angle_eps)goto orn_needed;
-            #endif
             }
 
             // check between keys
@@ -907,11 +892,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                   test.perp=Lerp4(p2->orn.perp, p->orn.perp, n->orn.perp, n2->orn.perp, step);
                #endif
                   test.fix();
-               #if USE_DOT
-                  if(MinDotBetween     (test, orn)<  dot_eps)goto orn_needed;
-               #else
                   if(MaxAbsAngleBetween(test, orn)>angle_eps)goto orn_needed;
-               #endif
                }
             }
 
@@ -930,11 +911,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
       if(optimized.elms()==1 && bone) // be careful when removing the only 'orn' keyframe even if it's an identity, because it may be needed for correct multi-animation blending
       {
          Orient identity=GetAnimOrient(*bone, bone_parent);
-      #if USE_DOT
-         if(MinDotBetween     (identity, orns[optimized[0]].orn)>=  dot_eps)optimized.clear();
-      #else
          if(MaxAbsAngleBetween(identity, orns[optimized[0]].orn)<=angle_eps)optimized.clear();
-      #endif
       }
       if(optimized.elms()!=orns.elms()){Mems<Orn> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=orns[optimized[i]]; Swap(temp, orns);}
    }

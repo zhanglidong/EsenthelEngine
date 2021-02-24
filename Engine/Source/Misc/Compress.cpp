@@ -723,7 +723,7 @@ static Bool RLEDecompress(CPtr src, UIntPtr src_size, Ptr dest, UIntPtr &dest_si
    }
    dest_size=dest_pos; return true;
 }
-/******************************************************************************/
+/******************************************************************************
 NOINLINE static Bool RLECompressMem(File &src, File &dest)
 {
    Memt<Byte> s, d;
