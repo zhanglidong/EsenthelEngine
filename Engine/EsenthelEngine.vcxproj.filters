@@ -241,6 +241,9 @@
     <Filter Include="H\_\Libs\NintendoSwitch\FLAC">
       <UniqueIdentifier>{6539bd44-0166-4a14-aa80-d735d5eb0844}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\PhysX">
+      <UniqueIdentifier>{393e4311-68a9-4e9a-8175-80a48585c43d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -2851,6 +2854,906 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\window.o">
       <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\Adjacencies.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\BigConvexDataBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\BVHStructureBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmCollection.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmMathUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmPtrTable.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmRadixSort.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmRadixSortBuffered.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmRenderOutput.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\CmVisualization.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\ConvexHullBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\ConvexHullLib.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\ConvexHullUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\ConvexMeshBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\ConvexPolygonsBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\Cooking.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\CookingUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\EdgeList.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtBroadPhase.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtCollection.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtContactJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtConvexMeshExt.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtCpuWorkerThread.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtD6Joint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtD6JointCreate.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtDefaultCpuDispatcher.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtDefaultErrorCallback.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtDefaultSimulationFilterShader.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtDefaultStreams.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtDistanceJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtExtensions.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtFixedJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtPrismaticJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtPvd.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtPxStringTable.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtRaycastCCD.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtRevoluteJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtRigidActorExt.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtRigidBodyExt.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtSceneQueryExt.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtSimpleFactory.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtSmoothNormals.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtSphericalJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtSwitchDefaultCpuDispatcher.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\ExtTriangleMeshExt.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\GrbTriangleMeshCooking.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuAABBTreeBuild.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBarycentricCoordinates.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBigConvexData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBounds.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_AABBSweep.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_BoxOverlap.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_CapsuleSweep.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_CapsuleSweepAA.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_OBBSweep.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_Raycast.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_SphereOverlap.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4_SphereSweep.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV4Build.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV32.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBV32Build.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuBVHStructure.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuCCDSweepConvexMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuCCDSweepPrimitives.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuCCTSweepTests.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactBoxBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactCapsuleBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactCapsuleCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactCapsuleConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactCapsuleMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactConvexConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactConvexMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactPlaneBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactPlaneCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactPlaneConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactPolygonPolygon.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactSphereBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactSphereCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactSphereMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactSpherePlane.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuContactSphereSphere.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuConvexHelper.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuConvexMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuConvexSupportTable.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuConvexUtilsInternal.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuDistancePointBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuDistancePointTriangle.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuDistanceSegmentBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuDistanceSegmentSegment.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuDistanceSegmentTriangle.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuEPA.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuFeatureCode.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuGeometryQuery.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuGeometryUnion.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuGJKSimplex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuGJKTest.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuHeightField.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuHeightFieldUtil.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuHillClimbing.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuInternal.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionBoxBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionCapsuleTriangle.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionEdgeEdge.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionRayBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionRayCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionRaySphere.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionSphereBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuIntersectionTriangleBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMeshFactory.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMeshQuery.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMidphaseBV4.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMidphaseRTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuMTD.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuOverlapTests.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuOverlapTestsHF.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuOverlapTestsMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactBoxBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactBoxConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactCapsuleBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactCapsuleCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactCapsuleConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactCapsuleHeightField.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactCapsuleMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactConvexCommon.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactConvexConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactConvexHeightField.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactConvexMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactGenBoxConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactGenSphereCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactPlaneBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactPlaneCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactPlaneConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereHeightField.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSpherePlane.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMContactSphereSphere.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMShapeConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPCMTriangleContactGen.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuPersistentContactManifold.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuRaycastTests.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuRTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuRTreeQueries.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSeparatingAxes.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSerialize.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuShapeConvex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepBoxBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepBoxSphere.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepBoxTriangle_FeatureBased.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepBoxTriangle_SAT.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepCapsuleBox.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepCapsuleCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepCapsuleTriangle.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepMTD.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepSharedTests.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepsHF.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepsMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepSphereCapsule.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepSphereSphere.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepSphereTriangle.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepTests.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuSweepTriangleUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuTriangleMesh.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuTriangleMeshBV4.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCommon.dir\release\GuTriangleMeshRTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\HeightFieldCooking.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\MeshBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\MeshCleaner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpActor.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpAggregate.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpArticulation.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpArticulationJoint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpArticulationJointReducedCoordinate.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpArticulationLink.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpArticulationReducedCoordinate.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpBatchQuery.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpConstraint.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpFactory.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpImmediateMode.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpMaterial.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpMiddlewareInfo.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpPhysics.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpPvdSceneQueryCollector.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpReadCheck.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpRigidDynamic.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpRigidStatic.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpScene.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpSceneQueries.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpSerializerAdapter.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpShape.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpShapeManager.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\NpWriteCheck.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsAllocator.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsAssert.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsFoundation.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsMathUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsString.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchAtomic.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchCpu.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchFPU.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchMutex.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchPrintString.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchSList.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchSocket.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchSync.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchThread.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsSwitchTime.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsTempAllocator.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXFoundation.dir\release\PsUtilities.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\PvdMetaDataPvdBinding.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\PvdPhysicsClient.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\PxAutoGeneratedMetaDataObjects.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\PxExtensionAutoGeneratedMetaDataObjects.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\PxMetaDataObjects.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\Quantizer.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\QuickHullConvexHullLib.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\RTreeCooking.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScActorCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScActorSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScArticulationCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScArticulationJointCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScArticulationJointSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScArticulationSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbActor.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbAggregate.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbBase.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScBodyCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScBodySim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbScene.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbScenePvdClient.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysX.dir\release\ScbShape.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintGroupNode.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintInteraction.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintProjectionManager.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintProjectionTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScConstraintSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScElementInteractionMarker.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScElementSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScInteraction.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScIterators.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScNPhaseCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScPhysics.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScRigidCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScRigidSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScScene.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScShapeCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScShapeInteraction.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScShapeSim.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScSimStats.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScSimulationController.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScSqBoundsManager.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScStaticCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SimulationController.dir\release\ScTriggerInteraction.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnBinaryDeserialization.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnBinarySerialization.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_Align.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_Convert.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_Error.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_MetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_Output.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnConvX_Union.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnJointRepXSerializer.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnRepXCoreSerializer.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnRepXUpgrader.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnSerialization.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnSerializationContext.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnSerializationRegistry.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnSerialUtils.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXExtensions.dir\release\SnXmlSerialization.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqAABBPruner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqAABBTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqAABBTreeUpdateMap.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqBounds.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqBucketPruner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqCompoundPruner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqCompoundPruningPool.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqExtendedBucketPruner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqIncrementalAABBPruner.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqIncrementalAABBPrunerCore.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqIncrementalAABBTree.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqMetaData.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqPruningPool.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqPruningStructure.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\SceneQuery.dir\release\SqSceneQueryManager.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXTask.dir\release\TaskManager.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\TriangleMeshBuilder.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\VolumeIntegration.o">
+      <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
     </Object>
   </ItemGroup>
 </Project>
