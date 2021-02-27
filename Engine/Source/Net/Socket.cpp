@@ -710,7 +710,7 @@ Bool SockAddr::load(File &f)
 /******************************************************************************/
 void Socket::init(Bool ipv6) // !! assumes 'is' !!
 {
-#if APPLE
+#if APPLE || SWITCH
    int val=1; setsockopt((SOCKET)_s, SOL_SOCKET, SO_NOSIGPIPE, &val, SIZE(val)); // disable SIGPIPE process signal on Unix machines (it is received when writing to closed socket, and it causes process termination)
 #endif
    if(ipv6 && DualStackSocket) // don't bother if it's not supported
@@ -1242,10 +1242,14 @@ static Bool InitSocketEx()
    }
    return false;
 #else
+
+#if !SWITCH
    signal(SIGPIPE, SIG_IGN); // ignore SIGPIPE signal
-   Char8 host[NI_MAXHOST]; if(!gethostname(host, Elms(host)))ComputerName=host;
-   // on MAC ".local" is automatically appended to the host name by the system, however don't attempt to remove it, as results of 'ComputerName' are typically used in 'GetLocalAddresses' which will return valid results only when ".local" is included, to obtain user-friendly name there's "[[NSHost currentHost] localizedName];" however it should be used by a separate function and NOT 'GetComputerName'
+   Char8 host[NI_MAXHOST]; if(!gethostname(host, Elms(host)))ComputerName=host; // on MAC ".local" is automatically appended to the host name by the system, however don't attempt to remove it, as results of 'ComputerName' are typically used in 'GetLocalAddresses' which will return valid results only when ".local" is included, to obtain user-friendly name there's "[[NSHost currentHost] localizedName];" however it should be used by a separate function and NOT 'GetComputerName'
+#endif
+
    if(!ComputerName.is())ComputerName="localhost";
+
    #if LINUX
       Socket sock; if(sock.createUdp(true)) // we need this only for Mac Address, prefer IPv6 because it's better
       {
