@@ -1360,6 +1360,7 @@
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
       <OptimizationLevel>O3</OptimizationLevel>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1471,6 +1472,7 @@
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
       <OptimizationLevel>O3</OptimizationLevel>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1985,6 +1987,7 @@
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
       <OptimizationLevel>O3</OptimizationLevel>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
