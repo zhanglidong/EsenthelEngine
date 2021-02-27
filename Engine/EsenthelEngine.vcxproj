@@ -879,6 +879,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
+      <OptimizationLevel>O0</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -969,6 +970,7 @@
       <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MsExtensions>true</MsExtensions>
+      <OptimizationLevel>O0</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1357,6 +1359,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <OptimizationLevel>O3</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1467,6 +1470,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <OptimizationLevel>O3</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1738,6 +1742,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
+      <OptimizationLevel>O0</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1979,6 +1984,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <OptimizationLevel>O3</OptimizationLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
