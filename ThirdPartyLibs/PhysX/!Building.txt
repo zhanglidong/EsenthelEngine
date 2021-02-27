@@ -5,6 +5,7 @@ Edit: "physx\buildtools\presets\public\*.xml" the target platforms you want:
 	ios64
 	linux
 	mac64
+	vc15switch64 <- here also set "compiler="vc16""
 	vc15uwp32 <- here also set "compiler="vc16""
 	vc15uwp64 <- here also set "compiler="vc16""
 	vc16win32
@@ -60,5 +61,17 @@ open "physx\compiler\android-arm64-v8a-release" in terminal/powershell
 run "mingw32-make"
 
 Alternatively can use Esenthel Generated solution inside "Android" folder
+
+* Compiling for Switch
+-generate projects from Nintendo SDK
+-open in VS
+-select proj properties for all projects, select:
+	Optimization - Full Optimization with Inlining (-O3)
+	Strict Aliasing - Yes (-fstrict-aliasing)
+	Omit Frame Pointer - Yes (-fomit-frame-pointer)
+	Fast Math - Yes (-ffast-math)
+	Unroll Loops - Yes (-funroll-loops)
+	Vectorization - Yes (-fvectorize)
+	Inline - Yes
 
 * After all building, can run "!Clean.bat" to remove temporary files

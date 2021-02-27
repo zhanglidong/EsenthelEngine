@@ -1687,6 +1687,7 @@
       <UnrollLoops>true</UnrollLoops>
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
+      <StrictAliasing>true</StrictAliasing>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1831,6 +1832,7 @@
       <UnrollLoops>true</UnrollLoops>
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
+      <StrictAliasing>true</StrictAliasing>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -2559,6 +2561,7 @@
       <UnrollLoops>true</UnrollLoops>
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
+      <StrictAliasing>true</StrictAliasing>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
