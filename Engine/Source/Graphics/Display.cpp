@@ -1448,9 +1448,7 @@ again:
                EGL_NONE // end of list
             };
             if(LogInit)LogN(S+"Trying config GL:"+GLCtxVer+", D:"+d+", S:"+s);
-            EGLint num_configs=0;
-            if(eglChooseConfig(GLDisplay, attribs, &GLConfig, 1, &num_configs)==EGL_TRUE)
-               if(num_configs>=1)
+            EGLint configs=0; if(eglChooseConfig(GLDisplay, attribs, &GLConfig, 1, &configs) && configs>=1)
             {
                EGLint format; eglGetConfigAttrib(GLDisplay, GLConfig, EGL_NATIVE_VISUAL_ID, &format);
                ANativeWindow_setBuffersGeometry(AndroidApp->window, 0, 0, format);
