@@ -1690,6 +1690,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1835,6 +1836,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -2565,6 +2567,7 @@
       <Vectorization>true</Vectorization>
       <MsExtensions>true</MsExtensions>
       <StrictAliasing>true</StrictAliasing>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
