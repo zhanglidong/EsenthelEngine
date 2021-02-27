@@ -4,7 +4,7 @@ namespace EE{
 /******************************************************************************/
 #if MAC
 static PasteboardRef Pasteboard;
-#elif ANDROID || WEB
+#elif ANDROID || SWITCH || WEB
 static Str Clipboard;
 #endif
 const UID UIDZero(0, 0, 0, 0);
