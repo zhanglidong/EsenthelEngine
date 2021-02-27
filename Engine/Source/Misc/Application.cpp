@@ -630,7 +630,7 @@ void Application::showError(CChar *error)
      _closed=true; if(EAGLView *view=GetUIView())[view setUpdate]; // disable callback processing and stop updating
       [[NSRunLoop mainRunLoop] run];
    #elif SWITCH
-      NN_LOG(UTF8(t));
+      NS::Log(true, UTF8(error));
    #elif WEB // on Web display the error as both console output and message box
       fputs(UTF8(error), stdout); // first write to console
       WindowMsgBox(title, error, true);

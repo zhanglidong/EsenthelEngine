@@ -435,6 +435,7 @@
       #undef LOCK_READ
       #undef LOCK_WRITE
    #elif SWITCH // Nintendo Switch
+      #define NN_DETAIL_ENABLE_LOG
       #include <unistd.h>
       #include <pthread.h>
       #include <dirent.h>
@@ -445,6 +446,7 @@
       #include <sys/ioctl.h>
       #include <sys/socket.h>
       #include <sys/wait.h>
+      #include <nn/nn_Log.h>
       #include <nn/os.h>
       #include <nn/util/util_Uuid.h>
       #include <nn/socket/sys/cdefs.h>

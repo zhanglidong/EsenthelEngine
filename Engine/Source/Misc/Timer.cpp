@@ -79,7 +79,7 @@ Dbl TimeClass::curTime()C
    struct timespec time; clock_gettime(CLOCK_MONOTONIC, &time);
    return (ULong(time.tv_sec)*1000000000+time.tv_nsec-_start_time)/1000000000.;
 #elif SWITCH
-   return (CurTime()-_start_time)*_time_mul;
+   return (NS::CurTime()-_start_time)*_time_mul;
 #elif WEB
    return (emscripten_get_now()-_start_time)/1000;
 #endif
@@ -96,7 +96,7 @@ UInt TimeClass::curTimeMs()C
    struct timespec time; clock_gettime(CLOCK_MONOTONIC, &time);
    return TruncU((ULong(time.tv_sec)*1000000000+time.tv_nsec-_start_time)*(1000/1000000000.));
 #elif SWITCH
-   return TruncU((CurTime()-_start_time)*1000*_time_mul);
+   return TruncU((NS::CurTime()-_start_time)*1000*_time_mul);
 #elif WEB
    return TruncU(emscripten_get_now()-_start_time);
 #endif
@@ -152,8 +152,8 @@ void TimeClass::create()
    struct timespec time; clock_gettime(CLOCK_MONOTONIC, &time);
   _start_time=ULong(time.tv_sec)*1000000000+time.tv_nsec;
 #elif SWITCH
-  _time_mul  =1.0/TickFreq();
-  _start_time=     CurTime();
+  _time_mul  =1.0/NS::TickFreq();
+  _start_time=    NS:: CurTime();
 #elif WEB
   _start_time=TruncUL(emscripten_get_now());
 #endif
