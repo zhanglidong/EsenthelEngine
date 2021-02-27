@@ -217,6 +217,7 @@
          #include <d3dcommon.h>
       #elif GL // OpenGL
          #define  GLEW_STATIC
+         #define  GLEW_NO_GLU
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
       #endif
@@ -459,12 +460,7 @@
       #if GL
          #include <EGL/egl.h>
          #include <EGL/eglext.h>
-         #if GL_ES
-            #include <GLES3/gl32.h>
-         #else
-            #include <GL/gl.h>
-            #include <GL/glext.h>
-         #endif
+         #include <nn/gll.h>
       #endif
    #elif WEB // Web
       #include <emscripten.h>
