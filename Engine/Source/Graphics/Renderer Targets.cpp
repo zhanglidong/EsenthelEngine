@@ -544,7 +544,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
                case GL_FRAMEBUFFER_UNSUPPORTED                  : error=0; break;
                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT        : error=0; break;
                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: error=0; break;
-            #if GL_ES
+            #if GL_ES && defined GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
                case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS        : error=0; break;
             #else
                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER       : error=0; break;
