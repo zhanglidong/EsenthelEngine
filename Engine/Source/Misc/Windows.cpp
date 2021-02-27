@@ -2612,7 +2612,7 @@ stop:
    PreventResizing=false;
 #endif
 }
-#if WINDOWS || MAC || LINUX
+#if WINDOWS || MAC || LINUX || SWITCH
 void Application::loop()
 {
    for(;;)
