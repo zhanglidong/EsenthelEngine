@@ -62,25 +62,30 @@ enum JOINT_TYPE : Byte
 #else
 struct btDistanceConstraint : btPoint2PointConstraint
 {
-   Bool spring;
-   Flt  min_dist, max_dist, spring_spring, spring_damper;
+   Bool   use_spring;
+   Flt    min_dist, max_dist;
+   Spring spring;
 
-   btDistanceConstraint(btRigidBody& rbA, const btVector3& pivotInA, Flt min_dist, Flt max_dist, Bool spring, Flt spring_spring, Flt spring_damper) : btPoint2PointConstraint(rbA, pivotInA)
+   btDistanceConstraint(btRigidBody& rbA, const btVector3& pivotInA, Flt min_dist, Flt max_dist, C Spring *spring) : btPoint2PointConstraint(rbA, pivotInA)
    {
-      T.min_dist     =min_dist     ;
-      T.max_dist     =max_dist     ;
-      T.spring       =spring       ;
-      T.spring_spring=spring_spring;
-      T.spring_damper=spring_damper;
+      T.min_dist=min_dist;
+      T.max_dist=max_dist;
+      if(!spring)T.use_spring=false;else
+      {
+         T.use_spring=true;
+         T.    spring=*spring;
+      }
    }
 
-   btDistanceConstraint(btRigidBody& rbA, btRigidBody& rbB, const btVector3& pivotInA, const btVector3& pivotInB, Flt min_dist, Flt max_dist, Bool spring, Flt spring_spring, Flt spring_damper) : btPoint2PointConstraint(rbA, rbB, pivotInA, pivotInB)
+   btDistanceConstraint(btRigidBody& rbA, btRigidBody& rbB, const btVector3& pivotInA, const btVector3& pivotInB, Flt min_dist, Flt max_dist, C Spring *spring) : btPoint2PointConstraint(rbA, rbB, pivotInA, pivotInB)
    {
-      T.min_dist     =min_dist     ;
-      T.max_dist     =max_dist     ;
-      T.spring       =spring       ;
-      T.spring_spring=spring_spring;
-      T.spring_damper=spring_damper;
+      T.min_dist=min_dist;
+      T.max_dist=max_dist;
+      if(!spring)T.use_spring=false;else
+      {
+         T.use_spring=true;
+         T.    spring=*spring;
+      }
    }
 
    virtual void getInfo1(btConstraintInfo1 *info)
@@ -109,7 +114,8 @@ struct btDistanceConstraint : btPoint2PointConstraint
       info->m_J2angularAxis[0] = -q[0];
       info->m_J2angularAxis[1] = -q[1];
       info->m_J2angularAxis[2] = -q[2];
-      btScalar rhs = (currDist - 0/*m_distance*/) * info->fps * info->erp * (spring ? spring_spring*0.01f : 1);
+      btScalar rhs = (currDist - 0/*m_distance*/) * info->fps * info->erp;
+      if(use_spring)rhs*=spring.spring*0.01f;
       info->m_constraintError[0] = rhs;
       info->cfm[0] = btScalar(0.f);
       info->m_lowerLimit[0] = -SIMD_INFINITY;
@@ -227,7 +233,7 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
 #endif
 }
 /******************************************************************************/
-static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], Bool collision, Bool limit_swing, Bool limit_twist, Bool body, Flt swing, Flt twist)
+static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Flt *swing, C Flt *twist, Bool collision, Bool body)
 {
 #if PHYSX
 #if 0 // PxSphericalJoint
@@ -238,11 +244,11 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
       if(PxSphericalJoint *spherical=PxSphericalJointCreate(*Physx.physics, a0._actor, Physx.matrix(m0), a1 ? a1->_actor : null, Physx.matrix(m1)))
    {
       spherical->setConstraintFlag    (PxConstraintFlag    ::eCOLLISION_ENABLED  , collision  );
-      spherical->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED      , limit_swing);
-      spherical->setSphericalJointFlag(PxSphericalJointFlag::eTWIST_LIMIT_ENABLED, limit_twist);
-      Clamp(swing, EPS, PI-EPS);
-      Clamp(twist, EPS, PI-EPS);
-      PxJointLimitCone limit(swing, swing); limit.twist=twist; if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
+      spherical->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED      , swing!=null);
+      spherical->setSphericalJointFlag(PxSphericalJointFlag::eTWIST_LIMIT_ENABLED, twist!=null);
+      Flt swing_val=(swing ? Mid(*swing, EPS, PI-EPS) : EPS);
+      Flt twist_val=(twist ? Mid(*twist, EPS, PI-EPS) : EPS);
+      PxJointLimitCone limit(swing_val, swing_val); limit.twist=twist_val; if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
       spherical->setLimitCone(limit);
       joint._joint=spherical;
    }
@@ -254,19 +260,19 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
       if(PxD6Joint *spherical=PxD6JointCreate(*Physx.physics, a0._actor, Physx.matrix(m0), a1 ? a1->_actor : null, Physx.matrix(m1)))
    {
       spherical->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED  , collision  );
-	   spherical->setMotion        (PxD6Axis::eSWING1, limit_swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-	   spherical->setMotion        (PxD6Axis::eSWING2, limit_swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-	   spherical->setMotion        (PxD6Axis::eTWIST , limit_twist ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-      if(limit_swing)
+	   spherical->setMotion        (PxD6Axis::eSWING1, swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
+	   spherical->setMotion        (PxD6Axis::eSWING2, swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
+	   spherical->setMotion        (PxD6Axis::eTWIST , twist ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
+      if(swing)
       {
-         Clamp(swing, EPS, PI-EPS);
-         PxJointLimitCone limit(swing, swing); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
+         Flt value=Mid(*swing, EPS, PI-EPS);
+         PxJointLimitCone limit(value, value); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
          spherical->setSwingLimit(limit);
       }
-      if(limit_twist)
+      if(twist)
       {
-         Clamp(twist, 0, PI);
-         PxJointAngularLimitPair limit(-twist, twist); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
+         Flt value=Mid(*twist, 0, PI);
+         PxJointAngularLimitPair limit(-value, value); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
          spherical->setTwistLimit(limit);
       }
       joint._joint=spherical;
@@ -275,7 +281,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
 #else
    if(a0._actor)
    {
-      if(!limit_swing && !limit_twist)
+      if(!swing && !twist)
       {
          btPoint2PointConstraint *p2p=null;
          if(a1 && a1->_actor)
@@ -311,7 +317,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
             Flt f=FLT_MAX;
             cone->setUserConstraintId((Int&)f);
             cone->setUserConstraintType(0);
-            cone->setLimit(limit_swing ? swing : FLT_MAX, limit_swing ? swing : FLT_MAX, limit_twist ? twist : FLT_MAX);
+            cone->setLimit(swing ? *swing : FLT_MAX, swing ? *swing : FLT_MAX, twist ? *twist : FLT_MAX);
 
             WriteLock lock(Physics._rws);
             if(Bullet.world)Bullet.world->addConstraint(cone, !collision);
@@ -364,21 +370,24 @@ static void CreateSlider(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[
 #endif
 }
 /******************************************************************************/
-static void CreateDistance(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], Flt min, Flt max, Bool collision, Bool spring, Flt spring_spring, Flt spring_damper)
+static void CreateDistance(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], Flt min, Flt max, C Spring *spring, Bool collision)
 {
 #if PHYSX
    WriteLock lock(Physics._rws);
    if(Physx.world && ValidActors(a0, a1))
       if(PxDistanceJoint *distance=PxDistanceJointCreate(*Physx.physics, a0._actor, Physx.matrix(local_anchor[0]), a1 ? a1->_actor : null, Physx.matrix(local_anchor[1])))
    {
-      distance->setConstraintFlag   (PxConstraintFlag::eCOLLISION_ENABLED, collision);
-      distance->setMinDistance      (min);
-      distance->setMaxDistance      (max);
-      distance->setStiffness        (spring_spring);
-      distance->setDamping          (spring_damper);
-      distance->setDistanceJointFlag(PxDistanceJointFlag::eMIN_DISTANCE_ENABLED, true  );
-      distance->setDistanceJointFlag(PxDistanceJointFlag::eMAX_DISTANCE_ENABLED, true  );
-      distance->setDistanceJointFlag(PxDistanceJointFlag::eSPRING_ENABLED      , spring);
+      distance->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, collision);
+      distance->setMinDistance   (min);
+      distance->setMaxDistance   (max);
+      if(spring)
+      {
+         distance->setStiffness(spring->spring );
+         distance->setDamping  (spring->damping);
+      }
+      distance->setDistanceJointFlag(PxDistanceJointFlag::eMIN_DISTANCE_ENABLED, true        );
+      distance->setDistanceJointFlag(PxDistanceJointFlag::eMAX_DISTANCE_ENABLED, true        );
+      distance->setDistanceJointFlag(PxDistanceJointFlag::eSPRING_ENABLED      , spring!=null);
       joint._joint=distance;
    }
 #else
@@ -387,10 +396,10 @@ static void CreateDistance(Joint &joint, Actor &a0, Actor *a1, C Vec local_ancho
       btDistanceConstraint *dist=null;
       if(a1 && a1->_actor)
       {
-         dist=new btDistanceConstraint(*a0._actor, *a1->_actor, Bullet.vec(local_anchor[0]*a0._actor->offset), Bullet.vec(local_anchor[1]*a1->_actor->offset), min, max, spring, spring_spring, spring_damper);
+         dist=new btDistanceConstraint(*a0._actor, *a1->_actor, Bullet.vec(local_anchor[0]*a0._actor->offset), Bullet.vec(local_anchor[1]*a1->_actor->offset), min, max, spring);
       }else
       {
-         dist=new btDistanceConstraint(*a0._actor, Bullet.vec(local_anchor[0]*a0._actor->offset), min, max, spring, spring_spring, spring_damper); dist->setPivotB(Bullet.vec(local_anchor[1]));
+         dist=new btDistanceConstraint(*a0._actor, Bullet.vec(local_anchor[0]*a0._actor->offset), min, max, spring); dist->setPivotB(Bullet.vec(local_anchor[1]));
       }
       if(joint._joint=dist)
       {
@@ -438,7 +447,7 @@ Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, 
           local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
           local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
           local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, collision, swing!=null, twist!=null, false, swing ? *swing : 0, twist ? *twist : 0);
+   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, swing, twist, collision, false);
    return T;
 }
 Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt min, Flt max, Bool collision)
@@ -457,7 +466,7 @@ Joint& Joint::createDist(Actor &a0, Actor *a1, C Vec &anchor0, C Vec &anchor1, F
 {
    del();
    Vec local_anchor[]={anchor0, anchor1};
-   CreateDistance(T, a0, a1, local_anchor, min, max, collision, spring!=null, spring ? spring->spring : 0, spring ? spring->damping : 0);
+   CreateDistance(T, a0, a1, local_anchor, min, max, spring, collision);
    return T;
 }
 Joint& Joint::createBodyHinge(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt min_angle, Flt max_angle)
@@ -481,7 +490,7 @@ Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C V
           local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
           local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
           local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, false, true, true, true, swing, twist);
+   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &swing, &twist, false, true);
    return T;
 }
 /******************************************************************************/
@@ -796,33 +805,38 @@ Bool Joint::save(File &f)C
 
       case JOINT_DISTANCE:
       {
-         Vec  anchor[2];
-         Flt  min, max;
-         Bool collision, spring;
-         Flt  spring_spring, spring_damper;
+         Vec    anchor[2];
+         Flt    min, max;
+         Bool   collision, use_spring;
       #if PHYSX
          PxDistanceJoint &distance=*_joint->is<PxDistanceJoint>();
          anchor[0]    =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR0).p);
          anchor[1]    =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR1).p);
          collision    =FlagTest((UInt)distance.getConstraintFlags   (), PxConstraintFlag   ::eCOLLISION_ENABLED);
-         spring       =FlagTest((UInt)distance.getDistanceJointFlags(), PxDistanceJointFlag::eSPRING_ENABLED   );
+         use_spring   =FlagTest((UInt)distance.getDistanceJointFlags(), PxDistanceJointFlag::eSPRING_ENABLED   );
          min          =distance.getMinDistance();
          max          =distance.getMaxDistance();
-         spring_spring=distance.getStiffness();
-         spring_damper=distance.getDamping  ();
-	   #else
+      #else
          btDistanceConstraint *dist=CAST(btDistanceConstraint, _joint);
          anchor[0]    =Bullet.vec(dist->getPivotInA()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[0].divNormalized(rb->offset); 
          anchor[1]    =Bullet.vec(dist->getPivotInB()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[1].divNormalized(rb->offset); 
          min          =dist->min_dist;
          max          =dist->max_dist;
-         spring       =dist->spring;
-         spring_spring=dist->spring_spring;
-         spring_damper=dist->spring_damper;
+         use_spring   =dist->use_spring;
          collision=true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
 	   #endif
-	      f<<anchor<<min<<max<<collision<<spring;
-	      if(spring)f<<spring_spring<<spring_damper;
+	      f<<anchor<<min<<max<<collision<<use_spring;
+	      if(use_spring)
+         {
+            Spring spring;
+         #if PHYSX
+            spring.spring =distance.getStiffness();
+            spring.damping=distance.getDamping  ();
+	      #else
+            spring=dist->spring;
+         #endif
+            f<<spring;
+         }
       }break;
    }
 
@@ -876,7 +890,7 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
                if(limit_swing)f>>swing;
                if(limit_twist)f>>twist;
 
-               CreateSpherical(T, a0, a1, anchor, axis, normal, collision, limit_swing, limit_twist, body, swing, twist);
+               CreateSpherical(T, a0, a1, anchor, axis, normal, limit_swing ? &swing : null, limit_twist ? &twist : null, collision, body);
             }break;
 
             case JOINT_SLIDER:
@@ -891,14 +905,14 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
 
             case JOINT_DISTANCE:
             {
-               Vec  anchor[2];
-               Flt  min, max;
-               Bool collision, spring;
-               Flt  spring_spring, spring_damper;
-	            f>>anchor>>min>>max>>collision>>spring;
-	            if(spring)f>>spring_spring>>spring_damper;
+               Vec    anchor[2];
+               Flt    min, max;
+               Bool   collision, use_spring;
+               Spring spring;
+	            f>>anchor>>min>>max>>collision>>use_spring;
+	            if(use_spring)f>>spring;
 
-               CreateDistance(T, a0, a1, anchor, min, max, collision, spring, spring_spring, spring_damper);
+               CreateDistance(T, a0, a1, anchor, min, max, use_spring ? &spring : null, collision);
             }break;
          }
 
