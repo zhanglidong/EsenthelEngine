@@ -2133,7 +2133,7 @@ void DisplayClass::getCaps()
 
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
    #if WINDOWS
-      if(glGetInternalformativ)
+      if(glGetInternalformativ) // requires GL 4.2
    #endif
       {
          glGetError(); // clear any previous errors
