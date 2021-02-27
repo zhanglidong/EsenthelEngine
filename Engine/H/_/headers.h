@@ -455,6 +455,7 @@
       #include <netinet/in.h>
       #include <netinet/tcp.h>
       #include <nn/socket/netinet6/in6.h>
+      #include <nv/nv_MemoryManagement.h>
       #if GL
          #include <EGL/egl.h>
          #include <EGL/eglext.h>

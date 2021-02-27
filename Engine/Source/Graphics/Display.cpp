@@ -229,12 +229,6 @@ static void glewSafe()
 #undef V
 }
 #endif
-
-#if SWITCH
-static Ptr  NvAlloc  (size_t size, size_t alignment, Ptr userPtr) {return aligned_alloc(alignment, nn::util::align_up(size, alignment));} // 'aligned_alloc' requires 'size' to be aligned
-static void NvFree   (Ptr addr                     , Ptr userPtr) {       free         (addr);}
-static Ptr  NvRealloc(Ptr addr   , size_t newSize  , Ptr userPtr) {return realloc      (addr, newSize);}
-#endif
 /******************************************************************************/
 // GL CONTEXT
 /******************************************************************************/
@@ -1455,8 +1449,7 @@ again:
       Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+Renderer._main.hwTypeInfo().name+", ds_type: "+Renderer._main_ds.hwTypeInfo().name);
    #elif SWITCH
-      nv::SetGraphicsAllocator        (NvAlloc, NvFree, NvRealloc, null); // Set memory allocator for graphics subsystem                          , this must be called before using any graphics API's
-      nv::SetGraphicsDevtoolsAllocator(NvAlloc, NvFree, NvRealloc, null); // Set memory allocator for graphics developer tools and NVN debug layer, this must be called before using any graphics developer features
+      NS::CreateDisplay();
    #elif IOS
       OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengles"));
 
