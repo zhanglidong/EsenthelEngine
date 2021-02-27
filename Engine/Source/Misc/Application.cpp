@@ -987,6 +987,8 @@ void ExitNow()
    if(App.flag&APP_BREAKPOINT_ON_ERROR)Break();
 #if WEB
    emscripten_exit_with_live_runtime(); // '_exit' would allow calling global destructors, 'emscripten_exit_with_live_runtime' does not allow it because it gets not caught and the browser stops, alternative is to use 'abort'
+#elif SWITCH
+   exit(-1);
 #else
   _exit(-1);
 #endif
