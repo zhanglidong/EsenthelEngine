@@ -75,7 +75,7 @@ Bool ProcWait(UInt id, Int milliseconds)
          if(WaitForSingleObject(hproc, (milliseconds<0) ? INFINITE : milliseconds)==WAIT_TIMEOUT)ok=false;
          CloseHandle(hproc);
       }
-   #else
+   #elif !SWITCH
       if(milliseconds<0)waitpid(id, null, 0);else
       {
          UInt start=Time.curTimeMs();
