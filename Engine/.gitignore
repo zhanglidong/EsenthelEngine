@@ -11,5 +11,6 @@
 /Linux/dist
 /NX64
 
+/*.a
 /*.bc
 /*.lib

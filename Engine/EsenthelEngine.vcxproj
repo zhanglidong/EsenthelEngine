@@ -526,6 +526,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
     <TargetName>$(ProjectName)Debug64DX11</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">
     <OutDir>$(ProjectDir)</OutDir>
@@ -534,12 +535,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
     <TargetName>$(ProjectName)DebugUniversal64DX11</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">
     <TargetName>$(ProjectName)Debug</TargetName>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">
     <TargetName>$(ProjectName)Debug</TargetName>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">
     <OutDir>$(ProjectDir)</OutDir>
@@ -564,6 +568,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
     <TargetName>$(ProjectName)64DX11</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">
     <OutDir>$(ProjectDir)</OutDir>
@@ -572,6 +577,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
     <TargetName>$(ProjectName)Universal64DX11</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">
     <TargetName>$(ProjectName)</TargetName>
@@ -596,9 +602,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">
     <TargetName>$(ProjectName)Debug64GL</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">
     <TargetName>$(ProjectName)Debug</TargetName>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">
     <OutDir>$(ProjectDir)</OutDir>
@@ -615,6 +623,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">
     <TargetName>$(ProjectName)64GL</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">
     <TargetName>$(ProjectName)</TargetName>
