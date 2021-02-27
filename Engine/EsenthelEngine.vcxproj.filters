@@ -238,6 +238,9 @@
     <Filter Include="H\_\Libs\NintendoSwitch\Ogg">
       <UniqueIdentifier>{71e80853-9e68-426a-9c2b-03725030f74a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\FLAC">
+      <UniqueIdentifier>{6539bd44-0166-4a14-aa80-d735d5eb0844}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -2788,6 +2791,66 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\Ogg\framing.o">
       <Filter>H\_\Libs\NintendoSwitch\Ogg</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\bitmath.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\bitreader.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\bitwriter.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\cpu.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\crc.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\fixed.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\format.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\lpc.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\md5.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\memory.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\metadata_iterators.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\metadata_object.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\ogg_decoder_aspect.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\ogg_encoder_aspect.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\ogg_helper.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\ogg_mapping.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\stream_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\stream_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\stream_encoder_framing.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\FLAC\window.o">
+      <Filter>H\_\Libs\NintendoSwitch\FLAC</Filter>
     </Object>
   </ItemGroup>
 </Project>

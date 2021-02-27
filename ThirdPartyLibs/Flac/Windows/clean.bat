@@ -27,3 +27,6 @@ del "Emscripten\Release\*.lastbuildstate"
 del "x64\Release\*.obj"
 del "x64\Release\*.log"
 rmdir /s /q "x64\Release\flac.tlog"
+
+rmdir /s /q NX64
+rmdir /s /q objs\NX64
