@@ -24,6 +24,7 @@
 *.filters      text eol=crlf merge=union diff=cpp
 *.csproj       text eol=crlf merge=union diff=cpp
 *.appxmanifest text eol=crlf merge=union diff=cpp
+*.props        text eol=crlf merge=union diff=cpp
 
 # Xcode
 *.plist   text diff=cpp
