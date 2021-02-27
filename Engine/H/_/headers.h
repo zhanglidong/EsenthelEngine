@@ -449,6 +449,7 @@
       #include <sys/wait.h>
       #include <nn/nn_Log.h>
       #include <nn/os.h>
+      #include <nn/oe.h>
       #include <nn/util/util_Uuid.h>
       #include <nn/socket/sys/cdefs.h>
       #include <netdb.h>

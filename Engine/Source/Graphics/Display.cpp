@@ -376,6 +376,7 @@ void GLContext::unlock()
 /******************************************************************************/
 // DISPLAY
 /******************************************************************************/
+#if !SWITCH
 VecI2 DisplayClass::screen()C
 {
 #if WINDOWS_OLD
@@ -434,6 +435,7 @@ VecI2 DisplayClass::screen()C
 #endif
    return App.desktop(); // this is not changed when device is rotated (obtained at app startup)
 }
+#endif
 /******************************************************************************/
 void DisplayClass::setShader(C Material *material)
 {
