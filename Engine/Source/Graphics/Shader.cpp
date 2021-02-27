@@ -1374,7 +1374,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                   case GL_FLOAT_MAT3  : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
                   case GL_FLOAT_MAT4  : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
                   case GL_FLOAT_MAT4x3: size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  default             : Exit("Invalid ShaderParam type"); break;
+                  default             : Exit("Invalid ShaderParam type"); return false;
                }
                DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
             }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan" etc.

@@ -302,12 +302,6 @@ static  Int GetI16 (File &f) {Byte b[2]; f>>b; return (I16)Calculate(b, Elms(b))
 
 static void XYZToRGB(Dbl x, Dbl y, Dbl z, Int &r, Int &g, Int &b)
 {
-   // Standards used Observer=2, Illuminant=D65
-   // ref_X=95.047, ref_Y=100.000, ref_Z=108.883
-   Dbl ref_X= 95.047,
-       ref_Y=100.000,
-       ref_Z=108.883;
-
    Dbl var_X=x/100.0,
        var_Y=y/100.0,
        var_Z=z/100.0;

@@ -65,7 +65,7 @@ static CChar8 *op_change []={"=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&
               *op_binary []={"*", "/", "%", "+", "-", "<<", ">>", "&", "^", "|"},
               *op_inc_dec[]={"++", "--"};
 static Mems<FuncCall*> FC2; // 'FC' sorted by FuncCall::func
-/******************************************************************************/
+/******************************************************************************
 void CodeEditor::createFuncList()
 {
    FileText  ft; ft.writeMem(UTF_8); // xcode had problems with utf-16

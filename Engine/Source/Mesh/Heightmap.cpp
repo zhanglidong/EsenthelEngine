@@ -1690,7 +1690,6 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, UInt flag, BuildMemSo
 
       const Int L           =l+quality, // lod affected by quality
                 edge_quality=Max(l-2, 0), // !! this affects number of elements in 'VtxMtrlCombos' !!
-                LE          =L+edge_quality, // lod affected by quality and edge quality
                 L_2         =(L ? 1<<(L-1) : 0),
                 Step        =(step<<edge_quality); // step affected by edge quality
             Int from        =(   0>>L),

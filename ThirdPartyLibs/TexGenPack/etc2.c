@@ -728,7 +728,6 @@ static unsigned int punchthrough_mask_table[4] = {
 	int i = val; \
 	int pixel_index = ((pixel_index_word & (1 << i)) >> i) \
 		| ((pixel_index_word & (0x10000 << i)) >> (16 + i - 1)); \
-	unsigned int a = 0xFF000000; \
 	int r, g, b; \
 	int modifier = punchthrough_modifier_table[table_codeword1][pixel_index]; \
 	r = clamp(base_color_subblock1_R + modifier); \

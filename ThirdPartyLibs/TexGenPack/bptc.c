@@ -594,7 +594,7 @@ void bptc_set_block_colors(unsigned char *bitstring, int flags, unsigned int *co
 		data0 = set_bits_uint64(data0, 8, 14, r0 >> 1);
 		data0 = set_bits_uint64(data0, 15, 21, r1 >> 1);
 		data0 = set_bits_uint64(data0, 22, 28, g0 >> 1);
-		data0 = set_bits_uint64(data0, 29, 35, g0 >> 1);
+		data0 = set_bits_uint64(data0, 29, 35, g1 >> 1);
 		data0 = set_bits_uint64(data0, 36, 42, b0 >> 1);
 		data0 = set_bits_uint64(data0, 43, 49, b1 >> 1);
 		if (flags & (MODES_ALLOWED_PUNCHTHROUGH_ONLY)) {

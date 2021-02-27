@@ -987,7 +987,7 @@
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1009,7 +1009,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -1116,7 +1116,7 @@
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=1;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1138,7 +1138,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MsExtensions>true</MsExtensions>
     </ClCompile>
@@ -1653,7 +1653,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1674,7 +1674,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -1796,7 +1796,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);..\ThirdPartyLibs;..\ThirdPartyLibs\FreeType\lib\include;..\ThirdPartyLibs\DirectX;..\ThirdPartyLibs\Zlib;..\ThirdPartyLibs\Opus\lib\include;..\ThirdPartyLibs\Opus\file\include;..\ThirdPartyLibs\Ogg\include;..\ThirdPartyLibs\Theora\include;..\ThirdPartyLibs\Vorbis\include;..\ThirdPartyLibs\FDK-AAC\lib\libSYS\include;..\ThirdPartyLibs\FBX;..\ThirdPartyLibs\Bullet\lib\src;..\ThirdPartyLibs\VP\libvpx\third_party\libwebm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=0;DX11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -1818,7 +1818,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <SDLCheck>
       </SDLCheck>
@@ -2217,7 +2217,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -2543,7 +2543,7 @@
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>

@@ -972,7 +972,7 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
                   REPD(x, dest.w())
                   {
                      Byte  color =( color_src->is() ?  color_src->color(x, y).lum() : 255);
-                     Byte  bump  =(  bump_src->is() ?   bump_src->color(x, y).lum() : 128);
+                   //Byte  bump  =(  bump_src->is() ?   bump_src->color(x, y).lum() : 128);
                      Color normal=(normal_src->is() ? normal_src->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)normal.g=255-normal.g;
                      Byte  smooth=(smooth_src->is() ? smooth_src->color(x, y).lum() : 255);
                      dest.color(x, y, Color(normal.r, normal.g, color, smooth)); // #MaterialTextureLayout

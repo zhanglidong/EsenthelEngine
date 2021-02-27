@@ -435,7 +435,6 @@
       #undef LOCK_READ
       #undef LOCK_WRITE
    #elif SWITCH // Nintendo Switch
-      #define _KERNEL
       #include <unistd.h>
       #include <pthread.h>
       #include <dirent.h>
@@ -450,6 +449,7 @@
       #include <nn/util/util_Uuid.h>
       #include <nn/socket/sys/cdefs.h>
       #include <netdb.h>
+      #include <arpa/inet.h>
       #include <netinet/in.h>
       #include <netinet/tcp.h>
       #include <nn/socket/netinet6/in6.h>

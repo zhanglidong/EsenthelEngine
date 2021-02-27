@@ -92,11 +92,11 @@ T1(TYPE) void CopyN(TYPE *dest, C TYPE *src,  Int  elms) {Copy  ( dest,  src, el
 T1(TYPE) void ZeroFast (TYPE &elm               ) {memset(&elm , 0,      SIZE(TYPE));}
 T1(TYPE) void ZeroFastN(TYPE *data, UInt    elms) {memset( data, 0, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0
 
-  inline void MoveFast (Ptr   dest,   CPtr  src, UIntPtr size) {memmove( dest,  src,      size      );} // !! this does not check for pointers!=null, size>=0                       , this is more safe than 'CopyFast'
-T1(TYPE) void MoveFastN(TYPE *dest, C TYPE *src, UInt    elms) {memmove( dest,  src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0                       , this is more safe than 'CopyFast'
-  inline void CopyFast (Ptr   dest,   CPtr  src, UIntPtr size) {memcpy ( dest,  src,      size      );} // !! this does not check for pointers!=null, size>=0 and if memory overlaps, this is less safe than 'MoveFast'
-T1(TYPE) void CopyFast (TYPE &dest, C TYPE &src              ) {memcpy (&dest, &src,      SIZE(TYPE));} // !! this does not check                                 if memory overlaps, this is less safe than 'MoveFast'
-T1(TYPE) void CopyFastN(TYPE *dest, C TYPE *src, UInt    elms) {memcpy ( dest,  src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0 and if memory overlaps, this is less safe than 'MoveFast'
+  inline void MoveFast (Ptr   dest,   CPtr  src, UIntPtr size) {memmove(     dest,       src,      size      );} // !! this does not check for pointers!=null, size>=0                       , this is more safe than 'CopyFast'
+T1(TYPE) void MoveFastN(TYPE *dest, C TYPE *src, UInt    elms) {memmove(     dest,       src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0                       , this is more safe than 'CopyFast'
+  inline void CopyFast (Ptr   dest,   CPtr  src, UIntPtr size) {memcpy (     dest,       src,      size      );} // !! this does not check for pointers!=null, size>=0 and if memory overlaps, this is less safe than 'MoveFast'
+T1(TYPE) void CopyFast (TYPE &dest, C TYPE &src              ) {memcpy (    &dest,      &src,      SIZE(TYPE));} // !! this does not check                                 if memory overlaps, this is less safe than 'MoveFast'
+T1(TYPE) void CopyFastN(TYPE *dest, C TYPE *src, UInt    elms) {memcpy ((Ptr)dest, (CPtr)src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0 and if memory overlaps, this is less safe than 'MoveFast', cast to ptr to silence "-Wdynamic-class-memaccess" warning
 /******************************************************************************/
 // SWAP MEMORY
 /******************************************************************************/

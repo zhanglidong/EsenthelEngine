@@ -505,7 +505,7 @@ void Particles::draw(Flt opacity)C
       if(opacity>0)
       {
          Bool       initialized =false,
-                    depth_offset=(!SoftParticles() && hard_depth_offset>0),
+                  //depth_offset=(!SoftParticles() && hard_depth_offset>0),
                     offset      =(offset_range>EPS);
          Flt        offset_time =Time.time()*offset_speed,
                     offset_time2=offset_time*0.7f,
