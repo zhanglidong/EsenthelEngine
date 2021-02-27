@@ -32,3 +32,6 @@ del Emscripten\Release\*.o
 del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
+
+rmdir /s /q bin\NX64
+rmdir /s /q NX64

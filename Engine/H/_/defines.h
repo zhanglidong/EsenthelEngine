@@ -186,12 +186,12 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 #define SUPPORT_MLAA                         0
 
 // Compression
-#define SUPPORT_RLE    (!WEB)
-#define SUPPORT_SNAPPY (!WEB)
+#define SUPPORT_RLE    (!SWITCH && !WEB)
+#define SUPPORT_SNAPPY (!SWITCH && !WEB)
 #define SUPPORT_LZ4    1
 #define SUPPORT_ZLIB   (!WEB)
 #define SUPPORT_ZSTD   1
-#define SUPPORT_LZHAM  1
+#define SUPPORT_LZHAM  (!SWITCH)
 #define SUPPORT_LZMA   1
 
 // Audio
@@ -205,14 +205,14 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 // Image
 #define SUPPORT_JPG  1
 #define SUPPORT_PNG  1
-#define SUPPORT_PSD  (!WEB)
-#define SUPPORT_TIF  (!WEB)
+#define SUPPORT_PSD  (!SWITCH && !WEB)
+#define SUPPORT_TIF  (!SWITCH && !WEB)
 #define SUPPORT_WEBP 1
 #define SUPPORT_HEIF 0 // (WINDOWS_OLD && X64 && !ARM)
 
 // Video
-#define SUPPORT_THEORA 1
-#define SUPPORT_VP     (WINDOWS || MAC || LINUX || ANDROID || (IOS && !IOS_SIMULATOR))
+#define SUPPORT_THEORA (!SWITCH)
+#define SUPPORT_VP     (WINDOWS || MAC || LINUX || ANDROID || (IOS && !IOS_SIMULATOR) || SWITCH)
 
 // Database
 #define SUPPORT_SQLITE 1 // isn't going to be linked unless used
