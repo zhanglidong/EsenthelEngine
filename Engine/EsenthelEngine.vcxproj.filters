@@ -235,6 +235,9 @@
     <Filter Include="H\_\Libs\NintendoSwitch\LZ4">
       <UniqueIdentifier>{353f7dd3-0172-4802-8c7c-435d6a139d7f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Ogg">
+      <UniqueIdentifier>{71e80853-9e68-426a-9c2b-03725030f74a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -2779,6 +2782,12 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\threading.o">
       <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Ogg\bitwise.o">
+      <Filter>H\_\Libs\NintendoSwitch\Ogg</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Ogg\framing.o">
+      <Filter>H\_\Libs\NintendoSwitch\Ogg</Filter>
     </Object>
   </ItemGroup>
 </Project>

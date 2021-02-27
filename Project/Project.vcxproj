@@ -1027,7 +1027,7 @@
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1156,7 +1156,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1700,7 +1700,7 @@
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1844,7 +1844,7 @@
       </LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2235,7 +2235,7 @@
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2567,7 +2567,7 @@
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
