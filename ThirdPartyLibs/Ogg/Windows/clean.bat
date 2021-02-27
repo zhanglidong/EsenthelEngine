@@ -19,3 +19,5 @@ rmdir /s /q ARM\Release\ogg.tlog
 del Emscripten\Release\*.o
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
+
+rmdir /s /q NX64
