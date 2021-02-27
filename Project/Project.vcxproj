@@ -1028,6 +1028,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1157,6 +1158,7 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1701,6 +1703,7 @@
       </LinkTimeCodeGeneration>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1845,6 +1848,7 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2236,6 +2240,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2568,6 +2573,7 @@
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalNSODependencies>opengl.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
