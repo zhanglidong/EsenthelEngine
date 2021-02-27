@@ -223,6 +223,18 @@
     <Filter Include="Source\Platforms\Switch">
       <UniqueIdentifier>{672d11b3-1109-4cc3-bf75-fe3e0bb699f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch">
+      <UniqueIdentifier>{8cc78cab-6f15-4ed2-aa9e-9abe7f269d85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\LZMA">
+      <UniqueIdentifier>{9d1c7808-127b-4952-a2d6-bf504c63bf22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Zstd">
+      <UniqueIdentifier>{bd6bdd76-4fb3-426f-8b9b-ba37483a015b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\LZ4">
+      <UniqueIdentifier>{353f7dd3-0172-4802-8c7c-435d6a139d7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -2661,5 +2673,112 @@
     <Library Include="..\ThirdPartyLibs\Zlib\Windows\x64\Release\Zlib.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_common.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_compress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_compress_literals.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_compress_sequences.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_compress_superblock.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_ddict.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_decompress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_decompress_block.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_double_fast.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_fast.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_lazy.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_ldm.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_opt.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstdmt_compress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\Lzma2Dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\Lzma2Enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\LzmaDec.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\LzmaEnc.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\7zStream.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZ4\lz4.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZ4</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZ4\lz4hc.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZ4</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZ4\xxhash.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZ4</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\LZMA\LzFind.o">
+      <Filter>H\_\Libs\NintendoSwitch\LZMA</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zdict.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\cover.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\divsufsort.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\entropy_common.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\error_private.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\fse_compress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\fse_decompress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\hist.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\huf_compress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\huf_decompress.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\pool.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\threading.o">
+      <Filter>H\_\Libs\NintendoSwitch\Zstd</Filter>
+    </Object>
   </ItemGroup>
 </Project>
