@@ -192,7 +192,7 @@ Joint& Joint::create(Actor &a0, Actor *a1)
    return T;
 }
 /******************************************************************************/
-static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], Bool limit_angle, Bool body, Flt angle_min, Flt angle_max, Bool collision)
+static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Vec2 *angle_min_max, Bool collision, Bool body)
 {
 #if PHYSX
    Matrix m0; m0.pos=local_anchor[0]; m0.x=local_axis[0]; m0.y=local_normal[0]; m0.z=Cross(m0.x, m0.y);
@@ -201,9 +201,11 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
    if(Physx.world && ValidActors(a0, a1))
       if(PxRevoluteJoint *hinge=PxRevoluteJointCreate(*Physx.physics, a0._actor, Physx.matrix(m0), a1 ? a1->_actor : null, Physx.matrix(m1)))
    {
-      hinge->setConstraintFlag   (PxConstraintFlag   ::eCOLLISION_ENABLED, collision  );
-      hinge->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED    , limit_angle);
-      PxJointAngularLimitPair limit(-angle_max, -angle_min); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;} hinge->setLimit(limit);
+      hinge->setConstraintFlag   (PxConstraintFlag   ::eCOLLISION_ENABLED, collision          );
+      hinge->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED    , angle_min_max!=null);
+
+      PxJointAngularLimitPair limit(angle_min_max ? -angle_min_max->y : 0, angle_min_max ? -angle_min_max->x : 0); // here order is reversed to pass max first
+      if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;} hinge->setLimit(limit);
       joint._joint=hinge;
    }
 #else
@@ -224,7 +226,7 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
          Flt f=FLT_MAX;
          hinge->setUserConstraintId((Int&)f);
          hinge->setUserConstraintType(0);
-         if(limit_angle)hinge->setLimit(angle_min, angle_max);
+         if(angle_min_max)hinge->setLimit(angle_min_max->x, angle_min_max->y);
 
          WriteLock lock(Physics._rws);
          if(Bullet.world)Bullet.world->addConstraint(hinge, !collision);
@@ -423,7 +425,7 @@ Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Bool
           local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
           local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
           local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, false, false, 0, 0, collision);
+   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, null, collision, false);
    return T;
 }
 Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt min_angle, Flt max_angle, Bool collision)
@@ -435,7 +437,7 @@ Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt 
           local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
           local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
           local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, true, false, min_angle, max_angle, collision);
+   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), collision, false);
    return T;
 }
 Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Flt *swing, C Flt *twist, Bool collision)
@@ -478,7 +480,7 @@ Joint& Joint::createBodyHinge(Actor &bone, Actor &parent, C Vec &anchor, C Vec &
           local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
           local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
           local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateHinge(T, bone, &parent, local_anchor, local_axis, local_normal, true, true, min_angle, max_angle, false);
+   CreateHinge(T, bone, &parent, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), false, true);
    return T;
 }
 Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt swing, Flt twist)
@@ -677,7 +679,7 @@ Bool Joint::save(File &f)C
       {
          Vec  anchor[2], axis[2], normal[2];
          Bool collision, limit_angle, body;
-         Flt  angle_min, angle_max;
+         Vec2 angle;
       #if PHYSX
          PxRevoluteJoint &hinge=*_joint->is<PxRevoluteJoint>();
          Matrix m0=Physx.matrix(hinge.getLocalPose(PxJointActorIndex::eACTOR0)),
@@ -692,20 +694,20 @@ Bool Joint::save(File &f)C
          collision  =FlagTest((UInt)hinge.getConstraintFlags   (), PxConstraintFlag   ::eCOLLISION_ENABLED);
          limit_angle=FlagTest((UInt)hinge.getRevoluteJointFlags(), PxRevoluteJointFlag::eLIMIT_ENABLED    );
          body       =(limit.restitution>0 || limit.stiffness>0);
-         angle_min  =-limit.upper;
-         angle_max  =-limit.lower;
+         angle.x    =-limit.upper; // min
+         angle.y    =-limit.lower; // max
       #else
          btHingeConstraint *hinge=CAST(btHingeConstraint, _joint);
          Matrix m=Bullet.matrix(hinge->getAFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))m.divNormalized(rb->offset); anchor[0]=m.pos; axis[0]=m.z; normal[0]=m.y;
                 m=Bullet.matrix(hinge->getBFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyB()))m.divNormalized(rb->offset); anchor[1]=m.pos; axis[1]=m.z; normal[1]=m.y;
          collision=true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
          body     =false;
-         angle_min=hinge->getLowerLimit();
-         angle_max=hinge->getUpperLimit();
-         limit_angle=(angle_min<=angle_max);
+         angle.x  =hinge->getLowerLimit();
+         angle.y  =hinge->getUpperLimit();
+         limit_angle=(angle.x<=angle.y);
       #endif
          f<<anchor<<axis<<normal<<collision<<limit_angle<<body;
-         if(limit_angle)f<<angle_min<<angle_max;
+         if(limit_angle)f<<angle;
          f<<hingeDriveEnabled()<<hingeDriveFreeSpin()<<hingeDriveVel()<<hingeDriveForceLimit()<<hingeDriveGearRatio();
       }break;
 
@@ -873,11 +875,11 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
             {
                Vec  anchor[2], axis[2], normal[2];
                Bool collision, limit_angle, body;
-               Flt  angle_min, angle_max;
+               Vec2 angle;
                f>>anchor>>axis>>normal>>collision>>limit_angle>>body;
-               if(limit_angle)f>>angle_min>>angle_max;
+               if(limit_angle)f>>angle;
 
-               CreateHinge(T, a0, a1, anchor, axis, normal, limit_angle, body, angle_min, angle_max, collision);
+               CreateHinge(T, a0, a1, anchor, axis, normal, limit_angle ? &angle : null, collision, body);
                hingeDriveEnabled(f.getBool()); hingeDriveFreeSpin(f.getBool()); hingeDriveVel(f.getFlt()); hingeDriveForceLimit(f.getFlt()); hingeDriveGearRatio(f.getFlt());
             }break;
 
