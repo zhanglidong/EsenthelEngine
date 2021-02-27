@@ -695,6 +695,9 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
       extern UInt FBO1;
    #elif LINUX
       extern GLXFBConfig GLConfig;
+   #elif ANDROID || SWITCH
+      extern EGLConfig  GLConfig;
+      extern EGLDisplay GLDisplay;
    #endif
 #endif
 

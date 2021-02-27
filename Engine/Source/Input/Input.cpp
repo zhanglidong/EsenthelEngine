@@ -365,6 +365,8 @@ Bool InputDevicesClass::create()
       CoreMotionMgr=[[CMMotionManager alloc] init];
       CoreMotionMgr.accelerometerUpdateInterval=1.0f/60; // 60 Hz
       CoreMotionMgr.         gyroUpdateInterval=1.0f/60; // 60 Hz
+   #elif SWITCH
+      NS::CreateInput();
    #endif
       if(App.active())acquire(true);
       return true;

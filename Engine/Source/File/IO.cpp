@@ -25,6 +25,9 @@ Bool CurDir(C Str &dir)
 #if WINDOWS
    return SetCurrentDirectory(dir)!=0;
 #else
+   #if SWITCH
+      if(!dir.is())return false; // on Switch null causes a crash
+   #endif
    return !chdir(UnixPathUTF8(dir));
 #endif
 }

@@ -56,8 +56,8 @@ DisplayClass D;
       static         int                   vid_modes=0;
       static         XF86VidModeModeInfo **vid_mode=null;
    #elif ANDROID || SWITCH
-      static EGLConfig  GLConfig;
-      static EGLDisplay GLDisplay;
+             EGLConfig  GLConfig;
+             EGLDisplay GLDisplay;
       static Int        GLCtxVer;
    #elif IOS
       UInt FBO1;
@@ -304,6 +304,24 @@ Bool GLContext::createSecondary()
    if(surface=eglCreatePbufferSurface(GLDisplay, GLConfig, attribs))
    {
       EGLint ctx_attribs[]={EGL_CONTEXT_CLIENT_VERSION, GLCtxVer, EGL_NONE}; // end of list
+      context=eglCreateContext(GLDisplay, GLConfig, MainContext.context, ctx_attribs);
+   }
+#elif SWITCH
+   EGLint attribs[]={EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE}; // end of list
+   if(surface=eglCreatePbufferSurface(GLDisplay, GLConfig, attribs))
+   {
+      EGLint ctx_attribs[]=
+      {
+      #if GL_ES
+         EGL_CONTEXT_MAJOR_VERSION, 3,
+         EGL_CONTEXT_MINOR_VERSION, 2,
+      #else
+         EGL_CONTEXT_MAJOR_VERSION, 4,
+         EGL_CONTEXT_MINOR_VERSION, 5,
+      #endif
+       //EGL_CONTEXT_FLAGS_KHR, EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR,
+         EGL_NONE // end of list
+      };
       context=eglCreateContext(GLDisplay, GLConfig, MainContext.context, ctx_attribs);
    }
 #elif IOS
@@ -1075,6 +1093,7 @@ void DisplayClass::del()
       if(VAO){glDeleteVertexArrays(1, &VAO); VAO=0;}
       SecondaryContexts.del();
            MainContext .del();
+
    #if WINDOWS
       if(hDC){ReleaseDC(App.Hwnd(), hDC); hDC=null;}
       SetDisplayMode(0); // switch back to the desktop
@@ -1086,8 +1105,11 @@ void DisplayClass::del()
    #elif ANDROID || SWITCH
       if(GLDisplay){eglTerminate(GLDisplay); GLDisplay=null;}
    #endif
+
    #if APPLE
       if(OpenGLBundle){CFRelease(OpenGLBundle); OpenGLBundle=null;}
+   #elif SWITCH
+      NS::DelDisplay();
    #endif
 #endif
 }
