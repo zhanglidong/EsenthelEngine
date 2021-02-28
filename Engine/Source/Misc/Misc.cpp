@@ -807,34 +807,24 @@ UInt Shr        (UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32)
 UInt Rol        (UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
 UInt Ror        (UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
 
-Int BitHi(UShort x)
+Int BitOn(UInt x)
 {
 #if WINDOWS
-   if(!x)return 0; DWORD i; _BitScanReverse(&i, x); return i;
+   return __popcnt(x);
 #elif 1
-   return x ? 31^__builtin_clz(x) : 0; // 31^__builtin_clz(x)==31-__builtin_clz(x), 31 because '__builtin_clz' operates on 'UInt'
+   return __builtin_popcount(x);
 #else
-   Int i=0; for(UInt bit=8; bit; bit>>=1)if(x>=(1<<bit)){i|=bit; x>>=bit;} return i;
+   Int on=0; for(; x; x>>=1)on+=x&1; return on;
 #endif
 }
-Int BitHi(UInt x)
+Int BitOn(ULong x)
 {
 #if WINDOWS
-   if(!x)return 0; DWORD i; _BitScanReverse(&i, x); return i;
+   return __popcnt64(x);
 #elif 1
-   return x ? 31^__builtin_clz(x) : 0; // 31^__builtin_clz(x)==31-__builtin_clz(x)
+   return __builtin_popcountll(x);
 #else
-   Int i=0; for(UInt bit=16; bit; bit>>=1)if(x>=(1<<bit)){i|=bit; x>>=bit;} return i;
-#endif
-}
-Int BitHi(ULong x)
-{
-#if WINDOWS && X64
-   if(!x)return 0; DWORD i; _BitScanReverse64(&i, x); return i;
-#elif !WINDOWS
-   return x ? 63^__builtin_clzll(x) : 0; // 63^__builtin_clzll(x)==63-__builtin_clzll(x)
-#else
-   Int i=0; for(UInt bit=32; bit; bit>>=1)if(x>=(1ull<<bit)){i|=bit; x>>=bit;} return i;
+   Int on=0; for(; x; x>>=1)on+=x&1; return on;
 #endif
 }
 
@@ -866,6 +856,37 @@ Int BitLo(ULong x)
    return x ? __builtin_ctzll(x) : 63;
 #else
    Int i=0; for(UInt bit=32; bit; bit>>=1)if(!(x&((1ull<<bit)-1))){i|=bit; x>>=bit;} return i;
+#endif
+}
+
+Int BitHi(UShort x)
+{
+#if WINDOWS
+   if(!x)return 0; DWORD i; _BitScanReverse(&i, x); return i;
+#elif 1
+   return x ? 31^__builtin_clz(x) : 0; // 31^__builtin_clz(x)==31-__builtin_clz(x), 31 because '__builtin_clz' operates on 'UInt'
+#else
+   Int i=0; for(UInt bit=8; bit; bit>>=1)if(x>=(1<<bit)){i|=bit; x>>=bit;} return i;
+#endif
+}
+Int BitHi(UInt x)
+{
+#if WINDOWS
+   if(!x)return 0; DWORD i; _BitScanReverse(&i, x); return i;
+#elif 1
+   return x ? 31^__builtin_clz(x) : 0; // 31^__builtin_clz(x)==31-__builtin_clz(x)
+#else
+   Int i=0; for(UInt bit=16; bit; bit>>=1)if(x>=(1<<bit)){i|=bit; x>>=bit;} return i;
+#endif
+}
+Int BitHi(ULong x)
+{
+#if WINDOWS && X64
+   if(!x)return 0; DWORD i; _BitScanReverse64(&i, x); return i;
+#elif !WINDOWS
+   return x ? 63^__builtin_clzll(x) : 0; // 63^__builtin_clzll(x)==63-__builtin_clzll(x)
+#else
+   Int i=0; for(UInt bit=32; bit; bit>>=1)if(x>=(1ull<<bit)){i|=bit; x>>=bit;} return i;
 #endif
 }
 

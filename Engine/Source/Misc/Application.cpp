@@ -718,7 +718,7 @@ static Str GetAppPathName()
    return FromUTF8(path);
 #elif ANDROID
    return AndroidAppPath; // obtained externally
-#elif WEB
+#else
    return S;
 #endif
 }

@@ -85,7 +85,7 @@ CPU::CPU()
 
    #if WINDOWS_OLD
       DWORD_PTR process, system; GetProcessAffinityMask(GetCurrentProcess(), &process, &system);
-      REP(64)if(process&(ULong(1)<<i))_threads++;
+     _threads=BitOn(process);
    #elif WINDOWS_NEW
       SYSTEM_INFO sys_info; GetSystemInfo(&sys_info); _threads=sys_info.dwNumberOfProcessors;
    #endif
@@ -226,9 +226,11 @@ CPU::CPU()
    // get threads - do not rely on '_SC_NPROCESSORS_CONF' or '_SC_NPROCESSORS_ONLN' as they both may return not all threads (if some are switched off due to power saving), 'sysctl' is not available on Android
    UnixReadFile("/sys/devices/system/cpu/present" , data, SIZE(data)); ULong cpu_present =GetBits(data); // sample output: "0-3", "0,1-2" (no spaces, values separated with commas, ranges or single values, ranges inclusive)
    UnixReadFile("/sys/devices/system/cpu/possible", data, SIZE(data)); ULong cpu_possible=GetBits(data);
-   ULong mask=(cpu_present&cpu_possible); REP(64)if(mask&(ULong(1)<<i))_threads++;
+   ULong mask=(cpu_present&cpu_possible); _threads=BitOn(mask);
    MAX(_threads, sysconf(_SC_NPROCESSORS_CONF)); // just in case code above was unsuccessful
  //LogN(S+"cpu_present:"+TextBin(cpu_present)+" cpu_possible:"+TextBin(cpu_possible)+" mask:"+TextBin(mask)+", sysconf(_SC_NPROCESSORS_CONF):"+(Int)sysconf(_SC_NPROCESSORS_CONF)+", android_getCpuCount:"+(Int)android_getCpuCount()+", std::thread::hardware_concurrency:"+(Int)std::thread::hardware_concurrency());
+#elif SWITCH
+  _threads=NS::CpuThreads();
 #endif
 
    MAX(_threads, 1);

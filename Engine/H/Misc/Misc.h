@@ -154,6 +154,8 @@ UInt CeilPow2   (UInt   x); // rounds 'x' to the nearest power    of 2  , which 
 UInt FloorPow2  (UInt   x); // rounds 'x' to the nearest power    of 2  , which is equal or smaller than 'x'
 UInt NearestPow2(UInt   x); // rounds 'x' to the nearest power    of 2
 Bool IsPow2     (UInt   x); // if     'x' is     a       power    of 2
+Int  BitOn      (UInt   x); // get how many bits are on (set to 1) in 'x'
+Int  BitOn      (ULong  x); // get how many bits are on (set to 1) in 'x'
 Int  BitLo      (UShort x); // get index of lowest  non-zero bit  in 'x' (15 if none)
 Int  BitLo      (UInt   x); // get index of lowest  non-zero bit  in 'x' (31 if none)
 Int  BitLo      (ULong  x); // get index of lowest  non-zero bit  in 'x' (63 if none)
