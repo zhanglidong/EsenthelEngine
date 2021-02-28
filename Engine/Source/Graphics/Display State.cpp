@@ -108,7 +108,9 @@ static RasterizerState RasterStates[   BIAS_NUM][2][2][2][2][2][2]; // [Bias][Cu
 static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
 static UInt StencilFunc=GL_ALWAYS, StencilMask=~0;
+#if !WINDOWS && !SWITCH
 static void (*glBlendFunci) (GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
+#endif
 #endif
 
 #if !DX11
@@ -1258,7 +1260,9 @@ void DisplayState::create()
       RasterStates[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
    }
 #elif GL
-   glBlendFunci=(decltype(glBlendFunci))D.glGetProcAddress("glBlendFunci");
+   #if !WINDOWS && !SWITCH
+      glBlendFunci=(decltype(glBlendFunci))D.glGetProcAddress("glBlendFunci");
+   #endif
 #endif
    setDeviceSettings();
 }
