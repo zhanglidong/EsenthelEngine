@@ -652,6 +652,24 @@
     <LinkIncremental>false</LinkIncremental>
     <EmbedManifest>true</EmbedManifest>
   </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
+    <ApplicationDataDir>$(ProjectDir)\..\Editor\Bin\Mobile</ApplicationDataDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
