@@ -25,10 +25,12 @@ Bool CurDir(C Str &dir)
 #if WINDOWS
    return SetCurrentDirectory(dir)!=0;
 #else
-   #if SWITCH
-      if(!dir.is())return false; // on Switch null causes a crash
-   #endif
-   return !chdir(UnixPathUTF8(dir));
+   auto    path=UnixPathUTF8(dir);
+   CChar8 *path_ptr=path;
+#if SWITCH
+   if(!path_ptr)path_ptr=""; // on Switch null causes a crash
+#endif
+   return !chdir(path_ptr);
 #endif
 }
 /******************************************************************************/
@@ -1122,9 +1124,11 @@ void InitIO()
 #endif
 
    // Current Directory
-#if WEB // WEB has this handled in main
-#elif IOS
+#if IOS
    CurDir(App.exe()); // on iOS set path to the application (since on iOS it's a folder, which contains resource files)
+#elif SWITCH
+   CurDir("rom:");
+#elif WEB // WEB has this handled in main
 #else
    CurDir(GetPath(App.exe()));
 #endif
