@@ -452,6 +452,7 @@
       #include <nn/oe.h>
       #include <nn/hid.h>
       #include <nn/vi.h>
+      #include <nn/err.h>
       #include <nn/util/util_Uuid.h>
       #include <nn/socket/sys/cdefs.h>
       #include <netdb.h>

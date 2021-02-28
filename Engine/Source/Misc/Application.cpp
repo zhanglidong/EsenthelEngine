@@ -534,6 +534,7 @@ ref struct Exiter sealed
 #elif ANDROID
 extern "C" JNIEXPORT void JNICALL Java_com_esenthel_Native_closedError(JNIEnv *env, jclass clazz) {ExitNow();}
 #endif
+#if !SWITCH
 void Application::showError(CChar *error)
 {
    if(Is(error))
@@ -629,8 +630,6 @@ void Application::showError(CChar *error)
 
      _closed=true; if(EAGLView *view=GetUIView())[view setUpdate]; // disable callback processing and stop updating
       [[NSRunLoop mainRunLoop] run];
-   #elif SWITCH
-      NS::Log(true, UTF8(error));
    #elif WEB // on Web display the error as both console output and message box
       fputs(UTF8(error), stdout); // first write to console
       WindowMsgBox(title, error, true);
@@ -639,6 +638,7 @@ void Application::showError(CChar *error)
    #endif
    }
 }
+#endif
 void Application::lowMemory()
 {
    // call this first before releasing caches

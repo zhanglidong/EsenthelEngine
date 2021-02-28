@@ -1539,6 +1539,8 @@ LANG_TYPE OSLanguage()
    }
 #elif LINUX || WEB
    return LanguageCode(setlocale(LC_CTYPE, ""));
+#elif SWITCH
+   return LanguageCode(NS::OSLang());
 #endif
    return LANG_UNKNOWN;
 }
