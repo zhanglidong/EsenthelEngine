@@ -12,6 +12,7 @@
 
 namespace EE{
 /******************************************************************************/
+#if !SWITCH
 #if SUPPORT_PNG
    static void PngReadData (png_structp png_ptr, png_bytep data, png_size_t size) {if(!((File*)png_get_io_ptr(png_ptr))->get(data, (Int)size))png_error(png_ptr, "Read Error" );}
    static void PngWriteData(png_structp png_ptr, png_bytep data, png_size_t size) {if(!((File*)png_get_io_ptr(png_ptr))->put(data, (Int)size))png_error(png_ptr, "Write Error");}
@@ -132,6 +133,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
 #endif
    return false;
 }
+#endif
 /******************************************************************************/
 Bool Image::ExportPNG(C Str &name, Flt compression_level)C
 {
