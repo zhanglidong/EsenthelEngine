@@ -1074,7 +1074,7 @@ Bool File::sync()
          return _commit(_handle)==0;
       #endif
    #elif SWITCH
-      return false;
+      return true; // return true because this is required by SQLite
    #else
       return fsync(_handle)==0;
    #endif

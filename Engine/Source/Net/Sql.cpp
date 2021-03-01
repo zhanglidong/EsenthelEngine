@@ -120,7 +120,8 @@ Bool SQL::connectSQLite(C Str &database_file_name, const_mem_addr Cipher *cipher
    del();
    Bool from_pak=(FExist(database_file_name) && !FExistSystem(database_file_name));
    if(cipher // custom cipher needed
-   || from_pak) // file exists only in project data, try to connect in read-only mode using callbacks
+   || from_pak // file exists only in project data, try to connect in read-only mode using callbacks
+   || SWITCH)  // Switch doesn't support 'fcntl' file locking (SQLite default) and would have to use "unix-none" VFS, but even then it crashes because of exceptions throw in Switch IO functions
    {
       SyncLocker lock(SQLiteCipherLock);
       SQLiteCipher=cipher;
