@@ -50,3 +50,5 @@ del Emscripten\Release\*.o
 del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
+
+rmdir /s /q NX64
