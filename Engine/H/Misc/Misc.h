@@ -103,7 +103,8 @@ Str GetStartNot (C Str &name); // get not path start                 , sample us
 Str GetRelativePath(Str src, Str dest); // get relative path from 'src' location to 'dest' file, sample usage: GetRelativePath("C:/Folder", "C:/dest.txt") -> "../dest.txt"
 
 #if EE_PRIVATE
-INLINE Bool IsSlash(Char c) {return c=='/' || c=='\\';}
+INLINE Bool IsSlash(Char8 c) {return c=='/' || c=='\\';}
+INLINE Bool IsSlash(Char  c) {return c=='/' || c=='\\';}
 
 CChar * _GetBase     (CChar  *name, Bool tail_slash= 0, Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c); // 'tail_slash'=if keep   tail slash
 CChar * _GetBaseNoExt(CChar  *name,                     Char  (&dest)[MAX_LONG_PATH]=NoTemp(TempChar <MAX_LONG_PATH>()).c);

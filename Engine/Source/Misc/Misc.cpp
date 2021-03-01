@@ -2025,12 +2025,24 @@ EXTENSION_TYPE ExtType(C Str &ext)
    return EXT_NONE;
 }
 /******************************************************************************/
+#if 0
+inline Bool DriveChar(Char8 c) {return FlagTest(CharFlag(c), CHARF_ALPHA);}
+inline Bool DriveChar(Char  c) {return FlagTest(CharFlag(c), CHARF_ALPHA);}
+#else
+inline Bool DriveChar(Char8 c) {return (c>='a' && c<='z') || (c>='A' && c<='Z');}
+inline Bool DriveChar(Char  c) {return (c>='a' && c<='z') || (c>='A' && c<='Z');}
+#endif
 Bool HasDrive(CChar *path)
 {
    if(path)
    {
-      if(((path[0]>='a' && path[0]<='z') || (path[0]>='A' && path[0]<='Z'))  &&  path[1]==':')return true; // C: Windows Style
-      if(IsSlash(path[0]))return true; // / Unix style
+      if(DriveChar(*path))for(;;) // C: Windows style, http: Internet, rom: NintendoSwitch
+      {
+         auto c=*++path;
+         if(c==':')return true;
+         if(!DriveChar(c))break;
+      }else
+      if(IsSlash(*path))return true; // / Unix style
    }
    return false;
 }
@@ -2038,8 +2050,13 @@ Bool HasDrive(CChar8 *path)
 {
    if(path)
    {
-      if(((path[0]>='a' && path[0]<='z') || (path[0]>='A' && path[0]<='Z'))  &&  path[1]==':')return true; // C: Windows Style
-      if(IsSlash(path[0]))return true; // / Unix style
+      if(DriveChar(*path))for(;;) // C: Windows style, http: Internet, rom: NintendoSwitch
+      {
+         auto c=*++path;
+         if(c==':')return true;
+         if(!DriveChar(c))break;
+      }else
+      if(IsSlash(*path))return true; // / Unix style
    }
    return false;
 }
@@ -2048,13 +2065,18 @@ Bool IsDrive(CChar *path)
 {
    if(path)
    {
-      if(((path[0]>='a' && path[0]<='z') || (path[0]>='A' && path[0]<='Z'))  &&  path[1]==':'  &&  (!path[2] || (IsSlash(path[2]) && !path[3])))return true; // C: or C:\ Windows Style
-      if(IsSlash(path[0])) // on Unix we can also have "/Volumes/.."
+      if(DriveChar(*path))for(;;) // C: or C:\ Windows style, http: Internet, rom: NintendoSwitch
+      {
+         auto c=*++path;
+         if(c==':')return !path[1] || (IsSlash(path[1]) && !path[2]);
+         if(!DriveChar(c))break;
+      }else
+      if(IsSlash(*path)) // on Unix we can also have "/Volumes/.."
       {
          if(!path[1])return true;
          if(Starts(path+1, "Volumes") && IsSlash(path[8]) && (path[9] && !IsSlash(path[9])))for(path+=10; ; )
          {
-            Char c=*path++;
+            auto c=*path++;
             if( !c       )return true;
             if(IsSlash(c))return (*path)==0;
          }
@@ -2066,13 +2088,18 @@ Bool IsDrive(CChar8 *path)
 {
    if(path)
    {
-      if(((path[0]>='a' && path[0]<='z') || (path[0]>='A' && path[0]<='Z'))  &&  path[1]==':'  &&  (!path[2] || (IsSlash(path[2]) && !path[3])))return true; // C: or C:\ Windows Style
-      if(IsSlash(path[0])) // on Unix we can also have "/Volumes/.."
+      if(DriveChar(*path))for(;;) // C: or C:\ Windows style, http: Internet, rom: NintendoSwitch
+      {
+         auto c=*++path;
+         if(c==':')return !path[1] || (IsSlash(path[1]) && !path[2]);
+         if(!DriveChar(c))break;
+      }else
+      if(IsSlash(*path)) // on Unix we can also have "/Volumes/.."
       {
          if(!path[1])return true;
          if(Starts(path+1, "Volumes") && IsSlash(path[8]) && (path[9] && !IsSlash(path[9])))for(path+=10; ; )
          {
-            Char c=*path++;
+            auto c=*path++;
             if( !c       )return true;
             if(IsSlash(c))return (*path)==0;
          }
