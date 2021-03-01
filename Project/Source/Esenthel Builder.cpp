@@ -732,8 +732,9 @@ void CompileLinux(C Str &project, C Str &config, void func()=null)
 /******************************************************************************/
 Bool CheckNintendoSwitch()
 {
-   if(FExistSystem(EsenthelPath+"NintendoSwitch"))return true;
-   Gui.msgBox("Error", "Nintendo Switch pack not found."); return false;
+   Str path=EsenthelPath+"NintendoSwitch";
+   if(FExistSystem(path))return true;
+   Gui.msgBox("Error", S+"Nintendo Switch pack not found:\n"+path); return false;
 }
 /******************************************************************************/
 void CopyEngineWindows64GL              () {Copy(EnginePath+"EsenthelEngine64GL.lib"  , EditorPath+"Bin/EsenthelEngine64DX11.lib");} // copy as DX11
