@@ -1323,7 +1323,7 @@ void CodeEditor::update(Bool active)
                   }else
                   FREPA(line)
                   {
-                     if(CharFlag(line[i])&CHARF_DIG){}else
+                     if(CharFlagFast(line[i])&CHARF_DIG){}else
                      if(line[i]=='>')
                      {
                         Str l=SkipWhiteChars(line()+i+1);

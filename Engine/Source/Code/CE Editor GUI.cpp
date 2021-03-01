@@ -901,7 +901,7 @@ Bool CodeEditor::BuildResult::jumpTo()
       // Apple/Linux/Android - "C:/path/file.cpp:line:message" or "jni/../path/file.cpp:line:message"
 
       // remove Visual Studio process number
-      FREPA(text)if(!(CharFlag(text[i])&CHARF_DIG))
+      FREPA(text)if(!(CharFlagFast(text[i])&CHARF_DIG))
       {
          if(text[i]=='>')text.remove(0, i+1);
          break;
@@ -929,7 +929,7 @@ Bool CodeEditor::BuildResult::jumpTo()
                if(JumpTo(text, line))return true;
                break;
             }else
-            if(!(CharFlag(text[i])&CHARF_DIG) && text[i]!=',')break;
+            if(!(CharFlagFast(text[i])&CHARF_DIG) && text[i]!=',')break;
          }
       }else
       {

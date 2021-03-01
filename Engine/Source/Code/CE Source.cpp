@@ -115,11 +115,11 @@ void LineMode::resetType(Line &line) // this just resets the 'type' without chan
                if(c=='\''                    ){Char p=s[i-1]; if(p=='L' || p=='u' || p=='U')type.last()=t=TOKEN_CHAR16;else t=(line.source->cpp ? TOKEN_CHAR8 : _HasUnicode(s()+i+1, c) ? TOKEN_CHAR16 : TOKEN_CHAR8);}else
                if(CodeCharType(c)==CHART_SIGN)
                {
-                  if(c=='.' && (t==TOKEN_NUMBER || CharFlag(s[i+1])&CHARF_DIG)){t=TOKEN_NUMBER; real=true;}else // was already a number or the next char is a digit
+                  if(c=='.' && (t==TOKEN_NUMBER || CharFlagFast(s[i+1])&CHARF_DIG)){t=TOKEN_NUMBER; real=true;}else // was already a number or the next char is a digit
                   if((c=='-' || c=='+') && t==TOKEN_NUMBER && real && s[i-1]=='e')t=TOKEN_NUMBER;else // 1.2e-3, 1.2e+3
                   t=((c=='#' && s[i+1]!='#' && s[i-1]!='#') ? TOKEN_PREPROC : TOKEN_OPERATOR);
                }else
-               if(t!=TOKEN_CODE && t!=TOKEN_KEYWORD && CharFlag(c)&CHARF_DIG)t=TOKEN_NUMBER;else
+               if(t!=TOKEN_CODE && t!=TOKEN_KEYWORD && CharFlagFast(c)&CHARF_DIG)t=TOKEN_NUMBER;else
                if(t!=TOKEN_CODE && t!=TOKEN_KEYWORD && t!=TOKEN_NUMBER && CodeCharType(s[i-1])!=CHART_CHAR)t=TOKEN_CODE;
             }
          }
