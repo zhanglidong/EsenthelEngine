@@ -869,7 +869,7 @@ struct SystemFontDrawContext
          wchar_t wc[]={Nbsp, u'ํ', u'า'};
             TextOut(dc, image.w()/2, border, wc, Elms(wc));
       }else
-      if(CharFlag(chr)&CHARF_COMBINING) // Thai combining characters will draw with a circle ัิีึืฺุู็่้๊๋์ํ๎ but if we prepend them with NBSP they will draw without it
+      if(CharFlagFast(chr)&CHARF_COMBINING) // Thai combining characters will draw with a circle ัิีึืฺุู็่้๊๋์ํ๎ but if we prepend them with NBSP they will draw without it
       {
          wchar_t wc[]={Nbsp, chr};
             TextOut(dc, image.w()/2, border, wc, Elms(wc));

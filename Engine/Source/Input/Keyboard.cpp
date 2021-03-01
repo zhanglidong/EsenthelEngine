@@ -1529,8 +1529,8 @@ Str KbSc::asText()C
 {
    Str s; switch(mode)
    {
-      case KBSC_CHAR: {Char c=index; if(flag&KBSC_CTRL_EX)s+="Ctrl+"; if(flag&KBSC_WIN_EX)s+=WIN_TEXT; if(CharFlag(c)&CHARF_UP  )s+="Shift+"; if(flag&KBSC_ALT)s+="Alt+"; if(CChar8 *n=CharName(c))s+=n;else s+=CaseUp(c);} break;
-      case KBSC_KEY : {              if(flag&KBSC_CTRL_EX)s+="Ctrl+"; if(flag&KBSC_WIN_EX)s+=WIN_TEXT; if(    flag   &KBSC_SHIFT)s+="Shift+"; if(flag&KBSC_ALT)s+="Alt+"; s+=Kb.keyName(KB_KEY(index));                   } break;
+      case KBSC_CHAR: {Char c=index; if(flag&KBSC_CTRL_EX)s+="Ctrl+"; if(flag&KBSC_WIN_EX)s+=WIN_TEXT; if(CharFlagFast(c)&CHARF_UP  )s+="Shift+"; if(flag&KBSC_ALT)s+="Alt+"; if(CChar8 *n=CharName(c))s+=n;else s+=CaseUp(c);} break;
+      case KBSC_KEY : {              if(flag&KBSC_CTRL_EX)s+="Ctrl+"; if(flag&KBSC_WIN_EX)s+=WIN_TEXT; if(    flag       &KBSC_SHIFT)s+="Shift+"; if(flag&KBSC_ALT)s+="Alt+"; s+=Kb.keyName(KB_KEY(index));                   } break;
    }
    return s;
 }
