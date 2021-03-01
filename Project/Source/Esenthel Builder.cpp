@@ -745,7 +745,7 @@ void CopyEngineWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngineUnive
 void CopyEngineWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
 void CopyEngineWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
-void CopyEngineNintendoSwitch           () {if(CheckNintendoSwitch())Copy(EnginePath+"EsenthelEngineNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
+void CopyEngineNintendoSwitch           () {Copy(EnginePath+"EsenthelEngineNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
 
 void CopyEngineDebugWindows64DX9             () {Copy(EnginePath+"EsenthelEngineDebug64DX9.lib" , EditorPath+"Bin/EsenthelEngine64DX9.lib");}
 void CopyEngineDebugWindows32DX9             () {Copy(EnginePath+"EsenthelEngineDebug32DX9.lib" , EditorPath+"Bin/EsenthelEngine32DX9.lib");}
@@ -755,7 +755,7 @@ void CopyEngineDebugWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngine
 void CopyEngineDebugWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineDebugUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineDebugWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
 void CopyEngineDebugWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
-void CopyEngineDebugNintendoSwitch           () {if(CheckNintendoSwitch())Copy(EnginePath+"EsenthelEngineDebugNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
+void CopyEngineDebugNintendoSwitch           () {Copy(EnginePath+"EsenthelEngineDebugNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
 
 void CompileEngineWindows64GL              () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "1) 64 bit", CopyEngineWindows64GL);}
 void CompileEngineWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Release DX9"           , "1) 64 bit", CopyEngineWindows64DX9);}
@@ -766,7 +766,7 @@ void CompileEngineWindowsUniversal64DX11   () {CompileVS(EnginePath+VSEngineProj
 void CompileEngineWindowsUniversal32DX11   () {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "2) 32 bit", CopyEngineWindowsUniversal32DX11);}
 void CompileEngineWindowsUniversalArm32DX11() {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "3) ARM"   , CopyEngineWindowsUniversalArm32DX11);}
 void CompileEngineWeb                      () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "4) Web");}
-void CompileEngineNintendoSwitch           () {CompileVS(EnginePath+VSEngineProject, "Release DX11"          , "5) Nintendo Switch", CopyEngineNintendoSwitch);}
+void CompileEngineNintendoSwitch           () {if(CheckNintendoSwitch())CompileVS(EnginePath+VSEngineProject, "Release DX11"          , "5) Nintendo Switch", CopyEngineNintendoSwitch);}
 
 void CompileEngineDebugWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "1) 64 bit", CopyEngineDebugWindows64DX9);}
 void CompileEngineDebugWindows32DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "2) 32 bit", CopyEngineDebugWindows32DX9);}
@@ -775,6 +775,7 @@ void CompileEngineDebugWindows32DX11            () {CompileVS(EnginePath+VSEngin
 void CompileEngineDebugWindowsUniversal64DX11   () {CompileVS(EnginePath+VSEngineProject, "Debug Universal DX11", "1) 64 bit", CopyEngineDebugWindowsUniversal64DX11);}
 void CompileEngineDebugWindowsUniversal32DX11   () {CompileVS(EnginePath+VSEngineProject, "Debug Universal DX11", "2) 32 bit", CopyEngineDebugWindowsUniversal32DX11);}
 void CompileEngineDebugWindowsUniversalArm32DX11() {CompileVS(EnginePath+VSEngineProject, "Debug Universal DX11", "3) ARM"   , CopyEngineDebugWindowsUniversalArm32DX11);}
+void CompileEngineDebugNintendoSwitch           () {if(CheckNintendoSwitch())CompileVS(EnginePath+VSEngineProject, "Debug DX11"          , "5) Nintendo Switch", CopyEngineNintendoSwitch);}
 
 void  DelEditorExe          () {FDelFile(EditorSourcePath+"Esenthel.exe");} // VS has a bug that it won't rebuild the EXE if no changes were made in source (so if EXE was built with DX9 lib, and then we're compiling for DX11, then it may not be relinked)
 void CopyEditorWindows64DX11() {    Copy(EditorSourcePath+"Esenthel.exe", EditorPath+"Esenthel.exe");}
