@@ -27,6 +27,10 @@ library/net_sockets.c
 
 library/entropy_poll.c
 	comment out entire "mbedtls_platform_entropy_poll" function because it's manually defined in the Engine
+	!defined(__HAIKU__) -> !defined(__HAIKU__) && !defined __NINTENDO__
+
+library/timing.c
+	!defined(__HAIKU__) -> !defined(__HAIKU__) && !defined __NINTENDO__
 
 Windows
 use "lib\visualc\VS2010\mbedTLS.sln"
