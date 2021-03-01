@@ -253,6 +253,9 @@
     <Filter Include="H\_\Libs\NintendoSwitch\Vorbis">
       <UniqueIdentifier>{64076f35-3877-4f7f-a796-782ba7263822}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\mbedTLS">
+      <UniqueIdentifier>{7f7a22bb-0fd1-490c-8d2f-e3479aceff50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -4174,6 +4177,243 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\vorbisfile.o">
       <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\aria.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\asn1parse.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\asn1write.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\base64.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\bignum.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\blowfish.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\camellia.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ccm.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\certs.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\chacha20.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\chachapoly.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\cipher.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\cipher_wrap.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\cmac.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ctr_drbg.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\debug.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\des.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\dhm.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ecdh.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ecdsa.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ecjpake.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ecp.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ecp_curves.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\entropy.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\entropy_poll.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\error.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\gcm.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\havege.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\hkdf.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\hmac_drbg.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\md.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\md_wrap.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\md2.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\md4.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\md5.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\memory_buffer_alloc.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\net_sockets.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\nist_kw.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\oid.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\padlock.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pem.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pk.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pk_wrap.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pkcs5.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pkcs11.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pkcs12.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pkparse.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\pkwrite.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\platform.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\platform_util.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\poly1305.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ripemd160.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\rsa.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\rsa_internal.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\sha1.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\sha256.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\sha512.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_cache.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_ciphersuites.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_cli.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_cookie.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_srv.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_ticket.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\ssl_tls.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\threading.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\timing.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\version.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\version_features.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509_create.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509_crl.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509_crt.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509_csr.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509write_crt.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\x509write_csr.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\xtea.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\aes.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\aesni.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\arc4.o">
+      <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
     </Object>
   </ItemGroup>
 </Project>
