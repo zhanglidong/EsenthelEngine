@@ -578,7 +578,7 @@ Bool FTimeUTC(C Str &name, C DateTime &time_utc) // Android OS has a bug which m
          CloseHandle(file);
          return ok;
       }
-   #else
+   #elif !SWITCH
       timeval tv[2];
       tv[0].tv_sec =time_utc.seconds1970();
       tv[0].tv_usec=0;
@@ -605,7 +605,7 @@ Bool FAttrib(C Str &name, UInt attrib)
       if(attrib&FATTRIB_READ_ONLY)out|=FILE_ATTRIBUTE_READONLY;
       if(attrib&FATTRIB_HIDDEN   )out|=FILE_ATTRIBUTE_HIDDEN  ;
       return SetFileAttributes(name, out)!=0;
-   #else
+   #elif !SWITCH
       Str8 utf=UnixPathUTF8(name);
       struct stat stats; if(!lstat(utf, &stats))
       {

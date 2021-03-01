@@ -1073,6 +1073,8 @@ Bool File::sync()
       #else // internally calls 'FlushFileBuffers' which means this has bigger overhead
          return _commit(_handle)==0;
       #endif
+   #elif SWITCH
+      return false;
    #else
       return fsync(_handle)==0;
    #endif
