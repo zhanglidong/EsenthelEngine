@@ -41,3 +41,28 @@ at the beginning:
 #else
   { "fchmod",       (sqlite3_syscall_ptr)fchmod,          0  },
 #endif
+
+// ESENTHEL CHANGED
+static inline Bool DriveChar(char c) {return (c>='a' && c<='z') || (c>='A' && c<='Z');}
+static        Bool HasDrive(const char *path)
+{
+   if(path)
+   {
+      if(DriveChar(*path))for(;;) // C: Windows style, http: Internet, rom: NintendoSwitch
+      {
+         char c=*++path;
+         if(c==':')return 1;
+         if(!DriveChar(c))break;
+      }else
+      if(*path=='/')return 1; // / Unix style
+   }
+   return 0;
+}
+static int mkFullPathname(
+  const char *zPath,              /* Input path */
+  char *zOut,                     /* Output buffer */
+  int nOut                        /* Allocated size of buffer zOut */
+){
+  int nPath = sqlite3Strlen30(zPath);
+  int iOff = 0;
+  if(!HasDrive(zPath)){
