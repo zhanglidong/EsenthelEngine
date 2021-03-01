@@ -250,6 +250,9 @@
     <Filter Include="H\_\Libs\NintendoSwitch\SQLite">
       <UniqueIdentifier>{e1cae27d-d31c-4df6-8c8f-286d2c00ae10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Vorbis">
+      <UniqueIdentifier>{64076f35-3877-4f7f-a796-782ba7263822}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -4105,6 +4108,72 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_sse2.o">
       <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\window.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\analysis.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\bitrate.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\block.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\codebook.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\envelope.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\floor0.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\floor1.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\info.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\lookup.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\lpc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\lsp.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\mapping0.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\mdct.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\psy.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\registry.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\res0.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\sharedbook.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\smallft.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\synthesis.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\vorbisenc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Vorbis\vorbisfile.o">
+      <Filter>H\_\Libs\NintendoSwitch\Vorbis</Filter>
     </Object>
   </ItemGroup>
 </Project>

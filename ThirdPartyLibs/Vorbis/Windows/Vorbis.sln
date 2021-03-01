@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31019.35
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vorbis File", "Vorbis File.vcxproj", "{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}"
 EndProject
@@ -11,10 +11,12 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
 		Debug|Emscripten = Debug|Emscripten
+		Debug|NX64 = Debug|NX64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
 		Release|ARM = Release|ARM
 		Release|Emscripten = Release|Emscripten
+		Release|NX64 = Release|NX64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
@@ -23,6 +25,8 @@ Global
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|ARM.Build.0 = Debug|ARM
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|Emscripten.ActiveCfg = Debug|Emscripten
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|Emscripten.Build.0 = Debug|Emscripten
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|NX64.ActiveCfg = Debug|NX64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|NX64.Build.0 = Debug|NX64
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|Win32.ActiveCfg = Debug|Win32
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|Win32.Build.0 = Debug|Win32
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|x64.ActiveCfg = Debug|x64
@@ -31,6 +35,8 @@ Global
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|ARM.Build.0 = Release|ARM
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|Emscripten.ActiveCfg = Release|Emscripten
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|Emscripten.Build.0 = Release|Emscripten
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|NX64.ActiveCfg = Release|NX64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|NX64.Build.0 = Release|NX64
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|Win32.ActiveCfg = Release|Win32
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|Win32.Build.0 = Release|Win32
 		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|x64.ActiveCfg = Release|x64
@@ -39,6 +45,8 @@ Global
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|ARM.Build.0 = Debug|ARM
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|Emscripten.ActiveCfg = Debug|Emscripten
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|Emscripten.Build.0 = Debug|Emscripten
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|NX64.ActiveCfg = Debug|NX64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|NX64.Build.0 = Debug|NX64
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|Win32.Build.0 = Debug|Win32
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|x64.ActiveCfg = Debug|x64
@@ -47,6 +55,8 @@ Global
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|ARM.Build.0 = Release|ARM
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|Emscripten.ActiveCfg = Release|Emscripten
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|Emscripten.Build.0 = Release|Emscripten
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|NX64.ActiveCfg = Release|NX64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|NX64.Build.0 = Release|NX64
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|Win32.ActiveCfg = Release|Win32
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|Win32.Build.0 = Release|Win32
 		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|x64.ActiveCfg = Release|x64
@@ -54,5 +64,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B4E91B87-D252-43FC-9A9F-2A78765064C7}
 	EndGlobalSection
 EndGlobal
