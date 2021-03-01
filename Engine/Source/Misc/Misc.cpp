@@ -2412,7 +2412,6 @@ Str SystemPath(SYSTEM_PATH type)
    switch(type)
    {
       case SP_DESKTOP        : out=NSDesktopDirectory    ; break;
-      case SP_DOCUMENTS      : out=NSDocumentDirectory   ; break;
       case SP_SAVED_GAMES    : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA       : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA_PUBLIC: out=NSDocumentDirectory   ; break;
@@ -2425,7 +2424,6 @@ Str SystemPath(SYSTEM_PATH type)
 #elif ANDROID
    switch(type)
    {
-      case SP_DOCUMENTS      : return AndroidAppDataPath;
       case SP_SAVED_GAMES    : return AndroidAppDataPublicPath.is() ? AndroidAppDataPublicPath : AndroidAppDataPath;
       case SP_APP_DATA       : return AndroidAppDataPath;
       case SP_APP_DATA_PUBLIC: return AndroidAppDataPublicPath;
@@ -2435,10 +2433,16 @@ Str SystemPath(SYSTEM_PATH type)
 #elif WEB
    switch(type)
    {
-      case SP_DOCUMENTS      :
       case SP_SAVED_GAMES    :
       case SP_APP_DATA       :
-      case SP_APP_DATA_PUBLIC: return "/data";
+      case SP_APP_DATA_PUBLIC: return "/data"; // initialized by 'FS.mount'
+   }
+#elif SWITCH
+   switch(type)
+   {
+      case SP_SAVED_GAMES    :
+      case SP_APP_DATA       :
+      case SP_APP_DATA_PUBLIC: return "save:"; // initialized by 'MountSaveData'
    }
 #endif
    return S;

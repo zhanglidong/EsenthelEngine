@@ -1127,7 +1127,7 @@ void InitIO()
 #if IOS
    CurDir(App.exe()); // on iOS set path to the application (since on iOS it's a folder, which contains resource files)
 #elif SWITCH
-   CurDir("rom:");
+   CurDir("rom:"); // initialized by 'MountRom'
 #elif WEB // WEB has this handled in main
 #else
    CurDir(GetPath(App.exe()));

@@ -375,7 +375,7 @@ enum SYSTEM_PATH // System Path Type
    SP_STARTUP        , // Start Menu/Startup  (typically "C:/Users/*/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup")
    SP_FAVORITES      , // User/Favorites      (typically "C:/Users/*/Favorites")
    SP_ONE_DRIVE      , // User/One Drive      (typically "C:/Users/*/OneDrive")
-   SP_DOCUMENTS      , // User/Documents      (typically "C:/Users/*/Documents"      , for Mobile platforms this is the Application's private folder, where it can save its data that no other App  can access)
+   SP_DOCUMENTS      , // User/Documents      (typically "C:/Users/*/Documents")
    SP_SAVED_GAMES    , // User/Saved Games    (typically "C:/Users/*/Saved Games"    , for Mobile platforms this is the Application's public  folder, or if it's not available, then private folder is selected)
    SP_APP_DATA       , // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's private folder, where it can save its data that no other App  can access)
    SP_APP_DATA_PUBLIC, // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's public  folder, where it can save its data that    other Apps can access)
