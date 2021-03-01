@@ -2878,7 +2878,7 @@ void CodeEditor::build(BUILD_MODE mode)
          if(build_exe_type==EXE_NEW)config+=" DX11";else
                                     config+=" DX11"; // config_api
 
-         Str platform=((build_exe_type==EXE_WEB) ? "3) Web" : /*config_32_bit ? "2) 32 bit" :*/ "1) 64 bit");
+         Str platform=((build_exe_type==EXE_NS) ? "4) Nintendo Switch" : (build_exe_type==EXE_WEB) ? "3) Web" : /*config_32_bit ? "2) 32 bit" :*/ "1) 64 bit");
 
          if(build_exe_type==EXE_WEB) // currently WEB compilation is available only through VC++ 2010
          {

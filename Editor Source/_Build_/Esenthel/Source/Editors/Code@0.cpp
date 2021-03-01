@@ -72,6 +72,7 @@ AppPropsEditor AppPropsEdit;
       Misc.build.menu("iOS APP"          , configEXE()==Edit::EXE_IOS  , QUIET);
       Misc.build.menu("Linux"            , configEXE()==Edit::EXE_LINUX, QUIET);
       Misc.build.menu("Web"              , configEXE()==Edit::EXE_WEB  , QUIET);
+      Misc.build.menu("Nintendo Switch"  , configEXE()==Edit::EXE_NS   , QUIET);
    }
    void CodeView::visibleChangedOptions(){Misc.build.menu("View Options"           , visibleOptions      (), QUIET);}
    void CodeView::visibleChangedOpenedFiles(){}

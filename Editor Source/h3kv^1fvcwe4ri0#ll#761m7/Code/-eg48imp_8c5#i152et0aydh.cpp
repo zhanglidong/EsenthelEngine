@@ -56,6 +56,7 @@ class MiscRegion : Region
    static void ConfigIOS    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_IOS  );}
    static void ConfigLinux  (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_LINUX);}
    static void ConfigWeb    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_WEB  );}
+   static void ConfigNS     (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_NS   );}
 
    static void ProjList       (bool all_saved=true, ptr=null) {if(all_saved)StateProjectList.set(StateFadeTime);}
    static void ProjList       (MiscRegion &mr) {SaveChanges(ProjList);}
@@ -251,7 +252,8 @@ class MiscRegion : Region
          build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
-         build_menu.New().create("Web"        , ConfigWeb  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Web"              , ConfigWeb  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Nintendo Switch"  , ConfigNS   , T).flag(MENU_TOGGLABLE);
       #elif MAC
          build_menu.New().create("Mac APP"    , ConfigMAC  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("iOS APP"    , ConfigIOS  , T).flag(MENU_TOGGLABLE);

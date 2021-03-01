@@ -44,6 +44,7 @@ MiscRegion Misc;
    void MiscRegion::ConfigIOS(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_IOS  );}
    void MiscRegion::ConfigLinux(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_LINUX);}
    void MiscRegion::ConfigWeb(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_WEB  );}
+   void MiscRegion::ConfigNS(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_NS   );}
    void MiscRegion::ProjList(bool all_saved, ptr) {if(all_saved)StateProjectList.set(StateFadeTime);}
    void MiscRegion::ProjList(MiscRegion &mr) {SaveChanges(ProjList);}
    void   MiscRegion::HideProj(MiscRegion &mr) {Proj.visible(!mr.hide_proj());}
@@ -236,7 +237,8 @@ MiscRegion Misc;
          build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
-         build_menu.New().create("Web"        , ConfigWeb  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Web"              , ConfigWeb  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Nintendo Switch"  , ConfigNS   , T).flag(MENU_TOGGLABLE);
       #elif MAC
          build_menu.New().create("Mac APP"    , ConfigMAC  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("iOS APP"    , ConfigIOS  , T).flag(MENU_TOGGLABLE);

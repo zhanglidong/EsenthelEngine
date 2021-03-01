@@ -57,6 +57,7 @@ class MiscRegion : Region
    static void ConfigIOS    (MiscRegion &mr);
    static void ConfigLinux  (MiscRegion &mr);
    static void ConfigWeb    (MiscRegion &mr);
+   static void ConfigNS     (MiscRegion &mr);
 
    static void ProjList       (bool all_saved=true, ptr=null);
    static void ProjList       (MiscRegion &mr);             
