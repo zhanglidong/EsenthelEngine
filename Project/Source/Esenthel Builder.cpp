@@ -730,6 +730,12 @@ void CompileLinux(C Str &project, C Str &config, void func()=null)
    build_threads.queue(build_requests.New().set("make", LinuxBuildParams(project, config)).set(func), BuildRun);
 }
 /******************************************************************************/
+Bool CheckNintendoSwitch()
+{
+   if(FExistSystem(EsenthelPath+"NintendoSwitch"))return true;
+   Gui.msgBox("Error", "Nintendo Switch pack not found."); return false;
+}
+/******************************************************************************/
 void CopyEngineWindows64GL              () {Copy(EnginePath+"EsenthelEngine64GL.lib"  , EditorPath+"Bin/EsenthelEngine64DX11.lib");} // copy as DX11
 void CopyEngineWindows64DX9             () {Copy(EnginePath+"EsenthelEngine64DX9.lib" , EditorPath+"Bin/EsenthelEngine64DX9.lib");}
 void CopyEngineWindows32DX9             () {Copy(EnginePath+"EsenthelEngine32DX9.lib" , EditorPath+"Bin/EsenthelEngine32DX9.lib");}
@@ -739,6 +745,7 @@ void CopyEngineWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngineUnive
 void CopyEngineWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
 void CopyEngineWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
+void CopyEngineNintendoSwitch           () {if(CheckNintendoSwitch())Copy(EnginePath+"EsenthelEngineNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
 
 void CopyEngineDebugWindows64DX9             () {Copy(EnginePath+"EsenthelEngineDebug64DX9.lib" , EditorPath+"Bin/EsenthelEngine64DX9.lib");}
 void CopyEngineDebugWindows32DX9             () {Copy(EnginePath+"EsenthelEngineDebug32DX9.lib" , EditorPath+"Bin/EsenthelEngine32DX9.lib");}
@@ -748,6 +755,7 @@ void CopyEngineDebugWindowsUniversal64DX11   () {Copy(EnginePath+"EsenthelEngine
 void CopyEngineDebugWindowsUniversal32DX11   () {Copy(EnginePath+"EsenthelEngineDebugUniversal32DX11.lib"   , EditorPath+"Bin/EsenthelEngineUniversal32DX11.lib");}
 void CopyEngineDebugWindowsUniversalArm32DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm32DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm32DX11.lib");}
 void CopyEngineDebugWindowsUniversalArm64DX11() {Copy(EnginePath+"EsenthelEngineDebugUniversalArm64DX11.lib", EditorPath+"Bin/EsenthelEngineUniversalArm64DX11.lib");}
+void CopyEngineDebugNintendoSwitch           () {if(CheckNintendoSwitch())Copy(EnginePath+"EsenthelEngineDebugNintendoSwitch.a"      , EditorPath+"Bin/EsenthelEngineNintendoSwitch.a");}
 
 void CompileEngineWindows64GL              () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "1) 64 bit", CopyEngineWindows64GL);}
 void CompileEngineWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Release DX9"           , "1) 64 bit", CopyEngineWindows64DX9);}
@@ -758,6 +766,7 @@ void CompileEngineWindowsUniversal64DX11   () {CompileVS(EnginePath+VSEngineProj
 void CompileEngineWindowsUniversal32DX11   () {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "2) 32 bit", CopyEngineWindowsUniversal32DX11);}
 void CompileEngineWindowsUniversalArm32DX11() {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "3) ARM"   , CopyEngineWindowsUniversalArm32DX11);}
 void CompileEngineWeb                      () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "4) Web");}
+void CompileEngineNintendoSwitch           () {CompileVS(EnginePath+VSEngineProject, "Release DX11"          , "5) Nintendo Switch", CopyEngineNintendoSwitch);}
 
 void CompileEngineDebugWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "1) 64 bit", CopyEngineDebugWindows64DX9);}
 void CompileEngineDebugWindows32DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "2) 32 bit", CopyEngineDebugWindows32DX9);}
@@ -899,28 +908,29 @@ TaskBase TaskBases[]=
    {"Compile iOS (Debug)"       , "Compile the Engine in Debug mode for iOS only"                                       , CompileEngineDebugiOS     , false},
    {"Compile Apple (Debug)"     , "Compile the Engine in Debug mode for all Apple platforms (Mac, iOS, iOS Simulator)"  , CompileEngineDebugApple   , false, true},
 #elif LINUX
-   {"Clean Linux"               , "Clean temporary files generated during Engine/Editor compilation for Linux platform",   CleanLinux              , false},
-   {"Compile Linux"             , "Compile the Engine in Release mode for Linux"                                       , CompileEngineLinux        , true },
-   {"Make Linux Libs"           , "Make the Engine Linux Lib from the compilation result to the Editor Bin folder"     , LinuxLibs                 , true },
+   {"Clean Linux"               , "Clean temporary files generated during Engine/Editor compilation for Linux platform",   CleanLinux               , false},
+   {"Compile Linux"             , "Compile the Engine in Release mode for Linux"                                       , CompileEngineLinux         , true },
+   {"Make Linux Libs"           , "Make the Engine Linux Lib from the compilation result to the Editor Bin folder"     , LinuxLibs                  , true },
 #endif
-   {"Clean Android"             , "Clean temporary files generated during Engine compilation for Android"              ,   CleanEngineAndroid      , false},
-   {"Compile Android"           , "Compile the Engine in Release mode for Android"                                     , CompileEngineAndroid      , ANDROID_DEFAULT},
-   {"Make Android Libs"         , "Make the Engine Android Libs from the compilation result to the Editor Bin folder"  , AndroidLibs               , ANDROID_DEFAULT},
+   {"Clean Android"             , "Clean temporary files generated during Engine compilation for Android"              ,   CleanEngineAndroid       , false},
+   {"Compile Android"           , "Compile the Engine in Release mode for Android"                                     , CompileEngineAndroid       , ANDROID_DEFAULT},
+   {"Make Android Libs"         , "Make the Engine Android Libs from the compilation result to the Editor Bin folder"  , AndroidLibs                , ANDROID_DEFAULT},
 #if WINDOWS
-   {"Clean Web"                 , "Clean temporary files generated during Engine compilation for the Web"              ,   CleanEngineWeb          , false},
-   {"Compile Web"               , "Compile the Engine for Web"                                                         , CompileEngineWeb          , WEB_DEFAULT},
-   {"Make Web Libs"             , "Make the Engine Web Lib from the compilation result to the Editor Bin folder"       , WebLibs                   , WEB_DEFAULT},
+   {"Clean Web"                 , "Clean temporary files generated during Engine compilation for the Web"              ,   CleanEngineWeb           , false},
+   {"Compile Web"               , "Compile the Engine for Web"                                                         , CompileEngineWeb           , WEB_DEFAULT},
+   {"Make Web Libs"             , "Make the Engine Web Lib from the compilation result to the Editor Bin folder"       , WebLibs                    , WEB_DEFAULT},
+   {"Compile Nintendo Switch"   , "Compile the Engine in Release mode for Nintendo Switch"                             , CompileEngineNintendoSwitch, false},
 #endif
    {"Copy Headers"              , "Copy cleaned Engine Headers from the Engine folder to the Editor folder.\nCleaning removes all 'EE_PRIVATE' sections from the headers."                                                                    , Headers       , true },
    {"Create \"Code Editor.dat\"", "Create \"Code Editor.dat\" file needed for Code Editor in the Engine's Editor.\nThis data is generated from the Engine headers in the Editor Bin folder, which are generated in the \"Copy Headers\" step.", CodeEditorData, true },
-   {"Create \"Engine.pak\""     , "Create \"Engine.pak\" file from the \"Data\" folder into the Editor Bin folder"       , EnginePak               , true },
-   {"Create \"Editor.pak\""     , "Create \"Editor.pak\" file from the \"Editor Data\" folder into the Editor Bin folder", EditorPak               , true },
+   {"Create \"Engine.pak\""     , "Create \"Engine.pak\" file from the \"Data\" folder into the Editor Bin folder"       , EnginePak                , true },
+   {"Create \"Editor.pak\""     , "Create \"Editor.pak\" file from the \"Editor Data\" folder into the Editor Bin folder", EditorPak                , true },
 #if WINDOWS
-   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorWindows64DX11, false},
+   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorWindows64DX11 , false},
 #elif APPLE
-   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorMac          , false},
+   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorMac           , false},
 #elif LINUX
-   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorLinux        , false},
+   {"Compile Editor"            , "Compile the Editor"                                                                 , CompileEditorLinux         , false},
 #endif
 };
 Memc<TaskBase> CustomTasks;
@@ -989,7 +999,7 @@ void InitPre()
 #endif
    D.screen_changed=Resize;
    Flt scale=D.screenH()/1080.0f;
-   D.mode(800*scale, 695*scale);
+   D.mode(800*scale, 725*scale);
    App.name("Esenthel Builder");
 
    for(Str path=GetPath(App.exe()); ; path=GetPath(path))

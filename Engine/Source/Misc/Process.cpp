@@ -56,7 +56,7 @@ Bool ProcKill(UInt id)
          if(TerminateProcess(hproc, 0))ok=true;
          CloseHandle(hproc);
       }
-   #else
+   #elif !SWITCH
       kill(id, SIGTERM);
       int status; pid_t ret=waitpid(id, &status, WNOHANG);
       ok=true;
@@ -468,7 +468,7 @@ start:
    return false;
 }
 /******************************************************************************/
-#if !WINDOWS
+#if !WINDOWS && !SWITCH
 static void ProcessZombies()
 {
       ZombiePIDs.  lock(); REPA(ZombiePIDs){int status; pid_t pid=waitpid(ZombiePIDs.lockedElm(i), &status, WNOHANG); Bool active=(pid==0); if(!active)ZombiePIDs.lockedRemove(i);}
@@ -488,7 +488,7 @@ void ConsoleProcess::del()
 
    if(_out_read){CloseHandle(_out_read); _out_read=null;}
    if(_in_write){CloseHandle(_in_write); _in_write=null;}
-#else
+#elif !SWITCH
    if(_out_read){close(_out_read); _out_read=0;}
    if(_in_write){close(_in_write); _in_write=0;}
    if(_proc_id && !_proc_exited) // if we have a Process ID but it still hasn't exited
@@ -572,7 +572,7 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
          CloseHandle(out_write); out_write=null;
       }
    #elif WINDOWS_NEW
-   #else
+   #elif !SWITCH
       Str8 cur_dir=UnixPathUTF8(S), command=S+'"'+UnixPathUTF8(name)+'"';
       if(params.is())command.space()+=UnixPathUTF8(params);
       if(_proc_id=popen2(cur_dir, command, null, &_out_read))

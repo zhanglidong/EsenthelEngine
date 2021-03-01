@@ -524,7 +524,7 @@
     <TargetName>$(ProjectName)Debug64DX11</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
-    <TargetName>$(ProjectName)Debug64DX11</TargetName>
+    <TargetName>$(ProjectName)DebugNintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
@@ -533,7 +533,7 @@
     <TargetName>$(ProjectName)DebugUniversal64DX11</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
-    <TargetName>$(ProjectName)DebugUniversal64DX11</TargetName>
+    <TargetName>$(ProjectName)DebugNintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
@@ -566,7 +566,7 @@
     <TargetName>$(ProjectName)64DX11</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
-    <TargetName>$(ProjectName)64DX11</TargetName>
+    <TargetName>$(ProjectName)NintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
@@ -575,7 +575,7 @@
     <TargetName>$(ProjectName)Universal64DX11</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
-    <TargetName>$(ProjectName)Universal64DX11</TargetName>
+    <TargetName>$(ProjectName)NintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
@@ -600,7 +600,7 @@
     <TargetName>$(ProjectName)Debug64GL</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">
-    <TargetName>$(ProjectName)Debug64GL</TargetName>
+    <TargetName>$(ProjectName)DebugNintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
@@ -621,7 +621,7 @@
     <TargetName>$(ProjectName)64GL</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">
-    <TargetName>$(ProjectName)64GL</TargetName>
+    <TargetName>$(ProjectName)NintendoSwitch</TargetName>
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(ProjectDir)</OutDir>
   </PropertyGroup>
