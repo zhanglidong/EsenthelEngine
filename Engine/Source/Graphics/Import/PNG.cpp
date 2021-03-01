@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 
-#if SUPPORT_PNG
+#if SUPPORT_PNG && !SWITCH
    #include "../../../../ThirdPartyLibs/begin.h"
 
    #define PNG_NO_STDIO
@@ -84,7 +84,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
    if(!src->is  ())return false;
    if( src->cube())if(temp.fromCube(*src))src=&temp;else return false;
 
-   Int bit_depth=0, color_type=0;
+   Int bit_depth, color_type;
    switch(src->hwType())
    {
       case IMAGE_I16     :                           bit_depth=16; color_type=PNG_COLOR_TYPE_GRAY      ; break;

@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 
-#if SUPPORT_JPG
+#if SUPPORT_JPG && !SWITCH
    #include "../../../../ThirdPartyLibs/begin.h"
 
    #undef EXTERN
@@ -17,6 +17,7 @@
 
 namespace EE{
 /******************************************************************************/
+#if !SWITCH
 #if SUPPORT_JPG
 struct jpeg_error_mgr_ex : jpeg_error_mgr
 {
@@ -160,10 +161,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
       }
    };
 
-   Int q=RoundPos(quality*100);
-   if( q<   0)q= 80;else // default to 80
-   if( q==  0)q=  1;else // min quality for jpeg is actually 1
-   if( q> 100)q=100;     // max quality is 100
+   Int q=RoundPos(quality*100); if(q<0)q=80;else Clamp(q, 1, 100); // default to 80, min is 1, max is 100
 
  C Image *src=this;
    Image temp;
@@ -229,6 +227,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
 #endif
    return false;
 }
+#endif
 /******************************************************************************/
 Bool Image::ExportJPG(C Str &name, Flt quality, Int sub_sample)C
 {
