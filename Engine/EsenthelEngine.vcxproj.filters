@@ -244,6 +244,12 @@
     <Filter Include="H\_\Libs\NintendoSwitch\PhysX">
       <UniqueIdentifier>{393e4311-68a9-4e9a-8175-80a48585c43d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Webp">
+      <UniqueIdentifier>{06b8cb34-6a22-431c-b142-aeef8eabde59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\SQLite">
+      <UniqueIdentifier>{e1cae27d-d31c-4df6-8c8f-286d2c00ae10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -3754,6 +3760,351 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\PhysX\physx\compiler\vc15switch64\sdk_source_bin\PhysXCooking.dir\release\VolumeIntegration.o">
       <Filter>H\_\Libs\NintendoSwitch\PhysX</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\SQLite\sqlite3.o">
+      <Filter>H\_\Libs\NintendoSwitch\SQLite</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_processing.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_processing_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_processing_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_processing_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\alpha_processing_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\analysis_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\anim_decode.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\anim_encode.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\backward_references_cost_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\backward_references_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\bit_reader_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\bit_writer_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\buffer_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\color_cache_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\config_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cost_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\cpu.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_clip_tables.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\dec_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\demux.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\enc_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filter_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\filters_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\frame_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\frame_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\histogram_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\huffman_encode_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\huffman_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\idec_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\io_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\iterator_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_enc_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\lossless_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\muxedit.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\muxinternal.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\muxread.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\near_lossless_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\picture_csp_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\picture_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\picture_psnr_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\picture_rescale_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\picture_tools_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\predictor_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\quant_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\quant_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\quant_levels_dec_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\quant_levels_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\random_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\rescaler_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\ssim.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\ssim_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\syntax_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\thread_utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\token_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\tree_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\tree_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling_msa.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\upsampling_sse41.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\utils.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\vp8_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\vp8l_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\vp8l_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\webp_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\webp_enc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_mips_dsp_r2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_mips32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Webp\yuv_sse2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Webp</Filter>
     </Object>
   </ItemGroup>
 </Project>
