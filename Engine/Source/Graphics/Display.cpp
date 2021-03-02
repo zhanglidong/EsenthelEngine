@@ -1215,7 +1215,7 @@ void DisplayClass::createDevice()
    IDXGIFactory5 *factory5=null; Factory->QueryInterface(__uuidof(IDXGIFactory5), (Ptr*)&factory5); if(factory5)
    {
       int allow_tearing=false; // must be 'int' because 'bool' will fail
-		if(OK(factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allow_tearing, SIZE(allow_tearing))))AllowTearing=(allow_tearing!=0);
+      if(OK(factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allow_tearing, SIZE(allow_tearing))))AllowTearing=(allow_tearing!=0);
       factory5->Release();
    }
 
