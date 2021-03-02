@@ -129,6 +129,7 @@ CPU::CPU()
       if(i==0x80000004)CopyFast(string+32, CPUInfo, SIZE(CPUInfo));
    }
   _name=_SkipWhiteChars(string);
+   if(LINUX)_name.removeOuterWhiteChars(); // remove outer white chars which may appear on Linux
 #elif ANDROID
    Char8 data[65536];
 
