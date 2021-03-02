@@ -3,6 +3,23 @@
    Use 'Joypads' container to access Joypads input.
 
 /******************************************************************************/
+enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox GamePads
+{
+   GPB_A     ,
+   GPB_B     ,
+   GPB_X     ,
+   GPB_Y     ,
+   GPB_L1    , // Left  Shoulder
+   GPB_R1    , // Right Shoulder
+   GPB_L2    , // Left  Trigger
+   GPB_R2    , // Right Trigger
+   GPB_LTHUMB, // Left  Thumb
+   GPB_RTHUMB, // Right Thumb
+   GPB_START , // Start
+   GPB_BACK  , // Back
+   GPB_NUM   ,
+};
+/******************************************************************************/
 struct Joypad // Joypad Input
 {
    Vec2 dir       , //                   direction

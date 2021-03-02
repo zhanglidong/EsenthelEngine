@@ -227,7 +227,7 @@ void Joypad::clear()
 void Joypad::update(C Byte *on, Int elms)
 {
    MIN(elms, Elms(_button));
-   REP(elms)if((on[i]!=0)!=ButtonOn(_button[i]))if(on[i])push(i);else release(i);
+   REP(elms){Byte o=on[i]; if((o!=0)!=ButtonOn(_button[i])){if(o)push(i);else release(i);}}
 }
 void Joypad::update()
 {
@@ -240,28 +240,26 @@ void Joypad::update()
          if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
          {
             // buttons
-            Byte x_button[]=
-            {
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   ),
-                        state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD ,
-                        state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD ,
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            ),
-               FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             ),
-            };
+            Byte x_button[GPB_NUM];
+            x_button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
+            x_button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
+            x_button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
+            x_button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
+            x_button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
+            x_button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
+            x_button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+            x_button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+            x_button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
+            x_button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
+            x_button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
+            x_button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
             ASSERT(ELMS(x_button)<ELMS(T._button));
             update(x_button, Elms(x_button));
 
             // digital pad
             dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
             dir.y=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN);
-            Flt l=dir.length(); if(l>1)dir/=l;
+            Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
             dir_a[0].x=state.Gamepad.sThumbLX/32768.0f;
             dir_a[0].y=state.Gamepad.sThumbLY/32768.0f;
