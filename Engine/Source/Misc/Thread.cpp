@@ -624,6 +624,9 @@ again:
       if(!_func(T))break;
    }
    ThreadFinishedUsingGPUData(); // automatically disable OpenGL context if it was enabled, deactivating any active context on a thread is required before exiting the thread
+#if SWITCH && GL
+   eglReleaseThread();
+#endif
 #if !WINDOWS
   _finished.on(); // !! we have to notify of finish before clearing '_active', because '_finished.on' operates on SyncEvent, so it needs to be valid until this 'on' call finishes, if we would clear '_active' before that, then this 'Thread' memory could have been already released and we would be operating on invalid memory !!
 #endif
