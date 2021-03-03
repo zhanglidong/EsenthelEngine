@@ -256,6 +256,12 @@
     <Filter Include="H\_\Libs\NintendoSwitch\mbedTLS">
       <UniqueIdentifier>{7f7a22bb-0fd1-490c-8d2f-e3479aceff50}</UniqueIdentifier>
     </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Opus">
+      <UniqueIdentifier>{a9a493d7-94b3-4d2a-b2f5-0e9cb9b0e3b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="H\_\Libs\NintendoSwitch\Opus\File">
+      <UniqueIdentifier>{c1112237-4c32-4827-8b68-c35a66668fbd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -4414,6 +4420,462 @@
     </Object>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\mbedTLS\arc4.o">
       <Filter>H\_\Libs\NintendoSwitch\mbedTLS</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\stream.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\wincerts.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\http.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\info.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\internal.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\file\opusfile.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus\File</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\A2NLSF.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\ana_filt_bank_1.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\analysis.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\apply_sine_window_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\autocorrelation_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\bands.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\biquad_alt.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\burg_modified_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\bwexpander.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\bwexpander_32.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\bwexpander_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt_lpc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\check_control_input.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\CNG.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\code_signs.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\control_audio_bandwidth.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\control_codec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\control_SNR.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\corrMatrix_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\cwrs.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\debug.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\dec_API.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_core.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_frame.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_indices.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_parameters.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_pitch.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decode_pulses.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\decoder_set_fs.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\enc_API.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\encode_frame_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\encode_indices.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\encode_pulses.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\energy_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\entcode.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\entdec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\entenc.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\find_LPC_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\find_LTP_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\find_pitch_lags_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\find_pred_coefs_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\gain_quant.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\HP_variable_cutoff.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\init_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\init_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\inner_prod_aligned.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\inner_product_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\interpolate.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\k2a_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\kiss_fft.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\laplace.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\lin2log.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\log2lin.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LP_variable_cutoff.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_analysis_filter.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_analysis_filter_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_fit.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_inv_pred_gain.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_inv_pred_gain_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LTP_analysis_filter_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LTP_scale_ctrl_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\mapping_matrix.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\mathops.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\mdct.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\mlp.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\mlp_data.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\modes.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_decode.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_del_dec_quant.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_encode.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_stabilize.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_unpack.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_VQ.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF_VQ_weights_laroia.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NLSF2A.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\noise_shape_analysis_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NSQ.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NSQ_del_dec.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_multistream.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_multistream_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_multistream_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_projection_decoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\opus_projection_encoder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\pitch.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\pitch_analysis_core_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\pitch_est_tables.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\PLC.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\process_gains_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\process_NLSFs.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\quant_bands.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\quant_LTP_gains.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\rate.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\regularize_correlations_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\repacketizer.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_down2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_down2_3.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_private_AR2.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_private_down_FIR.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_private_IIR_FIR.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_private_up2_HQ.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\resampler_rom.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\residual_energy_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\scale_copy_vector_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\scale_vector_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\schur_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\shell_coder.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\sigm_Q15.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\sort.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\sort_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_decode_pred.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_encode_pred.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_find_predictor.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_LR_to_MS.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_MS_to_LR.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\stereo_quant_pred.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\sum_sqr_shift.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\table_LSF_cos.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_gain.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_LTP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_NLSF_CB_NB_MB.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_NLSF_CB_WB.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_other.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_pitch_lag.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\tables_pulses_per_block.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\VAD.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\vq.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\VQ_WMat_EC.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\warped_autocorrelation_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\wrappers_FLP.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\arm_celt_map.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\arm_silk_map.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\armcpu.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\biquad_alt_neon_intr.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt_mdct_ne10.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\celt_neon_intr.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\LPC_inv_pred_gain_neon_intr.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NSQ_del_dec_neon_intr.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\NSQ_neon.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
+    </Object>
+    <Object Include="..\NintendoSwitch\ThirdPartyLibs\Opus\pitch_neon_intr.o">
+      <Filter>H\_\Libs\NintendoSwitch\Opus</Filter>
     </Object>
   </ItemGroup>
 </Project>

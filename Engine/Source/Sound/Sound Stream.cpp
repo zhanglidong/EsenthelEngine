@@ -5,10 +5,6 @@
 
 #include "../../../ThirdPartyLibs/begin.h"
 
-#if SWITCH
-#define SUPPORT_OPUS 0
-#endif
-
 #if SUPPORT_FLAC
    #define FLAC__NO_DLL
    #include "../../../ThirdPartyLibs/Flac/lib/include/FLAC/all.h"

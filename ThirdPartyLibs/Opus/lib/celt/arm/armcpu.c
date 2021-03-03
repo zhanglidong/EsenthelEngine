@@ -146,7 +146,7 @@ opus_uint32 opus_cpu_capabilities(void)
   }
   return flags;
 }
-#elif defined __APPLE__
+#elif defined __APPLE__ || defined __NINTENDO__
 	opus_uint32 opus_cpu_capabilities(void) {return OPUS_CPU_ARM_EDSP_FLAG|OPUS_CPU_ARM_MEDIA_FLAG|OPUS_CPU_ARM_NEON_FLAG;}
 #else
 /* The feature registers which can tell us what the processor supports are
