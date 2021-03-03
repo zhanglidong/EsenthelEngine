@@ -217,7 +217,6 @@ void Joypad::zero()
    REPAO(_last_t)=-FLT_MAX;
          dir     .zero();
    REPAO(dir_a  ).zero();
-   REPAO(dir_an ).zero();
    REPAO(trigger)=0;
 }
 void Joypad::clear()
