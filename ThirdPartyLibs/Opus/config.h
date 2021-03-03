@@ -64,7 +64,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define OPUS_ARM_MAY_HAVE_MEDIA
 #endif
 
-#if defined __APPLE__ || defined ANDROID // ESENTHEL CHANGED
+#if defined __APPLE__ || defined ANDROID || defined __NINTENDO__ // ESENTHEL CHANGED
    #define FLOAT_APPROX
 #endif
 

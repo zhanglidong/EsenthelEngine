@@ -35,11 +35,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define OPUS_BUILD            1
 
-#if defined(_M_IX86) || defined(_M_X64)
+#if (defined _M_IX86 || defined __i386__) || (defined _M_X64 || defined __x86_64__) // ESENTHEL CHANGED
 /* Can always compile SSE intrinsics (no special compiler flags necessary) */
 #define OPUS_X86_MAY_HAVE_SSE
 #define OPUS_X86_MAY_HAVE_SSE2
 #define OPUS_X86_MAY_HAVE_SSE4_1
+#define OPUS_X86_MAY_HAVE_AVX
 
 /* Presume SSE functions, if compiled to use SSE/SSE2/AVX (note that AMD64 implies SSE2, and AVX
    implies SSE4.1) */
@@ -53,10 +54,22 @@ POSSIBILITY OF SUCH DAMAGE.
 #define OPUS_X86_PRESUME_SSE4_1 1
 #endif
 
-#if !defined(OPUS_X86_PRESUME_SSE4_1) || !defined(OPUS_X86_PRESUME_SSE2) || !defined(OPUS_X86_PRESUME_SSE)
-#define OPUS_HAVE_RTCD 1
 #endif
 
+#if (defined _M_ARM || defined __arm__) || (defined _M_ARM64 || defined __aarch64__) // ESENTHEL CHANGED
+#define OPUS_ARM_ASM
+#define OPUS_ARM_MAY_HAVE_NEON
+#define OPUS_ARM_MAY_HAVE_NEON_INTR
+#define OPUS_ARM_MAY_HAVE_EDSP
+#define OPUS_ARM_MAY_HAVE_MEDIA
+#endif
+
+#if defined __APPLE__ || defined ANDROID || defined __NINTENDO__ // ESENTHEL CHANGED
+   #define FLOAT_APPROX
+#endif
+
+#ifndef EMSCRIPTEN // ESENTHEL CHANGED
+   #define OPUS_HAVE_RTCD 1
 #endif
 
 #include "version.h"

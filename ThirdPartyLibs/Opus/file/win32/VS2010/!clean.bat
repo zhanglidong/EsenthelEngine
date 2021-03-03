@@ -8,3 +8,5 @@ rmdir /s /q x64\Debug
 rmdir /s /q x64\Release\opusfile
 rmdir /s /q ARM\Release\opusfile
 rmdir /s /q Emscripten\Release\opusfile
+
+rmdir /s /q NX64
