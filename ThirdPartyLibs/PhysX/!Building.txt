@@ -63,9 +63,10 @@ run "mingw32-make"
 Alternatively can use Esenthel Generated solution inside "Android" folder
 
 * Compiling for Switch
--generate projects from Nintendo SDK
+-generate projects from Nintendo SDK "GameWorks\PhysX\physx\compiler\vc15switch64"
 -open in VS
 -select proj properties for all projects, select:
+	General - Generate Debug Info - NO
 	Optimization - Full Optimization with Inlining (-O3)
 	Strict Aliasing - Yes (-fstrict-aliasing)
 	Omit Frame Pointer - Yes (-fomit-frame-pointer)
