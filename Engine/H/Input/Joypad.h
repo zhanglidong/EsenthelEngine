@@ -3,7 +3,7 @@
    Use 'Joypads' container to access Joypads input.
 
 /******************************************************************************/
-enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox GamePads
+enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch GamePads
 {
    GPB_A     ,
    GPB_B     ,
@@ -15,16 +15,15 @@ enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox GamePads
    GPB_R2    , // Right Trigger
    GPB_LTHUMB, // Left  Thumb
    GPB_RTHUMB, // Right Thumb
-   GPB_START , // Start
    GPB_BACK  , // Back
+   GPB_START , // Start
    GPB_NUM   ,
 };
 /******************************************************************************/
 struct Joypad // Joypad Input
 {
-   Vec2 dir       , //                   direction
-        dir_a  [2], //            analog direction
-        dir_an [2]; // normalized analog direction
+   Vec2 dir       , //        direction
+        dir_a  [2]; // analog direction
    Flt  trigger[2]; // trigger
 
    Bool b (Int x)C {return InRange(x, _button) ? ButtonOn(_button[x]) : false;} // if button 'x' is on
@@ -81,6 +80,10 @@ extern MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
 Joypad* FindJoypad(UInt id); // find joypad in 'Joypads' container according to its 'id', null on fail
 #if EE_PRIVATE
+Joypad& GetJoypad(UInt id, Bool &added);
+
+inline Int Compare(C Joypad &a, C Joypad &b) {return Compare(a.id(), b.id());}
+
 void ListJoypads();
 void InitJoypads();
 void ShutJoypads();

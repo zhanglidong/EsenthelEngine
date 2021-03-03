@@ -376,6 +376,9 @@ Bool InputDevicesClass::create()
 /******************************************************************************/
 void InputDevicesClass::update()
 {
+#if SWITCH
+   NS::UpdateInput();
+#endif
          Kb      .update();
          Ms      .update();
    REPAO(Joypads).update();

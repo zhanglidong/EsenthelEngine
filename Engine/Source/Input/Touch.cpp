@@ -108,10 +108,6 @@ Bool SupportedTouches()
 /******************************************************************************/
 void TouchesUpdate()
 {
-#if SWITCH
-   NS::TouchesUpdate();
-#endif
-
    // simulate touches using mouse
    if(TouchesSimulated)
    {

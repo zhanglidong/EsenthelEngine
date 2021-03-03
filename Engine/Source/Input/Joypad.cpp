@@ -240,21 +240,21 @@ void Joypad::update()
          if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
          {
             // buttons
-            Byte x_button[GPB_NUM];
-            x_button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
-            x_button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
-            x_button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
-            x_button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
-            x_button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
-            x_button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
-            x_button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-            x_button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-            x_button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
-            x_button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
-            x_button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
-            x_button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
-            ASSERT(ELMS(x_button)<ELMS(T._button));
-            update(x_button, Elms(x_button));
+            Byte button[GPB_NUM];
+            button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
+            button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
+            button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
+            button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
+            button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
+            button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
+            button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+            button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+            button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
+            button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
+            button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
+            button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
+            ASSERT(ELMS(button)<ELMS(T._button));
+            update(button, Elms(button));
 
             // digital pad
             dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
@@ -326,14 +326,7 @@ void Joypad::update()
       ASSERT(ELMS(T._button)==ELMS(mjp.button));
       update(mjp.button, Elms(mjp.button));
    }
-#else
 #endif
-   REPA(dir_an)
-   {
-      dir_an[i]=dir_a[i];
-      Flt div=Max(Abs(dir_an[i].x), Abs(dir_an[i].y));
-      if( div>EPS)dir_an[i]/=dir_an[i].length()/div;
-   }
 }
 void Joypad::push(Byte b)
 {
@@ -375,7 +368,7 @@ Joypad* FindJoypad(UInt id)
    REPA(Joypads)if(Joypads[i].id()==id)return &Joypads[i];
    return null;
 }
-static Joypad& GetJoypad(UInt id, Bool &added)
+Joypad& GetJoypad(UInt id, Bool &added)
 {
    added=false;
    Joypad *joypad=FindJoypad(id); if(!joypad){added=true; joypad=&Joypads.New(); joypad->_id=id;} joypad->_connected=true;
@@ -530,7 +523,6 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
 }
 #endif
 /******************************************************************************/
-static Int CompareJoypad(C Joypad &a, C Joypad &b) {return Compare(a.id(), b.id());}
 void ListJoypads()
 {
 #if WINDOWS
@@ -559,7 +551,7 @@ void ListJoypads()
    #endif
 
    REPA(Joypads)if(!Joypads[i]._connected)Joypads.remove(i, true); // remove disconnected joypads
-   Joypads.sort(CompareJoypad); // sort remaining by their ID
+   Joypads.sort(Compare); // sort remaining by their ID
 #elif MAC
 	if(HidManager=IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone))
 	{
