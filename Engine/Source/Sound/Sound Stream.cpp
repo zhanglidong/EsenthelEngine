@@ -1908,7 +1908,7 @@ Bool    SoundHeader::load     (C Str &name)
 }
 /******************************************************************************/
 static const Int OpusFreqs[]={8000, 12000, 16000, 24000, 48000}; // these are the only frequencies supported by Opus, values taken from comments in 'opus_encoder_create'
-static       Int OpusFrequency(Int freq) // !! do not change in the future, because old 'SndOpusFile' will fail !!
+             Int OpusFrequency(Int freq) // !! do not change in the future, because old 'SndOpusFile' will fail !!
 {
    for(Int i=Elms(OpusFreqs); --i>0; )
    {
@@ -1978,11 +1978,11 @@ OpusEncoder& OpusEncoder::frameLength(Int length)
 
 Int OpusEncoder::frequency()C
 {
-   Int bit_rate=0;
+   Int sample_rate=0;
 #if SUPPORT_OPUS_ENC
-   if(_encoder)opus_encoder_ctl((OE)_encoder, OPUS_GET_SAMPLE_RATE(&bit_rate));
+   if(_encoder)opus_encoder_ctl((OE)_encoder, OPUS_GET_SAMPLE_RATE(&sample_rate));
 #endif
-   return bit_rate;
+   return sample_rate;
 }
 
 Int OpusEncoder::bitRate()C
@@ -2177,6 +2177,7 @@ Bool OpusEncoder::flush(Int &flushed_samples, MemPtr<Byte> compressed_data, MemP
 }
 /******************************************************************************/
 OpusDecoder::OpusDecoder() {_decoder=null; _channels=0;}
+#if !SWITCH
 OpusDecoder& OpusDecoder::del()
 {
 #if SUPPORT_OPUS
@@ -2206,11 +2207,11 @@ void OpusDecoder::reset()
 
 Int OpusDecoder::frequency()C
 {
-   Int bit_rate=0;
+   Int sample_rate=0;
 #if SUPPORT_OPUS
-   if(_decoder)opus_decoder_ctl((OD)_decoder, OPUS_GET_SAMPLE_RATE(&bit_rate));
+   if(_decoder)opus_decoder_ctl((OD)_decoder, OPUS_GET_SAMPLE_RATE(&sample_rate));
 #endif
-   return bit_rate;
+   return sample_rate;
 }
 
 Bool OpusDecoder::decode(CPtr packet_data, Int packet_size, MemPtr<Byte> decompressed_data)
@@ -2220,10 +2221,10 @@ Bool OpusDecoder::decode(CPtr packet_data, Int packet_size, MemPtr<Byte> decompr
 #if SUPPORT_OPUS
    if(_decoder && packet_data)
    {
-      const Int block=SIZE(I16)*_channels,
-                max_frame_size=OPUS_MAX_FRAME_SAMPLES*block;
+      const Int block=SIZE(I16)*_channels;
       if(decompressed_data.continuous())
       {
+         const Int max_frame_size=OPUS_MAX_FRAME_SAMPLES*block;
          decompressed_data.setNum(max_frame_size);
          Int decoded_samples=opus_decode((OD)_decoder, (Byte*)packet_data, packet_size, (opus_int16*)decompressed_data.data(), OPUS_MAX_FRAME_SAMPLES, 0); // keep 'decode_fec' as 0 because when set to 1 decoding may fail if it was not started from first packet
          if( decoded_samples>0)
@@ -2262,6 +2263,7 @@ Int OpusDecoder::decode(CPtr packet_data, Int packet_size, Ptr decompressed_data
 #endif
    return -1; // error
 }
+#endif
 /******************************************************************************/
 // OGG OPUS ENCODER
 /******************************************************************************/

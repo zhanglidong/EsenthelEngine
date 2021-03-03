@@ -127,6 +127,8 @@ Bool SaveWavHeader(File &f, Int bits, Int channels, Int frequency, UInt size); /
 #if EE_PRIVATE
 Bool SaveSndHeader(File &f, SND_CODEC codec, Int channels, Int frequency, Long samples); // 'channels'=number of channels (use 1 for mono and 2 for stereo), 'frequency'=sample rate, 'samples'=number of audio samples
 
+Int OpusFrequency(Int freq);
+
 void InitStream();
 void ShutStream();
 #endif
