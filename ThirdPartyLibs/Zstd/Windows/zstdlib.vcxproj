@@ -482,6 +482,12 @@
       <StringPooling>true</StringPooling>
       <AdditionalIncludeDirectories>..\lib;..\lib\common;..\..\LZ4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <StrictAliasing>true</StrictAliasing>
+      <OmitFramePointer>true</OmitFramePointer>
+      <FastMath>true</FastMath>
+      <UnrollLoops>true</UnrollLoops>
+      <Vectorization>true</Vectorization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

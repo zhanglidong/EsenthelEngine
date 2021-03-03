@@ -445,6 +445,11 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <StrictAliasing>true</StrictAliasing>
+      <OmitFramePointer>true</OmitFramePointer>
+      <FastMath>false</FastMath>
+      <UnrollLoops>true</UnrollLoops>
+      <Vectorization>true</Vectorization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal|x64'">

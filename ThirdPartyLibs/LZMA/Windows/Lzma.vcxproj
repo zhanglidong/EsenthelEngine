@@ -313,6 +313,12 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointModel>Fast</FloatingPointModel>
       <PreprocessorDefinitions>_7ZIP_ST</PreprocessorDefinitions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <StrictAliasing>true</StrictAliasing>
+      <OmitFramePointer>true</OmitFramePointer>
+      <FastMath>true</FastMath>
+      <UnrollLoops>true</UnrollLoops>
+      <Vectorization>true</Vectorization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">

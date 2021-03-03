@@ -354,6 +354,11 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <StrictAliasing>true</StrictAliasing>
+      <OmitFramePointer>true</OmitFramePointer>
+      <FastMath>true</FastMath>
+      <UnrollLoops>true</UnrollLoops>
+      <Vectorization>true</Vectorization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">
