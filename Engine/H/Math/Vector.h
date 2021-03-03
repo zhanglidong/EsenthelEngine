@@ -251,7 +251,11 @@ typedef struct Half
    Bool operator> (Flt  f)C {return Flt(T)> f;}
    Bool operator>=(Flt  f)C {return Flt(T)>=f;}
    Bool operator==(Flt  f)C {return Flt(T)==f;}
+   Bool operator!=(Flt  f)C {return Flt(T)!=f;}
+   Bool operator==(Int  i)C {return Flt(T)==i;}
+   Bool operator!=(Int  i)C {return Flt(T)!=i;}
    Bool operator==(Half h)C {return data  ==h.data;}
+   Bool operator!=(Half h)C {return data  !=h.data;}
 }F16;
 #if EE_PRIVATE
 extern const Half HalfZero, HalfOne;
