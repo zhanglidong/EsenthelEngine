@@ -202,6 +202,9 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 #define SUPPORT_OPUS_ENC   1
 #define SUPPORT_MP3        1
 
+#define OPUS_DEC_SWITCH 1 // if use Opus Decoder from Switch SDK ( enable because performance is the same, but when using SDK we could potentially reduce app size, to avoid extra linking of these functions, since Switch version is available anyway through DLL's)
+#define OPUS_ENC_SWITCH 0 // if use Opus Encoder from Switch SDK (disable because default is 10% faster)
+
 // Image
 #define SUPPORT_JPG  1
 #define SUPPORT_PNG  1

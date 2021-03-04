@@ -1942,7 +1942,7 @@ OpusEncoder& OpusEncoder::frameLength(Int length)
    return T;
 }
 
-#if !SWITCH
+#if !OPUS_ENC_SWITCH
 OpusEncoder& OpusEncoder::del()
 {
 #if SUPPORT_OPUS_ENC
@@ -2046,9 +2046,9 @@ Int OpusEncoder::delay()C
 #endif
 
 #if SUPPORT_OPUS_ENC
-#if SWITCH
-Int SwitchOpusEncode(Ptr encoder, CPtr data, Int frame_size, Ptr compressed_data, Int compressed_size);
-#define opus_encode SwitchOpusEncode
+#if OPUS_ENC_SWITCH
+Int OpusEncodeSwitch(Ptr encoder, CPtr data, Int frame_size, Ptr compressed_data, Int compressed_size);
+#define opus_encode OpusEncodeSwitch
 #endif
 static Bool OpusEncode(OE encoder, C opus_int16 *data, Int frame_size, MemPtr<Byte> compressed_data, MemPtr<Int> packet_sizes)
 {
@@ -2184,7 +2184,7 @@ Bool OpusEncoder::flush(Int &flushed_samples, MemPtr<Byte> compressed_data, MemP
 }
 /******************************************************************************/
 OpusDecoder::OpusDecoder() {_decoder=null; _channels=0;}
-#if !SWITCH // performance is the same as Switch SDK, but don't use this version, and use Switch SDK instead, to potentially reduce app size, to avoid extra linking of these functions, since Switch version is available anyway through DLL's
+#if !OPUS_DEC_SWITCH
 OpusDecoder& OpusDecoder::del()
 {
 #if SUPPORT_OPUS
