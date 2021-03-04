@@ -52,7 +52,7 @@
       #error Unsupported platform detected
    #endif
 
-   #define GL_ES (GL && (IOS || ANDROID || SWITCH || WEB))
+   #define GL_ES (GL && (IOS || ANDROID || WEB))
 
    #define GL_LOCK (GL && 0) // if surround all GL calls with a lock
 
