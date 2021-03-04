@@ -2177,7 +2177,7 @@ Bool OpusEncoder::flush(Int &flushed_samples, MemPtr<Byte> compressed_data, MemP
 }
 /******************************************************************************/
 OpusDecoder::OpusDecoder() {_decoder=null; _channels=0;}
-#if !SWITCH
+#if !SWITCH // performance is the same as Switch SDK, but don't use this version, and use Switch SDK instead, to potentially reduce app size, to avoid extra linking of these functions, since Switch version is available anyway through DLL's
 OpusDecoder& OpusDecoder::del()
 {
 #if SUPPORT_OPUS
