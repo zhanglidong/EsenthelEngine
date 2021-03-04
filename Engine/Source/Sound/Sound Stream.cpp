@@ -1919,6 +1919,30 @@ static const Int OpusFreqs[]={8000, 12000, 16000, 24000, 48000}; // these are th
 }
 /******************************************************************************/
 OpusEncoder::OpusEncoder() {_encoder=null; _channels=_frame_samples=0;}
+
+#if SUPPORT_OPUS_ENC
+static const Int OpusValidFramesize[]={120, 240, 480, 960, 1920, 2880}; // ranges were taken from comments in 'opus_encode' function, 120 (2.5 ms), 960 (20 ms), 2880 (60 ms)
+#endif
+
+Int          OpusEncoder::frameLength()C {return _frame_samples/48;} // 48 because of OPUS_FREQUENCY/1000 = 48,000/1000 = 48
+OpusEncoder& OpusEncoder::frameLength(Int length)
+{
+#if SUPPORT_OPUS_ENC
+   if(_channels)
+   {
+      Int frame_size=length*48, nearest=0, dist;
+      REPA(OpusValidFramesize)
+      {
+         Int value=OpusValidFramesize[i], d=Abs(frame_size-value);
+         if(!nearest || d<dist){dist=d; nearest=value;}
+      }
+     _frame_samples=nearest; // set once at the end to avoid multi-threading issues
+   }
+#endif
+   return T;
+}
+
+#if !SWITCH
 OpusEncoder& OpusEncoder::del()
 {
 #if SUPPORT_OPUS_ENC
@@ -1952,28 +1976,6 @@ void OpusEncoder::reset()
       T._data.clear();
    }
 #endif
-}
-
-#if SUPPORT_OPUS_ENC
-static const Int OpusValidFramesize[]={120, 240, 480, 960, 1920, 2880}; // ranges were taken from comments in 'opus_encode' function, 120 (2.5 ms), 960 (20 ms), 2880 (60 ms)
-#endif
-
-Int          OpusEncoder::frameLength()C {return _frame_samples/48;} // 48 because of OPUS_FREQUENCY/1000 = 48,000/1000 = 48
-OpusEncoder& OpusEncoder::frameLength(Int length)
-{
-#if SUPPORT_OPUS_ENC
-   if(_channels)
-   {
-      Int frame_size=length*48, nearest=0, dist;
-      REPA(OpusValidFramesize)
-      {
-         Int value=OpusValidFramesize[i], d=Abs(frame_size-value);
-         if(!nearest || d<dist){dist=d; nearest=value;}
-      }
-     _frame_samples=nearest; // set once at the end to avoid multi-threading issues
-   }
-#endif
-   return T;
 }
 
 Int OpusEncoder::frequency()C
@@ -2041,9 +2043,14 @@ Int OpusEncoder::delay()C
 #endif
    return delay;
 }
+#endif
 
 #if SUPPORT_OPUS_ENC
-static Bool OpusEncode(OE encoder, opus_int16 *data, Int frame_size, MemPtr<Byte> compressed_data, MemPtr<Int> packet_sizes)
+#if SWITCH
+Int SwitchOpusEncode(Ptr encoder, CPtr data, Int frame_size, Ptr compressed_data, Int compressed_size);
+#define opus_encode SwitchOpusEncode
+#endif
+static Bool OpusEncode(OE encoder, C opus_int16 *data, Int frame_size, MemPtr<Byte> compressed_data, MemPtr<Int> packet_sizes)
 {
    const Int max_packet_size=4096, // max 60 ms * 512000 bits per second = 60*512000/8/1000 = 3840 (round up to 4096 if there are any headers needed)
              size=compressed_data.elms(); // remember current size
