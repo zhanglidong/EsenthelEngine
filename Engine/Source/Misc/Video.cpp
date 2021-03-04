@@ -184,13 +184,13 @@ struct MkvReader : mkvparser::IMkvReader
 
    MkvReader(File &f) : f(f) {}
 
-   virtual int Read(long long pos, long len, unsigned char* buf) // 0=OK, -1=error
+   virtual int Read(long long pos, long len, unsigned char* buf)override // 0=OK, -1=error
    {
       if(len==0)return 0;
       if(!f.pos(pos))return -1;
       return f.getFast(buf, len) ? 0 : -1;
    }
-   virtual int Length(long long* total, long long* available) // 0=OK, -1=error
+   virtual int Length(long long* total, long long* available)override // 0=OK, -1=error
    {
       if(total    )*total    =f.size();
       if(available)*available=f.size();
@@ -228,7 +228,6 @@ struct VP : VideoCodec
          if(input.fourcc==CC4('V', 'P', '9', '0'))
          if(!webm_guess_framerate(&webm, &input))
          {
-            Flt fps=Flt(input.framerate.numerator)/input.framerate.denominator;
             vpx_codec_dec_cfg_t cfg; Zero(cfg);
             cfg.threads=Min(2, Cpu.threads());
             if(!vpx_codec_dec_init(&decoder, vpx_codec_vp9_dx(), &cfg, 0))
