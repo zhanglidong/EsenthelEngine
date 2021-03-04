@@ -813,6 +813,7 @@ void Cipher3::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 /******************************************************************************/
 // AES
 /******************************************************************************/
+#if !SWITCH
 #if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_AMD64) || defined(_M_X64))
    #define SWAP(  x     ) (_lrotl(x, 8)&0x00ff00ff | _lrotr(x, 8)&0xff00ff00)
    #define GETU32(p     ) SWAP(*((U32*)(p)))
@@ -1708,6 +1709,7 @@ AES_ATTR void AES::decrypt(Ptr dest, CPtr src)C
 #undef SWAP
 #undef GETU32
 #undef PUTU32
+#endif
 /******************************************************************************/
 }
 /******************************************************************************/
