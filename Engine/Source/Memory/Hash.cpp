@@ -154,6 +154,8 @@ C UID&  MetroHash128::operator()() {if(!_finalized){_finalized=true; ((_MetroHas
 /******************************************************************************/
 // MD5
 /******************************************************************************/
+// This implementation is faster than Nintendo's
+/******************************************************************************/
 void MD5::reset()
 {
   _finalized=false;
@@ -243,7 +245,7 @@ void MD5::transform(const Byte block[64])
    GG(c, d, a, b, x[11], S23, 0x265e5a51); // 19
    GG(b, c, d, a, x[ 0], S24, 0xe9b6c7aa); // 20
    GG(a, b, c, d, x[ 5], S21, 0xd62f105d); // 21
-   GG(d, a, b, c, x[10], S22,  0x2441453); // 22
+   GG(d, a, b, c, x[10], S22, 0x02441453); // 22
    GG(c, d, a, b, x[15], S23, 0xd8a1e681); // 23
    GG(b, c, d, a, x[ 4], S24, 0xe7d3fbc8); // 24
    GG(a, b, c, d, x[ 9], S21, 0x21e1cde6); // 25
@@ -267,7 +269,7 @@ void MD5::transform(const Byte block[64])
    HH(a, b, c, d, x[13], S31, 0x289b7ec6); // 41
    HH(d, a, b, c, x[ 0], S32, 0xeaa127fa); // 42
    HH(c, d, a, b, x[ 3], S33, 0xd4ef3085); // 43
-   HH(b, c, d, a, x[ 6], S34,  0x4881d05); // 44
+   HH(b, c, d, a, x[ 6], S34, 0x04881d05); // 44
    HH(a, b, c, d, x[ 9], S31, 0xd9d4d039); // 45
    HH(d, a, b, c, x[12], S32, 0xe6db99e5); // 46
    HH(c, d, a, b, x[15], S33, 0x1fa27cf8); // 47
@@ -358,6 +360,7 @@ C UID& MD5::operator()()
 /******************************************************************************/
 // SHA1-160
 /******************************************************************************/
+#if !SWITCH
 #define ROL(bits, word) (((word)<<(bits)) | ((word)>>(32-(bits))))
 #undef C
 void SHA1::reset()
@@ -550,7 +553,7 @@ void SHA2::transform(const Byte data[64])
    UInt temp1, temp2;
    UInt W[64];
 
-#if 1
+#if 1 // little-endian
    GET_UINT32(W[0],  data,  0);
    GET_UINT32(W[1],  data,  4);
    GET_UINT32(W[2],  data,  8);
@@ -567,7 +570,7 @@ void SHA2::transform(const Byte data[64])
    GET_UINT32(W[13], data, 52);
    GET_UINT32(W[14], data, 56);
    GET_UINT32(W[15], data, 60);
-#else
+#else // big-endian
    CopyFast(W, data, 64);
 #endif
 
@@ -740,6 +743,7 @@ C SHA2::Hash& SHA2::operator()()
 {
    finalize(); return _hash;
 }
+#endif
 /******************************************************************************/
 // MAIN
 /******************************************************************************/
@@ -753,8 +757,10 @@ UID   SpookyHash128Mem(CPtr data, Int size) {UID   hash(0, 0); _SpookyHash  ::Ha
 ULong   MetroHash64Mem(CPtr data, Int size) {ULong hash;       _MetroHash64 ::Hash   ((Byte*)data, size, (Byte*)&hash   ); return hash;}
 UID    MetroHash128Mem(CPtr data, Int size) {UID   hash;       _MetroHash128::Hash   ((Byte*)data, size,         hash.b ); return hash;}
 UID             MD5Mem(CPtr data, Int size) {MD5   hash; hash.update(data, size); return hash();}
+#if !SWITCH
 SHA1::Hash     SHA1Mem(CPtr data, Int size) {SHA1  hash; hash.update(data, size); return hash();}
 SHA2::Hash     SHA2Mem(CPtr data, Int size) {SHA2  hash; hash.update(data, size); return hash();}
+#endif
 /******************************************************************************/
 SHA2::Hash HMAC_SHA2(CPtr key, Int key_size, CPtr data, Int data_size)
 {

@@ -156,8 +156,12 @@ struct SHA1 // Secure Hash Algorithm-1, with 160-bits
 #if !EE_PRIVATE
 private:
 #endif
+#if SWITCH
+   UInt _data[112/4]; // use UInt to get memory alignment
+#else
    Byte _buffer[64];
    UInt _count [2];
+#endif
    Bool _finalized;
    Hash _hash;
 #if EE_PRIVATE
@@ -189,8 +193,12 @@ struct SHA2 // Secure Hash Algorithm-2, with 256-bits
 #if !EE_PRIVATE
 private:
 #endif
+#if SWITCH
+   UInt _data[120/4]; // use UInt to get memory alignment
+#else
    Byte _buffer[64];
    UInt _count [2];
+#endif
    Bool _finalized;
    Hash _hash;
 #if EE_PRIVATE
