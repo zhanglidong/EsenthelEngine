@@ -75,12 +75,12 @@ void MouseTouch::guiObj(Int i, GuiObj *obj) {if(InRange(i, Touches))Touches[i].g
 /******************************************************************************/
 Touch* FindTouch(UInt id) // 0 is reserved for mouse
 {
-   if(id)REPA(Touches)if(Touches[i].id()==id)return &Touches[i];
+   if(id)REPA(Touches){Touch &touch=Touches[i]; if(touch.id()==id)return &touch;}
    return null;
 }
 Touch* FindTouchByHandle(CPtr handle)
 {
-   REPA(Touches)if(Touches[i]._handle==handle)return &Touches[i];
+   REPA(Touches){Touch &touch=Touches[i]; if(touch._handle==handle)return &touch;}
    return null;
 }
 /******************************************************************************/
