@@ -1942,7 +1942,7 @@ OpusEncoder& OpusEncoder::frameLength(Int length)
    return T;
 }
 
-#if !OPUS_ENC_SWITCH
+#if !(OPUS_ENC_SWITCH && SWITCH)
 OpusEncoder& OpusEncoder::del()
 {
 #if SUPPORT_OPUS_ENC
@@ -2046,7 +2046,7 @@ Int OpusEncoder::delay()C
 #endif
 
 #if SUPPORT_OPUS_ENC
-#if OPUS_ENC_SWITCH
+#if OPUS_ENC_SWITCH && SWITCH
 Int OpusEncodeSwitch(Ptr encoder, CPtr data, Int frame_size, Ptr compressed_data, Int compressed_size);
 #define opus_encode OpusEncodeSwitch
 #endif
@@ -2184,7 +2184,7 @@ Bool OpusEncoder::flush(Int &flushed_samples, MemPtr<Byte> compressed_data, MemP
 }
 /******************************************************************************/
 OpusDecoder::OpusDecoder() {_decoder=null; _channels=0;}
-#if !OPUS_DEC_SWITCH
+#if !(OPUS_DEC_SWITCH && SWITCH)
 OpusDecoder& OpusDecoder::del()
 {
 #if SUPPORT_OPUS
