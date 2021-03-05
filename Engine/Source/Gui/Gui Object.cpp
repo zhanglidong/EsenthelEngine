@@ -249,9 +249,10 @@ Bool GuiObj::kbCatch()C
    }
 }
 /******************************************************************************/
-static void AdjustGuiKb()
+static void AdjustGuiKb() // call when 'Gui.kb' got changed (or just 'kbSet' getting called to force showing soft keyboard when clicking on 'TextLine' or 'TextBox', etc.)
 {
    Gui._window=&Gui.kb()->first(GO_WINDOW)->asWindow();
+   Kb.setVisible();
 }
 GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
 {
@@ -308,7 +309,6 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
          }
       }
 
-      if(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX))Kb.refreshTextInput(); // force showing soft keyboard if we're clicking on 'TextLine' or 'TextBox'
       AdjustGuiKb();
    }
    return T;

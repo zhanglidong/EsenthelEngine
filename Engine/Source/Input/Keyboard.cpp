@@ -1,5 +1,8 @@
 ﻿/******************************************************************************/
 #include "stdafx.h"
+#if IOS
+#include "../Platforms/iOS/iOS.h"
+#endif
 namespace EE{
 /******************************************************************************
 
@@ -63,116 +66,6 @@ static SyncLock  InputTextLock;
 #endif
 KeyboardClass Kb;
 /******************************************************************************/
-#if ANDROID
-static void SetKeyboardVisible(Bool visible)
-{
-#if 0 // not working
-   if(AndroidApp && AndroidApp->activity)
-      if(visible)ANativeActivity_showSoftInput(AndroidApp->activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); // ANATIVEACTIVITY_SHOW_SOFT_INPUT_IMPLICIT
-      else       ANativeActivity_hideSoftInput(AndroidApp->activity, 0); // ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY
-#else
-   if(Jni && ActivityClass && Activity)
-   {
-   #if 1 // activate keyboard using EditText Java object to allow auto-completion
-      if(visible)
-      {
-       C Str *text=&S;
-         Int  start=0, end=0;
-         Bool pass=false;
-         if(Gui.kb())switch(Gui.kb()->type())
-         {
-            case GO_TEXTBOX:
-            {
-               TextBox &tb=Gui.kb()->asTextBox();
-               text =&tb();
-               end  = tb.cursor();
-               start=((tb._edit.sel<0) ? tb.cursor() : tb._edit.sel);
-            }break;
-
-            case GO_TEXTLINE:
-            {
-               TextLine &tl=Gui.kb()->asTextLine();
-               text =&tl();
-               pass = tl.password();
-               end  = tl.cursor  ();
-               start=((tl._edit.sel<0) ? tl.cursor() : tl._edit.sel);
-            }break;
-         }
-         if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
-         if(JString t=JString(Jni, *text))
-            Jni->CallVoidMethod(Activity, editText, t(), jint(start), jint(end), jboolean(pass));
-      }else
-      {
-         if(JMethodID editTextHide=Jni.func(ActivityClass, "editTextHide", "()V"))
-            Jni->CallVoidMethod(Activity, editTextHide);
-      }
-   #else
-      if(JClass ContextClass="android/content/Context")
-      if(JFieldID INPUT_METHOD_SERVICEField=Jni->GetStaticFieldID(ContextClass, "INPUT_METHOD_SERVICE", "Ljava/lang/String;"))
-      if(JObject INPUT_METHOD_SERVICE=Jni->GetStaticObjectField(ContextClass, INPUT_METHOD_SERVICEField))
-      if(JClass InputMethodManagerClass="android/view/inputmethod/InputMethodManager")
-      if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
-      if(JObject InputMethodManager=Jni->CallObjectMethod(Activity, getSystemService, INPUT_METHOD_SERVICE()))
-      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
-      if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
-      if(JClass WindowClass="android/view/Window")
-      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
-      if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
-      {
-         if(visible)
-         {
-            if(JMethodID showSoftInput=Jni.func(InputMethodManagerClass, "showSoftInput", "(Landroid/view/View;I)Z"))
-               Bool ok=Jni->CallBooleanMethod(InputMethodManager, showSoftInput, decor_view(), jint(0));
-         }else
-         {
-            if(JClass ViewClass="android/view/View")
-            if(JMethodID getWindowToken=Jni.func(ViewClass, "getWindowToken", "()Landroid/os/IBinder;"))
-            if(JObject binder=Jni->CallObjectMethod(decor_view, getWindowToken))
-            if(JMethodID hideSoftInput=Jni.func(InputMethodManagerClass, "hideSoftInputFromWindow", "(Landroid/os/IBinder;I)Z"))
-               Bool ok=Jni->CallBooleanMethod(InputMethodManager, hideSoftInput, binder(), jint(0));
-         }
-      }
-   #endif
-   }
-#endif
-}
-static void UpdateKeyboardRect()
-{
-   if(Kb._visible && !Kb.hwAvailable())
-   {
-      Kb._recti.set(0, D.resH()/2, D.resW(), D.resH()); // initially set as lower half of the screen
-
-      if(Jni && ActivityClass)
-      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
-      if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
-      if(JClass WindowClass="android/view/Window")
-      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
-      if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
-      if(JClass ViewClass="android/view/View")
-      if(JMethodID getWindowVisibleDisplayFrame=Jni.func(ViewClass, "getWindowVisibleDisplayFrame", "(Landroid/graphics/Rect;)V"))
-      if(JClass RectClass="android/graphics/Rect")
-      if(JMethodID RectCtor=Jni.func(RectClass, "<init>", "()V"))
-      if(JFieldID left=Jni->GetFieldID(RectClass, "left", "I"))
-      if(JFieldID right=Jni->GetFieldID(RectClass, "right", "I"))
-      if(JFieldID top=Jni->GetFieldID(RectClass, "top", "I"))
-      if(JFieldID bottom=Jni->GetFieldID(RectClass, "bottom", "I"))
-      if(JObject r=Jni->NewObject(RectClass, RectCtor))
-      {
-         Jni->CallVoidMethod(decor_view, getWindowVisibleDisplayFrame, r());
-         RectI app_recti(Jni->GetIntField(r, left), Jni->GetIntField(r, top), Jni->GetIntField(r, right), Jni->GetIntField(r, bottom)); // this is the app rect (for example 0,0,1280,800), but we want the keyboard rect
-         Int   l_size=Max(0,          app_recti.min.x-0),
-               r_size=Max(0, D.resW()-app_recti.max.x  ),
-               t_size=Max(0,          app_recti.min.y-0),
-               b_size=Max(0, D.resH()-app_recti.max.y  ), max_size=Max(l_size, r_size, t_size, b_size);
-         if(b_size>=max_size)Kb._recti.set(              0, D.resH()-b_size, D.resW(), D.resH());else // bottom size is the biggest
-         if(t_size>=max_size)Kb._recti.set(              0,               0, D.resW(), t_size  );else // top    size is the biggest
-         if(l_size>=max_size)Kb._recti.set(              0,               0, l_size  , D.resH());else // left   size is the biggest
-                             Kb._recti.set(D.resW()-r_size,               0, D.resW(), D.resH());     // right  size is the biggest
-      }
-   }
-}
-#endif
-/******************************************************************************/
 inline static void Set(KB_KEY key, Char c, Char qwerty_shift, CChar8 *name)
 {
    Kb._key_char[key]=c;
@@ -181,7 +74,7 @@ inline static void Set(KB_KEY key, Char c, Char qwerty_shift, CChar8 *name)
 KeyboardClass::KeyboardClass()
 {
 #if 0 // there's only one 'KeyboardClass' global 'Kb' and it doesn't need clearing members to zero
-  _exclusive=_refresh_visible=_visible=false;
+  _exclusive=_visible=false;
 #endif
   _last_key_scan_code=-1;
   _imm=true;
@@ -1063,15 +956,16 @@ void KeyboardClass::setLayout()
    REPAO(_qwerty)=KB_KEY(i); REPA(ScanCodeToKey)if(KB_KEY qwerty_key=ScanCodeToQwertyKey[i])if(KB_KEY key=ScanCodeToKey[i])_qwerty[qwerty_key]=key;
 #endif
 }
-void KeyboardClass::swappedCtrlCmd  (Bool swapped) {T._swapped_ctrl_cmd=swapped;}
-void KeyboardClass::refreshTextInput(            ) {T._refresh_visible =true   ;}
-void KeyboardClass::    setTextInput(C Str &text, Int start, Int end, Bool password)
+void KeyboardClass::swappedCtrlCmd(Bool swapped) {T._swapped_ctrl_cmd=swapped;}
+void KeyboardClass::setTextInput  (C Str &text, Int start, Int end, Bool password)
 {
 #if ANDROID
    if(Jni && ActivityClass && Activity)
    if(JMethodID editTextSet=Jni.func(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
    if(JString t=JString(Jni, text))
       Jni->CallVoidMethod(Activity, editTextSet, t(), jint(start), jint(end), jboolean(password));
+#elif SWITCH
+   // FIXME
 #endif
 }
 /******************************************************************************/
@@ -1182,7 +1076,6 @@ void KeyboardClass::setModifiers()
 void KeyboardClass::update()
 {
 #if WINDOWS_OLD
-   imm(visibleWanted());
 #if !KB_RAW_INPUT
    if(App.active() && _did)
    {
@@ -1244,12 +1137,7 @@ void KeyboardClass::update()
 #endif
 
 #if ANDROID
-   // display keyboard
-   Bool visible_wanted =visibleWanted();
-   if(  visible_wanted!=_visible || _refresh_visible){SetKeyboardVisible(_visible=visible_wanted); _refresh_visible=false;}
-
-   UpdateKeyboardRect();
-
+   setRect();
    if(InputTextIs)
    {
       InputText temp; Bool pass=false; Int enters=0; // enter workaround
@@ -1301,12 +1189,12 @@ void KeyboardClass::update()
 #endif
 
    // cursor visibility
-   if(_cur>=0){_hidden=false; _curh_t=0;}else
+   if(_cur>=0){_cur_hidden=false; _curh_t=0;}else
    if((_curh_t+=Time.ad())>_curh_tn)
    {
       if(_curh_t>=2*_curh_tn)_curh_t =0;
       else                   _curh_t-=_curh_tn;
-     _hidden^=1;
+     _cur_hidden^=1;
    }
 
    // misc
@@ -1456,7 +1344,8 @@ void KeyboardClass::exclusive(Bool on)
 #endif
 }
 /******************************************************************************/
-Bool KeyboardClass::hwAvailable()
+KB_KEY KeyboardClass::qwerty(KB_KEY qwerty)C {ASSERT(1<<(8*SIZE(qwerty))==ELMS(_qwerty)); return _qwerty[qwerty];}
+Bool   KeyboardClass::hwAvailable()
 {
 #if WINDOWS_NEW
    return Windows::Devices::Input::KeyboardCapabilities().KeyboardPresent>0;
@@ -1470,17 +1359,113 @@ Bool KeyboardClass::hwAvailable()
    return false;
 #endif
 }
-Bool KeyboardClass::softCoverage(Rect &rect)
+Bool KeyboardClass::rect(Rect &rect)
 {
-   if(_visible && !hwAvailable())
+   if(_visible)
    {
-      rect=D.pixelToScreen(T._recti);
+      rect=D.pixelToScreen(_recti);
       return true;
    }
    return false;
 }
-KB_KEY KeyboardClass::qwerty(KB_KEY qwerty)C {ASSERT(1<<(8*SIZE(qwerty))==ELMS(_qwerty)); return _qwerty[qwerty];}
-Bool   KeyboardClass::visibleWanted()C {return Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX);}
+void KeyboardClass::setRect()
+{
+#if ANDROID
+   if(_visible)
+   {
+     _recti.set(0, D.resH()/2, D.resW(), D.resH()); // initially set as lower half of the screen
+
+      if(Jni && ActivityClass)
+      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
+      if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
+      if(JClass WindowClass="android/view/Window")
+      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
+      if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
+      if(JClass ViewClass="android/view/View")
+      if(JMethodID getWindowVisibleDisplayFrame=Jni.func(ViewClass, "getWindowVisibleDisplayFrame", "(Landroid/graphics/Rect;)V"))
+      if(JClass RectClass="android/graphics/Rect")
+      if(JMethodID RectCtor=Jni.func(RectClass, "<init>", "()V"))
+      if(JFieldID left=Jni->GetFieldID(RectClass, "left", "I"))
+      if(JFieldID right=Jni->GetFieldID(RectClass, "right", "I"))
+      if(JFieldID top=Jni->GetFieldID(RectClass, "top", "I"))
+      if(JFieldID bottom=Jni->GetFieldID(RectClass, "bottom", "I"))
+      if(JObject r=Jni->NewObject(RectClass, RectCtor))
+      {
+         Jni->CallVoidMethod(decor_view, getWindowVisibleDisplayFrame, r());
+         RectI app_recti(Jni->GetIntField(r, left), Jni->GetIntField(r, top), Jni->GetIntField(r, right), Jni->GetIntField(r, bottom)); // this is the app rect (for example 0,0,1280,800), but we want the keyboard rect
+         Int   l_size=Max(0,          app_recti.min.x-0),
+               r_size=Max(0, D.resW()-app_recti.max.x  ),
+               t_size=Max(0,          app_recti.min.y-0),
+               b_size=Max(0, D.resH()-app_recti.max.y  ), max_size=Max(l_size, r_size, t_size, b_size);
+         if(b_size>=max_size)_recti.set(              0, D.resH()-b_size, D.resW(), D.resH());else // bottom size is the biggest
+         if(t_size>=max_size)_recti.set(              0,               0, D.resW(), t_size  );else // top    size is the biggest
+         if(l_size>=max_size)_recti.set(              0,               0, l_size  , D.resH());else // left   size is the biggest
+                             _recti.set(D.resW()-r_size,               0, D.resW(), D.resH());     // right  size is the biggest
+      }
+   }
+#endif
+}
+void KeyboardClass::setVisible()
+{
+   Bool visible=(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX));
+#if WINDOWS_OLD
+   imm(visible); // here ignore 'hwAvailable'
+#endif
+   visible&=!hwAvailable(); // show only if hardware unavailable
+
+#if ANDROID || IOS || SWITCH
+   if(visible)
+   {
+    C Str *text=&S;
+      Int  start=0, end=0;
+      Bool pass=false;
+      if(Gui.kb())switch(Gui.kb()->type())
+      {
+         case GO_TEXTBOX:
+         {
+            TextBox &tb=Gui.kb()->asTextBox();
+            text =&tb();
+            end  = tb.cursor();
+            start=((tb._edit.sel<0) ? tb.cursor() : tb._edit.sel);
+         }break;
+
+         case GO_TEXTLINE:
+         {
+            TextLine &tl=Gui.kb()->asTextLine();
+            text =&tl();
+            pass = tl.password();
+            end  = tl.cursor  ();
+            start=((tl._edit.sel<0) ? tl.cursor() : tl._edit.sel);
+         }break;
+      }
+   #if ANDROID
+      if(Jni && ActivityClass && Activity)
+      {
+        _visible=true;
+         if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
+         if(JString t=JString(Jni, *text))
+            Jni->CallVoidMethod(Activity, editText, t(), jint(start), jint(end), jboolean(pass));
+         setRect();
+      }
+   #endif
+// FIXME
+   }else
+   {
+   #if ANDROID
+      if(Jni && ActivityClass && Activity)
+      {
+        _visible=false;
+         if(JMethodID editTextHide=Jni.func(ActivityClass, "editTextHide", "()V"))
+            Jni->CallVoidMethod(Activity, editTextHide);
+      }
+   #endif
+// FIXME
+   }
+#if IOS
+   if(EAGLView *view=GetUIView())[view keyboardVisible:visible];
+#endif
+#endif
+}
 /******************************************************************************/
 // KEYBOARD SHORTCUT
 /******************************************************************************/

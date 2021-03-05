@@ -56,7 +56,6 @@ struct KeyboardClass // Keyboard Input
    Bool bd(KB_KEY k)C {return ButtonDb(_button[k]);} // if key 'k' double clicked
 #if EE_PRIVATE
    void _assert() {ASSERT(1<<(8*SIZE(KB_KEY))==ELMS(_button));} // because we use 'KB_KEY' as index to '_button' in methods above
-   Bool visibleWanted()C;
 #endif
 
    Bool ctrl ()C {return _ctrl ;} // if any Ctrl  is on (this is equal to "b(KB_LCTRL ) || b(KB_RCTRL )")
@@ -73,8 +72,8 @@ struct KeyboardClass // Keyboard Input
    Char   keyChar(KB_KEY key)C; // get key character, example: keyChar(KB_SPACE) -> ' '
   CChar8* keyName(KB_KEY key)C; // get key name     , example: keyName(KB_SPACE) -> "Space"
 
-   Bool hwAvailable (          ); // if hardware keyboard is available
-   Bool softCoverage(Rect &rect); // get soft keyboard (on-screen) coverage, false if no screen keyboard is currently displayed
+   Bool hwAvailable(          ); // if hardware keyboard is available
+   Bool rect       (Rect &rect); // get on-screen keyboard rectangle, false if no on-screen keyboard is currently displayed
 
    KB_KEY qwerty(KB_KEY qwerty)C; // convert key from QWERTY layout to layout of current keyboard
 
@@ -96,8 +95,9 @@ struct KeyboardClass // Keyboard Input
    Bool exclusive()C {return _exclusive;}   void exclusive(Bool on); // get/set keyboard exclusive mode (which disables Windows key on Windows platform), default=false
 
 #if EE_PRIVATE
-   void refreshTextInput();
-   void     setTextInput(C Str &text, Int start, Int end, Bool password);
+   void setVisible();
+   void setRect   ();
+   void setTextInput(C Str &text, Int start, Int end, Bool password);
 #endif
 
    // IMM (Windows Input Method Manager) control
@@ -137,7 +137,7 @@ struct KeyboardClass // Keyboard Input
 #if !EE_PRIVATE
 private:
 #endif
-   Bool        _ctrl, _shift, _alt, _win, _hidden, _swapped_ctrl_cmd, _visible, _refresh_visible, _imm, _imm_candidate_hidden, _exclusive;
+   Bool        _ctrl, _shift, _alt, _win, _cur_hidden, _swapped_ctrl_cmd, _visible, _imm, _imm_candidate_hidden, _exclusive;
    Byte        _button[256], _key_buffer_pos, _key_buffer_len;
    Char8       _key_char[256];
    KeyboardKey _key_buffer[256];

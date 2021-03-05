@@ -140,7 +140,6 @@ EAGLView* GetUIView()
          nil];
 
       initialized=false;
-      keyboard_visible=false;
       display_link=nil;
       InitKeyMap();
 
@@ -154,10 +153,10 @@ EAGLView* GetUIView()
    return self;
 }
 /******************************************************************************/
--(void)keyboardWasShown:(NSNotification*)aNotification
+-(void)keyboardWasShown:(NSNotification*)notification
 {
    Kb._visible=true;
-   NSDictionary *info=[aNotification userInfo];
+   NSDictionary *info=[notification userInfo];
    CGRect rect=[[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
    RectI  recti(Round(rect.origin.x*ScreenScale), Round(rect.origin.y*ScreenScale), Round((rect.origin.x+rect.size.width)*ScreenScale), Round((rect.origin.y+rect.size.height)*ScreenScale));
    switch(App.orientation())
@@ -168,7 +167,11 @@ EAGLView* GetUIView()
       case DIR_LEFT : Kb._recti.set(recti.min.y, D.resH()-recti.max.x, recti.max.y, D.resH()-recti.min.x); break;
    }
 }
--(void)keyboardWillBeHidden:(NSNotification*)aNotification {Kb._visible=false;}
+-(void)keyboardWillBeHidden:(NSNotification*)notification {Kb._visible=false;}
+-(void)keyboardVisible:(Bool)visible
+{
+   if(visible)[self becomeFirstResponder];else [self resignFirstResponder];
+}
 /******************************************************************************/
 -(void)layoutSubviews // this is called when the layer is initialized, resized or a sub view is added (like ads)
 {
@@ -193,12 +196,7 @@ EAGLView* GetUIView()
       App.del(); // manually call shut down
       ExitNow(); // force exit as iOS does not offer a clean way to do it
    }
-   if(App.active())
-   {
-      Bool kb_visible =Kb.visibleWanted();
-      if(  kb_visible!=keyboard_visible || Kb._refresh_visible){if(keyboard_visible=kb_visible)[self becomeFirstResponder];else [self resignFirstResponder]; Kb._refresh_visible=false;}
-      App.update();
-   }
+   if(App.active())App.update();
 }
 /******************************************************************************/
 -(void)setUpdate

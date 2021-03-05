@@ -1034,7 +1034,7 @@ void Source::draw(C GuiPC &gpc)
       D.clip(_crect);
 
       // draw cursor
-      if(hasKbFocus() && App.active() && !Kb._hidden)
+      if(hasKbFocus() && App.active() && !Kb._cur_hidden)
       {
          Vec2 pos=offset+posVisual(cur); pos+=D.pixelToScreenSize(VecI2(1, 0));
          if(Overwrite && sel.x<0)DrawKeyboardCursorOverwrite(pos, CE.ts.lineHeight(), CE.ts, '\0'); // don't draw overwrite if we have selection

@@ -136,7 +136,7 @@ Color GUI::    borderColor()C {if(GuiSkin *skin=Gui.skin())return skin->    bord
 /******************************************************************************/
 TextLine* GUI::overlayTextLine(Vec2 &offset)
 {
-   Rect kb_rect; if(Kb.softCoverage(kb_rect) && kb()->is(GO_TEXTLINE))
+   Rect kb_rect; if(Kb.rect(kb_rect) && kb()->is(GO_TEXTLINE))
    {
       TextLine &tl=kb()->asTextLine();
       Rect_LU   tl_rect(tl.screenPos(), tl.size());

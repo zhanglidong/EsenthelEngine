@@ -568,8 +568,8 @@ static void SetActive()
 
          LOG2("ResumeSound");
          ResumeSound();
-         LOG2("Kb.refreshTextInput");
-         Kb.refreshTextInput();
+         LOG2("Kb.setVisible");
+         Kb.setVisible();
       }
       LOG(S+"App.setActive("+active+")");
       App.setActive(active);
@@ -621,7 +621,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
       case APP_CMD_CONFIG_CHANGED:
       {
          LOG("APP_CMD_CONFIG_CHANGED");
-         Kb.refreshTextInput();
+         Kb.setVisible();
        /*EGLint w=-1, h=-1;
          eglQuerySurface(display, surface, EGL_WIDTH , &w);
          eglQuerySurface(display, surface, EGL_HEIGHT, &h);

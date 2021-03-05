@@ -685,7 +685,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
 
       // cursor
       if(cur==pos){Char c=ti.c(); if(!c || c=='\n' || (SKIP_SPACE && c==' ' && spacing!=SPACING_CONST /*&& auto_line!=AUTO_LINE_NONE*/)){cur_x=p.x; cur_chr=0;}} // allow drawing cursor at the end only if it's followed by new line or null (this prevents drawing cursors 2 times for split lines - at the end of 1st line and at the beginning of 2nd line)
-      if(cur_chr>=0 && !Kb._hidden)
+      if(cur_chr>=0 && !Kb._cur_hidden)
       {
          if(spacing==SPACING_CONST)cur_x-=space*0.5f; // revert what we've applied
          if(!edit->overwrite)DrawKeyboardCursor         (Vec2(cur_x, p.y), total_height);

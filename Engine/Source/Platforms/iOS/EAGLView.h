@@ -1,12 +1,13 @@
 /******************************************************************************/
 @interface EAGLView : UIView<UIKeyInput>
 {    
-   BOOL           initialized, keyboard_visible;
+   Bool           initialized;
    CADisplayLink *display_link;
 }
 
 -(void)update:(id)sender;
 -(void)setUpdate;
+-(void)keyboardVisible:(Bool)visible;
 
 @end
 /******************************************************************************/
