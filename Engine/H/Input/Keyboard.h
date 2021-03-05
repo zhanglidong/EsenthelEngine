@@ -95,7 +95,6 @@ struct KeyboardClass // Keyboard Input
 
    Bool exclusive()C {return _exclusive;}   void exclusive(Bool on); // get/set keyboard exclusive mode (which disables Windows key on Windows platform), default=false
 
-   void requestTextInput(); // call this each frame if you wish to manually process the keyboard input in text format, this enables IMM on Windows and displays screen keyboard on Mobile platforms, this is automatically enabled if Gui keyboard focus is on 'TextLine' or 'TextBox' object
 #if EE_PRIVATE
    void refreshTextInput();
    void     setTextInput(C Str &text, Int start, Int end, Bool password);
@@ -138,7 +137,7 @@ struct KeyboardClass // Keyboard Input
 #if !EE_PRIVATE
 private:
 #endif
-   Bool        _ctrl, _shift, _alt, _win, _hidden, _swapped_ctrl_cmd, _text_input, _visible, _refresh_visible, _imm, _imm_candidate_hidden, _exclusive;
+   Bool        _ctrl, _shift, _alt, _win, _hidden, _swapped_ctrl_cmd, _visible, _refresh_visible, _imm, _imm_candidate_hidden, _exclusive;
    Byte        _button[256], _key_buffer_pos, _key_buffer_len;
    Char8       _key_char[256];
    KeyboardKey _key_buffer[256];

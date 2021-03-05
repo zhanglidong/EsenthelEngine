@@ -333,9 +333,8 @@ GuiObj& GuiObj::kbClear()
    {
       Gui._kb=(_parent ? _parent : null);
       for(; Gui.kb() && !Gui.kb()->kbCatch(); )Gui._kb=Gui.kb()->parent();
+      AdjustGuiKb();
    }
-
-   AdjustGuiKb();
    return T;
 }
 /******************************************************************************/

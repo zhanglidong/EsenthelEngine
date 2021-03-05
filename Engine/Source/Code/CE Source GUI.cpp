@@ -197,8 +197,6 @@ void Source::update(C GuiPC &gpc)
 
    if(hasKbFocus())
    {
-      Kb.requestTextInput();
-
       if(Kb.ctrlCmd() && !Kb.alt() && Kb.b(KB_UP  ))slidebar[1].button[1].push(); // scroll up
       if(Kb.ctrlCmd() && !Kb.alt() && Kb.b(KB_DOWN))slidebar[1].button[2].push(); // scroll down
 

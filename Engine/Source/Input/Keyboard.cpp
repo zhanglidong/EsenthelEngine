@@ -181,7 +181,7 @@ inline static void Set(KB_KEY key, Char c, Char qwerty_shift, CChar8 *name)
 KeyboardClass::KeyboardClass()
 {
 #if 0 // there's only one 'KeyboardClass' global 'Kb' and it doesn't need clearing members to zero
-  _exclusive=_text_input=_refresh_visible=_visible=false;
+  _exclusive=_refresh_visible=_visible=false;
 #endif
   _last_key_scan_code=-1;
   _imm=true;
@@ -1064,7 +1064,6 @@ void KeyboardClass::setLayout()
 #endif
 }
 void KeyboardClass::swappedCtrlCmd  (Bool swapped) {T._swapped_ctrl_cmd=swapped;}
-void KeyboardClass::requestTextInput(            ) {T._text_input      =true   ;}
 void KeyboardClass::refreshTextInput(            ) {T._refresh_visible =true   ;}
 void KeyboardClass::    setTextInput(C Str &text, Int start, Int end, Bool password)
 {
@@ -1312,7 +1311,6 @@ void KeyboardClass::update()
 
    // misc
    setModifiers();
-  _text_input=false;
 #if ANDROID
    KeySource=KEY_ANY; // re-allow input from all modes
 #endif
@@ -1482,7 +1480,7 @@ Bool KeyboardClass::softCoverage(Rect &rect)
    return false;
 }
 KB_KEY KeyboardClass::qwerty(KB_KEY qwerty)C {ASSERT(1<<(8*SIZE(qwerty))==ELMS(_qwerty)); return _qwerty[qwerty];}
-Bool   KeyboardClass::visibleWanted()C {return Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX) || _text_input;}
+Bool   KeyboardClass::visibleWanted()C {return Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX);}
 /******************************************************************************/
 // KEYBOARD SHORTCUT
 /******************************************************************************/
