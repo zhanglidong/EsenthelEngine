@@ -197,6 +197,9 @@ struct MkvReader : mkvparser::IMkvReader
       return 0;
    }
 };
+#if SWITCH
+   #include "../../../NintendoSwitch/VP.cpp"
+#else
 struct VP : VideoCodec
 {
    Bool             valid;
@@ -271,6 +274,7 @@ struct VP : VideoCodec
   ~VP() {del ();}
 };
 #endif
+#endif
 /******************************************************************************/
 void Video::zero()
 {
@@ -344,37 +348,50 @@ Bool Video::create(C UID &id, Bool loop, MODE mode) {return create(id.valid() ? 
 /******************************************************************************/
 CChar8* Video::codecName()C {return CodecName(codec());}
 /******************************************************************************/
+Bool Video::createTex()
+{
+   if(_mode==IMAGE) // if want to create a texture
+   {
+      if(_tex.size()!=_lum.size())
+         if(!_tex.create(_lum.size(), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))return false;
+
+      SyncLocker locker(D._lock); // needed for drawing in case this is called outside of Draw
+      ImageRT *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
+      Renderer.set(&_tex, null, false);
+      ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
+      draw(D.rect()); // use specified rectangle without fitting via 'drawFs' or 'drawFit'
+      D.alpha(alpha);
+      Renderer.set(rt[0], rt[1], rt[2], rt[3], rtz, true);
+   }
+   return true;
+}
 Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_data, CPtr v_data, Int lum_pitch, Int u_pitch, Int v_pitch)
 {
    if(_mode==ALPHA)
    {
-      if(_lum.w()!=w || _lum.h()!=h)if(!_lum.create2DTry(w, h, IMAGE_R8, 1, false))return false;
-     _lum.setFrom(lum_data, lum_pitch);
+      if(!_lum.create2DTry(w, h, IMAGE_R8, 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      return true;
    }else
    {
-      if(_lum.w()!=w  || _lum.h()!=h )if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false;
-      if(_u  .w()!=w2 || _u  .h()!=h2)if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
-      if(_v  .w()!=w2 || _v  .h()!=h2)if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
-
-     _lum.setFrom(lum_data, lum_pitch);
-     _u  .setFrom(  u_data,   u_pitch);
-     _v  .setFrom(  v_data,   v_pitch);
-
-      if(_mode==IMAGE) // if want to create a texture
-      {
-         if(_tex.w()!=w || _tex.h()!=h)
-            if(!_tex.create(VecI2(w, h), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))return false;
-
-         SyncLocker locker(D._lock); // needed for drawing in case this is called outside of Draw
-         ImageRT *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
-         Renderer.set(&_tex, null, false);
-         ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-         draw(D.rect()); // use specified rectangle without fitting via 'drawFs' or 'drawFit'
-         D.alpha(alpha);
-         Renderer.set(rt[0], rt[1], rt[2], rt[3], rtz, true);
-      }
+      if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false; _u  .setFrom(  u_data,   u_pitch);
+      if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false; _v  .setFrom(  v_data,   v_pitch);
+      return   createTex();
    }
-   return true;
+}
+Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr uv_data, Int lum_pitch, Int uv_pitch)
+{
+   if(_mode==ALPHA)
+   {
+      if(!_lum.create2DTry(w, h, IMAGE_R8, 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      return true;
+   }else
+   {
+      if(!_lum.create2DTry(w , h , IMAGE_R8  , 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      if(!_u  .create2DTry(w2, h2, IMAGE_R8G8, 1, false))return false; _u  .setFrom( uv_data,  uv_pitch);
+          _v  .del();
+      return   createTex();
+   }
 }
 void Video::frameToImage()
 {
@@ -422,12 +439,16 @@ void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
 {
    if(_lum.is() && Renderer._cur[0])
    {
-      Sh .ImgX[0]->set(_lum);
-      Sh .ImgX[1]->set(_u  );
-      Sh .ImgX[2]->set(_v  );
-      Sh .ImgX[3]->set(alpha._lum);
+      Sh .ImgX [0]->set(_lum);
+   #if SWITCH
+      Sh .ImgXY[0]->set(_u  );
+   #else
+      Sh .ImgX [1]->set(_u  );
+      Sh .ImgX [2]->set(_v  );
+   #endif
+      Sh .ImgX [3]->set(alpha._lum);
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
-      Shader* &shader=Sh.YUV[gamma][true]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+1));
+      Shader* &shader=Sh.YUV[gamma][true]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+1+SWITCH));
       VI .shader(shader);
      _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
       VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing
@@ -442,10 +463,14 @@ void Video::draw   (C Rect &rect)C
    if(_lum.is() && Renderer._cur[0])
    {
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
-      Sh .ImgX[0]->set(_lum);
-      Sh .ImgX[1]->set(_u  );
-      Sh .ImgX[2]->set(_v  );
-      Shader* &shader=Sh.YUV[gamma][false]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+0));
+      Sh .ImgX [0]->set(_lum);
+   #if SWITCH
+      Sh .ImgXY[0]->set(_u  );
+   #else
+      Sh .ImgX [1]->set(_u  );
+      Sh .ImgX [2]->set(_v  );
+   #endif
+      Shader* &shader=Sh.YUV[gamma][false]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+0+SWITCH));
       VI .shader(shader);
      _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
       VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing

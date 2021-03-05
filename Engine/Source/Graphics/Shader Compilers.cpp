@@ -377,9 +377,10 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
-      REPD(gamma, 2)
-      REPD(alpha, 2)
-         src.New("YUV", "Draw2DTex_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha);
+      REPD(gamma    , 2)
+      REPD(alpha    , 2)
+      REPD(uv_merged, 2)
+         src.New("YUV", "Draw2DTex_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha, "UV_MERGED", uv_merged);
    }
 }
 #endif

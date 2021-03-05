@@ -74,8 +74,10 @@ struct Video // Video Decoder
    void zero        ();
    void release     ();
    Bool frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_data, CPtr v_data, Int lum_pitch, Int u_pitch, Int v_pitch);
+   Bool frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr uv_data, Int lum_pitch, Int uv_pitch);
    void frameToImage();
    Bool nextFrame   ();
+   Bool createTex   ();
 #endif
 
   ~Video() {del();}
