@@ -365,7 +365,7 @@ Bool Video::createTex()
    }
    return true;
 }
-Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_data, CPtr v_data, Int lum_pitch, Int u_pitch, Int v_pitch)
+Bool Video::frameToImage(Int w, Int h, Int w_uv, Int h_uv, CPtr lum_data, CPtr u_data, CPtr v_data, Int lum_pitch, Int u_pitch, Int v_pitch)
 {
    if(_mode==ALPHA)
    {
@@ -373,13 +373,13 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_dat
       return true;
    }else
    {
-      if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
-      if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false; _u  .setFrom(  u_data,   u_pitch);
-      if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false; _v  .setFrom(  v_data,   v_pitch);
+      if(!_lum.create2DTry(w   , h   , IMAGE_R8, 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      if(!_u  .create2DTry(w_uv, h_uv, IMAGE_R8, 1, false))return false; _u  .setFrom(  u_data,   u_pitch);
+      if(!_v  .create2DTry(w_uv, h_uv, IMAGE_R8, 1, false))return false; _v  .setFrom(  v_data,   v_pitch);
       return   createTex();
    }
 }
-Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr uv_data, Int lum_pitch, Int uv_pitch)
+Bool Video::frameToImage(Int w, Int h, Int w_uv, Int h_uv, CPtr lum_data, CPtr uv_data, Int lum_pitch, Int uv_pitch)
 {
    if(_mode==ALPHA)
    {
@@ -387,8 +387,8 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr uv_da
       return true;
    }else
    {
-      if(!_lum.create2DTry(w , h , IMAGE_R8  , 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
-      if(!_u  .create2DTry(w2, h2, IMAGE_R8G8, 1, false))return false; _u  .setFrom( uv_data,  uv_pitch);
+      if(!_lum.create2DTry(w   , h   , IMAGE_R8  , 1, false))return false; _lum.setFrom(lum_data, lum_pitch);
+      if(!_u  .create2DTry(w_uv, h_uv, IMAGE_R8G8, 1, false))return false; _u  .setFrom( uv_data,  uv_pitch);
           _v  .del();
       return   createTex();
    }
@@ -433,6 +433,7 @@ Bool Video::update(Flt time)
    return false;
 }
 /******************************************************************************/
+#define UV_MERGED SWITCH
 void Video::drawAlphaFs (C Video &alpha, FIT_MODE fit)C {return drawAlpha(alpha, T.fit(D.rect(), fit));}
 void Video::drawAlphaFit(C Video &alpha, C Rect &rect)C {return drawAlpha(alpha, T.fit(  rect       ));}
 void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
@@ -440,7 +441,7 @@ void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
    if(_lum.is() && Renderer._cur[0])
    {
       Sh .ImgX [0]->set(_lum);
-   #if SWITCH
+   #if UV_MERGED
       Sh .ImgXY[0]->set(_u  );
    #else
       Sh .ImgX [1]->set(_u  );
@@ -448,7 +449,7 @@ void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
    #endif
       Sh .ImgX [3]->set(alpha._lum);
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
-      Shader* &shader=Sh.YUV[gamma][true]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+1+SWITCH));
+      Shader* &shader=Sh.YUV[gamma][true]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+1+UV_MERGED));
       VI .shader(shader);
      _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
       VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing
@@ -464,13 +465,13 @@ void Video::draw   (C Rect &rect)C
    {
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
       Sh .ImgX [0]->set(_lum);
-   #if SWITCH
+   #if UV_MERGED
       Sh .ImgXY[0]->set(_u  );
    #else
       Sh .ImgX [1]->set(_u  );
       Sh .ImgX [2]->set(_v  );
    #endif
-      Shader* &shader=Sh.YUV[gamma][false]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+0+SWITCH));
+      Shader* &shader=Sh.YUV[gamma][false]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+0+UV_MERGED));
       VI .shader(shader);
      _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
       VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing
