@@ -203,22 +203,22 @@ struct MkvReader : mkvparser::IMkvReader
 struct VP : VideoCodec
 {
    Bool             valid;
-   uint8_t         *buf;
-   size_t           buffer_size;
+   uint8_t         *webm_buffer;
+   size_t           webm_buffer_size;
    VpxInputContext  input;
    WebmInputContext webm;
    vpx_codec_ctx_t  decoder;
 
    void zero()
    {
-      valid=false; buf=null; buffer_size=0;
+      valid=false; webm_buffer=null; webm_buffer_size=0;
       Zero(input); Zero(webm); Zero(decoder);
    }
    void del()
    {
       vpx_codec_destroy(&decoder);
       webm_free(&webm);
-      DeleteN(buf);
+      DeleteN(webm_buffer);
       zero();
    }
    virtual Bool create(Video &video)
@@ -246,9 +246,9 @@ struct VP : VideoCodec
    {
       if(valid)
       {
-         Int result=webm_read_frame(&webm, &buf, &buffer_size); // 0=ok, 1=end, -1=error
+         Int result=webm_read_frame(&webm, &webm_buffer, &webm_buffer_size); // 0=ok, 1=end, -1=error
          if( result==1)return END;
-         if(!result && !vpx_codec_decode(&decoder, buf, (unsigned int)buffer_size, null, 0))
+         if(!result && !vpx_codec_decode(&decoder, webm_buffer, (unsigned int)webm_buffer_size, null, 0))
          {
             time=webm.timestamp_ns/1000000000.0;
             return OK;
@@ -317,7 +317,7 @@ Bool Video::create(C Str &name, Bool loop, MODE mode)
         _h    =vp.input.height;
         _br   =0;
         _fps  =Flt(vp.input.framerate.numerator)/vp.input.framerate.denominator;
-        _d    =new VP; Swap(*(VP*)_d, vp);
+         VP *dest=new VP; Swap(*dest, vp); _d=dest;
       }else
    #endif
       {
@@ -331,7 +331,7 @@ Bool Video::create(C Str &name, Bool loop, MODE mode)
            _h    =theora.ti.frame_height;
            _br   =((theora.ti.target_bitrate>0) ? theora.ti.target_bitrate : (theora.ti.keyframe_data_target_bitrate>0) ? theora.ti.keyframe_data_target_bitrate : 0);
            _fps  =Flt(theora.ti.fps_numerator)/theora.ti.fps_denominator;
-           _d    =new Theora; Swap(*(Theora*)_d, theora);
+            Theora *dest=new Theora; Swap(*dest, theora); _d=dest;
          }
       #endif
       }
