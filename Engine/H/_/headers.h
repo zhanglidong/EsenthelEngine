@@ -453,6 +453,7 @@
       #include <nn/os.h>
       #include <nn/oe.h>
       #include <nn/hid.h>
+      #include <nn/swkbd/swkbd_InlineKeyboardApi.h>
       #include <nn/vi.h>
       #include <nn/err.h>
       #include <nn/crypto.h>

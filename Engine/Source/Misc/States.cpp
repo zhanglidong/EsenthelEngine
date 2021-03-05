@@ -136,6 +136,9 @@ Bool DrawState()
             Renderer.cleanup1();
          } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
          D  .fadeDraw();
+      #if SWITCH
+         NS::DrawInput();
+      #endif
          Gui.dragDraw();
          Ms .    draw();
          VR .    draw();
