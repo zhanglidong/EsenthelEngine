@@ -92,7 +92,7 @@ TextBox& TextBox::create(C TextBox &src)
 void TextBox::setTextInput()C
 {
 #if ANDROID || SWITCH
-   if(Gui.kb()==this)Kb.setTextInput(T(), (_edit.sel<0) ? cursor() : _edit.sel, cursor(), false);
+   if(Gui.kb()==this)Kb.resetTextInput();
 #endif
 }
 TextBox& TextBox::slidebarSize(Flt size)

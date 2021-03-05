@@ -95,9 +95,9 @@ struct KeyboardClass // Keyboard Input
    Bool exclusive()C {return _exclusive;}   void exclusive(Bool on); // get/set keyboard exclusive mode (which disables Windows key on Windows platform), default=false
 
 #if EE_PRIVATE
-   void setVisible();
-   void setRect   ();
-   void setTextInput(C Str &text, Int start, Int end, Bool password);
+   void setRect       ();
+   void setVisible    ();
+   void resetTextInput();
 #endif
 
    // IMM (Windows Input Method Manager) control
@@ -209,6 +209,16 @@ struct KbSc // Keyboard Shortcut
    KbSc(Char   c  , Byte flag=0) {T.index=c           ; T.flag=flag; T.mode=KBSC_CHAR;}
    KbSc(KB_KEY key, Byte flag=0) {T.index=key         ; T.flag=flag; T.mode=KBSC_KEY ;}
 };
+#if EE_PRIVATE
+struct ScreenKeyboard
+{
+ C Str *text;
+   Int  start, end, max_length;
+   Bool pass, multi_line;
+
+   void set();
+};
+#endif
 /******************************************************************************/
 #if EE_PRIVATE
 #if WINDOWS_OLD

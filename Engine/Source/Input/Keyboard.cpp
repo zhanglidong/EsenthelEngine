@@ -957,17 +957,6 @@ void KeyboardClass::setLayout()
 #endif
 }
 void KeyboardClass::swappedCtrlCmd(Bool swapped) {T._swapped_ctrl_cmd=swapped;}
-void KeyboardClass::setTextInput  (C Str &text, Int start, Int end, Bool password)
-{
-#if ANDROID
-   if(Jni && ActivityClass && Activity)
-   if(JMethodID editTextSet=Jni.func(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
-   if(JString t=JString(Jni, text))
-      Jni->CallVoidMethod(Activity, editTextSet, t(), jint(start), jint(end), jboolean(password));
-#elif SWITCH
-   // FIXME
-#endif
-}
 /******************************************************************************/
 #if WINDOWS_OLD
 Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}
@@ -1140,7 +1129,7 @@ void KeyboardClass::update()
    setRect();
    if(InputTextIs)
    {
-      InputText temp; Bool pass=false; Int enters=0; // enter workaround
+      Int enters=0; // enter workaround
       {
          SyncLocker locker(InputTextLock);
          if(Gui.kb())switch(Gui.kb()->type())
@@ -1174,16 +1163,14 @@ void KeyboardClass::update()
                   tl._edit.sel  =((InputTextData.cur.x==InputTextData.cur.y) ? -1 : InputTextData.cur.x);
                }
               _key_buffer_len=0; // this is a workaround for a bug in Google/Samsung Keyboard (but not SwiftKey) when Backspace key is triggered even though it shouldn't, when tapping Back key on the soft keyboard (when last character is space, or sometimes when just typed something), in that case 2 Back's are processed (one from EditText Java_com_esenthel_Native_text and one AINPUT_EVENT_TYPE_KEY), this code removes all queued keys to remove KB_BACK
-               pass=tl.password();
             }break;
          }
-         if(enters)Swap(temp, InputTextData);
          InputTextIs=false;
       }
       if(enters) // call after we got out of sync lock in case this method would trigger 'Java_com_esenthel_Native_text' and introduce some sort of deadlock
       {
          const Int scan_code=0; REP(enters){push(KB_ENTER, scan_code); queue('\n', scan_code); release(KB_ENTER);} _last_key_scan_code=-1; // manually push and release enter keys, use any scan_code>=0 to force linking characters with keys
-         setTextInput(temp.text, temp.cur.x, temp.cur.y, pass);
+         resetTextInput();
       }
    }
 #endif
@@ -1405,6 +1392,36 @@ void KeyboardClass::setRect()
    }
 #endif
 }
+void ScreenKeyboard::set()
+{
+   text=null;
+   start=end=0;
+   max_length=-1;
+   pass=multi_line=false;
+
+   if(Gui.kb())switch(Gui.kb()->type())
+   {
+      case GO_TEXTBOX:
+      {
+         TextBox &tb=Gui.kb()->asTextBox();
+         text =&tb();
+         end  = tb.cursor();
+         start=((tb._edit.sel<0) ? tb.cursor() : tb._edit.sel);
+         multi_line=true;
+         max_length=tb.maxLength();
+      }break;
+
+      case GO_TEXTLINE:
+      {
+         TextLine &tl=Gui.kb()->asTextLine();
+         text =&tl();
+         pass = tl.password();
+         end  = tl.cursor  ();
+         start=((tl._edit.sel<0) ? tl.cursor() : tl._edit.sel);
+         max_length=tl.maxLength();
+      }break;
+   }
+}
 void KeyboardClass::setVisible()
 {
    Bool visible=(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX));
@@ -1414,56 +1431,44 @@ void KeyboardClass::setVisible()
    visible&=!hwAvailable(); // show only if hardware unavailable
 
 #if ANDROID || IOS || SWITCH
-   if(visible)
+   ScreenKeyboard sk; if(visible)sk.set();
+#if ANDROID
+   if(Jni && ActivityClass && Activity)
    {
-    C Str *text=&S;
-      Int  start=0, end=0;
-      Bool pass=false;
-      if(Gui.kb())switch(Gui.kb()->type())
+      if(_visible=visible)
       {
-         case GO_TEXTBOX:
-         {
-            TextBox &tb=Gui.kb()->asTextBox();
-            text =&tb();
-            end  = tb.cursor();
-            start=((tb._edit.sel<0) ? tb.cursor() : tb._edit.sel);
-         }break;
-
-         case GO_TEXTLINE:
-         {
-            TextLine &tl=Gui.kb()->asTextLine();
-            text =&tl();
-            pass = tl.password();
-            end  = tl.cursor  ();
-            start=((tl._edit.sel<0) ? tl.cursor() : tl._edit.sel);
-         }break;
-      }
-   #if ANDROID
-      if(Jni && ActivityClass && Activity)
-      {
-        _visible=true;
          if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
-         if(JString t=JString(Jni, *text))
-            Jni->CallVoidMethod(Activity, editText, t(), jint(start), jint(end), jboolean(pass));
+         if(JString t=JString(Jni, sk.text ? *sk.text : S))
+            Jni->CallVoidMethod(Activity, editText, t(), jint(sk.start), jint(sk.end), jboolean(sk.pass));
          setRect();
-      }
-   #endif
-// FIXME
-   }else
-   {
-   #if ANDROID
-      if(Jni && ActivityClass && Activity)
+      }else
       {
-        _visible=false;
          if(JMethodID editTextHide=Jni.func(ActivityClass, "editTextHide", "()V"))
             Jni->CallVoidMethod(Activity, editTextHide);
       }
-   #endif
-// FIXME
    }
-#if IOS
+#elif IOS
    if(EAGLView *view=GetUIView())[view keyboardVisible:visible];
+#elif SWITCH
+   NS::KeyboardVisible(visible ? &sk : null);
 #endif
+#endif
+}
+void KeyboardClass::resetTextInput()
+{
+#if ANDROID || SWITCH
+   if(_visible)
+   {
+      ScreenKeyboard sk; sk.set();
+   #if ANDROID
+      if(Jni && ActivityClass && Activity)
+      if(JMethodID editTextSet=Jni.func(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
+      if(JString t=JString(Jni, sk.text ? *sk.text : S))
+         Jni->CallVoidMethod(Activity, editTextSet, t(), jint(sk.start), jint(sk.end), jboolean(sk.pass));
+   #elif SWITCH
+      NS::KeyboardSet(sk);
+   #endif
+   }
 #endif
 }
 /******************************************************************************/

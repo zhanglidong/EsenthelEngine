@@ -190,9 +190,6 @@ namespace EE // Esenthel Engine namespace
    #include "Misc/Callback.h"
    #include "Misc/DLL.h"
    #include "Misc/Printer.h"
-   #if SWITCH
-      #include "../../NintendoSwitch/Switch.h"
-   #endif
    /******************************************************************************/
    // MATH
    /******************************************************************************/
@@ -407,6 +404,9 @@ namespace EE // Esenthel Engine namespace
    #include "_/inline.h"
    #if EE_PRIVATE
       #include "../Source/Shaders/!Header CPU.h"
+      #if SWITCH
+         #include "../../NintendoSwitch/Switch.h"
+      #endif
    #endif
    /******************************************************************************/
    #pragma pack(pop)
