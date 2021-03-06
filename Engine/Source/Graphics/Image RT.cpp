@@ -365,8 +365,8 @@ Bool ImageRT::map()
          }
       }
    }
-#elif ANDROID || WEB
-   // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
+#elif ANDROID || SWITCH || WEB
+   // 'Renderer._main' has 'setInfo' called externally in the main loop
    return true;
 #elif GL
    forceInfo(D.resW(), D.resH(), 1, type() ? type() : LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples()); return true;
