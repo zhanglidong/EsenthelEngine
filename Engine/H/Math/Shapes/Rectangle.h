@@ -325,6 +325,8 @@ struct RectI // Rectangle Shape (integer)
    friend RectI operator / (C RectI &rect,   Int    i) {return RectI(rect) /=i;}
    friend Rect  operator * (C RectI &rect,   Flt    f) {return Rect (rect) *=f;}
    friend Rect  operator / (C RectI &rect,   Flt    f) {return Rect (rect) /=f;}
+   friend Rect  operator * (C RectI &rect, C Vec2  &v) {return Rect (rect) *=v;}
+   friend Rect  operator / (C RectI &rect, C Vec2  &v) {return Rect (rect) /=v;}
    friend RectI operator>> (C RectI &rect,   Int    i) {return RectI(rect)>>=i;}
    friend RectI operator<< (C RectI &rect,   Int    i) {return RectI(rect)<<=i;}
    friend RectI operator | (C RectI &rect, C VecI2 &v) {return RectI(rect) |=v;} // union
