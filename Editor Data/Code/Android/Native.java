@@ -8,6 +8,7 @@ public class Native
 {
    public static native void   key            (int chr, int key_code);
    public static native void   text           (String text, int start, int end);
+   public static native void   screenKeyboard (int left, int top, int right, int bottom);
    public static native void   connected      (boolean inapp_supported, boolean subs_supported);
    public static native String getStr         (long user  , int index);
    public static native void   listItem       (long user  , String sku, String name, String desc , String price, boolean sub);

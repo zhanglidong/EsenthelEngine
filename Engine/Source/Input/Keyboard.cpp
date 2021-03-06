@@ -1126,7 +1126,6 @@ void KeyboardClass::update()
 #endif
 
 #if ANDROID
-   setRect();
    if(InputTextIs)
    {
       Int enters=0; // enter workaround
@@ -1355,43 +1354,6 @@ Bool KeyboardClass::rect(Rect &rect)
    }
    return false;
 }
-void KeyboardClass::setRect()
-{
-#if ANDROID
-   if(_visible)
-   {
-     _recti.set(0, D.resH()/2, D.resW(), D.resH()); // initially set as lower half of the screen
-
-      if(Jni && ActivityClass)
-      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
-      if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
-      if(JClass WindowClass="android/view/Window")
-      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
-      if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
-      if(JClass ViewClass="android/view/View")
-      if(JMethodID getWindowVisibleDisplayFrame=Jni.func(ViewClass, "getWindowVisibleDisplayFrame", "(Landroid/graphics/Rect;)V"))
-      if(JClass RectClass="android/graphics/Rect")
-      if(JMethodID RectCtor=Jni.func(RectClass, "<init>", "()V"))
-      if(JFieldID left=Jni->GetFieldID(RectClass, "left", "I"))
-      if(JFieldID right=Jni->GetFieldID(RectClass, "right", "I"))
-      if(JFieldID top=Jni->GetFieldID(RectClass, "top", "I"))
-      if(JFieldID bottom=Jni->GetFieldID(RectClass, "bottom", "I"))
-      if(JObject r=Jni->NewObject(RectClass, RectCtor))
-      {
-         Jni->CallVoidMethod(decor_view, getWindowVisibleDisplayFrame, r());
-         RectI app_recti(Jni->GetIntField(r, left), Jni->GetIntField(r, top), Jni->GetIntField(r, right), Jni->GetIntField(r, bottom)); // this is the app rect (for example 0,0,1280,800), but we want the keyboard rect
-         Int   l_size=Max(0,          app_recti.min.x-0),
-               r_size=Max(0, D.resW()-app_recti.max.x  ),
-               t_size=Max(0,          app_recti.min.y-0),
-               b_size=Max(0, D.resH()-app_recti.max.y  ), max_size=Max(l_size, r_size, t_size, b_size);
-         if(b_size>=max_size)_recti.set(              0, D.resH()-b_size, D.resW(), D.resH());else // bottom size is the biggest
-         if(t_size>=max_size)_recti.set(              0,               0, D.resW(), t_size  );else // top    size is the biggest
-         if(l_size>=max_size)_recti.set(              0,               0, l_size  , D.resH());else // left   size is the biggest
-                             _recti.set(D.resW()-r_size,               0, D.resW(), D.resH());     // right  size is the biggest
-      }
-   }
-#endif
-}
 void ScreenKeyboard::set()
 {
    text=null;
@@ -1440,7 +1402,6 @@ void KeyboardClass::setVisible()
          if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
          if(JString t=JString(Jni, sk.text ? *sk.text : S))
             Jni->CallVoidMethod(Activity, editText, t(), jint(sk.start), jint(sk.end), jboolean(sk.pass));
-         setRect();
       }else
       {
          if(JMethodID editTextHide=Jni.func(ActivityClass, "editTextHide", "()V"))
@@ -1552,6 +1513,18 @@ JNIEXPORT void JNICALL Java_com_esenthel_Native_key(JNIEnv *env, jclass clazz, j
       case KEY_ANY : KeySource=KEY_JAVA; // !! no break on purpose !!
       case KEY_JAVA: Kb.queue(Char(chr), key_code); break;
    }
+}
+JNIEXPORT void JNICALL Java_com_esenthel_Native_screenKeyboard(JNIEnv *env, jclass clazz, jint left, jint top, jint right, jint bottom)
+{
+   RectI app_recti(left, top, right, bottom); // this is the app rect (for example 0,0,1280,800), but we want the keyboard rect
+   Int   l_size=Max(0,          app_recti.min.x-0),
+         r_size=Max(0, D.resW()-app_recti.max.x  ),
+         t_size=Max(0,          app_recti.min.y-0),
+         b_size=Max(0, D.resH()-app_recti.max.y  ), max_size=Max(l_size, r_size, t_size, b_size);
+   if(b_size>=max_size)Kb._recti.set(              0, D.resH()-b_size, D.resW(), D.resH());else // bottom size is the biggest
+   if(t_size>=max_size)Kb._recti.set(              0,               0, D.resW(), t_size  );else // top    size is the biggest
+   if(l_size>=max_size)Kb._recti.set(              0,               0, l_size  , D.resH());else // left   size is the biggest
+                       Kb._recti.set(D.resW()-r_size,               0, D.resW(), D.resH());     // right  size is the biggest
 }
 
 }

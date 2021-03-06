@@ -95,7 +95,6 @@ struct KeyboardClass // Keyboard Input
    Bool exclusive()C {return _exclusive;}   void exclusive(Bool on); // get/set keyboard exclusive mode (which disables Windows key on Windows platform), default=false
 
 #if EE_PRIVATE
-   void setRect       ();
    void setVisible    ();
    void resetTextInput();
 #endif

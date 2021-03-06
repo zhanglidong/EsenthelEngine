@@ -27,7 +27,7 @@
             <category android:name="android.intent.category.LAUNCHER"/>
          </intent-filter>
       </activity>
-      <activity android:name="EsenthelActivity" android:label="APP" android:launchMode="singleTask" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:screenOrientation="fullSensor" android:configChanges="orientation|screenSize|keyboardHidden">
+      <activity android:name="EsenthelActivity" android:label="APP" android:launchMode="singleTask" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:screenOrientation="fullSensor" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="adjustNothing">
          <meta-data android:name="android.app.lib_name" android:value="Project"/>
       </activity>
       <receiver android:name="LoaderActivity$EsenthelAlarmReceiver"/>

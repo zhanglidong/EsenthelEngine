@@ -29,6 +29,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
 import android.media.AudioFormat;
@@ -67,6 +68,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
@@ -264,6 +266,7 @@ public class EsenthelActivity extends NativeActivity
           TextWatcher          text_watcher;
    static WakeLock             wake_lock;
    static WifiLock             wifi_lock;
+   static ViewTreeObserver.OnGlobalLayoutListener global_layout_listener;
 
    public static final void    log   (String s) {Log.e("Esenthel", s);}
    public static final boolean Is    (String s) {return !TextUtils.isEmpty(s);} // this supports null 's' too
@@ -338,6 +341,12 @@ public class EsenthelActivity extends NativeActivity
    }
    @Override public final void onDestroy()
    {
+      if(global_layout_listener!=null)
+      {
+         View root_view=getWindow().getDecorView().getRootView();
+         root_view.getViewTreeObserver().removeOnGlobalLayoutListener(global_layout_listener);
+         global_layout_listener=null;
+      }
    ADMOB_BEGIN
       bannerHide();
       adViewDel();
@@ -346,10 +355,10 @@ public class EsenthelActivity extends NativeActivity
    CHARTBOOST_BEGIN
                         Chartboost.onDestroy(this);
    CHARTBOOST_END
-		shutIAB();
-	LICENSE_KEY_BEGIN
-		shutLicenseTest();
-	LICENSE_KEY_END
+      shutIAB();
+   LICENSE_KEY_BEGIN
+      shutLicenseTest();
+   LICENSE_KEY_END
       context=application; activity=null; // when activity becomes unavailable, then use application context because we always need one
    }
    @Override public final void onCreate(Bundle savedInstanceState)
@@ -397,30 +406,58 @@ public class EsenthelActivity extends NativeActivity
 
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
-		// detect showing nav bar by the user manually in order to hide it automatically
-		if(system_bars<0)system_bars=systemBarsActual(); // when starting  , get what we have
-		else             systemBars(system_bars);        // when restarting, set what last requested (this can happen when opening app when it was closed using 'WindowMinimize')
-		Window window=activity.getWindow(); if(window!=null)
-		{
-			View view=window.getDecorView(); if(view!=null)view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-			{
-				@Override public void onSystemUiVisibilityChange(int visibility)
-				{
-					if((system_bars>>2)==SYSTEM_BAR_HIDDEN && (visibility&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)==0) // if want to hide, but user disabled
-					{
-						handler.postDelayed(new Runnable()
-						{
-							@Override public void run() {systemBars(system_bars);} // restore
-						}, 2000); // after 2 seconds
-					}
-				}
-			});
-		}
+      // detect showing nav bar by the user manually in order to hide it automatically
+      if(system_bars<0)system_bars=systemBarsActual(); // when starting  , get what we have
+      else             systemBars(system_bars);        // when restarting, set what last requested (this can happen when opening app when it was closed using 'WindowMinimize')
+      Window window=activity.getWindow(); if(window!=null)
+      {
+         View view=window.getDecorView(); if(view!=null)
+         {
+            view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
+            {
+               @Override public void onSystemUiVisibilityChange(int visibility)
+               {
+                  if((system_bars>>2)==SYSTEM_BAR_HIDDEN && (visibility&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)==0) // if want to hide, but user disabled
+                  {
+                     handler.postDelayed(new Runnable()
+                     {
+                        @Override public void run() {systemBars(system_bars);} // restore
+                     }, 2000); // after 2 seconds
+                  }
+               }
+            });
+            View root_view=view.getRootView(); if(root_view!=null)
+            {
+               global_layout_listener=new ViewTreeObserver.OnGlobalLayoutListener()
+               {
+                  @Override public void onGlobalLayout()
+                  {
+                     // display window size for the app layout
+                     Rect rect=new Rect(); getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+
+                     /*int status    = system_bars    &(1|2);
+                     int navigation=(system_bars>>2)&(1|2);
+
+                     int     statusBarHeight=0; if(status    ==SYSTEM_BAR_OVERLAY)    statusBarHeight=statusBarHeight();
+                     int navigationBarHeight=0; if(navigation==SYSTEM_BAR_OVERLAY)navigationBarHeight=   navBarHeight();
+
+                     //log("height:"+kb_height+", status:"+status+", statusHeight:"+statusBarHeight+", navigation:"+navigation+", navHeight:"+navigationBarHeight+", rect:"+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" ");
+
+                     int kb_height = getWindow().getDecorView().getRootView().getHeight() - (statusBarHeight + navigationBarHeight + rect.height()); // this is sometimes incorrect*/
+
+                   //log("rect:"+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom);
+                     com.esenthel.Native.screenKeyboard(rect.left, rect.top, rect.right, rect.bottom);
+                  }
+               };
+               root_view.getViewTreeObserver().addOnGlobalLayoutListener(global_layout_listener);
+            }
+         }
+      }
 
       initIAB();
-	LICENSE_KEY_BEGIN
-		initLicenseTest();
-	LICENSE_KEY_END
+   LICENSE_KEY_BEGIN
+      initLicenseTest();
+   LICENSE_KEY_END
    ADMOB_BEGIN
       initAdMob();
    ADMOB_END
@@ -450,7 +487,7 @@ public class EsenthelActivity extends NativeActivity
       log("TIME "+Build.TIME);
       log("TYPE "+Build.TYPE);
       log("USER "+Build.USER);*/
-	}
+   }
    @Override protected final void onActivityResult(int requestCode, int resultCode, Intent data)
    {
       super.onActivityResult(requestCode, resultCode, data);
@@ -698,78 +735,91 @@ public class EsenthelActivity extends NativeActivity
       return null;
    }
    public static final long mac()
-	{
-		try{
-			List<NetworkInterface> nis=Collections.list(NetworkInterface.getNetworkInterfaces());
-			for( NetworkInterface ni:nis)if(ni.getName().equalsIgnoreCase("wlan0"))
-			{
+   {
+      try{
+         List<NetworkInterface> nis=Collections.list(NetworkInterface.getNetworkInterfaces());
+         for( NetworkInterface ni:nis)if(ni.getName().equalsIgnoreCase("wlan0"))
+         {
             byte[] bytes =ni.getHardwareAddress();
-				int    length=bytes.length; if(length>8)length=8;
-				long   mac   =0; for(int i=0; i<length; i++)mac|=(((long)(bytes[i]&0xFF))<<(i*8));
-				return mac;
-			}
-		}catch(Exception exception){}
-		return 0;
-	}
+            int    length=bytes.length; if(length>8)length=8;
+            long   mac   =0; for(int i=0; i<length; i++)mac|=(((long)(bytes[i]&0xFF))<<(i*8));
+            return mac;
+         }
+      }catch(Exception exception){}
+      return 0;
+   }
 
-	static int system_bars=-1;
-	public static final int systemBars      () {return system_bars;} // what requested by code
-	public static final int systemBarsActual()							  // what we actually have
-	{
-		int result=0; if(activity!=null)
-		{
-			Window window=activity.getWindow(); if(window!=null)
-			{
-				View view=window.getDecorView(); if(view!=null)
-				{
-					int v=view.getSystemUiVisibility(), status, nav;
-					if((window.getAttributes().flags&WindowManager.LayoutParams.FLAG_FULLSCREEN)!=0 // have to check this too
-					|| (v&View.SYSTEM_UI_FLAG_FULLSCREEN            )!=0)status=SYSTEM_BAR_HIDDEN ;else
-					if((v&View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN     )!=0)status=SYSTEM_BAR_OVERLAY;else
-																						  status=SYSTEM_BAR_VISIBLE;
-					if((v&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION       )!=0)nav   =SYSTEM_BAR_HIDDEN ;else
-					if((v&View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)!=0)nav   =SYSTEM_BAR_OVERLAY;else
-																						  nav   =SYSTEM_BAR_VISIBLE;
-					result=(status|(nav<<2));
-				}
-			}
-		}
-		return result;
-	}
-	public static final void systemBars(final int bars)
-	{
-		system_bars=bars;
+   public final int statusBarHeight()
+   {
+      int res_id=getResources().getIdentifier("status_bar_height", "dimen", "android");
+      return (res_id>0) ? getResources().getDimensionPixelSize(res_id) : 0;
+   }
+   public final int navBarHeight()
+   {
+      int res_id=getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+      return (res_id>0) ? getResources().getDimensionPixelSize(res_id) : 0;
+   }
+
+   static int system_bars=-1;
+   public static final int systemBars      () {return system_bars;} // what requested by code
+   public static final int systemBarsActual()                       // what we actually have
+   {
+      int result=0; if(activity!=null)
+      {
+         Window window=activity.getWindow(); if(window!=null)
+         {
+            View view=window.getDecorView(); if(view!=null)
+            {
+               int v=view.getSystemUiVisibility(), status, nav;
+               if((window.getAttributes().flags&WindowManager.LayoutParams.FLAG_FULLSCREEN)!=0 // have to check this too
+               || (v&View.SYSTEM_UI_FLAG_FULLSCREEN            )!=0)status=SYSTEM_BAR_HIDDEN ;else
+               if((v&View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN     )!=0)status=SYSTEM_BAR_OVERLAY;else
+                                                                    status=SYSTEM_BAR_VISIBLE;
+               if((v&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION       )!=0)nav   =SYSTEM_BAR_HIDDEN ;else
+               if((v&View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)!=0)nav   =SYSTEM_BAR_OVERLAY;else
+                                                                    nav   =SYSTEM_BAR_VISIBLE;
+               result=(status|(nav<<2));
+            }
+         }
+      }
+      return result;
+   }
+   public static final void systemBars(final int bars)
+   {
+      system_bars=bars;
       if(activity!=null)activity.runOnUiThread(new Runnable()
       {
          @Override public final void run()
          {
-				Window window=activity.getWindow(); if(window!=null)
-				{
-					int status=(bars&(1|2)), nav=((bars>>2)&(1|2)), v=0;
-					View view=window.getDecorView(); if(view!=null)
-					{
-						switch(status)
-						{
-							case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_FULLSCREEN; break;
-							case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN; break;
-						}
-						switch(nav)
-						{
-							case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break; // use SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION so when user swipes to show nav bar manually, the view won't be resized because it will be temporarily as we post 'handler.postDelayed' to hide it later
-							case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break;
-						}
-						view.setSystemUiVisibility(v);
-						view.setFitsSystemWindows(true);
-					}
-					v=0;
-					if(status==SYSTEM_BAR_HIDDEN )v|=WindowManager.LayoutParams.FLAG_FULLSCREEN;
-					if(status==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN; // FLAG_LAYOUT_IN_SCREEN must be enabled only in SYSTEM_BAR_OVERLAY and in others it must be disabled (without it SYSTEM_BAR_VISIBLE would make View bigger and under status bar)
-					if(nav   ==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
-					window.setFlags(v, WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-				}
-			}
-		});
-	}
+            Window window=activity.getWindow(); if(window!=null)
+            {
+               int status=(bars&(1|2)), nav=((bars>>2)&(1|2)), v=0;
+               View view=window.getDecorView(); if(view!=null)
+               {
+                  switch(status)
+                  {
+                     case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_FULLSCREEN; break;
+                     case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN; break;
+                  }
+                  switch(nav)
+                  {
+                     case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break; // use SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION so when user swipes to show nav bar manually, the view won't be resized because it will be temporarily as we post 'handler.postDelayed' to hide it later
+                     case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break;
+                  }
+                  view.setSystemUiVisibility(v);
+                  view.setFitsSystemWindows(true);
+               }
+               v=0;
+               if(status==SYSTEM_BAR_HIDDEN )v|=WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+               if(status==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+               if(nav   ==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+             //if(status==SYSTEM_BAR_VISIBLE && nav==SYSTEM_BAR_VISIBLE){} currently this will cause window resize when keyboard is shown, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN this helped however caused window to be extended underneath the status bar
+
+               window.setFlags(v, WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+            }
+         }
+      });
+   }
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
    public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}
@@ -1365,48 +1415,48 @@ ADMOB_END
       }catch(Exception exception){result=RES_UNKNOWN;}
       return result;
    }
-	/******************************************************************************/
+   /******************************************************************************/
    // License Test
    /******************************************************************************/
 LICENSE_KEY_BEGIN
-	private static class MyLicenseCheckerCallback implements LicenseCheckerCallback
-	{
-		public static final byte[] SALT=new byte[]{2, 53, 106, 6, 35, 69, 118, 115, 64, 101, 117, 1, 13, 83, 127, 7, 6, 85, 25, 8};
-		private final void set(int reason)
-		{
-			int result;
-			switch(reason)
-			{
-				case Policy.LICENSED: result=LTR_OK   ; break;
-				case Policy.RETRY   : result=LTR_RETRY; break;
-				default             : result=LTR_FAIL ; break; // Policy.NOT_LICENSED
-			}
-			com.esenthel.Native.licenseTest(result);
-		}
-		@Override public void            allow(int reason   ) {set(reason);}
-		@Override public void        dontAllow(int reason   ) {set(reason);}
-		@Override public void applicationError(int errorCode)
-		{
-			int result;
-			switch(errorCode)
-			{
-				case LicenseCheckerCallback.ERROR_CHECK_IN_PROGRESS: result=LTR_WAITING; break;
-				default													      : result=LTR_ERROR  ; break;
-			}
-			com.esenthel.Native.licenseTest(result);
-		}
-	}
-	private static LicenseCheckerCallback licenseCheckerCallback;
+   private static class MyLicenseCheckerCallback implements LicenseCheckerCallback
+   {
+      public static final byte[] SALT=new byte[]{2, 53, 106, 6, 35, 69, 118, 115, 64, 101, 117, 1, 13, 83, 127, 7, 6, 85, 25, 8};
+      private final void set(int reason)
+      {
+         int result;
+         switch(reason)
+         {
+            case Policy.LICENSED: result=LTR_OK   ; break;
+            case Policy.RETRY   : result=LTR_RETRY; break;
+            default             : result=LTR_FAIL ; break; // Policy.NOT_LICENSED
+         }
+         com.esenthel.Native.licenseTest(result);
+      }
+      @Override public void            allow(int reason   ) {set(reason);}
+      @Override public void        dontAllow(int reason   ) {set(reason);}
+      @Override public void applicationError(int errorCode)
+      {
+         int result;
+         switch(errorCode)
+         {
+            case LicenseCheckerCallback.ERROR_CHECK_IN_PROGRESS: result=LTR_WAITING; break;
+            default                                             : result=LTR_ERROR  ; break;
+         }
+         com.esenthel.Native.licenseTest(result);
+      }
+   }
+   private static LicenseCheckerCallback licenseCheckerCallback;
    private static LicenseChecker         licenseChecker;
-	public final void initLicenseTest()
-	{
-		licenseCheckerCallback=new MyLicenseCheckerCallback();
-		licenseChecker        =new   LicenseChecker        (this, new ServerManagedPolicy(this, new AESObfuscator(MyLicenseCheckerCallback.SALT, "EE_PACKAGE", android_id)), "EE_LICENSE_KEY");
-	}
-	public        final void shutLicenseTest() {if(licenseChecker!=null)licenseChecker.onDestroy();}
-	public static final void     licenseTest() {if(licenseChecker!=null)licenseChecker.checkAccess(licenseCheckerCallback);}
+   public final void initLicenseTest()
+   {
+      licenseCheckerCallback=new MyLicenseCheckerCallback();
+      licenseChecker        =new   LicenseChecker        (this, new ServerManagedPolicy(this, new AESObfuscator(MyLicenseCheckerCallback.SALT, "EE_PACKAGE", android_id)), "EE_LICENSE_KEY");
+   }
+   public        final void shutLicenseTest() {if(licenseChecker!=null)licenseChecker.onDestroy();}
+   public static final void     licenseTest() {if(licenseChecker!=null)licenseChecker.checkAccess(licenseCheckerCallback);}
 LICENSE_KEY_END
-	/******************************************************************************/
+   /******************************************************************************/
    // FB - Facebook
    /******************************************************************************/
 FACEBOOK_BEGIN
