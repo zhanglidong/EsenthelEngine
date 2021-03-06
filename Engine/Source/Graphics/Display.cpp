@@ -110,6 +110,7 @@ static CGDisplayModeRef GetDisplayMode(Int width, Int height)
    return ret;
 }
 #endif
+#if WINDOWS || MAC || LINUX
 Bool SetDisplayMode(Int mode)
 {
    Bool  full=(D.full() && (mode==2 || mode==1 && App.activeOrBackFull()));
@@ -185,6 +186,7 @@ Bool SetDisplayMode(Int mode)
 #endif
    return false;
 }
+#endif
 #if WINDOWS_NEW
 void RequestDisplayMode(Int w, Int h, Int full)
 {
@@ -1984,7 +1986,7 @@ DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
       #elif GL
          if(ok)ok=SetDisplayMode();
       #endif
-   #elif MAC || LINUX
+   #elif MAC || LINUX || SWITCH
       ok=SetDisplayMode();
    #else
       ok=true;

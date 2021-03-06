@@ -1875,6 +1875,9 @@ void Application::windowCreate()
   _window_size=WindowSize(true); // we can't specify a custom '_window_size' because here the Window has already been created, instead obtain what we've got
    Bool change_size=(D.res()!=_window_size);
    RequestDisplayMode(change_size ? D.resW() : -1, change_size ? D.resH() : -1, (D.full()!=T.Fullscreen()) ? D.full() : -1);
+#elif SWITCH
+   D._full=true; // always fullscreen
+   D._res =App.desktop();
 #elif MOBILE
    D._full=true; // mobile are always fullscreen
 #elif WEB
