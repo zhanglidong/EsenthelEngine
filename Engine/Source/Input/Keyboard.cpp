@@ -996,9 +996,10 @@ INLINE static void AddModifiers(KeyboardKey &k)
    if(Kb.anyWin  ())k.flags|=KeyboardKey::WIN;
    if(Kb.b(KB_LALT))k.flags|=KeyboardKey::LALT;
 }
+#define QUEUEABLE_CHR 32
 void KeyboardClass::queue(Char chr, Int scan_code)
 {
-   if(Unsigned(chr)>=32)
+   if(Unsigned(chr)>=QUEUEABLE_CHR)
    {
       if(_last_key_scan_code==scan_code && scan_code>=0 && _key_buffer_len)
       {
@@ -1025,7 +1026,7 @@ void KeyboardClass::push(KB_KEY key, Int scan_code)
       }else // first press
       {
          k.flags=KeyboardKey::FIRST;
-        _cur         =key;
+        _cur         =key; // remember most recent key pressed, to prevent cursor from blinking while holding that key
         _button[key]|=BS_PUSHED|BS_ON;
          if(_last==key && Time.appTime()-_last_t<=DoubleClickTime+Time.ad())
          {
@@ -1054,9 +1055,21 @@ void KeyboardClass::release(KB_KEY key)
       FlagEnable (_button[key], BS_RELEASED);
    }
 }
-void KeyboardClass::tap(KB_KEY key, Char chr) // push(key), queue(chr), release(key)
+void KeyboardClass::queue(KB_KEY key, Char chr)
 {
-   if(Unsigned(chr)<32)chr='\0';
+   if(Unsigned(chr)<QUEUEABLE_CHR)chr='\0';
+   if(key || chr)
+   {
+      KeyboardKey k;
+      k.flags=KeyboardKey::FIRST;
+      k.c=chr;
+      k.k=key;
+      queue(k);
+   }
+}
+/*void KeyboardClass::tap(KB_KEY key, Char chr) // push(key), queue(chr), release(key)
+{
+   if(Unsigned(chr)<QUEUEABLE_CHR)chr='\0';
    if(key || chr)
    {
       KeyboardKey k;
@@ -1067,8 +1080,7 @@ void KeyboardClass::tap(KB_KEY key, Char chr) // push(key), queue(chr), release(
       }else // first press
       {
          k.flags=KeyboardKey::FIRST;
-        _cur         =key;
-        _button[key]|=BS_PUSHED;
+        _button[key]|=BS_PUSHED|BS_RELEASED;
          if(_last==key && Time.appTime()-_last_t<=DoubleClickTime+Time.ad())
          {
            _button[key]|=BS_DOUBLE;
@@ -1080,17 +1092,9 @@ void KeyboardClass::tap(KB_KEY key, Char chr) // push(key), queue(chr), release(
          }
          InputCombo.add(InputButton(INPUT_KEYBOARD, key));
       }
-      // !! set modifier flags after adjusting '_button' above !!
       k.c=chr;
       k.k=key;
-      AddModifiers(k);
       queue(k);
-
-      // release
-      if(_cur==key)_cur=-1;
-      FlagEnable(_button[key], BS_RELEASED);
-
-     _last_key_scan_code=-1;
    }
 }
 /******************************************************************************/
@@ -1207,7 +1211,7 @@ void KeyboardClass::update()
       }
       if(enters) // call after we got out of sync lock in case this method would trigger 'Java_com_esenthel_Native_text' and introduce some sort of deadlock
       {
-         REP(enters)tap(KB_ENTER, '\n');
+         REP(enters)queue(KB_ENTER, '\n');
          resetTextInput();
       }
    }
