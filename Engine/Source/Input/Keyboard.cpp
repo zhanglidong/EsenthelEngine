@@ -1397,7 +1397,7 @@ void KeyboardClass::setVisible()
 #if ANDROID
    if(Jni && ActivityClass && Activity)
    {
-      if(_visible=visible)
+      if(_visible=visible) // TODO: Warning: Android API doesn't have a notification when keyboard is visible, so always force what we want, but _visible might remain true even when keyboard got closed
       {
          if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
          if(JString t=JString(Jni, sk.text ? *sk.text : S))
@@ -1513,18 +1513,6 @@ JNIEXPORT void JNICALL Java_com_esenthel_Native_key(JNIEnv *env, jclass clazz, j
       case KEY_ANY : KeySource=KEY_JAVA; // !! no break on purpose !!
       case KEY_JAVA: Kb.queue(Char(chr), key_code); break;
    }
-}
-JNIEXPORT void JNICALL Java_com_esenthel_Native_screenKeyboard(JNIEnv *env, jclass clazz, jint left, jint top, jint right, jint bottom)
-{
-   RectI app_recti(left, top, right, bottom); // this is the app rect (for example 0,0,1280,800), but we want the keyboard rect
-   Int   l_size=Max(0,          app_recti.min.x-0),
-         r_size=Max(0, D.resW()-app_recti.max.x  ),
-         t_size=Max(0,          app_recti.min.y-0),
-         b_size=Max(0, D.resH()-app_recti.max.y  ), max_size=Max(l_size, r_size, t_size, b_size);
-   if(b_size>=max_size)Kb._recti.set(              0, D.resH()-b_size, D.resW(), D.resH());else // bottom size is the biggest
-   if(t_size>=max_size)Kb._recti.set(              0,               0, D.resW(), t_size  );else // top    size is the biggest
-   if(l_size>=max_size)Kb._recti.set(              0,               0, l_size  , D.resH());else // left   size is the biggest
-                       Kb._recti.set(D.resW()-r_size,               0, D.resW(), D.resH());     // right  size is the biggest
 }
 
 }

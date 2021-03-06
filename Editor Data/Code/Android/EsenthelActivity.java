@@ -432,21 +432,17 @@ public class EsenthelActivity extends NativeActivity
                {
                   @Override public void onGlobalLayout()
                   {
-                     // display window size for the app layout
-                     Rect rect=new Rect(); getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-
-                     /*int status    = system_bars    &(1|2);
+                   /*int status    = system_bars    &(1|2);
                      int navigation=(system_bars>>2)&(1|2);
 
                      int     statusBarHeight=0; if(status    ==SYSTEM_BAR_OVERLAY)    statusBarHeight=statusBarHeight();
-                     int navigationBarHeight=0; if(navigation==SYSTEM_BAR_OVERLAY)navigationBarHeight=   navBarHeight();
+                     int navigationBarHeight=0; if(navigation==SYSTEM_BAR_OVERLAY)navigationBarHeight=   navBarHeight();*/
 
-                     //log("height:"+kb_height+", status:"+status+", statusHeight:"+statusBarHeight+", navigation:"+navigation+", navHeight:"+navigationBarHeight+", rect:"+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" ");
-
-                     int kb_height = getWindow().getDecorView().getRootView().getHeight() - (statusBarHeight + navigationBarHeight + rect.height()); // this is sometimes incorrect*/
-
-                   //log("rect:"+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom);
-                     com.esenthel.Native.screenKeyboard(rect.left, rect.top, rect.right, rect.bottom);
+                     View view=getWindow().getDecorView();
+                     Rect visible=new Rect(); view.getWindowVisibleDisplayFrame(visible); // in screen coordinates
+                     int[] screen_pos=new int[2]; view.getLocationOnScreen(screen_pos); // in screen coordinates
+                     int w=view.getWidth(), h=view.getHeight();
+                     com.esenthel.Native.resized(w, h, visible.left-screen_pos[0], visible.top-screen_pos[1], visible.width(), visible.height());
                   }
                };
                root_view.getViewTreeObserver().addOnGlobalLayoutListener(global_layout_listener);
