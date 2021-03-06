@@ -2415,7 +2415,7 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
       Int  cur_y   =T.resH(); T._res.y=h;
       Bool cur_full=T.full(); T._full =f;
 
-   #if WEB
+   #if SWITCH || WEB
       Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
    #endif
       if(!findMode())return RESET_DEVICE_NOT_CREATED;
