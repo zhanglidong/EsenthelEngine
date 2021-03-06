@@ -122,6 +122,7 @@ struct KeyboardClass // Keyboard Input
    void push   (KB_KEY key, Int scan_code);
    void queue  (Char   chr, Int scan_code);
    void release(KB_KEY key);
+   void tap    (KB_KEY key, Char chr); // push and release
    void update ();
    void setModifiers();
 

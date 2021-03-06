@@ -1054,6 +1054,45 @@ void KeyboardClass::release(KB_KEY key)
       FlagEnable (_button[key], BS_RELEASED);
    }
 }
+void KeyboardClass::tap(KB_KEY key, Char chr) // push(key), queue(chr), release(key)
+{
+   if(Unsigned(chr)<32)chr='\0';
+   if(key || chr)
+   {
+      KeyboardKey k;
+      if(_button[key]&BS_ON) // repeated press
+      {
+         k.flags=0;
+        _button[key]|=BS_REPEAT;
+      }else // first press
+      {
+         k.flags=KeyboardKey::FIRST;
+        _cur         =key;
+        _button[key]|=BS_PUSHED;
+         if(_last==key && Time.appTime()-_last_t<=DoubleClickTime+Time.ad())
+         {
+           _button[key]|=BS_DOUBLE;
+           _last        =-1;
+         }else
+         {
+           _last  =key;
+           _last_t=Time.appTime();
+         }
+         InputCombo.add(InputButton(INPUT_KEYBOARD, key));
+      }
+      // !! set modifier flags after adjusting '_button' above !!
+      k.c=chr;
+      k.k=key;
+      AddModifiers(k);
+      queue(k);
+
+      // release
+      if(_cur==key)_cur=-1;
+      FlagEnable(_button[key], BS_RELEASED);
+
+     _last_key_scan_code=-1;
+   }
+}
 /******************************************************************************/
 void KeyboardClass::setModifiers()
 {
@@ -1168,7 +1207,7 @@ void KeyboardClass::update()
       }
       if(enters) // call after we got out of sync lock in case this method would trigger 'Java_com_esenthel_Native_text' and introduce some sort of deadlock
       {
-         const Int scan_code=0; REP(enters){push(KB_ENTER, scan_code); queue('\n', scan_code); release(KB_ENTER);} _last_key_scan_code=-1; // manually push and release enter keys, use any scan_code>=0 to force linking characters with keys
+         REP(enters)tap(KB_ENTER, '\n');
          resetTextInput();
       }
    }
