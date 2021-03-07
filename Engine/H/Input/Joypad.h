@@ -43,6 +43,14 @@ struct Vibration
 /******************************************************************************/
 struct Joypad // Joypad Input
 {
+   struct Color2
+   {
+      Color main, sub;
+
+      Color2& zero()  {       main.zero();   sub.zero(); return T;}
+      Bool    any ()C {return main.any () || sub.any ();}
+   };
+
    Vec2 dir       , //        direction
         dir_a  [2]; // analog direction
    Flt  trigger[2]; // trigger
@@ -61,6 +69,9 @@ struct Joypad // Joypad Input
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
    Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations
 
+ C Color2& colorLeft ()C {return _color_left ;} // get color of the left  part of the Joypad (TRANSPARENT if unknown)
+ C Color2& colorRight()C {return _color_right;} // get color of the right part of the Joypad (TRANSPARENT if unknown)
+
 #if EE_PRIVATE
    // manage
    void acquire(Bool on);
@@ -76,20 +87,21 @@ struct Joypad // Joypad Input
 #if !EE_PRIVATE
 private:
 #endif
-   Byte _button[32];
+   Byte   _button[32];
 #if WINDOWS
-   Byte _xinput1;
+   Byte   _xinput1;
 #endif
 #if WINDOWS_OLD
-   Byte _offset_x, _offset_y;
+   Byte   _offset_x, _offset_y;
 #endif
-   Bool _connected;
-   Flt  _last_t[32];
-   UInt _id;
+   Bool   _connected;
+   Flt    _last_t[32];
+   UInt   _id;
 #if SWITCH
-   UInt _vibration_device_handle[2];
+   UInt   _vibration_device_handle[2];
 #endif
-   Str  _name;
+   Color2 _color_left, _color_right;
+   Str    _name;
 #if WINDOWS_OLD
    #if EE_PRIVATE
       IDirectInputDevice8 *_device;
@@ -97,7 +109,7 @@ private:
       Ptr _device;
    #endif
 #elif MAC
-   Ptr _device;
+   Ptr    _device;
 #endif
 
    static CChar *_button_name[32];

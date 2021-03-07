@@ -166,6 +166,9 @@ Joypad::Joypad()
    REPAO(_vibration_device_handle)=0;
 #endif
 
+  _color_left .zero();
+  _color_right.zero();
+
 #if WINDOWS_OLD || MAC
   _device=null;
 #endif
