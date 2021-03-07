@@ -2,6 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+static Bool CalculateJoypadSensors;
 CChar* Joypad::_button_name[32];
 MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
@@ -163,7 +164,7 @@ Joypad::Joypad()
   _id=0;
 
 #if SWITCH
-   REPAO(_vibration_device_handle)=0;
+   Zero(_vibration_handle); Zero(_sensor_handle);
 #endif
 
   _color_left .zero();
@@ -186,7 +187,15 @@ Bool Joypad::supportsVibrations()C
 #if WINDOWS
    return _xinput1;
 #elif SWITCH
-   return _vibration_device_handle[0] || _vibration_device_handle[1];
+   return _vibration_handle[0];// || _vibration_handle[1]; check only first because second will be available only if first is
+#else
+   return false;
+#endif
+}
+Bool Joypad::supportsSensors()C
+{
+#if SWITCH
+   return _sensor_handle[0];// || _sensor_handle[1]; check only first because second will be available only if first is
 #else
    return false;
 #endif
@@ -221,6 +230,8 @@ void Joypad::zero()
          dir     .zero();
    REPAO(dir_a  ).zero();
    REPAO(trigger)=0;
+  _sensor_left .reset();
+  _sensor_right.reset();
 }
 void Joypad::clear()
 {
@@ -236,89 +247,81 @@ void Joypad::update()
 #if WINDOWS
    if(_xinput1)
    {
-      XINPUT_STATE state;
-      if(App.active())
+      XINPUT_STATE state; if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
       {
-         if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
-         {
-            // buttons
-            Byte button[GPB_NUM];
-            button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
-            button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
-            button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
-            button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
-            button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
-            button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
-            button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-            button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-            button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
-            button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
-            button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
-            button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
-            ASSERT(ELMS(button)<ELMS(T._button));
-            update(button, Elms(button));
+         // buttons
+         Byte button[GPB_NUM];
+         button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
+         button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
+         button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
+         button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
+         button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
+         button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
+         button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+         button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+         button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
+         button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
+         button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
+         button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
+         ASSERT(ELMS(button)<ELMS(T._button));
+         update(button, Elms(button));
 
-            // digital pad
-            dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
-            dir.y=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN);
-            Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
+         // digital pad
+         dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
+         dir.y=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN);
+         Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
-            dir_a[0].x=state.Gamepad.sThumbLX/32768.0f;
-            dir_a[0].y=state.Gamepad.sThumbLY/32768.0f;
-            dir_a[1].x=state.Gamepad.sThumbRX/32768.0f;
-            dir_a[1].y=state.Gamepad.sThumbRY/32768.0f;
+         // analog pad
+         dir_a[0].x=state.Gamepad.sThumbLX/32768.0f;
+         dir_a[0].y=state.Gamepad.sThumbLY/32768.0f;
+         dir_a[1].x=state.Gamepad.sThumbRX/32768.0f;
+         dir_a[1].y=state.Gamepad.sThumbRY/32768.0f;
 
-            trigger[0]=state.Gamepad.bLeftTrigger /255.0f;
-            trigger[1]=state.Gamepad.bRightTrigger/255.0f;
-         }else zero();
+         // triggers
+         trigger[0]=state.Gamepad.bLeftTrigger /255.0f;
+         trigger[1]=state.Gamepad.bRightTrigger/255.0f;
+
+         return;
       }
    }
 #if WINDOWS_OLD // DirectInput
    else
-   if(_device->Poll())
    {
-      // get data
-      DIJOYSTATE dijs;
-      if(!OK(_device->GetDeviceState(SIZE(dijs), &dijs)))
+      DIJOYSTATE state; if(OK(_device->Poll()) && OK(_device->GetDeviceState(SIZE(state), &state)))
       {
-         if(App.active())acquire(true); Zero(dijs);
-         dijs.rgdwPOV[0]=UINT_MAX;
-         dijs.lX          =32768;
-         dijs.lY          =32768;
-         dijs.lZ          =32768;
-         dijs.lRx         =32768;
-         dijs.lRy         =32768;
-         dijs.lRz         =32768;
-         dijs.rglSlider[0]=32768;
-         dijs.rglSlider[1]=32768;
+         // buttons
+         ASSERT(ELMS( T._button)==ELMS(state.rgbButtons));
+         update(state.rgbButtons, Elms(state.rgbButtons));
+
+         // digital pad
+         switch(state.rgdwPOV[0])
+         {
+            case UINT_MAX: dir.zero(); break;
+            case        0: dir.set( 0,  1); break;
+            case     9000: dir.set( 1,  0); break;
+            case    18000: dir.set( 0, -1); break;
+            case    27000: dir.set(-1,  0); break;
+            default      : CosSin(dir.x, dir.y, PI_2-DegToRad(state.rgdwPOV[0]/100.0f)); break;
+         }
+
+         // analog pad
+         const Flt mul=1.0f/32768;
+         dir_a[0].x= (state.lX-32768)*mul;
+         dir_a[0].y=-(state.lY-32768)*mul;
+         if(_offset_x && _offset_y)
+         {
+            ASSERT(SIZE(state.lZ)==SIZE(Int));
+            dir_a[1].x= (*(Int*)(((Byte*)&state)+_offset_x)-32768)*mul;
+            dir_a[1].y=-(*(Int*)(((Byte*)&state)+_offset_y)-32768)*mul;
+         }
+
+         // triggers
+         trigger[0]=(state.rglSlider[0]-32768)*mul;
+         trigger[1]=(state.rglSlider[1]-32768)*mul;
+
+         return;
       }
-
-      // process data
-      ASSERT(ELMS(T._button)==ELMS(dijs.rgbButtons));
-      update(dijs.rgbButtons, Elms(dijs.rgbButtons));
-
-      switch(dijs.rgdwPOV[0])
-      {
-         case UINT_MAX: dir.zero(); break;
-         case        0: dir.set( 0,  1); break;
-         case     9000: dir.set( 1,  0); break;
-         case    18000: dir.set( 0, -1); break;
-         case    27000: dir.set(-1,  0); break;
-         default      : CosSin(dir.x, dir.y, PI_2-DegToRad(dijs.rgdwPOV[0]/100.0f)); break;
-      }
-
-      const Flt mul=1.0f/32768;
-      dir_a[0].x= (dijs.lX-32768)*mul;
-      dir_a[0].y=-(dijs.lY-32768)*mul;
-      if(_offset_x && _offset_y)
-      {
-         ASSERT(SIZE(dijs.lZ)==SIZE(Int));
-         dir_a[1].x= (*(Int*)(((Byte*)&dijs)+_offset_x)-32768)*mul;
-         dir_a[1].y=-(*(Int*)(((Byte*)&dijs)+_offset_y)-32768)*mul;
-      }
-
-      trigger[0]=(dijs.rglSlider[0]-32768)*mul;
-      trigger[1]=(dijs.rglSlider[1]-32768)*mul;
+      if(App.active())acquire(true); // if failed then try to re-acquire
    }
 #endif
 #elif MAC
@@ -327,8 +330,12 @@ void Joypad::update()
     C MacJoypad &mjp=MacJoypads[index];
       ASSERT(ELMS(T._button)==ELMS(mjp.button));
       update(mjp.button, Elms(mjp.button));
+      return;
    }
+#else
+   return; // updated externally
 #endif
+   zero();
 }
 void Joypad::push(Byte b)
 {
@@ -357,12 +364,25 @@ void Joypad::release(Byte b)
 /******************************************************************************/
 void Joypad::acquire(Bool on)
 {
-#if WINDOWS
-   if(_xinput1 && !on)zero(); // unacquire
 #if WINDOWS_OLD
    if(_device){if(on)_device->Acquire();else _device->Unacquire();}
 #endif
+   if(!on)zero();
+}
+#if !SWITCH
+void Joypad::sensors(Bool calculate)
+{
+}
 #endif
+/******************************************************************************/
+Bool JoypadSensors() {return CalculateJoypadSensors;}
+void JoypadSensors(Bool calculate)
+{
+   if(CalculateJoypadSensors!=calculate)
+   {
+      CalculateJoypadSensors^=1;
+      REPAO(Joypads).sensors(CalculateJoypadSensors);
+   }
 }
 /******************************************************************************/
 Joypad* FindJoypad(UInt id)

@@ -50,6 +50,14 @@ struct Joypad // Joypad Input
       Color2& zero()  {       main.zero();   sub.zero(); return T;}
       Bool    any ()C {return main.any () || sub.any ();}
    };
+   struct Sensor
+   {
+      Vec    accel, // accelerometer
+             gyro ; // gyroscope
+      Orient orn  ; // orientation
+
+      Sensor& reset() {accel.zero(); gyro.zero(); orn.identity(); return T;}
+   };
 
    Vec2 dir       , //        direction
         dir_a  [2]; // analog direction
@@ -61,6 +69,7 @@ struct Joypad // Joypad Input
    Bool bd(Int x)C {return InRange(x, _button) ? ButtonDb(_button[x]) : false;} // if button 'x' double clicked
 
    Bool supportsVibrations()C; // if supports vibrations
+   Bool supportsSensors   ()C; // if supports sensors, available only if 'JoypadSensors' was enabled
 
    UInt         id(     )C {return _id  ;} // get unique id of this joypad
  C Str&       name(     )C {return _name;} // get joypad name
@@ -68,6 +77,13 @@ struct Joypad // Joypad Input
 
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
    Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations
+
+ C Vec   & accel ()C {return _sensor_right.accel;} // get accelerometer value, available only if 'supportsSensors'
+ C Vec   & gyro  ()C {return _sensor_right.gyro ;} // get gyroscope     value, available only if 'supportsSensors'
+ C Orient& orient()C {return _sensor_right.orn  ;} // get orientation   value, available only if 'supportsSensors'
+
+ C Sensor& sensorLeft ()C {return _sensor_left ;} // get sensor of the left  part of the Joypad, available only if 'supportsSensors'
+ C Sensor& sensorRight()C {return _sensor_right;} // get sensor of the right part of the Joypad, available only if 'supportsSensors'
 
  C Color2& colorLeft ()C {return _color_left ;} // get color of the left  part of the Joypad (TRANSPARENT if unknown)
  C Color2& colorRight()C {return _color_right;} // get color of the right part of the Joypad (TRANSPARENT if unknown)
@@ -82,6 +98,7 @@ struct Joypad // Joypad Input
    void push   (Byte b);
    void release(Byte b);
    Int  index  ()C;
+   void sensors(Bool calculate);
 #endif
 
 #if !EE_PRIVATE
@@ -98,9 +115,10 @@ private:
    Flt    _last_t[32];
    UInt   _id;
 #if SWITCH
-   UInt   _vibration_device_handle[2];
+   UInt   _vibration_handle[2], _sensor_handle[2];
 #endif
    Color2 _color_left, _color_right;
+   Sensor _sensor_left, _sensor_right;
    Str    _name;
 #if WINDOWS_OLD
    #if EE_PRIVATE
@@ -121,6 +139,9 @@ private:
 };
 extern MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
+void JoypadSensors(Bool calculate); // if want joypad sensors to be calculated (accelerometer, gyroscope, orientation)
+Bool JoypadSensors();               // if want joypad sensors to be calculated (accelerometer, gyroscope, orientation)
+
 Joypad* FindJoypad(UInt id); // find joypad in 'Joypads' container according to its 'id', null on fail
 #if EE_PRIVATE
 Joypad& GetJoypad(UInt id, Bool &added);
