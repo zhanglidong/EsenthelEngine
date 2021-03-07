@@ -5,10 +5,10 @@
 /******************************************************************************/
 enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch GamePads
 {
-   GPB_A     ,
-   GPB_B     ,
-   GPB_X     ,
-   GPB_Y     ,
+   GPB_A     , // A
+   GPB_B     , // B
+   GPB_X     , // X
+   GPB_Y     , // Y
    GPB_L1    , // Left  Shoulder
    GPB_R1    , // Right Shoulder
    GPB_L2    , // Left  Trigger
@@ -17,7 +17,18 @@ enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch
    GPB_RTHUMB, // Right Thumb
    GPB_BACK  , // Back
    GPB_START , // Start
-   GPB_NUM   ,
+   GPB_NUM   , // number of buttons for XInput/Xbox GamePads
+
+   GPB_LSL=GPB_NUM, // Nintendo Switch Left  SL
+   GPB_LSR        , // Nintendo Switch Left  SR
+   GPB_RSL        , // Nintendo Switch Right SL
+   GPB_RSR        , // Nintendo Switch Right SR
+   GPB_SWITCH_NUM , // number of buttons for NintendoSwitch GamePads
+
+   // alternative names
+   GPB_SELECT=GPB_BACK ,
+   GPB_MINUS =GPB_BACK ,
+   GPB_PLUS  =GPB_START,
 };
 /******************************************************************************/
 struct Joypad // Joypad Input
