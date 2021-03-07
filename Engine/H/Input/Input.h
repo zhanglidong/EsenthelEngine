@@ -14,7 +14,7 @@
 #define INPUT_COMBO_NUM 8 // number of remembered input buttons
 
 #define        LongPressTime 0.55f // amount of time to consider any                   button press a long   press
-#define      DoubleClickTime 0.25f // amount of time to consider Keyboard/Mouse/JoyPad button press a double click
+#define      DoubleClickTime 0.25f // amount of time to consider Keyboard/Mouse/Joypad button press a double click
 #define TouchDoubleClickTime 0.33f // amount of time to consider Touch                        press a double click
 #if EE_PRIVATE
 #define DragTime 0.15f

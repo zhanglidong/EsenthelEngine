@@ -284,7 +284,7 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
          {
             if(action_type==AMOTION_EVENT_ACTION_MOVE)
             {
-               Joypad &joy=Joypads(action_index); if(!joy._name.is()){joy._name=JavaInputDeviceName(device); if(!joy._name.is())joy._name="JoyPad";}
+               Joypad &joy=Joypads(action_index); if(!joy._name.is()){joy._name=JavaInputDeviceName(device); if(!joy._name.is())joy._name="Joypad";}
                joy.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
                                -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
                joy.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),

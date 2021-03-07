@@ -3,32 +3,32 @@
    Use 'Joypads' container to access Joypads input.
 
 /******************************************************************************/
-enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch GamePads
+enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch controllers
 {
-   GPB_A     , // A
-   GPB_B     , // B
-   GPB_X     , // X
-   GPB_Y     , // Y
-   GPB_L1    , // Left  Shoulder
-   GPB_R1    , // Right Shoulder
-   GPB_L2    , // Left  Trigger
-   GPB_R2    , // Right Trigger
-   GPB_LTHUMB, // Left  Thumb
-   GPB_RTHUMB, // Right Thumb
-   GPB_BACK  , // Back
-   GPB_START , // Start
-   GPB_NUM   , // number of buttons for XInput/Xbox GamePads
+   JB_A     , // A
+   JB_B     , // B
+   JB_X     , // X
+   JB_Y     , // Y
+   JB_L1    , // Left  Shoulder
+   JB_R1    , // Right Shoulder
+   JB_L2    , // Left  Trigger
+   JB_R2    , // Right Trigger
+   JB_LTHUMB, // Left  Thumb
+   JB_RTHUMB, // Right Thumb
+   JB_BACK  , // Back
+   JB_START , // Start
+   JB_NUM   , // number of buttons for XInput/Xbox controllers
 
-   GPB_LSL=GPB_NUM, // Nintendo Switch Left  SL
-   GPB_LSR        , // Nintendo Switch Left  SR
-   GPB_RSL        , // Nintendo Switch Right SL
-   GPB_RSR        , // Nintendo Switch Right SR
-   GPB_SWITCH_NUM , // number of buttons for NintendoSwitch GamePads
+   JB_LSL=JB_NUM, // Nintendo Switch Left  SL
+   JB_LSR       , // Nintendo Switch Left  SR
+   JB_RSL       , // Nintendo Switch Right SL
+   JB_RSR       , // Nintendo Switch Right SR
+   JB_SWITCH_NUM, // number of buttons for NintendoSwitch controllers
 
    // alternative names
-   GPB_SELECT=GPB_BACK ,
-   GPB_MINUS =GPB_BACK ,
-   GPB_PLUS  =GPB_START,
+   JB_SELECT=JB_BACK ,
+   JB_MINUS =JB_BACK ,
+   JB_PLUS  =JB_START,
 };
 /******************************************************************************/
 struct Vibration

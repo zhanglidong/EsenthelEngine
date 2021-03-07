@@ -250,19 +250,19 @@ void Joypad::update()
       XINPUT_STATE state; if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
       {
          // buttons
-         Byte button[GPB_NUM];
-         button[GPB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
-         button[GPB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
-         button[GPB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
-         button[GPB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
-         button[GPB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
-         button[GPB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
-         button[GPB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-         button[GPB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-         button[GPB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
-         button[GPB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
-         button[GPB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
-         button[GPB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
+         Byte button[JB_NUM];
+         button[JB_A     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_A                );
+         button[JB_B     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_B                );
+         button[JB_X     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_X                );
+         button[JB_Y     ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_Y                );
+         button[JB_L1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_SHOULDER    );
+         button[JB_R1    ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_SHOULDER   );
+         button[JB_L2    ]=        (state.Gamepad. bLeftTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+         button[JB_R2    ]=        (state.Gamepad.bRightTrigger>=XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+         button[JB_LTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_LEFT_THUMB       );
+         button[JB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
+         button[JB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
+         button[JB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
          ASSERT(ELMS(button)<ELMS(T._button));
          update(button, Elms(button));
 
