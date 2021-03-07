@@ -481,7 +481,7 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
             dipdw.diph.dwHow       =DIPH_DEVICE;
             joypad._device->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph);
 
-            joypad._did->EnumObjects(EnumAxes, &joypad, DIDFT_AXIS);
+            joypad._device->EnumObjects(EnumAxes, &joypad, DIDFT_AXIS);
          }
          if(!joypad._device)Joypads.removeData(&joypad, true); // if failed to create it then remove it
          RELEASE(did);
