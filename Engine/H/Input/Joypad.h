@@ -31,6 +31,16 @@ enum GAME_PAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch
    GPB_PLUS  =GPB_START,
 };
 /******************************************************************************/
+struct Vibration
+{
+   struct Motor
+   {
+      Flt intensity, // intensity, 0..1
+          frequency; // frequency, Hertz
+   };
+   Motor motor[2];
+};
+/******************************************************************************/
 struct Joypad // Joypad Input
 {
    Vec2 dir       , //        direction
@@ -48,7 +58,8 @@ struct Joypad // Joypad Input
  C Str&       name(     )C {return _name;} // get joypad name
    Str  buttonName(Int x)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
 
-   Joypad& vibration(C Vec2 &vibration); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
+   Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
+   Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations
 
 #if EE_PRIVATE
    // manage

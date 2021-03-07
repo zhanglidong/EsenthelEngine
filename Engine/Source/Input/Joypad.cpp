@@ -204,6 +204,11 @@ Joypad& Joypad::vibration(C Vec2 &vibration)
 #endif
    return T;
 }
+Joypad& Joypad::vibration(C Vibration &left, C Vibration &right)
+{
+   return vibration(Vec2(Max(left .motor[0].intensity, left .motor[1].intensity),
+                         Max(right.motor[0].intensity, right.motor[1].intensity)));
+}
 #endif
 /******************************************************************************/
 void Joypad::zero()
