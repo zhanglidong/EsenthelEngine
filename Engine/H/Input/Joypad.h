@@ -42,13 +42,13 @@ struct Joypad // Joypad Input
    Bool br(Int x)C {return InRange(x, _button) ? ButtonRs(_button[x]) : false;} // if button 'x' released in this frame
    Bool bd(Int x)C {return InRange(x, _button) ? ButtonDb(_button[x]) : false;} // if button 'x' double clicked
 
-   Bool supportsVibrations()C; // if supports force feedback vibrations
+   Bool supportsVibrations()C; // if supports vibrations
 
    UInt         id(     )C {return _id  ;} // get unique id of this joypad
  C Str&       name(     )C {return _name;} // get joypad name
    Str  buttonName(Int x)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
 
-   Joypad& vibration(C Vec2 &force); // set force feedback vibrations, (-1,-1)..(1,1), length of vector specifies intensity (value of (0,0) disables vibrations)
+   Joypad& vibration(C Vec2 &vibration); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
 
 #if EE_PRIVATE
    // manage
@@ -65,19 +65,28 @@ struct Joypad // Joypad Input
 #if !EE_PRIVATE
 private:
 #endif
-   Byte _button[32], _vibration_axes, _xinput1, _offset_x, _offset_y, _connected;
+   Byte _button[32];
+#if WINDOWS
+   Byte _xinput1;
+#endif
+#if WINDOWS_OLD
+   Byte _offset_x, _offset_y;
+#endif
+   Bool _connected;
    Flt  _last_t[32];
    UInt _id;
+#if SWITCH
+   UInt _vibration_device_handle[2];
+#endif
    Str  _name;
-#if EE_PRIVATE
-   #if WINDOWS_OLD
-      IDirectInputDevice8 *_did;
-      IDirectInputEffect  *_effect;
+#if WINDOWS_OLD
+   #if EE_PRIVATE
+      IDirectInputDevice8 *_device;
    #else
-      Ptr                  _did, _effect;
+      Ptr _device;
    #endif
-#else
-   Ptr  _did, _effect;
+#elif MAC
+   Ptr _device;
 #endif
 
    static CChar *_button_name[32];

@@ -86,15 +86,15 @@ static void JoypadAdded(void *inContext, IOReturn inResult, void *inSender, IOHI
 
          Joypad & jp=   Joypads.New();
       MacJoypad &mjp=MacJoypads.New();
-       jp._id  =JoypadsID++;
-       jp._name=name;
-       jp._did =device;
-      mjp. elms=elms;
+       jp._id    =JoypadsID++;
+       jp._name  =name;
+       jp._device=device;
+      mjp. elms  =elms;
    }
 }
 static void JoypadRemoved(void *inContext, IOReturn inResult, void *inSender, IOHIDDeviceRef device)
 {
-   REPA(Joypads)if(Joypads[i]._did==device)
+   REPA(Joypads)if(Joypads[i]._device==device)
    {
          Joypads.remove(i, true);
       MacJoypads.remove(i, true);
@@ -104,7 +104,7 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
 {
    IOHIDElementRef element=IOHIDValueGetElement (value  );
    IOHIDDeviceRef  device =IOHIDElementGetDevice(element); // or IOHIDQueueGetDevice((IOHIDQueueRef)inSender);
-   REPA(Joypads)if(Joypads[i]._did==device)
+   REPA(Joypads)if(Joypads[i]._device==device)
    {
          Joypad & jp=   Joypads[i];
       MacJoypad &mjp=MacJoypads[i];
@@ -146,15 +146,30 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
 Joypad::~Joypad()
 {
 #if WINDOWS_OLD
-   if(_did){_did->Unacquire(); RELEASE(_effect); RELEASE(_did);}
+   if(_device){_device->Unacquire(); _device->Release(); _device=null;}
 #endif
 }
 Joypad::Joypad()
 {
-  _vibration_axes=_xinput1=_offset_x=_offset_y=_connected=0;
+#if WINDOWS
+  _xinput1=0;
+#endif
+
+#if WINDOWS_OLD
+  _offset_x=_offset_y=0;
+#endif
+
+  _connected=false;
   _id=0;
-  _did=null;
-  _effect=null;
+
+#if SWITCH
+   REPAO(_vibration_device_handle)=0;
+#endif
+
+#if WINDOWS_OLD || MAC
+  _device=null;
+#endif
+
    zero();
 }
 Str Joypad::buttonName(Int x)C
@@ -165,51 +180,31 @@ Str Joypad::buttonName(Int x)C
 /******************************************************************************/
 Bool Joypad::supportsVibrations()C
 {
-   return _xinput1 || _effect!=null;
+#if WINDOWS
+   return _xinput1;
+#elif SWITCH
+   return _vibration_device_handle[0] || _vibration_device_handle[1];
+#else
+   return false;
+#endif
 }
 Int Joypad::index()C {return Joypads.index(this);}
 /******************************************************************************/
-Joypad& Joypad::vibration(C Vec2 &force)
+#if !SWITCH
+Joypad& Joypad::vibration(C Vec2 &vibration)
 {
 #if WINDOWS
    if(_xinput1)
    {
-      XINPUT_VIBRATION vibration;
-      vibration.wLeftMotorSpeed =RoundU(Sat(Abs(force.x))*0xFFFF);
-      vibration.wRightMotorSpeed=RoundU(Sat(Abs(force.y))*0xFFFF);
-      XInputSetState(_xinput1-1, &vibration);
+      XINPUT_VIBRATION xvibration;
+      xvibration. wLeftMotorSpeed=RoundU(Sat(vibration.x)*0xFFFF);
+      xvibration.wRightMotorSpeed=RoundU(Sat(vibration.y)*0xFFFF);
+      XInputSetState(_xinput1-1, &xvibration);
    }
-#if WINDOWS_OLD
-   else
-   if(_effect && _vibration_axes>=1 && _vibration_axes<=2)
-   {
-      LONG rglDirection[2]={0, 0};
-      DICONSTANTFORCE cf;
-
-      if(_vibration_axes==1)
-      {
-         cf.lMagnitude=RoundU(Min(force.length(), 1.0f)*DI_FFNOMINALMAX);
-      }else
-      {
-         rglDirection[0]=Round (Mid(force.x, -1.0f, 1.0f)*DI_FFNOMINALMAX);
-         rglDirection[1]=Round (Mid(force.y, -1.0f, 1.0f)*DI_FFNOMINALMAX);
-         cf.lMagnitude  =RoundU(Min(force.length(), 1.0f)*DI_FFNOMINALMAX);
-      }
-
-      DIEFFECT eff; Zero(eff);
-      eff.dwSize=SIZE(eff);
-      eff.dwFlags=DIEFF_CARTESIAN|DIEFF_OBJECTOFFSETS;
-      eff.cAxes=_vibration_axes;
-      eff.rglDirection=rglDirection;
-      eff. cbTypeSpecificParams=SIZE(cf);
-      eff.lpvTypeSpecificParams=&cf;
-
-     _effect->SetParameters(&eff, DIEP_DIRECTION|DIEP_TYPESPECIFICPARAMS|DIEP_START);
-   }
-#endif
 #endif
    return T;
 }
+#endif
 /******************************************************************************/
 void Joypad::zero()
 {
@@ -272,11 +267,11 @@ void Joypad::update()
    }
 #if WINDOWS_OLD // DirectInput
    else
-   if(_did->Poll())
+   if(_device->Poll())
    {
       // get data
       DIJOYSTATE dijs;
-      if(!OK(_did->GetDeviceState(SIZE(dijs), &dijs)))
+      if(!OK(_device->GetDeviceState(SIZE(dijs), &dijs)))
       {
          if(App.active())acquire(true); Zero(dijs);
          dijs.rgdwPOV[0]=UINT_MAX;
@@ -357,7 +352,7 @@ void Joypad::acquire(Bool on)
 #if WINDOWS
    if(_xinput1 && !on)zero(); // unacquire
 #if WINDOWS_OLD
-   if(_did){if(on){_did->Acquire(); if(_effect)_effect->Start(1, 0);}else _did->Unacquire();}
+   if(_device){if(on)_device->Acquire();else _device->Unacquire();}
 #endif
 #endif
 }
@@ -443,7 +438,6 @@ static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: t
 static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)
 {
    Joypad &joypad=*(Joypad*)user;
-   if(pdidoi->dwFlags&DIDOI_FFACTUATOR)joypad._vibration_axes++;
 
    // Logitech RumblePad 2 uses: (x0=lX, y0=lY, x1=lZ, y1=lRz)
    Int offset=0;
@@ -477,7 +471,7 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
          if(OK(did->SetDataFormat      (&c_dfDIJoystick)))
          if(OK(did->SetCooperativeLevel(App.Hwnd(), DISCL_EXCLUSIVE|DISCL_FOREGROUND)))
          {
-            Swap(joypad._did, did);
+            Swap(joypad._device, did);
             joypad._name=DIDevInst->tszProductName;
 
             // disable auto centering ?
@@ -485,36 +479,11 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
             dipdw.diph.dwSize      =SIZE(dipdw);
             dipdw.diph.dwHeaderSize=SIZE(DIPROPHEADER);
             dipdw.diph.dwHow       =DIPH_DEVICE;
-            OK(joypad._did->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph));
+            joypad._device->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph);
 
-            // enumerate ForceFeedback axes
-                joypad._did->EnumObjects(EnumAxes, &joypad, DIDFT_AXIS);
-            MIN(joypad._vibration_axes, 2);
-
-            // create ForceFeedback effect
-            if(joypad._vibration_axes)
-            {
-               DWORD rgdwAxes    [2]={DIJOFS_X, DIJOFS_Y};
-               LONG  rglDirection[2]={0, 0};
-               DICONSTANTFORCE cf; Zero(cf);
-
-               DIEFFECT eff; Zero(eff);
-               eff.dwSize=SIZE(eff);
-               eff.dwFlags=DIEFF_CARTESIAN|DIEFF_OBJECTOFFSETS;
-               eff.dwDuration=INFINITE;
-               eff.dwGain=DI_FFNOMINALMAX;
-               eff.dwTriggerButton=DIEB_NOTRIGGER;
-               eff.cAxes=joypad._vibration_axes;
-               eff.rgdwAxes=rgdwAxes;
-               eff.rglDirection=rglDirection;
-               eff. cbTypeSpecificParams=SIZE(cf);
-               eff.lpvTypeSpecificParams=&cf;
-
-               // Create the prepared effect
-               joypad._did->CreateEffect(GUID_ConstantForce, &eff, &joypad._effect, null);
-            }
+            joypad._did->EnumObjects(EnumAxes, &joypad, DIDFT_AXIS);
          }
-         if(!joypad._did)Joypads.removeData(&joypad, true); // if failed to create it then remove it
+         if(!joypad._device)Joypads.removeData(&joypad, true); // if failed to create it then remove it
          RELEASE(did);
       }
    }
