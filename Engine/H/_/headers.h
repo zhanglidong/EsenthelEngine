@@ -467,6 +467,7 @@
       #include <nv/nv_MemoryManagement.h>
       #include <movie/Decoder.h>
       #include <movie/Common.h>
+      #include <nn/audio.h>
       #if GL
          #include <EGL/egl.h>
          #include <EGL/eglext.h>

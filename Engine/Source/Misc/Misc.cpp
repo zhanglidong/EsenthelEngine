@@ -686,13 +686,14 @@ void IDGenerator::Return(UInt id) // return ID so it can be re-used later
 {
    if(id<_created) // if this ID fits in range of what was created
    {
-      if(_returned.elms()==_created-1) // if returned all that were created
+      DEBUG_ASSERT(!_returned.has(id), "IDGenerator 'id' was returned twice");
+      if(id==_created-1)_created--;else // if this is the one that was created most recently
+      if(_returned.elms()==_created-1)  // if returned all that were created
       { // reset counter
         _created=0;
         _returned.clear();
       }else
-      if(id==_created-1)_created--; // if this is the one that was created most recently
-      else       _returned.add(id); // add to the list of returned ID's
+         _returned.add(id); // add to the list of returned ID's
    }
 }
 /******************************************************************************/
