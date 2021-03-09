@@ -890,7 +890,8 @@ static UInt GetSpeakerConfig()
 }
 #pragma runtime_checks("", restore)
 /******************************************************************************/
-Bool AudioUpdate(Thread &thread)
+#if ESENTHEL_AUDIO
+static Bool AudioUpdate(Thread &thread)
 {
    if(AudioCommands.elms()) // process commands
    {
@@ -899,15 +900,21 @@ Bool AudioUpdate(Thread &thread)
       {
          auto &cmd=AudioCommands[i]; switch(cmd.cmd)
          {
-            case ACMD_DEL: AudioVoices.removeData(cmd.voice); break;
-            // FIXME ACMD_STOP ACMD_PLAY ACMD_DEL also remove from played, don't call 'stop' inside 'del'?
+            case ACMD_DEL: AudioVoicesPlaying.; AudioVoices.removeData(cmd.voice); break;
+            // FIXME ACMD_STOP ACMD_PLAY, ACMD_DEL also add/remove from played, don't call 'stop' inside 'del'?
+            // FIXME make AudioVoicesPlaying Memx and store Int abs_index_playing inside Voice?
          }
       }
       AudioCommands.clear();
    }
+   REPA(AudioVoicesPlaying)
+   {
+      AudioVoice &voice=*AudioVoicesPlaying[i];
+   }
    Time.wait(5); // FIXME
    return true;
 }
+#endif
 /******************************************************************************/
 void InitSound()
 {
