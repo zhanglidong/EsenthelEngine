@@ -759,7 +759,7 @@ Sound& Sound::close()
             SoundWaited=true; // we now know that the sound thread is waiting
          }
          {
-            SyncLocker locker_memx(SoundMemxLock);
+            SyncLocker SoundMemxLocker(SoundMemxLock);
             SOUND_API_LOCK;
             SoundMemx.removeData(sound, true); // !! requires 'SoundAPILock' !!
          }
@@ -859,8 +859,8 @@ Sound& Sound::fadeOut          (Flt fade_duration) {if(sound && SoundFunc)sound-
 /******************************************************************************/
 Bool Sound::save(File &f, CChar *path)C
 {
-   SyncLocker locker_memx(SoundMemxLock); // use lock even though we don't need it, to minimize the risk of data being modified during saving
-   SOUND_API_LOCK;                        // use lock even though we don't need it, to minimize the risk of data being modified during saving
+   SyncLocker SoundMemxLocker(SoundMemxLock); // use lock even though we don't need it, to minimize the risk of data being modified during saving
+   SOUND_API_LOCK;                            // use lock even though we don't need it, to minimize the risk of data being modified during saving
    if(is())
    {
       f.putBool(true);
@@ -895,8 +895,8 @@ Bool Sound::load(File &f, CChar *path)
 void EmulateSound3D() {REPAO(SoundMemxPlaying)->_buffer.emulate3D();} // !! requires 'SoundAPILock' !!
 #endif
 // following can be called on the main thread, because of that we can't use 'SoundMemxPlaying'
-void VolumeSound() {SyncLocker locker_memx(SoundMemxLock); REPA(SoundMemx)AtomicOr(SoundMemx[i].flag, SOUND_CHANGED_VOLUME);}
-void  SpeedSound() {SyncLocker locker_memx(SoundMemxLock); REPA(SoundMemx)AtomicOr(SoundMemx[i].flag, SOUND_CHANGED_SPEED );}
+void VolumeSound() {SyncLocker SoundMemxLocker(SoundMemxLock); REPA(SoundMemx)AtomicOr(SoundMemx[i].flag, SOUND_CHANGED_VOLUME);}
+void  SpeedSound() {SyncLocker SoundMemxLocker(SoundMemxLock); REPA(SoundMemx)AtomicOr(SoundMemx[i].flag, SOUND_CHANGED_SPEED );}
 
 static Int CompareSound(C _Sound &a, C _Sound &b)
 {
@@ -960,9 +960,9 @@ again:
       Flt min_vol       =SoundMinVolume    ();
       Dbl time=Time.curTime(); Flt dt=time-SoundTime; SoundTime=time; // get time that passed since the last update
 
-      SyncLockerEx locker_memx(SoundMemxLock);
+      SyncLockerEx SoundMemxLocker(SoundMemxLock);
    #if !SOUND_API_THREAD_SAFE
-      SyncLockerEx locker_api (SoundAPILock); SoundAPILockDo=false; // disable 'SoundAPILock' because we're already covered by the lock here
+      SyncLockerEx SoundAPILocker (SoundAPILock); SoundAPILockDo=false; // disable 'SoundAPILock' because we're already covered by the lock here
    #endif
       REPA(SoundMemx)if(!SoundMemx[i].update(dt))SoundMemx.removeValid(i, true); // !! requires 'SoundAPILock' !!
       SoundMemx.sort(CompareSound);
@@ -1006,7 +1006,7 @@ again:
             }
          }
       }
-      locker_memx.off(); // finished operating on 'SoundMemx', further sound update will be done using 'SoundMemxPlaying'
+      SoundMemxLocker.off(); // finished operating on 'SoundMemx', further sound update will be done using 'SoundMemxPlaying'
 
       if(SoundMemxPlaying.elms())
       {
@@ -1027,13 +1027,13 @@ again:
 
       #if !SOUND_API_THREAD_SAFE
             SoundAPILockDo=(SoundMemxPlaying.elms()>1 && max_threads>1); // we need to do locking if we're going to process multiple sounds on multiple threads
-         if(SoundAPILockDo)locker_api.off(); // release from this thread so other threads can capture it
+         if(SoundAPILockDo)SoundAPILocker.off(); // release from this thread so other threads can capture it
       #endif
 
          SoundThreads.process1(SoundMemxPlaying, UpdatePlaying, null, max_threads);
 
       #if !SOUND_API_THREAD_SAFE
-         if(SoundAPILockDo)locker_api.on(); // re-enable for this thread because it's needed for calls done below (Listener)
+         if(SoundAPILockDo)SoundAPILocker.on(); // re-enable for this thread because it's needed for calls done below (Listener)
       #endif
       }
 
@@ -1057,8 +1057,8 @@ void ShutSound2()
    SoundThreadBuffer.del(); // delete this after deleting the thread
 #endif
 
-   SyncLocker locker_memx(SoundMemxLock);
-   SyncLocker locker_api (SoundAPILock );
+   SyncLocker SoundMemxLocker(SoundMemxLock);
+   SyncLocker SoundAPILocker (SoundAPILock );
    SoundMemxPlaying.del();
    SoundMemx       .del();
 }
