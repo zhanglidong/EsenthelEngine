@@ -693,7 +693,7 @@ void IDGenerator::Return(UInt id) // return ID so it can be re-used later
         _created=0;
         _returned.clear();
       }else
-         _returned.add(id); // add to the list of returned ID's
+        _returned.add(id); // add to the list of returned ID's
    }
 }
 /******************************************************************************/
