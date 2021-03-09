@@ -294,7 +294,7 @@ Bool PlayingAnySound();
 inline Flt SoundSpeed(Flt speed) {return Mid(speed, 0.0f, (Flt)MAX_SOUND_SPEED);}
 
 #if HAS_THREADS
-   #define SOUND_TIMER       26                                // 26 ms which is 38.5 Hz(fps), recommended value to be between 17ms(58.8Hz fps) .. 34ms(29.4Hz fps), also the callback will be triggered at least once per frame (due to 'SoundEvent' being triggered at the end of each frame to immediately process any changes), shorter timers result in smaller memory usage at the cost of additional overhead on the CPU
+   #define SOUND_TIMER       25                                // 25 ms which is 40 Hz/FPS, recommended value to be between 16.666 ms (60 Hz/FPS) .. 33.333 ms (30 Hz/FPS), also the callback will be triggered at least once per frame (due to 'SoundEvent' being triggered at the end of each frame to immediately process any changes), shorter timers result in smaller memory usage at the cost of additional overhead on the CPU
    #define SOUND_TIME        (SOUND_TIMER*2*2*MAX_SOUND_SPEED) // 2 (2 half buffers) * 2 (safety due to sounds being started at different times) * MAX_SOUND_SPEED
    #define SOUND_TIME_RECORD (SOUND_TIMER*2*2)                 // 2 (2 half buffers) * 2 (safety due to sounds being started at different times), this doesn't need MAX_SOUND_SPEED because sounds are always recorded with speed=1
 #else
