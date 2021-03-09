@@ -8,6 +8,38 @@ enum VIRTUALIZATION_MODE // 2D Sound Virtualization Mode
    VIRT_HIGH, // high
 };
 /******************************************************************************/
+#define MAX_SOUND_SPEED 2
+inline Flt SoundSpeed(Flt speed) {return Mid(speed, 0.0f, (Flt)MAX_SOUND_SPEED);}
+
+#if HAS_THREADS
+   #define SOUND_TIMER       25                                // 25 ms which is 40 Hz/FPS, recommended value to be between 16.666 ms (60 Hz/FPS) .. 33.333 ms (30 Hz/FPS), also the callback will be triggered at least once per frame (due to 'SoundEvent' being triggered at the end of each frame to immediately process any changes), shorter timers result in smaller memory usage at the cost of additional overhead on the CPU
+   #define SOUND_TIME        (SOUND_TIMER*2*2*MAX_SOUND_SPEED) // 2 (2 half buffers) * 2 (safety due to sounds being started at different times) * MAX_SOUND_SPEED
+   #define SOUND_TIME_RECORD (SOUND_TIMER*2*2)                 // 2 (2 half buffers) * 2 (safety due to sounds being started at different times), this doesn't need MAX_SOUND_SPEED because sounds are always recorded with speed=1
+#else
+   #define SOUND_TIMER         50
+   #define SOUND_TIME        1200 // when there are no threads available, set a big sound buffer, to allow some tolerance for pauses during loading
+   #define SOUND_TIME_RECORD  500 // when there are no threads available, set a big sound buffer, to allow some tolerance for pauses during loading
+#endif
+
+#define SOUND_SAMPLES(freq) ((freq)*SOUND_TIME/1000) // total number of samples needed for full buffer (2 halfs) for a sound to be played using SOUND_TIMER
+/******************************************************************************/
+const_mem_addr struct AudioBuffer
+{
+   Byte data[SOUND_SAMPLES(48000)/2*SIZE(I16)]; // /2 to get size for half buffer (instead of full), "*SIZE(I16)" for 16-bit samples, here only 1-channel mono is used, to use more channels and higher frequency, multiple buffers will need to be used
+};
+const_mem_addr struct AudioVoice
+{
+   Byte         channels;
+   Int          samples; // how many samples in a single buffer
+   Flt          speed;
+   Flt          volume[2];
+   Int          buffers;
+   AudioBuffer *buffer[2*2*2]; // 2halfs * 2channels * 2freq (to support 96kHz, because base is 48kHz)
+
+  ~AudioVoice();
+   AudioVoice();
+};
+/******************************************************************************/
 const_mem_addr struct SoundBuffer // can be moved however 'memAddressChanged' needs to be called afterwards
 {
    // manage
@@ -36,7 +68,7 @@ const_mem_addr struct SoundBuffer // can be moved however 'memAddressChanged' ne
    void pos      (C Vec &pos      );   Vec  pos  ()C;
    void vel      (C Vec &vel      );   Vec  vel  ()C;
 
-   void setParams(C _Sound &sound, Bool pos_range, Bool doppler);
+   void set3DParams(C _Sound &sound, Bool pos_range, Bool speed);
 
    // stop / play
    void stop   ();
@@ -81,6 +113,10 @@ private:
    SL3DDopplerItf                player_doppler;
    SL3DSourceItf                 player_source;
    Mems<Byte>                   _data;
+#elif ESENTHEL_AUDIO
+   AudioVoice                  *_voice;
+   Bool                         _3d;
+   Flt                          _volume; // used only if _3d
 #endif
 
    NO_COPY_CONSTRUCTOR(SoundBuffer);

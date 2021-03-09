@@ -245,6 +245,7 @@ struct IndexWeight;
 /******************************************************************************/
 struct _Sound;
 struct _SoundRecord;
+struct SoundBuffer;
 struct SoundStream;
 struct SoundDataCallback;
 /******************************************************************************/

@@ -36,7 +36,7 @@ ALIGN_ASSERT(_Sound, _callback); // must have native alignment because we use it
 
 #define DEL_BUFFER_WHEN_NOT_PLAYING 1 // 0 is not fully implemented so don't use
 
-#define SOUND_API_THREAD_SAFE (DIRECT_SOUND || XAUDIO || OPEN_AL) // DirectSound, XAudio, OpenAL are thread-safe, OpenSL is thread-safe only with SL_ENGINEOPTION_THREADSAFE flag enabled which however is not used in Esenthel since thread-safety is handled manually
+#define SOUND_API_THREAD_SAFE (DIRECT_SOUND || XAUDIO || OPEN_AL || ESENTHEL_AUDIO) // DirectSound, XAudio, OpenAL, EsenthelAudio are thread-safe, OpenSL is thread-safe only with SL_ENGINEOPTION_THREADSAFE flag enabled which however is not used in Esenthel since thread-safety is handled manually
 
 #define UPDATE_2X WINDOWS_NEW // on WINDOWS_NEW we have to operate 2x faster due to low-latency sound recording, TODO: can this be improved so we don't have to call 2x more frequently? perhaps do sound recording on a separate dedicated thread
 
@@ -53,8 +53,8 @@ ALIGN_ASSERT(_Sound, _callback); // must have native alignment because we use it
    #define SOUND_API_LOCK_SET  locker.set(SoundAPILockDo)
 #endif
 
-#if XAUDIO
-static Int ListenerChanged;
+#if XAUDIO || ESENTHEL_AUDIO
+static UInt ListenerChanged;
 #elif OPEN_AL
 static Mems< Mems<Byte> > SoundThreadBuffer;
 #endif
@@ -310,6 +310,8 @@ Long _Sound::preciseRaw()C // !! requires 'SoundAPILock' !!
       if(buffer_pos>buffer_half)pos-=_buffer._par.size;
    }
  //static Int last; LogName(S); LogN(S+last_buffer+' '+buffer_pos+'/'+_buffer._par.size+", rp:"+raw_pos+", pos:"+pos+", d:"+(pos-last)); last=pos;
+#elif ESENTHEL_AUDIO
+   // FIXME
 #endif
 
    // this won't be needed if we would operate on samples
@@ -499,6 +501,9 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
       return (*_buffer.player_buffer_queue)->Enqueue(_buffer.player_buffer_queue, data, size)==SL_RESULT_SUCCESS; // !! requires 'SoundAPILock' !!
    }
    return false;
+#elif ESENTHEL_AUDIO
+   // FIXME
+   return false;
 #else
    return false;
 #endif
@@ -543,6 +548,9 @@ Bool _Sound::testBuffer(Int thread_index) // this manages locking on its own
       AtomicSub(_buffer._processed, processed);
       // unlike OpenAL we don't need to check if buffer is no longer playing due to running out of buffers, because OpenSL will auto-play when adding new buffers if it's in play mode, check comments on 'Enqueue' function - https://www.khronos.org/registry/sles/specs/OpenSL_ES_Specification_1.0.1.pdf
    }
+#elif ESENTHEL_AUDIO
+   // FIXME
+   return false;
 #endif
    return true;
 }
@@ -592,7 +600,7 @@ void _Sound::updatePlaying(Int thread_index)
          SoundStream &stream=T.stream();
 
          SOUND_API_LOCK_COND;
-         if(!_buffer.create(stream.frequency(), stream.bits(), stream.channels(), Ceil2(stream.frequency()*SOUND_TIME/1000), is3D())) // !! requires 'SoundAPILock' !! we need to use 'Ceil2' because we're operating on half buffers everywhere, so we need to make sure that their sizes will be the same
+         if(!_buffer.create(stream.frequency(), stream.bits(), stream.channels(), Ceil2(SOUND_SAMPLES(stream.frequency())), is3D())) // !! requires 'SoundAPILock' !! we need to use 'Ceil2' because we're operating on half buffers everywhere, so we need to make sure that their sizes will be the same
             goto error;
 
       #if DEL_BUFFER_WHEN_NOT_PLAYING
@@ -607,33 +615,43 @@ void _Sound::updatePlaying(Int thread_index)
       if(!_buffer_playing)AtomicOr(T.flag, SOUND_CHANGED_VOLUME|SOUND_CHANGED_SPEED|SOUND_CHANGED_TIME); // if not playing yet then we need to apply volume and speed because they are affected by global parameters, also reset the time because it's modified when sound is paused
    #endif
       UInt flag=AtomicGet(T.flag), handled=SOUND_CHANGED_POS|SOUND_CHANGED_VEL|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE|SOUND_CHANGED_VOLUME|SOUND_CHANGED_SPEED|SOUND_CHANGED_TIME|SOUND_CHANGING_TIME; // flags handled here, need to check for SOUND_CHANGED_ORN because of Listener changes
-   #if XAUDIO
+   #if XAUDIO || ESENTHEL_AUDIO
       flag|=ListenerChanged;
    #endif
       if(flag&handled)
       {
          flag=AtomicDisable(T.flag, handled); // disable these flags first, so in case the user modifies parameters while this function is running, it will be activated again, don't surround this with another 'if' (to avoid extra branching) because most likely they will return handled flags
-      #if XAUDIO
+      #if XAUDIO || ESENTHEL_AUDIO
          flag|=ListenerChanged;
       #endif
          SOUND_API_LOCK_COND; // below !! requires 'SoundAPILock' !!
-      #if XAUDIO // XAudio processes changes together
+         if(flag&SOUND_CHANGED_VOLUME)setVolume(); // !! call this first before 'set3DParams' because ESENTHEL_AUDIO needs this !!
+      #if XAUDIO
          if(_is3D)
          {
-            if(flag&SOUND_CHANGED_SPEED)setSpeed(); // !! call this first before 'setParams' !!
+            if(flag&SOUND_CHANGED_SPEED)setSpeed(); // !! call this first before 'set3DParams' !!
             if(flag&(SOUND_CHANGED_POS|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE|SOUND_CHANGED_VEL|SOUND_CHANGED_SPEED)) // need to check for SOUND_CHANGED_ORN because of Listener changes
-              _buffer.setParams(T, FlagTest(flag, SOUND_CHANGED_POS|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE), FlagTest(flag, SOUND_CHANGED_POS|SOUND_CHANGED_VEL|SOUND_CHANGED_SPEED));
+              _buffer.set3DParams(T, FlagTest(flag, SOUND_CHANGED_POS|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE), FlagTest(flag, SOUND_CHANGED_POS|SOUND_CHANGED_VEL|SOUND_CHANGED_SPEED));
+         }else
+         {
+            if(flag&SOUND_CHANGED_SPEED){setSpeed(); _buffer.speed(SoundSpeed(_actual_speed));}
+         }
+      #elif ESENTHEL_AUDIO
+         if(_is3D)
+         {
+            if(flag&SOUND_CHANGED_SPEED)setSpeed(); // !! call this first before 'set3DParams' !!
+            if(flag&(SOUND_CHANGED_VOLUME|SOUND_CHANGED_POS|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE|SOUND_CHANGED_VEL|SOUND_CHANGED_SPEED)) // need to check for SOUND_CHANGED_ORN because of Listener changes
+              _buffer.set3DParams(T, FlagTest(flag, SOUND_CHANGED_VOLUME|SOUND_CHANGED_POS|SOUND_CHANGED_ORN|SOUND_CHANGED_RANGE), FlagTest(flag, SOUND_CHANGED_POS|SOUND_CHANGED_VEL|SOUND_CHANGED_SPEED));
          }else
          {
             if(flag&SOUND_CHANGED_SPEED){setSpeed(); _buffer.speed(SoundSpeed(_actual_speed));}
          }
       #else
+         if(flag&SOUND_CHANGED_SPEED ){setSpeed(); _buffer.speed(SoundSpeed(_actual_speed));}
          if(flag&SOUND_CHANGED_POS   )_buffer.pos  (_pos);
          if(flag&SOUND_CHANGED_VEL   )_buffer.vel  (_vel);
          if(flag&SOUND_CHANGED_RANGE )_buffer.range(_range);
-         if(flag&SOUND_CHANGED_SPEED ){setSpeed(); _buffer.speed(SoundSpeed(_actual_speed));}
       #endif
-         if(flag&SOUND_CHANGED_VOLUME)setVolume();
          if(flag&SOUND_CHANGED_TIME  )preciseTime(time());
       }
 
@@ -917,6 +935,7 @@ again:
       if(  want_paused!=paused)
       {
          SOUND_API_LOCK;
+//ESENTHEL_AUDIO FIXME this could be made easier, just don't do processing on the other thread
          if(want_paused)
          {
          #if XAUDIO
@@ -1010,7 +1029,7 @@ again:
 
       if(SoundMemxPlaying.elms())
       {
-      #if XAUDIO
+      #if XAUDIO || ESENTHEL_AUDIO
          ListenerChanged=
       #endif
             Listener.updateNoLock(); // !! requires 'SoundAPILock' !!
