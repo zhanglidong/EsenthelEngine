@@ -1116,6 +1116,7 @@ void InitSound()
    if(AudioOutputFreq
    && AudioOutputFrameSamples
    && AudioOutputFrameSize
+   && AudioOutputFrameData
    && AudioThread.create(AudioUpdate, null, 3/*priority*/, false, "EE.Audio"))
 #endif
 
