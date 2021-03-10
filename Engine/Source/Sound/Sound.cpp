@@ -173,24 +173,31 @@ Bool _Sound::init(C _Sound &src)
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-Flt _Sound::actualSpeed()C
+inline Flt _Sound::actualSpeed()C
 {
    Flt speed=T._speed;
    if(volume_group!=VOLUME_MUSIC && volume_group!=VOLUME_AMBIENT && volume_group!=VOLUME_UI)speed*=Time.speed();
    return speed;
 }
-void _Sound::setVolume() // !! requires 'SoundAPILock' !!
+inline Flt _Sound::actualVolume()C
 {
-   Flt volume=T._volume*SoundVolume._v[volume_group]*SoundVolume.global(); // adjust the volume by fade and global modifiers
-   switch(_fade_curve)
+#if !WINDOWS_OLD // non Windows platforms don't support 'AppVolume' directly, so let's simulate it here
+   if(AppVolume.muteFinal())return 0;
+#endif
+   Flt volume=T._volume*SoundVolume._v[volume_group]*SoundVolume.global(); // adjust the volume by global modifiers
+   switch(_fade_curve) // and fade
    {
       case FADE_LINEAR: volume*=         _fade ; break;
       case FADE_SQRT  : volume*=SqrtFast(_fade); break; // can use sqrt fast because '_fade' always guaranteed to be 0..1
    }
 #if !WINDOWS_OLD
-   if(AppVolume.muteFinal())volume=0;else volume*=AppVolume.volume(); // non Windows platforms don't support 'AppVolume' directly, so let's simulate it here
+   volume*=AppVolume.volume(); // non Windows platforms don't support 'AppVolume' directly, so let's simulate it here
 #endif
-  _buffer.volume(volume); // !! requires 'SoundAPILock' !!
+   return volume;
+}
+void _Sound::setVolume() // !! requires 'SoundAPILock' !!
+{
+  _buffer.volume(actualVolume()); // !! requires 'SoundAPILock' !!
 }
 void _Sound::setSpeed()
 {

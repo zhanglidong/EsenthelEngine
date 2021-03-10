@@ -151,6 +151,7 @@ const_mem_addr struct _Sound // can be moved however 'memAddressChanged' needs t
 
    // operations
    Flt  actualSpeed  ()C;
+   Flt  actualVolume ()C;
    void setVolume    ();
    void setSpeed     ();
    Bool update       (Flt dt);

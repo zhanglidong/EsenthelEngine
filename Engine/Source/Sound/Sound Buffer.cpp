@@ -59,6 +59,16 @@ static Thread            AudioThread;
 Bool          SoundAPI, SoundFunc;
 ListenerClass Listener;
 /******************************************************************************/
+void Get3DParams(C Vec &pos, Flt range, Flt volume, Flt &out_volume, Flt &out_pan) // 'out_pan' will always be -1..1
+{
+   Vec delta=pos-Listener.pos();
+   Flt dist =delta.length();
+   if( dist>range)volume*=range/dist;
+   if( dist>    1)delta /=dist; // normalize only if the length is greater than 1 so that we can still have panning when the distance is less than 1
+   out_volume=volume;
+   out_pan   =Dot(delta, Listener.right());
+}
+/******************************************************************************/
 #if ESENTHEL_AUDIO
 AudioVoice::~AudioVoice() // !! requires 'AudioLock' !!
 {
@@ -437,13 +447,7 @@ Bool SoundBuffer::emulate3D()
 {
    if(_3d && !player_location && player_volume) // if should be 3D, but it's not available, then adjust volume manually
    {
-      Vec delta =_pos-Listener.pos();
-      Flt dist  =delta.length(),
-          volume=T._volume;
-      if( dist>_range)volume*=_range/dist;
-      if( dist>     1)delta /=dist; // normalize only if the length is greater than 1 so that we can still have panning when the distance is less than 1
-      Flt pan=Dot(delta, Listener.right());
-
+      Flt volume, pan; Get3DParams(_pos, _range, _volume, volume, pan);
       SOUND_API_LOCK_WEAK;
       T.pan(pan);
       SLmillibel linear=Max(SL_MILLIBEL_MIN, Round(Lerp(-10000, 0, Pow(volume, 0.1f)))); // this matches DirectSound version and sounds ok
@@ -536,9 +540,13 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
    {
       if(pos_range)
       {
-         // FIXME calc 3d like emulate
-        _voice->volume[0]=T._volume;
-        _voice->volume[1]=T._volume;
+         // first calculate on temporaries
+         Flt volume, pan; Get3DParams(sound.pos(), sound.range(), _volume, volume, pan);
+         Flt volume_left =volume; if(pan>0)volume_left *=1-pan;
+         Flt volume_right=volume; if(pan<0)volume_right*=1+pan;
+         // now set to final values, because '_voice->volume' might be used on secondary thread
+        _voice->volume[0]=volume_left;
+        _voice->volume[1]=volume_right;
       }
       if(speed)T.speed(SoundSpeed(sound._actual_speed));
    }
