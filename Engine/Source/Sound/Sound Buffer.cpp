@@ -921,11 +921,11 @@ void AudioVoice::update()
    if(play && queued)
    {
     C Int     dest_channels=2,
-              dest_block=SIZE(I16)*dest_channels,
+              dest_block   =SIZE(I16)*dest_channels,
                src_channels=channels,
-               src_block=SIZE(I16)*src_channels;
-      Int     dest_samples=AudioOutputFrameSamples;
-      Stereo *dest_data=(Stereo*)AudioOutputFrameData;
+               src_block   =block;
+      Int     dest_samples =AudioOutputFrameSamples;
+      Stereo *dest_data    =(Stereo*)AudioOutputFrameData;
    again:
       I16 *src_data   =(I16*)(buffer[buffer_i]->data+buffer_raw);
       Int  src_size   =buffer_size-buffer_raw,
