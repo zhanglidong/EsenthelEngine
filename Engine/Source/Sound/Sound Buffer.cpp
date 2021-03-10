@@ -45,26 +45,12 @@ static SL3DCommitItf            SLListenerCommit;
 
 #define SL_POS_UNIT 0.001f // milimeter
 #elif ESENTHEL_AUDIO
-enum AUDIO_COMMAND : Byte
-{
-   ACMD_PLAY,
-   ACMD_STOP,
-   ACMD_DEL ,
-};
-struct AudioCommand
-{
-   AUDIO_COMMAND cmd;
-   AudioVoice   *voice;
-
-   void set(AUDIO_COMMAND cmd, AudioVoice *voice) {T.cmd=cmd; T.voice=voice;}
-};
-static Memx<AudioBuffer>  AudioBuffers;
-static Memx<AudioVoice>   AudioVoices;
-static Memc<AudioVoice*>  AudioVoicesPlaying;
-static Memc<AudioCommand> AudioCommands;
-static SyncLock           AudioLock;
-static Thread             AudioThread;
-static Int                AudioOutputFreq;
+static Memx<AudioBuffer> AudioBuffers;
+static Memx<AudioVoice>  AudioVoices;
+static AudioVoice       *AudioVoiceFirst;
+static SyncLock          AudioLock;
+static Thread            AudioThread;
+static Int               AudioOutputFreq;
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -73,16 +59,22 @@ ListenerClass Listener;
 #if ESENTHEL_AUDIO
 AudioVoice::~AudioVoice() // !! requires 'AudioLock' !!
 {
-   REP(buffers){AudioBuffers.removeData(buffer[i]); buffer[i]=null;}
-       buffers=0;
+   REP(buffers)AudioBuffers.removeData(buffer[i]);
 }
+/* This is not used, instead members are setup when creating new element
 AudioVoice::AudioVoice()
 {
+   play=remove=false;
+   channels=0;
+   buffer_set=0xFF;
+   samples=0;
+   size=0;
+   buffers=0;
    speed=1;
    REPAO(volume)=1;
-   channels=samples=buffers=0;
    Zero(buffer);
-}
+   next=null;
+}*/
 #endif
 /******************************************************************************/
 void SoundBuffer::zero()
@@ -151,7 +143,7 @@ void SoundBuffer::del()
    }
   _data.del(); // delete the buffer after 'player_object'
 #elif ESENTHEL_AUDIO
-   if(_voice){SyncLocker lock(AudioLock); AudioCommands.New().set(ACMD_DEL, _voice);}
+   if(_voice)_voice->remove=true; // mark for removal, it will be processed on the audio thread as long as this voice is included in the list
 #endif
    zero();
 }
@@ -300,15 +292,28 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
       if( buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
       {
         _3d=is3D;
-         SyncLocker lock(AudioLock); // creating voice needs lock
-        _voice=&AudioVoices.New();
-        _voice->channels=channels;
-        _voice->samples =buffer_samples;
-        _voice->buffers =buffers; FREP(buffers) // allocate in order
          {
-           _voice->buffer[i]=&AudioBuffers.New();
+            SyncLocker lock(AudioLock); // creating voice and buffers needs lock
+           _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
+            FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
          }
+        _voice->play      =false;
+        _voice->remove    =false;
+        _voice->channels  =channels;
+        _voice->buffer_set=0xFF;
+        _voice->samples   =buffer_samples;
+        _voice->size      =_par.size; // single buffer size
+        _voice->buffers   =buffers;
+         REPAO(_voice->volume)=1;
          speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
+        _par.size*=buffers; // now adjust by all buffers
+
+         // !! Always do this !!
+         // once all members are setup, add to list, always add it even before playing so list update can process 'remove'
+      again:
+         AudioVoice *first=AudioVoiceFirst;
+        _voice->next=first;
+         if(!AtomicCAS(AudioVoiceFirst, first, _voice))goto again;
          return true;
       }
    #endif
@@ -682,7 +687,7 @@ void SoundBuffer::stop()
    if(player_play        )(*player_play        )->SetPlayState(player_play        , SL_PLAYSTATE_STOPPED);
    if(player_buffer_queue)(*player_buffer_queue)->Clear       (player_buffer_queue                      ); _processed=0; // clear the queue
 #elif ESENTHEL_AUDIO
-   if(_voice){SyncLocker lock(AudioLock); AudioCommands.New().set(ACMD_STOP, _voice);}
+   if(_voice)_voice->play=false;
 #endif
 }
 void SoundBuffer::pause()
@@ -696,7 +701,7 @@ void SoundBuffer::pause()
 #elif OPEN_SL
    if(player_play){SOUND_API_LOCK_WEAK; (*player_play)->SetPlayState(player_play, SL_PLAYSTATE_PAUSED);}
 #elif ESENTHEL_AUDIO
-   // FIXME
+   if(_voice)_voice->play=false;
 #endif
 }
 void SoundBuffer::toggle(Bool loop)
@@ -710,7 +715,7 @@ void SoundBuffer::toggle(Bool loop)
 #elif OPEN_SL
    if(player_play){SOUND_API_LOCK_WEAK; (*player_play)->SetPlayState(player_play, playing() ? SL_PLAYSTATE_PAUSED : SL_PLAYSTATE_PLAYING);}
 #elif ESENTHEL_AUDIO
-   // FIXME
+   if(_voice)_voice->play^=1;
 #endif
 }
 Bool SoundBuffer::playing()C
@@ -725,8 +730,7 @@ Bool SoundBuffer::playing()C
 #elif OPEN_SL
    SLuint32 state=SL_PLAYSTATE_STOPPED; if(player_play){SOUND_API_LOCK_WEAK; (*player_play)->GetPlayState(player_play, &state);} return state==SL_PLAYSTATE_PLAYING;
 #elif ESENTHEL_AUDIO
-   // FIXME
-   return false;
+   return _voice ? _voice->play : false;
 #else
    return false;
 #endif
@@ -742,7 +746,7 @@ void SoundBuffer::play(Bool loop)
 #elif OPEN_SL
    if(player_play){SOUND_API_LOCK_WEAK; (*player_play)->SetPlayState(player_play, SL_PLAYSTATE_PLAYING);}
 #elif ESENTHEL_AUDIO
-   if(_voice){SyncLocker lock(AudioLock); AudioCommands.New().set(ACMD_PLAY, _voice);}
+   if(_voice)_voice->play=true;
 #endif
 }
 /******************************************************************************/
@@ -893,23 +897,36 @@ static UInt GetSpeakerConfig()
 #if ESENTHEL_AUDIO
 static Bool AudioUpdate(Thread &thread)
 {
-   if(AudioCommands.elms()) // process commands
+start:
+   if(AudioVoice *voice=AudioVoiceFirst)
    {
-      SyncLocker lock(AudioLock);
-      FREPA(AudioCommands) // !! process in order !!
+      if(voice->remove) // check if first wants to be removed
       {
-         auto &cmd=AudioCommands[i]; switch(cmd.cmd)
-         {
-            case ACMD_DEL: AudioVoicesPlaying.; AudioVoices.removeData(cmd.voice); break;
-            // FIXME ACMD_STOP ACMD_PLAY, ACMD_DEL also add/remove from played, don't call 'stop' inside 'del'?
-            // FIXME make AudioVoicesPlaying Memx and store Int abs_index_playing inside Voice?
+         if(AtomicCAS(AudioVoiceFirst, voice, voice->next)) // if set new first
+         { // remove 'voice'
+            SyncLocker lock(AudioLock);
+            AudioVoices.removeData(voice);
          }
+         goto start; // after both removing, and failing to remove, go to start
       }
-      AudioCommands.clear();
-   }
-   REPA(AudioVoicesPlaying)
-   {
-      AudioVoice &voice=*AudioVoicesPlaying[i];
+   loop:
+      if(voice->play)
+      {
+         
+      }
+   again:
+      if(AudioVoice *next=voice->next) // if have next voice
+      {
+         if(next->remove) // if next wants to be removed
+         {
+            voice->next=next->next; // link voice with the one after next
+            SyncLocker lock(AudioLock);
+            AudioVoices.removeData(next); // remove next
+            goto again;
+         }
+         voice=next; // proceed to next
+         goto loop; // process it
+      }
    }
    Time.wait(5); // FIXME
    return true;
@@ -1019,11 +1036,10 @@ void ShutSound()
 
    SOUND_API_LOCK_FORCE; // lock after deleting 'SoundThread'
 #if ESENTHEL_AUDIO
-   AudioThread       .del(); // thread first
-   AudioCommands     .del();
-   AudioVoicesPlaying.del();
-   AudioVoices       .del();
-   AudioBuffers      .del();
+   AudioThread .del(); // thread first
+   AudioBuffers.del(); // can remove all buffers first fast, so when removing voices, the individual remove buffer commands will be ignored
+   AudioVoiceFirst=null;
+   AudioVoices .del();
 #endif
 #if DIRECT_SOUND
    RELEASE(DSL);
