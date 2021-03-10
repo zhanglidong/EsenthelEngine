@@ -171,7 +171,7 @@ const_mem_addr struct _Sound // can be moved however 'memAddressChanged' needs t
    // stream
    void setBufferData(Byte *buffer, Int size);
    Bool setBuffer    (Byte  buffer, Int thread_index);
-   Bool setNextBuffer(Int thread_index) {return setBuffer(!last_buffer, thread_index);} // remember that 'last_buffer' can be 0xFF
+   Bool setNextBuffer(Int thread_index);
    Bool testBuffer   (Int thread_index);
    Int  buffers      ()C {return _buffer.buffers();}
 

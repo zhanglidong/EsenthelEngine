@@ -14,9 +14,11 @@ inline Bool Any(C Dbl &x, C Dbl &y                    ) {return FlagTest((U64&)x
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z          ) {return FlagTest((U64&)x | (U64&)y | (U64&)z          , (~0ull)>>1);} // faster version of "x!=0 || y!=0 || z!=0"
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z, C Dbl &w) {return FlagTest((U64&)x | (U64&)y | (U64&)z | (U64&)w, (~0ull)>>1);} // faster version of "x!=0 || y!=0 || z!=0 || w!=0"
 /******************************************************************************/
+inline Byte AtomicGet(C Byte &x        ) {return x;}
 inline Int  AtomicGet(C Int  &x        ) {return x;}
 inline UInt AtomicGet(C UInt &x        ) {return x;}
 inline Flt  AtomicGet(C Flt  &x        ) {return x;}
+inline void AtomicSet(  Byte &x, Byte y) {x=y     ;}
 inline void AtomicSet(  Int  &x, Int  y) {x=y     ;}
 inline void AtomicSet(  UInt &x, UInt y) {x=y     ;}
 inline void AtomicSet(  Flt  &x, Flt  y) {x=y     ;}

@@ -66,7 +66,7 @@ AudioVoice::AudioVoice()
 {
    play=remove=false;
    channels=0;
-   buffers=queued=processed=0;
+   buffers=queued=0;
    samples=0;
    size=0;
    speed=1;
@@ -288,7 +288,7 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
      _par.size=MEMBER_SIZE(AudioBuffer, data)/_par.block*_par.block; // here set size for a single buffer
       Int buffer_samples=_par.samples();
       Int buffers=DivCeil(samples, buffer_samples); // how many buffers we would need
-      if( buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
+      if( buffers>=1 && buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
       {
         _3d=is3D;
          {
@@ -296,15 +296,14 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
            _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
             FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
          }
-        _voice->play      =false;
-        _voice->remove    =false;
-        _voice->channels  =channels;
-        _voice->buffers   =buffers;
-        _voice->queued    =0;
-        _voice->processed =0;
-        _voice->samples   =buffer_samples;
-        _voice->size      =_par.size; // single buffer size
-         REPAO(_voice->volume)=1;
+        _voice->play    =false;
+        _voice->remove  =false;
+        _voice->channels=channels;
+        _voice->buffers =buffers;
+        _voice->queued  =0;
+        _voice->samples =buffer_samples;
+        _voice->size    =_par.size; // single buffer size
+  REPAO(_voice->volume )=1;
          speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
         _par.size*=buffers; // now adjust by all buffers
 

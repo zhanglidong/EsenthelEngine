@@ -32,8 +32,7 @@ const_mem_addr struct AudioVoice
    Bool         play, remove;
    Byte         channels ,
                 buffers  , // how many buffers available
-                queued   , // how many buffers queued for processing
-                processed; // how many buffers finished processing
+                queued   ; // how many buffers queued for processing
    Int          samples, // how many samples in a single buffer
                 size   ; // size in bytes of a single buffer
    Flt          speed,
@@ -127,9 +126,9 @@ private:
    SL3DSourceItf                 player_source;
    Mems<Byte>                   _data;
 #elif ESENTHEL_AUDIO
-   AudioVoice                  *_voice;
-   Bool                         _3d;
-   Flt                          _volume; // used only if _3d
+   AudioVoice *_voice;
+   Bool        _3d;
+   Flt         _volume; // used only if _3d
 #endif
 
    NO_COPY_CONSTRUCTOR(SoundBuffer);

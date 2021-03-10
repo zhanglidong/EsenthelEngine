@@ -512,6 +512,14 @@ Bool _Sound::setBuffer(Byte buffer, Int thread_index) // this manages locking on
 #endif
 }
 /******************************************************************************/
+inline Bool _Sound::setNextBuffer(Int thread_index)
+{ // !! Remember that 'last_buffer' can be 0xFF !! however this is called at a stage where it shouldn't be
+#if ESENTHEL_AUDIO
+   return setBuffer((last_buffer+1)%buffers(), thread_index);
+#else
+   return setBuffer(!last_buffer, thread_index);
+#endif
+}
 Bool _Sound::testBuffer(Int thread_index) // this manages locking on its own
 {
 #if DIRECT_SOUND
@@ -552,8 +560,7 @@ Bool _Sound::testBuffer(Int thread_index) // this manages locking on its own
       // unlike OpenAL we don't need to check if buffer is no longer playing due to running out of buffers, because OpenSL will auto-play when adding new buffers if it's in play mode, check comments on 'Enqueue' function - https://www.khronos.org/registry/sles/specs/OpenSL_ES_Specification_1.0.1.pdf
    }
 #elif ESENTHEL_AUDIO
-   // FIXME
-   return false;
+   REP(buffers()-_buffer._voice->queued)if(!setNextBuffer(thread_index))return false;
 #endif
    return true;
 }
