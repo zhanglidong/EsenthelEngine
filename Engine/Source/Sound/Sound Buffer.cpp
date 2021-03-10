@@ -936,9 +936,23 @@ void AudioVoice::update()
       speed==1) // no resample needed
       {
          Int samples=Min(src_samples, dest_samples);
+         dest_samples-=samples;
+         buffer_raw  +=samples*src_block;
          switch(src_channels)
          {
-            case 1: FREP(samples)
+            case 1:
+         #if 1
+            REP(samples>>2)
+            {
+               I16 s=src_data[0]; Add(dest_data[0].l, s*volume[0]); Add(dest_data[0].r, s*volume[1]);
+                   s=src_data[1]; Add(dest_data[1].l, s*volume[0]); Add(dest_data[1].r, s*volume[1]);
+                   s=src_data[2]; Add(dest_data[2].l, s*volume[0]); Add(dest_data[2].r, s*volume[1]);
+                   s=src_data[3]; Add(dest_data[3].l, s*volume[0]); Add(dest_data[3].r, s*volume[1]);
+               src_data+=4; dest_data+=4;
+            }
+            samples&=3;
+         #endif
+            REP(samples)
             {
                I16 s=*src_data++;
                Add(dest_data->l, s*volume[0]);
@@ -946,15 +960,25 @@ void AudioVoice::update()
                dest_data++;
             }break;
 
-            case 2: FREP(samples)
+            case 2:
+         #if 1
+            REP(samples>>2)
+            {
+               Add(dest_data[0].l, src_data[0]*volume[0]); Add(dest_data[0].r, src_data[1]*volume[1]);
+               Add(dest_data[1].l, src_data[2]*volume[0]); Add(dest_data[1].r, src_data[3]*volume[1]);
+               Add(dest_data[2].l, src_data[4]*volume[0]); Add(dest_data[2].r, src_data[5]*volume[1]);
+               Add(dest_data[3].l, src_data[6]*volume[0]); Add(dest_data[3].r, src_data[7]*volume[1]);
+               src_data+=8; dest_data+=4;
+            }
+            samples&=3;
+         #endif
+            REP(samples)
             {
                Add(dest_data->l, (*src_data++)*volume[0]);
                Add(dest_data->r, (*src_data++)*volume[1]);
                dest_data++;
             }break;
          }
-         dest_samples-=samples;
-         buffer_raw  +=samples*src_block;
       }else
       { // resample
       }
