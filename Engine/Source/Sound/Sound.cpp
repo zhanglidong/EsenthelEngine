@@ -505,7 +505,7 @@ Bool _Sound::setBuffer(Byte buffer, Int thread_index) // this manages locking on
    AudioVoice  *voice=_buffer._voice;
    AudioBuffer *voice_buffer=voice->buffer[buffer];
    setBufferData(voice_buffer->data, voice->size);
-   voice->buffer_set=buffer; // set after data was set
+   AtomicInc(voice->queued); // set after data was set
    return true;
 #else
    return false;

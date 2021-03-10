@@ -66,10 +66,9 @@ AudioVoice::AudioVoice()
 {
    play=remove=false;
    channels=0;
-   buffer_set=0xFF;
+   buffers=queued=processed=0;
    samples=0;
    size=0;
-   buffers=0;
    speed=1;
    REPAO(volume)=1;
    Zero(buffer);
@@ -300,10 +299,11 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
         _voice->play      =false;
         _voice->remove    =false;
         _voice->channels  =channels;
-        _voice->buffer_set=0xFF;
+        _voice->buffers   =buffers;
+        _voice->queued    =0;
+        _voice->processed =0;
         _voice->samples   =buffer_samples;
         _voice->size      =_par.size; // single buffer size
-        _voice->buffers   =buffers;
          REPAO(_voice->volume)=1;
          speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
         _par.size*=buffers; // now adjust by all buffers

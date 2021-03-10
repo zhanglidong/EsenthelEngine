@@ -1211,7 +1211,7 @@ void KeyboardClass::update()
       }
       if(enters) // call after we got out of sync lock in case this method would trigger 'Java_com_esenthel_Native_text' and introduce some sort of deadlock
       {
-         REP(enters)queue(KB_ENTER, '\n');
+         REP(enters)queue(KB_ENTER, u'\n');
          resetTextInput();
       }
    }

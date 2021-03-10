@@ -29,15 +29,19 @@ void AtomicSet( Long &x,  Long y) { Long old; do old=x; while(_InterlockedCompar
 void AtomicSet(ULong &x, ULong y) {ULong old; do old=x; while(_InterlockedCompareExchange64((LONG64*)&x, y, old)!=old);}
 #endif
 
-Int AtomicInc(Int &x) {return _InterlockedIncrement((LONG*)&x)-1;} // 'InterlockedIncrement' returns the new value
-Int AtomicDec(Int &x) {return _InterlockedDecrement((LONG*)&x)+1;} // 'InterlockedDecrement' returns the new value
+Byte AtomicInc(Byte &x) {return _InterlockedExchangeAdd8((char*)&x,  1);} // 'InterlockedExchangeAdd' returns the old value
+Byte AtomicDec(Byte &x) {return _InterlockedExchangeAdd8((char*)&x, -1);} // 'InterlockedExchangeAdd' returns the old value
+Int  AtomicInc(Int  &x) {return _InterlockedIncrement   ((LONG*)&x) -1 ;} // 'InterlockedIncrement'   returns the new value
+Int  AtomicDec(Int  &x) {return _InterlockedDecrement   ((LONG*)&x) +1 ;} // 'InterlockedDecrement'   returns the new value
 
 #pragma warning(push)
 #pragma warning(disable:4146) // unary minus operator applied to unsigned type, result still unsigned
- Int AtomicAdd( Int &x,  Int y) {return _InterlockedExchangeAdd((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
-UInt AtomicAdd(UInt &x, UInt y) {return _InterlockedExchangeAdd((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
- Int AtomicSub( Int &x,  Int y) {return _InterlockedExchangeAdd((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
-UInt AtomicSub(UInt &x, UInt y) {return _InterlockedExchangeAdd((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
+Byte AtomicAdd(Byte &x, Byte y) {return _InterlockedExchangeAdd8((char*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
+ Int AtomicAdd( Int &x,  Int y) {return _InterlockedExchangeAdd ((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
+UInt AtomicAdd(UInt &x, UInt y) {return _InterlockedExchangeAdd ((LONG*)&x,  y);} // 'InterlockedExchangeAdd' returns the old value
+Byte AtomicSub(Byte &x, Byte y) {return _InterlockedExchangeAdd8((char*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
+ Int AtomicSub( Int &x,  Int y) {return _InterlockedExchangeAdd ((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
+UInt AtomicSub(UInt &x, UInt y) {return _InterlockedExchangeAdd ((LONG*)&x, -y);} // 'InterlockedExchangeAdd' returns the old value
 
 #if X64
  Long AtomicAdd( Long &x,  Long y) {return _InterlockedExchangeAdd64((LONG64*)&x,  y);} // 'InterlockedExchangeAdd64' returns the old value
@@ -77,11 +81,15 @@ void AtomicSet( Long &x,  Long y) { Long old; do old=x; while(!__sync_bool_compa
 void AtomicSet(ULong &x, ULong y) {ULong old; do old=x; while(!__sync_bool_compare_and_swap(&x, old, y));}
 #endif
 
-Int AtomicInc(Int &x) {return __sync_fetch_and_add(&x, +1);} // '__sync_fetch_and_add' returns the old value
-Int AtomicDec(Int &x) {return __sync_fetch_and_add(&x, -1);} // '__sync_fetch_and_add' returns the old value
+Byte AtomicInc(Byte &x) {return __sync_fetch_and_add(&x, +1);} // '__sync_fetch_and_add' returns the old value
+ Int AtomicInc( Int &x) {return __sync_fetch_and_add(&x, +1);} // '__sync_fetch_and_add' returns the old value
+Byte AtomicDec(Byte &x) {return __sync_fetch_and_add(&x, -1);} // '__sync_fetch_and_add' returns the old value
+ Int AtomicDec( Int &x) {return __sync_fetch_and_add(&x, -1);} // '__sync_fetch_and_add' returns the old value
 
+Byte AtomicAdd(Byte &x, Byte y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
  Int AtomicAdd( Int &x,  Int y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
 UInt AtomicAdd(UInt &x, UInt y) {return __sync_fetch_and_add(&x, y);} // '__sync_fetch_and_add' returns the old value
+Byte AtomicSub(Byte &x, Byte y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
  Int AtomicSub( Int &x,  Int y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
 UInt AtomicSub(UInt &x, UInt y) {return __sync_fetch_and_sub(&x, y);} // '__sync_fetch_and_sub' returns the old value
 
