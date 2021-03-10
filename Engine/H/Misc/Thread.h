@@ -755,6 +755,7 @@ Bool AtomicCAS(UInt  &x, UInt  compare, UInt  new_value); // set value of 'x' to
 Bool AtomicCAS(Long  &x, Long  compare, Long  new_value); // set value of 'x' to 'new_value' if 'x' is equal to 'compare' in an atomic operation, this is a thread-safe version of function "if(x==compare){x=new_value; return true;} return false;" (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 Bool AtomicCAS(ULong &x, ULong compare, ULong new_value); // set value of 'x' to 'new_value' if 'x' is equal to 'compare' in an atomic operation, this is a thread-safe version of function "if(x==compare){x=new_value; return true;} return false;" (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value); // set value of 'x' to 'new_value' if 'x' is equal to 'compare' in an atomic operation, this is a thread-safe version of function "if(x==compare){x=new_value; return true;} return false;" (this allows to modify the value across multiple threads without usage of Synchronization Locks)
+T1(TYPE) Bool AtomicCAS(TYPE *&x, TYPE *compare, TYPE *new_value) {return AtomicCAS((UIntPtr&)x, UIntPtr(compare), UIntPtr(new_value));}
 
 // Thread functions
 UIntPtr GetThreadId          (                                             ); // get current thread id

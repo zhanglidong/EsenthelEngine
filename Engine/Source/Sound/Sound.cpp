@@ -385,7 +385,7 @@ void _Sound::fadeOut(Flt fade_duration) // !! this may be called on the main thr
 /******************************************************************************/
 // BUFFERING
 /******************************************************************************/
-void _Sound::setBuffer(Byte *buffer, Int size) // no extra care needed
+void _Sound::setBufferData(Byte *buffer, Int size) // no extra care needed
 {
    SoundStream &stream=T.stream();
    Int      size_start=size;
@@ -424,7 +424,7 @@ void _Sound::setBuffer(Byte *buffer, Int size) // no extra care needed
       if(_loop && (raw_pos<0 || raw_pos>=raw_size))raw_pos=Mod(raw_pos, raw_size); // adjust 'raw_pos' if it got out of range
 }
 /******************************************************************************/
-Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on its own
+Bool _Sound::setBuffer(Byte buffer, Int thread_index) // this manages locking on its own
 {
    if(kill && !--kill)return false;
    last_buffer=buffer;
@@ -432,7 +432,7 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
    Int size=_buffer._par.size/2; // we're setting only half of the buffer
    SOUND_API_LOCK_COND; if(_buffer.lock(buffer ? size : 0, size)) // !! requires 'SoundAPILock' !!
    {
-      SOUND_API_LOCK_OFF; setBuffer((Byte*)_buffer._lock_data, _buffer._lock_size);
+      SOUND_API_LOCK_OFF; setBufferData((Byte*)_buffer._lock_data, _buffer._lock_size);
       SOUND_API_LOCK_SET; _buffer.unlock(); // !! requires 'SoundAPILock' !!
       return true;
    }
@@ -442,7 +442,7 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
    {
       Int   size=_buffer._data.elms()/2; // we're setting only half of the buffer
       Byte *data=_buffer._data.data(); if(buffer)data+=size;
-      setBuffer(data, size);
+      setBufferData(data, size);
       XAUDIO2_BUFFER ab;
       ab.Flags     =0;
       ab.AudioBytes=size;
@@ -469,7 +469,7 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
       buffer.minNumDiscard(size); // allocate enough memory
       buffer_data=buffer.data();
    }
-   setBuffer(buffer_data, size);
+   setBufferData(buffer_data, size);
    if(_buffer._par.bytes==3) // convert 24-bit to 16-bit
    {
       size=size/3*2; // we now have less data (div by 3 first to avoid overflow, it's OK because size is always divisible by 3 here)
@@ -496,14 +496,17 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
    {
       Int   size=_buffer._data.elms()/2; // we're setting only half of the buffer
       Byte *data=_buffer._data.data(); if(buffer)data+=size;
-      setBuffer(data, size);
+      setBufferData(data, size);
       SOUND_API_LOCK_COND;
       return (*_buffer.player_buffer_queue)->Enqueue(_buffer.player_buffer_queue, data, size)==SL_RESULT_SUCCESS; // !! requires 'SoundAPILock' !!
    }
    return false;
 #elif ESENTHEL_AUDIO
-   // FIXME
-   return false;
+   AudioVoice  *voice=_buffer._voice;
+   AudioBuffer *voice_buffer=voice->buffer[buffer];
+   setBufferData(voice_buffer->data, voice->size);
+   voice->buffer_set=buffer; // set after data was set
+   return true;
 #else
    return false;
 #endif
@@ -562,16 +565,12 @@ Bool _Sound::update(Flt dt) // !! requires 'SoundAPILock' !!
    {
      _fade+=_fade_d*dt;
       if(_fade>1){  _fade=1; _fade_d=0;         }else // don't check for >=1 in case '_fade_d' is <0 (want to fade out) however 'dt'=0
-      if(_fade<0){/*_fade=0; _fade_d=0;*/ del();}     // !! requires 'SoundAPILock' !! don't clear because members are already cleared in 'del', don't check for <0 in case '_fade_d' is >0 (want to fade in) however 'dt'=0
+      if(_fade<0){/*_fade=0; _fade_d=0;*/ del();}     // !! requires 'SoundAPILock' !! don't clear members because we're deleting, check for <0 instead of <=0, in case we want to fade in from zero, '_fade_d' is >0 however 'dt'=0
       AtomicOr(flag, SOUND_CHANGED_VOLUME);
    }
 
    // remove
-   if(AtomicGet(flag)&SOUND_REMOVE)
-   {
-      del(); // !! requires 'SoundAPILock' !!
-      return false;
-   }
+   if(AtomicGet(flag)&SOUND_REMOVE)return false;
 
    // calculate priority
    if(playing())
@@ -666,8 +665,8 @@ void _Sound::updatePlaying(Int thread_index)
          }
       }else // start playback
       {
-         // set buffer data for both halfs
-         if(!setBuffer(false, thread_index) || !setBuffer(true, thread_index))goto error;
+         // set buffer data
+         Int buffers=T.buffers(); FREP(buffers)if(!setBuffer(i, thread_index))goto error; // set in order
         _buffer_playing=true;
          SOUND_API_LOCK_COND; _buffer.play(true); // !! requires 'SoundAPILock' !!
       }

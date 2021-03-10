@@ -169,10 +169,11 @@ const_mem_addr struct _Sound // can be moved however 'memAddressChanged' needs t
    Int  loadResult(File &f, CChar *path=null) ; // 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path)
 
    // stream
-   void setBuffer    (Byte *buffer, Int size);
-   Bool setBuffer    (Bool  buffer, Int thread_index);
+   void setBufferData(Byte *buffer, Int size);
+   Bool setBuffer    (Byte  buffer, Int thread_index);
    Bool setNextBuffer(Int thread_index) {return setBuffer(!last_buffer, thread_index);} // remember that 'last_buffer' can be 0xFF
    Bool testBuffer   (Int thread_index);
+   Int  buffers      ()C {return _buffer.buffers();}
 
  ~_Sound() {del();}
   _Sound() {stream_loaded=deleted=false; flag=0; zero();}
