@@ -30,15 +30,19 @@ const_mem_addr struct AudioBuffer
 const_mem_addr struct AudioVoice
 {
    Bool         play, remove;
-   Byte         channels ,
-                buffers  , // how many buffers available
-                queued   ; // how many buffers queued for processing
-   Int          samples, // how many samples in a single buffer
-                size   ; // size in bytes of a single buffer
-   Flt          speed,
-                volume[2]; // volume for 2 channels
-   AudioBuffer *buffer[2*2*2]; // 2halfs * 2channels * 2freq (to support 96kHz, because base is 48kHz)
+   Byte         channels  ,
+                buffers   , // how many buffers available
+                queued    , // how many buffers queued for processing
+                buffer_i  ; // index of the buffer for processing
+   Int          samples   , // how many samples in a single buffer
+                size      , // size in bytes of a single buffer
+                buffer_raw; // bytes already processed in the current 'buffer_i' buffer for processing
+   Flt          speed     ,
+                volume[2] ; // volume for 2 channels
+   AudioBuffer *buffer[2*2*2]; // 2halfs * 2channels * 2freq (to support 96kHz), because base is 1half * 1channel * 48kHz
    AudioVoice  *next; // next voice in list
+
+   void update();
 
   ~AudioVoice();
 };

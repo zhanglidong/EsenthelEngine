@@ -50,7 +50,8 @@ static Memx<AudioVoice>  AudioVoices;
 static AudioVoice       *AudioVoiceFirst;
 static SyncLock          AudioLock;
 static Thread            AudioThread;
-static Int               AudioOutputFreq;
+static Int               AudioOutputFreq, // frequency if the audio output device
+                         AudioOutputFrameSamples; // number of samples to set per a single frame
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -66,9 +67,12 @@ AudioVoice::AudioVoice()
 {
    play=remove=false;
    channels=0;
-   buffers=queued=0;
+   buffers=0;
+   queued=0;
+   buffer_i=0;
    samples=0;
    size=0;
+   buffer_raw=0;
    speed=1;
    REPAO(volume)=1;
    Zero(buffer);
@@ -285,35 +289,40 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
          }
       }
    #elif ESENTHEL_AUDIO
-     _par.size=MEMBER_SIZE(AudioBuffer, data)/_par.block*_par.block; // here set size for a single buffer
-      Int buffer_samples=_par.samples();
-      Int buffers=DivCeil(samples, buffer_samples); // how many buffers we would need
-      if( buffers>=1 && buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
+      if(bits==16) // audio renderer supports only 16-bit for now
       {
-        _3d=is3D;
+        _par.size=MEMBER_SIZE(AudioBuffer, data)/_par.block*_par.block; // here set size for a single buffer
+         Int buffer_samples=_par.samples();
+         Int buffers=DivCeil(samples, buffer_samples); // how many buffers we would need
+         if( buffers>=1 && buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
          {
-            SyncLocker lock(AudioLock); // creating voice and buffers needs lock
-           _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
-            FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
-         }
-        _voice->play    =false;
-        _voice->remove  =false;
-        _voice->channels=channels;
-        _voice->buffers =buffers;
-        _voice->queued  =0;
-        _voice->samples =buffer_samples;
-        _voice->size    =_par.size; // single buffer size
-  REPAO(_voice->volume )=1;
-         speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
-        _par.size*=buffers; // now adjust by all buffers
+           _3d=is3D;
+            {
+               SyncLocker lock(AudioLock); // creating voice and buffers needs lock
+              _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
+               FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
+            }
+           _voice->play      =false;
+           _voice->remove    =false;
+           _voice->channels  =channels;
+           _voice->buffers   =buffers;
+           _voice->queued    =0;
+           _voice->buffer_i  =0;
+           _voice->samples   =buffer_samples;
+           _voice->size      =_par.size; // single buffer size
+           _voice->buffer_raw=0;
+     REPAO(_voice->volume   )=1;
+            speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
+           _par.size*=buffers; // now adjust by all buffers
 
-         // !! Always do this !!
-         // once all members are setup, add to list, always add it even before playing so list update can process 'remove'
-      again:
-         AudioVoice *first=AudioVoiceFirst;
-        _voice->next=first;
-         if(!AtomicCAS(AudioVoiceFirst, first, _voice))goto again;
-         return true;
+            // !! Always do this !!
+            // once all members are setup, add to list, always add it even before playing so list update can process 'remove'
+         again:
+            AudioVoice *first=AudioVoiceFirst;
+           _voice->next=first;
+            if(!AtomicCAS(AudioVoiceFirst, first, _voice))goto again;
+            return true;
+         }
       }
    #endif
       del();
@@ -894,6 +903,20 @@ static UInt GetSpeakerConfig()
 #pragma runtime_checks("", restore)
 /******************************************************************************/
 #if ESENTHEL_AUDIO
+void AudioVoice::update()
+{
+   if(play && queued)
+   {
+      Ptr buffer_data=buffer[buffer_i]->data+buffer_raw;
+      Int buffer_size=size-buffer_raw;
+      if(1)
+      {
+         buffer_raw=0;
+         buffer_i=(buffer_i+1)%buffers;
+         AtomicDec(queued);
+      }
+   }
+}
 static Bool AudioUpdate(Thread &thread)
 {
 start:
@@ -909,10 +932,7 @@ start:
          goto start; // after both removing, and failing to remove, go to start
       }
    loop:
-      if(voice->play)
-      {
-         
-      }
+      voice->update();
    again:
       if(AudioVoice *next=voice->next) // if have next voice
       {
