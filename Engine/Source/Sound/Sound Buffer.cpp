@@ -50,8 +50,10 @@ static Memx<AudioVoice>  AudioVoices;
 static AudioVoice       *AudioVoiceFirst;
 static SyncLock          AudioLock;
 static Thread            AudioThread;
-static Int               AudioOutputFreq, // frequency if the audio output device
-                         AudioOutputFrameSamples; // number of samples to set per a single frame
+       Int               AudioOutputFreq, // frequency if the audio output device
+                         AudioOutputFrameSamples, // number of samples to set in a single frame
+                         AudioOutputFrameSize; // number of samples to set in a single frame
+       Ptr               AudioOutputFrameData; // place to output audio frame data
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -67,11 +69,12 @@ AudioVoice::AudioVoice()
 {
    play=remove=false;
    channels=0;
+   block=0;
    buffers=0;
    queued=0;
    buffer_i=0;
    samples=0;
-   size=0;
+   buffer_size=0;
    buffer_raw=0;
    speed=1;
    REPAO(volume)=1;
@@ -302,16 +305,17 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
               _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
                FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
             }
-           _voice->play      =false;
-           _voice->remove    =false;
-           _voice->channels  =channels;
-           _voice->buffers   =buffers;
-           _voice->queued    =0;
-           _voice->buffer_i  =0;
-           _voice->samples   =buffer_samples;
-           _voice->size      =_par.size; // single buffer size
-           _voice->buffer_raw=0;
-     REPAO(_voice->volume   )=1;
+           _voice->play       =false;
+           _voice->remove     =false;
+           _voice->channels   =_par.channels;
+           _voice->block      =_par.block;
+           _voice->buffers    =buffers;
+           _voice->queued     =0;
+           _voice->buffer_i   =0;
+           _voice->samples    =buffer_samples;
+           _voice->buffer_size=_par.size; // single buffer size
+           _voice->buffer_raw =0;
+     REPAO(_voice->volume    )=1;
             speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
            _par.size*=buffers; // now adjust by all buffers
 
@@ -903,22 +907,71 @@ static UInt GetSpeakerConfig()
 #pragma runtime_checks("", restore)
 /******************************************************************************/
 #if ESENTHEL_AUDIO
+static inline void Add(I16 &sample, Flt value)
+{
+   Int v=Round(value);
+   sample=Mid(sample+v, SHORT_MIN, SHORT_MAX);
+}
+struct Stereo
+{
+   I16 l, r;
+};
 void AudioVoice::update()
 {
    if(play && queued)
    {
-      Ptr buffer_data=buffer[buffer_i]->data+buffer_raw;
-      Int buffer_size=size-buffer_raw;
-      if(1)
+    C Int     dest_channels=2,
+              dest_block=SIZE(I16)*dest_channels,
+               src_channels=channels,
+               src_block=SIZE(I16)*src_channels;
+      Int     dest_samples=AudioOutputFrameSamples;
+      Stereo *dest_data=(Stereo*)AudioOutputFrameData;
+   again:
+      I16 *src_data   =(I16*)(buffer[buffer_i]->data+buffer_raw);
+      Int  src_size   =buffer_size-buffer_raw,
+           src_samples=src_size/block;
+
+      // copy from 'src' to 'dest'
+      if(1||//FIXME
+      speed==1) // no resample needed
+      {
+         Int samples=Min(src_samples, dest_samples);
+         switch(src_channels)
+         {
+            case 1: FREP(samples)
+            {
+               I16 s=*src_data++;
+               Add(dest_data->l, s*volume[0]);
+               Add(dest_data->r, s*volume[1]);
+               dest_data++;
+            }break;
+
+            case 2: FREP(samples)
+            {
+               Add(dest_data->l, (*src_data++)*volume[0]);
+               Add(dest_data->r, (*src_data++)*volume[1]);
+               dest_data++;
+            }break;
+         }
+         dest_samples-=samples;
+         buffer_raw  +=samples*src_block;
+      }else
+      { // resample
+      }
+
+      if(buffer_raw>=buffer_size) // proceed to the next buffer
       {
          buffer_raw=0;
          buffer_i=(buffer_i+1)%buffers;
-         AtomicDec(queued);
+         if(AtomicDec(queued)>1 // decrease number of queued buffers, if still have some available
+         && dest_samples>0)goto again; // process next buffer
       }
    }
 }
 static Bool AudioUpdate(Thread &thread)
 {
+   // zero at start
+   ZeroFast(AudioOutputFrameData, AudioOutputFrameSize);
 start:
    if(AudioVoice *voice=AudioVoiceFirst)
    {
@@ -1035,7 +1088,7 @@ void InitSound()
 
 #if ESENTHEL_AUDIO // create this in addition to above
    if(AudioOutputFreq
-   && AudioThread.create(AudioUpdate, null, 2, false, "EE.Audio"))
+   && AudioThread.create(AudioUpdate, null, 3/*priority*/, false, "EE.Audio"))
 #endif
 
    {

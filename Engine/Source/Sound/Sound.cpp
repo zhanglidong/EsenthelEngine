@@ -504,7 +504,7 @@ Bool _Sound::setBuffer(Byte buffer, Int thread_index) // this manages locking on
 #elif ESENTHEL_AUDIO
    AudioVoice  *voice=_buffer._voice;
    AudioBuffer *voice_buffer=voice->buffer[buffer];
-   setBufferData(voice_buffer->data, voice->size);
+   setBufferData(voice_buffer->data, voice->buffer_size);
    AtomicInc(voice->queued); // set after data was set
    return true;
 #else
@@ -1091,7 +1091,7 @@ void InitSound2()
 {
    SoundGroupPriority[VOLUME_MUSIC]=1; // increase priority for Music
    SoundTime=Time.curTime();
-   SoundThread.create(UpdateSound2, null, 2, false, "EE.Sound"); // here parameter "2" is thread priority
+   SoundThread.create(UpdateSound2, null, 3/*priority*/, false, "EE.Sound");
 }
 void UpdateSound()
 {
