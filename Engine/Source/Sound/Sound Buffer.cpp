@@ -1024,7 +1024,9 @@ start:
          goto loop; // process it
       }
    }
-   Time.wait(5); // FIXME
+#if SWITCH
+   NS::UpdateSound();
+#endif
    return true;
 }
 #endif
@@ -1112,6 +1114,8 @@ void InitSound()
 
 #if ESENTHEL_AUDIO // create this in addition to above
    if(AudioOutputFreq
+   && AudioOutputFrameSamples
+   && AudioOutputFrameSize
    && AudioThread.create(AudioUpdate, null, 3/*priority*/, false, "EE.Audio"))
 #endif
 
