@@ -54,6 +54,7 @@ static Thread            AudioThread;
                          AudioOutputFrameSamples, // number of samples to set in a single frame
                          AudioOutputFrameSize; // number of samples to set in a single frame
        Ptr               AudioOutputFrameData; // place to output audio frame data
+#define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -86,6 +87,9 @@ AudioVoice::AudioVoice()
    samples=0;
    buffer_size=0;
    buffer_raw=0;
+#if SUPPORT_SAMPLE_OFFSET
+   sample_offset=0;
+#endif
    speed=1;
    REPAO(volume)=1;
    Zero(buffer);
@@ -325,6 +329,9 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
            _voice->samples    =buffer_samples;
            _voice->buffer_size=_par.size; // single buffer size
            _voice->buffer_raw =0;
+         #if SUPPORT_SAMPLE_OFFSET
+           _voice->sample_offset=0;
+         #endif
      REPAO(_voice->volume    )=1;
             speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
            _par.size*=buffers; // now adjust by all buffers
@@ -578,7 +585,7 @@ void SoundBuffer::speed(Flt speed)
       (*player_playback_rate)->SetRate     (player_playback_rate, Mid(Round(speed*1000), min_rate, max_rate));
    }
 #elif ESENTHEL_AUDIO
-   if(_voice)_voice->speed=Flt(_par.frequency)/AudioOutputFreq*speed; // FIXME is the ratio good or should be Flt(AudioOutputFreq)/_par.frequency?
+   if(_voice)_voice->speed=Flt(_par.frequency)/AudioOutputFreq*speed;
 #endif
 }
 void SoundBuffer::pos(C Vec &pos)
@@ -928,6 +935,7 @@ void AudioVoice::update()
 {
    if(play && queued)
    {
+    C Flt          speed   =T.speed; // !! must be copied to a temporary because it might get changed on a secondary thread !!
     C Int     dest_channels=2,
               dest_block   =SIZE(I16)*dest_channels,
                src_channels=channels,
@@ -935,13 +943,13 @@ void AudioVoice::update()
       Int     dest_samples =AudioOutputFrameSamples;
       Stereo *dest_data    =(Stereo*)AudioOutputFrameData;
    again:
-      I16 *src_data   =(I16*)(buffer[buffer_i]->data+buffer_raw);
-      Int  src_size   =buffer_size-buffer_raw,
-           src_samples=src_size/block;
+    C I16    *src_mono   =(I16*)(buffer[buffer_i]->data+buffer_raw);
+    C Stereo *src_stereo =(Stereo*)src_mono;
+      Int     src_size   =buffer_size-buffer_raw,
+              src_samples=src_size/src_block;
 
       // copy from 'src' to 'dest'
-      if(1||//FIXME
-      speed==1) // no resample needed
+      if(speed==1) // no resample needed
       {
          Int samples=Min(src_samples, dest_samples);
          dest_samples-=samples;
@@ -952,19 +960,19 @@ void AudioVoice::update()
          #if 1
             REP(samples>>2)
             {
-               I16 s=src_data[0]; Add(dest_data[0].l, s*volume[0]); Add(dest_data[0].r, s*volume[1]);
-                   s=src_data[1]; Add(dest_data[1].l, s*volume[0]); Add(dest_data[1].r, s*volume[1]);
-                   s=src_data[2]; Add(dest_data[2].l, s*volume[0]); Add(dest_data[2].r, s*volume[1]);
-                   s=src_data[3]; Add(dest_data[3].l, s*volume[0]); Add(dest_data[3].r, s*volume[1]);
-               src_data+=4; dest_data+=4;
+               I16 sample=src_mono[0]; Add(dest_data[0].l, sample*volume[0]); Add(dest_data[0].r, sample*volume[1]);
+                   sample=src_mono[1]; Add(dest_data[1].l, sample*volume[0]); Add(dest_data[1].r, sample*volume[1]);
+                   sample=src_mono[2]; Add(dest_data[2].l, sample*volume[0]); Add(dest_data[2].r, sample*volume[1]);
+                   sample=src_mono[3]; Add(dest_data[3].l, sample*volume[0]); Add(dest_data[3].r, sample*volume[1]);
+               src_mono+=4; dest_data+=4;
             }
             samples&=3;
          #endif
             REP(samples)
             {
-               I16 s=*src_data++;
-               Add(dest_data->l, s*volume[0]);
-               Add(dest_data->r, s*volume[1]);
+               I16 sample=*src_mono++;
+               Add(dest_data->l, sample*volume[0]);
+               Add(dest_data->r, sample*volume[1]);
                dest_data++;
             }break;
 
@@ -972,23 +980,62 @@ void AudioVoice::update()
          #if 1
             REP(samples>>2)
             {
-               Add(dest_data[0].l, src_data[0]*volume[0]); Add(dest_data[0].r, src_data[1]*volume[1]);
-               Add(dest_data[1].l, src_data[2]*volume[0]); Add(dest_data[1].r, src_data[3]*volume[1]);
-               Add(dest_data[2].l, src_data[4]*volume[0]); Add(dest_data[2].r, src_data[5]*volume[1]);
-               Add(dest_data[3].l, src_data[6]*volume[0]); Add(dest_data[3].r, src_data[7]*volume[1]);
-               src_data+=8; dest_data+=4;
+               Add(dest_data[0].l, src_stereo[0].l*volume[0]); Add(dest_data[0].r, src_stereo[0].r*volume[1]);
+               Add(dest_data[1].l, src_stereo[1].l*volume[0]); Add(dest_data[1].r, src_stereo[1].r*volume[1]);
+               Add(dest_data[2].l, src_stereo[2].l*volume[0]); Add(dest_data[2].r, src_stereo[2].r*volume[1]);
+               Add(dest_data[3].l, src_stereo[3].l*volume[0]); Add(dest_data[3].r, src_stereo[3].r*volume[1]);
+               src_stereo+=4; dest_data+=4;
             }
             samples&=3;
          #endif
             REP(samples)
             {
-               Add(dest_data->l, (*src_data++)*volume[0]);
-               Add(dest_data->r, (*src_data++)*volume[1]);
-               dest_data++;
+               Add(dest_data->l, src_stereo->l*volume[0]);
+               Add(dest_data->r, src_stereo->r*volume[1]);
+               src_stereo++; dest_data++;
             }break;
          }
-      }else
-      { // resample
+      }else // resample
+      {
+         Int dest_sample_pos=0,
+              src_sample_pos;
+         for(; ; dest_sample_pos++)
+         {
+            Flt src_sample_posf=dest_sample_pos*speed ; if( SUPPORT_SAMPLE_OFFSET)src_sample_posf+=sample_offset; // add leftover offset from previous operations
+                src_sample_pos =Trunc(src_sample_posf); if(!SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples))break; // if reached the end of any buffer then stop !! this has to be done after calculating 'src_sample_pos' which is used later !!
+            Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
+            if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples)){sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
+
+            if(1 || //FIXME
+            speed>1)
+            { // linear
+               Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
+               Flt frac1=1-frac;
+               switch(src_channels)
+               {
+                  case 1:
+                  {
+                     Flt sample=src_mono[src_sample_pos]*frac1 + src_mono[src_sample_pos1]*frac; // Lerp(src_mono[src_sample_pos], src_mono[src_sample_pos1], frac)
+                     Add(dest_data->l, sample*volume[0]);
+                     Add(dest_data->r, sample*volume[1]);
+                     dest_data++;
+                  }break;
+
+                  case 2:
+                  {
+                   C Stereo &s0=src_stereo[src_sample_pos ],
+                            &s1=src_stereo[src_sample_pos1];
+                     Add(dest_data->l, (s0.l*frac1 + s1.l*frac)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                     Add(dest_data->r, (s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     dest_data++;
+                  }break;
+               }
+            }else
+            { // cubic
+            }
+         }
+         dest_samples-=dest_sample_pos;
+         buffer_raw  += src_sample_pos*src_block;
       }
 
       if(buffer_raw>=buffer_size) // proceed to the next buffer
