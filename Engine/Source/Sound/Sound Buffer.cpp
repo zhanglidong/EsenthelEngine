@@ -1006,8 +1006,34 @@ void AudioVoice::update()
             Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
             if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples)){sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
 
-            if(1 || //FIXME
-            speed>1)
+            if(speed<1)
+            { // cubic
+               Int src_sample_posP=Max(src_sample_pos-1, 0);
+               Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
+               Int src_sample_pos2=Min(src_sample_pos+2, src_samples-1);
+               Vec4 w; Lerp4Weights(w, frac);
+               switch(src_channels)
+               {
+                  case 1:
+                  {
+                     Flt sample=src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w;
+                     Add(dest_data->l, sample*volume[0]);
+                     Add(dest_data->r, sample*volume[1]);
+                     dest_data++;
+                  }break;
+
+                  case 2:
+                  {
+                   C Stereo &sP=src_stereo[src_sample_posP],
+                            &s0=src_stereo[src_sample_pos ],
+                            &s1=src_stereo[src_sample_pos1],
+                            &s2=src_stereo[src_sample_pos2];
+                     Add(dest_data->l, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                     Add(dest_data->r, (sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     dest_data++;
+                  }break;
+               }
+            }else // speed>1
             { // linear
                Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
                Flt frac1=1-frac;
@@ -1030,8 +1056,6 @@ void AudioVoice::update()
                      dest_data++;
                   }break;
                }
-            }else
-            { // cubic
             }
          }
          dest_samples-=dest_sample_pos;
