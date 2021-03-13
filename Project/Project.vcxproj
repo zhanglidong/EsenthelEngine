@@ -1052,6 +1052,7 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1183,6 +1184,7 @@
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1730,6 +1732,7 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -1877,6 +1880,7 @@
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2270,6 +2274,7 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -2605,6 +2610,7 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>..\Editor Data\Code\Windows\Windows Manifest.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
