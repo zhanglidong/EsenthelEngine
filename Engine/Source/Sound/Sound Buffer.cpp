@@ -310,8 +310,8 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
       {
         _par.size=MEMBER_SIZE(AudioBuffer, data)/_par.block*_par.block; // here set size for a single buffer
          Int buffer_samples=_par.samples();
-         Int buffers=DivCeil(samples, buffer_samples); // how many buffers we would need
-         if( buffers>=1 && buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
+         Int buffers=Max(2, DivCeil(samples, buffer_samples)); // how many buffers we would need, at least 2 halfs for queueing and if have a lot of samples then we need more
+         if( buffers<=MEMBER_ELMS(AudioVoice, buffer)) // if enough
          {
            _3d=is3D;
             {
