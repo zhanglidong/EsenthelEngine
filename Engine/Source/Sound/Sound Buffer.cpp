@@ -535,8 +535,8 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       SOUND_API_LOCK_WEAK;
       if(pos_range)
       {
-        _sv->SetOutputMatrix(XAudioMasteringVoice, _par.channels, XAudioChannels, dsp.pMatrixCoefficients, OPERATION_SET); // 'SetOutputMatrix' and 'SetVolume' can be set independently
          if(_par.channels==2){pan=pan*0.5f+0.5f; Flt vol[]={1-pan, pan}; _sv->SetChannelVolumes(2, vol, OPERATION_SET);} // apply pan for 3D stereo, this formula matches 3D mono volumes
+        _sv->SetOutputMatrix(XAudioMasteringVoice, _par.channels, XAudioChannels, dsp.pMatrixCoefficients, OPERATION_SET); // 'SetOutputMatrix' and 'SetVolume' can be set independently
       }
       if(speed)_sv->SetFrequencyRatio(SoundSpeed(sound._actual_speed*dsp.DopplerFactor), OPERATION_SET);
    }
