@@ -55,7 +55,6 @@ static SyncLock          AudioLock;
                          AudioOutputFrameSize; // number of samples to set in a single frame
        Ptr               AudioOutputFrameData; // place to output audio frame data
 #define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
-#define XAUDIO_COMPATIBLE     1 // will produce the same results as on XAudio
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -66,7 +65,7 @@ static void Get3DParams(C Vec &pos, Flt range, Flt volume, Flt &out_volume, Flt 
    Vec delta=pos-Listener.pos();
    Flt dist =delta.length();
    if( dist>range)volume*=range/dist;
-   if( dist>    1)delta /=dist; // normalize only if the length is greater than 1 so that we can still have panning when the distance is less than 1
+   if( dist>    1)delta /=dist; // normalize only if the length is greater than 1 so that we can still have pan when the distance is less than 1
    out_volume=volume;
    out_pan   =Dot(delta, Listener.right());
 }
@@ -301,7 +300,7 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
                if(t3)(*player_object)->GetInterface(player_object, SL_IID_3DDOPPLER   , &player_doppler      ); // this is optional
 
                if(_3d && !player_location && player_volume) // if should be 3D but not available, then volume will be adjusted manually
-                  (*player_volume)->EnableStereoPosition(player_volume, SL_BOOLEAN_TRUE); // enable stereo panning
+                  (*player_volume)->EnableStereoPosition(player_volume, SL_BOOLEAN_TRUE); // enable stereo pan
 
                return true;
             }
@@ -469,11 +468,7 @@ void SoundBuffer::volume(Flt volume) // 'volume' should be in range 0..1
       SOUND_API_LOCK_WEAK; _s->SetVolume(linear);
    }
 #elif XAUDIO
-   if(_sv)
-   {
-      if(_3d && _par.channels==2)volume*=0.5f; // 3D stereo sounds will play at different volumes than 3D mono, so adjust, do this here and not in 'range' because there we can affect volumes only outside of 'range' and not inside (we could adjust the 'dsp.pMatrixCoefficients' however it has much more elements that just one volume, and most likely 'set3DParams' will be called very frequently, while 'volume' not so much)
-      SOUND_API_LOCK_WEAK; _sv->SetVolume(volume, OPERATION_SET);
-   }
+   if(_sv){SOUND_API_LOCK_WEAK; _sv->SetVolume(volume, OPERATION_SET);}
 #elif OPEN_AL
    if(_source){SOUND_API_LOCK_WEAK; alSourcef(_source, AL_GAIN, volume);}
 #elif OPEN_SL
@@ -489,7 +484,6 @@ void SoundBuffer::volume(Flt volume) // 'volume' should be in range 0..1
 #elif ESENTHEL_AUDIO
    if(_3d)
    {
-      if(XAUDIO_COMPATIBLE && _par.channels==2)volume*=0.5f;
       T._volume=volume; // this will be used later in 'set3DParams'
    }else
    if(_voice)
@@ -510,6 +504,7 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       X3DAUDIO_EMITTER      emitter;
       X3DAUDIO_DSP_SETTINGS dsp;
       UInt                  flag=0;
+      Flt                   pan;
       if(pos_range) // !! process this first because of "Zero(emitter)" !!
       {
          flag|=X3DAUDIO_CALCULATE_MATRIX;
@@ -523,6 +518,8 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
          dsp.SrcChannelCount=_par.channels;
          dsp.DstChannelCount=XAudioChannels;
          dsp.pMatrixCoefficients=matrix.setNum(dsp.SrcChannelCount*dsp.DstChannelCount).data();
+
+         Flt volume; if(_par.channels==2)Get3DParams(sound.pos(), sound.range(), 1, volume, pan); // get pan for 3D stereo
       }
       if(speed)
       {
@@ -535,8 +532,12 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       emitter.Position.x=sound._pos.x; emitter.Position.y=sound._pos.y; emitter.Position.z=sound._pos.z; // this is needed for both
       X3DAudioCalculate(X3DAudio, &X3DListener, &emitter, flag, &dsp);
       SOUND_API_LOCK_WEAK;
-      if(pos_range)_sv->SetOutputMatrix  (XAudioMasteringVoice, _par.channels, XAudioChannels, matrix.data(), OPERATION_SET); // 'SetOutputMatrix' and 'SetVolume' can be set independently
-      if(speed    )_sv->SetFrequencyRatio(                 SoundSpeed(sound._actual_speed*dsp.DopplerFactor), OPERATION_SET);
+      if(pos_range)
+      {
+        _sv->SetOutputMatrix(XAudioMasteringVoice, _par.channels, XAudioChannels, dsp.pMatrixCoefficients, OPERATION_SET); // 'SetOutputMatrix' and 'SetVolume' can be set independently
+         if(_par.channels==2){pan=pan*0.5f+0.5f; Flt vol[]={1-pan, pan}; _sv->SetChannelVolumes(2, vol, OPERATION_SET);} // apply pan for 3D stereo, this formula matches 3D mono volumes
+      }
+      if(speed)_sv->SetFrequencyRatio(SoundSpeed(sound._actual_speed*dsp.DopplerFactor), OPERATION_SET);
    }
 #elif ESENTHEL_AUDIO
    if(_voice)
@@ -545,21 +546,9 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       {
          // first calculate on temporaries
          Flt volume, pan; Get3DParams(sound.pos(), sound.range(), _volume, volume, pan);
-         Flt volume_left, volume_right;
-      #if XAUDIO_COMPATIBLE
-         if(_par.channels==2) // stereo
-         {
-            volume_left=volume_right=volume; // *0.5f was already done in 'SoundBuffer.volume'
-         }else
-         {
-            pan=pan*0.5f+0.5f;
-            volume_left =volume*(1-pan);
-            volume_right=volume*(  pan);
-         }
-      #else
-         volume_left =volume; if(pan>0)volume_left *=1-pan;
-         volume_right=volume; if(pan<0)volume_right*=1+pan;
-      #endif
+         pan=pan*0.5f+0.5f; // -1..1 -> 0..1
+         Flt volume_left =volume*(1-pan),
+             volume_right=volume*(  pan);
          // now set to final values, because '_voice->volume' might be used on secondary thread
         _voice->volume[0]=volume_left;
         _voice->volume[1]=volume_right;
