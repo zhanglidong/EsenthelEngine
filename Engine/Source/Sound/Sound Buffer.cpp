@@ -59,15 +59,16 @@ static SyncLock          AudioLock;
 
 Bool          SoundAPI, SoundFunc;
 ListenerClass Listener;
+
+static const Flt EarRadius=0.2; // distance from center of head to ear, affects 3D pan
 /******************************************************************************/
 static void Get3DParams(C Vec &pos, Flt range, Flt volume, Flt &out_volume, Flt &out_pan) // 'out_pan' will always be -1..1
 {
    Vec delta=pos-Listener.pos();
    Flt dist =delta.length();
    if( dist>range)volume*=range/dist;
-   if( dist>    1)delta /=dist; // normalize only if the length is greater than 1 so that we can still have pan when the distance is less than 1
    out_volume=volume;
-   out_pan   =Dot(delta, Listener.right());
+   out_pan   =Dot(delta, Listener.right())/((dist>EarRadius) ? dist : EarRadius); // normalize only if length is greater than 'EarRadius' so that we can still have pan when distance is less than 'EarRadius'
 }
 /******************************************************************************/
 #if ESENTHEL_AUDIO
@@ -512,7 +513,7 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
          Zero(emitter);
          emitter.ChannelCount=_par.channels;
          emitter.pChannelAzimuths=ChannelAzimuths; DEBUG_ASSERT(emitter.ChannelCount<=Elms(ChannelAzimuths), "ChannelAzimuths");
-         emitter.InnerRadius=0.15f; // avg dist between ears = 0.2, so radius should be 0.1 or 0.2, let's use average of that
+         emitter.InnerRadius=EarRadius;
          emitter.CurveDistanceScaler=Max(FLT_MIN, sound._range);
 
          dsp.SrcChannelCount=_par.channels;
