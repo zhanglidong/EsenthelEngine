@@ -49,7 +49,7 @@ static Memx<AudioBuffer> AudioBuffers;
 static Memx<AudioVoice>  AudioVoices;
 static AudioVoice       *AudioVoiceFirst;
 static SyncLock          AudioLock;
-static Thread            AudioThread;
+       Thread            AudioThread;
        Int               AudioOutputFreq, // frequency if the audio output device
                          AudioOutputFrameSamples, // number of samples to set in a single frame
                          AudioOutputFrameSize; // number of samples to set in a single frame
@@ -87,6 +87,7 @@ AudioVoice::AudioVoice()
    samples=0;
    buffer_size=0;
    buffer_raw=0;
+    total_raw=0;
 #if SUPPORT_SAMPLE_OFFSET
    sample_offset=0;
 #endif
@@ -329,6 +330,7 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
            _voice->samples    =buffer_samples;
            _voice->buffer_size=_par.size; // single buffer size
            _voice->buffer_raw =0;
+           _voice-> total_raw =0;
          #if SUPPORT_SAMPLE_OFFSET
            _voice->sample_offset=0;
          #endif
@@ -411,12 +413,7 @@ Int SoundBuffer::raw()C
 #if DIRECT_SOUND
    if(_s){DWORD play=0, write=0; SOUND_API_LOCK_WEAK; if(OK(_s->GetCurrentPosition(&play, &write)))return play;}
 #elif XAUDIO
-   if(_sv)
-   {
-      SOUND_API_LOCK_WEAK; XAUDIO2_VOICE_STATE state;
-     _sv->GetState(&state, 0);
-      return (state.SamplesPlayed*_par.block)%_par.size;
-   }
+   if(_sv){XAUDIO2_VOICE_STATE state; SOUND_API_LOCK_WEAK; _sv->GetState(&state, 0); return (state.SamplesPlayed*_par.block)%_par.size;}
 #elif OPEN_AL
    if(_source){Int raw=0; SOUND_API_LOCK_WEAK; alGetSourcei(_source, AL_BYTE_OFFSET, &raw); return raw;}
 #elif OPEN_SL
@@ -429,10 +426,7 @@ Int SoundBuffer::raw()C
          return (U64(time)*_par.frequency/1000*_par.block)%_par.size; // need to convert to U64 so it won't overflow, mul by block at the end to make sure that this is a multiple of block
    }
 #elif ESENTHEL_AUDIO
-   if(_voice)
-   {
-      // FIXME
-   }
+   if(_voice)return _voice->total_raw;
 #endif
    return 0;
 }
@@ -1069,6 +1063,7 @@ void AudioVoice::update()
          if(AtomicDec(queued)>1 // decrease number of queued buffers, if still have some available
          && dest_samples>0)goto again; // process next buffer
       }
+      total_raw=buffer_i*buffer_size+buffer_raw;
    }
 }
 static Bool AudioUpdate(Thread &thread)

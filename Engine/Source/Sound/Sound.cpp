@@ -318,7 +318,13 @@ Long _Sound::preciseRaw()C // !! requires 'SoundAPILock' !!
    }
  //static Int last; LogName(S); LogN(S+last_buffer+' '+buffer_pos+'/'+_buffer._par.size+", rp:"+raw_pos+", pos:"+pos+", d:"+(pos-last)); last=pos;
 #elif ESENTHEL_AUDIO
-   // FIXME
+   if(C AudioVoice *voice=_buffer._voice)
+      if(last_buffer<voice->buffers-1) // skip for last buffer
+   {
+      Int buffer_size=voice->buffer_size; // single buffer size
+      pos-=(last_buffer+1)*buffer_size; // go back processed buffers
+      if(buffer_pos<buffer_size)pos+=_buffer._par.size; // if 'buffer_pos' got back to the start due to wrapping, then we need to add by entire buffer (what was wrapped), because 'raw_pos' wasn't changed during wrapping
+   }
 #endif
 
    // this won't be needed if we would operate on samples
@@ -948,11 +954,12 @@ again:
       if(  want_paused!=paused)
       {
          SOUND_API_LOCK;
-//ESENTHEL_AUDIO FIXME this could be made easier, just don't do processing on the other thread
          if(want_paused)
          {
          #if XAUDIO
             if(XAudio)XAudio->StopEngine(); // !! requires 'SoundAPILock' !!
+         #elif ESENTHEL_AUDIO
+            AudioThread.pause();
          #else
             REPAO(SoundMemxPlaying)->_buffer.pause(); // !! requires 'SoundAPILock' !! pause all playing sounds
          #endif
@@ -961,6 +968,8 @@ again:
          {
          #if XAUDIO
             if(XAudio)XAudio->StartEngine(); // !! requires 'SoundAPILock' !!
+         #elif ESENTHEL_AUDIO
+            AudioThread.resume();
          #else
             REPAO(SoundMemxPlaying)->_buffer.play(true); // !! requires 'SoundAPILock' !! unpause all playing sounds
          #endif

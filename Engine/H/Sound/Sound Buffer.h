@@ -37,7 +37,8 @@ const_mem_addr struct AudioVoice
                 buffer_i     ; // index of the buffer for processing
    Int          samples      , // how many samples in a single buffer
                 buffer_size  , // size in bytes of a single buffer
-                buffer_raw   ; // bytes already processed in the current 'buffer_i' buffer for processing
+                buffer_raw   , // bytes already processed in the current 'buffer_i' buffer for processing
+                 total_raw   ; // bytes already processed for all buffers
    Flt          sample_offset, // used when resampling, offset carried over from previous buffers
                 speed        ,
                 volume[2]    ; // volume for 2 channels
@@ -143,8 +144,9 @@ private:
 #if XAUDIO
 extern IXAudio2 *XAudio;
 #elif ESENTHEL_AUDIO
-extern Int AudioOutputFreq, AudioOutputFrameSamples, AudioOutputFrameSize;
-extern Ptr AudioOutputFrameData;
+extern Thread AudioThread;
+extern Int    AudioOutputFreq, AudioOutputFrameSamples, AudioOutputFrameSize;
+extern Ptr    AudioOutputFrameData;
 #endif
 /******************************************************************************/
 #endif
