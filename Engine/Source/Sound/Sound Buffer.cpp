@@ -546,7 +546,7 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       {
          // first calculate on temporaries
          Flt volume, pan; Get3DParams(sound.pos(), sound.range(), _volume, volume, pan);
-         pan=pan*0.5f+0.5f; // -1..1 -> 0..1
+         pan=pan*0.5f+0.5f; // -1..1 -> 0..1, this formula matches 3D mono XAudio volumes
          Flt volume_left =volume*(1-pan),
              volume_right=volume*(  pan);
          // now set to final values, because '_voice->volume' might be used on secondary thread
