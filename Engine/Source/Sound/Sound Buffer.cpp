@@ -55,12 +55,13 @@ static SyncLock          AudioLock;
                          AudioOutputFrameSize; // number of samples to set in a single frame
        Ptr               AudioOutputFrameData; // place to output audio frame data
 #define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
+#define XAUDIO_COMPATIBLE     1 // will produce the same results as on XAudio
 #endif
 
 Bool          SoundAPI, SoundFunc;
 ListenerClass Listener;
 /******************************************************************************/
-void Get3DParams(C Vec &pos, Flt range, Flt volume, Flt &out_volume, Flt &out_pan) // 'out_pan' will always be -1..1
+static void Get3DParams(C Vec &pos, Flt range, Flt volume, Flt &out_volume, Flt &out_pan) // 'out_pan' will always be -1..1
 {
    Vec delta=pos-Listener.pos();
    Flt dist =delta.length();
@@ -463,14 +464,14 @@ void SoundBuffer::volume(Flt volume) // 'volume' should be in range 0..1
 #if DIRECT_SOUND
    if(_s)
    {
-      if(_s3d)volume/=_par.channels; // 3D stereo sounds will play at different volumes than 3D mono, so adjust, do this here and not in 'range' because there we can affect volumes only outside of 'range' and not inside
+      if(_s3d && _par.channels==2)volume*=0.5f; // 3D stereo sounds will play at different volumes than 3D mono, so adjust, do this here and not in 'range' because there we can affect volumes only outside of 'range' and not inside
       Int linear=Round(Lerp(DSBVOLUME_MIN, DSBVOLUME_MAX, Pow(volume, 0.1f)));
       SOUND_API_LOCK_WEAK; _s->SetVolume(linear);
    }
 #elif XAUDIO
    if(_sv)
    {
-      if(_3d)volume/=_par.channels; // 3D stereo sounds will play at different volumes than 3D mono, so adjust, do this here and not in 'range' because there we can affect volumes only outside of 'range' and not inside (we could adjust the 'dsp.pMatrixCoefficients' however it has much more elements that just one volume, and most likely 'set3DParams' will be called very frequently, while 'volume' not so much)
+      if(_3d && _par.channels==2)volume*=0.5f; // 3D stereo sounds will play at different volumes than 3D mono, so adjust, do this here and not in 'range' because there we can affect volumes only outside of 'range' and not inside (we could adjust the 'dsp.pMatrixCoefficients' however it has much more elements that just one volume, and most likely 'set3DParams' will be called very frequently, while 'volume' not so much)
       SOUND_API_LOCK_WEAK; _sv->SetVolume(volume, OPERATION_SET);
    }
 #elif OPEN_AL
@@ -488,6 +489,7 @@ void SoundBuffer::volume(Flt volume) // 'volume' should be in range 0..1
 #elif ESENTHEL_AUDIO
    if(_3d)
    {
+      if(XAUDIO_COMPATIBLE && _par.channels==2)volume*=0.5f;
       T._volume=volume; // this will be used later in 'set3DParams'
    }else
    if(_voice)
@@ -543,8 +545,21 @@ void SoundBuffer::set3DParams(C _Sound &sound, Bool pos_range, Bool speed)
       {
          // first calculate on temporaries
          Flt volume, pan; Get3DParams(sound.pos(), sound.range(), _volume, volume, pan);
-         Flt volume_left =volume; if(pan>0)volume_left *=1-pan;
-         Flt volume_right=volume; if(pan<0)volume_right*=1+pan;
+         Flt volume_left, volume_right;
+      #if XAUDIO_COMPATIBLE
+         if(_par.channels==2) // stereo
+         {
+            volume_left=volume_right=volume; // *0.5f was already done in 'SoundBuffer.volume'
+         }else
+         {
+            pan=pan*0.5f+0.5f;
+            volume_left =volume*(1-pan);
+            volume_right=volume*(  pan);
+         }
+      #else
+         volume_left =volume; if(pan>0)volume_left *=1-pan;
+         volume_right=volume; if(pan<0)volume_right*=1+pan;
+      #endif
          // now set to final values, because '_voice->volume' might be used on secondary thread
         _voice->volume[0]=volume_left;
         _voice->volume[1]=volume_right;
@@ -828,7 +843,7 @@ UInt ListenerClass::updateNoLock() // requires 'SoundAPILock'
    #elif OPEN_AL
       if(ALContext)
       {
-         if(flag&SOUND_CHANGED_POS)alListener3f(AL_POSITION, pos().x, pos().y, pos().z); 
+         if(flag&SOUND_CHANGED_POS)alListener3f(AL_POSITION, pos().x, pos().y, pos().z);
          if(flag&SOUND_CHANGED_VEL)alListener3f(AL_VELOCITY, vel().x, vel().y, vel().z);
          if(flag&SOUND_CHANGED_ORN){Flt f[]={-dir().x, -dir().y, -dir().z, up().x, up().y, up().z}; alListenerfv(AL_ORIENTATION, f);}
       }
