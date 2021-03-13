@@ -322,7 +322,7 @@ Long _Sound::preciseRaw()C // !! requires 'SoundAPILock' !!
       if(last_buffer<voice->buffers-1) // skip for last buffer
    {
       Int buffer_size=voice->buffer_size; // single buffer size
-      pos-=(last_buffer+1)*buffer_size; // go back processed buffers
+      pos-=(last_buffer+1)*buffer_size; // go back processed buffers, because after 'buffer_pos' advanced to the next buffers, new buffer data was set, advancing 'raw_pos' by 'buffer_size' for each buffer, however 'buffer_pos' remains the same
       if(buffer_pos<buffer_size)pos+=_buffer._par.size; // if 'buffer_pos' got back to the start due to wrapping, then we need to add by entire buffer (what was wrapped), because 'raw_pos' wasn't changed during wrapping
    }
 #endif
