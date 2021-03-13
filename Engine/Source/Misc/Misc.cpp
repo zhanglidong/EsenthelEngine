@@ -1408,6 +1408,7 @@ static struct UserNameGetter
    }
 }UserName;
 #endif
+#if !SWITCH
 Str OSUserName(Bool short_name)
 {
 #if WINDOWS_OLD
@@ -1452,6 +1453,11 @@ Str OSUserName(Bool short_name)
 #endif
    return S;
 }
+Bool OSUserIcon(Image &image)
+{
+   image.del(); return false;
+}
+#endif
 Str OSUserEmail()
 {
 #if ANDROID
