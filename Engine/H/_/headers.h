@@ -449,6 +449,7 @@
       #include <sys/socket.h>
       #include <sys/wait.h>
       #include <nn/nn_Log.h>
+      #include <nn/time.h>
       #include <nn/account.h>
       #include <nn/fs.h>
       #include <nn/os.h>
