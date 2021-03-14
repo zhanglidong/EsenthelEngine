@@ -7,8 +7,6 @@
 /******************************************************************************/
 #define UPDATE_CERTIFICATES (DEBUG && 0)
 /******************************************************************************/
-#define FORCE_IPV6 1 // prefer IPv6 addresses to avoid unnecessary 'convert' calls
-
 #if !WINDOWS
    #define SOCKET        UIntPtr
    #define SOCKET_ERROR -1
@@ -16,9 +14,13 @@
 
 #if WINDOWS_OLD && SUPPORT_WINDOWS_XP
    static const Bool DualStackSocket=(OSVerNumber().x>5); // not supported on WinXP, on WinXP one Socket can't be used for IPv4 and IPv6 connections at the same time, "In order to support both IPv4 and IPv6 on Windows XP with Service Pack 1 (SP1) and on Windows Server 2003, an application has to create two sockets, one socket for use with IPv4 and one socket for use with IPv6. These two sockets must be handled separately by the application." - https://msdn.microsoft.com/en-us/library/windows/desktop/bb513665(v=vs.85).aspx
+#elif SWITCH
+   #define           DualStackSocket false // unsupported on Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
 #else
    #define           DualStackSocket true // other OS's should support it
 #endif
+
+#define PREFER_IPV6 (!SWITCH) // prefer IPv6 addresses to avoid unnecessary 'convert' calls, unsupported on Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
 
 #define IP4_ANY        0        // "0.0.0.0"   any address will be selected
 #define IP4_LOCAL_HOST 16777343 // "127.0.0.1" localhost
@@ -316,15 +318,15 @@ SockAddr& SockAddr::ip4(UInt ip4)
    Int port_n=portN(); // we're doing a direct copy so 'ntohs' is not needed
    clear();
    portN()=port_n; // we're doing a direct copy so 'htons' is not needed
-#if FORCE_IPV6
-   #if APPLE
+#if PREFER_IPV6
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
    v6setAfterClearV4Mapped();
    v6Ip4 ()=ip4;
    family()=AF_INET6; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
 #else
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
    v4Ip4 ()=ip4;
@@ -338,10 +340,10 @@ Bool SockAddr::ip4Text(C Str8 &ip4)
    Int port_n=portN(); // we're doing a direct copy so 'ntohs' is not needed
    clear();
    portN()=port_n; // always keep port, we're doing a direct copy so 'htons' is not needed
-#if FORCE_IPV6
+#if PREFER_IPV6
    if(TextToIP4(ip4, v6Ip4()))
    {
-   #if APPLE
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
       v6setAfterClearV4Mapped();
@@ -349,7 +351,7 @@ Bool SockAddr::ip4Text(C Str8 &ip4)
 #else
    if(TextToIP4(ip4, v4Ip4()))
    {
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
       family()=AF_INET; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
@@ -375,7 +377,7 @@ Bool SockAddr::ip6Text(C Str8 &ip6)
 #else
    if(inet_pton(AF_INET6, ip6, &v6().sin6_addr)==1)
    {
-   #if APPLE
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
       family()=AF_INET6; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
@@ -473,14 +475,14 @@ SockAddr& SockAddr::setServer(Int port)
 {
    clear();
    portN()=htons(port);
-#if 1 // prefer IPv6 to avoid calling 'convert'
-   #if APPLE
+#if PREFER_IPV6
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
    v6setAfterClearAny();
    family()=AF_INET6; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
 #else
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
    v4Ip4 ()=IP4_ANY;
@@ -492,14 +494,14 @@ SockAddr& SockAddr::setLocalFast(Int port)
 {
    clear();
    portN()=htons(port);
-#if 1 // prefer IPv6 to avoid calling 'convert'
-   #if APPLE
+#if PREFER_IPV6
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
    v6setAfterClearLocalHost();
    family()=AF_INET6; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
 #else
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
    v4Ip4 ()=IP4_LOCAL_HOST;
@@ -517,7 +519,7 @@ SockAddr& SockAddr::setBroadcast(Int port)
 {
    clear();
    portN()=htons(port);
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
    v4Ip4 ()=INADDR_BROADCAST;
@@ -529,15 +531,15 @@ SockAddr& SockAddr::setIp4Port(UInt ip4, Int port)
 {
    clear();
    portN()=htons(port);
-#if FORCE_IPV6
-   #if APPLE
+#if PREFER_IPV6
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
    v6setAfterClearV4Mapped();
    v6Ip4 ()=ip4;
    family()=AF_INET6; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
 #else
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
    v4Ip4 ()=ip4;
@@ -548,10 +550,10 @@ SockAddr& SockAddr::setIp4Port(UInt ip4, Int port)
 Bool SockAddr::setIp4Port(C Str8 &ip4, Int port)
 {
    clear();
-#if FORCE_IPV6
+#if PREFER_IPV6
    if(TextToIP4(ip4, v6Ip4()))
    {
-   #if APPLE
+   #if APPLE || SWITCH
       v6().sin6_len=SIZE(sockaddr_in6);
    #endif
       v6setAfterClearV4Mapped();
@@ -560,7 +562,7 @@ Bool SockAddr::setIp4Port(C Str8 &ip4, Int port)
 #else
    if(TextToIP4(ip4, v4Ip4()))
    {
-   #if APPLE
+   #if APPLE || SWITCH
       v4().sin_len=SIZE(sockaddr_in);
    #endif
       portN ()=htons(port);
@@ -635,7 +637,7 @@ Bool SockAddr::convert(C SockAddr &src)
          Int port_n=src.portN(); // we're doing a direct copy so 'ntohs' is not needed
          UInt   ip4=src.v4Ip4();
          clear();
-      #if APPLE
+      #if APPLE || SWITCH
          v6().sin6_len=SIZE(sockaddr_in6);
       #endif
          switch(ip4)
@@ -657,7 +659,7 @@ Bool SockAddr::convert(C SockAddr &src)
          if(IN6_IS_ADDR_LOOPBACK   (&src.v6().sin6_addr))ip4=IP4_LOCAL_HOST;else
          if(IN6_IS_ADDR_UNSPECIFIED(&src.v6().sin6_addr))ip4=IP4_ANY       ;else break;
          clear();
-      #if APPLE
+      #if APPLE || SWITCH
          v4().sin_len=SIZE(sockaddr_in);
       #endif
          v4Ip4 ()=ip4;
@@ -695,7 +697,7 @@ Bool SockAddr::load(File &f)
       {
          clear();
          port(f.getUShort());
-      #if APPLE
+      #if APPLE || SWITCH
          v6().sin6_len=SIZE(sockaddr_in6);
       #endif
          f>>v6().sin6_addr;
