@@ -464,6 +464,7 @@
       #include <arpa/inet.h>
       #include <netinet/in.h>
       #include <netinet/tcp.h>
+      #include <nn/socket.h>
       #include <nn/socket/netinet6/in6.h>
       #include <nv/nv_MemoryManagement.h>
       #include <movie/Decoder.h>
