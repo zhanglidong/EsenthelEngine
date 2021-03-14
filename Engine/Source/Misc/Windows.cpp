@@ -2147,6 +2147,7 @@ void Application::windowDel()
 #endif
   _hwnd=null;
 }
+#if !SWITCH
 NOINLINE void Application::windowMsg() // disable inline so we will don't use its stack memory, so we can have more memory for application
 {
 #if LINUX
@@ -2615,6 +2616,7 @@ stop:
    PreventResizing=false;
 #endif
 }
+#endif
 #if WINDOWS || MAC || LINUX || SWITCH
 void Application::loop()
 {
