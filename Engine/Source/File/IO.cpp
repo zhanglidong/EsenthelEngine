@@ -1133,12 +1133,12 @@ void InitIO()
    CurDir(GetPath(App.exe()));
 #endif
 }
+#if WEB
 void FlushIO()
 {
-#if WEB
    EM_ASM(FS.syncfs(false, function(err){});); // save data
-#endif
 }
+#endif
 #if !WINDOWS
 Bool UnixReadFile(CChar8 *file, Char8 *data, Int size)
 {

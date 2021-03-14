@@ -156,9 +156,7 @@ void File::close()
       {
          flush(); // remember that this 'flush' may fail, and '_buf_len' may remain >0, however it will be cleared in 'zeroNoBuf'
        ::PLATFORM(_close, close)(_handle);
-      #if WEB
          if(_writable)FlushIO(); // check for '_writable' instead of 'FILE_STD_WRITE' because File could have been created as writable but later switched to FILE_STD_READ
-      #endif
       }break;
 
       case FILE_MEM: if(_writable)Free(_mem); break; // write memory was dynamically allocated

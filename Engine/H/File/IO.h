@@ -219,7 +219,13 @@ Str  DecodeSymLink(File &f                   ); // this function is meant for re
 /******************************************************************************/
 #if EE_PRIVATE
 void  InitIO();
-void FlushIO();
 Bool UnixReadFile(CChar8 *file, Char8 *data, Int size);
+
+#if WEB || SWITCH
+       void FlushIO();
+#else
+inline void FlushIO() {}
+#endif
+
 #endif
 /******************************************************************************/
