@@ -26,7 +26,10 @@ library/net_sockets.c
  to fix UWP Arm compilation errors
 
 library/entropy_poll.c
-	comment out entire "mbedtls_platform_entropy_poll" function because it's manually defined in the Engine
+	comment out entire "mbedtls_platform_entropy_poll" Windows function because it's manually defined in the Engine
+	for the linux version of "mbedtls_platform_entropy_poll" surround with:
+		#ifndef __NINTENDO__
+		#endif
 	!defined(__HAIKU__) -> !defined(__HAIKU__) && !defined __NINTENDO__
 
 library/timing.c

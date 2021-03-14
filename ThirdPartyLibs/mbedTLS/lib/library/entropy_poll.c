@@ -154,6 +154,7 @@ static int has_getrandom = -1;
 
 #include <stdio.h>
 
+#ifndef __NINTENDO__
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
@@ -195,6 +196,7 @@ int mbedtls_platform_entropy_poll( void *data,
 
     return( 0 );
 }
+#endif
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
 
