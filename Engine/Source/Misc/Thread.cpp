@@ -13,6 +13,11 @@ namespace EE{
 #if !HAS_THREADS
 ThreadEmulation EmulatedThreads;
 #endif
+
+#ifndef    __ANDROID_API__
+   #define __ANDROID_API__ 0
+#endif
+#define USE_MONOTONIC_CLOCK (!APPLE && !(ANDROID && __ANDROID_API__<21) && !SWITCH) // Apple doesn't have 'pthread_condattr_setclock', Android <21 doesn't have 'pthread_condattr_setclock', Switch doesn't support CLOCK_MONOTONIC
 /******************************************************************************/
 // 32-bit AtomicGet and AtomicSet are simple:
 // https://github.com/mintomic/mintomic/tree/master/include/mintomic/private
@@ -219,7 +224,7 @@ SyncLock::SyncLock()
 #else
                    pthread_mutexattr_t                attr;
    DYNAMIC_ASSERT(!pthread_mutexattr_init   (        &attr                         ), "pthread_mutexattr_init");
-       auto result=pthread_mutexattr_settype(        &attr, PTHREAD_MUTEX_RECURSIVE); DEBUG_ASSERT(!result, "pthread_mutexattr_settype"); // this can fail but only if parameter is invalid, and since PTHREAD_MUTEX_RECURSIVE is valid, then do error checking only in Debug
+   DYNAMIC_ASSERT(!pthread_mutexattr_settype(        &attr, PTHREAD_MUTEX_RECURSIVE), "pthread_mutexattr_settype");
    DYNAMIC_ASSERT(!pthread_mutex_init       (&_lock, &attr                         ), "pthread_mutex_init");
                    pthread_mutexattr_destroy(        &attr                         ); // skip error checking for this one
 #endif
@@ -330,8 +335,15 @@ Bool SyncEvent:: wait     (Int milliseconds)C {          /*if(_handle)*/return W
 SyncEvent::SyncEvent(Bool auto_off)
 {
   _condition=false; _auto_off=auto_off;
-   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init (_handle, null), "pthread_cond_init" );
-   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init(_mutex , null), "pthread_mutex_init");
+#if USE_MONOTONIC_CLOCK
+                                   pthread_condattr_t         attr;
+                   DYNAMIC_ASSERT(!pthread_condattr_init    (&attr                 ), "pthread_condattr_init");
+                   DYNAMIC_ASSERT(!pthread_condattr_setclock(&attr, CLOCK_MONOTONIC), "pthread_condattr_setclock");
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init        (_handle, &attr        ), "pthread_cond_init");
+#else
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init        (_handle, null         ), "pthread_cond_init");
+#endif
+   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init       (_mutex , null         ), "pthread_mutex_init");
 }
 SyncEvent::~SyncEvent()
 {
@@ -385,7 +397,7 @@ Bool SyncEvent::wait(Int milliseconds)C
          if(milliseconds>0) // timed wait
          {
          #if 1
-            timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
+            timespec ts; clock_gettime(USE_MONOTONIC_CLOCK ? CLOCK_MONOTONIC : CLOCK_REALTIME, &ts);
          #else
             timeval  tv; gettimeofday(&tv, null);
             timespec ts; ts.tv_sec  =tv.tv_sec      ;
@@ -426,8 +438,15 @@ Bool SyncCounter:: wait       (Int milliseconds)C {          /*if(_handle)*/retu
 SyncCounter::SyncCounter()
 {
   _counter=0;
-   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init (_handle, null), "pthread_cond_init" );
-   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init(_mutex , null), "pthread_mutex_init");
+#if USE_MONOTONIC_CLOCK
+                                   pthread_condattr_t         attr;
+                   DYNAMIC_ASSERT(!pthread_condattr_init    (&attr                 ), "pthread_condattr_init");
+                   DYNAMIC_ASSERT(!pthread_condattr_setclock(&attr, CLOCK_MONOTONIC), "pthread_condattr_setclock");
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init        (_handle, &attr        ), "pthread_cond_init");
+#else
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init        (_handle, null         ), "pthread_cond_init");
+#endif
+   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init       (_mutex , null         ), "pthread_mutex_init");
 }
 SyncCounter::~SyncCounter()
 {
@@ -471,13 +490,16 @@ Bool SyncCounter::wait(Int milliseconds)C
          }else
          if(milliseconds>0) // timed wait
          {
+         #if 1
+            timespec ts; clock_gettime(USE_MONOTONIC_CLOCK ? CLOCK_MONOTONIC : CLOCK_REALTIME, &ts);
+         #else
             timeval  tv; gettimeofday(&tv, null);
             timespec ts; ts.tv_sec  =tv.tv_sec      ;
                          ts.tv_nsec =tv.tv_usec*1000;
-
-                         ts.tv_nsec+=(milliseconds%1000)*1000000;
-                         ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
-                         ts.tv_nsec%=1000000000;
+         #endif
+            ts.tv_nsec+=(milliseconds%1000)*1000000;
+            ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
+            ts.tv_nsec%=1000000000;
 
             // 'ts' specifies the end time at which waiting always fails (this is the "time position" and not "time duration")
             for(; _counter<=0 && !pthread_cond_timedwait(_handle, _mutex, &ts); ); // 'pthread_cond_timedwait' automatically unlocks and locks the mutex, keep waiting in the loop in case it returns multiple times before the end of the time, but somehow with the condition still set to false, in that case keep waiting still as long as it returns success and not timeout or other error
