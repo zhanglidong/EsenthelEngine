@@ -273,6 +273,18 @@
 		<CppLanguageStandard>Gnu++17</CppLanguageStandard>
 		<OutDir>$(Platform)\$(Configuration)\</OutDir>
 	</PropertyGroup>
+	<PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
+		<ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+	</PropertyGroup>
+	<PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
+		<ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+	</PropertyGroup>
+	<PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
+		<ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+	</PropertyGroup>
+	<PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
+		<ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+	</PropertyGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">
 		<ClCompile>
 			<Optimization>Disabled</Optimization>
@@ -313,7 +325,7 @@
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">
@@ -356,7 +368,7 @@
 			<AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\arm; $(VCInstallDir)\lib\arm</AdditionalLibraryDirectories>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">
@@ -404,7 +416,7 @@
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
@@ -449,10 +461,10 @@
 			<ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 			<AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-			<FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+			<FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">
@@ -500,7 +512,7 @@
 			<AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
@@ -545,10 +557,10 @@
 			<ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
 			<AdditionalLibraryDirectories/>
 			<AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-			<FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+			<FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">
@@ -594,7 +606,7 @@
 			<RunClosureCompiler>false</RunClosureCompiler>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">
@@ -640,7 +652,7 @@
 			<RunClosureCompiler>false</RunClosureCompiler>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">
@@ -684,7 +696,7 @@
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">
@@ -729,7 +741,7 @@
 			<IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">
@@ -778,7 +790,7 @@
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
@@ -829,10 +841,10 @@
 			<LinkTimeCodeGeneration/>
 			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 			<AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-			<FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+			<FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">
@@ -882,7 +894,7 @@
 			<IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
@@ -934,10 +946,10 @@
 			<AdditionalLibraryDirectories/>
 			<IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
 			<AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-			<FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+			<FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">
@@ -984,7 +996,7 @@
 			<RunClosureCompiler>false</RunClosureCompiler>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">
@@ -1031,7 +1043,7 @@
 			<RunClosureCompiler>false</RunClosureCompiler>
 		</Link>
 		<Manifest>
-			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
+			<AdditionalManifestFiles>Assets\Windows Manifest.xml</AdditionalManifestFiles>
 		</Manifest>
 	</ItemDefinitionGroup>
 	<ItemGroup>
@@ -1166,7 +1178,7 @@
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
 		</AppxManifest>
-		<ResourceCompile Include="resource.rc">
+		<ResourceCompile Include="Assets\resource.rc">
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>

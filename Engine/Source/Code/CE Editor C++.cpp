@@ -1225,20 +1225,20 @@ Bool CodeEditor::generateVSProj(Int version)
    resource_rc.putLine(S+(resource_id++)+" VERSIONINFO FILEVERSION "+cei().appBuild()+",0,0,0 {}");
 
    // icon, generate always because it may be used by WINDOWS_OLD
-   resource_rc.putLine(S+(resource_id++)+" ICON        \"Assets/Icon.ico\"");
+   resource_rc.putLine(S+(resource_id++)+" ICON        \"Icon.ico\"");
 
    // embed engine data, generate always because it may be used by WINDOWS_OLD
    if(cei().appEmbedEngineData())
    {
       Bool changed; if(!CreateEngineEmbedPak(S, build_path+"Assets/EngineEmbed.pak", true, &changed))return false;
-      resource_rc.putLine(S+(resource_id++)+" PAK         \"Assets/EngineEmbed.pak\"");
+      resource_rc.putLine(S+(resource_id++)+" PAK         \"EngineEmbed.pak\"");
       resource_changed|=changed;
    }
 
    // app data, generate always because it may be used by WINDOWS_OLD
    {
       Bool exists, changed; if(!CreateAppPak(build_path+"Assets/App.pak", exists, &changed))return false;
-      if(exists)resource_rc.putLine(S+(resource_id++)+" PAK         \"Assets/App.pak\"");
+      if(exists)resource_rc.putLine(S+(resource_id++)+" PAK         \"App.pak\"");
       resource_changed|=changed;
    }
 
@@ -1258,7 +1258,7 @@ Bool CodeEditor::generateVSProj(Int version)
 
       rel="Assets/Icon.ico"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1)){resource_changed=true; convert.New().set(build_path+rel, icon, icon_time).ICO().clamp(256, 256).square();} // Windows can't handle non-square icons properly (it stretches them)
 
-      if(build_exe_type==EXE_UWP || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
+      if(build_exe_type==EXE_UWP) // creating icons/images is slow, so do only when necessary
       {
          // list images starting from the smallest
          rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
@@ -1281,7 +1281,7 @@ Bool CodeEditor::generateVSProj(Int version)
          }
       }
 
-      if(build_exe_type==EXE_NS || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
+      if(build_exe_type==EXE_NS) // creating icons/images is slow, so do only when necessary
       {
          rel="Assets/Nintendo Switch/Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
       }
@@ -1292,8 +1292,11 @@ Bool CodeEditor::generateVSProj(Int version)
    }
 
    // resources, generate always because it may be used by WINDOWS_OLD
-   if(!OverwriteOnChangeLoud(resource_rc, build_path+"resource.rc"))return false;
-   if(resource_changed)FTimeUTC(build_path+"resource.rc", DateTime().getUTC()); // if any resource was changed then we need to adjust "resource.rc" modification time to make sure that VS will rebuild the resources
+   {
+      Str path=build_path+"Assets/resource.rc";
+      if(!OverwriteOnChangeLoud(resource_rc, path))return false;
+      if(resource_changed)FTimeUTC(path, DateTime().getUTC()); // if any resource was changed then we need to adjust "resource.rc" modification time to make sure that VS will rebuild the resources
+   }
 
    // xboxservices.config
    if(build_exe_type==EXE_EXE || build_exe_type==EXE_UWP)
@@ -1760,7 +1763,7 @@ Bool CodeEditor::generateXcodeProj()
       Image landscape; DateTime landscape_time;
       Memc<ImageConvert> convert;
       CChar8 *rel="Assets/Icon.icns"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).ICNS().clamp(256, 256);
-      if(build_exe_type==EXE_IOS || build_mode==BUILD_EXPORT) // creating iOS icons/images is slow, so do this only when necessary
+      if(build_exe_type==EXE_IOS) // creating iOS icons/images is slow, so do this only when necessary
       {
          GetImages(portrait, portrait_time, landscape, landscape_time);
 
