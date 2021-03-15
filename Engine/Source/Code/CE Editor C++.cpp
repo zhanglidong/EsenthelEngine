@@ -2894,7 +2894,7 @@ void CodeEditor::build(BUILD_MODE mode)
       build_phases =build_steps=0;
 
       Int build_threads=Cpu.threads();
-      if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB)
+      if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB || build_exe_type==EXE_NS)
       {
          build_phases=1+build_windows_code_sign;
          build_steps =3+build_windows_code_sign; FREPA(build_files)if(build_files[i].mode==BuildFile::SOURCE)build_steps++; // stdafx.cpp, linking, wait for end, *.cpp
@@ -2902,6 +2902,7 @@ void CodeEditor::build(BUILD_MODE mode)
          Str config=(build_debug ? "Debug" : "Release");
          if(build_exe_type==EXE_NEW)config+=" Universal";
 
+         if(build_exe_type==EXE_NS )config+=" DX11";else // always use the same config for NS  because it uses    GL, warning: this must match codes above: (build_debug ? "Debug DX11/" : "Release DX11/")
          if(build_exe_type==EXE_WEB)config+=" DX11";else // always use the same config for WEB because it uses WebGL, warning: this must match codes above: (build_debug ? "Debug DX11/" : "Release DX11/")
          if(build_exe_type==EXE_NEW)config+=" DX11";else
                                     config+=" DX11"; // config_api
