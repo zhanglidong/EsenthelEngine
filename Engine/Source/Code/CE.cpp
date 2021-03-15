@@ -1289,7 +1289,7 @@ void CodeEditor::update(Bool active)
             lines=Split(build_output, '\n');
          }
          buildClear();
-         if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_MAC || build_exe_type==EXE_IOS || build_exe_type==EXE_LINUX || build_exe_type==EXE_WEB)build_step=0; // we're going to count compilation progress for these platforms
+         if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_UWP || build_exe_type==EXE_MAC || build_exe_type==EXE_IOS || build_exe_type==EXE_LINUX || build_exe_type==EXE_WEB)build_step=0; // we're going to count compilation progress for these platforms
          FREPA(lines)
          {
           C Str &line=lines[i];
@@ -1307,7 +1307,7 @@ void CodeEditor::update(Bool active)
                || Contains(line, ": error "  , false, WHOLE_WORD_STRICT))br.setError  ();
 
                // count sources compiled
-               if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB)
+               if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_UWP || build_exe_type==EXE_WEB)
                {
                   if(build_msbuild)
                   {
@@ -1355,7 +1355,7 @@ void CodeEditor::update(Bool active)
          build_process.del();
          Bool was_log;
          if(was_log=build_log.is()){FDelFile(build_log); build_log.clear();}
-         if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB)
+         if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_UWP || build_exe_type==EXE_WEB)
          {
             Bool ok=false;
             if(build_phase==0)
@@ -1772,7 +1772,7 @@ Str  CodeEditorInterface::title      (                                ) {return 
 Str  CodeEditorInterface::appPath    (C Str &app_name                 ) {Str build_path, build_project_name; return CE.getBuildPath(build_path, build_project_name, &app_name) ? build_path : S;}
 Str  CodeEditorInterface::androidProjectPakPath(                      ) {Str build_path, build_project_name; return CE.getBuildPath(build_path, build_project_name           ) ? build_path+"Android/assets/Project.pak" : S;}
 Str  CodeEditorInterface::    iOSProjectPakPath(                      ) {Str build_path, build_project_name; return CE.getBuildPath(build_path, build_project_name           ) ? build_path+"Assets/Project.pak"         : S;}
-Str  CodeEditorInterface::windowsProjectPakPath(                      ) {Str build_path, build_project_name; return CE.getBuildPath(build_path, build_project_name           ) ? build_path+"Project.pak"                : S;} // if we would set "Assets/Project.pak" then the file would be included inside the EXE including the "Assets" too
+Str  CodeEditorInterface::    UWPProjectPakPath(                      ) {Str build_path, build_project_name; return CE.getBuildPath(build_path, build_project_name           ) ? build_path+"Project.pak"                : S;} // if we would set "Assets/Project.pak" then the file would be included inside the EXE including the "Assets/" too
 void CodeEditorInterface::saveChanges(                                                                                                ) {CE.saveChanges();}
 void CodeEditorInterface::saveChanges(Memc<Edit::SaveChanges::Elm> &elms                                                              ) {CE.saveChanges(elms);}
 void CodeEditorInterface::saveChanges(Memc<Edit::SaveChanges::Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr user), Ptr user) {CE.save_changes.set(elms, after_save_close, user);}

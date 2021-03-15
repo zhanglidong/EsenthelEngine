@@ -6,7 +6,7 @@ enum EXE_TYPE : Byte // Executable Type
    EXE_EXE  , // Windows Executable
    EXE_DLL  , // Windows Dynamically Linked Library
    EXE_LIB  , // Windows Statically  Linked Library (currently not supported, reserved for future use)
-   EXE_NEW  , // Windows Universal App
+   EXE_UWP  , // Windows Universal App
    EXE_APK  , // Android Application Package
    EXE_MAC  , // Mac     Application
    EXE_IOS  , // iOS     Application
@@ -63,7 +63,7 @@ struct CodeEditorInterface
    Str  appPath    (C Str &app_name);
    Str  androidProjectPakPath();
    Str      iOSProjectPakPath();
-   Str  windowsProjectPakPath();
+   Str      UWPProjectPakPath();
    void saveChanges();
    void saveChanges(Memc<Edit::SaveChanges::Elm> &elms);
    void saveChanges(Memc<Edit::SaveChanges::Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr user), Ptr user=null);

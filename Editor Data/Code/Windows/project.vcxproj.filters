@@ -2,41 +2,41 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="H" />
-    <Filter Include="H\_" />
+    <Filter Include="H\UWP" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Square44x44Logo.targetsize-48_altform-unplated.png">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Image Include="Assets\Square44x44Logo.scale-200.png">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Image Include="Assets\Square150x150Logo.scale-200.png">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Image Include="Assets\Logo.png">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Image Include="Assets\SplashScreen.png">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Media Include="Engine.pak">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Media>
     <Media Include="Project.pak">
-      <Filter>H\_</Filter>
+      <Filter>H\UWP</Filter>
     </Media>
     <ResourceCompile Include="resource.rc">
-      <Filter>H\_</Filter>
+      <Filter>H</Filter>
     </ResourceCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>H\_</Filter>
+      <Filter>H</Filter>
     </ClCompile>
     <ClInclude Include="stdafx.h">
-      <Filter>H\_</Filter>
+      <Filter>H</Filter>
     </ClInclude>
-    <AppxManifest Include="Package.appxmanifest">
-      <Filter>H\_</Filter>
+    <AppxManifest Include="Assets\Package.appxmanifest">
+      <Filter>H\UWP</Filter>
     </AppxManifest>
   </ItemGroup>
 </Project>

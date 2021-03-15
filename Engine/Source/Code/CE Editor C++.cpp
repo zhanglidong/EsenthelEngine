@@ -96,7 +96,7 @@ static Bool ValidatePackage()
 static Str AndroidPackage(C Str &name) {return Replace(name, '-', '_');} // Android does not support '-' but supports '_'
 Bool CodeEditor::verifyVS()
 {
-   if(build_exe_type==EXE_NEW && !ValidatePackage())return false;
+   if(build_exe_type==EXE_UWP && !ValidatePackage())return false;
    if(devenv_version.x<=0)validateDevEnv();
    Str message; if(CheckVisualStudio(devenv_version, &message, false))return true; // we can't check the minor version because EXE have it always set to 0 (last tested on VS 2017 regular+preview)
    options.activatePaths(); return Error(message);
@@ -316,7 +316,7 @@ Bool CodeEditor::verifyBuildPath()
       case EXE_EXE  : build_exe=build_path+build_project_name+".exe"; break;
       case EXE_DLL  : build_exe=build_path+build_project_name+".dll"; break;
       case EXE_LIB  : build_exe=build_path+build_project_name+".lib"; break;
-      case EXE_NEW  : build_exe=build_path+build_project_name+".exe"; break;
+      case EXE_UWP  : build_exe=build_path+build_project_name+".exe"; break;
       case EXE_MAC  : build_exe=build_path+build_project_name+".app"; break;
       case EXE_IOS  : build_exe=build_path+build_project_name+".app"; break;
       case EXE_APK  : build_exe=build_path+"Android/bin/"+build_project_name; break;
@@ -1188,7 +1188,7 @@ struct ImageConvert
 };
 Bool CodeEditor::generateVSProj(Int version)
 {
-   if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_NEW && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
+   if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_UWP && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
    if(build_exe_type==EXE_WEB && version<10)return Error("WEB configuration requires Visual Studio 2010 or newer.");
 
    FCreateDirs(build_path+"Assets");
@@ -1255,29 +1255,32 @@ Bool CodeEditor::generateVSProj(Int version)
 
       rel="Assets/Icon.ico"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1)){resource_changed=true; convert.New().set(build_path+rel, icon, icon_time).ICO().clamp(256, 256).square();} // Windows can't handle non-square icons properly (it stretches them)
 
-      // list images starting from the smallest
-      rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
-      rel="Assets/Square44x44Logo.scale-200.png"                     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
-      rel="Assets/Square150x150Logo.scale-200.png"                   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
+      if(build_exe_type==EXE_UWP || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
+      {
+         // list images starting from the smallest
+         rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
+         rel="Assets/Square44x44Logo.scale-200.png"                     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
+         rel="Assets/Square150x150Logo.scale-200.png"                   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
+
+         rel="Assets/Logo.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
+
+         rel="Assets/SplashScreen.png";
+         if(splash_from_icon)
+         {
+            if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(128, 128).crop(620, 300);
+         }else
+         if(landscape.is() || portrait.is())
+         {
+            dt=(landscape.is() ? landscape_time : portrait_time); if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, landscape.is() ? landscape : portrait, dt).resizeFill(620, 300);
+         }else // use empty
+         {
+            dt.zero(); dt.day=1; dt.month=1; dt.year=2000; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1)){empty.createSoftTry(620, 300, 1, IMAGE_R8G8B8A8_SRGB); empty.zero(); convert.New().set(build_path+rel, empty, dt);}
+         }
+      }
 
       if(build_exe_type==EXE_NS || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
       {
          rel="Assets/Nintendo Switch Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
-      }
-
-      rel="Assets/Logo.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
-
-      rel="Assets/SplashScreen.png";
-      if(splash_from_icon)
-      {
-         if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(128, 128).crop(620, 300);
-      }else
-      if(landscape.is() || portrait.is())
-      {
-         dt=(landscape.is() ? landscape_time : portrait_time); if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, landscape.is() ? landscape : portrait, dt).resizeFill(620, 300);
-      }else // use empty
-      {
-         dt.zero(); dt.day=1; dt.month=1; dt.year=2000; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1)){empty.createSoftTry(620, 300, 1, IMAGE_R8G8B8A8_SRGB); empty.zero(); convert.New().set(build_path+rel, empty, dt);}
       }
 
       convert.reverseOrder(); // start working from the biggest ones because they take the most time, yes this is correct
@@ -1290,7 +1293,7 @@ Bool CodeEditor::generateVSProj(Int version)
    if(resource_changed)FTimeUTC(build_path+"resource.rc", DateTime().getUTC()); // if any resource was changed then we need to adjust "resource.rc" modification time to make sure that VS will rebuild the resources
 
    // xboxservices.config
-   if(build_exe_type==EXE_EXE || build_exe_type==EXE_NEW)
+   if(build_exe_type==EXE_EXE || build_exe_type==EXE_UWP)
    {
       ULong xbl_title_id=cei().appXboxLiveTitleID();
       UID   xbl_scid    =cei().appXboxLiveSCID   ();
@@ -1394,7 +1397,7 @@ Bool CodeEditor::generateVSProj(Int version)
          }
       }
 
-      if(!OverwriteOnChangeLoud(xml, build_path+"Package.appxmanifest"))return false;
+      if(!OverwriteOnChangeLoud(xml, build_path+"Assets/Package.appxmanifest"))return false;
    }
 
    // solution
@@ -1605,8 +1608,6 @@ Bool CodeEditor::generateVSProj(Int version)
          build_project_file=build_path+"Project.sln";
          if(!OverwriteOnChangeLoud(xml  , build_path+"Project.vcxproj"        ))return false;
          if(!OverwriteOnChangeLoud(xml_f, build_path+"Project.vcxproj.filters"))return false;
-
-         if(!CopyFile("Code/Windows/Project.vcxproj.user", build_path+"Project.vcxproj.user"))return false; // this is needed so that Windows Phone Device will be listed as the target machine for compilation, without this, currently Visual Studio has a bug which does not display the Phone as the target, this forces displaying it, perhaps it will be fixed in Visual Studio in the future, and then this copy won't be needed
          return true;
       }
    }
@@ -2904,7 +2905,7 @@ void CodeEditor::killBuild()
 /******************************************************************************/
 void CodeEditor::build(BUILD_MODE mode)
 {
-   if((mode==BUILD_PLAY || mode==BUILD_PUBLISH) && (config_exe==EXE_NEW || config_exe==EXE_IOS)){openIDE(); return;} // Play/Publish for WindowsNew and iOS must be done from the IDE
+   if((mode==BUILD_PLAY || mode==BUILD_PUBLISH) && (config_exe==EXE_UWP || config_exe==EXE_IOS)){openIDE(); return;} // Play/Publish for WindowsNew and iOS must be done from the IDE
 
    if(Export(EXPORT_EXE, mode))
    {
@@ -2915,17 +2916,17 @@ void CodeEditor::build(BUILD_MODE mode)
       build_phases =build_steps=0;
 
       Int build_threads=Cpu.threads();
-      if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_NEW || build_exe_type==EXE_WEB || build_exe_type==EXE_NS)
+      if(build_exe_type==EXE_EXE || build_exe_type==EXE_DLL || build_exe_type==EXE_LIB || build_exe_type==EXE_UWP || build_exe_type==EXE_WEB || build_exe_type==EXE_NS)
       {
          build_phases=1+build_windows_code_sign;
          build_steps =3+build_windows_code_sign; FREPA(build_files)if(build_files[i].mode==BuildFile::SOURCE)build_steps++; // stdafx.cpp, linking, wait for end, *.cpp
 
          Str config=(build_debug ? "Debug" : "Release");
-         if(build_exe_type==EXE_NEW)config+=" Universal";
+         if(build_exe_type==EXE_UWP)config+=" Universal";
 
          if(build_exe_type==EXE_NS )config+=" DX11";else // always use the same config for NS  because it uses    GL, warning: this must match codes above: (build_debug ? "Debug DX11/" : "Release DX11/")
          if(build_exe_type==EXE_WEB)config+=" DX11";else // always use the same config for WEB because it uses WebGL, warning: this must match codes above: (build_debug ? "Debug DX11/" : "Release DX11/")
-         if(build_exe_type==EXE_NEW)config+=" DX11";else
+         if(build_exe_type==EXE_UWP)config+=" DX11";else
                                     config+=" DX11"; // config_api
 
          Str platform=((build_exe_type==EXE_NS) ? "4) Nintendo Switch" : (build_exe_type==EXE_WEB) ? "3) Web" : /*config_32_bit ? "2) 32 bit" :*/ "1) 64 bit");
@@ -2951,7 +2952,7 @@ void CodeEditor::build(BUILD_MODE mode)
             if( msbuild.is())
             {
                Str params=MSBuildParams(build_project_file, config, platform);
-               if(build_exe_type==EXE_NEW)params.space()+="/p:AppxPackageSigningEnabled=false"; // disable code signing for Windows Universal builds, otherwise build will fail
+               if(build_exe_type==EXE_UWP)params.space()+="/p:AppxPackageSigningEnabled=false"; // disable code signing for Windows Universal builds, otherwise build will fail
                build_msbuild=build_process.create(msbuild, params);
             }
             if(!build_msbuild)
@@ -3017,7 +3018,7 @@ void CodeEditor::debug()
    switch(config_exe)
    {
       case EXE_EXE:
-      case EXE_NEW: if(Export(EXPORT_VS, BUILD_DEBUG))VSRun(build_project_file, S); break;
+      case EXE_UWP: if(Export(EXPORT_VS, BUILD_DEBUG))VSRun(build_project_file, S); break;
 
       case EXE_DLL: build(); break;
 

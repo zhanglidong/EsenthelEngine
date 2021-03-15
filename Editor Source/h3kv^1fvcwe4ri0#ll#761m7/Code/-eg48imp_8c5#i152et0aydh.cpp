@@ -50,7 +50,7 @@ class MiscRegion : Region
    static void ConfigEXE    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_EXE  );}
    static void ConfigDLL    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_DLL  );}
    static void ConfigLIB    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_LIB  );}
-   static void ConfigNEW    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_NEW  );}
+   static void ConfigUWP    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_UWP  );}
    static void ConfigAPK    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_APK  );}
    static void ConfigMAC    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_MAC  );}
    static void ConfigIOS    (MiscRegion &mr) {CodeEdit.configEXE  (Edit.EXE_IOS  );}
@@ -249,7 +249,7 @@ class MiscRegion : Region
          build_menu.New().create("Windows EXE"      , ConfigEXE  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Windows DLL"      , ConfigDLL  , T).flag(MENU_TOGGLABLE);
        //build_menu.New().create("Windows LIB"      , ConfigLIB  , T).flag(MENU_TOGGLABLE);
-         build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Windows Universal", ConfigUWP  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
          build_menu.New().create("Web"              , ConfigWeb  , T).flag(MENU_TOGGLABLE);

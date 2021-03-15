@@ -51,7 +51,7 @@ class MiscRegion : Region
    static void ConfigEXE    (MiscRegion &mr);
    static void ConfigDLL    (MiscRegion &mr);
    static void ConfigLIB    (MiscRegion &mr);
-   static void ConfigNEW    (MiscRegion &mr);
+   static void ConfigUWP    (MiscRegion &mr);
    static void ConfigAPK    (MiscRegion &mr);
    static void ConfigMAC    (MiscRegion &mr);
    static void ConfigIOS    (MiscRegion &mr);

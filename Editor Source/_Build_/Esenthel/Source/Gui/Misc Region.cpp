@@ -38,7 +38,7 @@ MiscRegion Misc;
    void MiscRegion::ConfigEXE(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_EXE  );}
    void MiscRegion::ConfigDLL(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_DLL  );}
    void MiscRegion::ConfigLIB(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_LIB  );}
-   void MiscRegion::ConfigNEW(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_NEW  );}
+   void MiscRegion::ConfigUWP(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_UWP  );}
    void MiscRegion::ConfigAPK(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_APK  );}
    void MiscRegion::ConfigMAC(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_MAC  );}
    void MiscRegion::ConfigIOS(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_IOS  );}
@@ -234,7 +234,7 @@ MiscRegion Misc;
          build_menu.New().create("Windows EXE"      , ConfigEXE  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Windows DLL"      , ConfigDLL  , T).flag(MENU_TOGGLABLE);
        //build_menu.New().create("Windows LIB"      , ConfigLIB  , T).flag(MENU_TOGGLABLE);
-         build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Windows Universal", ConfigUWP  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
          build_menu.New().create("Web"              , ConfigWeb  , T).flag(MENU_TOGGLABLE);

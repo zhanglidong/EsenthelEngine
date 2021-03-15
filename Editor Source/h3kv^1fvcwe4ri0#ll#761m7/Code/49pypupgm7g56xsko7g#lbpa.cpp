@@ -272,7 +272,7 @@ Edit.BUILD_MODE     PublishBuildMode=Edit.BUILD_BUILD;
 PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
-bool PublishDataNeeded(Edit.EXE_TYPE exe, Edit.BUILD_MODE mode) {return exe==Edit.EXE_NEW || exe==Edit.EXE_APK || exe==Edit.EXE_IOS;}
+bool PublishDataNeeded(Edit.EXE_TYPE exe, Edit.BUILD_MODE mode) {return exe==Edit.EXE_UWP || exe==Edit.EXE_APK || exe==Edit.EXE_IOS;}
 /******************************************************************************/
 void PublishDo()
 {
@@ -351,12 +351,12 @@ bool StartPublish(C Str &exe_name, Edit.EXE_TYPE exe_type, Edit.BUILD_MODE build
          }
          if(PublishExePath.is())if(!FCopy(PublishExePath, PublishPath+GetBase(PublishExePath))){Gui.msgBox(S, S+"Can't copy \""+GetBase(PublishExePath)+'"'); return false;}
       }else
-      if(exe_type==Edit.EXE_NEW)
+      if(exe_type==Edit.EXE_UWP)
       {
          PublishDataAsPak=true; // always set to true because files inside exe can't be modified by the app, so there's no point in storing them separately
          //if(CodeEdit.appPublishProjData()) always setup 'PublishProjectDataPath' because even if we don't include Project data, we still include App data
          {
-            PublishProjectDataPath=CodeEdit.windowsProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
+            PublishProjectDataPath=CodeEdit.UWPProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
             FCreateDirs(GetPath(PublishProjectDataPath));
          }
       }else
@@ -568,7 +568,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
  C bool android=(PublishExeType==Edit.EXE_APK),
             iOS=(PublishExeType==Edit.EXE_IOS),
-            uwp=(PublishExeType==Edit.EXE_NEW),
+            uwp=(PublishExeType==Edit.EXE_UWP),
             web=(PublishExeType==Edit.EXE_WEB),
              ns=(PublishExeType==Edit.EXE_NS ),
          mobile=(android || iOS || ns),
@@ -1087,7 +1087,7 @@ void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Me
          }
          AddPublishFiles(elms, files, generate, convert);
       }else
-      if(PublishExeType==Edit.EXE_NEW || PublishExeType==Edit.EXE_APK || PublishExeType==Edit.EXE_IOS) // for Windows New, Android and iOS if Project data is not included, then include only App data
+      if(PublishExeType==Edit.EXE_UWP || PublishExeType==Edit.EXE_APK || PublishExeType==Edit.EXE_IOS) // for Windows New, Android and iOS if Project data is not included, then include only App data
       {
          Memt<Elm*> elms; Proj.getActiveAppElms(elms);
          AddPublishFiles(elms, files, generate, convert);

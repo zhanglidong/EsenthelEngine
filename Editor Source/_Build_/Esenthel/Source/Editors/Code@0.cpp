@@ -66,7 +66,7 @@ AppPropsEditor AppPropsEdit;
       Misc.build.menu("Windows EXE"      , configEXE()==Edit::EXE_EXE  , QUIET);
       Misc.build.menu("Windows DLL"      , configEXE()==Edit::EXE_DLL  , QUIET);
       Misc.build.menu("Windows LIB"      , configEXE()==Edit::EXE_LIB  , QUIET);
-      Misc.build.menu("Windows Universal", configEXE()==Edit::EXE_NEW  , QUIET);
+      Misc.build.menu("Windows Universal", configEXE()==Edit::EXE_UWP  , QUIET);
       Misc.build.menu("Android APK"      , configEXE()==Edit::EXE_APK  , QUIET);
       Misc.build.menu("Mac APP"          , configEXE()==Edit::EXE_MAC  , QUIET);
       Misc.build.menu("iOS APP"          , configEXE()==Edit::EXE_IOS  , QUIET);
@@ -450,7 +450,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
             case Edit::EXPORT_VS2015:
             case Edit::EXPORT_VS2017:
             case Edit::EXPORT_VS2019:
-               exe=Edit::EXE_NEW; break;
+               exe=Edit::EXE_UWP; break;
          }
          if(exe>=0 && PublishDataNeeded(exe, Edit::BUILD_PUBLISH))StartPublish(S, exe, Edit::BUILD_PUBLISH, true);
       }
