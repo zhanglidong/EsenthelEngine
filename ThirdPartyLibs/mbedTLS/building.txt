@@ -18,6 +18,19 @@ Edit
 	#define MBEDTLS_PEM_WRITE_C -> //#define MBEDTLS_PEM_WRITE_C
 	#define MBEDTLS_XTEA_C -> //#define MBEDTLS_XTEA_C
 
+library/x509.c
+static int x509_get_current_time( mbedtls_x509_time *now )
+{
+->
+int x509_get_current_time( mbedtls_x509_time *now )
+#ifndef __NINTENDO__
+{
+..
+}
+#endif
+;
+	
+
 library/x509_crt.c
 	lstrlenW -> wcslen // to avoid linker errors on UWP
 

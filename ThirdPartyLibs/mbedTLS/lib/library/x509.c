@@ -894,7 +894,8 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
  * Set the time structure to the current time.
  * Return 0 on success, non-zero on failure.
  */
-static int x509_get_current_time( mbedtls_x509_time *now )
+int x509_get_current_time( mbedtls_x509_time *now )
+#ifndef __NINTENDO__
 {
     struct tm *lt, tm_buf;
     mbedtls_time_t tt;
@@ -921,6 +922,8 @@ static int x509_get_current_time( mbedtls_x509_time *now )
 
     return( ret );
 }
+#endif
+;
 
 /*
  * Return 0 if before <= after, 1 otherwise

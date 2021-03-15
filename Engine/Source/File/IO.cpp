@@ -155,7 +155,7 @@ Bool FileInfo::getSystem(C Str &name)
       #if APPLE
          tm gmt; gmtime_r(&stats.st_mtimespec.tv_sec, &gmt);
       #else
-         tm gmt; time_t t=stats.st_mtime; gmtime_r(&t, &gmt);
+         tm gmt; gmtime_r(&stats.st_mtime           , &gmt);
       #endif
          modify_time_utc.year  =gmt.tm_year+1900;
          modify_time_utc.month =gmt.tm_mon+1;
