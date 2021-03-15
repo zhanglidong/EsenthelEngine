@@ -260,6 +260,18 @@
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
+    <ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
+    <ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
+    <ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+  </PropertyGroup>
+  <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
+    <ApplicationDataDir>Assets\Nintendo Switch\Data</ApplicationDataDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -436,7 +448,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+      <FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -532,7 +544,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories />
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+      <FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -816,7 +828,7 @@
       <LinkTimeCodeGeneration />
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+      <FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -921,7 +933,7 @@
       <AdditionalLibraryDirectories />
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
-      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
+      <FinalizeMetaSource>Assets\Nintendo Switch\Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>

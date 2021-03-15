@@ -1191,7 +1191,7 @@ Bool CodeEditor::generateVSProj(Int version)
    if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_UWP && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
    if(build_exe_type==EXE_WEB && version<10)return Error("WEB configuration requires Visual Studio 2010 or newer.");
 
-   FCreateDirs(build_path+"Assets");
+   FCreateDirs(build_path+"Assets/Nintendo Switch");
 
    FileText resource_rc; resource_rc.writeMem(UTF_16); // utf-16 must be used, because VS has problems with utf-8
    FileText src; if(!src.read("Code/Windows/resource.rc"))return ErrorRead("Code/Windows/resource.rc"); for(; !src.end(); )resource_rc.putLine(src.fullLine());
@@ -1280,7 +1280,7 @@ Bool CodeEditor::generateVSProj(Int version)
 
       if(build_exe_type==EXE_NS || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
       {
-         rel="Assets/Nintendo Switch Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
+         rel="Assets/Nintendo Switch/Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
       }
 
       convert.reverseOrder(); // start working from the biggest ones because they take the most time, yes this is correct
@@ -1359,7 +1359,7 @@ Bool CodeEditor::generateVSProj(Int version)
             if(XmlNode *DisplayVersion=Application->findNode("DisplayVersion"))DisplayVersion->data.setNum(1)[0]=cei().appBuild();
          }
       }
-      if(!OverwriteOnChangeLoud(xml, build_path+"Project.nmeta"))return false;
+      if(!OverwriteOnChangeLoud(xml, build_path+"Assets/Nintendo Switch/Project.nmeta"))return false;
    }
 
    // universal manifest
