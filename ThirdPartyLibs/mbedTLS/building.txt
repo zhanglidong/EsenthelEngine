@@ -29,7 +29,6 @@ int x509_get_current_time( mbedtls_x509_time *now )
 }
 #endif
 ;
-	
 
 library/x509_crt.c
 	lstrlenW -> wcslen // to avoid linker errors on UWP
