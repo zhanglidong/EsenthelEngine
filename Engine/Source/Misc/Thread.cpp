@@ -396,13 +396,7 @@ Bool SyncEvent::wait(Int milliseconds)C
          }else
          if(milliseconds>0) // timed wait
          {
-         #if 1
             timespec ts; clock_gettime(USE_MONOTONIC_CLOCK ? CLOCK_MONOTONIC : CLOCK_REALTIME, &ts);
-         #else
-            timeval  tv; gettimeofday(&tv, null);
-            timespec ts; ts.tv_sec  =tv.tv_sec      ;
-                         ts.tv_nsec =tv.tv_usec*1000;
-         #endif
             ts.tv_nsec+=(milliseconds%1000)*1000000;
             ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
             ts.tv_nsec%=1000000000;
@@ -490,13 +484,7 @@ Bool SyncCounter::wait(Int milliseconds)C
          }else
          if(milliseconds>0) // timed wait
          {
-         #if 1
             timespec ts; clock_gettime(USE_MONOTONIC_CLOCK ? CLOCK_MONOTONIC : CLOCK_REALTIME, &ts);
-         #else
-            timeval  tv; gettimeofday(&tv, null);
-            timespec ts; ts.tv_sec  =tv.tv_sec      ;
-                         ts.tv_nsec =tv.tv_usec*1000;
-         #endif
             ts.tv_nsec+=(milliseconds%1000)*1000000;
             ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
             ts.tv_nsec%=1000000000;
