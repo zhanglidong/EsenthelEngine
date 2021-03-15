@@ -192,67 +192,6 @@ DateTimeMs& DateTimeMs::getUTC()
    return T;
 }
 
-DateTime& DateTime::incMonth()
-{
-   if(++month>12){month=1; year++;}
-   return T;
-}
-DateTime& DateTime::decMonth()
-{
-   if(--month<1){month=12; year--;}
-   return T;
-}
-DateTime& DateTime::incDay()
-{
-   if(++day>28)
-   {
-      if(day>MonthDays(month, year))
-      {
-         day=1;
-         incMonth();
-      }
-   }
-   return T;
-}
-DateTime& DateTime::decDay()
-{
-   if(day>1)day--;else
-   {
-      decMonth();
-      day=MonthDays(month, year); // set 'day' after having new 'month'
-   }
-   return T;
-}
-DateTime& DateTime::incHour()
-{
-   if(++hour>=24){hour=0; incDay();}
-   return T;
-}
-DateTime& DateTime::decHour()
-{
-   if(hour>0)hour--;else{hour=23; decDay();}
-   return T;
-}
-DateTime& DateTime::incMinute()
-{
-   if(++minute>=60){minute=0; incHour();}
-   return T;
-}
-DateTime& DateTime::decMinute()
-{
-   if(minute>0)minute--;else{minute=59; decHour();}
-   return T;
-}
-DateTime& DateTime::incSecond()
-{
-   if(++second>=60){second=0; incMinute();}
-   return T;
-}
-DateTime& DateTime::decSecond()
-{
-   if(second>0)second--;else{second=59; decMinute();}
-   return T;
-}
 DateTime& DateTime::toUTC()
 {
    if(valid())
@@ -347,6 +286,68 @@ DateTime& DateTime::toLocal()
       second=t.tm_sec;
    #endif
    }
+   return T;
+}
+
+DateTime& DateTime::incMonth()
+{
+   if(++month>12){month=1; year++;}
+   return T;
+}
+DateTime& DateTime::decMonth()
+{
+   if(--month<1){month=12; year--;}
+   return T;
+}
+DateTime& DateTime::incDay()
+{
+   if(++day>28)
+   {
+      if(day>MonthDays(month, year))
+      {
+         day=1;
+         incMonth();
+      }
+   }
+   return T;
+}
+DateTime& DateTime::decDay()
+{
+   if(day>1)day--;else
+   {
+      decMonth();
+      day=MonthDays(month, year); // set 'day' after having new 'month'
+   }
+   return T;
+}
+DateTime& DateTime::incHour()
+{
+   if(++hour>=24){hour=0; incDay();}
+   return T;
+}
+DateTime& DateTime::decHour()
+{
+   if(hour>0)hour--;else{hour=23; decDay();}
+   return T;
+}
+DateTime& DateTime::incMinute()
+{
+   if(++minute>=60){minute=0; incHour();}
+   return T;
+}
+DateTime& DateTime::decMinute()
+{
+   if(minute>0)minute--;else{minute=59; decHour();}
+   return T;
+}
+DateTime& DateTime::incSecond()
+{
+   if(++second>=60){second=0; incMinute();}
+   return T;
+}
+DateTime& DateTime::decSecond()
+{
+   if(second>0)second--;else{second=59; decMinute();}
    return T;
 }
 DateTime& DateTime::fromSeconds(Long s)
