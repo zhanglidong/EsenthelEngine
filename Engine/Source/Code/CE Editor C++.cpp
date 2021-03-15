@@ -1323,7 +1323,7 @@ Bool CodeEditor::generateVSProj(Int version)
    Memc<Str> libs=GetFiles(cei().appLibsWindows()),
              dirs=GetFiles(cei().appDirsWindows());
 
-   // web html
+   // Web html
    if(build_exe_type==EXE_WEB)
    {
       if(!src.read("Code/Web/Page.html"))return ErrorRead("Code/Web/Page.html");
@@ -1336,7 +1336,7 @@ Bool CodeEditor::generateVSProj(Int version)
    }
 
    // manifest
-   if(!CopyFile("Code/Windows/Windows Manifest.xml", build_path+"Windows Manifest.xml"))return false;
+   if(!CopyFile("Code/Windows/Windows Manifest.xml", build_path+"Assets/Windows Manifest.xml"))return false;
 
    // Nintendo Switch
    if(!CopyFile("Code/Nintendo Switch/ImportNintendoSdk.props", build_path+"ImportNintendoSdk.props"))return false;
