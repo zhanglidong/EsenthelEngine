@@ -246,15 +246,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">
     <CppLanguageStandard>Gnu++17</CppLanguageStandard>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">
     <ClCompile>
@@ -423,7 +427,7 @@
       <MsExtensions>true</MsExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineNintendoSwitch.a;libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -519,7 +523,7 @@
       <MsExtensions>true</MsExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineNintendoSwitch.a;libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -806,7 +810,7 @@
       <MsExtensions>true</MsExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineNintendoSwitch.a;libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -914,7 +918,7 @@
       <MsExtensions>true</MsExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>EsenthelEngineNintendoSwitch.a;libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
