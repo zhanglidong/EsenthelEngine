@@ -1115,9 +1115,9 @@ static Bool ImageResize(C Image &src, Image &dest, Int x, Int y, FIT_MODE fit)
 }
 struct ImageConvert
 {
-   Bool          ok, _square;
+   Bool          ok, _square, remove_alpha;
    FIT_MODE     fit;
-   Byte      format; // 0=PNG, 1=ICO, 2=ICNS
+   Byte      format; // 0=PNG, 1=ICO, 2=ICNS, 3=BMP
    Str         dest;
    VecI2  size,
          _crop,
@@ -1129,15 +1129,17 @@ struct ImageConvert
 
    ImageConvert& set(C Str &dest, C Image &src, C DateTime &dt)
    {
-      T.ok=false; T._square=false; T.format=0; T.dest=dest; T.size=T._crop=T._clamp=-1; T.fit=FIT_FULL; T.src=&src; T.dt=dt; return T;
+      T.ok=false; T._square=false; T.remove_alpha=false; T.format=0; T.dest=dest; T.size=T._crop=T._clamp=-1; T.fit=FIT_FULL; T.src=&src; T.dt=dt; return T;
    }
-   ImageConvert& ICO       (            ) {T.format=1; return T;}
-   ImageConvert& ICNS      (            ) {T.format=2; return T;}
-   ImageConvert& square    (            ) {_square=true; return T;}
-   ImageConvert& resize    (Int w, Int h) {T.size.set(w, h); return T;}
-   ImageConvert& resizeFill(Int w, Int h) {T.size.set(w, h); T.fit=FIT_FILL; return T;}
-   ImageConvert& crop      (Int w, Int h) { _crop.set(w, h); return T;}
-   ImageConvert& clamp     (Int w, Int h) {_clamp.set(w, h); return T;}
+   ImageConvert& ICO        (            ) {T.format=1; return T;}
+   ImageConvert& ICNS       (            ) {T.format=2; return T;}
+   ImageConvert& BMP        (            ) {T.format=3; return T;}
+   ImageConvert& square     (            ) {_square=true; return T;}
+   ImageConvert& resize     (Int w, Int h) {T.size.set(w, h); return T;}
+   ImageConvert& resizeFill (Int w, Int h) {T.size.set(w, h); T.fit=FIT_FILL; return T;}
+   ImageConvert& crop       (Int w, Int h) { _crop.set(w, h); return T;}
+   ImageConvert& clamp      (Int w, Int h) {_clamp.set(w, h); return T;}
+   ImageConvert& removeAlpha(            ) {remove_alpha=true; return T;}
 
    void process()
    {
@@ -1161,11 +1163,25 @@ struct ImageConvert
          if(!src->typeInfo().a)if(src->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return; // if we're cropping to a bigger size, then make sure that alpha channel is present, so pixels can be set to transparent color
          Int size=src->size().max(); src->crop(temp, (src->w()-size)/2, (src->h()-size)/2, size, size); src=&temp;
       }
+      if(remove_alpha && src->typeInfo().a)
+      {
+         Image temp1; if(temp1.createSoftTry(src->w(), src->h(), 1, IMAGE_R8G8B8_SRGB))
+         {
+            REPD(y, src->h())
+            REPD(x, src->w())
+            {
+               Vec4 c=src->colorF(x, y); c.xyz*=c.w;
+                     temp1.colorF(x, y, c);
+            }
+            Swap(temp, temp1); src=&temp;
+         }
+      }
       switch(format)
       {
          case 0: ok=src->ExportPNG (f, 1); break;
          case 1: ok=src->ExportICO (f   ); break;
          case 2: ok=src->ExportICNS(f   ); break;
+         case 3: ok=src->ExportBMP (f   ); break;
       }
       if(ok){f.pos(0); FCreateDir(GetPath(dest)); ok=SafeOverwrite(f, dest, &dt);}
    }
@@ -1243,6 +1259,8 @@ Bool CodeEditor::generateVSProj(Int version)
       rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
       rel="Assets/Square44x44Logo.scale-200.png"                     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
       rel="Assets/Square150x150Logo.scale-200.png"                   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
+
+      rel="Assets/Nintendo Switch Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(256, 256).removeAlpha().BMP();
 
       rel="Assets/Logo.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
 
