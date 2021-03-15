@@ -322,6 +322,7 @@ Bool CodeEditor::verifyBuildPath()
       case EXE_APK  : build_exe=build_path+"Android/bin/"+build_project_name; break;
       case EXE_LINUX: build_exe=build_path+CleanNameForMakefile(build_project_name); break;
       case EXE_WEB  : build_exe=build_path+"Emscripten/"+(build_debug ? "Debug DX11/" : "Release DX11/")+build_project_name+".html"; break; // warning: this must match codes below if(build_exe_type==EXE_WEB)config+=" DX11";
+      case EXE_NS   : build_exe=build_path+"NX64/"      +(build_debug ? "Debug DX11/" : "Release DX11/")+build_project_name+".nsp" ; break; // warning: this must match codes below if(build_exe_type==EXE_NS )config+=" DX11";
       default       : build_exe.clear(); return false;
    }
    return true;
@@ -1310,10 +1311,37 @@ Bool CodeEditor::generateVSProj(Int version)
    // manifest
    if(!CopyFile("Code/Windows/Windows Manifest.xml", build_path+"Windows Manifest.xml"))return false;
 
+   // nintendo switch
+   if(!CopyFile("Code/Nintendo Switch/ImportNintendoSdk.props", build_path+"ImportNintendoSdk.props"))return false;
+   if(!CopyFile("Code/Nintendo Switch/Project.nnsdk.xml"      , build_path+"Project.nnsdk.xml"      ))return false;
+   {
+      XmlData xml;
+      if(!xml.load("Code/Nintendo Switch/Project.nmeta"))return ErrorRead("Code/Nintendo Switch/Project.nmeta");
+      if(XmlNode *NintendoSdkMeta=xml.findNode("NintendoSdkMeta"))
+      {
+         if(XmlNode *Core=NintendoSdkMeta->findNode("Core"))
+         {
+          //if(XmlNode *Name         =Core->findNode("Name"         ))Name         ->data.setNum(1)[0]=cei().appName(); FIXME
+          //if(XmlNode *ApplicationId=Core->findNode("ApplicationId"))ApplicationId->data.setNum(1)[0]=cei().appName(); FIXME
+         }
+         if(XmlNode *Application=NintendoSdkMeta->findNode("Application"))
+         {
+            if(XmlNode *Title=Application->findNode("Title"))
+            {
+               if(XmlNode *Name     =Title->findNode("Name"     ))Name     ->data.setNum(1)[0]=cei().appName();
+             //if(XmlNode *Publisher=Title->findNode("Publisher"))Publisher->data.setNum(1)[0]=cei().(); FIXME
+            }
+            if(XmlNode *ReleaseVersion=Application->findNode("ReleaseVersion"))ReleaseVersion->data.setNum(1)[0]=cei().appBuild();
+            if(XmlNode *DisplayVersion=Application->findNode("DisplayVersion"))DisplayVersion->data.setNum(1)[0]=cei().appBuild();
+         }
+      }
+      if(!OverwriteOnChangeLoud(xml, build_path+"Project.nmeta"))return false;
+   }
+
    // universal manifest
    {
       XmlData xml;
-      if(!xml.load(S+"Code/Windows/Package.appxmanifest"))return ErrorRead(S+"Code/Windows/Package.appxmanifest");
+      if(!xml.load("Code/Windows/Package.appxmanifest"))return ErrorRead("Code/Windows/Package.appxmanifest");
 
       if(XmlNode *package=xml.findNode("Package"))
       {

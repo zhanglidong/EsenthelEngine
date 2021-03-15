@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<NintendoSdkMeta>
+  <Core>
+    <Name>Application</Name>
+    <Is64BitInstruction>True</Is64BitInstruction>
+    <ApplicationId>0x01004b9000490000</ApplicationId>
+    <ProgramIndex>0</ProgramIndex>
+    <MainThreadStackSize>0x00100000</MainThreadStackSize>
+    <ProcessAddressSpace>AddressSpace64Bit</ProcessAddressSpace>
+  </Core>
+  <Application>
+    <Title>
+      <Language>AmericanEnglish</Language>
+      <Name>Project</Name>
+      <Publisher>Publisher</Publisher>
+    </Title>
+    <Icon>
+      <Language>AmericanEnglish</Language>
+      <IconPath>Assets\Nintendo Switch Icon.bmp</IconPath>
+    </Icon>
+    <ReleaseVersion>0</ReleaseVersion>
+    <DisplayVersion>0</DisplayVersion>
+    <StartupUserAccount>Required</StartupUserAccount>
+    <UserAccountSwitchLock>Disable</UserAccountSwitchLock>
+    <SupportedLanguage>AmericanEnglish</SupportedLanguage>
+    <Screenshot>Allow</Screenshot>
+    <DataLossConfirmation>None</DataLossConfirmation>
+    <UserAccountSaveDataSize>0x0000000002000000</UserAccountSaveDataSize>
+    <UserAccountSaveDataJournalSize>0x0000000002000000</UserAccountSaveDataJournalSize>
+    <ApplicationErrorCodeCategory>00000</ApplicationErrorCodeCategory>
+    <LogoType>LicensedByNintendo</LogoType>
+    <LogoHandling>Auto</LogoHandling>
+    <VideoCapture>Enable</VideoCapture>
+    <RuntimeAddOnContentInstall>Deny</RuntimeAddOnContentInstall>
+    <CrashReport>Allow</CrashReport>
+    <CrashScreenshotForProd>Deny</CrashScreenshotForProd>
+    <CrashScreenshotForDev>Deny</CrashScreenshotForDev>
+    <PlayLogQueryCapability>None</PlayLogQueryCapability>
+    <PlayLogPolicy>Open</PlayLogPolicy>
+    <RuntimeParameterDelivery>Always</RuntimeParameterDelivery>
+  </Application>
+</NintendoSdkMeta>

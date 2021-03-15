@@ -45,6 +45,9 @@
 # Windows
 *.bat text diff=cpp
 
+# Nintendo Switch
+*.nmeta text diff=cpp
+
 # Other
 AUTHORS   text diff=cpp
 ChangeLog text diff=cpp

@@ -437,6 +437,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -534,6 +535,7 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -821,6 +823,7 @@
       </LinkTimeCodeGeneration>
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -930,6 +933,7 @@
       </AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
+      <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
