@@ -410,8 +410,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions />
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -508,8 +507,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions />
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
@@ -532,8 +530,7 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories />
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -790,19 +787,16 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions />
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck />
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <StrictAliasing>true</StrictAliasing>
       <OmitFramePointer>true</OmitFramePointer>
@@ -819,8 +813,7 @@
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration />
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
@@ -898,20 +891,17 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions />
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;</DisableSpecificWarnings>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <CompileAsWinRT>true</CompileAsWinRT>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck />
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <StrictAliasing>true</StrictAliasing>
       <OmitFramePointer>true</OmitFramePointer>
@@ -927,10 +917,8 @@
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration />
+      <AdditionalLibraryDirectories />
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>Project.nmeta</FinalizeMetaSource>
@@ -1054,10 +1042,6 @@
     </ClCompile>
     <ClInclude Include="stdafx.h" />
     <Media Include="Engine.pak">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1066,12 +1050,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Media>
     <Media Include="Project.pak">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1080,12 +1064,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Media>
     <Image Include="Assets\Square44x44Logo.targetsize-48_altform-unplated.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1094,12 +1078,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Image>
     <Image Include="Assets\Square44x44Logo.scale-200.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1108,12 +1092,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Image>
     <Image Include="Assets\Square150x150Logo.scale-200.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1122,12 +1106,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Image>
     <Image Include="Assets\Logo.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1136,12 +1120,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Image>
     <Image Include="Assets\SplashScreen.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1150,12 +1134,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </Image>
     <AppxManifest Include="Assets\Package.appxmanifest">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -1164,6 +1148,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
     </AppxManifest>
     <ResourceCompile Include="resource.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
