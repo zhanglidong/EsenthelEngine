@@ -1104,7 +1104,7 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
          WifiInfo wifiInfo = wifiManager.getConnectionInfo();
          int ipAddress = wifiInfo.getIpAddress();
       #else
-         Socket sock; if(sock.createUdp(true)) // prefer IPv6 because it's better
+         Socket sock; if(sock.createUdp(PREFER_IPV6))
          {
             ifreq  buffer[32];
             ifconf ifc;
