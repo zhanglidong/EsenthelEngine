@@ -2923,7 +2923,7 @@ void CodeEditor::killBuild()
 /******************************************************************************/
 void CodeEditor::build(BUILD_MODE mode)
 {
-   if((mode==BUILD_PLAY || mode==BUILD_PUBLISH) && (config_exe==EXE_UWP || config_exe==EXE_IOS)){openIDE(); return;} // Play/Publish for WindowsNew and iOS must be done from the IDE
+   if((mode==BUILD_PLAY || mode==BUILD_PUBLISH) && (config_exe==EXE_UWP || config_exe==EXE_IOS || config_exe==EXE_NS)){openIDE(); return;} // Play/Publish for WindowsNew and iOS must be done from the IDE
 
    if(Export(EXPORT_EXE, mode))
    {
@@ -3036,7 +3036,9 @@ void CodeEditor::debug()
    switch(config_exe)
    {
       case EXE_EXE:
-      case EXE_UWP: if(Export(EXPORT_VS, BUILD_DEBUG))VSRun(build_project_file, S); break;
+      case EXE_UWP:
+      case EXE_NS :
+         if(Export(EXPORT_VS, BUILD_DEBUG))VSRun(build_project_file, S); break;
 
       case EXE_DLL: build(); break;
 
