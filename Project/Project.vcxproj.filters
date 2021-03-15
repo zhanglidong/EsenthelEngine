@@ -9,6 +9,9 @@
       <UniqueIdentifier>{08583842-3fbf-4fb2-98c6-7f080738bc23}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="H\UWP">
+      <UniqueIdentifier>{d158ea9e-3f66-4130-8537-0a4686ba8adb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -19,20 +22,20 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\Square44x44Logo.targetsize-48_altform-unplated.png">
-      <Filter>H</Filter>
-    </Image>
-    <Image Include="Assets\Square44x44Logo.scale-200.png">
-      <Filter>H</Filter>
-    </Image>
-    <Image Include="Assets\Square150x150Logo.scale-200.png">
-      <Filter>H</Filter>
-    </Image>
     <Image Include="Assets\Logo.png">
-      <Filter>H</Filter>
+      <Filter>H\UWP</Filter>
     </Image>
     <Image Include="Assets\SplashScreen.png">
-      <Filter>H</Filter>
+      <Filter>H\UWP</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>H\UWP</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-48_altform-unplated.png">
+      <Filter>H\UWP</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>H\UWP</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -41,18 +44,18 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
-      <Filter>H</Filter>
-    </AppxManifest>
-  </ItemGroup>
-  <ItemGroup>
-    <Media Include="..\Editor\Bin\Universal\Engine.pak">
-      <Filter>H</Filter>
-    </Media>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="resource.rc">
       <Filter>H</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\Editor\Bin\Universal\Engine.pak">
+      <Filter>H\UWP</Filter>
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <Filter>H\UWP</Filter>
+    </AppxManifest>
   </ItemGroup>
 </Project>

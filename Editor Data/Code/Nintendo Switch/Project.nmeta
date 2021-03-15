@@ -16,7 +16,7 @@
     </Title>
     <Icon>
       <Language>AmericanEnglish</Language>
-      <IconPath>Assets\Nintendo Switch Icon.bmp</IconPath>
+      <IconPath>Icon.bmp</IconPath>
     </Icon>
     <ReleaseVersion>0</ReleaseVersion>
     <DisplayVersion>0</DisplayVersion>
