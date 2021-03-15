@@ -107,6 +107,7 @@ Str DateTime::asFileName(Bool include_seconds)C
 DateTime  & DateTime  ::zero() {Zero(T); return T;}
 DateTimeMs& DateTimeMs::zero() {Zero(T); return T;}
 
+#if !SWITCH
 DateTime& DateTime::getLocal()
 {
 #if WINDOWS
@@ -288,6 +289,7 @@ DateTime& DateTime::toLocal()
    }
    return T;
 }
+#endif
 
 DateTime& DateTime::incMonth()
 {
