@@ -1188,7 +1188,7 @@ struct ImageConvert
 };
 Bool CodeEditor::generateVSProj(Int version)
 {
-   if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_NEW && build_exe_type!=EXE_WEB)return Error("Visual Studio projects support only EXE, DLL, Universal and JS configurations.");
+   if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_NEW && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
    if(build_exe_type==EXE_WEB && version<10)return Error("WEB configuration requires Visual Studio 2010 or newer.");
 
    FCreateDirs(build_path+"Assets");
@@ -1260,7 +1260,10 @@ Bool CodeEditor::generateVSProj(Int version)
       rel="Assets/Square44x44Logo.scale-200.png"                     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
       rel="Assets/Square150x150Logo.scale-200.png"                   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
 
-      rel="Assets/Nintendo Switch Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(256, 256).removeAlpha().BMP();
+      if(build_exe_type==EXE_NS || build_mode==BUILD_EXPORT) // creating icons/images is slow, so do only when necessary
+      {
+         rel="Assets/Nintendo Switch Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
+      }
 
       rel="Assets/Logo.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
 
