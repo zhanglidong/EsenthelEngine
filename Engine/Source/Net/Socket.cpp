@@ -753,8 +753,10 @@ Bool Socket::block(Bool on)
       return !on; // web sockets are always non-blocking, this can't be changed, so return success only if non-blocking mode was requested
    #elif WINDOWS
       DWORD non_block=(on ? false : true); return ioctlsocket((SOCKET)_s, FIONBIO, &non_block)!=SOCKET_ERROR;
+   #elif 1 // better
+      UInt  non_block=(on ? false : true); return ioctl      ((SOCKET)_s, FIONBIO, &non_block)!=SOCKET_ERROR;
    #else
-      UInt  non_block=(on ? false : true); return ioctl      ((SOCKET)_s, FIONBIO, &non_block)!=SOCKET_ERROR; // works better than : int flags=fcntl((SOCKET)_s, F_GETFL, 0); FlagSet(flags, O_NONBLOCK, !on); return fcntl((SOCKET)_s, F_SETFL, flags)!=SOCKET_ERROR;
+      int flags=fcntl((SOCKET)_s, F_GETFL, 0); FlagSet(flags, O_NONBLOCK, !on); return fcntl((SOCKET)_s, F_SETFL, flags)!=SOCKET_ERROR;
    #endif
    }
    return false;
