@@ -467,6 +467,7 @@
       #include <netinet/tcp.h>
       #include <nn/socket.h>
       #include <nn/socket/netinet6/in6.h>
+      #include <nn/nifm.h>
       #include <nv/nv_MemoryManagement.h>
       #include <movie/Decoder.h>
       #include <movie/Common.h>
