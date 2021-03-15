@@ -1191,6 +1191,9 @@ Bool CodeEditor::generateVSProj(Int version)
    if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_UWP && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
    if(build_exe_type==EXE_WEB && version<10)return Error("WEB configuration requires Visual Studio 2010 or newer.");
 
+   Str bin_path    =BinPath(false),
+       bin_path_rel=BinPath();
+
    FCreateDirs(build_path+"Assets/Nintendo Switch");
 
    FileText resource_rc; resource_rc.writeMem(UTF_16); // utf-16 must be used, because VS has problems with utf-8
@@ -1335,7 +1338,7 @@ Bool CodeEditor::generateVSProj(Int version)
    // manifest
    if(!CopyFile("Code/Windows/Windows Manifest.xml", build_path+"Windows Manifest.xml"))return false;
 
-   // nintendo switch
+   // Nintendo Switch
    if(!CopyFile("Code/Nintendo Switch/ImportNintendoSdk.props", build_path+"ImportNintendoSdk.props"))return false;
    if(!CopyFile("Code/Nintendo Switch/Project.nnsdk.xml"      , build_path+"Project.nnsdk.xml"      ))return false;
    {
@@ -1360,6 +1363,17 @@ Bool CodeEditor::generateVSProj(Int version)
          }
       }
       if(!OverwriteOnChangeLoud(xml, build_path+"Assets/Nintendo Switch/Project.nmeta"))return false;
+   }
+   if(build_exe_type==EXE_NS)
+   {
+      // Engine.pak
+      FCreateDirs(build_path+"Assets/Nintendo Switch/Data");
+      Str src=bin_path+"Mobile/Engine.pak", dest=build_path+"Assets/Nintendo Switch/Data/Engine.pak";
+      if(cei().appEmbedEngineData()==1) // 2D only
+      {
+         if(!CreateEngineEmbedPak(src, dest, false))return false;
+      }else
+         if(!CopyFile(src, dest))return false;
    }
 
    // universal manifest
@@ -1403,7 +1417,6 @@ Bool CodeEditor::generateVSProj(Int version)
    // solution
    if(!CopyFile("Code/Windows/Project.sln", build_path+"Project.sln"))return false;
 
-   Str bin_path=BinPath();
  /*if(version==9)
    {
       XmlData xml;
@@ -1443,7 +1456,7 @@ Bool CodeEditor::generateVSProj(Int version)
                         Int len=TextPosI(dependencies->value()+pos, ".lib"); len+=4;
                         Str lib; FREP(len)lib+=dependencies->value[pos+i];
                         dependencies->value.remove(pos, len+1);
-                        dependencies->value.insert(0, S+'"'+bin_path+lib+"\" ");
+                        dependencies->value.insert(0, S+'"'+bin_path_rel+lib+"\" ");
                      }
                      FREPA(libs)dependencies->value.space()+=S+'"'+libs[i]+'"';
                   }
@@ -1481,7 +1494,7 @@ Bool CodeEditor::generateVSProj(Int version)
             {
                XmlNode &sub=node.nodes[i]; if(sub.name=="Media")if(XmlParam *include=sub.findParam("Include"))if(include->value=="Engine.pak")
                {
-                  include->value=bin_path+"Universal\\Engine.pak"; goto found_engine_pak;
+                  include->value=bin_path_rel+"Universal\\Engine.pak"; goto found_engine_pak;
                }
             }
          }
@@ -1493,7 +1506,7 @@ Bool CodeEditor::generateVSProj(Int version)
             {
                XmlNode &sub=node.nodes[i]; if(sub.name=="Media")if(XmlParam *include=sub.findParam("Include"))if(include->value=="Engine.pak")
                {
-                  include->value=bin_path+"Universal\\Engine.pak"; goto found_engine_pak2;
+                  include->value=bin_path_rel+"Universal\\Engine.pak"; goto found_engine_pak2;
                }
             }
          }
@@ -1549,7 +1562,7 @@ Bool CodeEditor::generateVSProj(Int version)
                Int len=TextPosI(dest()+pos, ';');
                Str lib; FREP(len)lib+=dest[pos+i];
                dest.remove(pos, len+1);
-               dest.insert(0, S+'"'+bin_path+lib+"\";");
+               dest.insert(0, S+'"'+bin_path_rel+lib+"\";");
             }
             XmlParam *condition=item->findParam("Condition");
             if(condition && Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))
