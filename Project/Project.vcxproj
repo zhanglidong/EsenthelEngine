@@ -1050,7 +1050,7 @@
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -1182,7 +1182,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -1730,7 +1730,7 @@
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -1878,7 +1878,7 @@
       </LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt;libcpmt</IgnoreSpecificDefaultLibraries>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -2272,7 +2272,7 @@
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
@@ -2608,7 +2608,7 @@
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libz.a;libnn_gll.a;$(_NintendoSdkSdkLibraryName).nss;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz.a;libnn_gll.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalNSODependencies>opengl.nso;multimedia.nso;%(AdditionalNSODependencies)</AdditionalNSODependencies>
       <FinalizeMetaSource>..\NintendoSwitch\Project.nmeta</FinalizeMetaSource>
     </Link>
