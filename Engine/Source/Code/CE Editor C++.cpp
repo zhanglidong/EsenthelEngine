@@ -1188,6 +1188,8 @@ struct ImageConvert
 };
 Bool CodeEditor::generateVSProj(Int version)
 {
+   // !! For UWP don't store assets deeper than "Assets" (for example "Assets/UWP") because that would affect the final asset locations in the UWP executable !!
+
    if(build_exe_type!=EXE_EXE && build_exe_type!=EXE_DLL /*&& build_exe_type!=EXE_LIB*/ && build_exe_type!=EXE_UWP && build_exe_type!=EXE_WEB && build_exe_type!=EXE_NS)return Error("Visual Studio projects support only EXE, DLL, Universal, Web and NintendoSwitch configurations.");
    if(build_exe_type==EXE_WEB && version<10)return Error("WEB configuration requires Visual Studio 2010 or newer.");
 
@@ -1242,7 +1244,7 @@ Bool CodeEditor::generateVSProj(Int version)
       resource_changed|=changed;
    }
 
-   // generate images which may be used by WINDOWS_NEW
+   // generate images
    Image      icon; DateTime icon_time;
    if(GetIcon(icon,          icon_time))
    {
