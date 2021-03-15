@@ -61,9 +61,10 @@ struct CodeEditorInterface
    Bool initialized();
    Str  title      ();
    Str  appPath    (C Str &app_name);
-   Str  androidProjectPakPath();
-   Str      iOSProjectPakPath();
-   Str      UWPProjectPakPath();
+   Str   androidProjectPakPath();
+   Str       iOSProjectPakPath();
+   Str       UWPProjectPakPath();
+   Str  nintendoProjectPakPath();
    void saveChanges();
    void saveChanges(Memc<Edit::SaveChanges::Elm> &elms);
    void saveChanges(Memc<Edit::SaveChanges::Elm> &elms, void (*after_save_close)(Bool all_saved, Ptr user), Ptr user=null);

@@ -40,7 +40,7 @@ Edit::BUILD_MODE     PublishBuildMode=Edit::BUILD_BUILD;
 PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
-bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS;}
+bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
 /******************************************************************************/
 void PublishDo()
 {
@@ -119,15 +119,6 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
          }
          if(PublishExePath.is())if(!FCopy(PublishExePath, PublishPath+GetBase(PublishExePath))){Gui.msgBox(S, S+"Can't copy \""+GetBase(PublishExePath)+'"'); return false;}
       }else
-      if(exe_type==Edit::EXE_UWP)
-      {
-         PublishDataAsPak=true; // always set to true because files inside exe can't be modified by the app, so there's no point in storing them separately
-         //if(CodeEdit.appPublishProjData()) always setup 'PublishProjectDataPath' because even if we don't include Project data, we still include App data
-         {
-            PublishProjectDataPath=CodeEdit.UWPProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
-            FCreateDirs(GetPath(PublishProjectDataPath));
-         }
-      }else
       if(exe_type==Edit::EXE_WEB)
       {
          if(build_mode==Edit::BUILD_PLAY)
@@ -200,6 +191,15 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
          }
          if(PublishExePath.is())if((FileInfoSystem(PublishExePath).type==FSTD_FILE) ? !FCopy(PublishExePath, PublishPath+GetBase(PublishExePath)) : !FCopyDir(PublishExePath, PublishPath+GetBase(PublishExePath))){Gui.msgBox(S, S+"Can't copy \""+GetBase(PublishExePath)+'"'); return false;}
       }else
+      if(exe_type==Edit::EXE_UWP)
+      {
+         PublishDataAsPak=true; // always set to true because files inside exe can't be modified by the app, so there's no point in storing them separately
+         //if(CodeEdit.appPublishProjData()) always setup 'PublishProjectDataPath' because even if we don't include Project data, we still include App data
+         {
+            PublishProjectDataPath=CodeEdit.UWPProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
+            FCreateDirs(GetPath(PublishProjectDataPath));
+         }
+      }else
       if(exe_type==Edit::EXE_APK)
       {
          PublishDataAsPak=true; // always set to true because files inside APK (assets) can't be modified by the app, so there's no point in storing them separately
@@ -217,7 +217,19 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
             PublishProjectDataPath=CodeEdit.iOSProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
             FCreateDirs(GetPath(PublishProjectDataPath));
          }
-      }else {Gui.msgBox(S, "Invalid application type."); return false;}
+      }else
+      if(exe_type==Edit::EXE_NS)
+      {
+         PublishDataAsPak=true; // always set to true because files inside iOS APP can't be modified by the app, so there's no point in storing them separately
+         //if(CodeEdit.appPublishProjData()) always setup 'PublishProjectDataPath' because even if we don't include Project data, we still include App data
+         {
+            PublishProjectDataPath=CodeEdit.nintendoProjectPakPath(); if(!PublishProjectDataPath.is()){Gui.msgBox(S, "Invalid path for project data file"); return false;}
+            FCreateDirs(GetPath(PublishProjectDataPath));
+         }
+      }else
+      {
+         Gui.msgBox(S, "Invalid application type."); return false;
+      }
    }
 
    if(build_mode!=Edit::BUILD_PUBLISH) // if there's no need to wait for fully complete data (for example we want to play/debug game on mobile which requires PAK creation)
@@ -373,7 +385,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             pfd.data.set(mini_map_game_path_src+"Settings");
 
             IMAGE_TYPE dest_type=IMAGE_NONE;
-            if(android || iOS) // convert for mobile, desktop/uwp/web/switch already has IMAGE_BC1 chosen
+            if(android || iOS) // convert for android/ios, desktop/uwp/web/switch already have IMAGE_BC1 chosen
             {
                dest_type=(android ? IMAGE_ETC2_RGB_SRGB : IMAGE_PVRTC1_4_SRGB);
                mini_map_formats_path=Proj.formatPath(elm->id, FormatSuffix(dest_type));
@@ -828,7 +840,7 @@ void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Me
          }
          AddPublishFiles(elms, files, generate, convert);
       }else
-      if(PublishExeType==Edit::EXE_UWP || PublishExeType==Edit::EXE_APK || PublishExeType==Edit::EXE_IOS) // for Windows New, Android and iOS if Project data is not included, then include only App data
+      if(PublishExeType==Edit::EXE_UWP || PublishExeType==Edit::EXE_APK || PublishExeType==Edit::EXE_IOS || PublishExeType==Edit::EXE_NS) // for Windows New, Android, iOS and Switch, if Project data is not included, then include only App data
       {
          Memt<Elm*> elms; Proj.getActiveAppElms(elms);
          AddPublishFiles(elms, files, generate, convert);
