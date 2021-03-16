@@ -1325,8 +1325,12 @@ Bool CodeEditor::generateVSProj(Int version)
       BuildFile &bf=build_files[i];
       BuildTree(tree, bf, bf.filter.is() ? bf.filter : bf.dest_proj_path);
    }
-   Memc<Str> libs=GetFiles(cei().appLibsWindows()),
-             dirs=GetFiles(cei().appDirsWindows());
+   Memc<Str> libs_win=GetFiles(cei().appLibsWindows()),
+             dirs_win=GetFiles(cei().appDirsWindows()),
+             libs_web,
+             dirs_web,
+             libs_ns,
+             dirs_ns;
 
    // Web html
    if(build_exe_type==EXE_WEB)
@@ -1558,9 +1562,8 @@ Bool CodeEditor::generateVSProj(Int version)
          for(Int i=0; XmlNode *item=proj->findNode("ItemDefinitionGroup", i); i++)
             if(XmlNode *link        =item->findNode("Link"))
             if(XmlNode *dependencies=link->findNode("AdditionalDependencies"))
-            if(dependencies->data.elms()>=1)
          {
-            Str &dest=dependencies->data[0];
+            Str dest; FREPA(dependencies->data)dest.space()+=dependencies->data[i];
             Int pos=TextPosI(dest, "EsenthelEngine");
             if( pos>=0)
             {
@@ -1569,13 +1572,14 @@ Bool CodeEditor::generateVSProj(Int version)
                dest.remove(pos, len+1);
                dest.insert(0, S+'"'+bin_path_rel+lib+"\";");
             }
-            XmlParam *condition=item->findParam("Condition");
-            if(condition && Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))
+            Memc<Str> *libs=&libs_win;
+            if(XmlParam *condition=item->findParam("Condition"))
             {
-               // Web
-            }else
-            FREPA(libs){if(dest.is() && dest.last()!=';')dest+=';'; dest.space()+=S+'"'+libs[i]+'"';}
-          //if(version>=14)dest=Replace(dest, "libcpmt.lib;", "libcpmt.lib;libucrt.lib;libvcruntime.lib;"); // for VS 2015 (x86 and x64) we need to add libucrt.lib; libvcruntime.lib; libraries, this is now set in the project file by default
+               if(Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))libs=&libs_web;else
+               if(Contains(condition->value, "NX64"      , false, WHOLE_WORD_STRICT))libs=&libs_ns ;
+            }
+            if(libs)FREPA(*libs){if(dest.is() && dest.last()!=';')dest+=';'; dest+=S+'"'+(*libs)[i]+'"';}
+            Swap(dependencies->data.setNum(1)[0], dest);
          }
 
          // set dirs
@@ -1584,12 +1588,13 @@ Bool CodeEditor::generateVSProj(Int version)
             if(XmlNode *directories=compile->findNode("AdditionalIncludeDirectories"))
          {
             Str dest; FREPA(directories->data)dest.space()+=directories->data[i];
-            XmlParam *condition=item->findParam("Condition");
-            if(condition && Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))
+            Memc<Str> *dirs=&dirs_win;
+            if(XmlParam *condition=item->findParam("Condition"))
             {
-               // Web
-            }else
-            FREPA(dirs){if(dest.is() && dest.last()!=';')dest+=';'; dest.space()+=S+'"'+dirs[i]+'"';}
+               if(Contains(condition->value, "Emscripten", false, WHOLE_WORD_STRICT))dirs=&dirs_web;else
+               if(Contains(condition->value, "NX64"      , false, WHOLE_WORD_STRICT))dirs=&dirs_ns;
+            }
+            if(dirs)FREPA(*dirs){if(dest.is() && dest.last()!=';')dest+=';'; dest+=S+'"'+(*dirs)[i]+'"';}
             Swap(directories->data.setNum(1)[0], dest);
          }
 
