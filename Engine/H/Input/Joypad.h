@@ -106,7 +106,7 @@ private:
 #endif
    Byte   _button[32];
 #if WINDOWS
-   Byte   _xinput1;
+   Byte   _xinput;
 #endif
 #if WINDOWS_OLD
    Byte   _offset_x, _offset_y;

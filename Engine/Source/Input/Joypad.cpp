@@ -153,7 +153,7 @@ Joypad::~Joypad()
 Joypad::Joypad()
 {
 #if WINDOWS
-  _xinput1=0;
+  _xinput=0xFF;
 #endif
 
 #if WINDOWS_OLD
@@ -185,7 +185,7 @@ Str Joypad::buttonName(Int x)C
 Bool Joypad::supportsVibrations()C
 {
 #if WINDOWS
-   return _xinput1;
+   return _xinput!=0xFF;
 #elif SWITCH
    return _vibration_handle[0];// || _vibration_handle[1]; check only first because second will be available only if first is
 #else
@@ -206,12 +206,12 @@ Int Joypad::index()C {return Joypads.index(this);}
 Joypad& Joypad::vibration(C Vec2 &vibration)
 {
 #if WINDOWS
-   if(_xinput1)
+   if(_xinput!=0xFF)
    {
       XINPUT_VIBRATION xvibration;
       xvibration. wLeftMotorSpeed=RoundU(Sat(vibration.x)*0xFFFF);
       xvibration.wRightMotorSpeed=RoundU(Sat(vibration.y)*0xFFFF);
-      XInputSetState(_xinput1-1, &xvibration);
+      XInputSetState(_xinput, &xvibration);
    }
 #endif
    return T;
@@ -245,9 +245,9 @@ void Joypad::update(C Byte *on, Int elms)
 void Joypad::update()
 {
 #if WINDOWS
-   if(_xinput1)
+   if(_xinput!=0xFF)
    {
-      XINPUT_STATE state; if(XInputGetState(_xinput1-1, &state)==ERROR_SUCCESS)
+      XINPUT_STATE state; if(XInputGetState(_xinput, &state)==ERROR_SUCCESS)
       {
          // buttons
          Byte button[JB_NUM];
@@ -531,8 +531,8 @@ void ListJoypads()
          Bool added; Joypad &joypad=GetJoypad(i, added); // index is used for the ID for XInput controllers
          if(  added)
          {
-            joypad._xinput1=i+1;
-            joypad._name   ="X Controller";
+            joypad._xinput=i;
+            joypad._name  ="X Controller";
          }
       }
    }
