@@ -924,6 +924,33 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                      if(stripped){buffer->Release(); buffer=stripped;}
                   }
                   if(!get_default_val)shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+               #if DEBUG && 0
+                  #pragma message("!! Warning: Use this only for debugging !!")
+                  ID3DBlob *code=null; D3DDisassemble(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, null, &code); if(code)
+                  {
+                     CChar8 *text=(CChar8*)code->GetBufferPointer();
+                     if(..)
+                     {
+                        Str source_text;
+                        FREPA(macros)
+                        {
+                         C auto &macro=macros[i];
+                           if(macro.Name)source_text+=S+"#define "+macro.Name+' '+macro.Definition+'\n';
+                        }
+                        source_text+='\n';
+                        if(0)
+                        {
+                           FileText f; f.readMem(source->file_data.data(), source->file_data.elms());
+                           source_text+=f.getAll();
+                        }else
+                        {
+                           source_text+=S+"#include \""+source->file_name+"\"\n";
+                        }
+                        ClipSet(source_text);
+                     }
+                     code->Release();
+                  }
+               #endif
                }
 
                result=GOOD;
