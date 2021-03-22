@@ -167,16 +167,21 @@ MouseClass Ms;
 /******************************************************************************/
 MouseClass::MouseClass()
 {
+#if 0 // there's only one 'MouseClass' global 'Ms' and it doesn't need clearing members to zero
    REPAO(_button)=0;
   _selecting=_dragging=_first=_detected=_on_client=_freezed=_clip_rect_on=_clip_window=_freeze=_action=_locked=false;
-  _visible=_want_cur_hw=true;
-  _cur=-1;
-  _speed=SPEED; _wheel_time=_start_time=0;
+  _start_time=_wheel_time=0;
   _pos=_delta=_delta_clp=_delta_relative=_start_pos=_wheel=_wheel_f=0;
   _window_posi=_desktop_posi=_deltai=_wheel_i=0;
   _clip_rect.zero();
   _cursor=null;
+#if WINDOWS_OLD
   _device=null;
+#endif
+#endif
+  _visible=_want_cur_hw=true;
+  _cur=-1;
+  _speed=SPEED;
   _button_name[0]="Mouse1";
   _button_name[1]="Mouse2";
   _button_name[2]="Mouse3";
