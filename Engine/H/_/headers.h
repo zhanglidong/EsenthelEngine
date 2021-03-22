@@ -87,6 +87,17 @@
    #if (DIRECT_SOUND+XAUDIO+OPEN_AL+OPEN_SL+ESENTHEL_AUDIO)>1
       #error Can't use more than 1 API
    #endif
+
+   // Input
+   #define KB_RAW_INPUT    1
+   #define KB_DIRECT_INPUT 0
+   #define MS_RAW_INPUT    1
+   #define MS_DIRECT_INPUT 0
+   #define JP_DIRECT_INPUT 0 // disable DirectInput-only Joypads because it introduces 0.25s delay to engine startup. Modern Joypads use XInput, so this is only for old Joypads.
+   #if (KB_RAW_INPUT+KB_DIRECT_INPUT)!=1 || (MS_RAW_INPUT+MS_DIRECT_INPUT)!=1
+      #error Invalid Input API configuration
+   #endif
+   #define DIRECT_INPUT (KB_DIRECT_INPUT || MS_DIRECT_INPUT || JP_DIRECT_INPUT)
    /******************************************************************************/
    // INCLUDE SYSTEM HEADERS
    /******************************************************************************/
@@ -191,7 +202,7 @@
       #endif
 
       #include <xinput.h>
-      #if WINDOWS_OLD
+      #if WINDOWS_OLD && DIRECT_INPUT
          #define DIRECTINPUT_VERSION 0x0800
          #include <dinput.h>
       #endif

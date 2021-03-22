@@ -13,7 +13,6 @@ namespace EE{
       FOREGROUND,
       MOUSE_MODE=BACKGROUND, // use background mode so we can get correct information about relative movement
    };
-   #define MS_RAW_INPUT 1
 #elif WINDOWS_NEW
    using namespace Windows::System;
    using namespace Windows::UI::Core;
@@ -177,7 +176,7 @@ MouseClass::MouseClass()
   _window_posi=_desktop_posi=_deltai=_wheel_i=0;
   _clip_rect.zero();
   _cursor=null;
-  _did=null;
+  _device=null;
   _button_name[0]="Mouse1";
   _button_name[1]="Mouse2";
   _button_name[2]="Mouse3";
@@ -200,8 +199,8 @@ void MouseClass::del()
    rid[0].hwndTarget =App.Hwnd();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
-#else
-   RELEASE(_did);
+#elif MS_DIRECT_INPUT
+   RELEASE(_device);
 #endif
 #elif LINUX
    if(Grab){XDestroyWindow(XDisplay, Grab); Grab=NULL;}
@@ -248,12 +247,12 @@ again:
          }*/
       }
    }
-#else
+#elif MS_DIRECT_INPUT
    if(InputDevices.DI) // need to use DirectInput to be able to obtain '_delta_relative'
-   if(OK(InputDevices.DI->CreateDevice(GUID_SysMouse, &_did, null)))
+   if(OK(InputDevices.DI->CreateDevice(GUID_SysMouse, &_device, null)))
    {
-      if(OK(_did->SetDataFormat(&c_dfDIMouse2)))
-      if(OK(_did->SetCooperativeLevel(App.Hwnd(), DISCL_NONEXCLUSIVE|((MOUSE_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
+      if(OK(_device->SetDataFormat(&c_dfDIMouse2)))
+      if(OK(_device->SetCooperativeLevel(App.Hwnd(), DISCL_NONEXCLUSIVE|((MOUSE_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
       {
          DIPROPDWORD dipdw;
          dipdw.diph.dwSize      =SIZE(DIPROPDWORD );
@@ -261,13 +260,13 @@ again:
          dipdw.diph.dwObj       =0;
          dipdw.diph.dwHow       =DIPH_DEVICE;
          dipdw.dwData           =BUF_BUTTONS;
-        _did->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
+        _device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
 
-         if(MOUSE_MODE==BACKGROUND)_did->Acquire(); // in background mode we always want the mouse to be acquired
+         if(MOUSE_MODE==BACKGROUND)_device->Acquire(); // in background mode we always want the mouse to be acquired
         _detected=true;
          goto ok;
       }
-      RELEASE(_did);
+      RELEASE(_device);
    }
 ok:;
 #endif
@@ -531,8 +530,8 @@ void MouseClass::eat     () {REPA(_button)eat(i);}
 void MouseClass::acquire(Bool on)
 {
 #if WINDOWS_OLD
-#if !MS_RAW_INPUT
-   if(MOUSE_MODE==FOREGROUND && _did){if(on)_did->Acquire();else _did->Unacquire();} // we need to change acquire only if we're operating in Foreground mode
+#if MS_DIRECT_INPUT
+   if(MOUSE_MODE==FOREGROUND && _device){if(on)_device->Acquire();else _device->Unacquire();} // we need to change acquire only if we're operating in Foreground mode
 #endif
 #if SET_HOOK
    if(on)SetHook();else UnHook();
@@ -598,17 +597,17 @@ void MouseClass::update()
 
    {
    #if WINDOWS_OLD
-   #if !MS_RAW_INPUT
+   #if MS_DIRECT_INPUT
       // button state
-      if(_did)
+      if(_device)
       {
-         DIMOUSESTATE2 dims; if(OK(_did->GetDeviceState(SIZE(dims), &dims)))
+         DIMOUSESTATE2 dims; if(OK(_device->GetDeviceState(SIZE(dims), &dims)))
          {
            _delta_relative.x= dims.lX;
            _delta_relative.y=-dims.lY;
-         }else _did->Acquire(); // try to re-acquire if lost access for some reason
+         }else _device->Acquire(); // try to re-acquire if lost access for some reason
 
-         DIDEVICEOBJECTDATA didods[BUF_BUTTONS]; DWORD elms=BUF_BUTTONS; if(OK(_did->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didods, &elms, 0)))FREP(elms) // process in order
+         DIDEVICEOBJECTDATA didods[BUF_BUTTONS]; DWORD elms=BUF_BUTTONS; if(OK(_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didods, &elms, 0)))FREP(elms) // process in order
          {
             ASSERT(DIMOFS_BUTTON0+1==DIMOFS_BUTTON1
                 && DIMOFS_BUTTON1+1==DIMOFS_BUTTON2

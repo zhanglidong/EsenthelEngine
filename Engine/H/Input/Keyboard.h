@@ -151,15 +151,17 @@ private:
    Str         _imm_buffer;
    Memc<Str>   _imm_candidate, _imm_candidate_temp;
    CChar8     *_key_name[256];
-#if EE_PRIVATE
-   #if WINDOWS_OLD
-      IDirectInputDevice8 *_did;
+#if WINDOWS_OLD
+   #if EE_PRIVATE && KB_DIRECT_INPUT
+      IDirectInputDevice8 *_device;
    #else
-      Ptr      _did;
+      Ptr      _device;
    #endif
-   PLATFORM(HIMC, Ptr) _imc;
-#else
-   Ptr         _did, _imc;
+   #if EE_PRIVATE
+      HIMC     _imc;
+   #else
+      Ptr      _imc;
+   #endif
 #endif
 
 	KeyboardClass();
@@ -222,9 +224,7 @@ struct ScreenKeyboard
 #endif
 /******************************************************************************/
 #if EE_PRIVATE
-#if WINDOWS_OLD
-   #define KB_RAW_INPUT 1
-#elif MAC
+#if MAC
 extern const KB_KEY ScanCodeToQwertyKey[0x80]; extern KB_KEY ScanCodeToKey[Elms(ScanCodeToQwertyKey)];
 #elif LINUX
 extern const KB_KEY ScanCodeToQwertyKey[0x90]; extern KB_KEY ScanCodeToKey[Elms(ScanCodeToQwertyKey)];

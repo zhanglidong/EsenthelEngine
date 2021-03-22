@@ -145,14 +145,12 @@ private:
    CChar8          *_button_name[8];
    MouseCursor      _cursor_temp;
  C MouseCursor     *_cursor;
-#if EE_PRIVATE
-   #if WINDOWS_OLD
-      IDirectInputDevice8 *_did;
+#if WINDOWS_OLD
+   #if EE_PRIVATE && MS_DIRECT_INPUT
+      IDirectInputDevice8 *_device;
    #else
-      Ptr                  _did;
+      Ptr                  _device;
    #endif
-#else
-   Ptr              _did;
 #endif
 
    MouseClass();

@@ -341,7 +341,7 @@ void InputDevicesClass::del()
    ShutJoypads();
    Ms.del();
    Kb.del();
-#if WINDOWS_OLD
+#if WINDOWS_OLD && DIRECT_INPUT
    RELEASE(DI);
 #elif IOS
    [CoreMotionMgr release]; CoreMotionMgr=null;
@@ -354,7 +354,9 @@ Bool InputDevicesClass::create()
    if(LogInit)LogN("InputDevicesClass.create");
 #if WINDOWS_OLD
    if(LogInit)LogN("DirectInput8Create");
-   if(OK(DirectInput8Create(App._hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (Ptr*)&DI, null)))
+   #if DIRECT_INPUT
+      if(OK(DirectInput8Create(App._hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (Ptr*)&DI, null)))
+   #endif
 #endif
    {
       Kb  .create();

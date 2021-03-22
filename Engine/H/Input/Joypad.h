@@ -121,7 +121,7 @@ private:
    Sensor _sensor_left, _sensor_right;
    Str    _name;
 #if WINDOWS_OLD
-   #if EE_PRIVATE
+   #if EE_PRIVATE && JP_DIRECT_INPUT
       IDirectInputDevice8 *_device;
    #else
       Ptr _device;

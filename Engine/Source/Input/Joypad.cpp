@@ -146,7 +146,7 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
 /******************************************************************************/
 Joypad::~Joypad()
 {
-#if WINDOWS_OLD
+#if WINDOWS_OLD && JP_DIRECT_INPUT
    if(_device){_device->Unacquire(); _device->Release(); _device=null;}
 #endif
 }
@@ -284,7 +284,7 @@ void Joypad::update()
          return;
       }
    }
-#if WINDOWS_OLD // DirectInput
+#if WINDOWS_OLD && JP_DIRECT_INPUT
    else
    {
       DIJOYSTATE state; if(OK(_device->Poll()) && OK(_device->GetDeviceState(SIZE(state), &state)))
@@ -364,7 +364,7 @@ void Joypad::release(Byte b)
 /******************************************************************************/
 void Joypad::acquire(Bool on)
 {
-#if WINDOWS_OLD
+#if WINDOWS_OLD && JP_DIRECT_INPUT
    if(_device){if(on)_device->Acquire();else _device->Unacquire();}
 #endif
    if(!on)zero();
@@ -396,7 +396,7 @@ Joypad& GetJoypad(UInt id, Bool &added)
    Joypad *joypad=FindJoypad(id); if(!joypad){added=true; joypad=&Joypads.New(); joypad->_id=id;} joypad->_connected=true;
    return *joypad;
 }
-#if WINDOWS_OLD
+#if WINDOWS_OLD && JP_DIRECT_INPUT
 static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: this might trigger calling 'WindowMsg' !!
 {
    Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
@@ -536,7 +536,7 @@ void ListJoypads()
          }
       }
    }
-   #if WINDOWS_OLD
+   #if WINDOWS_OLD && JP_DIRECT_INPUT
       if(InputDevices.DI)InputDevices.DI->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumJoypads, null, DIEDFL_ATTACHEDONLY/*|DIEDFL_FORCEFEEDBACK*/); // this would enumerate only devices with ForceFeedback
    #endif
 

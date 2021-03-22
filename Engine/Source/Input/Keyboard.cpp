@@ -27,7 +27,7 @@ namespace EE{
       KEYBOARD_MODE=FOREGROUND, // prefer FOREGROUND to avoid recording input when not focused, maybe BACKGROUND could trigger some anti-virus warnings (potential key-logger), otherwise we could use (_exclusive ? FOREGROUND : BACKGROUND) // prefer background mode so we can get correct information about 'GetDeviceState' when activating the app with LMB (otherwise, the state is delayed by 1 frame), however _exclusive does not support BACKGROUND
    };
 
-#if !KB_RAW_INPUT
+#if KB_DIRECT_INPUT
    #define BUF_KEYS 256
    struct DIK
    {
@@ -75,6 +75,9 @@ KeyboardClass::KeyboardClass()
 {
 #if 0 // there's only one 'KeyboardClass' global 'Kb' and it doesn't need clearing members to zero
   _exclusive=_visible=false;
+  _device=null;
+  _imc=null;
+   ..
 #endif
   _last_key_scan_code=-1;
   _imm=true;
@@ -246,8 +249,8 @@ void KeyboardClass::del()
    rid[0].hwndTarget =App.Hwnd();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
-#else
-   RELEASE(_did);
+#elif KB_DIRECT_INPUT
+   RELEASE(_device);
 #endif
 #endif
 }
@@ -264,15 +267,15 @@ void KeyboardClass::create()
    rid[0].hwndTarget =App.Hwnd();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
-#else
+#elif KB_DIRECT_INPUT
    // DISCL_EXCLUSIVE|DISCL_BACKGROUND is not possible at all
    // DISCL_NOWINKEY |DISCL_BACKGROUND is not possible at all
    // Keyboard doesn't use DISCL_EXCLUSIVE at all, because then the WM_CHAR and WM_KEYDOWN wouldn't be processed
    if(InputDevices.DI)
-   if(OK(InputDevices.DI->CreateDevice(GUID_SysKeyboard, &_did, null)))
+   if(OK(InputDevices.DI->CreateDevice(GUID_SysKeyboard, &_device, null)))
    {
-      if(OK(_did->SetDataFormat(&c_dfDIKeyboard)))
-      if(OK(_did->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
+      if(OK(_device->SetDataFormat(&c_dfDIKeyboard)))
+      if(OK(_device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
       {
          DIPROPDWORD dipdw;
          dipdw.diph.dwSize      =SIZE(DIPROPDWORD );
@@ -280,12 +283,12 @@ void KeyboardClass::create()
          dipdw.diph.dwObj       =0;
          dipdw.diph.dwHow       =DIPH_DEVICE;
          dipdw.dwData           =BUF_KEYS;
-        _did->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
+        _device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
 
-         if(KEYBOARD_MODE==BACKGROUND)_did->Acquire(); // in background mode we always want the keyboard to be acquired
+         if(KEYBOARD_MODE==BACKGROUND)_device->Acquire(); // in background mode we always want the keyboard to be acquired
          goto ok;
       }
-      RELEASE(_did);
+      RELEASE(_device);
    }
 ok:;
 #endif
@@ -1108,11 +1111,11 @@ void KeyboardClass::setModifiers()
 void KeyboardClass::update()
 {
 #if WINDOWS_OLD
-#if !KB_RAW_INPUT
-   if(App.active() && _did)
+#if KB_DIRECT_INPUT
+   if(App.active() && _device)
    {
       DIDEVICEOBJECTDATA didod[BUF_KEYS];
-      DWORD elms=BUF_KEYS, ret=_did->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
+      DWORD elms=BUF_KEYS, ret=_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
       if(ret==DI_OK || ret==DI_BUFFEROVERFLOW)FREP(elms) // process in order
       {
        C DIDEVICEOBJECTDATA &d=didod[i];
@@ -1128,10 +1131,10 @@ void KeyboardClass::update()
       }
       if(ret!=DI_OK) // if we failed to catch entire input, then check most recent state
       {
-         Byte dik[256]; if(!OK(_did->GetDeviceState(SIZE(dik), &dik))) // if failed
+         Byte dik[256]; if(!OK(_device->GetDeviceState(SIZE(dik), &dik))) // if failed
          {
-           _did->Acquire(); // try to re-acquire if lost access for some reason
-            if(!OK(_did->GetDeviceState(SIZE(dik), &dik)))Zero(dik); // if still failed, then zero
+           _device->Acquire(); // try to re-acquire if lost access for some reason
+            if(!OK(_device->GetDeviceState(SIZE(dik), &dik)))Zero(dik); // if still failed, then zero
          }
          REPA(Keys) // process only special keys
          {
@@ -1313,24 +1316,24 @@ void KeyboardClass::queue(C KeyboardKey &key) // !! Warning: this doesn't check 
 void KeyboardClass::acquire(Bool on)
 {
 #if WINDOWS_OLD
-#if !KB_RAW_INPUT
-   if(_did)
+#if KB_DIRECT_INPUT
+   if(_device)
    {
       if(KEYBOARD_MODE==FOREGROUND) // we need to change acquire only if we're operating in Foreground mode
       {
          if(on)
          {
-           _did->Acquire();
+           _device->Acquire();
             // upon activating the app, we need to check if some keys are pressed, for some reason 'GetDeviceState' will not return it until the next frame
             if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL ); _special|=1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
             if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT); _special|=2;}
             if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT); _special|=4;}
-         }else _did->Unacquire();
+         }else _device->Unacquire();
       }else
       {
          // ignore recorded background input (this will remove keys from the DI buffer)
          DIDEVICEOBJECTDATA didod[BUF_KEYS];
-         DWORD elms=BUF_KEYS, ret=_did->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
+         DWORD elms=BUF_KEYS, ret=_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
       }
    }
 #endif
@@ -1357,12 +1360,12 @@ void KeyboardClass::exclusive(Bool on)
 
          RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
       }
-   #else
-      if(_did)
+   #elif KB_DIRECT_INPUT
+      if(_device)
       {
-        _did->Unacquire(); // this also resets the 'GetDeviceState' of any currently pressed keys, they need to be pushed again to activate their state
-        _did->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
-         if(KEYBOARD_MODE==BACKGROUND || App.active())_did->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
+        _device->Unacquire(); // this also resets the 'GetDeviceState' of any currently pressed keys, they need to be pushed again to activate their state
+        _device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
+         if(KEYBOARD_MODE==BACKGROUND || App.active())_device->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
          // because calling 'Unacquire' resets the state, we need to remember if some keys are pressed, other keys don't have to be remembered because they are processed using WM_*KEY*
         _special=1*Kb.b(KB_LCTRL )
                 |2*Kb.b(KB_LSHIFT)

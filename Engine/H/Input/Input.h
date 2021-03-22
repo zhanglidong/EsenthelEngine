@@ -224,9 +224,11 @@ private:
 struct InputDevicesClass // Input Devices
 {
 #if WINDOWS_OLD
-   IDirectInput8 *DI;
-#else
-   Ptr            DI;
+   #if DIRECT_INPUT
+      IDirectInput8 *DI=null;
+   #else
+      Ptr            DI=null;
+   #endif
 #endif
 
    void del    ();
@@ -235,7 +237,7 @@ struct InputDevicesClass // Input Devices
    void clear  ();
    void acquire(Bool on);
 
-   InputDevicesClass() {DI=null;}
+   InputDevicesClass() {}
    NO_COPY_CONSTRUCTOR(InputDevicesClass);
 }extern
    InputDevices;
