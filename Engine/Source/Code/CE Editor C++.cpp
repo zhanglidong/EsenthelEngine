@@ -1360,7 +1360,7 @@ Bool CodeEditor::generateVSProj(Int version)
          if(XmlNode *Core=NintendoSdkMeta->findNode("Core"))
          {
           //if(XmlNode *Name=Core->findNode("Name"))Name->data.setNum(1)[0]=cei().appName();
-            if(XmlNode *ApplicationId=Core->findNode("ApplicationId"))ApplicationId->data.setNum(1)[0]=TextHex(cei().appNintendoAppID(), 16, 0, true);
+            if(auto app_id=cei().appNintendoAppID())if(XmlNode *ApplicationId=Core->findNode("ApplicationId"))ApplicationId->data.setNum(1)[0]=TextHex(app_id, 16, 0, true);
          }
          if(XmlNode *Application=NintendoSdkMeta->findNode("Application"))
          {
