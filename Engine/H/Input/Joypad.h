@@ -19,11 +19,11 @@ enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch c
    JB_START , // Start
    JB_NUM   , // number of buttons for XInput/Xbox controllers
 
-   JB_LSL=JB_NUM, // Nintendo Switch Left  SL
-   JB_LSR       , // Nintendo Switch Left  SR
-   JB_RSL       , // Nintendo Switch Right SL
-   JB_RSR       , // Nintendo Switch Right SR
-   JB_SWITCH_NUM, // number of buttons for NintendoSwitch controllers
+   JB_LSL=JB_NUM  , // Nintendo Switch Left  SL
+   JB_LSR         , // Nintendo Switch Left  SR
+   JB_RSL         , // Nintendo Switch Right SL
+   JB_RSR         , // Nintendo Switch Right SR
+   JB_NINTENDO_NUM, // number of buttons for NintendoSwitch controllers
 
    // alternative names
    JB_SELECT=JB_BACK ,

@@ -17,7 +17,7 @@ ThreadEmulation EmulatedThreads;
 #ifndef    __ANDROID_API__
    #define __ANDROID_API__ 0
 #endif
-#define USE_MONOTONIC_CLOCK (!APPLE && !(ANDROID && __ANDROID_API__<21) && !SWITCH) // Apple doesn't have 'pthread_condattr_setclock', Android <21 doesn't have 'pthread_condattr_setclock', Switch doesn't support CLOCK_MONOTONIC
+#define USE_MONOTONIC_CLOCK (!APPLE && !(ANDROID && __ANDROID_API__<21) && !SWITCH) // Apple doesn't have 'pthread_condattr_setclock', Android <21 doesn't have 'pthread_condattr_setclock', Nintendo Switch doesn't support CLOCK_MONOTONIC
 /******************************************************************************/
 // 32-bit AtomicGet and AtomicSet are simple:
 // https://github.com/mintomic/mintomic/tree/master/include/mintomic/private

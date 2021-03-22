@@ -5,8 +5,10 @@ namespace EE{
 #define CC4_CHUNK CC4('C','H','N','K')
 
 #if SWITCH
-   #define lstat stat // 'lstat' unavailable on Switch
+   #define lstat stat // 'lstat' unavailable on Nintendo Switch
 #endif
+
+#define CHECK_NULL SWITCH // if check names for null (because crash could occur on null), needed for Nintendo
 /******************************************************************************/
 static Str _DataPath;
 /******************************************************************************/
@@ -25,12 +27,8 @@ Bool CurDir(C Str &dir)
 #if WINDOWS
    return SetCurrentDirectory(dir)!=0;
 #else
-   auto    path=UnixPathUTF8(dir);
-   CChar8 *path_ptr=path;
-#if SWITCH
-   if(!path_ptr)path_ptr=""; // on Switch null causes a crash
-#endif
-   return !chdir(path_ptr);
+   if(CHECK_NULL && !dir.is())return false;
+   return !chdir(UnixPathUTF8(dir));
 #endif
 }
 /******************************************************************************/
@@ -744,9 +742,9 @@ Bool FDelFile  (C Str &name) {return DeleteFile     (name      )!=0;}
 Bool FCreateDir(C Str &name) {return CreateDirectory(name, null)!=0;}
 Bool FDelDir   (C Str &name) {return RemoveDirectory(name      )!=0;}
 #else
-Bool FDelFile  (C Str &name) {if(!unlink(UnixPathUTF8(name)                         )){FlushIO(); return true;} return false;} // 'remove' will delete both files/dirs
-Bool FCreateDir(C Str &name) {if(!mkdir (UnixPathUTF8(name), S_IRWXU|S_IRWXG|S_IRWXO)){FlushIO(); return true;} return false;}
-Bool FDelDir   (C Str &name) {if(!rmdir (UnixPathUTF8(name)                         )){FlushIO(); return true;} return false;}
+Bool FDelFile  (C Str &name) {if(CHECK_NULL && !name.is())return false; if(!unlink(UnixPathUTF8(name)                         )){FlushIO(); return true;} return false;} // 'remove' will delete both files/dirs
+Bool FCreateDir(C Str &name) {if(CHECK_NULL && !name.is())return false; if(!mkdir (UnixPathUTF8(name), S_IRWXU|S_IRWXG|S_IRWXO)){FlushIO(); return true;} return false;}
+Bool FDelDir   (C Str &name) {if(CHECK_NULL && !name.is())return false; if(!rmdir (UnixPathUTF8(name)                         )){FlushIO(); return true;} return false;}
 #endif
 
 static Bool FDel(FSTD_TYPE type, C Str &name)

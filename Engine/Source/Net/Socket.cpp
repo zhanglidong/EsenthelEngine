@@ -15,12 +15,12 @@
 #if WINDOWS_OLD && SUPPORT_WINDOWS_XP
    static const Bool DualStackSocket=(OSVerNumber().x>5); // not supported on WinXP, on WinXP one Socket can't be used for IPv4 and IPv6 connections at the same time, "In order to support both IPv4 and IPv6 on Windows XP with Service Pack 1 (SP1) and on Windows Server 2003, an application has to create two sockets, one socket for use with IPv4 and one socket for use with IPv6. These two sockets must be handled separately by the application." - https://msdn.microsoft.com/en-us/library/windows/desktop/bb513665(v=vs.85).aspx
 #elif SWITCH
-   #define           DualStackSocket false // unsupported on Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
+   #define           DualStackSocket false // unsupported on Nintendo Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
 #else
    #define           DualStackSocket true // other OS's should support it
 #endif
 
-#define PREFER_IPV6 (!SWITCH) // prefer IPv6 addresses to avoid unnecessary 'convert' calls, unsupported on Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
+#define PREFER_IPV6 (!SWITCH) // prefer IPv6 addresses to avoid unnecessary 'convert' calls, unsupported on Nintendo Switch - https://developer.nintendo.com/html/online-docs/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_107338335.html
 
 #define IP4_ANY        0        // "0.0.0.0"   any address will be selected
 #define IP4_LOCAL_HOST 16777343 // "127.0.0.1" localhost
