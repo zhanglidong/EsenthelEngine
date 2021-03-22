@@ -85,9 +85,10 @@ void SteamCallbacks::PersonaStateChange(PersonaStateChange_t *change)
    ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_LeftSource==k_EPersonaChangeLeftSource);
    ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_RelationshipChanged==k_EPersonaChangeRelationshipChanged);
    ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_NameFirstSet==k_EPersonaChangeNameFirstSet);
-   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_FacebookInfo==k_EPersonaChangeFacebookInfo);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Broadcast==k_EPersonaChangeBroadcast);
    ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Nickname==k_EPersonaChangeNickname);
    ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_SteamLevel==k_EPersonaChangeSteamLevel);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_RichPresence==k_EPersonaChangeRichPresence);
    if(change)if(auto callback=Steam.friend_state_changed)callback(change->m_ulSteamID, change->m_nChangeFlags);
 }
 void SteamCallbacks::AvatarImageLoaded(AvatarImageLoaded_t *avatar) // called when 'GetLargeFriendAvatar' was requested but not yet available, simply notify user with callback that new avatar is available for a user
@@ -239,9 +240,11 @@ Str SteamWorks::userName()C
 #if SUPPORT_STEAM
 static SteamWorks::USER_STATUS SteamStatus(EPersonaState state)
 {
-   ASSERT(k_EPersonaStateMax==7);
+   ASSERT(k_EPersonaStateMax==8);
    switch(state)
    {
+      case k_EPersonaStateInvisible: return SteamWorks::STATUS_OFFLINE;
+
       case k_EPersonaStateOffline: return SteamWorks::STATUS_OFFLINE;
 
       case k_EPersonaStateLookingToTrade:

@@ -38,9 +38,10 @@ struct SteamWorks
 	   FRIEND_STATE_CHANGE_LeftSource         =0x0100,
 	   FRIEND_STATE_CHANGE_RelationshipChanged=0x0200,
 	   FRIEND_STATE_CHANGE_NameFirstSet       =0x0400,
-	   FRIEND_STATE_CHANGE_FacebookInfo       =0x0800,
+	   FRIEND_STATE_CHANGE_Broadcast          =0x0800,
 	   FRIEND_STATE_CHANGE_Nickname           =0x1000,
 	   FRIEND_STATE_CHANGE_SteamLevel         =0x2000,
+	   FRIEND_STATE_CHANGE_RichPresence       =0x4000,
    };
    enum PERIOD : Byte
    {
