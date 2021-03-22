@@ -19,6 +19,7 @@ extern Edit::BUILD_MODE     PublishBuildMode;
 extern WindowIO            PublishEsProjIO;
 /******************************************************************************/
 bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode);
+bool PublishDataReady();
 void PublishDo();
 void PublishEsProjAs(C Str &path, ptr user);
 bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE build_mode, bool no_compile=false, C Str &custom_project_data_path=S, bool open_ide=false, bool es_proj=false);

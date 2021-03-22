@@ -41,6 +41,11 @@ PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
 bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
+bool PublishDataReady() // if desired project data is already availalble
+{
+   return !PublishProjectDataPath.is() // if we don't want to create project data pak (no file)
+        || FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime() && PakEqual(PublishFiles, PublishProjectDataPath, Publish.cipher());
+}
 /******************************************************************************/
 void PublishDo()
 {
@@ -238,8 +243,8 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       SetPublishFiles(PublishFiles, PublishGenerate, PublishConvert, PublishFileData); // detect files for packing
       if(!PublishGenerate.elms() && !PublishConvert.elms()) // if there are no elements to generate and convert
          if(PublishDataAsPak) // if we're creating a pak
-            if(!PublishProjectDataPath.is() // if we don't want to create project data pak (no file)
-            || FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime() && PakEqual(PublishFiles, PublishProjectDataPath, Publish.cipher())){PublishSuccess(); return true;} // or if pak is similar to what we want then exit already
+            if(PublishDataReady()) // if already available
+               {PublishSuccess(); return true;} // or if pak is similar to what we want then exit already
    }
 
    StatePublish.set(StateFadeTime);
@@ -276,8 +281,8 @@ bool PublishFunc(Thread &thread)
    PublishStage=PUBLISH_PUBLISH; Publish.progress.progress=0;
    if(PublishDataAsPak)
    {
-      if(!PublishProjectDataPath.is())PublishOk=true;else
-                                      PublishOk=PakCreate(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
+      if(PublishDataReady())PublishOk=true;
+      else                  PublishOk=PakCreate(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
    }else
    {
       Memc<Str> dest_paths;
