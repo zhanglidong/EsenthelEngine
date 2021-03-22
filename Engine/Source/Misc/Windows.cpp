@@ -1948,9 +1948,15 @@ void Application::windowCreate()
    Bool hide=FlagTest(flag, APP_HIDDEN);
    UInt ex_style=(drop ? WS_EX_ACCEPTFILES : 0);
 #if DX11
-   ex_style|=WS_EX_NOREDIRECTIONBITMAP; // fixes resizing artifacts on DXGI_SWAP_EFFECT_FLIP_* modes, this also prevents creating of some extra system window surface, which should slightly increase performance - https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/june/windows-with-c-high-performance-window-layering-using-the-windows-composition-engine
-   if(!D.full()) // no need to do this when creating full screen, in full screen it's better to don't hide, so we can already see the icon on the taskbar
-      hide=true; // because the contents will be invisible, then always hide initially, we will show it later
+   #define WS_EX_NOREDIRECTIONBITMAP 0x00200000L
+   #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
+   if(Compare(OSVerNumber(), VecI4(6, 2, 0, 0))>=0) // WS_EX_NOREDIRECTIONBITMAP available on Windows 8
+   #endif
+   {
+      ex_style|=WS_EX_NOREDIRECTIONBITMAP; // fixes resizing artifacts on DXGI_SWAP_EFFECT_FLIP_* modes, this also prevents creating of some extra system window surface, which should slightly increase performance - https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/june/windows-with-c-high-performance-window-layering-using-the-windows-composition-engine
+      if(!D.full()) // no need to do this when creating full screen, in full screen it's better to don't hide, so we can already see the icon on the taskbar
+         hide=true; // because the contents will be invisible, then always hide initially, we will show it later
+   }
 #endif
    UInt style=(D.full() ? _style_full : maximize ? _style_window_maximized : _style_window); if(hide)FlagDisable(style, WS_VISIBLE);
 
