@@ -89,12 +89,8 @@ namespace EE{
       BUF_SIZE:16777216,  1:38.953, 4:14.765, 4k:5.981
 
 /******************************************************************************/
-#if DESKTOP
-   #define      BUF_SIZE (1<<16) // 64 KB
-#else
-   #define      BUF_SIZE (1<<15) // 32 KB (for Mobile devices use smaller buffers because they usually have less RAM)
-#endif
-   #define TEMP_BUF_SIZE (1<<17) // 128 KB
+#define      BUF_SIZE (1<<16) //  64 KB
+#define TEMP_BUF_SIZE (1<<17) // 128 KB
 
 #define ALLOW_REFLUSH 1 // if allow secondary flush with remaining data when first failed
 /******************************************************************************/
