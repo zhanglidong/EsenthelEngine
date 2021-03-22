@@ -810,11 +810,12 @@ Bool CodeEditor::generateCPPH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_
          ft.putLine("#pragma once"); // on Apple this header gets included automatically because of project PCH settings, and because of manual "#include "stdafx.h"" needed on Windows, it would get included multiple times
 
          // 3rd party headers (first)
-         Memc<Str> win_headers=GetFiles(cei().appHeadersWindows()),
-                   mac_headers=GetFiles(cei().appHeadersMac    ()),
-                 linux_headers=GetFiles(cei().appHeadersLinux  ()),
-               android_headers=GetFiles(cei().appHeadersAndroid()),
-                   ios_headers=GetFiles(cei().appHeadersiOS    ());
+         Memc<Str> win_headers=GetFiles(cei().appHeadersWindows ()),
+                   mac_headers=GetFiles(cei().appHeadersMac     ()),
+                 linux_headers=GetFiles(cei().appHeadersLinux   ()),
+               android_headers=GetFiles(cei().appHeadersAndroid ()),
+                   ios_headers=GetFiles(cei().appHeadersiOS     ()),
+              nintendo_headers=GetFiles(cei().appHeadersNintendo());
        /*REPA(headers)
          {
             Str &header=headers[i]; if(Ends(header, "?optional"))
@@ -837,8 +838,9 @@ Bool CodeEditor::generateCPPH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_
                ft.depth--;
                ft.putLine("#endif");
             }
-            ListHeaders(ft,   linux_headers, "defined __linux__ && !defined ANDROID // Android also has '__linux__' defined");
-            ListHeaders(ft, android_headers, "defined ANDROID");
+            ListHeaders(ft,    linux_headers, "defined __linux__ && !defined ANDROID // Android also has '__linux__' defined");
+            ListHeaders(ft,  android_headers, "defined ANDROID");
+            ListHeaders(ft, nintendo_headers, "defined __NINTENDO__");
             ft.putLine(S+"#include \""+UnixPath(bin_path+"EsenthelEngine\\_\\System\\end.h")+'"');
          }
 
@@ -1328,9 +1330,9 @@ Bool CodeEditor::generateVSProj(Int version)
    Memc<Str> libs_win=GetFiles(cei().appLibsWindows()),
              dirs_win=GetFiles(cei().appDirsWindows()),
              libs_web,
-             dirs_web,
-             libs_ns,
-             dirs_ns;
+             dirs_web=dirs_win,
+             libs_ns =GetFiles(cei().appLibsNintendo()),
+             dirs_ns =dirs_win;
 
    // Web html
    if(build_exe_type==EXE_WEB)
@@ -1357,15 +1359,15 @@ Bool CodeEditor::generateVSProj(Int version)
       {
          if(XmlNode *Core=NintendoSdkMeta->findNode("Core"))
          {
-          //if(XmlNode *Name         =Core->findNode("Name"         ))Name         ->data.setNum(1)[0]=cei().appName(); FIXME
-          //if(XmlNode *ApplicationId=Core->findNode("ApplicationId"))ApplicationId->data.setNum(1)[0]=cei().appName(); FIXME
+          //if(XmlNode *Name=Core->findNode("Name"))Name->data.setNum(1)[0]=cei().appName();
+            if(XmlNode *ApplicationId=Core->findNode("ApplicationId"))ApplicationId->data.setNum(1)[0]=TextHex(cei().appNintendoAppID(), 16, 0, true);
          }
          if(XmlNode *Application=NintendoSdkMeta->findNode("Application"))
          {
             if(XmlNode *Title=Application->findNode("Title"))
             {
                if(XmlNode *Name     =Title->findNode("Name"     ))Name     ->data.setNum(1)[0]=cei().appName();
-             //if(XmlNode *Publisher=Title->findNode("Publisher"))Publisher->data.setNum(1)[0]=cei().(); FIXME
+               if(XmlNode *Publisher=Title->findNode("Publisher"))Publisher->data.setNum(1)[0]=cei().appNintendoPublisherName();
             }
             if(XmlNode *ReleaseVersion=Application->findNode("ReleaseVersion"))ReleaseVersion->data.setNum(1)[0]=cei().appBuild();
             if(XmlNode *DisplayVersion=Application->findNode("DisplayVersion"))DisplayVersion->data.setNum(1)[0]=cei().appBuild();

@@ -35,6 +35,7 @@ AppPropsEditor AppPropsEdit;
       "Linux",
       "Android",
       "iOS",
+      "Nintendo",
    };
    cchar8 *AppPropsEditor::platforms2_t[]=
    {
@@ -88,11 +89,13 @@ AppPropsEditor AppPropsEdit;
    Str               CodeView::appHeadersLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_linux          ; return super::appHeadersLinux();}
    Str               CodeView::appHeadersAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_android        ; return super::appHeadersAndroid();}
    Str               CodeView::appHeadersiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_ios            ; return super::appHeadersiOS();}
+   Str               CodeView::appHeadersNintendo(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_nintendo       ; return super::appHeadersNintendo();}
    Str               CodeView::appLibsWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_windows           ; return super::appLibsWindows();}
    Str               CodeView::appLibsMac(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_mac               ; return super::appLibsMac();}
    Str               CodeView::appLibsLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_linux             ; return super::appLibsLinux();}
    Str               CodeView::appLibsAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_android           ; return super::appLibsAndroid();}
    Str               CodeView::appLibsiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_ios               ; return super::appLibsiOS();}
+   Str               CodeView::appLibsNintendo(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_nintendo          ; return super::appLibsNintendo();}
    Str               CodeView::appPackage(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->package                ; return super::appPackage();}
    UID               CodeView::appMicrosoftPublisherID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->ms_publisher_id        ; return super::appMicrosoftPublisherID();}
    Str               CodeView::appMicrosoftPublisherName(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->ms_publisher_name      ; return super::appMicrosoftPublisherName();}
@@ -101,6 +104,8 @@ AppPropsEditor AppPropsEdit;
    UID               CodeView::appXboxLiveSCID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->xbl_scid               ; return super::appXboxLiveSCID();}
    Str               CodeView::appGooglePlayLicenseKey(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->android_license_key    ; return super::appGooglePlayLicenseKey();}
    Str               CodeView::appLocationUsageReason(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->location_usage_reason  ; return super::appLocationUsageReason();}
+   ULong             CodeView::appNintendoAppID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->nintendo_app_id        ; return super::appNintendoAppID();}
+   Str               CodeView::appNintendoPublisherName(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->nintendo_publisher_name; return super::appNintendoPublisherName();}
    Int               CodeView::appBuild(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->build                  ; return super::appBuild();}
    ulong             CodeView::appFacebookAppID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->fb_app_id              ; return super::appFacebookAppID();}
    Str               CodeView::appAdMobAppIDiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->am_app_id_ios          ; return super::appAdMobAppIDiOS();}
@@ -618,6 +623,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    void AppPropsEditor::GetChartboostApp(  ptr           ) {Explore("https://dashboard.chartboost.com/tools/sdk");}
    void AppPropsEditor::GetMicrosoftPublisher(  ptr           ) {Explore("https://partner.microsoft.com/en-us/dashboard/account/v3/organization/legalinfo");}
    void AppPropsEditor::GetXboxLive(  ptr           ) {Explore("https://partner.microsoft.com/en-us/dashboard/windows/overview");}
+   void AppPropsEditor::GetNintendo(  ptr           ) {Explore("https://developer.nintendo.com");}
    void AppPropsEditor::DirsWin(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->dirs_windows=text; app_data->dirs_windows_time.getUTC(); ap.changed_headers=true;}}
    Str  AppPropsEditor::DirsWin(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->dirs_windows; return S;}
    void AppPropsEditor::DirsNonWin(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->dirs_nonwindows=text; app_data->dirs_nonwindows_time.getUTC(); ap.changed_headers=true;}}
@@ -632,6 +638,8 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    Str  AppPropsEditor::HeadersAndroid(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->headers_android; return S;}
    void AppPropsEditor::HeadersiOS(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->headers_ios=text; app_data->headers_ios_time.getUTC(); ap.changed_headers=true;}}
    Str  AppPropsEditor::HeadersiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->headers_ios; return S;}
+   void AppPropsEditor::HeadersNintendo(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->headers_nintendo=text; app_data->headers_nintendo_time.getUTC(); ap.changed_headers=true;}}
+   Str  AppPropsEditor::HeadersNintendo(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->headers_nintendo; return S;}
    void AppPropsEditor::LibsWindows(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->libs_windows=text; app_data->libs_windows_time.getUTC();}}
    Str  AppPropsEditor::LibsWindows(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->libs_windows; return S;}
    void AppPropsEditor::LibsMac(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->libs_mac=text; app_data->libs_mac_time.getUTC();}}
@@ -642,6 +650,8 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    Str  AppPropsEditor::LibsAndroid(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->libs_android; return S;}
    void AppPropsEditor::LibsiOS(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->libs_ios=text; app_data->libs_ios_time.getUTC();}}
    Str  AppPropsEditor::LibsiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->libs_ios; return S;}
+   void AppPropsEditor::LibsNintendo(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->libs_nintendo=text; app_data->libs_nintendo_time.getUTC();}}
+   Str  AppPropsEditor::LibsNintendo(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->libs_nintendo; return S;}
    void AppPropsEditor::Package(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->package=text; app_data->package_time.getUTC();}}
    Str  AppPropsEditor::Package(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->package; return S;}
    void AppPropsEditor::MicrosoftPublisherID(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->ms_publisher_id.fromCanonical(SkipStart(text, "CN=")); app_data->ms_publisher_id_time.getUTC();}}
@@ -654,6 +664,10 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    Str  AppPropsEditor::XboxLiveTitleID(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->xbl_title_id)return app_data->xbl_title_id; return S;}
    void AppPropsEditor::XboxLiveSCID(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->xbl_scid.fromCanonical(text); app_data->xbl_scid_time.getUTC();}}
    Str  AppPropsEditor::XboxLiveSCID(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->xbl_scid.valid())return CaseDown(app_data->xbl_scid.asCanonical()); return S;}
+   void AppPropsEditor::NintendoAppID(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->nintendo_app_id=TextULong(text); app_data->nintendo_app_id_time.getUTC();}}
+   Str  AppPropsEditor::NintendoAppID(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->nintendo_app_id)return TextHex(app_data->nintendo_app_id, 16, 0, true); return S;}
+   void AppPropsEditor::NintendoPublisherName(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->nintendo_publisher_name=text; app_data->nintendo_publisher_name_time.getUTC();}}
+   Str  AppPropsEditor::NintendoPublisherName(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->nintendo_publisher_name; return S;}
    void AppPropsEditor::AndroidLicenseKey(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->android_license_key=text; app_data->android_license_key_time.getUTC();}}
    Str  AppPropsEditor::AndroidLicenseKey(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->android_license_key; return S;}
    void AppPropsEditor::Build(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->build=TextInt(text); app_data->build_time.getUTC(); if(ap.elm_id==Proj.curApp())CodeEdit.makeAuto();}}
@@ -702,16 +716,20 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
       PropEx &ihl      =add("Include Headers"            , MemberDesc(DATA_STR                               ).setFunc(HeadersLinux                , HeadersLinux                )).desc("Type full paths to header file names.\nSeparate each with | for example:\nC:\\Lib1\\Main.h | C:\\Lib2\\Main.h");
       PropEx &iha      =add("Include Headers"            , MemberDesc(DATA_STR                               ).setFunc(HeadersAndroid              , HeadersAndroid              )).desc("Type full paths to header file names.\nSeparate each with | for example:\nC:\\Lib1\\Main.h | C:\\Lib2\\Main.h");
       PropEx &ihi      =add("Include Headers"            , MemberDesc(DATA_STR                               ).setFunc(HeadersiOS                  , HeadersiOS                  )).desc("Type full paths to header file names.\nSeparate each with | for example:\nC:\\Lib1\\Main.h | C:\\Lib2\\Main.h");
+      PropEx &ihn      =add("Include Headers"            , MemberDesc(DATA_STR                               ).setFunc(HeadersNintendo             , HeadersNintendo             )).desc("Type full paths to header file names.\nSeparate each with | for example:\nC:\\Lib1\\Main.h | C:\\Lib2\\Main.h");
       PropEx &ilw      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsWindows                 , LibsWindows                 )).desc("Type full paths to lib file names.\nSeparate each with | for example:\nC:\\Lib1\\Main.lib | C:\\Lib2\\Main.lib");
       PropEx &ilm      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsMac                     , LibsMac                     )).desc("Type full paths to lib file names.\nSeparate each with | for example:\n/Lib1/Main.a | /Lib2/Main.a");
       PropEx &ill      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsLinux                   , LibsLinux                   )).desc("Type full paths to lib file names.\nSeparate each with | for example:\n/Lib1/Main.a | /Lib2/Main.a");
       PropEx &ila      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsAndroid                 , LibsAndroid                 )).desc("Type full paths to lib file names.\nSeparate each with | for example:\nC:\\Lib1\\XXX.a | C:\\Lib2\\libXXX.so\n\n$(TARGET_ARCH_ABI) can be used in the path, which will be replaced with target architecture (such as armeabi-v7a, arm64-v8a, x86, x86_64), for example:\nC:\\Path\\XXX-$(TARGET_ARCH_ABI).a\nC:\\Path\\$(TARGET_ARCH_ABI)\\libXXX.so");
       PropEx &ili      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsiOS                     , LibsiOS                     )).desc("Type full paths to lib file names.\nSeparate each with | for example:\n/Lib1/Main.a | /Lib2/Main.a");
+      PropEx &iln      =add("Include Libraries"          , MemberDesc(DATA_STR                               ).setFunc(LibsNintendo                , LibsNintendo                )).desc("Type full paths to lib file names.\nSeparate each with | for example:\n/Lib1/Main.a | /Lib2/Main.a");
       PropEx &ms_pub_id=add("Microsoft Publisher ID"     , MemberDesc(DATA_STR                               ).setFunc(MicrosoftPublisherID        , MicrosoftPublisherID        ));
       PropEx &ms_pub_nm=add("Microsoft Publisher Name"   , MemberDesc(DATA_STR                               ).setFunc(MicrosoftPublisherName      , MicrosoftPublisherName      ));
       PropEx &xb_prog  =add("XboxLive Program"           , MemberDesc(DATA_INT                               ).setFunc(XboxLiveProgram             , XboxLiveProgram             )).setEnum(xbox_live_program_t, Elms(xbox_live_program_t));
       PropEx &xb_tit_id=add("XboxLive Title ID (decimal)", MemberDesc(DATA_STR                               ).setFunc(XboxLiveTitleID             , XboxLiveTitleID             ));
       PropEx &xb_scid  =add("XboxLive SCID"              , MemberDesc(DATA_STR                               ).setFunc(XboxLiveSCID                , XboxLiveSCID                ));
+      PropEx &nn_app_id=add("Nintendo App ID"            , MemberDesc(DATA_STR                               ).setFunc(NintendoAppID               , NintendoAppID               ));
+      PropEx &nn_pub_nm=add("Nintendo Publisher Name"    , MemberDesc(DATA_STR                               ).setFunc(NintendoPublisherName       , NintendoPublisherName       ));
       PropEx &am_ai_g  =add("AdMob App ID"               , MemberDesc(MEMBER(ElmApp, am_app_id_google       )).setFunc(AdMobAppIDGoogle            , AdMobAppIDGoogle            )).desc("AdMob Application ID");
       PropEx &cb_ai_g  =add("Chartboost App ID"          , MemberDesc(MEMBER(ElmApp, cb_app_id_google       )).setFunc(ChartboostAppIDGoogle       , ChartboostAppIDGoogle       )).desc("Chartboost Application ID");
       PropEx &cb_as_g  =add("Chartboost App Signature"   , MemberDesc(MEMBER(ElmApp, cb_app_signature_google)).setFunc(ChartboostAppSignatureGoogle, ChartboostAppSignatureGoogle)).desc("Chartboost Application Signature");
@@ -752,18 +770,22 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
       ihl.pos(pos).parent(platforms.tab(PLIN));
       iha.pos(pos).parent(platforms.tab(PAND));
       ihi.pos(pos).parent(platforms.tab(PIOS));
+      ihn.pos(pos).parent(platforms.tab(PNIN));
       pos.y-=h;
       ilw.pos(pos).parent(platforms.tab(PWIN));
       ilm.pos(pos).parent(platforms.tab(PMAC));
       ill.pos(pos).parent(platforms.tab(PLIN));
       ila.pos(pos).parent(platforms.tab(PAND));
       ili.pos(pos).parent(platforms.tab(PIOS));
+      iln.pos(pos).parent(platforms.tab(PNIN));
       pos.y-=h;
       ms_pub_id.pos(pos).parent(platforms.tab(PWIN)); platforms.tab(PWIN)+=ms_pub_id.button.create(Rect_RU(ms_pub_id.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetMicrosoftPublisher); ms_pub_id.textline.rect(Rect(ms_pub_id.textline.rect().ld(), ms_pub_id.button.rect().lu()));
+      nn_app_id.pos(pos).parent(platforms.tab(PNIN)); platforms.tab(PNIN)+=nn_app_id.button.create(Rect_RU(nn_app_id.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetNintendo); nn_app_id.textline.rect(Rect(nn_app_id.textline.rect().ld(), nn_app_id.button.rect().lu()));
       am_ai_g.pos(pos).parent(platforms.tab(PAND)); platforms.tab(PAND)+=am_ai_g.button.create(Rect_RU(am_ai_g.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetAdMobApp); am_ai_g.textline.rect(Rect(am_ai_g.textline.rect().ld(), am_ai_g.button.rect().lu()));
       am_ai_i.pos(pos).parent(platforms.tab(PIOS)); platforms.tab(PIOS)+=am_ai_i.button.create(Rect_RU(am_ai_i.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetAdMobApp); am_ai_i.textline.rect(Rect(am_ai_i.textline.rect().ld(), am_ai_i.button.rect().lu()));
       pos.y-=h;
       ms_pub_nm.pos(pos).parent(platforms.tab(PWIN)); platforms.tab(PWIN)+=ms_pub_nm.button.create(Rect_RU(ms_pub_nm.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetMicrosoftPublisher); ms_pub_nm.textline.rect(Rect(ms_pub_nm.textline.rect().ld(), ms_pub_nm.button.rect().lu()));
+      nn_pub_nm.pos(pos).parent(platforms.tab(PNIN)); platforms.tab(PNIN)+=nn_pub_nm.button.create(Rect_RU(nn_pub_nm.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetNintendo); nn_pub_nm.textline.rect(Rect(nn_pub_nm.textline.rect().ld(), nn_pub_nm.button.rect().lu()));
       cb_ai_g.pos(pos).parent(platforms.tab(PAND)); platforms.tab(PAND)+=cb_ai_g.button.create(Rect_RU(cb_ai_g.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetChartboostApp); cb_ai_g.textline.rect(Rect(cb_ai_g.textline.rect().ld(), cb_ai_g.button.rect().lu()));
       cb_ai_i.pos(pos).parent(platforms.tab(PIOS)); platforms.tab(PIOS)+=cb_ai_i.button.create(Rect_RU(cb_ai_i.textline.rect().ru()+Vec2(th, 0), th*2, th), "Get").func(GetChartboostApp); cb_ai_i.textline.rect(Rect(cb_ai_i.textline.rect().ld(), cb_ai_i.button.rect().lu()));
       pos.y-=h;

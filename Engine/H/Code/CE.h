@@ -159,11 +159,13 @@ struct CodeEditorInterface
    virtual Str           appHeadersLinux                    () {return                  S;} // get all headers                         of current app
    virtual Str           appHeadersAndroid                  () {return                  S;} // get all headers                         of current app
    virtual Str           appHeadersiOS                      () {return                  S;} // get all headers                         of current app
+   virtual Str           appHeadersNintendo                 () {return                  S;} // get all headers                         of current app
    virtual Str           appLibsWindows                     () {return                  S;} // get all libraries                       of current app
    virtual Str           appLibsMac                         () {return                  S;} // get all libraries                       of current app
    virtual Str           appLibsLinux                       () {return                  S;} // get all libraries                       of current app
    virtual Str           appLibsAndroid                     () {return                  S;} // get all libraries                       of current app
    virtual Str           appLibsiOS                         () {return                  S;} // get all libraries                       of current app
+   virtual Str           appLibsNintendo                    () {return                  S;} // get all libraries                       of current app
    virtual Str           appPackage                         () {return                  S;} // get package name                        of current app
    virtual UID           appMicrosoftPublisherID            () {return            UIDZero;} // get Microsoft Publisher ID              of current app
    virtual Str           appMicrosoftPublisherName          () {return                  S;} // get Microsoft Publisher Name            of current app
@@ -173,6 +175,8 @@ struct CodeEditorInterface
    virtual Bool          appWindowsCodeSign                 () {return              false;} // get if code sign exe                    of current app
    virtual Str           appGooglePlayLicenseKey            () {return                  S;} // get Google Play license key             of current app
    virtual Str           appLocationUsageReason             () {return                  S;} // get location usage reason               of current app
+   virtual ULong         appNintendoAppID                   () {return                  0;} // get Nintendo App ID                     of current app
+   virtual Str           appNintendoPublisherName           () {return                  S;} // get Nintendo Publishder Name            of current app
    virtual Int           appBuild                           () {return                  1;} // get build number                        of current app
    virtual ULong         appFacebookAppID                   () {return                  0;} // get Facebook   App ID                   of current app
    virtual Str           appAdMobAppIDiOS                   () {return                  S;} // get AdMob      App ID                   of current app for iOS         platform

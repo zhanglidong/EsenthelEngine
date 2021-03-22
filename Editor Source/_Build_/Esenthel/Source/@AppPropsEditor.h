@@ -48,6 +48,7 @@ class AppPropsEditor : PropWin
    static void GetChartboostApp     (  ptr           );
    static void GetMicrosoftPublisher(  ptr           );
    static void GetXboxLive          (  ptr           );
+   static void GetNintendo          (  ptr           );
 
    static void DirsWin                     (  AppPropsEditor &ap, C Str &text);
    static Str  DirsWin                     (C AppPropsEditor &ap             );
@@ -63,6 +64,8 @@ class AppPropsEditor : PropWin
    static Str  HeadersAndroid              (C AppPropsEditor &ap             );
    static void HeadersiOS                  (  AppPropsEditor &ap, C Str &text);
    static Str  HeadersiOS                  (C AppPropsEditor &ap             );
+   static void HeadersNintendo             (  AppPropsEditor &ap, C Str &text);
+   static Str  HeadersNintendo             (C AppPropsEditor &ap             );
    static void LibsWindows                 (  AppPropsEditor &ap, C Str &text);
    static Str  LibsWindows                 (C AppPropsEditor &ap             );
    static void LibsMac                     (  AppPropsEditor &ap, C Str &text);
@@ -73,6 +76,8 @@ class AppPropsEditor : PropWin
    static Str  LibsAndroid                 (C AppPropsEditor &ap             );
    static void LibsiOS                     (  AppPropsEditor &ap, C Str &text);
    static Str  LibsiOS                     (C AppPropsEditor &ap             );
+   static void LibsNintendo                (  AppPropsEditor &ap, C Str &text);
+   static Str  LibsNintendo                (C AppPropsEditor &ap             );
    static void Package                     (  AppPropsEditor &ap, C Str &text);
    static Str  Package                     (C AppPropsEditor &ap             );
    static void MicrosoftPublisherID        (  AppPropsEditor &ap, C Str &text);
@@ -85,6 +90,10 @@ class AppPropsEditor : PropWin
    static Str  XboxLiveTitleID             (C AppPropsEditor &ap             );
    static void XboxLiveSCID                (  AppPropsEditor &ap, C Str &text);
    static Str  XboxLiveSCID                (C AppPropsEditor &ap             );
+   static void NintendoAppID               (  AppPropsEditor &ap, C Str &text);
+   static Str  NintendoAppID               (C AppPropsEditor &ap             );
+   static void NintendoPublisherName       (  AppPropsEditor &ap, C Str &text);
+   static Str  NintendoPublisherName       (C AppPropsEditor &ap             );
    static void AndroidLicenseKey           (  AppPropsEditor &ap, C Str &text);
    static Str  AndroidLicenseKey           (C AppPropsEditor &ap             );
    static void Build                       (  AppPropsEditor &ap, C Str &text);
@@ -135,6 +144,7 @@ class AppPropsEditor : PropWin
       PLIN,
       PAND,
       PIOS,
+      PNIN,
    };
    static cchar8 *platforms_t[]
 ;

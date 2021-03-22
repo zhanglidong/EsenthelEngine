@@ -2406,11 +2406,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       return super::equal(src)
           && dirs_windows_time==src.dirs_windows_time && dirs_nonwindows_time==src.dirs_nonwindows_time
-          && headers_windows_time==src.headers_windows_time && headers_mac_time==src.headers_mac_time && headers_linux_time==src.headers_linux_time && headers_android_time==src.headers_android_time && headers_ios_time==src.headers_ios_time
-          && libs_windows_time==src.libs_windows_time && libs_mac_time==src.libs_mac_time && libs_linux_time==src.libs_linux_time && libs_android_time==src.libs_android_time && libs_ios_time==src.libs_ios_time
+          && headers_windows_time==src.headers_windows_time && headers_mac_time==src.headers_mac_time && headers_linux_time==src.headers_linux_time && headers_android_time==src.headers_android_time && headers_ios_time==src.headers_ios_time && headers_nintendo_time==src.headers_nintendo_time
+          && libs_windows_time==src.libs_windows_time && libs_mac_time==src.libs_mac_time && libs_linux_time==src.libs_linux_time && libs_android_time==src.libs_android_time && libs_ios_time==src.libs_ios_time && libs_nintendo_time==src.libs_nintendo_time
           && package_time==src.package_time && android_license_key_time==src.android_license_key_time && location_usage_reason_time==src.location_usage_reason_time && build_time==src.build_time
           && ms_publisher_id_time==src.ms_publisher_id_time && ms_publisher_name_time==src.ms_publisher_name_time
           && xbl_program_time==src.xbl_program_time && xbl_title_id_time==src.xbl_title_id_time && xbl_scid_time==src.xbl_scid_time
+          && nintendo_app_id_time==src.nintendo_app_id_time && nintendo_publisher_name_time==src.nintendo_publisher_name_time
           && fb_app_id_time==src.fb_app_id_time
           && am_app_id_ios_time==src.am_app_id_ios_time && am_app_id_google_time==src.am_app_id_google_time
           && cb_app_id_ios_time==src.cb_app_id_ios_time && cb_app_signature_ios_time==src.cb_app_signature_ios_time && cb_app_id_google_time==src.cb_app_id_google_time && cb_app_signature_google_time==src.cb_app_signature_google_time
@@ -2422,11 +2423,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       return super::newer(src)
           || dirs_windows_time>src.dirs_windows_time || dirs_nonwindows_time>src.dirs_nonwindows_time
-          || headers_windows_time>src.headers_windows_time || headers_mac_time>src.headers_mac_time || headers_linux_time>src.headers_linux_time || headers_android_time>src.headers_android_time || headers_ios_time>src.headers_ios_time
-          || libs_windows_time>src.libs_windows_time || libs_mac_time>src.libs_mac_time || libs_linux_time>src.libs_linux_time || libs_android_time>src.libs_android_time || libs_ios_time>src.libs_ios_time
+          || headers_windows_time>src.headers_windows_time || headers_mac_time>src.headers_mac_time || headers_linux_time>src.headers_linux_time || headers_android_time>src.headers_android_time || headers_ios_time>src.headers_ios_time || headers_nintendo_time>src.headers_nintendo_time
+          || libs_windows_time>src.libs_windows_time || libs_mac_time>src.libs_mac_time || libs_linux_time>src.libs_linux_time || libs_android_time>src.libs_android_time || libs_ios_time>src.libs_ios_time || libs_nintendo_time>src.libs_nintendo_time
           || package_time>src.package_time || android_license_key_time>src.android_license_key_time || location_usage_reason_time>src.location_usage_reason_time || build_time>src.build_time
           || ms_publisher_id_time>src.ms_publisher_id_time || ms_publisher_name_time>src.ms_publisher_name_time
           || xbl_program_time>src.xbl_program_time || xbl_title_id_time>src.xbl_title_id_time || xbl_scid_time>src.xbl_scid_time
+          || nintendo_app_id_time>src.nintendo_app_id_time || nintendo_publisher_name_time>src.nintendo_publisher_name_time
           || fb_app_id_time>src.fb_app_id_time
           || am_app_id_ios_time>src.am_app_id_ios_time || am_app_id_google_time>src.am_app_id_google_time
           || cb_app_id_ios_time>src.cb_app_id_ios_time || cb_app_signature_ios_time>src.cb_app_signature_ios_time || cb_app_id_google_time>src.cb_app_id_google_time || cb_app_signature_google_time>src.cb_app_signature_google_time
@@ -2453,10 +2455,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 {
       super::newData();
       dirs_windows_time++; dirs_nonwindows_time++;
-      headers_windows_time++; headers_mac_time++; headers_linux_time++; headers_android_time++; headers_ios_time++;
-      libs_windows_time++; libs_mac_time++; libs_linux_time++; libs_android_time++; libs_ios_time++;
+      headers_windows_time++; headers_mac_time++; headers_linux_time++; headers_android_time++; headers_ios_time++; headers_nintendo_time++;
+      libs_windows_time++; libs_mac_time++; libs_linux_time++; libs_android_time++; libs_ios_time++; libs_nintendo_time++;
       ms_publisher_id_time++; ms_publisher_name_time++;
       xbl_program_time++; xbl_title_id_time++; xbl_scid_time++;
+      nintendo_app_id_time++; nintendo_publisher_name_time++;
       fb_app_id_time++;
       am_app_id_ios_time++; am_app_id_google_time++;
       cb_app_id_ios_time++; cb_app_signature_ios_time++; cb_app_id_google_time++; cb_app_signature_google_time++;
@@ -2477,11 +2480,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Undo(          headers_linux_time, src.          headers_linux_time, headers_linux          , src.headers_linux          );
          ch|=Undo(        headers_android_time, src.        headers_android_time, headers_android        , src.headers_android        );
          ch|=Undo(            headers_ios_time, src.            headers_ios_time, headers_ios            , src.headers_ios            );
+         ch|=Undo(       headers_nintendo_time, src.       headers_nintendo_time, headers_nintendo       , src.headers_nintendo       );
          ch|=Undo(           libs_windows_time, src.           libs_windows_time, libs_windows           , src.libs_windows           );
          ch|=Undo(               libs_mac_time, src.               libs_mac_time, libs_mac               , src.libs_mac               );
          ch|=Undo(             libs_linux_time, src.             libs_linux_time, libs_linux             , src.libs_linux             );
          ch|=Undo(           libs_android_time, src.           libs_android_time, libs_android           , src.libs_android           );
          ch|=Undo(               libs_ios_time, src.               libs_ios_time, libs_ios               , src.libs_ios               );
+         ch|=Undo(          libs_nintendo_time, src.          libs_nintendo_time, libs_nintendo          , src.libs_nintendo          );
          ch|=Undo(                package_time, src.                package_time, package                , src.package                );
          ch|=Undo(    android_license_key_time, src.    android_license_key_time, android_license_key    , src.android_license_key    );
          ch|=Undo(  location_usage_reason_time, src.  location_usage_reason_time, location_usage_reason  , src.location_usage_reason  );
@@ -2492,6 +2497,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Undo(            xbl_program_time, src.            xbl_program_time, xbl_program            , src.xbl_program            );
          ch|=Undo(           xbl_title_id_time, src.           xbl_title_id_time, xbl_title_id           , src.xbl_title_id           );
          ch|=Undo(               xbl_scid_time, src.               xbl_scid_time, xbl_scid               , src.xbl_scid               );
+         ch|=Undo(        nintendo_app_id_time, src.        nintendo_app_id_time, nintendo_app_id        , src.nintendo_app_id        );
+         ch|=Undo(nintendo_publisher_name_time, src.nintendo_publisher_name_time, nintendo_publisher_name, src.nintendo_publisher_name);
          ch|=Undo(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
          ch|=Undo(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
          ch|=Undo(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
@@ -2534,11 +2541,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Sync(          headers_linux_time, src.          headers_linux_time, headers_linux          , src.headers_linux          );
          ch|=Sync(        headers_android_time, src.        headers_android_time, headers_android        , src.headers_android        );
          ch|=Sync(            headers_ios_time, src.            headers_ios_time, headers_ios            , src.headers_ios            );
+         ch|=Sync(       headers_nintendo_time, src.       headers_nintendo_time, headers_nintendo       , src.headers_nintendo       );
          ch|=Sync(           libs_windows_time, src.           libs_windows_time, libs_windows           , src.libs_windows           );
          ch|=Sync(               libs_mac_time, src.               libs_mac_time, libs_mac               , src.libs_mac               );
          ch|=Sync(             libs_linux_time, src.             libs_linux_time, libs_linux             , src.libs_linux             );
          ch|=Sync(           libs_android_time, src.           libs_android_time, libs_android           , src.libs_android           );
          ch|=Sync(               libs_ios_time, src.               libs_ios_time, libs_ios               , src.libs_ios               );
+         ch|=Sync(          libs_nintendo_time, src.          libs_nintendo_time, libs_nintendo          , src.libs_nintendo          );
          ch|=Sync(                package_time, src.                package_time, package                , src.package                );
          ch|=Sync(    android_license_key_time, src.    android_license_key_time, android_license_key    , src.android_license_key    );
          ch|=Sync(  location_usage_reason_time, src.  location_usage_reason_time, location_usage_reason  , src.location_usage_reason  );
@@ -2549,6 +2558,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Sync(            xbl_program_time, src.            xbl_program_time, xbl_program            , src.xbl_program            );
          ch|=Sync(           xbl_title_id_time, src.           xbl_title_id_time, xbl_title_id           , src.xbl_title_id           );
          ch|=Sync(               xbl_scid_time, src.               xbl_scid_time, xbl_scid               , src.xbl_scid               );
+         ch|=Sync(        nintendo_app_id_time, src.        nintendo_app_id_time, nintendo_app_id        , src.nintendo_app_id        );
+         ch|=Sync(nintendo_publisher_name_time, src.nintendo_publisher_name_time, nintendo_publisher_name, src.nintendo_publisher_name);
          ch|=Sync(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
          ch|=Sync(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
          ch|=Sync(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
@@ -2580,24 +2591,22 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmApp::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(18);
+      f.cmpUIntV(19);
       f<<dirs_windows<<dirs_nonwindows;
-      f<<headers_windows<<headers_mac<<headers_linux<<headers_android<<headers_ios;
-      f<<libs_windows<<libs_mac<<libs_linux<<libs_android<<libs_ios;
+      f<<headers_windows<<headers_mac<<headers_linux<<headers_android<<headers_ios<<headers_nintendo;
+      f<<libs_windows<<libs_mac<<libs_linux<<libs_android<<libs_ios<<libs_nintendo;
       f<<package<<android_license_key<<location_usage_reason<<build<<storage<<supported_orientations<<flag;
       f<<ms_publisher_id<<ms_publisher_id_time<<ms_publisher_name<<ms_publisher_name_time;
       f<<xbl_program<<xbl_program_time<<xbl_title_id<<xbl_title_id_time<<xbl_scid<<xbl_scid_time;
-      f<<fb_app_id;
-      f<<am_app_id_ios<<am_app_id_google;
-      f<<cb_app_id_ios<<cb_app_signature_ios<<cb_app_id_google<<cb_app_signature_google;
+      f<<nintendo_app_id<<nintendo_app_id_time<<nintendo_publisher_name<<nintendo_publisher_name_time;
+      f<<fb_app_id<<fb_app_id_time;
+      f<<am_app_id_ios<<am_app_id_google<<am_app_id_ios_time<<am_app_id_google_time;
+      f<<cb_app_id_ios<<cb_app_signature_ios<<cb_app_id_google<<cb_app_signature_google<<cb_app_id_ios_time<<cb_app_signature_ios_time<<cb_app_id_google_time<<cb_app_signature_google_time;
       f<<icon<<notification_icon<<image_portrait<<image_landscape<<gui_skin;
       f<<dirs_windows_time<<dirs_nonwindows_time;
-      f<<headers_windows_time<<headers_mac_time<<headers_linux_time<<headers_android_time<<headers_ios_time;
-      f<<libs_windows_time<<libs_mac_time<<libs_linux_time<<libs_android_time<<libs_ios_time;
+      f<<headers_windows_time<<headers_mac_time<<headers_linux_time<<headers_android_time<<headers_ios_time<<headers_nintendo_time;
+      f<<libs_windows_time<<libs_mac_time<<libs_linux_time<<libs_android_time<<libs_ios_time<<libs_nintendo_time;
       f<<package_time<<android_license_key_time<<location_usage_reason_time<<build_time<<storage_time<<supported_orientations_time;
-      f<<fb_app_id_time;
-      f<<am_app_id_ios_time<<am_app_id_google_time;
-      f<<cb_app_id_ios_time<<cb_app_signature_ios_time<<cb_app_id_google_time<<cb_app_signature_google_time;
       f<<embed_engine_data_time<<publish_proj_data_time<<publish_physx_dll_time<<publish_steam_dll_time<<publish_open_vr_dll_time<<publish_data_as_pak_time<<android_expansion_time;
       f<<icon_time<<notification_icon_time<<image_portrait_time<<image_landscape_time<<gui_skin_time;
       return f.ok();
@@ -2609,6 +2618,28 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       T=ElmApp(); // reset to default, in case this is needed (for example when loading data from reused objects for code synchronization)
       if(super::load(f))switch(f.decUIntV())
       {
+         case 19:
+         {
+            f>>dirs_windows>>dirs_nonwindows;
+            f>>headers_windows>>headers_mac>>headers_linux>>headers_android>>headers_ios>>headers_nintendo;
+            f>>libs_windows>>libs_mac>>libs_linux>>libs_android>>libs_ios>>libs_nintendo;
+            f>>package>>android_license_key>>location_usage_reason>>build>>storage>>supported_orientations>>flag;
+            f>>ms_publisher_id>>ms_publisher_id_time>>ms_publisher_name>>ms_publisher_name_time;
+            f>>xbl_program>>xbl_program_time>>xbl_title_id>>xbl_title_id_time>>xbl_scid>>xbl_scid_time;
+            f>>nintendo_app_id>>nintendo_app_id_time>>nintendo_publisher_name>>nintendo_publisher_name_time;
+            f>>fb_app_id>>fb_app_id_time;
+            f>>am_app_id_ios>>am_app_id_google>>am_app_id_ios_time>>am_app_id_google_time;
+            f>>cb_app_id_ios>>cb_app_signature_ios>>cb_app_id_google>>cb_app_signature_google>>cb_app_id_ios_time>>cb_app_signature_ios_time>>cb_app_id_google_time>>cb_app_signature_google_time;
+            f>>icon>>notification_icon>>image_portrait>>image_landscape>>gui_skin;
+            f>>dirs_windows_time>>dirs_nonwindows_time;
+            f>>headers_windows_time>>headers_mac_time>>headers_linux_time>>headers_android_time>>headers_ios_time>>headers_nintendo_time;
+            f>>libs_windows_time>>libs_mac_time>>libs_linux_time>>libs_android_time>>libs_ios_time>>libs_nintendo_time;
+            f>>package_time>>android_license_key_time>>location_usage_reason_time>>build_time>>storage_time>>supported_orientations_time;
+            f>>embed_engine_data_time>>publish_proj_data_time>>publish_physx_dll_time>>publish_steam_dll_time>>publish_open_vr_dll_time>>publish_data_as_pak_time>>android_expansion_time;
+            f>>icon_time>>notification_icon_time>>image_portrait_time>>image_landscape_time>>gui_skin_time;
+            if(f.ok())return true;
+         }break;
+
          case 18:
          {
             f>>dirs_windows>>dirs_nonwindows;
@@ -2914,11 +2945,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(headers_linux     .is())nodes.New().set("IncludeHeadersLinux"     , headers_linux);
       if(headers_android   .is())nodes.New().set("IncludeHeadersAndroid"   , headers_android);
       if(headers_ios       .is())nodes.New().set("IncludeHeadersiOS"       , headers_ios);
+      if(headers_nintendo  .is())nodes.New().set("IncludeHeadersNintendo"  , headers_nintendo);
       if(   libs_windows   .is())nodes.New().set("IncludeLibrariesWindows" ,    libs_windows);
       if(   libs_mac       .is())nodes.New().set("IncludeLibrariesMac"     ,    libs_mac);
       if(   libs_linux     .is())nodes.New().set("IncludeLibrariesLinux"   ,    libs_linux);
       if(   libs_android   .is())nodes.New().set("IncludeLibrariesAndroid" ,    libs_android);
       if(   libs_ios       .is())nodes.New().set("IncludeLibrariesiOS"     ,    libs_ios);
+      if(   libs_nintendo  .is())nodes.New().set("IncludeLibrariesNintendo",    libs_nintendo);
 
       REPA(StorageModes)if(storage==StorageModes[i].mode){nodes.New().set("Storage", StorageModes[i].name); break;}
                                     nodes.New().set("SupportedOrientations", supported_orientations);
@@ -2942,6 +2975,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
                              xbl.nodes.New().set("TitleIDTime"  , xbl_title_id_time.text());
          if(xbl_scid.valid())xbl.nodes.New().set("SCID"         , xbl_scid.asCanonical());
                              xbl.nodes.New().set("SCIDTime"     , xbl_scid_time.text());
+      }
+
+      {
+         TextNode &nintendo=nodes.New().setName("Nintendo");
+         if(nintendo_app_id             )nintendo.nodes.New().set("AppID"            , nintendo_app_id);
+                                         nintendo.nodes.New().set("AppIDTime"        , nintendo_app_id_time.text());
+         if(nintendo_publisher_name.is())nintendo.nodes.New().set("PublisherName"    , nintendo_publisher_name);
+                                         nintendo.nodes.New().set("PublisherNameTime", nintendo_publisher_name_time.text());
       }
 
       if(fb_app_id)nodes.New().set("FacebookAppID", fb_app_id);
@@ -2989,11 +3030,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       nodes.New().set("IncludeHeadersLinuxTime"     , headers_linux_time.text());
       nodes.New().set("IncludeHeadersAndroidTime"   , headers_android_time.text());
       nodes.New().set("IncludeHeadersiOSTime"       , headers_ios_time.text());
+      nodes.New().set("IncludeHeadersNintendoTime"  , headers_nintendo_time.text());
       nodes.New().set("IncludeLibrariesWindowsTime" , libs_windows_time.text());
       nodes.New().set("IncludeLibrariesMacTime"     , libs_mac_time.text());
       nodes.New().set("IncludeLibrariesLinuxTime"   , libs_linux_time.text());
       nodes.New().set("IncludeLibrariesAndroidTime" , libs_android_time.text());
       nodes.New().set("IncludeLibrariesiOSTime"     , libs_ios_time.text());
+      nodes.New().set("IncludeLibrariesNintendoTime", libs_nintendo_time.text());
 
       nodes.New().set("StorageTime"              , storage_time.text());
       nodes.New().set("SupportedOrientationsTime", supported_orientations_time.text());
@@ -3032,11 +3075,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="IncludeHeadersLinux"         )n.getValue(headers_linux     );else
          if(n.name=="IncludeHeadersAndroid"       )n.getValue(headers_android   );else
          if(n.name=="IncludeHeadersiOS"           )n.getValue(headers_ios       );else
+         if(n.name=="IncludeHeadersNintendo"      )n.getValue(headers_nintendo  );else
          if(n.name=="IncludeLibrariesWindows"     )n.getValue(   libs_windows   );else
          if(n.name=="IncludeLibrariesMac"         )n.getValue(   libs_mac       );else
          if(n.name=="IncludeLibrariesLinux"       )n.getValue(   libs_linux     );else
          if(n.name=="IncludeLibrariesAndroid"     )n.getValue(   libs_android   );else
          if(n.name=="IncludeLibrariesiOS"         )n.getValue(   libs_ios       );else
+         if(n.name=="IncludeLibrariesNintendo"    )n.getValue(   libs_nintendo  );else
 
          if(n.name=="Storage"                     ){REPA(StorageModes)if(n.value==StorageModes[i].name){storage=StorageModes[i].mode; break;}}else
          if(n.name=="SupportedOrientations"       )supported_orientations=n.asInt();else
@@ -3066,6 +3111,17 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
                if(xbl.name=="TitleIDTime")xbl_title_id_time     =xbl.asText() ;else
                if(xbl.name=="SCID"       )xbl_scid.fromCanonical(xbl.asText());else
                if(xbl.name=="SCIDTime"   )xbl_scid_time         =xbl.asText();
+            }
+         }else
+         if(n.name=="Nintendo")
+         {
+            REPA(n.nodes)
+            {
+             C TextNode &nintendo=n.nodes[i];
+               if(nintendo.name=="AppID"            )nintendo.getValue           (nintendo_app_id);else
+               if(nintendo.name=="AppIDTime"        )nintendo_app_id_time        =nintendo.asText();else
+               if(nintendo.name=="PublisherName"    )nintendo.getValue           (nintendo_publisher_name);else
+               if(nintendo.name=="PublisherNameTime")nintendo_publisher_name_time=nintendo.asText();
             }
          }else
          if(n.name=="FacebookAppID"               )n.getValue(fb_app_id);else
@@ -3118,11 +3174,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="IncludeHeadersLinuxTime"     )headers_linux_time=n.asText();else
          if(n.name=="IncludeHeadersAndroidTime"   )headers_android_time=n.asText();else
          if(n.name=="IncludeHeadersiOSTime"       )headers_ios_time=n.asText();else
+         if(n.name=="IncludeHeadersNintendoTime"  )headers_nintendo_time=n.asText();else
          if(n.name=="IncludeLibrariesWindowsTime" )libs_windows_time=n.asText();else
          if(n.name=="IncludeLibrariesMacTime"     )libs_mac_time=n.asText();else
          if(n.name=="IncludeLibrariesLinuxTime"   )libs_linux_time=n.asText();else
          if(n.name=="IncludeLibrariesAndroidTime" )libs_android_time=n.asText();else
          if(n.name=="IncludeLibrariesiOSTime"     )libs_ios_time=n.asText();else
+         if(n.name=="IncludeLibrariesNintendoTime")libs_nintendo_time=n.asText();else
 
          if(n.name=="StorageTime"              )storage_time=n.asText();else
          if(n.name=="SupportedOrientationsTime")supported_orientations_time=n.asText();else
@@ -3671,7 +3729,7 @@ ElmTextStyle::ElmTextStyle() : font_id(UIDZero) {}
 
 ElmPanelImage::ElmPanelImage() : compressed(false) {}
 
-ElmApp::ElmApp() : build(1), fb_app_id(0), xbl_title_id(0), storage(Edit::STORAGE_INTERNAL), xbl_program(Edit::XBOX_LIVE_CREATORS), supported_orientations(DIRF_X|DIRF_Y), flag(PUBLISH_PROJ_DATA|PUBLISH_PHYSX_DLL|PUBLISH_DATA_AS_PAK), icon(UIDZero), notification_icon(UIDZero), image_portrait(UIDZero), image_landscape(UIDZero), gui_skin(UIDZero), ms_publisher_id(UIDZero), xbl_scid(UIDZero) {}
+ElmApp::ElmApp() : build(1), fb_app_id(0), xbl_title_id(0), nintendo_app_id(0), storage(Edit::STORAGE_INTERNAL), xbl_program(Edit::XBOX_LIVE_CREATORS), supported_orientations(DIRF_X|DIRF_Y), flag(PUBLISH_PROJ_DATA|PUBLISH_PHYSX_DLL|PUBLISH_DATA_AS_PAK), icon(UIDZero), notification_icon(UIDZero), image_portrait(UIDZero), image_landscape(UIDZero), gui_skin(UIDZero), ms_publisher_id(UIDZero), xbl_scid(UIDZero) {}
 
 ElmMiniMap::ElmMiniMap() : areas_per_image(4), image_size(256), world_id(UIDZero), env_id(UIDZero) {}
 
