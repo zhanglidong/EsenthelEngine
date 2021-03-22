@@ -178,9 +178,13 @@ void WindowHide(Ptr hwnd)
 {
    ShowWindow((HWND)hwnd, SW_HIDE);
 }
-void WindowShow(Ptr hwnd)
+Bool WindowHidden(Ptr hwnd)
 {
-   ShowWindow((HWND)hwnd, SW_SHOWNA);
+   return !IsWindowVisible((HWND)hwnd);
+}
+void WindowShow(Bool activate, Ptr hwnd)
+{
+   ShowWindow((HWND)hwnd, activate ? SW_SHOW : SW_SHOWNA);
 }
 void WindowClose(Ptr hwnd)
 {
@@ -398,10 +402,14 @@ void WindowHide(Ptr hwnd)
    if(NSWindow *window=(NSWindow*)hwnd)
       if(window==App.hwnd())[NSApp hide:NSApp];
 }
-void WindowShow(Ptr hwnd)
+void WindowShow(Bool activate, Ptr hwnd)
 {
    if(NSWindow *window=(NSWindow*)hwnd)
-      if(window==App.hwnd())[NSApp unhideWithoutActivation];
+      if(window==App.hwnd())
+   {
+      if(activate)[NSApp unhide:NSApp];
+      else        [NSApp unhideWithoutActivation];
+   }
 }
 static VecI2 WindowSize(Bool client, NSWindow *window)
 {
@@ -719,9 +727,13 @@ void WindowHide(Ptr hwnd)
 {
    if(XDisplay && hwnd)XUnmapWindow(XDisplay, XWindow(hwnd));
 }
-void WindowShow(Ptr hwnd)
+void WindowShow(Bool activate, Ptr hwnd)
 {
-   if(XDisplay && hwnd)XMapWindow(XDisplay, XWindow(hwnd));
+   if(XDisplay && hwnd)
+   {
+      XMapWindow(XDisplay, XWindow(hwnd));
+      if(activate)WindowActivate(hwnd);
+   }
 }
 VecI2 WindowSize(Bool client, Ptr hwnd)
 {
@@ -928,7 +940,7 @@ void WindowHide(Ptr hwnd)
 {
    WindowMinimize(false, hwnd);
 }
-void WindowShow(Ptr hwnd)
+void WindowShow(Bool activate, Ptr hwnd)
 {
    WindowReset(false, hwnd);
 }
@@ -1917,34 +1929,54 @@ void Application::windowCreate()
       h=D.resH();
       Int W=w+(maximize ? _bound_maximized.w() : _bound.w()), // width  including border
           H=h+(maximize ? _bound_maximized.h() : _bound.h()); // height including border
-   #if WINDOWS
-      if(maximize) // on Windows when wanting to maximize, create the window initially smaller, so when we un-maximize (by clicking the maximize button) it will set this size, however to get maximized state at the start, after window is created, we will maximize it with 'WindowMaximize'
-      { // here we calculate the un-maximized size
-         W=_window_size.x+_bound.w(); // width  including border
-         H=_window_size.y+_bound.h(); // height including border
-      }
-      // Windows expects the size to include borders
+   #if WINDOWS // Windows expects the size to include borders
       w=W;
       h=H;
    #endif
       if(T.x<=-1)x=work.min.x+_bound.min.x+1;else if(!T.x)x=work.centerXI()-W/2;else x=work.max.x-W+_bound.max.x-1;
       if(T.y>= 1)y=work.min.y               ;else if(!T.y)y=work.centerYI()-H/2;else y=work.max.y-H+_bound.max.y-1;
-   #if !WINDOWS // on Windows set the position according to the smaller size (and not the code below), because it will get positioned in 'WindowMaximize'
       if(maximize) // when wanting to create a window maximized, force position to left top corner
       { // on Windows when window is maximized, client X is at 0, so the window position is moved to the left by border width, and we have to move up too
          x=work.min.x+_bound_maximized.min.x; // this sets client X at 0
          y=work.min.y-_bound_maximized.max.y; // move window up by border width (use bottom and not the top, because top includes title bar, it's bigger)
       }
-   #endif
      _window_pos.set(x, y);
    }
 #endif
 
 #if WINDOWS_OLD
-   UInt style=(D.full() ? _style_full : maximize ? _style_window_maximized : _style_window); if((flag&APP_HIDDEN) || maximize)FlagDisable(style, WS_VISIBLE); // if maximizing then create as hidden, so small sized window will not be displayed, it will be shown either way because below 'WindowMaximize' shows the window
-       _hwnd=(Ptr)CreateWindowEx(drop ? WS_EX_ACCEPTFILES : 0, (LPCWSTR)WindowClass, name(), style, x, y, w, h, null, null, _hinstance, null);
+   Bool hide=FlagTest(flag, APP_HIDDEN);
+   UInt ex_style=(drop ? WS_EX_ACCEPTFILES : 0);
+#if DX11
+   ex_style|=WS_EX_NOREDIRECTIONBITMAP; // fixes resizing artifacts on DXGI_SWAP_EFFECT_FLIP_* modes, this also prevents creating of some extra system window surface, which should slightly increase performance - https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/june/windows-with-c-high-performance-window-layering-using-the-windows-composition-engine
+   if(!D.full()) // no need to do this when creating full screen, in full screen it's better to don't hide, so we can already see the icon on the taskbar
+      hide=true; // because the contents will be invisible, then always hide initially, we will show it later
+#endif
+   UInt style=(D.full() ? _style_full : maximize ? _style_window_maximized : _style_window); if(hide)FlagDisable(style, WS_VISIBLE);
+
+       _hwnd=(Ptr)CreateWindowEx(ex_style, (LPCWSTR)WindowClass, name(), style, x, y, w, h, null, null, _hinstance, null);
    if(!_hwnd)Exit(MLTC(u"Can't create window", PL,u"Nie można utworzyć okienka"));
-   if(maximize)WindowMaximize(true);
+
+   if(maximize) // when creating window as maximized, then set restore rectangle
+   {
+      WINDOWPLACEMENT placement;
+      placement.length=SIZE(placement);
+      placement.flags=0;
+      placement.showCmd=(hide ? SW_HIDE : SW_SHOW);
+      placement.ptMinPosition.x=0;
+      placement.ptMinPosition.y=0;
+      placement.ptMaxPosition.x=0;
+      placement.ptMaxPosition.y=0;
+      // these are in work space coordinates and include borders
+      Int x, y, w=_window_size.x+_bound.w(), h=_window_size.y+_bound.h();
+      if(T.x<=-1)x=_bound.min.x+1;else if(!T.x)x=(work.w()-w)/2;else x=work.w()-w+_bound.max.x-1;
+      if(T.y>= 1)y=             0;else if(!T.y)y=(work.h()-h)/2;else y=work.h()-h+_bound.max.y-1;
+      placement.rcNormalPosition.left  =x;
+      placement.rcNormalPosition.top   =y;
+      placement.rcNormalPosition.right =x+w;
+      placement.rcNormalPosition.bottom=y+h;
+      SetWindowPlacement(Hwnd(), &placement);
+   }
 
    // IMM
    Kb._imc=ImmGetContext(Hwnd());

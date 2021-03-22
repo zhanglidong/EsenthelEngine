@@ -865,6 +865,9 @@ Bool Application::create1()
        InitSound   ();
    if(!InputDevices.create())Exit(MLTC(u"Can't create DirectInput", PL,u"Nie można utworzyć DirectInput"));
    if(!D           .create())return false;
+#if WINDOWS_OLD
+   if(!(flag&APP_HIDDEN) && WindowHidden())WindowShow(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
+#endif
 #if ANDROID
    if(_stay_awake){AWAKE_MODE temp=_stay_awake; _stay_awake=AWAKE_OFF; stayAwake(temp);} // on Android we need to apply this after window was created
 #endif

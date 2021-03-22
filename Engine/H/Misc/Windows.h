@@ -26,7 +26,8 @@ void  WindowReset      (Bool force=false,            Ptr hwnd=App.hwnd()); // re
 void  WindowToggle     (Bool force=false,            Ptr hwnd=App.hwnd()); // toggle   window between maximized          and normal state (maximized          <-> normal)
 void  WindowActivate   (                             Ptr hwnd=App.hwnd()); // activate window
 void  WindowHide       (                             Ptr hwnd=App.hwnd()); // hide     window
-void  WindowShow       (                             Ptr hwnd=App.hwnd()); // show     window
+Bool  WindowHidden     (                             Ptr hwnd=App.hwnd()); // if       window is hidden
+void  WindowShow       (Bool activate,               Ptr hwnd=App.hwnd()); // show     window, 'activate'=if also activate
 void  WindowClose      (                             Ptr hwnd=App.hwnd()); // close    window
 void  WindowFlash      (                             Ptr hwnd=App.hwnd()); // flash    window
 void  WindowSetNormal  (                             Ptr hwnd=App.hwnd()); // set      window taskbar to be displayed as normal                             (this will work only on Window 7 or newer)

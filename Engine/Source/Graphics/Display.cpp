@@ -1802,7 +1802,7 @@ Bool DisplayClass::findMode()
 
       SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
    #if !GDI_COMPATIBLE // flip modes are incompatible with GDI
-      {
+      { // using them requires WS_EX_NOREDIRECTIONBITMAP to fix resizing artifacts
          VecI4 ver=OSVerNumber();
          if(        ver.x>=10                 )SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_FLIP_DISCARD   ;else // DXGI_SWAP_EFFECT_FLIP_DISCARD    is available on Windows 10
          if(Compare(ver, VecI4(6, 2, 0, 0))>=0)SwapChainDesc.SwapEffect=DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;     // DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL is available on Windows 8 - https://msdn.microsoft.com/en-us/library/windows/desktop/bb173077(v=vs.85).aspx
