@@ -224,11 +224,11 @@ private:
 struct InputDevicesClass // Input Devices
 {
 #if WINDOWS_OLD
-   #if DIRECT_INPUT
-      IDirectInput8 *DI=null;
-   #else
-      Ptr            DI=null;
-   #endif
+#if DIRECT_INPUT
+   IDirectInput8 *DI=null;
+#else
+   Ptr            DI=null;
+#endif
 #endif
 
    void del    ();

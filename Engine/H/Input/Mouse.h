@@ -146,11 +146,11 @@ private:
    MouseCursor      _cursor_temp;
  C MouseCursor     *_cursor;
 #if WINDOWS_OLD
-   #if EE_PRIVATE && MS_DIRECT_INPUT
-      IDirectInputDevice8 *_device;
-   #else
-      Ptr                  _device;
-   #endif
+#if EE_PRIVATE && MS_DIRECT_INPUT
+   IDirectInputDevice8 *_device;
+#else
+   Ptr              _device;
+#endif
 #endif
 
    MouseClass();

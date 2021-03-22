@@ -121,11 +121,11 @@ private:
    Sensor _sensor_left, _sensor_right;
    Str    _name;
 #if WINDOWS_OLD
-   #if EE_PRIVATE && JP_DIRECT_INPUT
-      IDirectInputDevice8 *_device;
-   #else
-      Ptr _device;
-   #endif
+#if EE_PRIVATE && JP_DIRECT_INPUT
+   IDirectInputDevice8 *_device;
+#else
+   Ptr    _device;
+#endif
 #elif MAC
    Ptr    _device;
 #endif

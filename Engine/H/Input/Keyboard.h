@@ -152,16 +152,16 @@ private:
    Memc<Str>   _imm_candidate, _imm_candidate_temp;
    CChar8     *_key_name[256];
 #if WINDOWS_OLD
-   #if EE_PRIVATE && KB_DIRECT_INPUT
-      IDirectInputDevice8 *_device;
-   #else
-      Ptr      _device;
-   #endif
-   #if EE_PRIVATE
-      HIMC     _imc;
-   #else
-      Ptr      _imc;
-   #endif
+#if EE_PRIVATE && KB_DIRECT_INPUT
+   IDirectInputDevice8 *_device;
+#else
+   Ptr         _device;
+#endif
+#if EE_PRIVATE
+   HIMC        _imc;
+#else
+   Ptr         _imc;
+#endif
 #endif
 
 	KeyboardClass();
