@@ -2340,8 +2340,8 @@ void DisplayClass::adjustWindow(Bool set)
       Int w=resW()+App._bound.w(),
           h=resH()+App._bound.h();
 
-      if(App._window_pos.x==INT_MAX){if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w;}
-      if(App._window_pos.y==INT_MAX){if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h;}
+      if(App._window_pos.x==INT_MAX){if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w+App._bound.max.x-1;}
+      if(App._window_pos.y==INT_MAX){if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h+App._bound.max.y-1;}
 
       // make sure the window is not completely outside of working area
       const Int b=32; Int r=b;
