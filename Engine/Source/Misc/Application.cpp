@@ -53,7 +53,8 @@ Application::Application()
   _waiting=false;
 #endif
   _stay_awake=AWAKE_OFF;
- //_mem_leaks=0; don't set this as it could have been already modified
+  _lang=LANG_UNKNOWN;
+//_mem_leaks=0; don't set this as it could have been already modified
   _process_id=_parent_process_id=0;
   _hwnd=null;
   _window_pos=_window_size=_window_resized=_desktop_size.zero();
@@ -834,6 +835,7 @@ Bool Application::create0()
    T._desktop_size=D.screen();
    T._desktop_area=GetDesktopArea(); // !! call after getting '_desktop_size' !!
    T._exe         =GetAppPathName();
+   T._lang        =OSLanguage();
 
   Time.create(); // set first, to start measuring init time
    InitHash  ();

@@ -74,8 +74,8 @@ struct Application // Application Settings
    Application& name          (C Str &name    );                           // set application name
  C Str&         name          (               )C {return _name          ;} // get application name
  C Str&         exe           (               )C {return _exe           ;} // get executable path and name
-   Application& lang          (LANG_TYPE lang );                           // set application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=EN
-   LANG_TYPE    lang          (               )C {return _lang          ;} // get application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=EN
+   Application& lang          (LANG_TYPE lang );                           // set application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=OSLanguage()
+   LANG_TYPE    lang          (               )C {return _lang          ;} // get application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=OSLanguage()
    Bool         elevated      (               )C {return _elevated      ;} // get application        process elevation (true if has administrator rights)
    UInt   parentProcessID     (               )C;                          // get application parent process ID
    UInt         processID     (               )C {return _process_id    ;} // get application        process ID
@@ -161,7 +161,7 @@ private:
 #endif
    AWAKE_MODE          _stay_awake;
    DIR_ENUM            _orientation=DIR_UP;
-   LANG_TYPE           _lang=EN;
+   LANG_TYPE           _lang;
    Int                 _mem_leaks;
    mutable UInt        _parent_process_id;
    UInt                _process_id;
