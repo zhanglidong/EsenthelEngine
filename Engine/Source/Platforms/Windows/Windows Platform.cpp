@@ -163,6 +163,18 @@ ref struct FrameworkView sealed : IFrameworkView
 
       ApplicationView::GetForCurrentView()->SetPreferredMinSize(Size(Max(1, PixelsToDips(1)), Max(1, PixelsToDips(1)))); // using <1 means to use system default min size, so use Max 1 to always set a custom size
 
+      if(auto manager=Windows::UI::Text::Core::CoreTextServicesManager::GetForCurrentView())
+      {
+         TextEditContext=manager->CreateEditContext();
+         TextEditContext->InputPaneDisplayPolicy=Windows::UI::Text::Core::CoreTextInputPaneDisplayPolicy::Manual;
+         TextEditContext->InputScope=Windows::UI::Text::Core::CoreTextInputScope::Text;
+         TextEditContext->FocusRemoved       += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Platform::Object                                            ^>(this, &FrameworkView::OnInputFocusRemoved);
+         TextEditContext->TextRequested      += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Windows::UI::Text::Core::CoreTextTextRequestedEventArgs     ^>(this, &FrameworkView::OnInputTextRequested);
+         TextEditContext->SelectionRequested += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Windows::UI::Text::Core::CoreTextSelectionRequestedEventArgs^>(this, &FrameworkView::OnInputSelectionRequested);
+         TextEditContext->TextUpdating       += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Windows::UI::Text::Core::CoreTextTextUpdatingEventArgs      ^>(this, &FrameworkView::OnInputTextUpdating);
+         TextEditContext->SelectionUpdating  += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Windows::UI::Text::Core::CoreTextSelectionUpdatingEventArgs ^>(this, &FrameworkView::OnInputSelectionUpdating);
+       //TextEditContext->LayoutRequested    += ref new TypedEventHandler<Windows::UI::Text::Core::CoreTextEditContext^, Windows::UI::Text::Core::CoreTextLayoutRequestedEventArgs   ^>(this, &FrameworkView::OnInputLayoutRequested);
+      }
       if(auto input_pane=InputPane::GetForCurrentView())
       {
          input_pane->Showing += ref new TypedEventHandler<InputPane^, InputPaneVisibilityEventArgs^>(this, &FrameworkView::OnInputPaneShowing);
@@ -561,8 +573,74 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       MagnetometerValue.set(args->Reading->MagneticFieldX, args->Reading->MagneticFieldY, -args->Reading->MagneticFieldZ);
    }
+
+   // Input
    void OnInputPaneHiding (InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=false;}
    void OnInputPaneShowing(InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=true ; Kb._recti.setLD(DipsToPixels(sender->OccludedRect.X), DipsToPixels(sender->OccludedRect.Y), DipsToPixels(sender->OccludedRect.Width), DipsToPixels(sender->OccludedRect.Height));}
+
+   void OnInputFocusRemoved(Windows::UI::Text::Core::CoreTextEditContext ^sender, Platform::Object ^args)
+   {
+      if(auto input_pane=Windows::UI::ViewManagement::InputPane::GetForCurrentView())input_pane->TryHide();
+   }
+   void OnInputTextRequested(Windows::UI::Text::Core::CoreTextEditContext ^sender, Windows::UI::Text::Core::CoreTextTextRequestedEventArgs ^args)
+   {
+      ScreenKeyboard sk; sk.set();
+      if(sk.text)if(auto request=args->Request)request->Text=ref new Platform::String(Trim(*sk.text, request->Range.StartCaretPosition, request->Range.EndCaretPosition-request->Range.StartCaretPosition));
+   }
+   void OnInputSelectionRequested(Windows::UI::Text::Core::CoreTextEditContext ^sender, Windows::UI::Text::Core::CoreTextSelectionRequestedEventArgs ^args)
+   {
+      ScreenKeyboard sk; sk.set();
+      Windows::UI::Text::Core::CoreTextRange selection;
+      MinMax(sk.start, sk.end, selection.StartCaretPosition, selection.EndCaretPosition);
+      args->Request->Selection=selection;
+   }
+   void OnInputTextUpdating(Windows::UI::Text::Core::CoreTextEditContext ^sender, Windows::UI::Text::Core::CoreTextTextUpdatingEventArgs ^args)
+   {
+      /* already handled by 'OnAcceleratorKeyActivated/OnCharacterReceived'
+      ScreenKeyboard sk; sk.set();
+      Str text;
+      if(sk.text)text=Trim(*sk.text, 0, args->Range.StartCaretPosition)+args->Text->Data()+Trim(*sk.text, args->Range.EndCaretPosition, INT_MAX);
+      else       text=                                                  args->Text->Data();
+      ScreenKeyboard::Set(text);
+      ScreenKeyboard::Set(args->NewSelection.EndCaretPosition, args->NewSelection.StartCaretPosition);*/
+   }
+   void OnInputSelectionUpdating(Windows::UI::Text::Core::CoreTextEditContext ^sender, Windows::UI::Text::Core::CoreTextSelectionUpdatingEventArgs ^args)
+   {
+      /* already handled by 'OnAcceleratorKeyActivated/OnCharacterReceived'
+      ScreenKeyboard::Set(args->Selection.EndCaretPosition, args->Selection.StartCaretPosition);*/
+   }
+   /*void OnInputLayoutRequested(Windows::UI::Text::Core::CoreTextEditContext ^sender, Windows::UI::Text::Core::CoreTextLayoutRequestedEventArgs ^args)
+   {
+      CoreTextLayoutRequest request = args.Request;
+
+      // Get the screen coordinates of the entire control and the selected text.
+      // This information is used to position the IME candidate window.
+
+      // First, get the coordinates of the edit control and the selection
+      // relative to the Window.
+      Rect contentRect = GetElementRect(ContentPanel);
+      Rect selectionRect = GetElementRect(SelectionText);
+
+      // Next, convert to screen coordinates in view pixels.
+      Rect windowBounds = Window.Current.CoreWindow.Bounds;
+      contentRect.X += windowBounds.X;
+      contentRect.Y += windowBounds.Y;
+      selectionRect.X += windowBounds.X;
+      selectionRect.Y += windowBounds.Y;
+
+      // Finally, scale up to raw pixels.
+      double scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
+
+      contentRect = ScaleRect(contentRect, scaleFactor);
+      selectionRect = ScaleRect(selectionRect, scaleFactor);
+
+      // This is the bounds of the selection.
+      // Note: If you return bounds with 0 width and 0 height, candidates will not appear while typing.
+      request.LayoutBounds.TextBounds = selectionRect;
+
+      //This is the bounds of the whole control
+      request.LayoutBounds.ControlBounds = contentRect;
+   }*/
 
    // custom methods
    void setOrientation(DisplayOrientations orientation, DisplayOrientations native_orientation)

@@ -47,6 +47,8 @@ namespace EE{
       {KB_PRINT , DIK_SYSRQ   }, // VK_PRINT is not processed because it's assigned as Screen Capture
    };
 #endif
+#elif WINDOWS_NEW
+Windows::UI::Text::Core::CoreTextEditContext ^TextEditContext;
 #elif ANDROID
 /*
 Key characters come from:
@@ -1474,8 +1476,19 @@ void KeyboardClass::setVisible()
 #if WINDOWS_NEW
    if(auto input_pane=Windows::UI::ViewManagement::InputPane::GetForCurrentView())
    {
-      if(visible)input_pane->TryShow();
-      else       input_pane->TryHide();
+      if(visible)
+      {
+         if(TextEditContext)
+         {
+            TextEditContext->InputScope=(sk.pass ? Windows::UI::Text::Core::CoreTextInputScope::Password : Windows::UI::Text::Core::CoreTextInputScope::Text);
+            TextEditContext->NotifyFocusEnter();
+         }
+         input_pane->TryShow();
+      }else
+      {
+         if(TextEditContext)TextEditContext->NotifyFocusLeave();
+         input_pane->TryHide();
+      }
    }
 #elif ANDROID
    if(Jni && ActivityClass && Activity)
@@ -1500,11 +1513,21 @@ void KeyboardClass::setVisible()
 }
 void KeyboardClass::resetTextInput()
 {
-#if ANDROID || SWITCH
+#if WINDOWS_NEW || ANDROID || SWITCH
    if(_visible)
    {
       ScreenKeyboard sk; sk.set();
-   #if ANDROID
+   #if WINDOWS_NEW
+      if(TextEditContext)
+      {
+         TextEditContext->InputScope=(sk.pass ? Windows::UI::Text::Core::CoreTextInputScope::Password : Windows::UI::Text::Core::CoreTextInputScope::Text);
+         Windows::UI::Text::Core::CoreTextRange modify_range, selection;
+         modify_range.StartCaretPosition=0;
+         modify_range.  EndCaretPosition=INT_MAX;
+         MinMax(sk.start, sk.end, selection.StartCaretPosition, selection.EndCaretPosition);
+         TextEditContext->NotifyTextChanged(modify_range, sk.text ? sk.text->length() : 0, selection);
+      }
+   #elif ANDROID
       if(Jni && ActivityClass && Activity)
       if(JMethodID editTextSet=Jni.func(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
       if(JString t=JString(Jni, sk.text ? *sk.text : S))

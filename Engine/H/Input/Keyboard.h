@@ -227,7 +227,9 @@ struct ScreenKeyboard
 #endif
 /******************************************************************************/
 #if EE_PRIVATE
-#if MAC
+#if WINDOWS_NEW
+extern Windows::UI::Text::Core::CoreTextEditContext ^TextEditContext;
+#elif MAC
 extern const KB_KEY ScanCodeToQwertyKey[0x80]; extern KB_KEY ScanCodeToKey[Elms(ScanCodeToQwertyKey)];
 #elif LINUX
 extern const KB_KEY ScanCodeToQwertyKey[0x90]; extern KB_KEY ScanCodeToKey[Elms(ScanCodeToQwertyKey)];
