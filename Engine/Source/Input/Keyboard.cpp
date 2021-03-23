@@ -1179,14 +1179,11 @@ void KeyboardClass::update()
          SyncLocker locker(InputTextLock);
          if(Gui.kb())switch(Gui.kb()->type())
          {
-            case GO_TEXTBOX:
+            default:
             {
                // no need to apply Enter fix for 'TextBox', because we allow enters there as characters
-               TextBox &tb=Gui.kb()->asTextBox();
-               tb.   setChanged(InputTextData.text);
-               tb.cursorChanged(InputTextData.cur.y);
-               tb._edit.sel  =((InputTextData.cur.x==InputTextData.cur.y) ? -1 : InputTextData.cur.x);
-              _key_buffer_len=0; // this is a workaround for a bug in Google/Samsung Keyboard (but not SwiftKey) when Backspace key is triggered even though it shouldn't, when tapping Back key on the soft keyboard (when last character is space, or sometimes when just typed something), in that case 2 Back's are processed (one from EditText Java_com_esenthel_Native_text and one AINPUT_EVENT_TYPE_KEY), this code removes all queued keys to remove KB_BACK
+               ScreenKeyboard::Set(InputTextData.text);
+               ScreenKeyboard::Set(InputTextData.cur.y, InputTextData.cur.x);
             }break;
 
             case GO_TEXTLINE:
@@ -1201,15 +1198,11 @@ void KeyboardClass::update()
                      if(InputTextData.cur.y>i)InputTextData.cur.y--; // adjust cursor
                   }
                }
-               TextLine &tl=Gui.kb()->asTextLine();
-               if(tl.setChanged(InputTextData.text) || !enters) // adjust cursor only if we've changed some text or didn't process the enter workaround (this is to avoid when pressing just enter key, changes the cursor position on GBoard)
-               {
-                  tl.cursorChanged(InputTextData.cur.y);
-                  tl._edit.sel  =((InputTextData.cur.x==InputTextData.cur.y) ? -1 : InputTextData.cur.x);
-               }
-              _key_buffer_len=0; // this is a workaround for a bug in Google/Samsung Keyboard (but not SwiftKey) when Backspace key is triggered even though it shouldn't, when tapping Back key on the soft keyboard (when last character is space, or sometimes when just typed something), in that case 2 Back's are processed (one from EditText Java_com_esenthel_Native_text and one AINPUT_EVENT_TYPE_KEY), this code removes all queued keys to remove KB_BACK
+               if(ScreenKeyboard::Set(InputTextData.text) || !enters) // adjust cursor only if we've changed some text or didn't process the enter workaround (this is to avoid when pressing just enter key, changes the cursor position on GBoard)
+                  ScreenKeyboard::Set(InputTextData.cur.y, InputTextData.cur.x);
             }break;
          }
+        _key_buffer_len=0; // this is a workaround for a bug in Google/Samsung Keyboard (but not SwiftKey) when Backspace key is triggered even though it shouldn't, when tapping Back key on the soft keyboard (when last character is space, or sometimes when just typed something), in that case 2 Back's are processed (one from EditText Java_com_esenthel_Native_text and one AINPUT_EVENT_TYPE_KEY), this code removes all queued keys to remove KB_BACK
          InputTextIs=false;
       }
       if(enters) // call after we got out of sync lock in case this method would trigger 'Java_com_esenthel_Native_text' and introduce some sort of deadlock
