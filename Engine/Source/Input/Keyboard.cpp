@@ -1438,9 +1438,15 @@ void KeyboardClass::setVisible()
 #endif
    visible&=!hwAvailable(); // show only if hardware unavailable
 
-#if ANDROID || IOS || SWITCH
+#if WINDOWS_NEW || ANDROID || IOS || SWITCH
    ScreenKeyboard sk; if(visible)sk.set();
-#if ANDROID
+#if WINDOWS_NEW
+   if(auto input_pane=Windows::UI::ViewManagement::InputPane::GetForCurrentView())
+   {
+      if(visible)input_pane->TryShow();
+      else       input_pane->TryHide();
+   }
+#elif ANDROID
    if(Jni && ActivityClass && Activity)
    {
       if(_visible=visible) // TODO: Warning: Android API doesn't have a notification when keyboard is visible, so always force what we want, but _visible might remain true even when keyboard got closed

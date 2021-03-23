@@ -163,6 +163,12 @@ ref struct FrameworkView sealed : IFrameworkView
 
       ApplicationView::GetForCurrentView()->SetPreferredMinSize(Size(Max(1, PixelsToDips(1)), Max(1, PixelsToDips(1)))); // using <1 means to use system default min size, so use Max 1 to always set a custom size
 
+      if(auto input_pane=InputPane::GetForCurrentView())
+      {
+         input_pane->Showing += ref new TypedEventHandler<InputPane^, InputPaneVisibilityEventArgs^>(this, &FrameworkView::OnInputPaneShowing);
+         input_pane-> Hiding += ref new TypedEventHandler<InputPane^, InputPaneVisibilityEventArgs^>(this, &FrameworkView::OnInputPaneHiding );
+      }
+
       setOrientation(display_info->CurrentOrientation, display_info->NativeOrientation); // !! call this before 'setMode' !!
       setMode();
    }
@@ -555,6 +561,9 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       MagnetometerValue.set(args->Reading->MagneticFieldX, args->Reading->MagneticFieldY, -args->Reading->MagneticFieldZ);
    }
+   void OnInputPaneHiding (InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=false;}
+   void OnInputPaneShowing(InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=true ; Kb._recti.setLD(DipsToPixels(sender->OccludedRect.X), DipsToPixels(sender->OccludedRect.Y), DipsToPixels(sender->OccludedRect.Width), DipsToPixels(sender->OccludedRect.Height));}
+
    // custom methods
    void setOrientation(DisplayOrientations orientation, DisplayOrientations native_orientation)
    {
