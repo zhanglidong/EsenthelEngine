@@ -84,9 +84,7 @@ C Str& TextLine::displayText()C {return password() ? Gui.passTemp(_text.length()
 /******************************************************************************/
 void TextLine::setTextInput()C
 {
-#if ANDROID || SWITCH
    if(Gui.kb()==this)Kb.resetTextInput();
-#endif
 }
 /******************************************************************************/
 Bool      TextLine::password(       )C {return             _edit.password   ;                           }

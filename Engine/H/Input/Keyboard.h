@@ -220,6 +220,9 @@ struct ScreenKeyboard
    Bool pass, multi_line;
 
    void set();
+
+   static Bool Set(CChar *text);
+   static Bool Set(Int cur, Int sel);
 };
 #endif
 /******************************************************************************/

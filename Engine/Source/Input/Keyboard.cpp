@@ -1430,6 +1430,44 @@ void ScreenKeyboard::set()
       }break;
    }
 }
+Bool ScreenKeyboard::Set(CChar *text)
+{
+   if(Gui.kb())switch(Gui.kb()->type())
+   {
+      case GO_TEXTBOX:
+      {
+         TextBox &tb=Gui.kb()->asTextBox();
+         return tb.setChanged(text);
+      }break;
+
+      case GO_TEXTLINE:
+      {
+         TextLine &tl=Gui.kb()->asTextLine();
+         return tl.setChanged(text);
+      }break;
+   }
+   return false;
+}
+Bool ScreenKeyboard::Set(Int cur, Int sel)
+{
+   if(Gui.kb())switch(Gui.kb()->type())
+   {
+      case GO_TEXTBOX:
+      {
+         TextBox &tb=Gui.kb()->asTextBox();
+         tb._edit.sel=((sel==cur) ? -1 : sel);
+         return tb.cursorChanged(cur);
+      }break;
+
+      case GO_TEXTLINE:
+      {
+         TextLine &tl=Gui.kb()->asTextLine();
+         tl._edit.sel=((sel==cur) ? -1 : sel);
+         return tl.cursorChanged(cur);
+      }break;
+   }
+   return false;
+}
 void KeyboardClass::setVisible()
 {
    Bool visible=(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX));
