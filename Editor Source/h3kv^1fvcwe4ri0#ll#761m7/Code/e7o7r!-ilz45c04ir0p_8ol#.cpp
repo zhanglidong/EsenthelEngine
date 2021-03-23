@@ -33,8 +33,8 @@ class SoundEditor : PropWin
    static ImportAs Import_as[]=
    {
       {"Original", SOUND_NONE, -1},
-      {"Vorbis, auto BitRate", SOUND_SND_VORBIS, 0},
       {"Opus, auto BitRate", SOUND_SND_OPUS, 0},
+      {"Vorbis, auto BitRate", SOUND_SND_VORBIS, 0},
       {"Uncompressed", SOUND_WAV, -1},
       {null, SOUND_NONE, 0},
     //{"Original, 32 Kbps relative BitRate", SOUND_NONE, 32}, Vorbis and Opus disabled
@@ -45,15 +45,6 @@ class SoundEditor : PropWin
       {"Original, 112 Kbps relative BitRate", SOUND_NONE, 112},
       {"Original, 128 Kbps relative BitRate", SOUND_NONE, 128},
       {null, SOUND_NONE, 0},
-      {"Vorbis, original BitRate", SOUND_SND_VORBIS, -1},
-    //{"Vorbis, 32 Kbps relative BitRate", SOUND_SND_VORBIS, 32}, // only aoTuV
-      {"Vorbis, 48 Kbps relative BitRate", SOUND_SND_VORBIS, 48},
-      {"Vorbis, 64 Kbps relative BitRate", SOUND_SND_VORBIS, 64},
-      {"Vorbis, 80 Kbps relative BitRate", SOUND_SND_VORBIS, 80},
-      {"Vorbis, 96 Kbps relative BitRate", SOUND_SND_VORBIS, 96},
-      {"Vorbis, 112 Kbps relative BitRate", SOUND_SND_VORBIS, 112},
-      {"Vorbis, 128 Kbps relative BitRate", SOUND_SND_VORBIS, 128},
-      {null, SOUND_NONE, 0},
       {"Opus, original BitRate", SOUND_SND_OPUS, -1},
     //{"Opus, 32 Kbps relative BitRate", SOUND_SND_OPUS, 32}, very bad quality
       {"Opus, 48 Kbps relative BitRate", SOUND_SND_OPUS, 48},
@@ -62,6 +53,15 @@ class SoundEditor : PropWin
       {"Opus, 96 Kbps relative BitRate", SOUND_SND_OPUS, 96},
       {"Opus, 112 Kbps relative BitRate", SOUND_SND_OPUS, 112},
       {"Opus, 128 Kbps relative BitRate", SOUND_SND_OPUS, 128},
+      {null, SOUND_NONE, 0},
+      {"Vorbis, original BitRate", SOUND_SND_VORBIS, -1},
+    //{"Vorbis, 32 Kbps relative BitRate", SOUND_SND_VORBIS, 32}, // only aoTuV
+      {"Vorbis, 48 Kbps relative BitRate", SOUND_SND_VORBIS, 48},
+      {"Vorbis, 64 Kbps relative BitRate", SOUND_SND_VORBIS, 64},
+      {"Vorbis, 80 Kbps relative BitRate", SOUND_SND_VORBIS, 80},
+      {"Vorbis, 96 Kbps relative BitRate", SOUND_SND_VORBIS, 96},
+      {"Vorbis, 112 Kbps relative BitRate", SOUND_SND_VORBIS, 112},
+      {"Vorbis, 128 Kbps relative BitRate", SOUND_SND_VORBIS, 128},
    };
    static int ImportAsElms=Elms(Import_as);
 
