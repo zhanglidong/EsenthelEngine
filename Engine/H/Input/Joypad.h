@@ -60,8 +60,8 @@ struct Joypad // Joypad Input
    };
 
    Vec2 dir       , //        direction
-        dir_a  [2]; // analog direction
-   Flt  trigger[2]; // trigger
+        dir_a  [2]; // analog direction, [0]=left, [1]=right
+   Flt  trigger[2]; // trigger         , [0]=left, [1]=right
 
    Bool b (Int x)C {return InRange(x, _button) ? ButtonOn(_button[x]) : false;} // if button 'x' is on
    Bool bp(Int x)C {return InRange(x, _button) ? ButtonPd(_button[x]) : false;} // if button 'x' pushed   in this frame
@@ -71,8 +71,8 @@ struct Joypad // Joypad Input
    Bool supportsVibrations()C; // if supports vibrations
    Bool supportsSensors   ()C; // if supports sensors, available only if 'JoypadSensors' was enabled
 
-   UInt         id(     )C {return _id  ;} // get unique id of this joypad
- C Str&       name(     )C {return _name;} // get joypad name
+   UInt         id(     )C {return _id  ;} // get unique ID of this Joypad
+ C Str&       name(     )C {return _name;} // get Joypad name
    Str  buttonName(Int x)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
 
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
@@ -139,10 +139,10 @@ private:
 };
 extern MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
-void JoypadSensors(Bool calculate); // if want joypad sensors to be calculated (accelerometer, gyroscope, orientation)
-Bool JoypadSensors();               // if want joypad sensors to be calculated (accelerometer, gyroscope, orientation)
+void JoypadSensors(Bool calculate); // if want Joypad sensors to be calculated (accelerometer, gyroscope, orientation)
+Bool JoypadSensors();               // if want Joypad sensors to be calculated (accelerometer, gyroscope, orientation)
 
-Joypad* FindJoypad(UInt id); // find joypad in 'Joypads' container according to its 'id', null on fail
+Joypad* FindJoypad(UInt id); // find Joypad in 'Joypads' container according to its 'id', null on fail
 #if EE_PRIVATE
 Joypad& GetJoypad(UInt id, Bool &added);
 

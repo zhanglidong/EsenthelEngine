@@ -524,7 +524,8 @@ void ListJoypads()
 #if WINDOWS
    REPAO(Joypads)._connected=false; // assume that all are disconnected
 
-   FREP(4) // XInput supports only 4 controllers (process in order)
+   ASSERT(XUSER_MAX_COUNT==4);
+   FREP  (XUSER_MAX_COUNT) // XInput supports only 4 controllers (process in order)
    {
       XINPUT_STATE state; if(XInputGetState(i, &state)==ERROR_SUCCESS) // if returned valid input
       {
