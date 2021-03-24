@@ -13,6 +13,7 @@ const_mem_addr struct Slider : GuiObj // Gui Slider !! must be stored in constan
    // get / set
    Flt      operator()(                                    )C {return _value;} // get value (0..1)
    Slider & set       (Flt value, SET_MODE mode=SET_DEFAULT);                  // set value (0..1)
+   Bool     vertical  (                                    )C {return _vertical;} // if slider is vertical, false=horizontal
    GuiSkin* getSkin   (                                    )C {return skin ? skin() : Gui.skin();} // get actual skin
 
             Slider& func(void (*func)(Ptr   user), Ptr   user=null, Bool immediate=true);                                                       // set function called when value has changed, with 'user' as its parameter

@@ -555,6 +555,7 @@ void MouseClass::clear()
    if(DelayPush){DelayPush=false; push(0);}
 }
 /******************************************************************************/
+void MouseClass::push(Byte b) {push(b, DoubleClickTime);}
 void MouseClass::push(Byte b, Flt double_click_time)
 {
    if(InRange(b, _button) && !(_button[b]&BS_ON))
@@ -566,14 +567,14 @@ void MouseClass::push(Byte b, Flt double_click_time)
       {
          InputCombo.add(InputButton(INPUT_MOUSE, b));
         _button[b]|=BS_PUSHED|BS_ON;
-        _detected  =true;
          if(_cur==b && _first && Time.appTime()<=_start_time+double_click_time+Time.ad())
          {
            _button[b]|=BS_DOUBLE;
            _first=false;
          }else
          {
-           _first=true;
+           _first   =true;
+           _detected=true;
          }
         _cur       =b;
         _start_pos =pos();
