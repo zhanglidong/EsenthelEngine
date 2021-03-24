@@ -146,22 +146,13 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
 /******************************************************************************/
 Joypad::~Joypad()
 {
-#if WINDOWS_OLD && JP_DIRECT_INPUT
+#if JP_DIRECT_INPUT
    if(_device){_device->Unacquire(); _device->Release(); _device=null;}
 #endif
 }
 Joypad::Joypad()
 {
-#if WINDOWS
-  _xinput=0xFF;
-#endif
-
-#if WINDOWS_OLD
-  _offset_x=_offset_y=0;
-#endif
-
-  _connected=false;
-  _id=0;
+   ASSERT(ELMS(_last_t)==ELMS(_button));
 
 #if SWITCH
    Zero(_vibration_handle); Zero(_sensor_handle);
@@ -169,10 +160,6 @@ Joypad::Joypad()
 
   _color_left .zero();
   _color_right.zero();
-
-#if WINDOWS_OLD || MAC
-  _device=null;
-#endif
 
    zero();
 }
@@ -185,12 +172,15 @@ Str Joypad::buttonName(Int x)C
 Bool Joypad::supportsVibrations()C
 {
 #if WINDOWS
+#if JP_X_INPUT
    return _xinput!=0xFF;
+#elif JP_GAMEPAD_INPUT
+   return _vibrations;
+#endif
 #elif SWITCH
    return _vibration_handle[0];// || _vibration_handle[1]; check only first because second will be available only if first is
-#else
-   return false;
 #endif
+   return false;
 }
 Bool Joypad::supportsSensors()C
 {
@@ -206,6 +196,7 @@ Int Joypad::index()C {return Joypads.index(this);}
 Joypad& Joypad::vibration(C Vec2 &vibration)
 {
 #if WINDOWS
+#if JP_X_INPUT
    if(_xinput!=0xFF)
    {
       XINPUT_VIBRATION xvibration;
@@ -213,6 +204,15 @@ Joypad& Joypad::vibration(C Vec2 &vibration)
       xvibration.wRightMotorSpeed=RoundU(Sat(vibration.y)*0xFFFF);
       XInputSetState(_xinput, &xvibration);
    }
+#elif JP_GAMEPAD_INPUT
+   if(_gamepad)
+   {
+      Windows::Gaming::Input::GamepadVibration v;
+      v. LeftMotor=vibration.x;
+      v.RightMotor=vibration.y;
+     _gamepad->Vibration=v;
+   }
+#endif
 #endif
    return T;
 }
@@ -242,9 +242,13 @@ void Joypad::update(C Byte *on, Int elms)
    MIN(elms, Elms(_button));
    REP(elms){Byte o=on[i]; if((o!=0)!=ButtonOn(_button[i])){if(o)push(i);else release(i);}}
 }
+#if WINDOWS_NEW
+static inline Bool FlagTest(Windows::Gaming::Input::GamepadButtons flags, Windows::Gaming::Input::GamepadButtons f) {return (flags&f)!=Windows::Gaming::Input::GamepadButtons::None;}
+#endif
 void Joypad::update()
 {
 #if WINDOWS
+#if JP_X_INPUT
    if(_xinput!=0xFF)
    {
       XINPUT_STATE state; if(XInputGetState(_xinput, &state)==ERROR_SUCCESS)
@@ -263,7 +267,7 @@ void Joypad::update()
          button[JB_RTHUMB]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_RIGHT_THUMB      );
          button[JB_BACK  ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_BACK             );
          button[JB_START ]=FlagTest(state.Gamepad.wButtons     , XINPUT_GAMEPAD_START            );
-         ASSERT(ELMS(button)<ELMS(T._button));
+         ASSERT(ELMS(button)<=ELMS(T._button));
          update(button, Elms(button));
 
          // digital pad
@@ -278,14 +282,56 @@ void Joypad::update()
          dir_a[1].y=state.Gamepad.sThumbRY/32768.0f;
 
          // triggers
-         trigger[0]=state.Gamepad.bLeftTrigger /255.0f;
+         trigger[0]=state.Gamepad. bLeftTrigger/255.0f;
          trigger[1]=state.Gamepad.bRightTrigger/255.0f;
 
          return;
       }
    }
-#if WINDOWS_OLD && JP_DIRECT_INPUT
-   else
+#elif JP_GAMEPAD_INPUT
+   if(_gamepad)
+   {
+      auto state=_gamepad->GetCurrentReading();
+
+      // buttons
+      Byte button[JB_UWP_NUM];
+      button[JB_A      ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::A);
+      button[JB_B      ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::B);
+      button[JB_X      ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::X);
+      button[JB_Y      ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Y);
+      button[JB_L1     ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons:: LeftShoulder);
+      button[JB_R1     ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::RightShoulder);
+      button[JB_L2     ]=        (state. LeftTrigger>=30.0/255); // matches XINPUT_GAMEPAD_TRIGGER_THRESHOLD
+      button[JB_R2     ]=        (state.RightTrigger>=30.0/255); // matches XINPUT_GAMEPAD_TRIGGER_THRESHOLD
+      button[JB_LTHUMB ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons:: LeftThumbstick);
+      button[JB_RTHUMB ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::RightThumbstick);
+      button[JB_BACK   ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::View);
+      button[JB_START  ]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Menu);
+      button[JB_PADDLE1]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Paddle1);
+      button[JB_PADDLE2]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Paddle2);
+      button[JB_PADDLE3]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Paddle3);
+      button[JB_PADDLE4]=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::Paddle4);
+      ASSERT(ELMS(button)<=ELMS(T._button));
+      update(button, Elms(button));
+
+      // digital pad
+      dir.x=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadRight)-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadLeft);
+      dir.y=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadUp   )-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadDown);
+      Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
+
+      // analog pad
+      dir_a[0].set(state. LeftThumbstickX, state. LeftThumbstickY);
+      dir_a[1].set(state.RightThumbstickX, state.RightThumbstickY);
+
+      // triggers
+      trigger[0]=state. LeftTrigger;
+      trigger[1]=state.RightTrigger;
+
+      return;
+   }
+#endif
+#if JP_DIRECT_INPUT
+   if(_device)
    {
       DIJOYSTATE state; if(OK(_device->Poll()) && OK(_device->GetDeviceState(SIZE(state), &state)))
       {
@@ -364,7 +410,7 @@ void Joypad::release(Byte b)
 /******************************************************************************/
 void Joypad::acquire(Bool on)
 {
-#if WINDOWS_OLD && JP_DIRECT_INPUT
+#if JP_DIRECT_INPUT
    if(_device){if(on)_device->Acquire();else _device->Unacquire();}
 #endif
    if(!on)zero();
@@ -396,7 +442,15 @@ Joypad& GetJoypad(UInt id, Bool &added)
    Joypad *joypad=FindJoypad(id); if(!joypad){added=true; joypad=&Joypads.New(); joypad->_id=id;} joypad->_connected=true;
    return *joypad;
 }
-#if WINDOWS_OLD && JP_DIRECT_INPUT
+UInt NewJoypadID(UInt id)
+{
+   for(;;)
+   {
+      if(!FindJoypad(id))return id; // if no joypad uses this ID, then we can use it
+      id++; // increase
+   }
+}
+#if JP_DIRECT_INPUT
 static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: this might trigger calling 'WindowMsg' !!
 {
    Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
@@ -488,7 +542,8 @@ static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)
 }
 static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
 {
-   if(!IsXInputDevice(DIDevInst->guidProduct)) // X controllers are listed elsewhere
+   if(!JP_X_INPUT // if not using XInput API then we can always list this device
+   || !IsXInputDevice(DIDevInst->guidProduct)) // XInput gamepads are listed elsewhere
    {
       UInt id=0; ASSERT(SIZE(DIDevInst->guidInstance)==SIZE(UID)); C UID &uid=(UID&)DIDevInst->guidInstance; REPA(uid.i)id^=uid.i[i];
       Bool added; Joypad &joypad=GetJoypad(id, added);
@@ -521,30 +576,26 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
 /******************************************************************************/
 void ListJoypads()
 {
-#if WINDOWS
+#if WINDOWS && !JP_GAMEPAD_INPUT
    REPAO(Joypads)._connected=false; // assume that all are disconnected
 
-   ASSERT(XUSER_MAX_COUNT==4);
-   FREP  (XUSER_MAX_COUNT) // XInput supports only 4 controllers (process in order)
-   {
-      XINPUT_STATE state; if(XInputGetState(i, &state)==ERROR_SUCCESS) // if returned valid input
+   #if JP_X_INPUT
+      ASSERT(XUSER_MAX_COUNT==4);
+      FREP  (XUSER_MAX_COUNT) // XInput supports only 4 gamepads (process in order)
       {
-         Bool added; Joypad &joypad=GetJoypad(i, added); // index is used for the ID for XInput controllers
-         if(  added)
+         XINPUT_STATE state; if(XInputGetState(i, &state)==ERROR_SUCCESS) // if returned valid input
          {
-            joypad._xinput=i;
-            joypad._name  ="X Controller";
+            Bool added; Joypad &joypad=GetJoypad(i, added); // index is used for the ID for XInput gamepads
+            if(  added)
+            {
+               joypad._xinput=i;
+               joypad._name  =S+"X Gamepad #"+(i+1);
+            }
          }
       }
-   }
-   #if WINDOWS_OLD && JP_DIRECT_INPUT
-      if(InputDevices.DI)InputDevices.DI->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumJoypads, null, DIEDFL_ATTACHEDONLY/*|DIEDFL_FORCEFEEDBACK*/); // this would enumerate only devices with ForceFeedback
    #endif
-
-   #if WINDOWS_NEW
-      //Windows::Gaming::Input::Gamepad::Gamepads;
-      //Windows::Gaming::Input::Gamepad::GetCurrentReading;
-      //Windows::Gaming::Input::Gamepad::Vibration;
+   #if JP_DIRECT_INPUT
+      if(InputDevices.DI)InputDevices.DI->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumJoypads, null, DIEDFL_ATTACHEDONLY/*|DIEDFL_FORCEFEEDBACK*/); // this would enumerate only devices with ForceFeedback
    #endif
 
    REPA(Joypads)if(!Joypads[i]._connected)Joypads.remove(i, true); // remove disconnected joypads

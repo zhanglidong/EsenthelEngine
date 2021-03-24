@@ -19,6 +19,12 @@ enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch c
    JB_START , // Start
    JB_NUM   , // number of buttons for XInput/Xbox controllers
 
+   JB_PADDLE1=JB_NUM, // Paddle 1
+   JB_PADDLE2       , // Paddle 2
+   JB_PADDLE3       , // Paddle 3
+   JB_PADDLE4       , // Paddle 4
+   JB_UWP_NUM       , // number of buttons for WindowsUWP controllers
+
    JB_LSL=JB_NUM  , // Nintendo Switch Left  SL
    JB_LSR         , // Nintendo Switch Left  SR
    JB_RSL         , // Nintendo Switch Right SL
@@ -106,14 +112,17 @@ private:
 #endif
    Byte   _button[32];
 #if WINDOWS
-   Byte   _xinput;
+   Byte   _xinput=0xFF;
 #endif
 #if WINDOWS_OLD
-   Byte   _offset_x, _offset_y;
+   Byte   _offset_x=0, _offset_y=0;
 #endif
-   Bool   _connected;
+#if WINDOWS_NEW
+   Bool   _vibrations=false;
+#endif
+   Bool   _connected=false;
    Flt    _last_t[32];
-   UInt   _id;
+   UInt   _id=0;
 #if SWITCH
    UInt   _vibration_handle[2], _sensor_handle[2];
 #endif
@@ -122,12 +131,18 @@ private:
    Str    _name;
 #if WINDOWS_OLD
 #if EE_PRIVATE && JP_DIRECT_INPUT
-   IDirectInputDevice8 *_device;
+   IDirectInputDevice8 *_device=null;
 #else
-   Ptr    _device;
+   Ptr    _device=null;
+#endif
+#elif WINDOWS_NEW
+#if EE_PRIVATE && JP_GAMEPAD_INPUT
+   Windows::Gaming::Input::Gamepad ^_gamepad;   ASSERT(SIZE(Windows::Gaming::Input::Gamepad^)==SIZE(Ptr));
+#else
+   Ptr    _gamepad;
 #endif
 #elif MAC
-   Ptr    _device;
+   Ptr    _device=null;
 #endif
 
    static CChar *_button_name[32];
@@ -144,7 +159,8 @@ Bool JoypadSensors();               // if want Joypad sensors to be calculated (
 
 Joypad* FindJoypad(UInt id); // find Joypad in 'Joypads' container according to its 'id', null on fail
 #if EE_PRIVATE
-Joypad& GetJoypad(UInt id, Bool &added);
+Joypad& GetJoypad  (UInt id, Bool &added);
+UInt    NewJoypadID(UInt id); // generate a Joypad ID based on 'id' that's not yet used by any other existing Joypad
 
 inline Int Compare(C Joypad &a, C Joypad &b) {return Compare(a.id(), b.id());}
 
