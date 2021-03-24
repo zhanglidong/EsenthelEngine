@@ -307,9 +307,9 @@ ok:;
 #endif
 }
 /******************************************************************************/
-CChar8* MouseClass::buttonName(Int x)C
+CChar8* MouseClass::buttonName(Int b)C
 {
-   return InRange(x, _button_name) ? _button_name[x] : null;
+   return InRange(b, _button_name) ? _button_name[b] : null;
 }
 /******************************************************************************/
 void MouseClass::speed(Flt speed)  {       T._speed=speed*SPEED;}

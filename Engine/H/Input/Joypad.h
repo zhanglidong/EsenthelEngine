@@ -69,17 +69,17 @@ struct Joypad // Joypad Input
         dir_a  [2]; // analog direction, [0]=left, [1]=right
    Flt  trigger[2]; // trigger         , [0]=left, [1]=right
 
-   Bool b (Int x)C {return InRange(x, _button) ? ButtonOn(_button[x]) : false;} // if button 'x' is on
-   Bool bp(Int x)C {return InRange(x, _button) ? ButtonPd(_button[x]) : false;} // if button 'x' pushed   in this frame
-   Bool br(Int x)C {return InRange(x, _button) ? ButtonRs(_button[x]) : false;} // if button 'x' released in this frame
-   Bool bd(Int x)C {return InRange(x, _button) ? ButtonDb(_button[x]) : false;} // if button 'x' double clicked
+   Bool b (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) : false;} // if button 'b' is on
+   Bool bp(Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) : false;} // if button 'b' pushed   in this frame
+   Bool br(Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) : false;} // if button 'b' released in this frame
+   Bool bd(Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) : false;} // if button 'b' double clicked
 
    Bool supportsVibrations()C; // if supports vibrations
    Bool supportsSensors   ()C; // if supports sensors, available only if 'JoypadSensors' was enabled
 
    UInt         id(     )C {return _id  ;} // get unique ID of this Joypad
  C Str&       name(     )C {return _name;} // get Joypad name
-   Str  buttonName(Int x)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
+   Str  buttonName(Int b)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
 
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
    Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations

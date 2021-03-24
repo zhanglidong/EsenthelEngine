@@ -163,9 +163,9 @@ Joypad::Joypad()
 
    zero();
 }
-Str Joypad::buttonName(Int x)C
+Str Joypad::buttonName(Int b)C
 {
-   if(InRange(x, _button_name))return _button_name[x];
+   if(InRange(b, _button_name))return _button_name[b];
    return S;
 }
 /******************************************************************************/
