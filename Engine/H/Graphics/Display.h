@@ -431,6 +431,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    static void  alignScreenYToPixel     (  Flt   &screen_y); // align screen space y position to nearest pixel
    static Vec2  windowPixelToScreen     (C Vec2  &pixel   ); // from pixel  (   0 .. D.resW,    0 .. D.resH) to screen (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
    static Vec2  windowPixelToScreen     (C VecI2 &pixel   ); // from pixel  (   0 .. D.resW,    0 .. D.resH) to screen (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
+   static Vec2  screenToWindowPixel     (C Vec2  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
    static VecI2 screenToWindowPixelI    (C Vec2  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
    static RectI screenToWindowPixelI    (C Rect  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
 #endif
@@ -713,8 +714,9 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
 #if WINDOWS_NEW
    extern Flt ScreenScale;
 
-   Int DipsToPixels(Flt dips);
-   Flt PixelsToDips(Int pix );
+   Int DipsToPixelsI(Flt dips);
+   Flt PixelsToDips (Int pix );
+   Flt PixelsToDips (Flt pix );
 #elif MAC
    extern NSOpenGLContext *OpenGLContext;
 #elif LINUX

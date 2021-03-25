@@ -3539,6 +3539,11 @@ Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel) // this is used by mouse/
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
 }
+Vec2 DisplayClass::screenToWindowPixel(C Vec2 &screen)
+{
+   return Vec2((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x,
+               (screen.y-D._window_pixel_to_screen_add.y)/D._window_pixel_to_screen_mul.y);
+}
 VecI2 DisplayClass::screenToWindowPixelI(C Vec2 &screen)
 {
    return VecI2(Round((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x),
@@ -3681,8 +3686,9 @@ DisplayClass& DisplayClass::colorPalette1    (C ImagePtr &palette) {SetPalette(1
 DisplayClass& DisplayClass::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
-Int DipsToPixels(Flt dips) {return Round(dips*ScreenScale);}
-Flt PixelsToDips(Int pix ) {return       pix /ScreenScale ;}
+Int DipsToPixelsI(Flt dips) {return Round(dips*ScreenScale);}
+Flt PixelsToDips (Int pix ) {return       pix /ScreenScale ;}
+Flt PixelsToDips (Flt pix ) {return       pix /ScreenScale ;}
 #endif
 /******************************************************************************/
 }

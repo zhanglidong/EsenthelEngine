@@ -952,7 +952,7 @@ VecI2 WindowSize(Bool client, Ptr hwnd)
       if(App.hwnd())
       {
          Windows::Foundation::Rect rect=App.Hwnd()->Bounds; // this returns the client rect
-         return VecI2(DipsToPixels(rect.Width), DipsToPixels(rect.Height));
+         return VecI2(DipsToPixelsI(rect.Width), DipsToPixelsI(rect.Height));
       }
    #endif
       return D.res();
@@ -967,7 +967,7 @@ RectI WindowRect(Bool client, Ptr hwnd)
       if(App.hwnd())
       {
          Windows::Foundation::Rect rect=App.Hwnd()->Bounds; // this returns the client rect
-         return RectI(DipsToPixels(rect.X), DipsToPixels(rect.Y), DipsToPixels(rect.X+rect.Width), DipsToPixels(rect.Y+rect.Height));
+         return RectI(DipsToPixelsI(rect.X), DipsToPixelsI(rect.Y), DipsToPixelsI(rect.X+rect.Width), DipsToPixelsI(rect.Y+rect.Height));
       }
    #endif
       return RectI(0, 0, D.resW(), D.resH());

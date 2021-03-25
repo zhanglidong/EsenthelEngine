@@ -305,6 +305,9 @@ ok:;
       }
    }
 #endif
+#if SWITCH
+  _on_client=true;
+#endif
 }
 /******************************************************************************/
 CChar8* MouseClass::buttonName(Int b)C
@@ -318,23 +321,26 @@ Flt  MouseClass::speed(         )C {return T._speed      /SPEED;}
 void MouseClass::pos(C Vec2 &pos)
 {
    T._pos=pos;
-   VecI2 posi=D.screenToWindowPixelI(pos);
+   Vec2  pixel =D.screenToWindowPixel(pos);
+   VecI2 pixeli=Round(pixel);
 #if WINDOWS_OLD
-   POINT point={posi.x, posi.y};
+   POINT point={pixeli.x, pixeli.y};
    ClientToScreen(App.Hwnd(), &point);
    SetCursorPos(point.x, point.y);
 #elif WINDOWS_NEW
    if(App.hwnd())
    {
       Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(posi.x), bounds.Y+PixelsToDips(posi.y));
+      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(pixel.x), bounds.Y+PixelsToDips(pixel.y));
    }
 #elif MAC
    RectI   client=WindowRect(true);
-   CGPoint point; point.x=posi.x+client.min.x; point.y=posi.y+client.min.y;
+   CGPoint point; point.x=pixel.x+client.min.x; point.y=pixel.y+client.min.y;
    CGWarpMouseCursorPosition(point);
 #elif LINUX
-   if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, posi.x, posi.y);
+   if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, pixeli.x, pixeli.y);
+#elif SWITCH
+  _window_posi=_desktop_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
 #endif
 }
 /******************************************************************************/
@@ -601,6 +607,7 @@ void MouseClass::update()
    if(App.active() && (_freezed || _clip_rect_on || _clip_window))clipUpdate();
 #endif
 
+#if !SWITCH // if this is restored for Nintendo Switch, then remove "_on_client=true" in 'create'
    {
    #if WINDOWS_OLD
    #if MS_DIRECT_INPUT
@@ -656,12 +663,12 @@ void MouseClass::update()
    #elif WINDOWS_NEW
       if(App.hwnd())
       {
-         VecI2 posi(DipsToPixels(App.Hwnd()->PointerPosition.X), DipsToPixels(App.Hwnd()->PointerPosition.Y));
+         VecI2 posi(DipsToPixelsI(App.Hwnd()->PointerPosition.X), DipsToPixelsI(App.Hwnd()->PointerPosition.Y));
         _deltai      =_desktop_posi-posi; // calc based on '_desktop_posi' because '_window_posi' is relative to window position (so if we move the window based on delta issues could happen)
         _desktop_posi=              posi;
          Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-        _window_posi.set(posi.x-DipsToPixels(bounds.X),
-                         posi.y-DipsToPixels(bounds.Y));
+        _window_posi.set(posi.x-DipsToPixelsI(bounds.X),
+                         posi.y-DipsToPixelsI(bounds.Y));
 
          // need to check buttons manually, because 'OnPointerPressed' will not catch events for other buttons if one button is already pressed
          REP(Min(Elms(_button), Elms(Keys)))
@@ -730,8 +737,8 @@ void MouseClass::update()
    #endif
    }
 
-   Vec2 old=_pos;
   _delta_relative*=_speed;
+   Vec2 old=_pos;
 
 #if WINDOWS_NEW || WEB
    if(_locked) // for WINDOWS_NEW and WEB when '_locked', the '_window_posi' never changes so we need to manually adjust the '_pos' based on '_delta_relative'
@@ -754,9 +761,11 @@ void MouseClass::update()
      _pos=D.windowPixelToScreen(_window_posi);
    }
 
-                _delta_clp=_pos-old;
-                _delta    =_sv_delta.update(_delta_relative); // yes, mouse delta smoothing is needed, especially for low fps (for example ~40), without this, player camera rotation was not smooth
-   if(Time.ad())_vel      =_sv_vel  .update(_delta_clp/Time.ad(), Time.ad()); // use '_delta_clp' to match exact cursor position
+  _delta_clp=_pos-old;
+#endif
+
+                _delta=_sv_delta.update(_delta_relative); // yes, mouse delta smoothing is needed, especially for low fps (for example ~40), without this, player camera rotation was not smooth
+   if(Time.ad())_vel  =_sv_vel  .update(_delta_clp/Time.ad(), Time.ad()); // use '_delta_clp' to match exact cursor position
 
    // dragging
    if(b(_cur))

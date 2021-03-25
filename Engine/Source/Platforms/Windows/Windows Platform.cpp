@@ -332,7 +332,7 @@ ref struct FrameworkView sealed : IFrameworkView
          {
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
-               VecI2 posi(DipsToPixels(pointer->Position.X), DipsToPixels(pointer->Position.Y));
+               VecI2 posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
                touch->_deltai+=posi-touch->_posi;
                touch->_posi   =posi;
                touch->_pos    =D.windowPixelToScreen(posi);
@@ -355,7 +355,7 @@ ref struct FrameworkView sealed : IFrameworkView
          default: // pen, touch
          {
             CPtr   id=CPtr(pointer->PointerId);
-            VecI2  posi(DipsToPixels(pointer->Position.X), DipsToPixels(pointer->Position.Y));
+            VecI2  posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
             Vec2   pos=D.windowPixelToScreen(posi);
             Touch *touch=FindTouchByHandle(id);
             if(   !touch)touch=&Touches.New().init(posi, pos, id, pointer->PointerDevice->PointerDeviceType==PointerDeviceType::Pen);else
@@ -383,7 +383,7 @@ ref struct FrameworkView sealed : IFrameworkView
          {
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
-               VecI2 posi(DipsToPixels(pointer->Position.X), DipsToPixels(pointer->Position.Y));
+               VecI2 posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
                touch->_deltai+=posi-touch->_posi;
                touch->_posi   =posi;
                touch->_pos    =D.windowPixelToScreen(posi);
@@ -608,7 +608,7 @@ ref struct FrameworkView sealed : IFrameworkView
 
    // Input
    void OnInputPaneHiding (InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=false;}
-   void OnInputPaneShowing(InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=true ; Kb._recti.setLD(DipsToPixels(sender->OccludedRect.X), DipsToPixels(sender->OccludedRect.Y), DipsToPixels(sender->OccludedRect.Width), DipsToPixels(sender->OccludedRect.Height));}
+   void OnInputPaneShowing(InputPane^ sender, InputPaneVisibilityEventArgs^ args) {Kb._visible=true ; Kb._recti.setLD(DipsToPixelsI(sender->OccludedRect.X), DipsToPixelsI(sender->OccludedRect.Y), DipsToPixelsI(sender->OccludedRect.Width), DipsToPixelsI(sender->OccludedRect.Height));}
 
    void OnInputFocusRemoved(Windows::UI::Text::Core::CoreTextEditContext ^sender, Platform::Object ^args)
    {
@@ -718,7 +718,7 @@ ref struct FrameworkView sealed : IFrameworkView
    void setMode()
    {
       if(App._closed)return; // do nothing if app called 'Exit'
-      VecI2 mode(DipsToPixels(App.Hwnd()->Bounds.Width), DipsToPixels(App.Hwnd()->Bounds.Height));
+      VecI2 mode(DipsToPixelsI(App.Hwnd()->Bounds.Width), DipsToPixelsI(App.Hwnd()->Bounds.Height));
       D.modeSet(mode.x, mode.y, -1);
    }
 };
