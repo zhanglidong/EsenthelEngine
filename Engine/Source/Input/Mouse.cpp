@@ -321,7 +321,11 @@ Flt  MouseClass::speed(         )C {return T._speed      /SPEED;}
 void MouseClass::pos(C Vec2 &pos)
 {
    T._pos=pos;
-   Vec2  pixel =D.screenToWindowPixel(pos);
+#if MOBILE // for mobile prevent cursor from going outside the window
+   T._pos&=D.rect();
+#endif
+
+   Vec2  pixel =D.screenToWindowPixel(T._pos);
    VecI2 pixeli=Round(pixel);
 #if WINDOWS_OLD
    POINT point={pixeli.x, pixeli.y};
