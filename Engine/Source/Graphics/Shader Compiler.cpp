@@ -434,6 +434,7 @@ static Int Compare(C ShaderCompiler::Bind &a, C ShaderCompiler::Bind &b)
 static Int CompareBind(C ShaderCompiler::Buffer &a, C ShaderCompiler::Buffer &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
 static Int CompareBind(C ShaderCompiler::Image  &a, C ShaderCompiler::Image  &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
 /******************************************************************************/
+API  ShaderCompiler::Shader::api()C {return source->api();}
 void ShaderCompiler::Shader::finalizeName()
 {
    FREPA(params)
