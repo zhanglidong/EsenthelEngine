@@ -114,6 +114,9 @@ struct MouseClass // Mouse Input
    void eat     (Int button); // eat    'button' input from this frame so it will not be processed by the remaining codes in frame
    void eatWheel(          ); // eat    'wheel'  input from this frame so it will not be processed by the remaining codes in frame
 
+   void push   (Byte b); // manually push    'b' button
+   void release(Byte b); // manually release 'b' button
+
 #if EE_PRIVATE
    // manage
    void del    ();
@@ -123,8 +126,6 @@ struct MouseClass // Mouse Input
    // operations
    void clear     ();
    void push      (Byte b, Flt double_click_time);
-   void push      (Byte b);
-   void release   (Byte b);
    void update    ();
    void clipUpdate();   void clipUpdateConditional();
    void draw      ();
