@@ -1164,9 +1164,10 @@ struct VecB2 // Vector 2D (Byte)
    Int    sum         ()C {return         x+ y ;} // components sum
    VecB2& reverse     ()  {Swap(x, y); return T;} // reverse components order
 
-   VecB2() {}
-   VecB2(Byte i        ) {set(i   );}
-   VecB2(Byte x, Byte y) {set(x, y);}
+              VecB2() {}
+              VecB2(Byte i        ) {set(i   );}
+              VecB2(Byte x, Byte y) {set(x, y);}
+   CONVERSION VecB2(C VecI2 &v);
 };
 /******************************************************************************/
 struct VecSB2 // Vector 2D (SByte)
@@ -2152,6 +2153,7 @@ inline    Dbl AlignCeil (Dbl x, Dbl align) {return ceil  (x/align)*align;} // al
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
+inline VecB2 ::VecB2 (C VecI2  &v) {set(v.x, v.y          );}
 inline VecUS2::VecUS2(C VecB2  &v) {set(v.x, v.y          );}
 inline VecUS2::VecUS2(C VecI2  &v) {set(v.x, v.y          );}
 inline VecUS ::VecUS (C VecB   &v) {set(v.x, v.y, v.z     );}

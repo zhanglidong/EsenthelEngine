@@ -864,6 +864,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
 //_taa             =_taa_dual=false;
+//_shader_model    =SM_UNKNOWN;
 
 //_initialized=false;
 //_resetting  =false;

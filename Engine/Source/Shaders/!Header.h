@@ -209,7 +209,7 @@
 #if !GL
 #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
 #else
-#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
+#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5) #glClipControl
 #endif
 /******************************************************************************/
 // CONSTANTS
@@ -1109,7 +1109,7 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
 #include "!Set Prec Struct.h"
-#if GL
+#if GL || VULKAN
    // !! LOC, ATTR numbers AND list order, must be in sync with GL_VTX_SEMANTIC !!
    LOC( 0) Vec4  _pos     :ATTR0 ;
    LOC( 1) VecH  _hlp     :ATTR1 ;
