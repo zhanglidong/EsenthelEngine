@@ -153,9 +153,9 @@ struct ShaderCompiler
       SubShader        sub[ST_NUM];
     C Source          *source;
 
-      Shader& gather       (       ) {MAX(model, SM_4_1);    return T;} // SM_4_1 needed for Texture Gather
       API api()C;
 
+      Shader& gather       (       ) {MAX(model, SM_4_1);    return T;} // SM_4_1 needed for Texture Gather
       Shader& gather       (Bool on) {if(on)gather();        return T;} // SM_4_1 needed for Texture Gather
       Shader& gatherChannel(       ) {MAX(model, SM_5  );    return T;} // SM_5   needed for Texture Gather per-channel
       Shader& gatherChannel(Bool on) {if(on)gatherChannel(); return T;} // SM_5   needed for Texture Gather per-channel
