@@ -595,10 +595,13 @@ private:
    // operations
    enum RESET_RESULT
    {
-      RESET_OK                  ,
-      RESET_DEVICE_NOT_CREATED  ,
-      RESET_DEVICE_RESET_FAILED ,
-      RESET_RENDER_TARGET_FAILED,
+      RESET_OK,
+      RESET_ERROR_NOT_CREATED,
+      RESET_ERROR_SET_DISPLAY_MODE,
+      RESET_ERROR_SET_FULLSCREEN_STATE,
+      RESET_ERROR_RESIZE_TARGET,
+      RESET_ERROR_RESIZE_BUFFERS,
+      RESET_ERROR_RENDER_TARGET_CREATE,
    };
    static CChar8*      AsText     (RESET_RESULT result);
    static void         ResetFailed(RESET_RESULT New, RESET_RESULT old);

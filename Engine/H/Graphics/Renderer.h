@@ -116,7 +116,7 @@ struct RendererClass // handles rendering
 #endif
 
    // get / set
-   RendererClass& type            (RENDER_TYPE type);   RENDER_TYPE type             ()C {return _type        ;} // set/get Rendering Type, default=RT_DEFERRED (RT_FORWARD for Mobile), the change is NOT instant, avoid calling real-time
+   RendererClass& type            (RENDER_TYPE type);   RENDER_TYPE type             ()C {return _type        ;} // set/get Rendering Type, default=RT_DEFERRED, the change is NOT instant, avoid calling real-time
                                                         RENDER_MODE operator()       ()C {return _mode        ;} //     get active RENDER_MODE, call this inside custom 'Render' function to obtain current phase of rendering process
                                                         Bool        mirror           ()C {return _mirror      ;} // if      currently rendering mirrored/reflection side
                                                         Bool            firstPass    ()C {return  _first_pass ;} // if      currently rendering the first   pass (    the main one) of the Forward Renderer

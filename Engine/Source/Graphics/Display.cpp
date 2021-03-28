@@ -1884,11 +1884,14 @@ CChar8* DisplayClass::AsText(RESET_RESULT result)
 {
    switch(result)
    {
-      case RESET_OK                  : return "RESET_OK";
-      case RESET_DEVICE_NOT_CREATED  : return "RESET_DEVICE_NOT_CREATED";
-      case RESET_DEVICE_RESET_FAILED : return "RESET_DEVICE_RESET_FAILED";
-      case RESET_RENDER_TARGET_FAILED: return "RESET_RENDER_TARGET_FAILED";
-      default                        : return "RESET_UNKNOWN";
+      case RESET_OK                        : return "RESET_OK";
+      case RESET_ERROR_NOT_CREATED         : return "RESET_ERROR_NOT_CREATED";
+      case RESET_ERROR_SET_DISPLAY_MODE    : return "RESET_ERROR_SET_DISPLAY_MODE";
+      case RESET_ERROR_SET_FULLSCREEN_STATE: return "RESET_ERROR_SET_FULLSCREEN_STATE";
+      case RESET_ERROR_RESIZE_TARGET       : return "RESET_ERROR_RESIZE_TARGET";
+      case RESET_ERROR_RESIZE_BUFFERS      : return "RESET_ERROR_RESIZE_BUFFERS";
+      case RESET_ERROR_RENDER_TARGET_CREATE: return "RESET_ERROR_RENDER_TARGET_CREATE";
+      default                              : return "RESET_UNKNOWN";
    }
 }
 void DisplayClass::ResetFailed(RESET_RESULT New, RESET_RESULT old)
@@ -1936,92 +1939,69 @@ again:
 DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 {
    SyncLocker locker(_lock);
-  _resetting=true;
-   RESET_RESULT result;
 
-   if(!created())result=RESET_DEVICE_NOT_CREATED;else
+   struct BoolLock
    {
-      Renderer.rtDel();
+      Bool &value;
 
-      Bool ok=true;
-   #if WINDOWS
-      #if DX11 && !WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
-         if(!exclusive())ok=SetDisplayMode();
-      #endif
+     ~BoolLock(           )                {value=false;}
+      BoolLock(Bool &value) : value(value) {value=true ;}
+   }lock(_resetting);
 
-      #if DX11
-         #if WINDOWS_OLD
-            // https://docs.microsoft.com/en-us/windows/win32/direct3darticles/dxgi-best-practices
-            if(!SwapChainDesc.Windowed){ResizeTarget(); ResizeBuffers();} // if want fullscreen then first set new size, so the following 'SetFullscreenState' will set mode based on desired resolution (only 'ResizeBuffers' was needed in tests, however keep both just in case), don't call this if we want non-fullscreen mode, because if we're already in fullscreen, then this could switch to another fullscreen mode, so first disable fullscreen with 'SetFullscreenState' below
+   if(!created())return RESET_ERROR_NOT_CREATED;
+   Renderer.rtDel();
 
-            if(ok&=OK(SwapChain->SetFullscreenState(!SwapChainDesc.Windowed, SwapChainDesc.Windowed ? null : Output)))
-            if(ok&=ResizeTarget())
-         #elif 0 // both 'SetFullscreenState' and 'ResizeTarget' fail on WINDOWS_NEW, instead, 'TryEnterFullScreenMode', 'ExitFullScreenMode', 'TryResizeView' are used
-            DXGI_MODE_DESC mode; Zero(mode);
-            mode.Format =SwapChainDesc.Format;
-            mode.Width  =SwapChainDesc.Width;
-            mode.Height =SwapChainDesc.Height;
-            mode.Scaling=DXGI_MODE_SCALING_UNSPECIFIED;
-            if(_freq_want && full()) // set custom frequency only if desired and in full-screen
-            {
-               mode.RefreshRate.Numerator  =_freq_want;
-               mode.RefreshRate.Denominator=1;
-            }
-            if(ok&=OK(SwapChain->SetFullscreenState(full(), null)))
-            if(ok&=OK(SwapChain->ResizeTarget(&mode)))
-         #endif
+#if WINDOWS
+   #if DX11
+      #if WINDOWS_OLD
+         // on WINDOWS_NEW we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
+         if(!exclusive())if(!SetDisplayMode())return RESET_ERROR_SET_DISPLAY_MODE;
+
+         // both 'SetFullscreenState' and 'ResizeTarget' fail on WINDOWS_NEW, instead, 'TryEnterFullScreenMode', 'ExitFullScreenMode', 'TryResizeView' are used
+         // https://docs.microsoft.com/en-us/windows/win32/direct3darticles/dxgi-best-practices
+         if(!SwapChainDesc.Windowed){ResizeTarget(); ResizeBuffers();} // if want fullscreen then first set new size, so the following 'SetFullscreenState' will set mode based on desired resolution (only 'ResizeBuffers' was needed in tests, however keep both just in case), don't call this if we want non-fullscreen mode, because if we're already in fullscreen, then this could switch to another fullscreen mode, so first disable fullscreen with 'SetFullscreenState' below
+         if(!OK(SwapChain->SetFullscreenState(!SwapChainDesc.Windowed, SwapChainDesc.Windowed ? null : Output)))return RESET_ERROR_SET_FULLSCREEN_STATE;
+         if(!ResizeTarget())return RESET_ERROR_RESIZE_TARGET;
+
+         // this shouldn't be performed for WINDOWS_NEW because for this we're not setting a custom display mode, but instead we're setting to what we've got
+         // 'ResizeTarget' may select a different resolution than requested for fullscreen mode, so check what we've got
+         if(!SwapChainDesc.Windowed)
          {
-            // 'ResizeTarget' may select a different resolution than requested for fullscreen mode, so check what we've got
-         #if WINDOWS_OLD
-            if(!SwapChainDesc.Windowed)
-         #else
-            if(0) // if(full()) this shouldn't be performed for WINDOWS_NEW because for this we're not setting a custom display mode, but instead we're setting to what we've got
-         #endif
+            IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
             {
-               IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))
                {
-                  DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))
-                  {
-                    _res.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
-                  #if WINDOWS_OLD
-                     SwapChainDesc.BufferDesc.Width =resW();
-                     SwapChainDesc.BufferDesc.Height=resH();
-                  #else
-                     // for WINDOWS_NEW this should adjust '_res' based on relative rotation
-                     SwapChainDesc.Width =resW();
-                     SwapChainDesc.Height=resH();
-                  #endif
-                     densityUpdate();
-                  }
-                  output->Release();
+                 _res.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
+               #if WINDOWS_OLD
+                  SwapChainDesc.BufferDesc.Width =resW();
+                  SwapChainDesc.BufferDesc.Height=resH();
+               #else
+                  // for WINDOWS_NEW this should adjust '_res' based on relative rotation
+                  SwapChainDesc.Width =resW();
+                  SwapChainDesc.Height=resH();
+               #endif
+                  densityUpdate();
                }
+               output->Release();
             }
-            ok&=ResizeBuffers();
          }
-      #elif GL
-         if(ok)ok=SetDisplayMode();
       #endif
-   #elif MAC || LINUX || SWITCH
-      ok=SetDisplayMode();
-   #else
-      ok=true;
+      if(!ResizeBuffers())return RESET_ERROR_RESIZE_BUFFERS;
+   #elif GL
+      if(!SetDisplayMode())return RESET_ERROR_SET_DISPLAY_MODE;
    #endif
+#elif MAC || LINUX || SWITCH
+   if(!SetDisplayMode())return RESET_ERROR_SET_DISPLAY_MODE;
+#endif
 
-      getCaps();
-      if(!ok                 )result=RESET_DEVICE_RESET_FAILED ;else
-      if(!Renderer.rtCreate())result=RESET_RENDER_TARGET_FAILED;else
-      {
-         adjustWindow(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
-         after(true);
-         resetEyeAdaptation(); // this potentially may use drawing
+   getCaps();
+   if(!Renderer.rtCreate())return RESET_ERROR_RENDER_TARGET_CREATE;
+   adjustWindow(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
+   after(true);
+   resetEyeAdaptation(); // this potentially may use drawing
 
-         Time.skipUpdate(2); // when resetting display skip 2 frames, because the slow down can occur for this long
-         result=RESET_OK;
-      }
-   }
-
-  _resetting=false;
-   return result;
+   Time.skipUpdate(2); // when resetting display skip 2 frames, because the slow down can occur for this long
+   return RESET_OK;
 }
 void DisplayClass::Reset()
 {
@@ -2433,7 +2413,7 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
    #if SWITCH || WEB
       Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
    #endif
-      if(!findMode())return RESET_DEVICE_NOT_CREATED;
+      if(!findMode())return RESET_ERROR_NOT_CREATED;
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values
       RESET_RESULT result=ResetTry(set);      if(result!=RESET_OK)return result  ; // reset the device
 

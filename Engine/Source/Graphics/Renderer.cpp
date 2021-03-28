@@ -136,7 +136,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
   _first_pass=true;
   _eye=0; _eye_num=1;
 
-  _type=_cur_type=(MOBILE ? RT_FORWARD : RT_DEFERRED);
+  _type=_cur_type=RT_DEFERRED;
   _forward_prec=!MOBILE;
 
   _mesh_blend_alpha  =ALPHA_BLEND_FACTOR;
