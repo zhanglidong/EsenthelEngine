@@ -18,8 +18,6 @@ namespace EE{
 #else
    #define LOG(x)
 #endif
-
-#define GL_MAX_TEXTURE_MAX_ANISOTROPY 0x84FF
 /******************************************************************************/
 DisplayClass D;
 

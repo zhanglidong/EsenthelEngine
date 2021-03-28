@@ -607,6 +607,47 @@
       #include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_glsl.hpp"
    #endif
 
+   #if GL // define required constants which may be missing on some platforms
+      #define GL_MAX_TEXTURE_MAX_ANISOTROPY 0x84FF
+      #define GL_TEXTURE_MAX_ANISOTROPY     0x84FE
+      #define GL_TEXTURE_LOD_BIAS           0x8501
+
+      #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT             0x83F1
+      #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT             0x83F2
+      #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT             0x83F3
+      #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT       0x8C4D
+      #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT       0x8C4E
+      #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT       0x8C4F
+      #define GL_COMPRESSED_RGBA_BPTC_UNORM                0x8E8C
+      #define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT        0x8E8F
+      #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM          0x8E8D
+      #define GL_ETC1_RGB8_OES                             0x8D64
+      #define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG          0x8C02
+      #define GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG          0x8C03
+      #define GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT    0x8A56
+      #define GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT    0x8A57
+      #define GL_ALPHA8                                    0x803C
+      #define GL_LUMINANCE8                                0x8040
+      #define GL_LUMINANCE8_ALPHA8                         0x8045
+      #define GL_BGR                                       0x80E0
+      #define GL_BGRA                                      0x80E1
+      #define GL_COMPRESSED_RGB8_ETC2                      0x9274
+      #define GL_COMPRESSED_SRGB8_ETC2                     0x9275
+      #define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2  0x9276
+      #define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
+      #define GL_COMPRESSED_RGBA8_ETC2_EAC                 0x9278
+      #define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          0x9279
+      #define GL_COMPRESSED_R11_EAC                        0x9270
+      #define GL_COMPRESSED_SIGNED_R11_EAC                 0x9271
+      #define GL_COMPRESSED_RG11_EAC                       0x9272
+      #define GL_COMPRESSED_SIGNED_RG11_EAC                0x9273
+      #define GL_COMPRESSED_RED_RGTC1                      0x8DBB
+      #define GL_COMPRESSED_RG_RGTC2                       0x8DBD
+      #define GL_COMPRESSED_SIGNED_RED_RGTC1               0x8DBC
+      #define GL_COMPRESSED_SIGNED_RG_RGTC2                0x8DBE
+      #define GL_LUMINANCE                                 0x1909
+   #endif
+
    #include <algorithm> // must be after PhysX or compile errors will show on Android
    /******************************************************************************/
    // Finish including headers - this needs to be included after all headers
