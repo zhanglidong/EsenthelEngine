@@ -2005,7 +2005,23 @@ DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 }
 void DisplayClass::Reset()
 {
-   RESET_RESULT result=ResetTry(); if(result!=RESET_OK)ResetFailed(result, result);
+   Int attempt=0;
+   Dbl time=Time.curTime()+1; // try up to 1 second
+again:
+   RESET_RESULT result=ResetTry();
+   switch(result)
+   {
+      case RESET_OK: return;
+
+      case RESET_ERROR_SET_FULLSCREEN_STATE: // this can fail if Alt-Tabbing during startup
+         if(attempt<100 && Time.curTime()<time)
+      {
+         attempt++;
+         Time.wait(10);
+         goto again;
+      }break;
+   }
+   ResetFailed(result, result);
 }
 /******************************************************************************/
 void DisplayClass::getGamma()
