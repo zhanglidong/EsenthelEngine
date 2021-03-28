@@ -253,7 +253,7 @@ Font& Font::freeOpenGLESData()
    REPAO(_images).freeOpenGLESData();
    return T;
 }
-void Font::setGLFont()
+void Font::setGLFont() // #GLSampler
 {
    REPAO(_images).setGLFont();
 }

@@ -274,15 +274,28 @@ Cache<ShaderFile> ShaderFiles("Shader");
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderImage> ShaderImages(CompareCS);
 /******************************************************************************/
-#if DX11
 void ShaderImage::Sampler::del()
 {
+#if DX11
    if(state)
    {
     //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
          {if(D.created())state->Release(); state=null;} // clear while in lock
    }
+#elif GL
+   if(sampler)
+   {
+   #if GL_LOCK
+      SyncLocker locker(D._lock); if(sampler)
+   #endif
+      {
+         if(D.created())glDeleteSamplers(1, &sampler);
+         sampler=0; // clear while in lock
+      }
+   }
+#endif
 }
+#if DX11
 Bool ShaderImage::Sampler::createTry(D3D11_SAMPLER_DESC &desc)
 {
  //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
@@ -305,6 +318,19 @@ void ShaderImage::Sampler::setHS(Int index) {D3DC->HSSetSamplers(index, 1, &stat
 void ShaderImage::Sampler::setDS(Int index) {D3DC->DSSetSamplers(index, 1, &state);}
 void ShaderImage::Sampler::setPS(Int index) {D3DC->PSSetSamplers(index, 1, &state);}
 void ShaderImage::Sampler::set  (Int index) {setVS(index); setHS(index); setDS(index); setPS(index);}
+#elif GL
+void ShaderImage::Sampler::create()
+{
+   if(!sampler)glGenSamplers(1, &sampler);
+   if( sampler)
+   {
+      glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, filter_min);
+      glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, filter_mag);
+      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, address[0]);
+      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, address[1]);
+      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, address[2]);
+   }
+}
 #endif
 /******************************************************************************/
 // SHADER BUFFER
@@ -1314,6 +1340,12 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
          switch(type)
          {
+          /*case GL_SAMPLER:
+            {
+               Int location=glGetUniformLocation(prog, name);
+               LogN(S+"SAMPLER:"+location+" "+name);
+            }break;*/
+
             case GL_SAMPLER_2D:
             case GL_SAMPLER_CUBE:
          #ifdef GL_SAMPLER_3D
@@ -1338,6 +1370,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                   continue;
                }
                images.New().set(tex_unit, *GetShaderImage(name));
+             //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
 
                glUseProgram(prog);
                glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit

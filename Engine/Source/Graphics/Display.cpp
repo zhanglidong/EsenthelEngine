@@ -2949,9 +2949,8 @@ DisplayClass& DisplayClass::texFilter(Byte filter)
       T._tex_filter=filter;
       if(created())
       {
-      #if DX11
          CreateAnisotropicSampler();
-      #elif GL
+      #if GL // #GLSampler
          Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
          Images.unlock();
       #endif
@@ -2966,9 +2965,8 @@ DisplayClass& DisplayClass::texMipFilter(Bool on)
       T._tex_mip_filter=on;
       if(created())
       {
-      #if DX11
          CreateAnisotropicSampler();
-      #elif GL
+      #if GL // #GLSampler
          Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
          Images.unlock();
       #endif
@@ -2982,12 +2980,7 @@ DisplayClass& DisplayClass::texMipMin(Byte min)
    if(T._tex_mip_min!=min)
    {
       T._tex_mip_min=min;
-      if(created())
-      {
-      #if DX11
-         CreateAnisotropicSampler();
-      #endif
-      }
+      if(created())CreateAnisotropicSampler();
    }
    return T;
 }
@@ -2996,12 +2989,7 @@ DisplayClass& DisplayClass::texMipBias(Flt bias)
    if(T._tex_mip_bias!=bias)
    {
       T._tex_mip_bias=bias;
-      if(created())
-      {
-      #if DX11
-         CreateAnisotropicSampler();
-      #endif
-      }
+      if(created())CreateAnisotropicSampler();
    }
    return T;
 }
@@ -3010,12 +2998,7 @@ DisplayClass& DisplayClass::imageMipBias(Flt bias)
    if(T._image_mip_bias!=bias)
    {
       T._image_mip_bias=bias;
-      if(created())
-      {
-      #if DX11
-         Create2DSampler();
-      #endif
-      }
+      if(created())Create2DSampler();
    }
    return T;
 }
@@ -3026,9 +3009,8 @@ DisplayClass& DisplayClass::fontMipBias(Flt bias)
       T._font_mip_bias=bias;
       if(created())
       {
-      #if DX11
          CreateFontSampler();
-      #elif GL
+      #if GL // #GLSampler
          Fonts.  lock(); REPA(Fonts)Fonts.lockedData(i).setGLFont();
          Fonts.unlock();
       #endif

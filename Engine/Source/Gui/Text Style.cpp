@@ -506,7 +506,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          #if DX11
             // bias is set using 'SamplerFont' which is accessed in 'Font' shader
          #elif GL
-            // bias is set using Font.setGLFont and Image.setGLFont
+            // bias is set using 'Font.setGLFont' and 'Image.setGLFont'
          #endif
          }
 

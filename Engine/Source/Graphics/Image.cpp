@@ -1117,7 +1117,7 @@ void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
    setPartial();
 }
 /******************************************************************************/
-void Image::setGLParams()
+void Image::setGLParams() // #GLSampler
 {
 #if GL
 #if GL_LOCK
@@ -1182,7 +1182,7 @@ void Image::setGLParams()
 #endif
 }
 /******************************************************************************/
-void Image::setGLFont()
+void Image::setGLFont() // #GLSampler
 {
 #if GL && defined GL_TEXTURE_LOD_BIAS
 #if GL_LOCK

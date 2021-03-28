@@ -16,11 +16,10 @@ private:
    struct Sampler
    {
    #if DX11
-      ID3D11SamplerState *state;
+      ID3D11SamplerState *state=null;
 
       Bool is()C {return state!=null;}
 
-      void del      ();
       Bool createTry(D3D11_SAMPLER_DESC &desc);
       void create   (D3D11_SAMPLER_DESC &desc);
       void setVS    (Int index);
@@ -28,15 +27,15 @@ private:
       void setDS    (Int index);
       void setPS    (Int index);
       void set      (Int index);
-
-      Sampler() {state=null;}
-     ~Sampler() {del();}
    #elif GL
-      UInt filter [2];
+      UInt sampler=0;
+      UInt filter_min, filter_mag;
       UInt address[3];
 
-      void del() {}
+      void create();
    #endif
+      void       del();
+     ~Sampler() {del();}
    };
    Sampler *_sampler;
 

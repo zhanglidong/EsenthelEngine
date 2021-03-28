@@ -17,6 +17,11 @@
 #include "!Header CPU.h"
 #define LINEAR_GAMMA 1
 #define CONCAT(a, b) a##b
+#if DX_SHADER_COMPILER
+   #define LOC(i) [[vk::location(i)]]
+#else
+   #define LOC(i)
+#endif
 /******************************************************************************/
 // DATA TYPES
 /******************************************************************************/
@@ -81,12 +86,6 @@
 #define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
 #define LOOP    [loop   ] // will make a loop looped                    , use before 'for while' statements
 #define UNROLL  [unroll ] // will make a loop unrolled                  , use before 'for while' statements
-
-#if DX_SHADER_COMPILER
-   #define LOC(i) [[vk::location(i)]]
-#else
-   #define LOC(i)
-#endif
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -466,7 +465,7 @@ Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
-#if GL // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
+#if GL // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's #GLSampler
    #define SamplerPoint       SamplerDefault
    #define SamplerLinearClamp SamplerDefault
    #define SamplerLinearWrap  SamplerDefault

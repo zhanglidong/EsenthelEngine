@@ -16,9 +16,9 @@ ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerL
 /******************************************************************************/
 // MAIN SHADER
 /******************************************************************************/
-#if DX11
 void Create2DSampler()
 {
+#if DX11
    D3D11_SAMPLER_DESC sd; Zero(sd);
    sd.MipLODBias    =D.imageMipBias();
    sd.MaxAnisotropy =1;
@@ -36,9 +36,20 @@ void Create2DSampler()
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    SamplerLinearClamp.create(sd);
+#elif GL
+   if(SamplerLinearWrap.sampler)
+   {
+      glSamplerParameterf(SamplerLinearWrap.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   }
+   if(SamplerLinearClamp.sampler)
+   {
+      glSamplerParameterf(SamplerLinearClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   }
+#endif
 }
 void CreateFontSampler()
 {
+#if DX11
    D3D11_SAMPLER_DESC sd; Zero(sd);
    sd.Filter  =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
    sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -50,9 +61,16 @@ void CreateFontSampler()
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerFont.create(sd);
+#elif GL
+   if(SamplerFont.sampler)
+   {
+      glSamplerParameterf(SamplerFont.sampler, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
+   }
+#endif
 }
 void CreateAnisotropicSampler()
 {
+#if DX11
    D3D11_SAMPLER_DESC  sd; Zero(sd);
    if(D.texFilter()> 1)sd.Filter=D3D11_FILTER_ANISOTROPIC;else
    if(D.texFilter()==1)sd.Filter=(D.texMipFilter() ? D3D11_FILTER_MIN_MAG_MIP_LINEAR              : D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);else
@@ -62,12 +80,21 @@ void CreateAnisotropicSampler()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
    sd.MipLODBias    =    D.texMipBias();
    sd.MaxAnisotropy =Mid(D.texFilter (), 1, 16);
-   sd.MinLOD        =Max(D.texMipMin (), 0    );
+   sd.MinLOD        =    D.texMipMin ();
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerAnisotropic.create(sd);
-}
+#elif GL
+   if(SamplerAnisotropic.sampler)
+   {
+      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
+      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
+      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
+      glSamplerParameterf(SamplerAnisotropic.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
+   }
 #endif
+}
 /******************************************************************************/
 static Vec4 DummyData[1]; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE);
 MainShaderClass::MainShaderClass()
@@ -136,32 +163,60 @@ void MainShaderClass::createSamplers()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.ComparisonFunc=(REVERSE_DEPTH ? D3D11_COMPARISON_GREATER_EQUAL : D3D11_COMPARISON_LESS_EQUAL);
    SamplerShadowMap.create(sd);
+#elif GL
+         SamplerPoint.filter_min=GL_NEAREST;
+         SamplerPoint.filter_mag=GL_NEAREST;
+   REPAO(SamplerPoint.address)=GL_CLAMP_TO_EDGE;
+         SamplerPoint.create();
 
+         SamplerLinearWrap.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerLinearWrap.filter_mag=GL_LINEAR;
+   REPAO(SamplerLinearWrap.address)=GL_REPEAT;
+         SamplerLinearWrap.create();
+
+         SamplerLinearWCC.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerLinearWCC.filter_mag=GL_LINEAR;
+   REPAO(SamplerLinearWCC.address)=GL_CLAMP_TO_EDGE; SamplerLinearWCC.address[0]=GL_REPEAT;
+         SamplerLinearWCC.create();
+
+         SamplerLinearCWC.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerLinearCWC.filter_mag=GL_LINEAR;
+   REPAO(SamplerLinearCWC.address)=GL_CLAMP_TO_EDGE; SamplerLinearCWC.address[1]=GL_REPEAT;
+         SamplerLinearCWC.create();
+
+         SamplerLinearCWW.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerLinearCWW.filter_mag=GL_LINEAR;
+   REPAO(SamplerLinearCWW.address)=GL_REPEAT; SamplerLinearCWW.address[0]=GL_CLAMP_TO_EDGE;
+         SamplerLinearCWW.create();
+
+         SamplerLinearClamp.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerLinearClamp.filter_mag=GL_LINEAR;
+   REPAO(SamplerLinearClamp.address)=GL_CLAMP_TO_EDGE;
+         SamplerLinearClamp.create();
+
+         SamplerFont.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerFont.filter_mag=GL_LINEAR;
+   REPAO(SamplerFont.address)=GL_CLAMP_TO_EDGE;
+         SamplerFont.create();
+
+         SamplerAnisotropic.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerAnisotropic.filter_mag=GL_LINEAR;
+   REPAO(SamplerAnisotropic.address)=GL_REPEAT;
+         SamplerAnisotropic.create();
+
+         SamplerShadowMap.filter_min=GL_LINEAR;
+         SamplerShadowMap.filter_mag=GL_LINEAR;
+   REPAO(SamplerShadowMap.address)=GL_CLAMP_TO_EDGE;
+         SamplerShadowMap.create();
+      if(SamplerShadowMap.sampler)
+      {
+         glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+         glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
+      }
+#endif
    Create2DSampler         ();
    CreateFontSampler       ();
    CreateAnisotropicSampler();
-#elif GL
-   REPAO(SamplerPoint.filter )=GL_NEAREST;
-   REPAO(SamplerPoint.address)=GL_CLAMP_TO_EDGE;
-
-   REPAO(SamplerLinearWrap.filter )=GL_LINEAR;
-   REPAO(SamplerLinearWrap.address)=GL_REPEAT;
-
-   REPAO(SamplerLinearWCC.filter )=GL_LINEAR;
-   REPAO(SamplerLinearWCC.address)=GL_CLAMP_TO_EDGE; SamplerLinearWCC.address[0]=GL_REPEAT;
-
-   REPAO(SamplerLinearCWC.filter )=GL_LINEAR;
-   REPAO(SamplerLinearCWC.address)=GL_CLAMP_TO_EDGE; SamplerLinearCWC.address[1]=GL_REPEAT;
-
-   REPAO(SamplerLinearCWW.filter )=GL_LINEAR;
-   REPAO(SamplerLinearCWW.address)=GL_REPEAT; SamplerLinearCWW.address[0]=GL_CLAMP_TO_EDGE;
-
-   REPAO(SamplerLinearClamp.filter )=GL_LINEAR;
-   REPAO(SamplerLinearClamp.address)=GL_CLAMP_TO_EDGE;
-
-   REPAO(SamplerFont.filter )=GL_LINEAR;
-   REPAO(SamplerFont.address)=GL_CLAMP_TO_EDGE;
-#endif
 }
 Bool AMD; // #ShaderAMD !! WHEN REMOVING THEN ALSO REMOVE FROM "Esenthel Builder" !!
 void MainShaderClass::create()
