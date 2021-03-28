@@ -947,11 +947,14 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
          #endif
             (CChar8*)data
          };
+
+      #ifdef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
          if(D.SpirVAvailable())
          {
             glShaderBinary(1, &vs, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
             glSpecializeShader(vs, "main", 0, null, null);
          }else
+      #endif
          {
             glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
          }
@@ -1000,11 +1003,14 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
          #endif
             (CChar8*)data
          };
+
+      #ifdef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
          if(D.SpirVAvailable())
          {
             glShaderBinary(1, &ps, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
             glSpecializeShader(ps, "main", 0, null, null);
          }else
+      #endif
          {
             glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
          }
