@@ -276,8 +276,9 @@ again:
 ok:;
 #endif
 #elif WINDOWS_NEW
+   Bool detected=_detected; // remember '_detected' because 'update' may set it falsely based on setting initial '_desktop_posi'
    update(); // 'update' to get '_window_posi' needed below, and set initial value of '_desktop_posi'
-  _detected=(Windows::Devices::Input::MouseCapabilities().MousePresent>0); // set '_detected' after 'update' because that may set it falsely based on setting initial '_desktop_posi'
+  _detected=detected|(Windows::Devices::Input::MouseCapabilities().MousePresent>0); // set '_detected' after 'update', OR with previous setting in case user called 'Ms.simulate'
   _on_client=Cuts(_window_posi, RectI(0, 0, D.resW(), D.resH())); // set initial value of '_on_client', because 'OnPointerEntered' is not called at start
 #elif DESKTOP // assume that desktops always have a mouse
   _detected=true;
