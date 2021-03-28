@@ -2005,8 +2005,6 @@ DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 }
 void DisplayClass::Reset()
 {
-   Int attempt=0;
-   Dbl time=Time.curTime()+1; // try up to 1 second
 again:
    RESET_RESULT result=ResetTry();
    switch(result)
@@ -2014,10 +2012,9 @@ again:
       case RESET_OK: return;
 
       case RESET_ERROR_SET_FULLSCREEN_STATE: // this can fail if Alt-Tabbing during startup
-         if(attempt<100 && Time.curTime()<time)
+         if(WindowActive()!=App.hwnd()) // if reset failed and we're not focused then wait a little and try again
       {
-         attempt++;
-         Time.wait(10);
+         Time.wait(100);
          goto again;
       }break;
    }
