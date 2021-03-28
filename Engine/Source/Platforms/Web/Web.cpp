@@ -18,10 +18,10 @@ static EM_BOOL MouseMove(int eventType, const EmscriptenMouseEvent *e, void *use
 {
    Ms._delta_relative.x+=e->movementX;
    Ms._delta_relative.y-=e->movementY;
-   VecI2 posi(RoundPos(e->screenX*ScreenScale),
-              RoundPos(e->screenY*ScreenScale));
-   Ms._deltai+=posi-Ms._desktop_posi;
-   Ms._desktop_posi=posi;
+   VecI2 pixeli(RoundPos(e->screenX*ScreenScale),
+                RoundPos(e->screenY*ScreenScale));
+   Ms._deltai+=pixeli-Ms._desktop_posi;
+   Ms._desktop_posi=pixeli;
    Ms. _window_posi.set(RoundPos(e->canvasX*ScreenScale), // have to use 'canvas' instead of 'client' because that one is the window client but not the canvas
                         RoundPos(e->canvasY*ScreenScale));
    return 0;
@@ -138,14 +138,14 @@ static EM_BOOL TouchStart(int eventType, const EmscriptenTouchEvent *e, void *us
       {
          Bool   stylus=false;
          CPtr   pid=CPtr(s.identifier);
-         VecI2  posi(RoundPos(s.screenX*ScreenScale),
-                     RoundPos(s.screenY*ScreenScale));
+         VecI2  pixeli(RoundPos(s.screenX*ScreenScale),
+                       RoundPos(s.screenY*ScreenScale));
          Vec2   pos=D.windowPixelToScreen(Vec2(s.canvasX, s.canvasY)*ScreenScale);
          Touch *touch=FindTouchByHandle(pid);
-         if(   !touch)touch=&Touches.New().init(posi, pos, pid, stylus);else
+         if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
          {
             touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
-            touch-> reinit(posi, pos);
+            touch-> reinit(pixeli, pos);
          }
          touch->_state=BS_ON|BS_PUSHED;
       }
@@ -160,7 +160,7 @@ static EM_BOOL TouchEnd(int eventType, const EmscriptenTouchEvent *e, void *user
       if(s.isChanged)
          if(Touch *touch=FindTouchByHandle(CPtr(s.identifier)))
       {
-         touch->_posi  .set(RoundPos(s.screenX*ScreenScale),
+         touch->_pixeli.set(RoundPos(s.screenX*ScreenScale),
                             RoundPos(s.screenY*ScreenScale));
          touch->_pos   =D.windowPixelToScreen(Vec2(s.canvasX, s.canvasY)*ScreenScale);
          touch->_remove=true;
@@ -181,10 +181,10 @@ static EM_BOOL TouchMove(int eventType, const EmscriptenTouchEvent *e, void *use
       if(s.isChanged)
          if(Touch *touch=FindTouchByHandle(CPtr(s.identifier)))
       {
-         VecI2 posi(RoundPos(s.screenX*ScreenScale),
-                    RoundPos(s.screenY*ScreenScale));
-         touch->_deltai+=posi-touch->_posi;
-         touch->_posi   =posi;
+         VecI2 pixeli(RoundPos(s.screenX*ScreenScale),
+                      RoundPos(s.screenY*ScreenScale));
+         touch->_deltai+=pixeli-touch->_pixeli;
+         touch->_pixeli =pixeli;
          touch->_pos    =D.windowPixelToScreen(Vec2(s.canvasX, s.canvasY)*ScreenScale);
       }
    }

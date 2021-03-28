@@ -372,9 +372,9 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
    }*/
    if(rect && !Cuts(Ms._window_posi, *rect) && App.Hwnd())
    {
-      VecI2 posi=Ms._window_posi; Ms._window_posi&=*rect; posi-=Ms._window_posi;
-      Ms._desktop_posi-=posi;
-      Ms._deltai      +=posi;
+      VecI2 pixeli=Ms._window_posi; Ms._window_posi&=*rect; pixeli-=Ms._window_posi;
+      Ms._desktop_posi-=pixeli;
+      Ms._deltai      +=pixeli;
       Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
       App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_posi.x), bounds.Y+PixelsToDips(Ms._window_posi.y));
    }
@@ -667,12 +667,12 @@ void MouseClass::update()
    #elif WINDOWS_NEW
       if(App.hwnd())
       {
-         VecI2 posi(DipsToPixelsI(App.Hwnd()->PointerPosition.X), DipsToPixelsI(App.Hwnd()->PointerPosition.Y));
-        _deltai      =_desktop_posi-posi; // calc based on '_desktop_posi' because '_window_posi' is relative to window position (so if we move the window based on delta issues could happen)
-        _desktop_posi=              posi;
+         VecI2 pixeli(DipsToPixelsI(App.Hwnd()->PointerPosition.X), DipsToPixelsI(App.Hwnd()->PointerPosition.Y));
+        _deltai      =_desktop_posi-pixeli; // calc based on '_desktop_posi' because '_window_posi' is relative to window position (so if we move the window based on delta issues could happen)
+        _desktop_posi=              pixeli;
          Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-        _window_posi.set(posi.x-DipsToPixelsI(bounds.X),
-                         posi.y-DipsToPixelsI(bounds.Y));
+        _window_posi.set(pixeli.x-DipsToPixelsI(bounds.X),
+                         pixeli.y-DipsToPixelsI(bounds.Y));
 
          // need to check buttons manually, because 'OnPointerPressed' will not catch events for other buttons if one button is already pressed
          REP(Min(Elms(_button), Elms(Keys)))

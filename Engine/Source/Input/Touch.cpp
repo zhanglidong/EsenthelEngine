@@ -40,26 +40,26 @@ Touch::Touch()
   _axis_moved=0;
   _id=0;
   _start_time=0;
-  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _posi=_deltai=0;
+  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _pixeli=_deltai=0;
   _handle=null;
   _gui_obj=null;
 }
-Touch& Touch::init(C VecI2 &posi, C Vec2 &pos, CPtr handle, Bool stylus)
+Touch& Touch::init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus)
 {
    if(TouchesID==0)TouchesID=1; _id=TouchesID++; // don't select zero for the ID
   _start_time=Time.appTime();
   _start_pos=_prev_pos=_pos=_sm_pos=pos; _sv_pos.init(pos);
-  _posi=posi;
+  _pixeli=pixeli;
   _handle=handle;
   _gui_obj=Gui.objAtPos(pos);
   _stylus=stylus;
    return T;
 }
-Touch& Touch::reinit(C VecI2 &posi, C Vec2 &pos)
+Touch& Touch::reinit(C VecI2 &pixeli, C Vec2 &pos)
 {
   _start_time=Time.appTime();
   _start_pos =_pos=pos;
-  _posi      =posi;
+  _pixeli    =pixeli;
   _gui_obj   =Gui.objAtPos(_pos);
   _axis_moved=0;
    user_type =0;
@@ -113,14 +113,14 @@ void TouchesUpdate()
    {
       CPtr  handle=&Ms      ; // touch handle
       Vec2  pos   = Ms.pos(); // touch position
-      VecI2 posi  = Ms.desktopPos();
+      VecI2 pixeli= Ms.desktopPos();
       if(Ms.bp(0)) // simulate 'touchesBegan'
       {
          Touch *t=FindTouchByHandle(handle); // find existing one
-         if(   !t)t=&Touches.New().init(posi, pos, handle, false);else // create new one
+         if(   !t)t=&Touches.New().init(pixeli, pos, handle, false);else // create new one
          {
-            t->_posi=posi;
-            t->_pos =pos ;
+            t->_pixeli=pixeli;
+            t->_pos   =pos;
          }
          t->_state=BS_ON|BS_PUSHED;
          t->_first=!Ms.bd(0);
@@ -131,19 +131,19 @@ void TouchesUpdate()
          Touch *t=FindTouchByHandle(handle); // find existing one
          if(   !t) // create new one
          {
-      	   t=&Touches.New().init(posi, pos, handle, false);
+      	   t=&Touches.New().init(pixeli, pos, handle, false);
             t->_state=BS_ON|BS_PUSHED;
          }else
          {
-            t->_posi=posi;
-            t->_pos =pos ;
+            t->_pixeli=pixeli;
+            t->_pos   =pos;
          }
          t->_deltai=Ms.pixelDelta();
       }
       if(Ms.br(0) || !Ms.b(0))if(Touch *t=FindTouchByHandle(handle)) // simulate 'touchesReleased'
       {
-         t->_posi  =posi;
-         t->_pos   =pos ;
+         t->_pixeli=pixeli;
+         t->_pos   =pos;
          t->_deltai=Ms.pixelDelta();
          t->_remove=true;
          if(t->_state&BS_ON) // check for state in case it was manually eaten

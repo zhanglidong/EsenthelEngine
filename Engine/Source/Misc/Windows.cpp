@@ -1506,16 +1506,16 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       case WM_POINTERDOWN :
       case WM_POINTERENTER:
       {
-         POINT  point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 posi(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
+         POINT  point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
          UInt   id=GET_POINTERID_WPARAM(wParam);
          CPtr  pid=CPtr(id);
          Bool   stylus=false; if(GetPointerType){POINTER_INPUT_TYPE type=PT_POINTER; if(GetPointerType(id, &type))if(type==PT_PEN)stylus=true;}
          Vec2   pos=D.windowPixelToScreen(VecI2(point.x, point.y));
          Touch *touch=FindTouchByHandle(pid);
-         if(   !touch)touch=&Touches.New().init(posi, pos, pid, stylus);else
+         if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
          {
             touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
-            if(msg!=WM_POINTERENTER)touch->reinit(posi, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
+            if(msg!=WM_POINTERENTER)touch->reinit(pixeli, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
          }
          if(msg!=WM_POINTERENTER)touch->_state=BS_ON|BS_PUSHED;
       }return 0; // don't process by OS
@@ -1526,9 +1526,9 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          CPtr pid=CPtr(id);
          if(Touch *touch=FindTouchByHandle(pid))
          {
-            POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 posi(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
-            touch->_deltai+=posi-touch->_posi;
-            touch->_posi   =posi;
+            POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
+            touch->_deltai+=pixeli-touch->_pixeli;
+            touch->_pixeli =pixeli;
             touch->_pos    =D.windowPixelToScreen(VecI2(point.x, point.y));
          }
       }return 0; // don't process by OS
@@ -1540,9 +1540,9 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          CPtr pid=CPtr(id);
          if(Touch *touch=FindTouchByHandle(pid))
          {
-            POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 posi(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
-            touch->_deltai+=posi-touch->_posi;
-            touch->_posi   =posi;
+            POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
+            touch->_deltai+=pixeli-touch->_pixeli;
+            touch->_pixeli =pixeli;
             touch->_pos    =D.windowPixelToScreen(VecI2(point.x, point.y));
             touch->_remove =true;
             if(touch->_state&BS_ON) // check for state in case it was manually eaten

@@ -337,15 +337,15 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                {
                   REP(AMotionEvent_getPointerCount(event))
                   {
-                     CPtr   pid  =(CPtr)AMotionEvent_getPointerId(event, i);
-                     Vec2   pixel(AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
-                            pos  =D.windowPixelToScreen(pixel);
-                     VecI2  posi =Round(pixel);
+                     CPtr   pid   =(CPtr)AMotionEvent_getPointerId(event, i);
+                     Vec2   pixel (AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
+                            pos   =D.windowPixelToScreen(pixel);
+                     VecI2  pixeli=Round(pixel);
                      Touch *touch=FindTouchByHandle(pid);
-                     if(   !touch)touch=&Touches.New().init(posi, pos, pid, stylus);else
+                     if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {
                         touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
-                        if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER)touch->reinit(posi, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
+                        if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER)touch->reinit(pixeli, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
                      }
                      if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER)touch->_state=BS_ON|BS_PUSHED;
                   }
@@ -353,16 +353,16 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
 
                case AMOTION_EVENT_ACTION_POINTER_DOWN: // touch was pressed (secondary pointer)
                {
-                  CPtr   pid  =(CPtr)AMotionEvent_getPointerId(event, action_index);
-                  Vec2   pixel(AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index)),
-                         pos  =D.windowPixelToScreen(pixel);
-                  VecI2  posi =Round(pixel);
-                  Touch *touch=FindTouchByHandle(pid);
-                  if(   !touch)touch=&Touches.New().init(posi, pos, pid, stylus);else
+                  CPtr   pid   =(CPtr)AMotionEvent_getPointerId(event, action_index);
+                  Vec2   pixel (AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index)),
+                         pos   =D.windowPixelToScreen(pixel);
+                  VecI2  pixeli=Round(pixel);
+                  Touch *touch =FindTouchByHandle(pid);
+                  if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                   {
                      // re-initialize for push
                      touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
-                     touch-> reinit(posi, pos);
+                     touch-> reinit(pixeli, pos);
                   }
                   touch->_state=BS_ON|BS_PUSHED;
                }break;
@@ -372,16 +372,16 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                {
                   REP(AMotionEvent_getPointerCount(event))
                   {
-                     CPtr   pid  =(CPtr)AMotionEvent_getPointerId(event, i);
-                     Vec2   pixel(AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
-                            pos  =D.windowPixelToScreen(pixel);
-                     VecI2  posi =Round(pixel);
-                     Touch *touch=FindTouchByHandle(pid);
-                     if(   !touch)touch=&Touches.New().init(posi, pos, pid, stylus);else
+                     CPtr   pid   =(CPtr)AMotionEvent_getPointerId(event, i);
+                     Vec2   pixel (AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
+                            pos   =D.windowPixelToScreen(pixel);
+                     VecI2  pixeli=Round(pixel);
+                     Touch *touch =FindTouchByHandle(pid);
+                     if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {  // update
-                        touch->_deltai+=posi-touch->_posi;
-                        touch->_posi   =posi;
-                        touch->_pos    =pos ;
+                        touch->_deltai+=pixeli-touch->_pixeli;
+                        touch->_pixeli =pixeli;
+                        touch->_pos    =pos;
                         if(!touch->_state)touch->_gui_obj=Gui.objAtPos(touch->pos()); // when hovering then also update gui object (check for 'state' because hover can be called the same frame that release is called, and for release we want to keep the original values)
                      }
                   }
@@ -407,10 +407,10 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                   CPtr pid=(CPtr)AMotionEvent_getPointerId(event, action_index);
                   if(Touch *touch=FindTouchByHandle(pid))
                   {
-                     Vec2  pixel(AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index));
-                     VecI2 posi =Round(pixel);
-                     touch->_deltai+=posi-touch->_posi;
-                     touch->_posi   =posi;
+                     Vec2  pixel (AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index));
+                     VecI2 pixeli=Round(pixel);
+                     touch->_deltai+=pixeli-touch->_pixeli;
+                     touch->_pixeli =pixeli;
                      touch->_pos    =D.windowPixelToScreen(pixel);
                      touch->_remove =true;
                      if(touch->_state&BS_ON) // check for state in case it was manually eaten

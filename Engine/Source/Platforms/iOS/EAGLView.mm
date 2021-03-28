@@ -231,8 +231,8 @@ EAGLView* GetUIView()
          t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
       }else
       {
-         t->_deltai+=pi-t->_posi;
-         t->_posi   =pi;
+         t->_deltai+=pi-t->_pixeli;
+         t->_pixeli =pi;
          t->_pos    =p;
       }
       Int taps =[touch tapCount]; // it starts from 1
@@ -254,8 +254,8 @@ EAGLView* GetUIView()
          t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
          t->_state=BS_ON|BS_PUSHED;
       }
-      t->_deltai+=pi-t->_posi;
-      t->_posi   =pi;
+      t->_deltai+=pi-t->_pixeli;
+      t->_pixeli =pi;
       t->_pos    =p;
    }
 }
@@ -266,8 +266,8 @@ EAGLView* GetUIView()
       CGPoint pos=[touch locationInView:self];
       Vec2    p(pos.x, pos.y); p*=ScreenScale;
       VecI2   pi=Round(p); p=D.windowPixelToScreen(p);
-      t->_deltai+=pi-t->_posi;
-      t->_posi   =pi;
+      t->_deltai+=pi-t->_pixeli;
+      t->_pixeli =pi;
       t->_pos    =p;
       t->_remove =true;
       if(t->_state&BS_ON) // check for state in case it was manually eaten

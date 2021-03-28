@@ -332,10 +332,10 @@ ref struct FrameworkView sealed : IFrameworkView
          {
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
-               VecI2 posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=posi-touch->_posi;
-               touch->_posi   =posi;
-               touch->_pos    =D.windowPixelToScreen(posi);
+               VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
+               touch->_deltai+=pixeli-touch->_pixeli;
+               touch->_pixeli =pixeli;
+               touch->_pos    =D.windowPixelToScreen(pixeli);
             }
          }break;
       }
@@ -348,20 +348,20 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=true;
-          //Ms._deltai=Ms._window_posi-posi; don't calculate delta here to avoid big jumps
-          //Ms._window_posi=posi; this is handled in 'Ms.update'
+          //Ms._deltai=Ms._window_posi-pixeli; don't calculate delta here to avoid big jumps
+          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
          {
             CPtr   id=CPtr(pointer->PointerId);
-            VecI2  posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-            Vec2   pos=D.windowPixelToScreen(posi);
+            VecI2  pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
+            Vec2   pos=D.windowPixelToScreen(pixeli);
             Touch *touch=FindTouchByHandle(id);
-            if(   !touch)touch=&Touches.New().init(posi, pos, id, pointer->PointerDevice->PointerDeviceType==PointerDeviceType::Pen);else
+            if(   !touch)touch=&Touches.New().init(pixeli, pos, id, pointer->PointerDevice->PointerDeviceType==PointerDeviceType::Pen);else
             {
                touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch exited in same/previous frame)
-               touch->_posi  =posi;
+               touch->_pixeli=pixeli;
                touch->_pos   =pos;
             }
          }break;
@@ -375,18 +375,18 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=false;
-          //Ms._deltai=Ms._window_posi-posi; this is handled in 'Ms.update'
-          //Ms._window_posi=posi; this is handled in 'Ms.update'
+          //Ms._deltai=Ms._window_posi-pixeli; this is handled in 'Ms.update'
+          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
          {
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
-               VecI2 posi(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=posi-touch->_posi;
-               touch->_posi   =posi;
-               touch->_pos    =D.windowPixelToScreen(posi);
+               VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
+               touch->_deltai+=pixeli-touch->_pixeli;
+               touch->_pixeli =pixeli;
+               touch->_pos    =D.windowPixelToScreen(pixeli);
                touch->_remove =true;
                if(touch->_state&BS_ON) // check for state in case it was manually eaten
                {

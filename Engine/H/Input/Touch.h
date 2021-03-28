@@ -51,7 +51,7 @@ private:
    Byte             _state, _axis_moved;
    UInt             _id;
    Dbl              _start_time;
-   VecI2            _posi, _deltai;
+   VecI2            _pixeli, _deltai;
    Vec2             _start_pos, _prev_pos, _pos, _sm_pos, _delta, _abs_delta, _vel;
    CPtr             _handle;
    GuiObj          *_gui_obj;
@@ -59,8 +59,8 @@ private:
    SmoothValueTime2 _sv_vel;
 
 #if EE_PRIVATE
-   Touch&   init(C VecI2 &posi, C Vec2 &pos, CPtr handle, Bool stylus);
-   Touch& reinit(C VecI2 &posi, C Vec2 &pos);
+   Touch&   init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus);
+   Touch& reinit(C VecI2 &pixeli, C Vec2 &pos);
 #endif
 };
 
