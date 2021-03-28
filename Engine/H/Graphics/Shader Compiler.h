@@ -50,6 +50,15 @@ enum API : Byte // !! These enums are saved !!
    API_METAL,
    API_NUM,
 };
+
+enum SC_FLAG : Byte
+{
+   SC_NONE =   0,
+   SC_SPIRV=1<<0,
+   SC_AMD  =1<<1, // #ShaderAMD
+};
+SET_ENUM_FLAGS(SC_FLAG);
+
 struct ShaderCompiler
 {
    struct Param
@@ -234,6 +243,7 @@ struct ShaderCompiler
    Str                dest, messages;
    SHADER_MODEL       model;
    API                api;
+   SC_FLAG            flag;
    Memc<Source>       sources;
    Map <Str8, Buffer> buffers;
    Memc<Str8        > images;
@@ -241,7 +251,7 @@ struct ShaderCompiler
    void message(C Str &t) {messages.line()+=t;}
    Bool error  (C Str &t) {message(t); return false;}
 
-   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api);
+   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api, SC_FLAG flag);
    Source& New(C Str &file_name);
 
    Bool compileTry(Threads &threads);

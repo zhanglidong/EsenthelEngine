@@ -607,6 +607,7 @@ static Bool UniversalEnginePakFilter(C Str &full)
    Str name=SkipStartPath(full, EngineDataPath), base=GetBase(name), path=GetPath(name);
    if(!SUPPORT_MLAA && base=="MLAA Area.img")return false;
    if(EqualPath(name, "Shader/GL")
+   || EqualPath(name, "Shader/GL SPIR-V")
    || base=="World Editor"
    )return false;
    return true;

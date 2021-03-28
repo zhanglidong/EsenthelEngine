@@ -543,8 +543,9 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
    {
    #if DX_SHADER_COMPILER
       Int params=shader->params.elms()+shader->extra_params.elms();
-      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM+get_default_val+1+(compiler->api==API_GL)); Int defs =0;
-      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM                                          ); Int temps=0;
+      Bool force_func_name_main=((compiler->api==API_GL) && FlagTest(compiler->flag, SC_SPIRV)); // on GL SPIR-V loading shaders requires specifying entry point func name, so for simplicity force all names to be "main"
+      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM+get_default_val+1+(compiler->api==API_GL)+force_func_name_main); Int defs =0;
+      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM                                          +force_func_name_main); Int temps=0;
       FREPA(shader->params)
       {
          DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->params[i];
@@ -580,6 +581,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          define.Name =L"smooth";
          define.Value=L"gloss";
       }
+      if(force_func_name_main)
+      {
+         DxcDefine &define=defines[defs++];
+         define.Name =(temp[temps++]=func_name);
+         define.Value=L"main";
+      }
 
       MemtN<LPCWSTR, 16> arguments;
       arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a, b) a##b"
@@ -603,7 +610,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       IDxcCompiler *dxc_compiler=null; CreateCompiler(&dxc_compiler); if(dxc_compiler)
       {
          IDxcOperationResult *op_result=null;
-         dxc_compiler->Compile(source->file_blob, source->file_name, (Str)func_name, (Str)target, arguments.data(), arguments.elms(), defines.data(), defines.elms(), &NoTemp(Include12(source->file_name)), &op_result);
+         dxc_compiler->Compile(source->file_blob, source->file_name, force_func_name_main ? Str("main") : (Str)func_name, (Str)target, arguments.data(), arguments.elms(), defines.data(), defines.elms(), &NoTemp(Include12(source->file_name)), &op_result);
          if(op_result)
          {
             op_result->GetErrorBuffer(&error_blob);
@@ -734,7 +741,6 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
 
                            if(compiler->api==API_DX) // strip
                            {
-                           #if 0 // FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2422
                               IDxcContainerBuilder *container_builder=null; CreateContainerBuilder(&container_builder); if(container_builder)
                               {
                                  if(OK(container_builder->Load(buffer)))
@@ -756,7 +762,6 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                                  }
                                  container_builder->Release();
                               }
-                           #endif
                            }
                            if(!get_default_val)shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
                         }
@@ -798,8 +803,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          macro.Name      =APIName[i];
          macro.Definition=((compiler->api==i) ? "1" : "0");
       }
-      Bool amd=Contains(compiler->dest, "4 AMD", true, WHOLE_WORD_STRICT); // #ShaderAMD
-      if(amd)
+      Bool amd=FlagTest(compiler->flag, SC_AMD); if(amd)
       {
          auto &macro=macros.NewAt(macros.elms()-1);
          macro.Name      ="AMD";
@@ -981,11 +985,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
    }
 }
 /******************************************************************************/
-ShaderCompiler& ShaderCompiler::set(C Str &dest, SHADER_MODEL model, API api)
+ShaderCompiler& ShaderCompiler::set(C Str &dest, SHADER_MODEL model, API api, SC_FLAG flag)
 {
    T.dest =dest ;
    T.model=model;
    T.api  =api  ;
+   T.flag =flag ;
    return T;
 }
 ShaderCompiler::Source& ShaderCompiler::New(C Str &file_name)
@@ -1179,8 +1184,8 @@ static Str8 RemoveEmptyLines(C Str8 &str)
 }
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
-   Str8 code;
    ShaderCompiler &compiler=cc.compiler;
+   CPtr data; Int size;
 
 #if SPIRV_CROSS
    const SpvId *spirv=(SpvId*)shader_data.data();
@@ -1217,7 +1222,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
       Str8 &instance_name=buffer_instances.New(); instance_name=S+"_BufferInstance_"+i;
       spvc_compiler_set_name(spirv_compiler, res.id, instance_name);
-      spvc_compiler_set_name(spirv_compiler, res.base_type_id, (compiler.api==API_GL) ? S8+'_'+buffer.name : buffer.name); // prefix all cbuffers on GL with '_' to avoid buffer/param name conflicts
+      spvc_compiler_set_name(spirv_compiler, res.base_type_id, (compiler.api==API_GL) ? S8+'_'+buffer.name : buffer.name); // prefix all cbuffers on GL with '_' to avoid buffer/param name conflicts #UBOName
 
       //spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationBinding) not needed for GL, because we obtain it in 'ShaderGL.validate'
       buffer.bind_slot    =ExpectedBufferSlot(buffer.name);
@@ -1354,43 +1359,54 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {SyncLocker lock(cc.lock); compiler.images.binaryInclude(Str8(image_name), CompareCS);}
    }
 
-   const char *glsl=null; spvc_compiler_compile(spirv_compiler, &glsl);
-   code=glsl;
-   spvc_context_destroy(context); // Frees all memory we allocated so far
-
-   code=Replace(code, "#version 330\n", S);
-   code=Replace(code, "#version 300 es\n", S);
-   code=RemoveEmptyLines(RemoveSpaces(code));
-
-   FREPA(buffer_instances)
+   Str8 code;
+   if(compiler.flag&SC_SPIRV)
    {
-      Str8 &inst=buffer_instances[i];
-      code=Replace(code, inst+'.', S, true, WHOLE_WORD_STRICT);
-      code=Replace(code, inst    , S, true, WHOLE_WORD_STRICT);
-   }
-
-#if FORCE_LOG_SHADER_CODE
-   #pragma message("!! Warning: Use this only for debugging !!")
-   LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+' '+ShaderTypeName[type]+'\n'+code);
-#endif
-
-#endif
-
-   if(!code.length()) // this is also needed for null char below
+      data=shader_data.data(); size=shader_data.elms();
+   }else
    {
-   #if DEBUG
-      ShaderCompiler::Shader &shader=cc.shader(shader_data);
+      const char *glsl=null; spvc_compiler_compile(spirv_compiler, &glsl);
+      code=glsl;
+
+      code=Replace(code, "#version 330\n", S);
+      code=Replace(code, "#version 300 es\n", S);
+      code=RemoveEmptyLines(RemoveSpaces(code));
+
+      FREPA(buffer_instances)
+      {
+         Str8 &inst=buffer_instances[i];
+         code=Replace(code, inst+'.', S, true, WHOLE_WORD_STRICT);
+         code=Replace(code, inst    , S, true, WHOLE_WORD_STRICT);
+      }
+
+   #if FORCE_LOG_SHADER_CODE
+      #pragma message("!! Warning: Use this only for debugging !!")
+      LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+' '+ShaderTypeName[type]+'\n'+code);
    #endif
-      Exit("Can't convert HLSL to GLSL");
+
+      if(!code.length()) // this is also needed for null char below
+      {
+      #if DEBUG
+         ShaderCompiler::Shader &shader=cc.shader(shader_data);
+      #endif
+         Exit("Can't convert HLSL to GLSL");
+      }
+      data=code();
+      size=code.length()+1; // include null char
    }
+   spvc_context_destroy(context); // Frees all memory we allocated so far
+#else
+   Exit("Can't convert HLSL to GLSL");
+   data=null; size=0;
+#endif
    if(COMPRESS_GL_SHADER) // compressed
    {
-      File f; f.readMem(code(), code.length()+1); // include null char
+      File f; f.readMem(data, size);
       File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL_SHADER, COMPRESS_GL_SHADER_LEVEL, false))Exit("Can't compress shader data");
       f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
    }else // uncompressed
    {
-      shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
+      shader_data.setNum(size).copyFrom((Byte*)data);
    }
 }
 /******************************************************************************/

@@ -1006,6 +1006,7 @@ static Bool CreateEngineEmbedPak(C Str &src, C Str &dest, Bool use_cipher, Bool 
       Add    (files, *src_pak, src_pak->find("Shader"));
       Add    (files, *src_pak, src_pak->find("Shader/4"));
       Add    (files, *src_pak, src_pak->find("Shader/GL"));
+      Add    (files, *src_pak, src_pak->find("Shader/GL SPIR-V"));
       Add    (files, *src_pak, src_pak->find("Gui"));
       AddFile(files, *src_pak, src_pak->find("Shader/4/Early Z"));
       AddFile(files, *src_pak, src_pak->find("Shader/4/Main"));
@@ -1013,6 +1014,9 @@ static Bool CreateEngineEmbedPak(C Str &src, C Str &dest, Bool use_cipher, Bool 
       AddFile(files, *src_pak, src_pak->find("Shader/GL/Early Z"));
       AddFile(files, *src_pak, src_pak->find("Shader/GL/Main"));
       AddFile(files, *src_pak, src_pak->find("Shader/GL/Position"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL SPIR-V/Early Z"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL SPIR-V/Main"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL SPIR-V/Position"));
       
       // #ShaderAMD
       Add    (files, *src_pak, src_pak->find("Shader/4 AMD"));

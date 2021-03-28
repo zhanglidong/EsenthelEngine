@@ -3,9 +3,10 @@
 namespace EE{
 /******************************************************************************/
 #if WINDOWS
-   #define COMPILE_DX_AMD 0 // #ShaderAMD
    #define COMPILE_DX 0
+   #define COMPILE_DX_AMD 0 // #ShaderAMD
    #define COMPILE_GL 0
+   #define COMPILE_GL_SPIRV 0
 #endif
 
 /**
@@ -57,13 +58,13 @@ Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tess
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
-#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL
+#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
 /******************************************************************************/
 static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
 /******************************************************************************/
 // LISTING ALL SHADER TECHNIQUES
 /******************************************************************************/
-static void Compile(API api, Bool amd=false) // #ShaderAMD
+static void Compile(API api, SC_FLAG flag=SC_NONE)
 {
    if(!DataPath().is())Exit("Can't compile default shaders - 'DataPath' not specified");
 
@@ -73,8 +74,8 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
    {
       default: return;
 
-      case API_GL: dest_path+="Shader\\GL\\"; break;
-      case API_DX: dest_path+=(amd ? "Shader\\4 AMD\\" : "Shader\\4\\" ); break;
+      case API_GL: dest_path+=((flag&SC_SPIRV) ? "Shader\\GL SPIR-V\\" : "Shader\\GL\\"); break;
+      case API_DX: dest_path+=((flag&SC_AMD  ) ? "Shader\\4 AMD\\" : "Shader\\4\\" ); break;
    }
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
@@ -85,7 +86,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef MAIN
 {
-   ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
+   ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api, flag);
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
    #if DEBUG && 0
@@ -387,7 +388,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef AMBIENT
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient", model, api).New(src_path+"Ambient.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient", model, api, flag).New(src_path+"Ambient.cpp");
 
    REPD(skin      , 2)
    REPD(alpha_test, 2)
@@ -398,7 +399,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef AMBIENT_OCCLUSION
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api, flag).New(src_path+"Ambient Occlusion.cpp");
    REPD(mode  , 4)
    REPD(jitter, 2)
    REPD(normal, 2)
@@ -408,7 +409,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef BEHIND
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api).New(src_path+"Behind.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api, flag).New(src_path+"Behind.cpp");
 
    REPD(skin      , 2)
    REPD(alpha_test, 2)
@@ -418,7 +419,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef BLEND
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api).New(src_path+"Blend.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api, flag).New(src_path+"Blend.cpp");
 
    REPD(skin   , 2)
    REPD(color  , 2)
@@ -431,7 +432,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef BONE_HIGHLIGHT
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Bone Highlight", model, api).New(src_path+"Bone Highlight.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Bone Highlight", model, api, flag).New(src_path+"Bone Highlight.cpp");
    REPD(skin     , 2)
    REPD(bump_mode, 2)src.New(S, "VS", "PS")("SKIN", skin, "BUMP_MODE", bump_mode ? SBUMP_FLAT : SBUMP_ZERO);
 }
@@ -439,7 +440,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef DEPTH_OF_FIELD
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Depth of Field", model, api).New(src_path+"Depth of Field.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Depth of Field", model, api, flag).New(src_path+"Depth of Field.cpp");
    REPD(clamp    , 2)
    REPD(realistic, 2)
    REPD(alpha    , 2)
@@ -463,14 +464,14 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef EARLY_Z
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Early Z", model, api).New(src_path+"Early Z.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Early Z", model, api, flag).New(src_path+"Early Z.cpp");
    REPD(skin, 2)src.New(S, "VS", "PS")("SKIN", skin);
 }
 #endif
 
 #ifdef EFFECTS_2D
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api).New(src_path+"Effects 2D.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api, flag).New(src_path+"Effects 2D.cpp");
    src.New("ColTrans"   , "Draw_VS", "ColTrans_PS");
    src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
    src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
@@ -485,7 +486,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef EFFECTS_3D
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 3D", model, api).New(src_path+"Effects 3D.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 3D", model, api, flag).New(src_path+"Effects 3D.cpp");
    REPD(inside, 3)
    REPD(la    , 2)src.New("Volume", "Volume_VS", "Volume_PS")("INSIDE", inside, "LA", la);
 
@@ -500,7 +501,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef FOG_LOCAL
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Fog Local", model, api).New(src_path+"Fog.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Fog Local", model, api, flag).New(src_path+"Fog.cpp");
                   src.New("FogBox" , "FogBox_VS" , "FogBox_PS" )                  .extra("HEIGHT", 0);
    REPD(inside, 2)src.New("FogBoxI", "FogBoxI_VS", "FogBoxI_PS")("INSIDE", inside).extra("HEIGHT", 0);
 
@@ -514,7 +515,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef FUR
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Fur", model, api).New(src_path+"Fur.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Fur", model, api, flag).New(src_path+"Fur.cpp");
    REPD(skin   , 2)
    REPD(size   , 2)
    REPD(diffuse, 2)
@@ -527,14 +528,14 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef FXAA // FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api).New(src_path+"FXAA.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api, flag).New(src_path+"FXAA.cpp");
    REPD(gamma, 2)src.New("FXAA", "Draw_VS", "FXAA_PS")("GAMMA", gamma);
 }
 #endif
 
 #ifdef HDR
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Hdr", model, api).New(src_path+"Hdr.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Hdr", model, api, flag).New(src_path+"Hdr.cpp");
    REPD(step, 2)src.New("HdrDS", "Draw_VS", "HdrDS_PS")("STEP", step);
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
@@ -544,14 +545,14 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 #endif
 
 #ifdef LAYERED_CLOUDS
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Layered Clouds", model, api).New(src_path+"Layered Clouds.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Layered Clouds", model, api, flag).New(src_path+"Layered Clouds.cpp");
    REPD(num  , 4)
    REPD(blend, 2)src.New("Clouds", "LayeredClouds_VS", "LayeredClouds_PS")("NUM", num+1, "BLEND", blend);
 #endif
 
 #ifdef MOTION_BLUR
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api).New(src_path+"Motion Blur.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api, flag).New(src_path+"Motion Blur.cpp");
    //src.New("Explosion", "Explosion_VS", "Explosion_PS");
 
    REPD(mode , 2)
@@ -579,14 +580,14 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef OVERLAY
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Overlay", model, api).New(src_path+"Overlay.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Overlay", model, api, flag).New(src_path+"Overlay.cpp");
    REPD(skin  , 2)
    REPD(normal, 2)
    for(Int layout=1; layout<=2; layout++)
       src.New(S, "VS", "PS")("SKIN", skin, "NORMALS", normal, "LAYOUT", layout);
 }
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api).New(src_path+"Tattoo.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api, flag).New(src_path+"Tattoo.cpp");
    REPD(tesselate, tess ? 2 : 1)
    REPD(skin     , 2           )src.New(S, "VS", "PS")("SKIN", skin).tesselate(tesselate);
 }
@@ -594,7 +595,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef POSITION
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api).New(src_path+"Position.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api, flag).New(src_path+"Position.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
    REPD(alpha_test, 2)
@@ -611,7 +612,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef SET_COLOR
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api).New(src_path+"Set Color.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api, flag).New(src_path+"Set Color.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
    REPD(alpha_test, 2)
@@ -621,7 +622,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef VOLUMETRIC_CLOUDS
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Clouds", model, api).New(src_path+"Volumetric Clouds.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Clouds", model, api, flag).New(src_path+"Volumetric Clouds.cpp");
                  src.New("Clouds"    , "Clouds_VS"    , "Clouds_PS"    );
                  src.New("CloudsMap" , "CloudsMap_VS" , "CloudsMap_PS" );
    REPD(gamma, 2)src.New("CloudsDraw", "CloudsDraw_VS", "CloudsDraw_PS")("GAMMA", gamma);
@@ -630,7 +631,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef VOLUMETRIC_LIGHTS
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Lights", model, api).New(src_path+"Volumetric Lights.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Lights", model, api, flag).New(src_path+"Volumetric Lights.cpp");
    REPD(num  , 6)
    REPD(cloud, 2)
       src.New("VolDir", "DrawPosXY_VS", "VolDir_PS")("NUM", num+1, "CLOUD", cloud);
@@ -645,7 +646,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef WATER
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Water", model, api).New(src_path+"Water.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Water", model, api, flag).New(src_path+"Water.cpp");
    src.New("Lake" , "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0)("REFLECT_ENV", 0, "REFLECT_MIRROR", 0, "REFRACT", 0).extra("WAVES", 0, "RIVER", 0);
    src.New("River", "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0)("REFLECT_ENV", 0, "REFLECT_MIRROR", 0, "REFRACT", 0).extra("WAVES", 0, "RIVER", 1);
    src.New("Ocean", "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0)("REFLECT_ENV", 0, "REFLECT_MIRROR", 0, "REFRACT", 0).extra("WAVES", 1, "RIVER", 0);
@@ -672,7 +673,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef WORLD_EDITOR
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"World Editor", model, api).New(src_path+"World Editor.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"World Editor", model, api, flag).New(src_path+"World Editor.cpp");
    src.New("WhiteVtx", "Color_VS", "Color_PS").extra("COL_VALUE", "1, 1, 1", "VTX_COL", 1);
    src.New("White"   , "Color_VS", "Color_PS").extra("COL_VALUE", "1, 1, 1");
    src.New("Green"   , "Color_VS", "Color_PS").extra("COL_VALUE", "0, 1, 0");
@@ -687,14 +688,14 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef DX10_INPUT_LAYOUT
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path, model, api).New(src_path+"DX10+ Input Layout.cpp"); // #ShaderAMD replace 'dest_path' with 'S'
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(S, model, api, flag).New(src_path+"DX10+ Input Layout.cpp");
    src.New("Shader", "VS", "PS");
 }
 #endif
 
 #ifdef DEFERRED
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Deferred", model, api).New(src_path+"Deferred.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Deferred", model, api, flag).New(src_path+"Deferred.cpp");
    REPD(color, 2)
    {
       // zero (no vtx normals)
@@ -725,7 +726,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef BLEND_LIGHT
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend Light", model, api).New(src_path+"Blend Light.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend Light", model, api, flag).New(src_path+"Blend Light.cpp");
    REPD(per_pixel  , 2)
    REPD(shadow_maps, 7) // 7=(6+off), 0=off
    REPD(color      , 2)
@@ -752,7 +753,7 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 
 #ifdef FORWARD
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Forward", model, api).New(src_path+"Forward.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Forward", model, api, flag).New(src_path+"Forward.cpp");
    REPD(color, 2)
    {
       // zero (no vtx normals)
@@ -790,17 +791,20 @@ static void Compile(API api, Bool amd=false) // #ShaderAMD
 /******************************************************************************/
 void MainShaderClass::compile()
 {
-#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL
+#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_DX
    Compile(API_DX);
 #endif
 #if COMPILE_DX_AMD
-   Compile(API_DX, true);
+   Compile(API_DX, SC_AMD);
 #endif
 #if COMPILE_GL
    Compile(API_GL);
+#endif
+#if COMPILE_GL_SPIRV
+   Compile(API_GL, SC_SPIRV);
 #endif
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority

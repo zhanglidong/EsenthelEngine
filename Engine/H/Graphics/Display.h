@@ -546,6 +546,7 @@ private:
                      _mtn_res,
                      _max_lights,
                      _tex_filter, _tex_mip_min;
+   VecB2             _gl_ver;
    UShort            _gamma_array[3][256];
    Int               _shd_map_size, _shd_map_size_actual, _cld_map_size, _freq_want, _freq_got, _max_tex_size;
    Long              _device_mem;
@@ -629,6 +630,7 @@ private:
    Bool independentBlendAvailable()C;
    Bool deferredUnavailable      ()C;
    Bool deferredMSUnavailable    ()C;
+   Bool SpirVAvailable           ()C;
 
 #if WINDOWS_OLD
    Monitor* getMonitor(HMONITOR hmonitor);

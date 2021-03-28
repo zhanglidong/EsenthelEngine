@@ -927,11 +927,14 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!vs && elms())
       {
+         CPtr data; Int size;
       #if COMPRESS_GL_SHADER // compressed
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
       #else // uncompressed
-         CChar8 *code=(CChar8*)data();
+         data=T.data(); size=T.elms();
       #endif
+         UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
+
          CChar8 *srcs[]=
          {
             GLSLVersion(), // version must be first
@@ -942,10 +945,16 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
          #if LINUX // FIXME - https://forums.intel.com/s/question/0D50P00004QfQyQSAV/graphics-driver-bug-linux-glsl-cant-handle-precisions
             "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
          #endif
-            code
+            (CChar8*)data
          };
-         UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
-         glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
+         if(D.SpirVAvailable())
+         {
+            glShaderBinary(1, &vs, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
+            glSpecializeShader(vs, "main", 0, null, null);
+         }else
+         {
+            glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
+         }
 
          GLint ok; glGetShaderiv(vs, GL_COMPILE_STATUS, &ok);
          if(   ok)T.vs=vs;else // set to this only after all finished, so if another thread runs this method, it will detect 'vs' presence only after it was fully initialized
@@ -954,7 +963,7 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
             {
                Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(vs, Elms(error), null, error);
                messages->line()+=(S+"Vertex Shader compilation failed:\n"+error).line()+"Vertex Shader code:\n";
-               FREPA(srcs)*messages+=srcs[i];
+               if(!D.SpirVAvailable())FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
             glDeleteShader(vs); //vs=0; not needed since it's a temporary
@@ -972,11 +981,14 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!ps && elms())
       {
+         CPtr data; Int size;
       #if COMPRESS_GL_SHADER // compressed
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
       #else // uncompressed
-         CChar8 *code=(CChar8*)data();
+         data=T.data(); size=T.elms();
       #endif
+         UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
+
          CChar8 *srcs[]=
          {
             GLSLVersion(), // version must be first
@@ -986,10 +998,16 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
          #if LINUX // FIXME - https://forums.intel.com/s/question/0D50P00004QfQyQSAV/graphics-driver-bug-linux-glsl-cant-handle-precisions
             "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
          #endif
-            code
+            (CChar8*)data
          };
-         UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
-         glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
+         if(D.SpirVAvailable())
+         {
+            glShaderBinary(1, &ps, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
+            glSpecializeShader(ps, "main", 0, null, null);
+         }else
+         {
+            glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
+         }
 
          GLint ok; glGetShaderiv(ps, GL_COMPILE_STATUS, &ok);
          if(   ok)T.ps=ps;else // set to this only after all finished, so if another thread runs this method, it will detect 'ps' presence only after it was fully initialized
@@ -998,7 +1016,7 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
             {
                Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(ps, Elms(error), null, error);
                messages->line()+=(S+"Pixel Shader compilation failed:\n"+error).line()+"Pixel Shader code:\n";
-               FREPA(srcs)*messages+=srcs[i];
+               if(!D.SpirVAvailable())FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
             glDeleteShader(ps); //ps=0; not needed since it's a temporary
@@ -1328,8 +1346,16 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       {
          Char8 _name[256]; _name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
-         if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
-         CChar8 *name=_name+1; // skip '_'
+         CChar8 *name;
+         if(D.SpirVAvailable())
+         {
+            name=TextPos(_name, '.'); if(!name)Exit("Invalid buffer name"); // SPIR-V generates buffer names as "type_NAME.NAME", so just get after '.'
+            name++;
+         }else
+         {
+            if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler' #UBOName
+            name=_name+1; // skip '_'
+         }
          ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
       #if GL_MULTIPLE_UBOS
          glUniformBlockBinding(prog, i, i);
@@ -1353,7 +1379,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
             GLint  array_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_ARRAY_STRIDE , & array_stride);
             GLint matrix_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_MATRIX_STRIDE, &matrix_stride);
             if(elms>1)
-               if(ShaderParam *param=GetShaderParam((Str8)SkipEnd(name, "[0]"))) // GL may add [0] to name when using arrays
+               if(ShaderParam *param=FindShaderParam((Str8)SkipEnd(name, "[0]"))) // GL may add [0] to name when using arrays
             {
                DYNAMIC_ASSERT(param->_elements       ==elms        , "Invalid ShaderParam array elements");
                DYNAMIC_ASSERT(param->gpuArrayStride()==array_stride, "Invalid ShaderParam array stride");

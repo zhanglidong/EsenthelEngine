@@ -609,6 +609,16 @@ Bool DisplayClass::independentBlendAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
+Bool DisplayClass::SpirVAvailable()C
+{
+#if VULKAN
+   return true;
+#elif GL_ES
+#elif GL
+ //return Compare(_gl_ver, VecB2(4, 6))>=0; // 4.6+ GL required, currently crashes on Nvidia, broken on Intel
+#endif
+   return false;
+}
 Bool DisplayClass::deferredUnavailable  ()C {return created() &&       _max_rt<3     ;} // deferred requires at least 3 MRT's (#0 Color, #1 Nrm, #2 Ext, #3 Vel optional) #RTOutput
 Bool DisplayClass::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
 /******************************************************************************/
@@ -865,6 +875,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _particles_smooth=!MOBILE;
 //_taa             =_taa_dual=false;
 //_shader_model    =SM_UNKNOWN;
+//_gl_ver          .zero();
 
 //_initialized=false;
 //_resetting  =false;
@@ -1262,7 +1273,7 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}}; // set highest at the end, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
+   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}, {4,6}}; // set highest at the end, 4.6 needed for SPIR-V, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
    #if WINDOWS
       // setup dummy functions to prevent null exceptions when GL context failed to create, but we still want to continue
@@ -1506,16 +1517,16 @@ again:
       Renderer._main_ds.forceInfo(width, height, 1,  attrs.stencil ? IMAGE_D24S8         :  IMAGE_D24X8   , IMAGE_GL_RB, samples);
    #endif
 
-      VecI2 ver=glVer();
+     _gl_ver=glVer();
    #if GL_ES
-      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_ES_3_2;else
-      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
-      if(Compare(ver, VecI2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
-                                       Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
+      if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_ES_3_2;else
+      if(Compare(_gl_ver, VecB2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
+      if(Compare(_gl_ver, VecB2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
+                                          Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
    #else
-      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
-      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
-                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
+      if(Compare(_gl_ver, VecB2(4, 0))>=0)_shader_model=SM_GL_4;else
+      if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_3;else
+                                          Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
    #endif
 
    if(!deviceName().is())

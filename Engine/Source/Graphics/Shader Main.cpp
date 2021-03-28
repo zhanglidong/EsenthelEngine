@@ -170,8 +170,13 @@ void MainShaderClass::create()
    if(LogInit)LogN("MainShaderClass.create");
    compile();
 
-   if(D.shaderModel()>=SM_4)path=(AMD ? "Shader\\4 AMD\\" : "Shader\\4\\" );else
-                            path="Shader\\GL\\";
+#if DX11
+   path=(AMD ? "Shader\\4 AMD\\" : "Shader\\4\\");
+#elif GL
+   path=(D.SpirVAvailable() ? "Shader\\GL SPIR-V\\" : "Shader\\GL\\");
+#else
+   #error Unsupported
+#endif
 
    shader=ShaderFiles("Main"); if(!shader)Exit("Can't load the Main Shader");
 #define MEASURE_SHADER_LOAD_TIME 0
