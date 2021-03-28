@@ -114,6 +114,8 @@ struct MouseClass // Mouse Input
    void eat     (Int button); // eat    'button' input from this frame so it will not be processed by the remaining codes in frame
    void eatWheel(          ); // eat    'wheel'  input from this frame so it will not be processed by the remaining codes in frame
 
+   void simulate() {_detected=true;} // specify that mouse will be manually simulated via 'pos', 'push', 'release' methods, this method will force mouse status as "detected" in the device, even if the mouse is not present
+
    void push   (Byte b); // manually push    'b' button
    void release(Byte b); // manually release 'b' button
 
