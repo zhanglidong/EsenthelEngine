@@ -615,7 +615,7 @@ private:
           void getCaps       ();
           void after         (Bool resize_callback);
           Bool initialized   ()C {return _initialized;}
-   static Bool flip          ();
+   static void flip          ();
    static void finish        ();
           void adjustWindow  (Bool set=false);
           void screenChanged (Flt old_width, Flt old_height);

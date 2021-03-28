@@ -2233,7 +2233,7 @@ void DisplayClass::after(Bool resize_callback)
    setColorLUT();
 }
 /******************************************************************************/
-Bool DisplayClass::flip()
+void DisplayClass::flip()
 {
    if(created())
    {
@@ -2255,7 +2255,10 @@ Bool DisplayClass::flip()
          Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       }
    #if DX11
-      Bool sync=ActualSync(); if(!OK(SwapChain->Present(sync, sync ? 0 : PresentFlags))) // we can use 'DXGI_PRESENT_ALLOW_TEARING' only when "sync==false", do this extra check here, because 'ActualSync' depends on VR which may disconnect after 'SwapChain' was created and 'PresentFlags' already set
+      Bool sync=ActualSync();
+      auto present=SwapChain->Present(sync, sync ? 0 : PresentFlags); // we can use 'DXGI_PRESENT_ALLOW_TEARING' only when "sync==false", do this extra check here, because 'ActualSync' depends on VR which may disconnect after 'SwapChain' was created and 'PresentFlags' already set
+      if(!OK(present)
+      && present!=DXGI_ERROR_INVALID_CALL) // ignore DXGI_ERROR_INVALID_CALL because it can happen when losing focus
       {
          static Bool showed=false; if(!showed) // check if not yet showed, because this can be called on another thread, while the main thread already started 'DrawState', which would then call this again, and show the message box 2 times
          {
@@ -2263,7 +2266,6 @@ Bool DisplayClass::flip()
             WindowMsgBox("Error", "DirectX Device lost, please restart application.", true);
             StateExit.set();
          }
-         return false;
       }
       if(SwapChainDesc.SwapEffect!=DXGI_SWAP_EFFECT_DISCARD) // when using swap chain flip mode, 'Present' clears the backbuffer from 'OMSetRenderTargets', so reset it
          D3DC->OMSetRenderTargets(Elms(Renderer._cur_id), Renderer._cur_id, Renderer._cur_ds_id);
@@ -2292,7 +2294,6 @@ Bool DisplayClass::flip()
    #endif
       D._flip.clearNoDiscard(); // can't discard here, because on Nvidia GeForce artifacts may occur for slow-downs (for example when browsing Esenthel Store and switching tabs/categories)
    }
-   return true;
 }
 void DisplayClass::flush()
 {
