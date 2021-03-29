@@ -389,8 +389,7 @@ struct ShaderGL
    Str8                       name;
 
    Str  source   ();
-   UInt compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
-   void compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Str *messages);
+   UInt compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ();
    void commitTex();

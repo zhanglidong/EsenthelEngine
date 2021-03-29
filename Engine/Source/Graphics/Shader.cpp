@@ -1286,7 +1286,7 @@ Str ShaderGL::source()
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
 }
-UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, and by 'compile' during shader pre-processing (where it's called for the same object only from the same thread), GL thread-safety should be handled outside of this function
+UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    // prepare shaders
    if(messages)messages->clear();
@@ -1319,19 +1319,12 @@ UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_arra
    }
    return prog;
 }
-void ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Str *messages) // this function doesn't need to be multi-threaded safe, it's called only during shader pre-processing
-{
-#if GL_LOCK
-   SyncLocker locker(D._lock);
-#endif
-   if(!prog)prog=compileEx(vs_array, ps_array, false, null, messages);
-}
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
    SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
    if(!prog)
-      if(UInt prog=compileEx(shader._vs, shader._ps, true, &shader, messages)) // create into temp var first and set to this only after fully initialized
+      if(UInt prog=compile(shader._vs, shader._ps, true, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
       MemtN<ImageLink, 256> images;
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
