@@ -532,7 +532,7 @@ Bool FCopy(Pak &src, C Str &dest, FILE_OVERWRITE_MODE overwrite, Cipher *dest_ci
 Bool FCopyDir(C Str &src, C Str &dest, FILE_OVERWRITE_MODE overwrite, Cipher *src_cipher, Cipher *dest_cipher)
 {
    Bool ok=true;
-   if(FExistSystem(dest) || FCreateDirs(dest))for(FileFind ff(src); ff(); )
+   if(FCreateDirs(dest))for(FileFind ff(src); ff(); )
    {
       Str name=dest; name.tailSlash(true)+=ff.name;
       switch(ff.type)

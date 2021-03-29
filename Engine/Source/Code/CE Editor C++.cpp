@@ -1742,7 +1742,7 @@ Bool CodeEditor::generateXcodeProj()
    FileText src; if(!src.read("Code/Apple/project.pbxproj"))return ErrorRead("Code/Apple/project.pbxproj"); src.getAll(str);
 
    build_project_file=build_path+"Project.xcodeproj";
-   if(!FExistSystem(build_project_file) && !FCreateDirs(build_project_file))return ErrorWrite(build_project_file);
+   if(!FCreateDirs(build_project_file))return ErrorWrite(build_project_file);
 
    FCreateDirs(build_path+"Assets");
 
