@@ -64,6 +64,8 @@ namespace EE{
 /******************************************************************************/
 #if GL
 #include "Shader Hash.h" // this is generated after compiling shaders
+#define COMPRESS_GL_SHADER_BINARY       COMPRESS_LZ4
+#define COMPRESS_GL_SHADER_BINARY_LEVEL CompressionLevel(COMPRESS_GL_SHADER_BINARY)
 struct ShaderCacheClass
 {
    Str path;
@@ -80,6 +82,7 @@ struct ShaderCacheClass
          {
             f.cmpUIntV(0); // ver
             f.putULong(SHADER_HASH);
+            f.putByte (COMPRESS_GL_SHADER_BINARY);
          #if GL
             f.putStr((CChar8*)glGetString(GL_VERSION));
             f.putStr((CChar8*)glGetString(GL_RENDERER));
@@ -98,6 +101,7 @@ struct ShaderCacheClass
          File f; if(f.readStdTry(name()))
             if(f.decUIntV()==0) // ver
             if(f.getULong()==SHADER_HASH)
+            if(f.getByte ()==COMPRESS_GL_SHADER_BINARY)
          {
             Char8 temp[256];
          #if GL
@@ -1372,16 +1376,32 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
    if(ShaderCache.is())
    {
       shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
-      File f; if(f.readStdTry(shader_cache_name) && f.size()>header_size)
+      File f; if(f.readStdTry(shader_cache_name))
       {
-         shader_cache_data.setNum(f.left()); if(f.getFast(shader_cache_data.data(), shader_cache_data.elms())) // load everything into temp memory, to avoid using File buffer
+         Ptr  data;
+         Int  size;
+         File temp; 
+         if(COMPRESS_GL_SHADER_BINARY)
+         {
+            size=f.decUIntV();
+            if(!DecompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, f.left(), size, true))goto error;
+            temp.pos(0);
+            data=temp.memFast();
+         }else
+         {
+            shader_cache_data.setNum(f.left()); if(!f.getFast(shader_cache_data.data(), shader_cache_data.elms()))goto error; // load everything into temp memory, to avoid using File buffer
+            data=shader_cache_data.data();
+            size=shader_cache_data.elms();
+         }
+         if(size>header_size)
          {
             prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
-            glProgramBinary(prog, *(GLenum*)shader_cache_data.data(), shader_cache_data.data()+header_size, shader_cache_data.elms()-header_size);
+            glProgramBinary(prog, *(GLenum*)data, (Byte*)data+header_size, size-header_size);
             GLint ok=0; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
             if(ok)return prog;
             glDeleteProgram(prog); prog=0;
          }
+      error:;
          f.del(); FDelFile(shader_cache_name); // if failed to create, then assume file data is outdated and delete it
       }
    }
@@ -1425,7 +1445,9 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
             if(size==shader_cache_data.elms()-header_size && format)
             {
               *(GLenum*)shader_cache_data.data()=format;
-               SafeOverwrite(NoTemp(File(shader_cache_data.data(), shader_cache_data.elms())), shader_cache_name);
+               File f(shader_cache_data.data(), shader_cache_data.elms());
+               if(COMPRESS_GL_SHADER_BINARY){File temp; temp.writeMem(); temp.cmpUIntV(f.size()); CompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, COMPRESS_GL_SHADER_BINARY_LEVEL); temp.pos(0); Swap(f, temp);}
+               SafeOverwrite(f, shader_cache_name);
             }
          }
       }

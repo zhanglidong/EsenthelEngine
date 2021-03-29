@@ -1854,6 +1854,28 @@ CChar8* CompressionName(COMPRESS_TYPE type)
       default             : return null;
    }
 }
+Int CompressionLevel(COMPRESS_TYPE type)
+{
+   switch(type)
+   {
+      default             : return 0; // single compression level
+      case COMPRESS_ZLIB  : return 6; // taken from headers, "Z_DEFAULT_COMPRESSION requests a default compromise between speed and compression (currently equivalent to level 6)"
+      case COMPRESS_LZMA  : return 6; // taken from internet
+   #if SUPPORT_LZHAM
+      case COMPRESS_LZHAM : return LZHAM_COMP_LEVEL_DEFAULT;
+   #endif
+   #if SUPPORT_LZ4
+      case COMPRESS_LZ4   : return LZ4HC_CLEVEL_OPT_MIN;
+   #endif
+   #if SUPPORT_LIZARD
+      case COMPRESS_LIZARD: return LIZARD_DEFAULT_CLEVEL;
+   #endif
+   #if SUPPORT_ZSTD
+      case COMPRESS_ZSTD  : return ZSTD_CLEVEL_DEFAULT;
+   #endif
+      case COMPRESS_BROTLI: return 5;
+   }
+}
 VecI2 CompressionLevels(COMPRESS_TYPE type)
 {
    switch(type)
