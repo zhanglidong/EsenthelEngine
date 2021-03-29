@@ -115,11 +115,16 @@ struct ShaderCacheClass
       return false;
    }
 
+   void set(C Str &path)
+   {
+      if(path.is())T.path=NormalizePath(MakeFullPath(path)).tailSlash(true);
+      else         T.path.clear();
+   }
    Bool create(C Str &path)
    {
       if(path.is())
       {
-         T.path=NormalizePath(MakeFullPath(path)).tailSlash(true);
+         T.path=path;
          if(FCreateDirs(T.path))
          {
             if(load())return true;
@@ -134,7 +139,7 @@ struct ShaderCacheClass
 DisplayClass& DisplayClass::shaderCache(C Str &path)
 {
 #if GL
-   if(!D.created())ShaderCache.path=path; // before display created, just store path
+   if(!D.created())ShaderCache.set(path); // before display created, just store path
    else            ShaderCache.create(ShaderCache.path); // after created, initialize from stored path
 #endif
    return T;
