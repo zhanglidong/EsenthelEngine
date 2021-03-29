@@ -1534,6 +1534,7 @@ again:
      _device_name.removeOuterWhiteChars(); // Linux may have unnecessary spaces at the end
    #endif
    }
+   shaderCache(S); // initialize after device got created
 
    if(LogInit)LogN("Secondary Contexts");
    if(SecondaryContexts.elms())

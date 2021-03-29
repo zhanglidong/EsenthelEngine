@@ -62,6 +62,80 @@ namespace EE{
    #endif
 #endif
 /******************************************************************************/
+#if GL
+#include "Shader Hash.h" // this is generated after compiling shaders
+struct ShaderCacheClass
+{
+   Str path;
+
+   Bool   is()C {return path.is();}
+   Str  name()C {return path+"Data";}
+
+   Bool save()C
+   {
+      if(is())
+      {
+         Str name=T.name();
+         File f; if(f.writeTry(name))
+         {
+            f.cmpUIntV(0); // ver
+            f.putULong(SHADER_HASH);
+         #if GL
+            f.putStr((CChar8*)glGetString(GL_VERSION));
+            f.putStr((CChar8*)glGetString(GL_RENDERER));
+            f.putStr((CChar8*)glGetString(GL_VENDOR));
+         #endif
+            if(f.flushOK())return true;
+            f.del(); FDelFile(name);
+         }
+      }
+      return false;
+   }
+   Bool load()C
+   {
+      if(is())
+      {
+         File f; if(f.readStdTry(name()))
+            if(f.decUIntV()==0) // ver
+            if(f.getULong()==SHADER_HASH)
+         {
+            Char8 temp[256];
+         #if GL
+            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VERSION )))return false;
+            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_RENDERER)))return false;
+            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VENDOR  )))return false;
+         #endif
+            return true;
+         }
+      }
+      return false;
+   }
+
+   Bool create(C Str &path)
+   {
+      if(path.is())
+      {
+         T.path=NormalizePath(MakeFullPath(path)).tailSlash(true);
+         if(FCreateDirs(T.path))
+         {
+            if(load())return true;
+            FDelInside(T.path); // if old data doesn't match what we want, then assume everything is outdated and delete everything
+            if(save())return true;
+         }
+      }
+      T.path.clear(); return false;
+   }
+}static ShaderCache;
+#endif
+DisplayClass& DisplayClass::shaderCache(C Str &path)
+{
+#if GL
+   if(!D.created())ShaderCache.path=path; // before display created, just store path
+   else            ShaderCache.create(ShaderCache.path); // after created, initialize from stored path
+#endif
+   return T;
+}
+/******************************************************************************/
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
 #elif GL
@@ -1288,13 +1362,35 @@ Str ShaderGL::source()
 }
 UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
-   // prepare shaders
    if(messages)messages->clear();
+   UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
+
+   // load from cache
+   Str        shader_cache_name;
+   Memt<Byte> shader_cache_data;
+   const Int header_size=4; ASSERT(SIZE(GLenum)==header_size); // make room for 'format'
+   if(ShaderCache.is())
+   {
+      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
+      File f; if(f.readStdTry(shader_cache_name) && f.size()>header_size)
+      {
+         shader_cache_data.setNum(f.left()); if(f.getFast(shader_cache_data.data(), shader_cache_data.elms())) // load everything into temp memory, to avoid using File buffer
+         {
+            prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
+            glProgramBinary(prog, *(GLenum*)shader_cache_data.data(), shader_cache_data.data()+header_size, shader_cache_data.elms()-header_size);
+            GLint ok=0; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+            if(ok)return prog;
+            glDeleteProgram(prog); prog=0;
+         }
+         f.del(); FDelFile(shader_cache_name); // if failed to create, then assume file data is outdated and delete it
+      }
+   }
+
+   // prepare shaders
    if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
    if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
 
    // prepare program
-   UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
    if(vs && ps)
    {
       if(LogInit)Log(S+"Linking vertex+pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\": ");
@@ -1316,6 +1412,23 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
          glDeleteProgram(prog); prog=0;
       }
       if(LogInit)LogN("Success");
+      
+      // save to cache
+      if(prog && shader_cache_name.is())
+      {
+         GLint size=0; glGetProgramiv(prog, GL_PROGRAM_BINARY_LENGTH, &size); if(size)
+         {
+            shader_cache_data.setNum(size+header_size);
+            GLenum  format=0;
+            GLsizei size  =0;
+            glGetProgramBinary(prog, shader_cache_data.elms()-header_size, &size, &format, shader_cache_data.data()+header_size);
+            if(size==shader_cache_data.elms()-header_size && format)
+            {
+              *(GLenum*)shader_cache_data.data()=format;
+               SafeOverwrite(File(shader_cache_data.data(), shader_cache_data.elms()), shader_cache_name);
+            }
+         }
+      }
    }
    return prog;
 }

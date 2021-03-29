@@ -789,6 +789,28 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 /******************************************************************************/
 #endif // COMPILE
 /******************************************************************************/
+static void SetShaderHash()
+{
+   Memc<Str> files; for(FileFind ff(DataPath()+"Shader/GL"); ff(); )files.add(ff.pathName());
+   DYNAMIC_ASSERT(files.elms(), "No Shader Files");
+   files.sort(ComparePathNumberCI);
+   xxHash64 hash;
+   Memt<Byte> temp;
+   File f;
+   FREPA(files)
+   {
+    C Str &file=files[i];
+      hash.update(GetBase(file));
+      f.readStd(file);
+      temp.setNumDiscard(f.size());
+      if(!f.getFast(temp.data(), temp.elms()))Exit("Can't read data");
+      hash.update(temp.data(), temp.elms());
+   }
+   Str header=GetPath(__FILE__)+"/Shader Hash.h";
+   FileText ft;
+   ft.write(header, ANSI);
+   ft.putLine(S+"#define SHADER_HASH "+hash());
+}
 void MainShaderClass::compile()
 {
 #if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
@@ -814,6 +836,10 @@ void MainShaderClass::compile()
       FREPAO(ShaderCompilers).compile(threads);
    }
    ProcPriority(0);
+
+#if COMPILE_GL
+   SetShaderHash();
+#endif
 
    App.stayAwake(AWAKE_OFF);
 #endif
