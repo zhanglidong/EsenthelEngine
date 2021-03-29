@@ -87,7 +87,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData() || physx_dll) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
@@ -132,12 +132,12 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
          }else
          {
             PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
-            if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+            if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          }
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
          if(1/*!CodeEdit.appEmbedEngineData()*/ || CodeEdit.appPublishProjData()) // if want to store something in "Bin" folder, embed engine data should be ignored (we always need engine.pak for web)
          {
-            PublishBinPath=PublishPath/*+"Bin\\"*/; if(!FExistSystem(PublishBinPath) && !FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
+            PublishBinPath=PublishPath/*+"Bin\\"*/; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
             if(CodeEdit.appPublishProjData() && PublishDataAsPak)PublishProjectDataPath=PublishBinPath+"Project.pak";
 
             Memt<Str> files;
@@ -155,7 +155,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData()) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
@@ -171,7 +171,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData() || physx_dll || CodeEdit.appPublishSteamDll() || CodeEdit.appPublishOpenVRDll()) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}

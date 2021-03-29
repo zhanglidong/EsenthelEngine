@@ -323,7 +323,7 @@ void DrawProjectList()
    bool Projects::open(Elm &proj, bool ignore_lock)
    {
       Str path=ProjectsPath+EncodeFileName(proj.id);
-      if(!(FExistSystem(path) || FCreateDirs(path)))Gui.msgBox(S, S+"Can't write to \""+GetPath(path)+"\"");else
+      if(!FCreateDirs(path))Gui.msgBox(S, S+"Can't write to \""+GetPath(path)+"\"");else
       {
          Str error; LOAD_RESULT result=Proj.open(proj.id, proj.name, path, error, ignore_lock);
          if(result==LOAD_NEWER )Gui.msgBox(S,   "This project was created with a newer version of Esenthel Engine.\nPlease upgrade your Esenthel software and try again.");else

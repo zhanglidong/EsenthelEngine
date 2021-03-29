@@ -176,7 +176,7 @@ Bool CodeEditor::getBuildPath(Str &build_path, Str &build_project_name, C Str *a
    build_project_name=AppName(app_name ? *app_name : cei().appName(), build_exe_type); if(!build_project_name.is())return false;
    build_path        =NormalizePath(MakeFullPath(projects_build_path));
 
-   build_path.tailSlash(true)+=build_project_name; FCreateDirs(build_path);
+   build_path.tailSlash(true)+=build_project_name;
    build_path.tailSlash(true); // !! 'build_path' may get deleted in 'clean' !!
    return true;
 }
@@ -310,6 +310,7 @@ static Str CleanNameForNetBeans(C Str &s)
 Bool CodeEditor::verifyBuildPath()
 {
    if(!getBuildPath(build_path, build_project_name))return false;
+   if(!FCreateDirs(build_path))return false;
    build_source=build_path+"Source\\"; FCreateDir(build_source);
    switch(build_exe_type)
    {
