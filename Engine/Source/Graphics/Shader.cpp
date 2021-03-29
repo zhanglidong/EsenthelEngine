@@ -64,7 +64,7 @@ namespace EE{
 /******************************************************************************/
 #if GL
 #include "Shader Hash.h" // this is generated after compiling shaders
-#define COMPRESS_GL_SHADER_BINARY       COMPRESS_LZ4
+#define COMPRESS_GL_SHADER_BINARY       COMPRESS_ZSTD // in tests it was faster and had smaller size than LZ4
 #define COMPRESS_GL_SHADER_BINARY_LEVEL CompressionLevel(COMPRESS_GL_SHADER_BINARY)
 struct ShaderCacheClass
 {
