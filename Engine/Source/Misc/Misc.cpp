@@ -2455,7 +2455,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    :
       case SP_APP_DATA       :
       case SP_APP_DATA_PUBLIC: return "save:"; // initialized by 'MountSaveData'
-      case SP_APP_CACHE      : extern Bool CacheMounted; if(CacheMounted)return "cache:"; break; // initialized by 'MountCacheStorage'
+      case SP_APP_CACHE      : extern Bool MountCache(); if(MountCache())return "cache:"; break; // initialized by 'MountCacheStorage'
    }
 #endif
    return S;
