@@ -549,7 +549,7 @@ VecI2 DisplayClass::glVer()
 {
    if(created())
    {
-      int major=0, minor=0;
+      GLint major=0, minor=0;
       glGetIntegerv(GL_MAJOR_VERSION, &major);
       glGetIntegerv(GL_MINOR_VERSION, &minor);
       return VecI2(major, minor);
@@ -1553,10 +1553,16 @@ again:
 
    if(LogInit)
    {
-      LogN(S+"Device Name: "      +_device_name);
-      LogN(S+"Device Vendor: "    +(CChar8*)glGetString(GL_VENDOR    ));
-      LogN(S+"Device Version: "   +(CChar8*)glGetString(GL_VERSION   ));
-      LogN(S+"Device Extensions: "+(CChar8*)glGetString(GL_EXTENSIONS));
+      LogN(S+"Device Name: "   +_device_name);
+      LogN(S+"Device Vendor: " +(CChar8*)glGetString(GL_VENDOR));
+      LogN(S+"Device Version: "+(CChar8*)glGetString(GL_VERSION));
+
+      GLint exts=0; glGetIntegerv(GL_NUM_EXTENSIONS, &exts); // do not use "glGetString(GL_EXTENSIONS)" because it's obsolete
+      Str8  ext; FREP(exts){if(i)ext+=' '; ext+=(CChar8*)glGetStringi(GL_EXTENSIONS, i);}
+      LogN(S+"Device Extensions: "+ext);
+
+      GLint binary_formats=0; glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS , &binary_formats); LogN(S+"Device Shader Binary Formats: "+binary_formats);
+            binary_formats=0; glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &binary_formats); LogN(S+"Device Program Binary Formats: "+binary_formats);
    }
 
    if(!findMode())Exit("Valid display mode not found.");
@@ -2156,11 +2162,11 @@ void DisplayClass::getCaps()
    }*/
 #elif GL
  //CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
-      _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
-   int aniso           =  16; glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & aniso           ); _max_tex_filter =Mid(aniso         , 1, 255);
- //int max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
-   int max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
-   int max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
+        _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
+   GLint aniso           =  16; glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & aniso           ); _max_tex_filter =Mid(aniso         , 1, 255);
+ //GLint max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
+   GLint max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
+   GLint max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
    ImageTypeInfo::_usage_known=false;
 
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER

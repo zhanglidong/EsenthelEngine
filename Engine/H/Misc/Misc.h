@@ -380,6 +380,7 @@ enum SYSTEM_PATH // System Path Type
    SP_SAVED_GAMES    , // User/Saved Games    (typically "C:/Users/*/Saved Games"    , for Mobile platforms this is the Application's public  folder, or if it's not available, then private folder is selected)
    SP_APP_DATA       , // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's private folder, where it can save its data that no other App  can access)
    SP_APP_DATA_PUBLIC, // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's public  folder, where it can save its data that    other Apps can access)
+   SP_APP_CACHE      , // User/App Cache
    SP_ALL_APP_DATA   , // All Users/App Data  (typically "C:/ProgramData")
    SP_PUBLIC         , // for Android this is the path to the public folder which is visible when connected to a computer
    SP_SD_CARD        , // for Android this is the path to SD Card
