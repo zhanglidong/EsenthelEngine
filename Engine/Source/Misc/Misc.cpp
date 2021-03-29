@@ -2425,6 +2425,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA       : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA_PUBLIC: out=NSDocumentDirectory   ; break;
+      case SP_APP_CACHE      : out=NSCachesDirectory     ; break;
       case SP_PROG_FILES     : out=NSApplicationDirectory; break;
       default                : return S;
    }
