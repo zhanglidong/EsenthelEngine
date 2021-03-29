@@ -166,6 +166,9 @@ Int  BitHi      (ULong  x); // get index of highest non-zero bit  in 'x' ( 0 if 
 Int  ByteHi     (UInt   x); // get index of highest non-zero byte in 'x' ( 0 if none)
 Int  ByteHi     (ULong  x); // get index of highest non-zero byte in 'x' ( 0 if none)
 #if EE_PRIVATE
+UIntPtr Ceil128 (UIntPtr x); // rounds 'x' to the nearest multiple of  128, which is equal or greater than 'x'
+UIntPtr Ceil4096(UIntPtr x); // rounds 'x' to the nearest multiple of 4096, which is equal or greater than 'x'
+
        Int Log2Ceil(UInt  x); // returns Ceil(Log2(x))
        Int Log2Ceil(ULong x); // returns Ceil(Log2(x))
 inline Int DivCeil2(UInt  x) {return DivCeil(x, 2u);}

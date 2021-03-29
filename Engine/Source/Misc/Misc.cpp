@@ -790,13 +790,16 @@ void LogN(C Str &text)
 }
 void LogShow(Bool thread_id, Bool date, Bool time, Bool cur_time) {LogThreadID=thread_id; LogDate=date; LogTime=time; LogCurTime=cur_time;}
 /******************************************************************************/
-UInt Ceil2      (UInt  x       ) {return (x+  1)&(~  1);}
-UInt Ceil4      (UInt  x       ) {return (x+  3)&(~  3);}
-UInt Ceil8      (UInt  x       ) {return (x+  7)&(~  7);}
-UInt Ceil16     (UInt  x       ) {return (x+ 15)&(~ 15);}
-UInt Ceil32     (UInt  x       ) {return (x+ 31)&(~ 31);}
-UInt Ceil64     (UInt  x       ) {return (x+ 63)&(~ 63);}
-UInt Ceil128    (UInt  x       ) {return (x+127)&(~127);}
+UInt    Ceil2   (UInt    x) {return (x+   1)&(~   1);}
+UInt    Ceil4   (UInt    x) {return (x+   3)&(~   3);}
+UInt    Ceil8   (UInt    x) {return (x+   7)&(~   7);}
+UInt    Ceil16  (UInt    x) {return (x+  15)&(~  15);}
+UInt    Ceil32  (UInt    x) {return (x+  31)&(~  31);}
+UInt    Ceil64  (UInt    x) {return (x+  63)&(~  63);}
+UInt    Ceil128 (UInt    x) {return (x+ 127)&(~ 127);}
+UIntPtr Ceil128 (UIntPtr x) {return (x+ 127)&(~ 127);}
+UIntPtr Ceil4096(UIntPtr x) {return (x+4095)&(~4095);}
+
 UInt CeilPow2   (UInt  x       ) {UInt b=         1; for(; b<x && b<0x80000000; )b<<=1; return b;}
 UInt FloorPow2  (UInt  x       ) {UInt b=0x80000000; for(; b>x                ; )b>>=1; return b;}
 UInt NearestPow2(UInt  x       ) {UInt fp2=FloorPow2(x); if(fp2!=0x80000000 && x>fp2+(fp2>>1))fp2<<=1; return fp2;} // must be > to return correct value for "x==1"
