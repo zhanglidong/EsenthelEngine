@@ -762,16 +762,39 @@ static inline Bool FDel(C FileFind &ff) {return FDel(ff.type, ff.pathName());}
 Bool FCreateDirs(C Str &name)
 {
    if(!name.is())return true;
-   Str   path=name; path.tailSlash(false);
-   Char  temp[MAX_LONG_PATH];
+   switch(FileInfoSystem(name).type) // check if it's already there
+   {
+      case FSTD_DIR  :
+      case FSTD_DRIVE:
+         return true; // already have dir or drive
+
+      case FSTD_FILE:
+      case FSTD_LINK:
+         return false; // can't create because there's a file/link there
+   }
+
+   Bool  last_create=false;
+   Char  temp[MAX_LONG_PATH], prev='\0';
    FREPA(temp)
    {
-      Char c=path[i];
-      if( !c)return FCreateDir(path);
-      if(IsSlash(c) && !(i && path[i-1]==':')){temp[i]=0; FCreateDir(temp);}
-      temp[i]=c;
+      Char c=name[i];
+      if(IsSlash(c)            // next dir
+      || !c && !IsSlash(prev)) // or reached the end and previous char wasn't a slash
+         if(prev!=':') // previous char wasn't drive end
+            {temp[i]=0; last_create=FCreateDir(temp);}
+      if(!c)break;
+      temp[i]=prev=c;
    }
-   return false;
+
+   if(last_create)return true; // if last create succeeded
+   switch(FileInfoSystem(name).type) // it could've been created on another thread or by another program
+   {
+      case FSTD_DIR  :
+      case FSTD_DRIVE:
+         return true; // have dir or drive
+      default:
+         return false; // failed
+   }
 }
 Bool FDelDirs(C Str &name)
 {
