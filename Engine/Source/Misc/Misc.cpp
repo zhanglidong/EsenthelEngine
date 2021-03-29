@@ -2437,6 +2437,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    : return AndroidAppDataPublicPath.is() ? AndroidAppDataPublicPath : AndroidAppDataPath;
       case SP_APP_DATA       : return AndroidAppDataPath;
       case SP_APP_DATA_PUBLIC: return AndroidAppDataPublicPath;
+      case SP_APP_CACHE      : return AndroidAppCachePath;
       case SP_PUBLIC         : return AndroidPublicPath;
       case SP_SD_CARD        : return AndroidSDCardPath;
    }

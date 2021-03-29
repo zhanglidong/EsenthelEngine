@@ -140,7 +140,7 @@ static JavaVM        *JVM;
        AAssetManager *AssetManager;
        android_app   *AndroidApp;
        Str8           AndroidPackageName;
-       Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidPublicPath, AndroidSDCardPath;
+       Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidAppCachePath, AndroidPublicPath, AndroidSDCardPath;
 static KB_KEY         KeyMap[256];
 static Byte           ShiftMap[3][128], JoyMap[256];
 static Bool           Initialized, // !! This may be set to true when app is restarted (without previous crashing) !!
@@ -732,6 +732,12 @@ static void JavaGetAppName()
       if(JObject      external_files_dir    =Jni->CallObjectMethod(Activity          ,  getExternalFilesDir, null))
       if(JString      external_files_dir_str=Jni->CallObjectMethod(external_files_dir,  getAbsolutePath))
          AndroidAppDataPublicPath=external_files_dir_str.str().replace('/', '\\');
+
+      // app cache
+      if(JMethodID getCacheDir     =Jni.func             (ActivityClass, "getCacheDir", "()Ljava/io/File;"))
+      if(JObject      files_dir    =Jni->CallObjectMethod(Activity     ,  getCacheDir))
+      if(JString      files_dir_str=Jni->CallObjectMethod(files_dir    ,  getAbsolutePath))
+         AndroidAppCachePath=files_dir_str.str().replace('/', '\\');
 
       // public
       if(JClass    Environment="android/os/Environment")
