@@ -1033,7 +1033,7 @@ UInt ShaderVSGL::create(Str *messages)
       {
          CPtr data; Int size;
       #if COMPRESS_GL_SHADER // compressed
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
+         File src, temp; src.readMem(T.data(), T.elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
       #else // uncompressed
          data=T.data(); size=T.elms();
       #endif
@@ -1090,7 +1090,7 @@ UInt ShaderPSGL::create(Str *messages)
       {
          CPtr data; Int size;
       #if COMPRESS_GL_SHADER // compressed
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
+         File src, temp; src.readMem(T.data(), T.elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
       #else // uncompressed
          data=T.data(); size=T.elms();
       #endif
