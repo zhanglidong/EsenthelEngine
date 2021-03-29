@@ -732,8 +732,21 @@ Bool FRename(C Str &src, C Str &dest)
          if(ok)return true; // return only on success, if failed, then try methods below (this can fail for current app's exe file)
       }
    #endif
-      if(!rename(UnixPathUTF8(s), UnixPathUTF8(d))){FlushIO(); return true;}
-      if(errno==EXDEV)if(FCopy(s, d))return FDel(s);
+      auto s_up=UnixPathUTF8(s), d_up=UnixPathUTF8(d);
+      if(!rename(s_up, d_up)){FlushIO(); return true;}
+      switch(errno)
+      {
+         case EXDEV: if(FCopy(s, d))return FDel(s); break; // located on another drive
+
+      #if SWITCH
+         case EPERM: // Nintendo Switch fails to replace existing files - https://developer.nintendo.com/html/online-docs/nx-en/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_106358756.html
+         {
+            if(!remove(      d_up) // 'remove' will delete both files/dirs
+            && !rename(s_up, d_up))
+               {FlushIO(); return true;}
+         }break;
+      #endif
+      }
       return false;
 #endif
 }
