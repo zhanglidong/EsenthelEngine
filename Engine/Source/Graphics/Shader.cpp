@@ -1425,7 +1425,7 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
             if(size==shader_cache_data.elms()-header_size && format)
             {
               *(GLenum*)shader_cache_data.data()=format;
-               SafeOverwrite(File(shader_cache_data.data(), shader_cache_data.elms()), shader_cache_name);
+               SafeOverwrite(NoTemp(File(shader_cache_data.data(), shader_cache_data.elms())), shader_cache_name);
             }
          }
       }
