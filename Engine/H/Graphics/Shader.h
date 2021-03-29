@@ -291,7 +291,7 @@ struct ShaderVSGL : ShaderData
 {
    UInt vs=0;
 
-   UInt create(Bool clean, Str *messages);
+   UInt create(Str *messages);
    Str  source();
 
   ~ShaderVSGL();
@@ -302,7 +302,7 @@ struct ShaderPSGL : ShaderData
 {
    UInt ps=0;
 
-   UInt create(Bool clean, Str *messages);
+   UInt create(Str *messages);
    Str  source();
 
   ~ShaderPSGL();
@@ -389,7 +389,7 @@ struct ShaderGL
    Str8                       name;
 
    Str  source   ();
-   UInt compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
+   UInt compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages);
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ();
    void commitTex();

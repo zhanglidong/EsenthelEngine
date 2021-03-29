@@ -946,7 +946,7 @@ CChar8* GLSLVersion()
    }
 }
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
-UInt ShaderVSGL::create(Bool clean, Str *messages)
+UInt ShaderVSGL::create(Str *messages)
 {
    if(!vs && elms())
    {
@@ -998,12 +998,12 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
             glDeleteShader(vs); //vs=0; not needed since it's a temporary
          }
 
-         if(clean)T.clean();
+         clean();
       }
    }
    return vs;
 }
-UInt ShaderPSGL::create(Bool clean, Str *messages)
+UInt ShaderPSGL::create(Str *messages)
 {
    if(!ps && elms())
    {
@@ -1054,7 +1054,7 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
             glDeleteShader(ps); //ps=0; not needed since it's a temporary
          }
 
-         if(clean)T.clean();
+         clean();
       }
    }
    return ps;
@@ -1286,12 +1286,12 @@ Str ShaderGL::source()
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
 }
-UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
+UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    // prepare shaders
    if(messages)messages->clear();
-   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
-   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
 
    // prepare program
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
@@ -1324,7 +1324,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
    SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
    if(!prog)
-      if(UInt prog=compile(shader._vs, shader._ps, true, &shader, messages)) // create into temp var first and set to this only after fully initialized
+      if(UInt prog=compile(shader._vs, shader._ps, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
       MemtN<ImageLink, 256> images;
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
