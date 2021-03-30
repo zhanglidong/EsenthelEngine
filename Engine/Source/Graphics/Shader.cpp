@@ -1675,6 +1675,14 @@ Shader* ShaderFile::first()
    }
    return null;
 }
+Shader* ShaderFile::shader(Int i)
+{
+   if(InRange(i, _shaders))
+   {
+      Shader &shader=_shaders[i]; if(shader.validate(T))return &shader;
+   }
+   return null;
+}
 Shader* ShaderFile::find(C Str8 &name, Str *messages)
 {
    if(name.is())for(Int l=0, r=_shaders.elms(); l<r; )

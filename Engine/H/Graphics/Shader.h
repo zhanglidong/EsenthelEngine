@@ -441,11 +441,13 @@ struct Shader
 struct ShaderFile // Shader File
 {
    // get
-   Shader* first(            ); // first shader, null on fail
-   Shader*  find(C Str8 &name); // find  shader, null on fail
-   Shader*   get(C Str8 &name); //  get  shader, Exit on fail
+   Int     shaders(            )C {return _shaders.elms();} // get number of shaders in this file
+   Shader* shader (Int i       ); // get i-th shader, null on fail
+   Shader* first  (            ); // first shader, null on fail
+   Shader*  find  (C Str8 &name); // find  shader, null on fail
+   Shader*   get  (C Str8 &name); //  get  shader, Exit on fail
 #if EE_PRIVATE
-   Shader*  find(C Str8 &name, Str *messages); // find shader, put error messages into 'messages', null on fail
+   Shader*  find  (C Str8 &name, Str *messages); // find shader, put error messages into 'messages', null on fail
 #endif
 
    // manage
