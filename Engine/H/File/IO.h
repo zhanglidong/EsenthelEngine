@@ -173,6 +173,8 @@ Bool GetDriveSize(C Str &path, Long *free=null, Long *total=null); // get drive 
 Str  CurDir(          ); // get current working directory, by default it's always set to path of the application executable file (an exception is iOS platform, there the path is set inside the executable, since the executable is actually a folder)
 Bool CurDir(C Str &dir); // set current working directory, false on fail
 
+Bool MountHost(); // mount host computer file system to which this device is connected. This function is supported only on Nintendo Switch. After calling this function you can access the host computer file system using its original paths (example "C:\" on Windows) as long as this device is connected to that computer (for example with a USB cable). Returns false on fail
+
 Str MakeFullPath(C Str &path, FILE_PATH type=FILE_CUR, Bool keep_empty=true); // if the path is not 'FullPath', then full path is returned as if 'path' was relative to 'type', 'keep_empty'=if the 'path' is empty then don't make it a full path but return an empty path
 
 Bool FEqual      (            C Str     &a  , C Str &b   ,                                                      Cipher *  a_cipher=null, Cipher *   b_cipher=null                                   ); // if files have the same data
