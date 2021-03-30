@@ -31,7 +31,7 @@
           <Value>$(NINTENDO_SDK_ROOT)</Value>
         </SdkRoot>
         <Spec>NX</Spec>
-        <BuildType>Develop</BuildType>
+        <BuildType>Release</BuildType>
       </ConfigurationSetting>
       <ConfigurationSetting>
         <Name>Debug DX11|Win32</Name>
@@ -81,7 +81,7 @@
           <Value>$(NINTENDO_SDK_ROOT)</Value>
         </SdkRoot>
         <Spec>NX</Spec>
-        <BuildType>Develop</BuildType>
+        <BuildType>Release</BuildType>
       </ConfigurationSetting>
       <ConfigurationSetting>
         <Name>Debug GL|Win32</Name>
@@ -131,7 +131,7 @@
           <Value>$(NINTENDO_SDK_ROOT)</Value>
         </SdkRoot>
         <Spec>NX</Spec>
-        <BuildType>Develop</BuildType>
+        <BuildType>Release</BuildType>
       </ConfigurationSetting>
       <ConfigurationSetting>
         <Name>Debug Universal DX11|Win32</Name>
