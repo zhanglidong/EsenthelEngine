@@ -311,6 +311,7 @@ Application& Application::lang(LANG_TYPE lang)
 static Bool            AssertionIDValid=false;
 static IOPMAssertionID AssertionID;
 #endif
+#if !SWITCH
 Application& Application::stayAwake(AWAKE_MODE mode)
 {
    if(_stay_awake!=mode)
@@ -345,6 +346,7 @@ Application& Application::stayAwake(AWAKE_MODE mode)
    }
    return T;
 }
+#endif
 /******************************************************************************/
 void Application::activeOrBackFullChanged()
 {

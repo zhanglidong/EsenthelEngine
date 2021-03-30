@@ -427,6 +427,18 @@ Str EditorInterface::dataPath()
    }
    return S;
 }
+Str EditorInterface::editorPath()
+{
+   if(connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_EDITOR_PATH).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_EDITOR_PATH)return f.getStr();
+      disconnect();
+   }
+   return S;
+}
 /******************************************************************************/
 // ELEMENTS
 /******************************************************************************/

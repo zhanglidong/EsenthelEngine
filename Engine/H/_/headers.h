@@ -469,6 +469,7 @@
       #include <nn/fs.h>
       #include <nn/os.h>
       #include <nn/oe.h>
+      #include <nn/oe/oe_DisableAutoSleepApi.h>
       #include <nn/hid.h>
       #include <nn/swkbd/swkbd_InlineKeyboardApi.h>
       #include <nn/vi.h>

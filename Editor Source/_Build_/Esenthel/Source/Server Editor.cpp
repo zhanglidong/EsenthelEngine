@@ -135,6 +135,11 @@ EditorServer EditServer;
                   File &f=connection.data.reset().putByte(Edit::EI_GET_DATA_PATH)<<Proj.game_path; f.pos(0); connection.send(f);
                }break;
 
+               case Edit::EI_GET_EDITOR_PATH:
+               {
+                  File &f=connection.data.reset().putByte(Edit::EI_GET_EDITOR_PATH)<<SDKPath(); f.pos(0); connection.send(f);
+               }break;
+
                // ELMS
                case Edit::EI_GET_ELMS:
                {
