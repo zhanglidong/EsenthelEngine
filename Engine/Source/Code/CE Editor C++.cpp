@@ -1057,6 +1057,15 @@ static Bool CreateAppPak(C Str &name, Bool &exists, Bool *changed=null)
    if(!ok)Error("Can't create app pak");
    return ok;
 }
+static void DelExcept(C Str &path, CChar8 *allowed[], Int allowed_elms)
+{
+   for(FileFind ff(path); ff(); )
+   {
+      REP(allowed_elms)if(ff.name==allowed[i])goto keep;
+      FDel(ff.pathName());
+   keep:;
+   }
+}
 static void Optimize(Image &image)
 {
    Vec4 min; if(image.stats(&min))if(min.w>=1-1.5f/255)image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8_SRGB); // if image has no alpha, then remove it, because it will reduce PNG size
@@ -1382,14 +1391,31 @@ Bool CodeEditor::generateVSProj(Int version)
    }
    if(build_exe_type==EXE_NS)
    {
+      Str data=build_path+"Assets/Nintendo Switch/Data/";
+
+      // remove all unwanted
+      CChar8 *allowed[]=
+      {
+         "Engine.pak",
+         "Project.pak",
+         "ShaderCache.pak",
+      };
+      DelExcept(data, allowed, Elms(allowed)); // remove all except 'allowed'
+
+      FCreateDirs(data);
+
       // Engine.pak
-      FCreateDirs(build_path+"Assets/Nintendo Switch/Data");
-      Str src=bin_path+"Mobile/Engine.pak", dest=build_path+"Assets/Nintendo Switch/Data/Engine.pak";
+      Str src=bin_path+"Mobile/Engine.pak", dest=data+"Engine.pak";
       if(cei().appEmbedEngineData()==1) // 2D only
       {
          if(!CreateEngineEmbedPak(src, dest, false))return false;
       }else
          if(!CopyFile(src, dest))return false;
+
+      // ShaderCache.pak
+      src=bin_path+"Nintendo/Switch ShaderCache.pak", dest=data+"ShaderCache.pak";
+      if(!FExistSystem(src))FDel(dest);else
+      if(!CopyFile(src, dest))return false;
    }
 
    // universal manifest
@@ -2265,10 +2291,13 @@ Bool CodeEditor::generateAndroidProj()
 
    // assets
    {
-      Bool want_proj_data=true; // cei().appPublishProjData(); always keep Project data, because even if it's not included, App data will be
-
       // remove all unwanted
-      for(FileFind ff(build_path+"Android/assets"); ff(); )if(!(ff.name=="Engine.pak" || (want_proj_data && ff.name=="Project.pak")))FDel(ff.pathName()); // remove all except "Engine.pak" and "Project.pak"
+      CChar8 *allowed[]=
+      {
+         "Engine.pak",
+         "Project.pak",
+      };
+      DelExcept(build_path+"Android/assets", allowed, Elms(allowed)); // remove all except 'allowed'
 
       // Engine.pak
       FCreateDirs(build_path+"Android/assets");
