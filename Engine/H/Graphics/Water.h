@@ -74,7 +74,7 @@ struct WaterClass : WaterMtrl // Main water control
    Byte   reflection_resolution; // reflection resolution        ,    0..4   , default=1                      , the bigger value the worse quality but faster rendering
    PlaneM plane                ; // water plane                  ,           , default=(pos(0,0,0), normal(0,1,0))
 
-   WaterClass& reflectionRenderer(RENDER_TYPE type);   RENDER_TYPE reflectionRenderer()C {return _reflect_renderer;} // set/get Renderer used for rendering the reflaction , default=RT_DEFERRED (RT_FORWARD for Mobile)
+   WaterClass& reflectionRenderer(RENDER_TYPE type);   RENDER_TYPE reflectionRenderer()C {return _reflect_renderer;} // set/get Renderer used for rendering the reflaction , default=RT_DEFERRED
    WaterClass& max1Light         (Bool          on);   Bool        max1Light         ()C {return _max_1_light     ;} // set/get if use only up to 1 light for water surface, default=true (this greatly increases water rendering performance, however allows only 1 directional light affecting water surface), this affects only RT_DEFERRED renderer, all other renderers are always limited to only 1 directional light
 
    WaterClass& update(C Vec2 &vel); // update wave movement, 'vel'=velocity
@@ -107,13 +107,13 @@ private:
 #endif
    Bool         _max_1_light, _draw_plane_surface, _use_secondary_rt, _began, _swapped_ds;
    Byte         _mode, _shader_shadow, _shader_soft, _shader_reflect_env, _shader_reflect_mirror;
+   RENDER_TYPE  _reflect_renderer;
    Flt          _under_step, _offset_nrm, _offset_bump;
    Vec2         _offset_col, _y_mul_add;
    Quad         _quad;
    PlaneM       _under_plane;
    MeshRender   _mshr;
    WaterMtrlPtr _under_mtrl;
-   RENDER_TYPE  _reflect_renderer;
 
    WaterClass();
 }extern

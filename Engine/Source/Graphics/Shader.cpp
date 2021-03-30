@@ -171,7 +171,7 @@ DisplayClass& DisplayClass::shaderCache(C Str &path)
    { // after created
       ShaderCache.create(ShaderCache.path); // initialize from stored path
    #if SWITCH // on Nintendo Switch we might also have an already precompiled ShaderCache
-      if(!(App.flag&APP_IGNORE_PRECOMPILED_SHADER_CACHE))PrecompiledShaderCache.create("ShaderCache.pak");
+      if(!(App.flag&APP_IGNORE_PRECOMPILED_SHADER_CACHE))PrecompiledShaderCache.create("rom:/ShaderCache.pak"); // specify full path in case user changed 'CurDir'
    #endif
    }
 #endif

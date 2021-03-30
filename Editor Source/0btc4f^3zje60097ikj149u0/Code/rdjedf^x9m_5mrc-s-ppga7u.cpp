@@ -42,6 +42,9 @@ void InitPre()
    }else
    if(SWITCH)
    {
+   #if SWITCH
+      ASSERT(!DEBUG); // for compiling shaders we need Release mode, because it affects their binary format (shaders compiled in Release can only be used in Release mode, and Debug only in Debug)
+   #endif
       DYNAMIC_ASSERT(MountHost(), "Can't connect to the Computer, please check your USB cable connection");
       DYNAMIC_ASSERT(EditorPath.is(), "'EditorPath' was not set, please run this application on your computer (Windows) first");
       DYNAMIC_ASSERT(FileInfoSystem(EditorPath).type==FSTD_DIR, "Editor Path was not found, please run this application on your computer (Windows) to auto setup path");

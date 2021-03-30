@@ -134,8 +134,8 @@ private:
    Bool         _palette      ;
    Byte         _palette_index;
    PARTICLE_SRC _src_type     ;
-   Flt          _fade         ;
    RENDER_MODE  _render_mode  ;
+   Flt          _fade         ;
    CPtr         _src_ptr      ; Int _src_elms;
    MeshPtr      _src_mesh     ;
    Byte        *_src_help     ;
@@ -184,8 +184,8 @@ struct RawParticles // buffered particles
 private:
    Bool        _palette;
    Byte        _palette_index;
-   Int         _particles, _max_particles;
    RENDER_MODE _render_mode;
+   Int         _particles, _max_particles;
    VtxBuf      _vb;
    IndBuf      _ib;
 };

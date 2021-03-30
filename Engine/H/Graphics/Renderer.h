@@ -5,7 +5,7 @@
    Use 'Renderer.type()' to get/set rendering type.
 
 /******************************************************************************/
-enum RENDER_TYPE // Rendering Type, please check documentation for more info
+enum RENDER_TYPE : Byte // Rendering Type, please check documentation for more info
 {
    RT_DEFERRED, // full             bump mapping, multiple lights, full shadows, full    special effects, good for complex scenes with          many lights
    RT_FORWARD , // only flat/normal bump mapping, multiple lights, full shadows, limited special effects, good for simple  scenes with low number of lights (ideally 1 directional light only)
@@ -14,7 +14,7 @@ enum RENDER_TYPE // Rendering Type, please check documentation for more info
 #if EE_PRIVATE
 ASSERT(RT_DEFERRED==0); // keep Deferred as the first value as it's the most important renderer, when being first, it will improve 'switch' performance for this renderer
 #endif
-enum RENDER_MODE // Rendering Mode, rendering phase of the rendering process
+enum RENDER_MODE : Byte // Rendering Mode, rendering phase of the rendering process
 {
    RM_SOLID   , // solid
    RM_SOLID_M , // solid in mirrors/reflections
