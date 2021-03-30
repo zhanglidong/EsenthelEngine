@@ -62,10 +62,58 @@ namespace EE{
    #endif
 #endif
 /******************************************************************************/
+// SHADER CACHE
+/******************************************************************************/
 #if GL
 #include "Shader Hash.h" // this is generated after compiling shaders
 #define COMPRESS_GL_SHADER_BINARY       COMPRESS_ZSTD // in tests it was faster and had smaller size than LZ4
 #define COMPRESS_GL_SHADER_BINARY_LEVEL CompressionLevel(COMPRESS_GL_SHADER_BINARY)
+static Bool ShaderCacheSave(File &f)
+{
+   f.cmpUIntV(0); // ver
+   f.putULong(SHADER_HASH);
+   f.putByte (COMPRESS_GL_SHADER_BINARY);
+#if GL
+   f.putStr((CChar8*)glGetString(GL_VERSION));
+   f.putStr((CChar8*)glGetString(GL_RENDERER));
+   f.putStr((CChar8*)glGetString(GL_VENDOR));
+#endif
+   return f.ok();
+}
+static Bool ShaderCacheLoad(File &f)
+{
+   if(f.decUIntV()==0) // ver
+   if(f.getULong()==SHADER_HASH)
+   if(f.getByte ()==COMPRESS_GL_SHADER_BINARY)
+   {
+      Char8 temp[256];
+   #if GL
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VERSION )))return false;
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_RENDERER)))return false;
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VENDOR  )))return false;
+   #endif
+      return true;
+   }
+   return false;
+}
+
+struct PrecompiledShaderCacheClass
+{
+   Pak pak;
+
+   Bool is()C {return pak.totalFiles();}
+   Bool create(C Str &name)
+   {
+      if(pak.load(name))
+      {
+         File f; if(f.readTry("Data", pak) && ShaderCacheLoad(f))return true;
+         LogN("Included ShaderCache is outdated. Please regenerate it using \"Precompile Shaders\" tool, located inside \"Editor Source\\Tools\".");
+         pak.del();
+      }
+      return false;
+   }
+}static PrecompiledShaderCache;
+
 struct ShaderCacheClass
 {
    Str path;
@@ -80,15 +128,7 @@ struct ShaderCacheClass
          Str name=T.name();
          File f; if(f.writeTry(name))
          {
-            f.cmpUIntV(0); // ver
-            f.putULong(SHADER_HASH);
-            f.putByte (COMPRESS_GL_SHADER_BINARY);
-         #if GL
-            f.putStr((CChar8*)glGetString(GL_VERSION));
-            f.putStr((CChar8*)glGetString(GL_RENDERER));
-            f.putStr((CChar8*)glGetString(GL_VENDOR));
-         #endif
-            if(f.flushOK())return true;
+            if(ShaderCacheSave(f) && f.flush())return true;
             f.del(); FDelFile(name);
          }
       }
@@ -98,19 +138,7 @@ struct ShaderCacheClass
    {
       if(is())
       {
-         File f; if(f.readStdTry(name()))
-            if(f.decUIntV()==0) // ver
-            if(f.getULong()==SHADER_HASH)
-            if(f.getByte ()==COMPRESS_GL_SHADER_BINARY)
-         {
-            Char8 temp[256];
-         #if GL
-            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VERSION )))return false;
-            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_RENDERER)))return false;
-            f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VENDOR  )))return false;
-         #endif
-            return true;
-         }
+         File f; if(f.readStdTry(name()))return ShaderCacheLoad(f);
       }
       return false;
    }
@@ -139,8 +167,13 @@ struct ShaderCacheClass
 DisplayClass& DisplayClass::shaderCache(C Str &path)
 {
 #if GL
-   if(!D.created())ShaderCache.set(path); // before display created, just store path
-   else            ShaderCache.create(ShaderCache.path); // after created, initialize from stored path
+   if(!D.created())ShaderCache.set(path);else // before display created, just store path
+   { // after created
+      ShaderCache.create(ShaderCache.path); // initialize from stored path
+   #if SWITCH // on Nintendo Switch we might also have an already precompiled ShaderCache
+      PrecompiledShaderCache.create("ShaderCache.pak");
+   #endif
+   }
 #endif
    return T;
 }
@@ -1369,44 +1402,66 @@ Str ShaderGL::source()C
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
 }
+static const Int ProgramBinaryHeader=4; ASSERT(SIZE(GLenum)==ProgramBinaryHeader); // make room for 'format'
+static void SaveProgramBinary(UInt prog, C Str &name)
+{
+   GLint size=0; glGetProgramiv(prog, GL_PROGRAM_BINARY_LENGTH, &size); if(size)
+   {
+      Memt<Byte> shader_data; shader_data.setNumDiscard(size+ProgramBinaryHeader);
+      GLenum  format=0;
+      GLsizei size  =0;
+      glGetProgramBinary(prog, shader_data.elms()-ProgramBinaryHeader, &size, &format, shader_data.data()+ProgramBinaryHeader);
+      if(size==shader_data.elms()-ProgramBinaryHeader && format)
+      {
+        *(GLenum*)shader_data.data()=format;
+         File f(shader_data.data(), shader_data.elms());
+         if(COMPRESS_GL_SHADER_BINARY){File temp; temp.writeMem(); temp.cmpUIntV(f.size()); CompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, COMPRESS_GL_SHADER_BINARY_LEVEL); temp.pos(0); Swap(f, temp);}
+         SafeOverwrite(f, name);
+      }
+   }
+}
+static UInt CreateProgramFromBinary(CPtr data, Int size)
+{
+   if(size>ProgramBinaryHeader)
+   {
+      UInt prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
+      glProgramBinary(prog, *(GLenum*)data, (Byte*)data+ProgramBinaryHeader, size-ProgramBinaryHeader);
+      GLint ok=0; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+      if(ok)return prog;
+      glDeleteProgram(prog);
+   }
+   return 0;
+}
+static UInt CreateProgramFromBinary(File &f)
+{
+   if(COMPRESS_GL_SHADER_BINARY)
+   {
+      Int size=f.decUIntV(); File temp; if(!DecompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, f.left(), size, true))return 0;
+      temp.pos(0);
+      return CreateProgramFromBinary(temp.memFast(), temp.size());
+   }else
+   {
+      Memt<Byte> shader_data; shader_data.setNumDiscard(f.left()); if(!f.getFast(shader_data.data(), shader_data.elms()))return 0; // load everything into temp memory, to avoid using File buffer
+      return CreateProgramFromBinary(shader_data.data(), shader_data.elms());
+   }
+}
 UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    if(messages)messages->clear();
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
 
    // load from cache
-   Str        shader_cache_name;
-   Memt<Byte> shader_cache_data;
-   const Int header_size=4; ASSERT(SIZE(GLenum)==header_size); // make room for 'format'
+   if(PrecompiledShaderCache.is())
+   {
+      File f; if(f.readTry(ShaderFiles.name(shader)+'@'+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
+   }
+   Str shader_cache_name;
    if(ShaderCache.is())
    {
       shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
       File f; if(f.readStdTry(shader_cache_name))
       {
-         Ptr  data;
-         Int  size;
-         File temp; 
-         if(COMPRESS_GL_SHADER_BINARY)
-         {
-            size=f.decUIntV();
-            if(!DecompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, f.left(), size, true))goto error;
-            temp.pos(0);
-            data=temp.memFast();
-         }else
-         {
-            shader_cache_data.setNum(f.left()); if(!f.getFast(shader_cache_data.data(), shader_cache_data.elms()))goto error; // load everything into temp memory, to avoid using File buffer
-            data=shader_cache_data.data();
-            size=shader_cache_data.elms();
-         }
-         if(size>header_size)
-         {
-            prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
-            glProgramBinary(prog, *(GLenum*)data, (Byte*)data+header_size, size-header_size);
-            GLint ok=0; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
-            if(ok)return prog;
-            glDeleteProgram(prog); prog=0;
-         }
-      error:;
+         if(prog=CreateProgramFromBinary(f))return prog;
          f.del(); FDelFile(shader_cache_name); // if failed to create, then assume file data is outdated and delete it
       }
    }
@@ -1439,23 +1494,7 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
       if(LogInit)LogN("Success");
       
       // save to cache
-      if(prog && shader_cache_name.is())
-      {
-         GLint size=0; glGetProgramiv(prog, GL_PROGRAM_BINARY_LENGTH, &size); if(size)
-         {
-            shader_cache_data.setNum(size+header_size);
-            GLenum  format=0;
-            GLsizei size  =0;
-            glGetProgramBinary(prog, shader_cache_data.elms()-header_size, &size, &format, shader_cache_data.data()+header_size);
-            if(size==shader_cache_data.elms()-header_size && format)
-            {
-              *(GLenum*)shader_cache_data.data()=format;
-               File f(shader_cache_data.data(), shader_cache_data.elms());
-               if(COMPRESS_GL_SHADER_BINARY){File temp; temp.writeMem(); temp.cmpUIntV(f.size()); CompressRaw(f, temp, COMPRESS_GL_SHADER_BINARY, COMPRESS_GL_SHADER_BINARY_LEVEL); temp.pos(0); Swap(f, temp);}
-               SafeOverwrite(f, shader_cache_name);
-            }
-         }
-      }
+      if(prog && shader_cache_name.is())SaveProgramBinary(prog, shader_cache_name);
    }
    return prog;
 }
