@@ -1248,32 +1248,32 @@ static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *te
    }
 }
 
-INLINE void Shader11::setVSBuffers() {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
-INLINE void Shader11::setHSBuffers() {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
-INLINE void Shader11::setDSBuffers() {SetBuffers(buffers[ST_DS], DSBuf, &ID3D11DeviceContext::DSSetConstantBuffers);}
-INLINE void Shader11::setPSBuffers() {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
+INLINE void Shader11::setVSBuffers()C {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
+INLINE void Shader11::setHSBuffers()C {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
+INLINE void Shader11::setDSBuffers()C {SetBuffers(buffers[ST_DS], DSBuf, &ID3D11DeviceContext::DSSetConstantBuffers);}
+INLINE void Shader11::setPSBuffers()C {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
 
-INLINE void Shader11::setVSImages() {SetImages(images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
-INLINE void Shader11::setHSImages() {SetImages(images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
-INLINE void Shader11::setDSImages() {SetImages(images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
-INLINE void Shader11::setPSImages() {SetImages(images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
+INLINE void Shader11::setVSImages()C {SetImages(images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
+INLINE void Shader11::setHSImages()C {SetImages(images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
+INLINE void Shader11::setDSImages()C {SetImages(images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
+INLINE void Shader11::setPSImages()C {SetImages(images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
 #else // set separately
-INLINE void Shader11::setVSBuffers() {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setHSBuffers() {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setDSBuffers() {REPA(buffers[ST_DS]){C BufferLink &link=buffers[ST_DS][i]; BufDS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setPSBuffers() {REPA(buffers[ST_PS]){C BufferLink &link=buffers[ST_PS][i]; BufPS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setVSBuffers()C {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setHSBuffers()C {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setDSBuffers()C {REPA(buffers[ST_DS]){C BufferLink &link=buffers[ST_DS][i]; BufDS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setPSBuffers()C {REPA(buffers[ST_PS]){C BufferLink &link=buffers[ST_PS][i]; BufPS(link.index, link.buffer->buffer.buffer);}}
 
-INLINE void Shader11::setVSImages() {REPA(images[ST_VS]){C ImageLink &link=images[ST_VS][i]; D.texVS(link.index, link.image->getSRV());}}
-INLINE void Shader11::setHSImages() {REPA(images[ST_HS]){C ImageLink &link=images[ST_HS][i]; D.texHS(link.index, link.image->getSRV());}}
-INLINE void Shader11::setDSImages() {REPA(images[ST_DS]){C ImageLink &link=images[ST_DS][i]; D.texDS(link.index, link.image->getSRV());}}
-INLINE void Shader11::setPSImages() {REPA(images[ST_PS]){C ImageLink &link=images[ST_PS][i]; D.texPS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setVSImages()C {REPA(images[ST_VS]){C ImageLink &link=images[ST_VS][i]; D.texVS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setHSImages()C {REPA(images[ST_HS]){C ImageLink &link=images[ST_HS][i]; D.texHS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setDSImages()C {REPA(images[ST_DS]){C ImageLink &link=images[ST_DS][i]; D.texDS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setPSImages()C {REPA(images[ST_PS]){C ImageLink &link=images[ST_PS][i]; D.texPS(link.index, link.image->getSRV());}}
 #endif
 
-void Shader11::commit()
+void Shader11::commit()C
 {
    REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
-void Shader11::commitTex()
+void Shader11::commitTex()C
 {
    if(hs)
    {
@@ -1283,7 +1283,7 @@ void Shader11::commitTex()
    setVSImages();
    setPSImages();
 }
-void Shader11::start() // same as 'begin' but without committing buffers and textures
+void Shader11::start()C // same as 'begin' but without committing buffers and textures
 {
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
@@ -1303,7 +1303,7 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
    setVSBuffers();
    setPSBuffers();
 }
-void Shader11::startTex() // same as 'begin' but without committing buffers
+void Shader11::startTex()C // same as 'begin' but without committing buffers
 {
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
@@ -1327,7 +1327,7 @@ void Shader11::startTex() // same as 'begin' but without committing buffers
    setVSBuffers();
    setPSBuffers();
 }
-void Shader11::begin()
+void Shader11::begin()C
 {
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
@@ -1364,7 +1364,7 @@ ShaderGL::~ShaderGL()
    }
    // no need to release 'vs,ps' shaders since they're just copies from 'Shader*GL'
 }
-Str ShaderGL::source()
+Str ShaderGL::source()C
 {
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
@@ -1587,7 +1587,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    return prog!=0;
 }
 #if GL_MULTIPLE_UBOS
-void ShaderGL::commit()
+void ShaderGL::commit()C
 {
    REPA(all_buffers)
    {
@@ -1596,46 +1596,46 @@ void ShaderGL::commit()
       glBindBufferBase(GL_UNIFORM_BUFFER, i, b.buffer.buffer);
    }
 }
-void ShaderGL::commitTex()
+void ShaderGL::commitTex()C
 {
    REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
 }
-void ShaderGL::start() // same as 'begin' but without committing buffers and textures
+void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
    glUseProgram(prog);
 }
-void ShaderGL::startTex() // same as 'begin' but without committing buffers
+void ShaderGL::startTex()C // same as 'begin' but without committing buffers
 {
    glUseProgram(prog);
    commitTex();
 }
-void ShaderGL::begin()
+void ShaderGL::begin()C
 {
    glUseProgram(prog);
    commitTex();
    commit   ();
 }
 #else
-void ShaderGL::commit()
+void ShaderGL::commit()C
 {
    REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
-void ShaderGL::commitTex()
+void ShaderGL::commitTex()C
 {
    REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
 }
-void ShaderGL::start() // same as 'begin' but without committing buffers and textures
+void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
    glUseProgram(prog);
    REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
-void ShaderGL::startTex() // same as 'begin' but without committing buffers
+void ShaderGL::startTex()C // same as 'begin' but without committing buffers
 {
    glUseProgram(prog);
    REPA( images){C  ImageLink &t= images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
    REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
-void ShaderGL::begin()
+void ShaderGL::begin()C
 {
    glUseProgram(prog);
    REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
@@ -1705,8 +1705,8 @@ Shader* ShaderFile::get(C Str8 &name)
 /******************************************************************************/
 // DRAW
 /******************************************************************************/
-void Shader::draw(C Image *image, C Rect *rect) {Sh.Img[0]->set(image); draw(rect);}
-void Shader::draw(                C Rect *rect)
+void Shader::draw(C Image *image, C Rect *rect)C {Sh.Img[0]->set(image); draw(rect);}
+void Shader::draw(                C Rect *rect)C
 {
    VI.shader (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -1772,8 +1772,8 @@ void Shader::draw(                C Rect *rect)
    }
    VI.end();
 }
-void Shader::draw(C Image *image, C Rect *rect, C Rect &tex) {Sh.Img[0]->set(image); draw(rect, tex);}
-void Shader::draw(                C Rect *rect, C Rect &tex)
+void Shader::draw(C Image *image, C Rect *rect, C Rect &tex)C {Sh.Img[0]->set(image); draw(rect, tex);}
+void Shader::draw(                C Rect *rect, C Rect &tex)C
 {
    VI.shader (this);
    VI.setType(VI_2D_TEX, VI_STRIP);

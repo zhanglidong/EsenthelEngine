@@ -1691,8 +1691,8 @@ void VtxIndBuf::end()
    clear();
 }
 /******************************************************************************/
-void VtxIndBuf::shader(Shader *shader) {VI._shader=shader;}
-void VtxIndBuf::image (C Image *image) {VI._image =image ; Sh.Img[0]->set(image);}
+void VtxIndBuf::shader(C Shader *shader) {VI._shader=shader;}
+void VtxIndBuf::image (C Image  *image ) {VI._image =image ; Sh.Img[0]->set(image);}
 
 void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
 {

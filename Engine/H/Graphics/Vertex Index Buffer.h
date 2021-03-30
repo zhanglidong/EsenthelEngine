@@ -31,7 +31,7 @@ enum VI_FLAG // VertexIndex flags
    VI_LINE    =0x1, // if drawing lines
    VI_STRIP   =0x2, // if drawing strip
    VI_QUAD_IND=0x4, // if drawing quad using index buffer
-   VI_SP_COL  =0x8, // use ShaderParam color modifiers
+   VI_SP_COL  =0x8, // use 'ShaderParam' color modifiers
 };
 enum VI_USER_FLAG // VertexIndex user flags
 {
@@ -142,24 +142,24 @@ struct Vtx3DStandard
 struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
 {
    // operations
-   static void shader    ( Shader *shader); // set custom shader
-   static void image     (C Image *image ); // set texture
+   static void shader    (C Shader *shader); // set custom shader
+   static void image     (C Image  *image ); // set texture
 #if EE_PRIVATE
    static void imageConditional(C Image *image, ShaderImage &shader_image); // set texture for custom shader image, but only if different
-   static void color     (C Vec4  &color ); // set color
+   static void color     (C Vec4   &color ); // set color
 #endif
-   static void color     (C Color &color ); // set color
-   static void color1    (C Color &color ); // set color1
-   static void cull      (Bool     cull  ); // set face  culling
-   static void depthWrite(Bool     on    ); // set depth writing (this will affect only drawing that normally uses depth buffer)
-   static void alphaTest (Bool     on    ); // set alpha testing (currently this is supported only for drawing faces using 'Vtx3DTex' and 'Vtx3DTexCol' as parameters)
-   static void fog       (Bool     on    ); // set fog   usage   (currently this is supported only for drawing faces using 'Vtx3DTex' and 'Vtx3DTexCol' as parameters), if this is enabled then any current 'Fog' will affect the face colors
-   static void clamp     (               ); // set texture addressing to (X:clamp, Y:clamp)
-   static void wrap      (               ); // set texture addressing to (X:wrap , Y:wrap )
-   static void wrapX     (               ); // set texture addressing to (X:wrap , Y:clamp)
-   static void wrapY     (               ); // set texture addressing to (X:clamp, Y:wrap )
-   static void flush     (               ); // flush queued data, calling this method is optional as 'end' method will automatically call it, you can call this method during drawing before changing some shader parameters
-   static void end       (               ); // flush and finish drawing, this must be called after each series of drawing
+   static void color     (C Color  &color ); // set color
+   static void color1    (C Color  &color ); // set color1
+   static void cull      (Bool      cull  ); // set face  culling
+   static void depthWrite(Bool      on    ); // set depth writing (this will affect only drawing that normally uses depth buffer)
+   static void alphaTest (Bool      on    ); // set alpha testing (currently this is supported only for drawing faces using 'Vtx3DTex' and 'Vtx3DTexCol' as parameters)
+   static void fog       (Bool      on    ); // set fog   usage   (currently this is supported only for drawing faces using 'Vtx3DTex' and 'Vtx3DTexCol' as parameters), if this is enabled then any current 'Fog' will affect the face colors
+   static void clamp     (                ); // set texture addressing to (X:clamp, Y:clamp)
+   static void wrap      (                ); // set texture addressing to (X:wrap , Y:wrap )
+   static void wrapX     (                ); // set texture addressing to (X:wrap , Y:clamp)
+   static void wrapY     (                ); // set texture addressing to (X:clamp, Y:wrap )
+   static void flush     (                ); // flush queued data, calling this method is optional as 'end' method will automatically call it, you can call this method during drawing before changing some shader parameters
+   static void end       (                ); // flush and finish drawing, this must be called after each series of drawing
 
    // draw dots
    static void dot(                C Vec2 &pos, Flt r=0.007f); // this uses 'VI.color'
@@ -272,7 +272,7 @@ private:
               _vtx_queued, _vtx_drawing, _vtx_drawing_raw,
               _ind_div, _ind_sub;
  C Image     *_image;
-   Shader    *_shader;
+ C Shader    *_shader;
    Byte      *_vtx_buf;
    VtxFormat  _vf2D_flat, _vf2D_col, _vf2D_tex, _vf2D_tex_col, _vf2D_tex2, _vf2D_font, _vf3D_flat, _vf3D_col, _vf3D_tex, _vf3D_tex_col, _vf3D_bilb, _vf3D_bilb_anim, _vf3D_laser, _vf3D_cloth, _vf3D_simple, _vf3D_standard, _vf3D_full;
    VtxBuf     _vb;
