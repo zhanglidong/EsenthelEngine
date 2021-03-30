@@ -69,8 +69,10 @@ T1(TYPE) struct Cache : _Cache // Cache - container for dynamically loaded data,
    TYPE* operator()(C UID &id  , CChar *path=null); // require object by its file name ID,       load if not found, Exit on fail (unless different CACHE_MODE selected)
 
    // get object file name (this will return pointer to internally stored file name assuming that the object is stored in this Cache)
-                                 CChar* name(C             TYPE        *data, CChar *path=null)C;                             // get object file name, null on fail
-   template<Cache<TYPE> &CACHE>  CChar* name(C CacheElmPtr<TYPE,CACHE> &data, CChar *path=null)C {return name(data(), path);} // get object file name, null on fail
+                                 C Str& name(C             TYPE        *data             )C;                             // get object file name, ""   on fail
+   template<Cache<TYPE> &CACHE>  C Str& name(C CacheElmPtr<TYPE,CACHE> &data             )C {return name(data()      );} // get object file name, ""   on fail
+                                 CChar* name(C             TYPE        *data, CChar *path)C;                             // get object file name, null on fail
+   template<Cache<TYPE> &CACHE>  CChar* name(C CacheElmPtr<TYPE,CACHE> &data, CChar *path)C {return name(data(), path);} // get object file name, null on fail
 
    // get object file name ID (this will return ID of the object file name assuming that the object is stored in the cache and its file name was created using 'EncodeFileName')
                                  UID id(C             TYPE        *data)C;                     // get object file name ID, 'UIDZero' on fail
@@ -131,7 +133,8 @@ template<typename TYPE, Cache<TYPE> &CACHE>   struct CacheElmPtr // Cache Elemen
          operator Bool(                   )C {return  T._data!=null      ;} // if pointer  is  valid
 
    // get object file name (this will return pointer to internally stored file name assuming that the object is stored in the cache)
-   CChar* name(CChar *path=null)C; // get object file name, null on fail
+   C Str& name(           )C; // get object file name, ""   on fail
+   CChar* name(CChar *path)C; // get object file name, null on fail
 
    // get object file name ID (this will return ID of the object file name assuming that the object is stored in the cache and its file name was created using 'EncodeFileName')
    UID id()C; // get object file name ID, 'UIDZero' on fail

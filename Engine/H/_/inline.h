@@ -1734,6 +1734,7 @@ T1(TYPE)  TYPE*  Cache<TYPE>::get       (C UID &id  , CChar *path) {return (TYPE
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C Str &file, CChar *path) {return (TYPE*)super::require(file, path, false);}
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C UID &id  , CChar *path) {return (TYPE*)super::require(id  , path, false);}
 
+T1(TYPE)  C Str&  Cache<TYPE>::name    (C TYPE *data             )C {return super::name    (data       );}
 T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return super::name    (data,  path);}
 T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return super::id      (data       );}
 T1(TYPE)  Int     Cache<TYPE>::ptrCount(C TYPE *data             )C {return super::ptrCount(data       );}
@@ -1765,6 +1766,7 @@ T1(TYPE) inline Int Elms(C  Cache<TYPE> &cache) {return cache.elms();}
 /******************************************************************************/
 // CACHE ELEMENT POINTER
 /******************************************************************************/
+template<typename TYPE, Cache<TYPE> &CACHE>  C Str&  CacheElmPtr<TYPE,CACHE>::name (            )C {return CACHE.name (_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE.name (_data, path );}
 template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE.id   (_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  Bool    CacheElmPtr<TYPE,CACHE>::dummy(            )C {return CACHE.dummy(_data       );}

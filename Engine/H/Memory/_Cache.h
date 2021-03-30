@@ -83,6 +83,7 @@ mutable Byte         _d_lock;
    Int    ptrCount  (CPtr   data                           )C;
    Bool   dummy     (CPtr   data                           )C;
    void   dummy     (CPtr   data, Bool   dummy             );
+   C Str& name      (CPtr   data                           )C;
    CChar* name      (CPtr   data, CChar *path              )C;
    UID    id        (CPtr   data                           )C;
    void   removeData(CPtr   data                           );

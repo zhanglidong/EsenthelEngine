@@ -119,7 +119,7 @@ _Cache::Elm* _Cache::findExact(CChar *file, Int &stop)
    Int l=0, r=_elms; for(; l<r; )
    {
       Int mid    =UInt(l+r)/2,
-          compare=ComparePath(file, elmDesc(*_order[mid]).file(), _case_sensitive);
+          compare=ComparePath(file, elmDesc(*_order[mid]).file, _case_sensitive);
       if(!compare)
       {
          stop=mid;
@@ -159,13 +159,13 @@ Int _Cache::findDelayRemove(Elm &elm)
 /******************************************************************************/
 void _Cache::addToOrder(Elm &elm)
 {
-   Int stop; findExact(elmDesc(elm).file(), stop);
+   Int stop; findExact(elmDesc(elm).file, stop);
    MoveFastN(_order+stop+1, _order+stop, _elms-stop); // faster version of: for(Int i=_elms; i>stop; i--)_order[i]=_order[i-1];
   _order[stop]=&elm; _elms++;
 }
 void _Cache::removeFromOrder(Elm &elm)
 {
-   Int stop; if(findExact(elmDesc(elm).file(), stop))
+   Int stop; if(findExact(elmDesc(elm).file, stop))
    {
      _elms--; MoveFastN(_order+stop, _order+stop+1, _elms-stop); // faster version of: for(Int i=stop; i<_elms; i++)_order[i]=_order[i+1];
    }
@@ -358,6 +358,20 @@ Int _Cache::ptrCount(CPtr data)C
    }
    return -1;
 }
+C Str& _Cache::name(CPtr data)C
+{
+   if(C Elm *elm=dataElm(data))
+   {
+      SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+      SyncLocker     locker(  _lock);
+      if(lockedContains(elm))
+      {
+       C Desc &desc=elmDesc(*elm);
+         if(!(desc.flag&CACHE_ELM_LOADING))return desc.file; // name may change while loading
+      }
+   }
+   return S;
+}
 CChar* _Cache::name(CPtr data, CChar *path)C
 {
    if(C Elm *elm=dataElm(data))
@@ -369,8 +383,8 @@ CChar* _Cache::name(CPtr data, CChar *path)C
        C Desc &desc=elmDesc(*elm);
          if(!(desc.flag&CACHE_ELM_LOADING)) // name may change while loading
          {
-            if(Is(path))return _SkipStartPath(desc.file(), _SkipStartPath(path, DataPath())); // must be '_SkipStartPath' because we're returning CChar*
-                        return                desc.file();
+            if(Is(path))return _SkipStartPath(desc.file, _SkipStartPath(path, DataPath())); // must be '_SkipStartPath' because we're returning CChar*
+                        return                desc.file;
          }
       }
    }
@@ -382,7 +396,7 @@ UID _Cache::id(CPtr data)C
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(lockedContains(elm))return FileNameID(elmDesc(*elm).file()); // ID does not change while loading, so ignore CACHE_ELM_LOADING
+      if(lockedContains(elm))return FileNameID(elmDesc(*elm).file); // ID does not change while loading, so ignore CACHE_ELM_LOADING
    }
    return UIDZero;
 }
