@@ -48,7 +48,7 @@ Str MakeFullPath(C Str &path, FILE_PATH type, Bool keep_empty)
 }
 /******************************************************************************/
 #if !SWITCH
-Bool MountHost() {return false;}
+Bool MountHost() {return DESKTOP;} // assume Desktop is already connected to itself
 #endif
 /******************************************************************************/
 // FILE INFO
