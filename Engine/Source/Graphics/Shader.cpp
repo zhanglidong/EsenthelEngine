@@ -171,7 +171,7 @@ DisplayClass& DisplayClass::shaderCache(C Str &path)
    { // after created
       ShaderCache.create(ShaderCache.path); // initialize from stored path
    #if SWITCH // on Nintendo Switch we might also have an already precompiled ShaderCache
-      PrecompiledShaderCache.create("ShaderCache.pak");
+      if(!(App.flag&APP_IGNORE_PRECOMPILED_SHADER_CACHE))PrecompiledShaderCache.create("ShaderCache.pak");
    #endif
    }
 #endif
@@ -1455,7 +1455,7 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
    {
       File f; if(f.readTry(ShaderFiles.name(shader)+'@'+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
    }
-   Str shader_cache_name;
+   Str shader_cache_name; // this name will be used for loading from cache, and if failed to load, then save to cache
    if(ShaderCache.is())
    {
       shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
