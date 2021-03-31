@@ -66,7 +66,7 @@ namespace EE{
 /******************************************************************************/
 #include "Shader Hash.h" // this is generated after compiling shaders
 #define COMPRESS_GL_SHADER_BINARY       COMPRESS_ZSTD // in tests it was faster and had smaller size than LZ4
-#define COMPRESS_GL_SHADER_BINARY_LEVEL ((App.flag&APP_SHADER_CACHE_MAX_COMPRESS) ? CompressionLevels(COMPRESS_GL_SHADER_BINARY).y : CompressionLevel(COMPRESS_GL_SHADER_BINARY))
+#define COMPRESS_GL_SHADER_BINARY_LEVEL ((App.flag&APP_SHADER_CACHE_MAX_COMPRESS) ? CompressionLevels(COMPRESS_GL_SHADER_BINARY).y : CompressionDefault(COMPRESS_GL_SHADER_BINARY))
 static Bool ShaderCacheLoadHeader(File &f)
 {
    if(f.decUIntV()==0) // ver

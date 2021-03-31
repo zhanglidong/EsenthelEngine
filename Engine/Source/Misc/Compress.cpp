@@ -1854,7 +1854,7 @@ CChar8* CompressionName(COMPRESS_TYPE type)
       default             : return null;
    }
 }
-Int CompressionLevel(COMPRESS_TYPE type)
+Int CompressionDefault(COMPRESS_TYPE type)
 {
    switch(type)
    {

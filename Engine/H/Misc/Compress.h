@@ -50,7 +50,7 @@ struct xxHash64Calc : DataCallback
 Bool Compressable(C Str &file_extension); // if 'file_extension' is compressable (compressing most likely would reduce the file size, this returns false for file types already compressed like "jpg", "mp3", "avi", "rar", .. and true for all other file types)
 
 CChar8* CompressionName    (COMPRESS_TYPE type); // get compression type name in text format
-Int     CompressionLevel   (COMPRESS_TYPE type); // get default  compression level  for specified type, this level has a good balance between speed and size
+Int     CompressionDefault (COMPRESS_TYPE type); // get default  compression level  for specified type, this level has a good balance between speed and size
 VecI2   CompressionLevels  (COMPRESS_TYPE type); // get range of compression levels for specified type, 'VecI2.x' will contain the minimum level, 'VecI2.y' will contain the maximum level, if both values are the same, then it means that this type does not support different compression levels
 UInt    CompressionMemUsage(COMPRESS_TYPE type, Int compression_level=9, Long uncompressed_size=-1); // get memory usage used for   compression, 'uncompressed_size'=size of the uncompressed data (use -1 if unknown)
 UInt  DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level=9, Long uncompressed_size=-1); // get memory usage used for decompression, 'uncompressed_size'=size of the uncompressed data (use -1 if unknown)
