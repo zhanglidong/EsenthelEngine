@@ -8,7 +8,7 @@
 Str EditorPath="C:\\Esenthel\\Editor";
 Edit.EditorInterface EI;
 Str ShaderCachePath, ShaderCacheSize;
-int ProcessedShaders, TotalShaders;
+int ProcessedShaders, TotalShaders, Stage;
 const bool CacheOnComputer=true;
 /******************************************************************************/
 void InitPre()
@@ -77,6 +77,13 @@ bool ShaderCompiler(Thread &thread)
          if(thread.wantStop())return false;
       }
    }
+
+   Stage++;
+   Str path=EditorPath;
+   path.tailSlash(true)+="Bin/Nintendo/";
+   DYNAMIC_ASSERT(FCreateDirs(path), S+"Can't create path:\n"+path);
+   DYNAMIC_ASSERT(PakCreate(ShaderCachePath, path+"Switch ShaderCache.pak"), "Can't create ShaderCache");
+
    return false;
 }
 Thread ShaderCompilerThread;
@@ -108,24 +115,28 @@ bool Update()
 {
    if(ShaderCompilerThread.wait(1000/30)) // wait a little to pause this thread and give more CPU power to shader compiler
    {
-      Str path=EditorPath;
-      path.tailSlash(true)+="Bin/Nintendo/";
-      DYNAMIC_ASSERT(FCreateDirs(path), S+"Can't create path:\n"+path);
-      DYNAMIC_ASSERT(PakCreate(ShaderCachePath, path+"Switch ShaderCache.pak"), "Can't create ShaderCache");
       Exit("Shader Cache created successfully");
    }
-   if(Touches.elms() && Touches[0].pd())
-   {
-      ShaderCacheSize=S+"ShaderCache Size: "+TextInt(FSize(ShaderCachePath), -1, 3);
-   }
+   //if(Touches.elms() && Touches[0].pd())ShaderCacheSize=S+"ShaderCache Size: "+TextInt(FSize(ShaderCachePath), -1, 3);
    return true;
 }
 /******************************************************************************/
 void Draw()
 {
    D.clear(BLACK);
-   D.text(0, 0.1, "Compiling Shaders");
-   D.text(0, 0, TextInt(ProcessedShaders, -1, 3)+" / "+TextInt(TotalShaders, -1, 3));
-   D.text(0, -0.1, ShaderCacheSize);
+   switch(Stage)
+   {
+      case 0:
+      {
+         D.text(0, 0.1, "Compiling Shaders");
+         D.text(0, 0, TextInt(ProcessedShaders, -1, 3)+" / "+TextInt(TotalShaders, -1, 3));
+         D.text(0, -0.1, ShaderCacheSize);
+      }break;
+      
+      case 1:
+      {
+         D.text(0, 0, "Creating PAK");
+      }break;
+   }
 }
 /******************************************************************************/
