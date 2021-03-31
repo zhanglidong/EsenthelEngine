@@ -64,10 +64,40 @@ namespace EE{
 /******************************************************************************/
 // SHADER CACHE
 /******************************************************************************/
-#if GL
 #include "Shader Hash.h" // this is generated after compiling shaders
 #define COMPRESS_GL_SHADER_BINARY       COMPRESS_ZSTD // in tests it was faster and had smaller size than LZ4
-#define COMPRESS_GL_SHADER_BINARY_LEVEL CompressionLevel(COMPRESS_GL_SHADER_BINARY)
+#define COMPRESS_GL_SHADER_BINARY_LEVEL ((App.flag&APP_SHADER_CACHE_MAX_COMPRESS) ? CompressionLevels(COMPRESS_GL_SHADER_BINARY).y : CompressionLevel(COMPRESS_GL_SHADER_BINARY))
+static Bool ShaderCacheLoadHeader(File &f)
+{
+   if(f.decUIntV()==0) // ver
+   if(f.getULong()==SHADER_HASH)
+   if(f.getByte ()==COMPRESS_GL_SHADER_BINARY)
+      return true;
+   return false;
+}
+Bool VerifyPrecompiledShaderCache(C Str &name)
+{
+   Pak pak; if(pak.load(name))
+   {
+      File f; if(f.readTry("Data", pak) && ShaderCacheLoadHeader(f))return true;
+   }
+   return false;
+}
+#if GL
+static Bool ShaderCacheLoad(File &f)
+{
+   if(ShaderCacheLoadHeader(f))
+   {
+      Char8 temp[256];
+   #if GL
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VERSION )))return false;
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_RENDERER)))return false;
+      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VENDOR  )))return false;
+   #endif
+      return true;
+   }
+   return false;
+}
 static Bool ShaderCacheSave(File &f)
 {
    f.cmpUIntV(0); // ver
@@ -80,22 +110,6 @@ static Bool ShaderCacheSave(File &f)
 #endif
    return f.ok();
 }
-static Bool ShaderCacheLoad(File &f)
-{
-   if(f.decUIntV()==0) // ver
-   if(f.getULong()==SHADER_HASH)
-   if(f.getByte ()==COMPRESS_GL_SHADER_BINARY)
-   {
-      Char8 temp[256];
-   #if GL
-      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VERSION )))return false;
-      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_RENDERER)))return false;
-      f.getStr(temp); if(!Equal(temp, (CChar8*)glGetString(GL_VENDOR  )))return false;
-   #endif
-      return true;
-   }
-   return false;
-}
 
 struct PrecompiledShaderCacheClass
 {
@@ -107,7 +121,7 @@ struct PrecompiledShaderCacheClass
       if(pak.load(name))
       {
          File f; if(f.readTry("Data", pak) && ShaderCacheLoad(f))return true;
-         LogN("Included ShaderCache is outdated. Please regenerate it using \"Precompile Shaders\" tool, located inside \"Editor Source\\Tools\".");
+         LogN("Precompiled ShaderCache is outdated. Please regenerate it using \"Precompile Shaders\" tool, located inside \"Editor Source\\Tools\".");
          pak.del();
       }
       return false;

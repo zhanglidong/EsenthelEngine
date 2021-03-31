@@ -1415,6 +1415,7 @@ Bool CodeEditor::generateVSProj(Int version)
       // ShaderCache.pak
       src=bin_path+"Nintendo/Switch ShaderCache.pak", dest=data+"ShaderCache.pak";
       if(!FExistSystem(src))FDel(dest);else
+      if(!VerifyPrecompiledShaderCache(src)){FDel(dest); Gui.msgBox(S, "Precompiled ShaderCache is outdated. Please regenerate it using \"Precompile Shaders\" tool, located inside \"Editor Source\\Tools\".");}else
       if(!CopyFile(src, dest))return false;
    }
 

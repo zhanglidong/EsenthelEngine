@@ -14,7 +14,7 @@ const bool CacheOnComputer=true;
 void InitPre()
 {
    EE_INIT();
-   App.flag=APP_WORK_IN_BACKGROUND|APP_IGNORE_PRECOMPILED_SHADER_CACHE; // ignore "PrecompiledShaderCache" to make sure we always use "ShaderCache", this will always save shaders in "ShaderCache" even if they're already included in the "PrecompiledShaderCache"
+   App.flag=APP_WORK_IN_BACKGROUND|APP_SHADER_CACHE_MAX_COMPRESS|APP_IGNORE_PRECOMPILED_SHADER_CACHE; // ignore "PrecompiledShaderCache" to make sure we always use "ShaderCache", this will always save shaders in "ShaderCache" even if they're already included in the "PrecompiledShaderCache"
    if(DESKTOP)
    {
       Str msg; if(!EI.connect(msg))

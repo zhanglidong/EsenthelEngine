@@ -575,5 +575,7 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
+
+Bool VerifyPrecompiledShaderCache(C Str &name);
 #endif
 /******************************************************************************/

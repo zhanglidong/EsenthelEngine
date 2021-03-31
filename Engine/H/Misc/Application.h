@@ -28,6 +28,7 @@ enum APP_FLAG // Application Flags
    APP_WEB_DISABLE_AUTO_RESIZE        =1<<20, // Web applications by default will auto resize the canvas to cover the entire browser window client area, to disable this behavior you can enable this option [Supported Platforms: Web]
    APP_FADE_OUT                       =1<<21, // if enabled then application window and all sounds will smoothly fade out at application close, available only on Desktop platforms
    APP_IGNORE_PRECOMPILED_SHADER_CACHE=1<<22, // if ignore loading shaders from Precompiled Shader Cache
+   APP_SHADER_CACHE_MAX_COMPRESS      =1<<23, // if enable maximum compression for the Shader Cache, this slows down generation of the Shader Cache, but reduces its size
 
    APP_AUTO_FREE_OPEN_GL_ES_DATA=APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA|APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA,
 };
