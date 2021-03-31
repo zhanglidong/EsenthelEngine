@@ -39,8 +39,8 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   // read the source file, we'll use "engine.pak" because it's big enough
-   src.read(EE_ENGINE_PATH);
+   // read the source file, we'll use "Engine.pak" because it's big enough
+   src.mustRead(EE_ENGINE_PATH);
 
    // compress the source into files in memory, using different compression algorithms, and measure the time
    snappy_compress_time=Time.curTime(); src.pos(0); snappy_compressed.writeMem(); Compress(src, snappy_compressed, COMPRESS_SNAPPY); snappy_compress_time=Time.curTime()-snappy_compress_time;
