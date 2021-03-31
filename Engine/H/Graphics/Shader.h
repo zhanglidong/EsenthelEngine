@@ -20,8 +20,8 @@ private:
 
       Bool is()C {return state!=null;}
 
-      Bool createTry(D3D11_SAMPLER_DESC &desc);
-      void create   (D3D11_SAMPLER_DESC &desc);
+      Bool createTry(D3D11_SAMPLER_DESC &desc); // false on fail
+      void create   (D3D11_SAMPLER_DESC &desc); // Exit  on fail
       void setVS    (Int index);
       void setHS    (Int index);
       void setDS    (Int index);

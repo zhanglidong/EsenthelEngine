@@ -1099,11 +1099,11 @@ static void GetNotificationIcon(Image &image, DateTime &modify_time_utc, C Image
 {
    if(C ImagePtr &app_icon=CE.cei().appNotificationIcon())
    {
-      app_icon->copyTry(image, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT); modify_time_utc=FileInfo(app_icon.name()).modify_time_utc; Optimize(image);
+      app_icon->mustCopy(image, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT); modify_time_utc=FileInfo(app_icon.name()).modify_time_utc; Optimize(image);
       if(!modify_time_utc.valid())modify_time_utc.getUTC();
    }else
    {
-      icon.copy(image, -1, -1, -1, IMAGE_L8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT); // convert to grey
+      icon.mustCopy(image, -1, -1, -1, IMAGE_L8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT); // convert to grey
       modify_time_utc=icon_time;
    }
 }

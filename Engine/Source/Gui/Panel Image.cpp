@@ -1168,7 +1168,7 @@ struct PanelImageCreate
    {
       image.transparentToNeighbor();
    #if DEBUG
-      if(Kb.b(KB_N)){normal_map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); normal_map.copy(image, -1, -1, -1, IMAGE_R8G8B8_SRGB);}
+      if(Kb.b(KB_N)){normal_map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); normal_map.mustCopy(image, -1, -1, -1, IMAGE_R8G8B8_SRGB);}
    #endif
 
       image.resize(image_size.x/super_sample, image_size.y/super_sample, filter, IC_CLAMP|IC_ALPHA_WEIGHT); // IC_ALPHA_WEIGHT needed when having 2 sections with different opacities

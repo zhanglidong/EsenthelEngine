@@ -302,7 +302,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
       if(image.mode()!=want.mode) // if created as SOFT, then convert to HW
       {
          Swap(soft, image); // can't create from self
-         if(!image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
+         if(!image.createEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
             #if GL_ES
                , true // allow deleting 'soft' src
             #endif
@@ -313,9 +313,9 @@ const Int         file_faces=(file_cube ? 6 : 1);
             for(IMAGE_TYPE alt_type=type; ; )
             {
                alt_type=ImageTypeOnFail(alt_type); if(!alt_type)return false;
-               if(ImageSupported   (alt_type, want.mode, soft.samples()) // do a quick check before 'copyTry' to avoid it if we know creation will fail
-               && soft .  copyTry  (soft, -1, -1, -1, alt_type, -1, -1, FILTER_BEST, IC_CONVERT_GAMMA) // we have to keep depth, soft mode, mip maps, make sure gamma conversion is performed
-               && image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
+               if(ImageSupported (alt_type, want.mode, soft.samples()) // do a quick check before 'copyTry' to avoid it if we know creation will fail
+               && soft .  copyTry(soft, -1, -1, -1, alt_type, -1, -1, FILTER_BEST, IC_CONVERT_GAMMA) // we have to keep depth, soft mode, mip maps, make sure gamma conversion is performed
+               && image.createEx (soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
                   #if GL_ES
                      , true // allow deleting 'soft' src
                   #endif

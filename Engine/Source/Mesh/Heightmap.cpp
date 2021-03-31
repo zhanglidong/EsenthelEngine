@@ -107,9 +107,9 @@ Heightmap& Heightmap::create(Int res, Flt height, C MaterialPtr &material, Bool 
    {
       Clamp(res, 2, MAX_HM_RES); res=NearestPow2(res)|1; Int res1=res-1;
 
-     _height    .createSoft(res, res, 1, IMAGE_F32     );
-     _mtrl_index.createSoft(res, res, 1, IMAGE_R8G8B8A8);
-     _mtrl_blend.createSoft(res, res, 1, IMAGE_R8G8B8A8);
+     _height    .mustCreateSoft(res, res, 1, IMAGE_F32     );
+     _mtrl_index.mustCreateSoft(res, res, 1, IMAGE_R8G8B8A8);
+     _mtrl_blend.mustCreateSoft(res, res, 1, IMAGE_R8G8B8A8);
      _color     .del  ();
      _materials .clear();
 
@@ -289,12 +289,12 @@ void Heightmap::createFromQuad(C Heightmap *lb, C Heightmap *rb, C Heightmap *lf
   _materials.clear();
 
    // clear all images at start, and overwrite only if we have source data, this is because the heightmaps overlap each other in 1 pixel, and when clearing quarter without heightmap we could potentially erase 1 pixel line data from other
-  _height    .createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_F32     ); _height    .clear();
-  _mtrl_index.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8A8); _mtrl_index.clear();
-  _mtrl_blend.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8A8); _mtrl_blend.clear();
+  _height    .mustCreateSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_F32     ).clear();
+  _mtrl_index.mustCreateSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8A8).clear();
+  _mtrl_blend.mustCreateSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8A8).clear();
    if((lb && lb->_color.is()) || (rb && rb->_color.is()) || (lf && lf->_color.is()) || (rf && rf->_color.is()))
    {
-     _color.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8_SRGB);
+     _color.mustCreateSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, _color.h())
       REPD(x, _color.w())_color.pixB3(x, y)=255;
    }else _color.del();
@@ -381,7 +381,7 @@ void Heightmap::colorF(Int x, Int y, C Vec &color)
       }
       if(_color.is())
       {
-         if(_color.type()!=IMAGE_F32_3_SRGB)_color.copy(_color, -1, -1, -1, IMAGE_F32_3_SRGB); // convert to high precision
+         if(_color.type()!=IMAGE_F32_3_SRGB)_color.mustCopy(_color, -1, -1, -1, IMAGE_F32_3_SRGB); // convert to high precision
         _color.pixF3(x, y)=color;
       }
    }
@@ -391,7 +391,7 @@ void Heightmap::mtrlBlendHP()
 {
    if(_mtrl_blend.hwType()==IMAGE_R8G8B8A8)
    {
-      Image   temp; temp.create(_mtrl_blend.w(), _mtrl_blend.h(), 1, IMAGE_F32_4, IMAGE_SOFT, 1, false); // use 'create' to have 'Exit' on fail, because the methods that use 'mtrlBlendHP', assume that it succeeded
+      Image   temp; temp.mustCreate(_mtrl_blend.w(), _mtrl_blend.h(), 1, IMAGE_F32_4, IMAGE_SOFT, 1, false); // use 'create' to have 'Exit' on fail, because the methods that use 'mtrlBlendHP', assume that it succeeded
       REPD(y, temp.h())
       REPD(x, temp.w())
       {

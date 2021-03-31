@@ -634,7 +634,7 @@ Image& Image::alphaFromKey(C Color &key)
    Int        mip_maps;
    if(Decompress(T, type, mode, mip_maps))
    {
-      if(!typeInfo().a){copy(T, -1, -1, -1, ImageTypeIncludeAlpha(T.type()), T.mode(), T.mipMaps()); type=T.type();} // if image doesn't have alpha channel then include it, set 'type' to value after conversion so it won't be converted back
+      if(!typeInfo().a){mustCopy(T, -1, -1, -1, ImageTypeIncludeAlpha(T.type()), T.mode(), T.mipMaps()); type=T.type();} // if image doesn't have alpha channel then include it, set 'type' to value after conversion so it won't be converted back
       if(lock())
       {
          REPD(z, T.d())
@@ -654,7 +654,7 @@ Image& Image::alphaFromBrightness()
    Int        mip_maps;
    if(Decompress(T, type, mode, mip_maps))
    {
-      if(!typeInfo().a){copy(T, -1, -1, -1, ImageTypeIncludeAlpha(T.type()), T.mode(), T.mipMaps()); type=T.type();} // if image doesn't have alpha channel then include it, set 'type' to value after conversion so it won't be converted back
+      if(!typeInfo().a){mustCopy(T, -1, -1, -1, ImageTypeIncludeAlpha(T.type()), T.mode(), T.mipMaps()); type=T.type();} // if image doesn't have alpha channel then include it, set 'type' to value after conversion so it won't be converted back
       if(lock())
       {
          if(highPrecision())

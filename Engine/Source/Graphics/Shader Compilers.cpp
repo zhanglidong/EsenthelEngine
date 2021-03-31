@@ -801,7 +801,7 @@ static void SetShaderHash()
    {
     C Str &file=files[i];
       hash.update(GetBase(file));
-      f.readStd(file);
+      f.mustReadStd(file);
       temp.setNumDiscard(f.size());
       if(!f.getFast(temp.data(), temp.elms()))Exit("Can't read data");
       hash.update(temp.data(), temp.elms());

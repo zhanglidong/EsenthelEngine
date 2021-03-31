@@ -790,7 +790,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       if(color.image.typeInfo().a) // but there is alpha channel in color map
       {
          Byte min_alpha=255;
-         alpha_src=&alpha_temp.create(color_src->w(), color_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
+         alpha_src=&alpha_temp.mustCreate(color_src->w(), color_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
          if(color_src->lockRead())
          {
             REPD(y, color_src->h())

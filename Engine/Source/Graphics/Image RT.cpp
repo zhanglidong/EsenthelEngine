@@ -312,10 +312,10 @@ Bool ImageRT::createViews()
 Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
 {
    if(T.size()==size && T.type()==type && T.mode()==mode && T.samples()==samples)return true; // do a fast check if we already have what we want, to avoid re-creating the same stuff
-   delThis(); // delete only this without super 'del', because that will already be done in 'createTryEx' below
-   if(super::createTryEx(size.x, size.y, 1, type, mode, 1, samples)
+   delThis(); // delete only this without super 'del', because that will already be done in 'createEx' below
+   if(super::createEx(size.x, size.y, 1, type, mode, 1, samples)
 #if GL
-   || mode==IMAGE_DS && super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
+   || mode==IMAGE_DS && super::createEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
 #endif
    )
    if(createViews())
@@ -327,6 +327,11 @@ Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte sampl
       return true;
    }
    return false;
+}
+ImageRT& ImageRT::mustCreate(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
+{
+   if(!create(size, type, mode, samples))Exit(S+"Can't create ImageRT "+size.x+'x'+size.y+", type "+ImageTI[type].name+", mode "+mode+", samples "+samples+'.');
+   return T;
 }
 /******************************************************************************/
 Bool ImageRT::map()

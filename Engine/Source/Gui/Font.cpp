@@ -767,7 +767,7 @@ struct SystemFontDrawContext
    #elif WINDOWS_OLD
       if(!bitmap)
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
 
          BITMAPV5HEADER bi; Zero(bi);
          bi.bV5Size    =SIZE(bi);
@@ -1195,7 +1195,7 @@ struct FontCreate : Font::Params
    {
       // set font image
       Int    image_index=font._images.elms();
-      Image &image      =font._images.New ().createSoft(w, h, 1, imageTypeTemp()).clear(); // create as soft
+      Image &image      =font._images.New ().mustCreateSoft(w, h, 1, imageTypeTemp()).clear(); // create as soft
 
       Int x=1, y=1, max_h=0;
       const Flt eps=0.5f*0; // don't add this epsilon because it disables per pixel font, and when enabled it's rarely even visible (only when font is very small but magnified)
@@ -1230,7 +1230,7 @@ struct FontCreate : Font::Params
 static void CompressTextures(Image &image, FontCreate &fc, Int thread_index)
 {
    ThreadMayUseGPUData();
-   image.copy(image, -1, -1, -1, fc.image_type, fc.software ? IMAGE_SOFT : IMAGE_2D, fc.mip_maps);
+   image.mustCopy(image, -1, -1, -1, fc.image_type, fc.software ? IMAGE_SOFT : IMAGE_2D, fc.mip_maps);
 }
 Bool Font::create(C Params &params)
 {

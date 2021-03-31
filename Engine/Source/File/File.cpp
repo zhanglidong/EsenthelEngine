@@ -126,11 +126,11 @@ void File::zero()
 }
 
 File::File(                                            )          {zero();}
-File::File(C Str     &name             , Cipher *cipher) : File() {read   (name      , cipher);}
-File::File(C UID     &id               , Cipher *cipher) : File() {read   (id        , cipher);}
-File::File(C Str     &name, C Pak &pak                 ) : File() {read   (name, pak         );}
-File::File(C PakFile &file, C Pak &pak                 ) : File() {read   (file, pak         );}
-File::File( CPtr      data,   Int  size, Cipher *cipher) : File() {readMem(data, size, cipher);}
+File::File(C Str     &name             , Cipher *cipher) : File() {mustRead   (name      , cipher);}
+File::File(C UID     &id               , Cipher *cipher) : File() {mustRead   (id        , cipher);}
+File::File(C Str     &name, C Pak &pak                 ) : File() {mustRead   (name, pak         );}
+File::File(C PakFile &file, C Pak &pak                 ) : File() {mustRead   (file, pak         );}
+File::File( CPtr      data,   Int  size, Cipher *cipher) : File() {    readMem(data, size, cipher);}
 
 void File::delBuf(        ) {Free(_buf); _buf_size=0;}
 Bool File::setBuf(Int size) {if(size>_buf_size){delBuf(); if(_buf=Alloc(size))_buf_size=size;} return !size || _buf!=null;}
@@ -177,17 +177,17 @@ File& File::reset()
    return T;
 }
 
-File& File::edit   (C Str     &name                , Cipher  *cipher) {if(!  editTry   (name      , cipher))Exit(MLT(S+"Can't edit \""  +          name+'"', PL,S+u"Nie można edytować \""+          name+'"')); return T;}
-File& File::append (C Str     &name                , Cipher  *cipher) {if(!appendTry   (name      , cipher))Exit(MLT(S+"Can't append \""+          name+'"', PL,S+u"Nie można nadpisać \""+          name+'"')); return T;}
-File& File::write  (C Str     &name                , Cipher  *cipher) {if(! writeTry   (name      , cipher))Exit(MLT(S+"Can't create \""+          name+'"', PL,S+u"Nie można utworzyć \""+          name+'"')); return T;}
-File& File::readStd(C Str     &name                , Cipher  *cipher) {if(!  readStdTry(name      , cipher))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
-File& File::read   (C PakFile &file, C Pak    &pak                  ) {if(!  readTry   (file, pak         ))Exit(MLT(S+"Can't open \""  +     file.name+'"', PL,S+u"Nie można otworzyć \""+     file.name+'"')); return T;}
-File& File::read   (C Str     &name, C Pak    &pak                  ) {if(!  readTry   (name, pak         ))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
-File& File::read   (C UID     &id  , C Pak    &pak                  ) {if(!  readTry   (id  , pak         ))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
-File& File::read   (C Str     &name, C PakSet &paks                 ) {if(!  readTry   (name, paks        ))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
-File& File::read   (C UID     &id  , C PakSet &paks                 ) {if(!  readTry   (id  , paks        ))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
-File& File::read   (C Str     &name                , Cipher  *cipher) {if(!  readTry   (name      , cipher))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
-File& File::read   (C UID     &id                  , Cipher  *cipher) {if(!  readTry   (id        , cipher))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
+File& File::mustEdit   (C Str     &name                , Cipher  *cipher) {if(!  editTry   (name      , cipher))Exit(MLT(S+"Can't edit \""  +          name+'"', PL,S+u"Nie można edytować \""+          name+'"')); return T;}
+File& File::mustAppend (C Str     &name                , Cipher  *cipher) {if(!appendTry   (name      , cipher))Exit(MLT(S+"Can't append \""+          name+'"', PL,S+u"Nie można nadpisać \""+          name+'"')); return T;}
+File& File::mustWrite  (C Str     &name                , Cipher  *cipher) {if(! writeTry   (name      , cipher))Exit(MLT(S+"Can't create \""+          name+'"', PL,S+u"Nie można utworzyć \""+          name+'"')); return T;}
+File& File::mustReadStd(C Str     &name                , Cipher  *cipher) {if(!  readStdTry(name      , cipher))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
+File& File::mustRead   (C PakFile &file, C Pak    &pak                  ) {if(!  readTry   (file, pak         ))Exit(MLT(S+"Can't open \""  +     file.name+'"', PL,S+u"Nie można otworzyć \""+     file.name+'"')); return T;}
+File& File::mustRead   (C Str     &name, C Pak    &pak                  ) {if(!  readTry   (name, pak         ))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
+File& File::mustRead   (C UID     &id  , C Pak    &pak                  ) {if(!  readTry   (id  , pak         ))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
+File& File::mustRead   (C Str     &name, C PakSet &paks                 ) {if(!  readTry   (name, paks        ))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
+File& File::mustRead   (C UID     &id  , C PakSet &paks                 ) {if(!  readTry   (id  , paks        ))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
+File& File::mustRead   (C Str     &name                , Cipher  *cipher) {if(!  readTry   (name      , cipher))Exit(MLT(S+"Can't open \""  +          name+'"', PL,S+u"Nie można otworzyć \""+          name+'"')); return T;}
+File& File::mustRead   (C UID     &id                  , Cipher  *cipher) {if(!  readTry   (id        , cipher))Exit(MLT(S+"Can't open \""  +id.asCString()+'"', PL,S+u"Nie można otworzyć \""+id.asCString()+'"')); return T;}
 
 Bool File::copyToAndDiscard(Mems<Byte> &dest)
 {

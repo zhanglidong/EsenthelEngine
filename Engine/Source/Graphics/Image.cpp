@@ -864,9 +864,9 @@ Image::~Image()
    if(VI._image==this)VI._image=null;
 }
        Image::Image    (                                                                   )           {zero();}
-       Image::Image    (C Image &src                                                       ) : Image() {src.copy(T);}
-       Image::Image    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps) : Image() {create(w, h, d, type, mode, mip_maps);}
-Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.copy(T); return T;}
+       Image::Image    (C Image &src                                                       ) : Image() {src.mustCopy(T);}
+       Image::Image    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps) : Image() {mustCreate(w, h, d, type, mode, mip_maps);}
+Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.mustCopy(T); return T;}
 /******************************************************************************/
 Image& Image::del()
 {
@@ -1165,7 +1165,7 @@ void Image::setGLFont() // #GLSampler
 #endif
 }
 /******************************************************************************/
-Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, C Image *src
+Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, C Image *src
    #if GL_ES
       , Bool can_del_src
    #endif
@@ -1627,13 +1627,13 @@ error:
 }
 Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
-   if(createTryEx(w, h, d, type, mode, mip_maps, 1))return true;
+   if(createEx(w, h, d, type, mode, mip_maps, 1))return true;
    if(alt_type_on_fail && w>0 && h>0 && d>0)
    {
       Int pw=PaddedWidth (w, h, 0, type), // must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
           ph=PaddedHeight(w, h, 0, type);
       for(IMAGE_TYPE alt_type=type; alt_type=ImageTypeOnFail(alt_type); )
-         if(createTryEx(pw, ph, d, alt_type, mode, mip_maps, 1))
+         if(createEx(pw, ph, d, alt_type, mode, mip_maps, 1))
       {
          adjustInfo(w, h, d, type);
          return true;
@@ -1641,7 +1641,7 @@ Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int
    }
    return false;
 }
-Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
+Image& Image::mustCreate(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
    if(!createTry(w, h, d, type, mode, mip_maps, alt_type_on_fail))Exit(MLT(S+"Can't create Image "        +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
                                                                        PL,S+u"Nie można utworzyć obrazka "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
@@ -2086,7 +2086,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       return true;
    }
 }
-void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
+void Image::mustCopy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
    if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))
    {
