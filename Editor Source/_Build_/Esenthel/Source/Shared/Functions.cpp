@@ -81,7 +81,7 @@ void SavedGuiSkin      (C Str &name) {if(GuiSkinPtr     e=   GuiSkinPtr().find(n
 void SavedGui          (C Str &name) {}
 void SavedEnv          (C Str &name) {if(EnvironmentPtr e=EnvironmentPtr().find(name))if(!IsServer)e->load(name);}
 
-void Saved(C Image           &img , C Str &name) {if(ImagePtr e=ImagePtr().find(name))img.copy(*e);}
+void Saved(C Image           &img , C Str &name) {if(ImagePtr e=ImagePtr().find(name))img.mustCopy(*e);}
 void Saved(C ImageAtlas      &img , C Str &name) {SavedImageAtlas(name);}
 void Saved(C IconSettings    &icon, C Str &name) {}
 void Saved(C EditSkeleton    &skel, C Str &name) {}

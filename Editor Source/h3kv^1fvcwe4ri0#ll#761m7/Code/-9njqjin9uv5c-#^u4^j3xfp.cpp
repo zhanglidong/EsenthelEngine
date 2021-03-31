@@ -208,11 +208,11 @@ class AreaBuild
          {
             hm.cleanMaterials(); // to remove any materials no longer used
 
-            hm_height_map.createSoft(hm.resolution(), hm.resolution(), 1, IMAGE_F32);
+            hm_height_map.mustCreateSoft(hm.resolution(), hm.resolution(), 1, IMAGE_F32);
             REPD(y, hm_height_map.h())
             REPD(x, hm_height_map.w())hm_height_map.pixelF(x, y, builder.path_settings.areaSize()*hm.height(x, y));
 
-            hm_mtrl_map.createSoft(hm.resolution(), hm.resolution(), 1, IMAGE_I8);
+            hm_mtrl_map.mustCreateSoft(hm.resolution(), hm.resolution(), 1, IMAGE_I8);
             REPD(y, hm_mtrl_map.h())
             REPD(x, hm_mtrl_map.w())
             {

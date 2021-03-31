@@ -67,7 +67,7 @@ class HeightBrushClass : Window
       // create noise lookup textures
       REPA(noise)
       {
-         noise[i].createSoft(HeightBrushNoiseRes, HeightBrushNoiseRes, 1, IMAGE_I8);
+         noise[i].mustCreateSoft(HeightBrushNoiseRes, HeightBrushNoiseRes, 1, IMAGE_I8);
          REPD(y, noise[i].h())
          REPD(x, noise[i].w())noise[i].pixel(x, y, Random(256));
          switch(i)

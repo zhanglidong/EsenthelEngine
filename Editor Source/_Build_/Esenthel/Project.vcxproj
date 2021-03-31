@@ -153,7 +153,7 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
-		<NintendoSdkBuildType>Develop</NintendoSdkBuildType>
+		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'" Label="Configuration">
@@ -170,7 +170,7 @@
 		<AppContainerApplication>true</AppContainerApplication>
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
-		<NintendoSdkBuildType>Develop</NintendoSdkBuildType>
+		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'" Label="Configuration">

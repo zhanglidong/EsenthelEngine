@@ -253,7 +253,7 @@ TexInfoGetter TIG;
       if(image.mipMaps()>=2)
       {
          Image mip; image.extractMipMap(mip, -1, 1); // get 2nd mip-map
-         mip.copy(mip, image.w(), image.h(), image.d(), ImageTypeUncompressed(mip.type()), -1, 1, FILTER_LINEAR, IC_WRAP); // upscale smaller mip-map to full image size, use linear filtering because we simulate GPU filtering
+         mip.mustCopy(mip, image.w(), image.h(), image.d(), ImageTypeUncompressed(mip.type()), -1, 1, FILTER_LINEAR, IC_WRAP); // upscale smaller mip-map to full image size, use linear filtering because we simulate GPU filtering
          ImageCompare ic; if(ic.compare(image, mip))return ic.avg_dif2;
       }
       return -1; // can't calculate

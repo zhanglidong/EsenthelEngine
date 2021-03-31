@@ -1150,7 +1150,7 @@ void SetGuiSkin(UID id=Gui.default_skin)
 }
 void InitGui()
 {
-      WhiteImage.create(1, 1, 1, IMAGE_L8, IMAGE_2D, 1);
+      WhiteImage.mustCreate(1, 1, 1, IMAGE_L8, IMAGE_2D, 1);
    if(WhiteImage.lock(LOCK_WRITE))
    {
       WhiteImage.color(0, 0, WHITE);
