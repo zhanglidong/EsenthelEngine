@@ -514,7 +514,13 @@ struct MeshAO
             Flt frac; if(sweep(pos+ray*pos_eps, ray, &frac))light+=func(frac)*d;else light+=d;
          }
       }
-      Color &c=col[vtx]; c.r=c.g=c.b=Mid(RoundPos(light*mul+add), max, 255); // keep alpha
+      light=light*mul+add;
+   #if LINEAR_GAMMA
+      Byte light_b=Max(LinearToByteSRGB(light), max);
+   #else
+      Byte light_b=Mid(RoundPos(light*255), max, 255);
+   #endif
+      Color &c=col[vtx]; c.r=c.g=c.b=light_b; // keep alpha
    }
    void process(Int vtxs, Threads *threads)
    {
@@ -570,9 +576,9 @@ struct MeshAO
          }
       }
 
-      add=255*(1-strength + strength*bias);
-      mul=255*   strength/ray_sum;
-    //mul=255*   strength/r_pos  ; // this is for light independent on the Dot product
+      add=(1-strength + strength*bias);
+      mul=   strength/ray_sum;
+    //mul=   strength/r_pos  ; // this is for light independent on the Dot product
    }
 };
 /******************************************************************************/

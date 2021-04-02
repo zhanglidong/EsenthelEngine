@@ -271,7 +271,8 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
             scale; // scale    factor
 
    // the following parameters are valid only after calling 'updateMatrix'
- C MatrixM& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
+ C MatrixM& matrix    ()C {return _matrix     ;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
+ C MatrixM& matrixPrev()C {return _matrix_prev;} // get matrix from previous frame
 
    // operations
    void clear(         ); //           clear 'orn rot pos scale'
