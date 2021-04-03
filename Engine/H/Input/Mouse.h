@@ -116,8 +116,9 @@ struct MouseClass // Mouse Input
 
    void simulate() {_detected=true;} // specify that mouse will be manually simulated via 'pos', 'push', 'release' methods, this method will force mouse status as "detected" in the device, even if the mouse is not present
 
-   void push   (Byte b); // manually push    'b' button
-   void release(Byte b); // manually release 'b' button
+   void push   (  Byte  b); // manually push    'b' button
+   void release(  Byte  b); // manually release 'b' button
+   void scroll (C Vec2 &d); // manually apply wheel delta
 
 #if EE_PRIVATE
    // manage

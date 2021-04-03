@@ -407,6 +407,10 @@ void Joypad::release(Byte b)
      _button[b]|= BS_RELEASED;
    }
 }
+void Joypad::eat(Int b)
+{
+   if(InRange(b, _button))_button[b]&=~BS_ON;
+}
 /******************************************************************************/
 void Joypad::acquire(Bool on)
 {

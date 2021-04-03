@@ -602,6 +602,7 @@ void MouseClass::release(Byte b)
       if(!selecting() && life()<=0.25f+Time.ad())_button[b]|=BS_TAPPED;
    }
 }
+void MouseClass::scroll(C Vec2 &d) {_wheel+=d;}
 /******************************************************************************/
 void MouseClass::update()
 {
