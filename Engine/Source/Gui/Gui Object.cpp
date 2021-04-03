@@ -639,20 +639,20 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       {
          Vec2 pos=r.center(), delta=pos-gon.plane.pos;
          Flt dist2=delta.length2();
-         if( dist2<Sqr(gon.dist) // process only if smaller than what we already have
-         &&  dist2>D.pixelToScreenSize().length2()) // ignore if already focused/centered on it (use pixel size because this function may operate on mouse position which may be aligned to pixels)
+         if( dist2<Sqr(gon.dist)) // process only if smaller than what we already have
          {
-            Flt dot=Dot(delta, gon.plane.normal);
-            if( dot>EPS)
+            Flt dist_plane =Dot(delta, gon.plane.normal);
+            if( dist_plane>=gon.min_dist)
             {
             #if 0
                Flt dist=SqrtFast(dist2);
-               dot /=dist;
-               dist/=dot; // increase distance according to dot. dist=dist/(dot/dist)=dist*dist/dot=dist2/dot
+               Flt dot =dist_plane/dist;
+               dist/=dot; // increase distance according to dot. dist=dist/(dist_plane/dist)=dist*dist/dist_plane=dist2/dist_plane
             #else
-               Flt dist=dist2/dot;
+               Flt dist=dist2/dist_plane;
             #endif
-               if(dist<gon.dist)
+               if(dist< gon.dist
+               && dist>=gon.min_dist) // ignore if already focused/centered on it
                {
                   gon.dist=dist;
                   gon.pos =pos;

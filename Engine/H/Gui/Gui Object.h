@@ -63,7 +63,7 @@ struct GuiObjNearest
 {
 #if EE_PRIVATE
    Plane2  plane;
-   Flt     dist;
+   Flt     dist, min_dist;
    Vec2    pos;
    GuiObj *obj;
 
