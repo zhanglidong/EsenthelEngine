@@ -78,6 +78,8 @@ const_mem_addr struct Button : GuiObj // Gui Button !! must be stored in constan
             Bool    funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when button state has changed
             Button& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when button state has changed
 
+            void call(Bool allow_sound=true); // manually call 'func', 'allow_sound'=if allow sound playback
+
    // main
    virtual Button& hide  (            ); // hide
    virtual Button& show  (            ); // show
@@ -86,7 +88,6 @@ const_mem_addr struct Button : GuiObj // Gui Button !! must be stored in constan
 
 #if EE_PRIVATE
    void zero();
-   void call(Bool sound);
    void setParams();
 #endif
 

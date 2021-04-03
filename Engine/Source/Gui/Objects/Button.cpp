@@ -94,9 +94,9 @@ Button& Button::func(void (*func)(Ptr), Ptr user, Bool immediate)
    T._func_immediate=immediate;
    return T;
 }
-void Button::call(Bool sound)
+void Button::call(Bool allow_sound)
 {
-   if(sound && T.sound && mode!=BUTTON_CONTINUOUS && _sub_type==BUTTON_TYPE_DEFAULT)Gui.playClickSound(); // don't play sounds for 'Tab' because they're played by 'Tabs'
+   if(allow_sound && sound && mode!=BUTTON_CONTINUOUS && _sub_type==BUTTON_TYPE_DEFAULT)Gui.playClickSound(); // don't play sounds for 'Tab' because they're played by 'Tabs'
    if(_func)
    {
       if(_func_immediate)
