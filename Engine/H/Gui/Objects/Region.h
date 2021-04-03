@@ -6,10 +6,10 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
    SlideBar slidebar[2]; // 2 SlideBars (0=horizontal, 1=vertical)
 
    // manage
-   Region& del   (              );                                 // delete
-   Region& create(              );                                 // create
-   Region& create(C Rect   &rect) {create().rect(rect); return T;} // create
-   Region& create(C Region &src );                                 // create from 'src'
+   virtual Region& del   (              )override;                         // delete
+           Region& create(              );                                 // create
+           Region& create(C Rect   &rect) {create().rect(rect); return T;} // create
+           Region& create(C Region &src );                                 // create from 'src'
 
    // operations
    Region& scrollX   (Flt delta       , Bool immediate=false) {slidebar[0].scroll   (delta   , immediate); return T;} // horizontal scroll by delta

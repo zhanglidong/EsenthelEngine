@@ -4,10 +4,10 @@ const_mem_addr struct CheckBox : GuiObj // Gui CheckBox !! must be stored in con
    GuiSkinPtr skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   CheckBox& del   (                               );                                   // delete
-   CheckBox& create(                  Bool on=false);                                   // create
-   CheckBox& create(C Rect     &rect, Bool on=false) {create(on).rect(rect); return T;} // create and set rectangle
-   CheckBox& create(C CheckBox &src                );                                   // create from 'src'
+   virtual CheckBox& del   (                               )override;                           // delete
+           CheckBox& create(                  Bool on=false);                                   // create
+           CheckBox& create(C Rect     &rect, Bool on=false) {create(on).rect(rect); return T;} // create and set rectangle
+           CheckBox& create(C CheckBox &src                );                                   // create from 'src'
 
    // get / set
    CheckBox& set      (Bool on, SET_MODE mode=SET_DEFAULT);   Bool operator()()C {return _on;}                        // set/get if on

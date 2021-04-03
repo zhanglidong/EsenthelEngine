@@ -7,10 +7,10 @@ const_mem_addr struct TextBox : GuiObj // Gui TextBox !! must be stored in const
    SlideBar slidebar[2]; // 2 SlideBars (0=horizontal, 1=vertical)
 
    // manage
-   TextBox& del   (                              ); // delete
-   TextBox& create(                 C Str &text=S);                                     // create
-   TextBox& create(C Rect    &rect, C Str &text=S) {create(text).rect(rect); return T;} // create
-   TextBox& create(C TextBox &src                );                                     // create from 'src'
+   virtual TextBox& del   (                              )override;                             // delete
+           TextBox& create(                 C Str &text=S);                                     // create
+           TextBox& create(C Rect    &rect, C Str &text=S) {create(text).rect(rect); return T;} // create
+           TextBox& create(C TextBox &src                );                                     // create from 'src'
 
    // get / set
    Int   maxLength ()C {return _max_length   ;}   TextBox& maxLength   (  Int  max_length                        ); // get/set maximum allowed text length (-1=no limit), default=-1

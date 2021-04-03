@@ -12,10 +12,10 @@ const_mem_addr struct Progress : GuiObj // Gui ProgressBar !! must be stored in 
    GuiSkinPtr    skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   Progress& del   (                                                  );                                     // delete
-   Progress& create(                  PROGRESS_MODE mode=PROGRESS_NONE);                                     // create
-   Progress& create(C Rect     &rect, PROGRESS_MODE mode=PROGRESS_NONE) {create(mode).rect(rect); return T;} // create
-   Progress& create(C Progress &src                                   );                                     // create from 'src'
+   virtual Progress& del   (                                                  )override;                             // delete
+           Progress& create(                  PROGRESS_MODE mode=PROGRESS_NONE);                                     // create
+           Progress& create(C Rect     &rect, PROGRESS_MODE mode=PROGRESS_NONE) {create(mode).rect(rect); return T;} // create
+           Progress& create(C Progress &src                                   );                                     // create from 'src'
 
    // set/get
    Progress& clear     (                );                                      // clear progress

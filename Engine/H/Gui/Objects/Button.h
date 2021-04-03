@@ -48,10 +48,10 @@ const_mem_addr struct Button : GuiObj // Gui Button !! must be stored in constan
    GuiSkinPtr  skin       ; // skin override   , default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   Button& del   (                             );                                     // delete
-   Button& create(                C Str &text=S);                                     // create
-   Button& create(C Rect   &rect, C Str &text=S) {create(text).rect(rect); return T;} // create and set rectangle
-   Button& create(C Button &src                );                                     // create from 'src'
+   virtual Button& del   (                             )override;                             // delete
+           Button& create(                C Str &text=S);                                     // create
+           Button& create(C Rect   &rect, C Str &text=S) {create(text).rect(rect); return T;} // create and set rectangle
+           Button& create(C Button &src                );                                     // create from 'src'
 
    // get / set
            Bool    operator()(                                  )C {return _on ;} // get button state (if it's visually pushed)

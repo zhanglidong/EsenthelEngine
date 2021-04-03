@@ -425,7 +425,7 @@ void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       Rect r=rect()+gpc.offset;
       if(gon.test(r&gpc.clip))
       {
-         if(Cuts(gon.pos, r))gon.clear(); // if this window covers any existing nearest obj, then clear it
+         if(Cuts(gon.nearest_pos, r))gon.clear(); // if this window covers any existing nearest obj, then clear it
          //if(barVisible()){} // TODO: nearest at bar rect
          GuiPC gpc_this    (gpc, true, enabled()); REPAO(button).nearest(gpc_this    , gon);
          GuiPC gpc_children(gpc, T              );     _children.nearest(gpc_children, gon);

@@ -14,10 +14,10 @@ const_mem_addr struct Window : GuiObj // Gui Window !! must be stored in constan
    RippleFx *ripple     ; // ripple effect , default=null
 
    // manage
-   Window& del   (                              );                                      // delete
-   Window& create(                C Str &title=S);                                      // create
-   Window& create(C Rect   &rect, C Str &title=S) {create(title).rect(rect); return T;} // create and set rectangle
-   Window& create(C Window &src                 );                                      // create from 'src'
+   virtual Window& del   (                              )override;                              // delete
+           Window& create(                C Str &title=S);                                      // create
+           Window& create(C Rect   &rect, C Str &title=S) {create(title).rect(rect); return T;} // create and set rectangle
+           Window& create(C Window &src                 );                                      // create from 'src'
 
    // set / get
            Window& setTitle  (C Str        &title  );                                                                                // set     title bar text

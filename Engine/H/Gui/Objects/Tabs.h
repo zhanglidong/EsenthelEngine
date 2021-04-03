@@ -9,9 +9,9 @@ enum TABS_LAYOUT : Byte
 /******************************************************************************/
 struct Tab : Button // single Tab
 {
-   Tab&    del(           );
-   Tab& create(C Str &text);
-   Tab& create(C Tab &src ); // create from 'src'
+   virtual Tab&    del(           )override;
+           Tab& create(C Str &text);
+           Tab& create(C Tab &src ); // create from 'src'
 
    Tab& setCornerTab(Bool right, Bool top);
 
@@ -35,12 +35,12 @@ protected:
 const_mem_addr struct Tabs : GuiObj // Gui Tabs !! must be stored in constant memory address !!
 {
    // manage
-   Tabs& del   (                                                                     );                                                         // delete
-   Tabs& create(                         CChar8 **text, Int num, Bool auto_size=false);                                                         // create
-   Tabs& create(                         CChar  **text, Int num, Bool auto_size=false);                                                         // create
-   Tabs& create(C Rect &rect, Flt space, CChar8 **text, Int num, Bool auto_size=false) {return create(text, num).rect(rect, space, auto_size);} // create and set rectangle and space between tabs, 'auto_size'=if set tab sizes according to their name length
-   Tabs& create(C Rect &rect, Flt space, CChar  **text, Int num, Bool auto_size=false) {return create(text, num).rect(rect, space, auto_size);} // create and set rectangle and space between tabs, 'auto_size'=if set tab sizes according to their name length
-   Tabs& create(C Tabs &src                                                          ); // create from 'src'
+   virtual Tabs& del   (                                                                     )override;                                                 // delete
+           Tabs& create(                         CChar8 **text, Int num, Bool auto_size=false);                                                         // create
+           Tabs& create(                         CChar  **text, Int num, Bool auto_size=false);                                                         // create
+           Tabs& create(C Rect &rect, Flt space, CChar8 **text, Int num, Bool auto_size=false) {return create(text, num).rect(rect, space, auto_size);} // create and set rectangle and space between tabs, 'auto_size'=if set tab sizes according to their name length
+           Tabs& create(C Rect &rect, Flt space, CChar  **text, Int num, Bool auto_size=false) {return create(text, num).rect(rect, space, auto_size);} // create and set rectangle and space between tabs, 'auto_size'=if set tab sizes according to their name length
+           Tabs& create(C Tabs &src                                                          ); // create from 'src'
 
    // get / set
                                                                      Int         tabs      (     )C {return _tabs.elms(                );} //     get number of tabs

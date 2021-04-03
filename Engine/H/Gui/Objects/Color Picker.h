@@ -23,8 +23,8 @@ const_mem_addr struct ColorPicker : Window // !! must be stored in constant memo
             ColorPicker& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when color has changed
 
    // operations
-   ColorPicker& show(         );
-   ColorPicker& mode(Bool real); // change value display mode ('real'=0..1 range, or byte=0..255 range)
+   virtual ColorPicker& show(         )override;
+           ColorPicker& mode(Bool real); // change value display mode ('real'=0..1 range, or byte=0..255 range)
 
    virtual void update(C GuiPC &gpc)override;
 

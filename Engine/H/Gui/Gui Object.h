@@ -62,10 +62,10 @@ struct GuiPC // Gui Parent->Child Relation
 struct GuiObjNearest
 {
 #if EE_PRIVATE
-   Plane2  plane;
-   Flt     dist, min_dist;
-   Vec2    pos;
-   GuiObj *obj;
+   Flt     nearest_dist, nearest_rect_dist, nearest_rect_dist2;
+   Vec2    nearest_pos, start_pos, dir;
+   Rect    start_rect;
+   GuiObj *nearest_obj, *start_obj;
 
    void clear();
    Bool test(C Rect &rect)C;

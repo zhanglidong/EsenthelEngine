@@ -133,17 +133,25 @@ GuiObj* GUI::objAtPos(C Vec2 &pos)C
 GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
 {
    GuiObjNearest gon;
-   gon.obj=null;
+   gon.nearest_obj=null;
    if(desktop())
    {
-      gon.plane.pos   = pos;
-      gon.plane.normal=!dir;
-      gon.dist=FLT_MAX;
-      gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+      gon.start_rect  = pos;
+      gon.start_pos   = pos;
+      gon.dir         =!dir;
+      gon.nearest_dist=gon.nearest_rect_dist=gon.nearest_rect_dist2=FLT_MAX;
+      if(gon.start_obj=objAtPos(pos))switch(gon.start_obj->type())
+      {
+         case GO_DESKTOP:
+         case GO_WINDOW :
+         case GO_REGION :
+            break;
+         default: gon.start_rect=gon.start_obj->screenRect(); break;
+      }
       desktop()->nearest(gon);
    }
-   out_pos=(gon.obj ? gon.pos : pos);
-   return   gon.obj;
+   out_pos=(gon.nearest_obj ? gon.nearest_pos : pos);
+   return   gon.nearest_obj;
 }
 /******************************************************************************/
 Color GUI::backgroundColor()C {if(GuiSkin *skin=Gui.skin())return skin->background_color; return         WHITE;}

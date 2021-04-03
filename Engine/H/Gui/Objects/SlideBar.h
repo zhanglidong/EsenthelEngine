@@ -12,10 +12,10 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    SLIDEBAR_BACK_CLICK_MODE sbc      ; // default=SBC_STEP
 
    // manage
-   SlideBar& del   (                );                              // delete
-   SlideBar& create(                );                              // create
-   SlideBar& create(C Rect     &rect) {return create().rect(rect);} // create and set rectangle
-   SlideBar& create(C SlideBar &src );                              // create from 'src'
+   virtual SlideBar& del   (                )override;                      // delete
+           SlideBar& create(                );                              // create
+           SlideBar& create(C Rect     &rect) {return create().rect(rect);} // create and set rectangle
+           SlideBar& create(C SlideBar &src );                              // create from 'src'
 
    // set / get
    SlideBar&  setLengths  (Flt length, Flt length_total         );                          // set, 'length'=covered length, 'length_total'=total length

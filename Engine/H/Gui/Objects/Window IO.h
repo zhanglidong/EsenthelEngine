@@ -64,8 +64,8 @@ const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! mu
           overwrite_no    ; // overwrite no
 
    // manage
-            WindowIO& del   (                                                                                                                                                       ); // delete
-            WindowIO& create(C Str &ext=S, C Str &path=S, C Str &sub_path=S, void (*load)(C Str &name, Ptr   user)=null, void (*save)(C Str &name, Ptr   user)=null, Ptr   user=null); // create
+    virtual WindowIO& del   (                                                                                                                                                       )override; // delete
+            WindowIO& create(C Str &ext=S, C Str &path=S, C Str &sub_path=S, void (*load)(C Str &name, Ptr   user)=null, void (*save)(C Str &name, Ptr   user)=null, Ptr   user=null);         // create
    T1(TYPE) WindowIO& create(C Str &ext  , C Str &path  , C Str &sub_path  , void (*load)(C Str &name, TYPE *user)     , void (*save)(C Str &name, TYPE *user)     , TYPE *user     ) {return create(ext, path, sub_path).io(load, save, user);}
    T1(TYPE) WindowIO& create(C Str &ext  , C Str &path  , C Str &sub_path  , void (*load)(C Str &name, TYPE &user)     , void (*save)(C Str &name, TYPE &user)     , TYPE &user     ) {return create(ext, path, sub_path).io(load, save, user);}
 

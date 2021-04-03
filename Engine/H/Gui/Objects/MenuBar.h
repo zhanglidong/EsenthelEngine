@@ -21,9 +21,9 @@ const_mem_addr struct MenuBar : GuiObj // Gui Menu Bar !! must be stored in cons
    };
 
    // manage
-   MenuBar& del   (                     ); // delete manually
-   MenuBar& create(C Node<MenuElm> &node); // create, 'node'=menu node
-   MenuBar& create(C MenuBar       &src ); // create from 'src'
+   virtual MenuBar& del   (                     )override; // delete manually
+           MenuBar& create(C Node<MenuElm> &node);         // create, 'node'=menu node
+           MenuBar& create(C MenuBar       &src );         // create from 'src'
 
    // get / set
    Int  elms(     )C {return _elms.elms();} // get number of menu elements

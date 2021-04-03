@@ -7,10 +7,10 @@ const_mem_addr struct TextLine : GuiObj // Gui TextLine !! must be stored in con
    Button reset    ; // reset/clear button                             , default=created but hidden
 
    // manage
-   TextLine& del   (                               );                                     // delete
-   TextLine& create(                  C Str &text=S);                                     // create
-   TextLine& create(C Rect     &rect, C Str &text=S) {create(text).rect(rect); return T;} // create
-   TextLine& create(C TextLine &src                );                                     // create from 'src'
+   virtual TextLine& del   (                               )override;                             // delete
+           TextLine& create(                  C Str &text=S);                                     // create
+           TextLine& create(C Rect     &rect, C Str &text=S) {create(text).rect(rect); return T;} // create
+           TextLine& create(C TextLine &src                );                                     // create from 'src'
 
    // get / set
    Bool  password  ()C;                        TextLine& password (  Bool on                             );    // get/set password mode, in password mode text characters will be displayed as '*' (the character can be changed using 'Gui.passwordChar' method), password mode additionally prevents copying text to the clipboard

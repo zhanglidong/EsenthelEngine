@@ -97,11 +97,11 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    Vec2          padding    ; // list padding         , default=(0, 0)  amount of padding applied to the list size
 
    // manage
-  _List& del   (                                                            );                                                               // delete
-  _List& clear (SET_MODE mode=SET_DEFAULT                                   );                                                               // clear list elements, if 'mode'=QUIET then 'curChanged', 'selChanged' and 'selChanging' callbacks will not be called
-  _List& create(                                                            );                                                               // create
-  _List& create(C ListColumn *column, Int columns, Bool columns_hidden=false) {return create().setColumns(column, columns, columns_hidden);} // create and set columns, list columns are copied internally
-  _List& create(C _List &src                                                );                                                               // create from 'src'
+   virtual _List& del   (                                                            )override;                                                       // delete
+           _List& clear (SET_MODE mode=SET_DEFAULT                                   );                                                               // clear list elements, if 'mode'=QUIET then 'curChanged', 'selChanged' and 'selChanging' callbacks will not be called
+           _List& create(                                                            );                                                               // create
+           _List& create(C ListColumn *column, Int columns, Bool columns_hidden=false) {return create().setColumns(column, columns, columns_hidden);} // create and set columns, list columns are copied internally
+           _List& create(C _List &src                                                );                                                               // create from 'src'
 
    // set / get
   _List& setColumns(C ListColumn *column, Int columns, Bool columns_hidden=false); // set columns, list columns are copied internally

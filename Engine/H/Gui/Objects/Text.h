@@ -6,11 +6,11 @@ const_mem_addr struct Text : GuiObj // Gui Text !! must be stored in constant me
    GuiSkinPtr          skin; // skin override, default=null (if set to null then current value of 'Gui.skin'             is used)
 
    // manage
-   Text& del   (                                                    );                                         // delete
-   Text& create(              C Str &text=S, C TextStylePtr &ts=null);                                         // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
-   Text& create(C Vec2 &rect, C Str &text=S, C TextStylePtr &ts=null) {create(text, ts).rect(rect); return T;} // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
-   Text& create(C Rect &rect, C Str &text=S, C TextStylePtr &ts=null) {create(text, ts).rect(rect); return T;} // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
-   Text& create(C Text &src                                         );                                         // create from 'src'
+   virtual Text& del   (                                                    )override;                                 // delete
+           Text& create(              C Str &text=S, C TextStylePtr &ts=null);                                         // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
+           Text& create(C Vec2 &rect, C Str &text=S, C TextStylePtr &ts=null) {create(text, ts).rect(rect); return T;} // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
+           Text& create(C Rect &rect, C Str &text=S, C TextStylePtr &ts=null) {create(text, ts).rect(rect); return T;} // create, 'ts'=text style (the object is not copied, only the pointer to the object is remembered, therefore it must point to a constant memory address !!)
+           Text& create(C Text &src                                         );                                         // create from 'src'
 
    // get / set
    Text& clear(           );                                      // clear   text value

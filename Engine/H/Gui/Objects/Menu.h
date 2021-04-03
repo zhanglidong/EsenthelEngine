@@ -75,10 +75,10 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
   _List list; // list
 
    // manage
-   Menu& del   (                     );                                 // delete
-   Menu& create(                     );                                 // create empty
-   Menu& create(C Node<MenuElm> &node) {return create().setData(node);} // create from node of MenuElm's
-   Menu& create(C Menu &src          );                                 // create from 'src'
+   virtual Menu& del   (                     )override;                         // delete
+           Menu& create(                     );                                 // create empty
+           Menu& create(C Node<MenuElm> &node) {return create().setData(node);} // create from node of MenuElm's
+           Menu& create(C Menu &src          );                                 // create from 'src'
 
    // get / set
    void operator()(C Str &command, Bool on, SET_MODE mode=SET_DEFAULT) ; // set 'command' 'on' state (checked), sample usage:       ("View/Wireframe", true)

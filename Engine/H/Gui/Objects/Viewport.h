@@ -12,10 +12,10 @@ const_mem_addr struct Viewport : GuiObj // Viewport !! must be stored in constan
    void   (*draw_func)(Viewport&); // pointer to drawing function
 
    // manage
-   Viewport& del   (                                                             );                                           // delete
-   Viewport& create(                  void (*draw)(Viewport&)=null, Ptr user=null);                                           // create
-   Viewport& create(C Rect     &rect, void (*draw)(Viewport&)=null, Ptr user=null) {create(draw, user).rect(rect); return T;} // create
-   Viewport& create(C Viewport &src                                              );                                           // create from 'src'
+   virtual Viewport& del   (                                                             )override;                                   // delete
+           Viewport& create(                  void (*draw)(Viewport&)=null, Ptr user=null);                                           // create
+           Viewport& create(C Rect     &rect, void (*draw)(Viewport&)=null, Ptr user=null) {create(draw, user).rect(rect); return T;} // create
+           Viewport& create(C Viewport &src                                              );                                           // create from 'src'
 
    // operations
    void setDisplayView()C; // activate display viewport settings from current viewport parameters

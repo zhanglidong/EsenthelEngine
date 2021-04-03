@@ -4,11 +4,11 @@ const_mem_addr struct Slider : GuiObj // Gui Slider !! must be stored in constan
    GuiSkinPtr skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   Slider& del   (                         );                                            // delete
-   Slider& create(                         );                                            // create
-   Slider& create(C Rect   &rect           ) {create()           .rect(rect); return T;} // create and set initial values
-   Slider& create(C Rect   &rect, Flt value) {create().set(value).rect(rect); return T;} // create and set initial values
-   Slider& create(C Slider &src            );                                            // create from 'src'
+   virtual Slider& del   (                         )override;                                    // delete
+           Slider& create(                         );                                            // create
+           Slider& create(C Rect   &rect           ) {create()           .rect(rect); return T;} // create and set initial values
+           Slider& create(C Rect   &rect, Flt value) {create().set(value).rect(rect); return T;} // create and set initial values
+           Slider& create(C Slider &src            );                                            // create from 'src'
 
    // get / set
    Flt      operator()(                                    )C {return _value;} // get value (0..1)

@@ -13,16 +13,16 @@ const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in con
    Menu menu      ; // menu
 
    // manage
-   ComboBox& del   (                                      );                                                  // delete
-   ComboBox& create(                                      );                                                  // create empty
-   ComboBox& create(C Rect &rect                          ) {return create().                    rect(rect);} // create empty and set rectangle
-   ComboBox& create(              CChar8 *data[], Int elms) {return create().setData(data, elms)           ;} // create from text array
-   ComboBox& create(C Rect &rect, CChar8 *data[], Int elms) {return create().setData(data, elms).rect(rect);} // create from text array and set rectangle
-   ComboBox& create(              CChar  *data[], Int elms) {return create().setData(data, elms)           ;} // create from text array
-   ComboBox& create(C Rect &rect, CChar  *data[], Int elms) {return create().setData(data, elms).rect(rect);} // create from text array and set rectangle
-   ComboBox& create(              Node<MenuElm>      &node) {return create().setData(node      )           ;} // create from node of menu elements
-   ComboBox& create(C Rect &rect, Node<MenuElm>      &node) {return create().setData(node      ).rect(rect);} // create from node of menu elements and set rectangle
-   ComboBox& create(C ComboBox &src                       );                                                  // create from 'src'
+   virtual ComboBox& del   (                                      )override;                                          // delete
+           ComboBox& create(                                      );                                                  // create empty
+           ComboBox& create(C Rect &rect                          ) {return create().                    rect(rect);} // create empty and set rectangle
+           ComboBox& create(              CChar8 *data[], Int elms) {return create().setData(data, elms)           ;} // create from text array
+           ComboBox& create(C Rect &rect, CChar8 *data[], Int elms) {return create().setData(data, elms).rect(rect);} // create from text array and set rectangle
+           ComboBox& create(              CChar  *data[], Int elms) {return create().setData(data, elms)           ;} // create from text array
+           ComboBox& create(C Rect &rect, CChar  *data[], Int elms) {return create().setData(data, elms).rect(rect);} // create from text array and set rectangle
+           ComboBox& create(              Node<MenuElm>      &node) {return create().setData(node      )           ;} // create from node of menu elements
+           ComboBox& create(C Rect &rect, Node<MenuElm>      &node) {return create().setData(node      ).rect(rect);} // create from node of menu elements and set rectangle
+           ComboBox& create(C ComboBox &src                       );                                                  // create from 'src'
 
    // data
             ComboBox& clear(); // clear data
