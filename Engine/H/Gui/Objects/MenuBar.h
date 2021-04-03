@@ -37,15 +37,15 @@ const_mem_addr struct MenuBar : GuiObj // Gui Menu Bar !! must be stored in cons
    MenuBar& setCommand(C Str &command, Bool visible, Bool enabled);                                            // set 'command' visibility and if not disabled
    MenuBar& setCommand(C Str &command, Bool state                ) {return setCommand(command, state, state);} // set 'command' visibility and if not disabled
 
-   virtual MenuBar& rect(C Rect &rect);   C Rect&    rect()C {return super::rect();} // set/get rectangle
-                                            Rect elmsRect()C;                        //     get rectangle covering all Menu Elements
+   virtual MenuBar& rect(C Rect &rect)override;   C Rect&    rect()C {return super::rect();} // set/get rectangle
+                                                    Rect elmsRect()C;                        //     get rectangle covering all Menu Elements
 
    MenuBar& skin(C GuiSkinPtr &skin, Bool sub_objects=true); C GuiSkinPtr& skin()C {return _skin                       ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of sub-menus
                                                                GuiSkin* getSkin()C {return _skin ? _skin() : Gui.skin();} //     get actual skin
 
    // main
-   virtual void update(C GuiPC &gpc); // update object
-   virtual void draw  (C GuiPC &gpc); // draw   object
+   virtual void update(C GuiPC &gpc)override; // update object
+   virtual void draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void zero   ();
@@ -64,7 +64,7 @@ private:
    Mems<Elm>  _elms;
 
 protected:
-   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
+   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client)override;
 #if EE_PRIVATE
    friend struct GUI; friend struct GuiObjChildren; friend struct GuiObj;
 #endif

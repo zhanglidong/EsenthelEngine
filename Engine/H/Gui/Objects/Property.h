@@ -104,8 +104,8 @@ private:
 #endif
    struct Color : GuiCustom
    {
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
 
    GUI_OBJ_TYPE _value_type;

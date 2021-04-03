@@ -109,18 +109,18 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    MenuElm& elm (Int i)  {return _elms[i]    ;} // get i-th      menu element
  C MenuElm& elm (Int i)C {return _elms[i]    ;} // get i-th      menu element
 
-   virtual Menu& rect     (C Rect &rect ); C Rect& rect ()C {return super::rect ();} // set/get rectangle
-   virtual Menu& pos      (C Vec2 &pos  );   Vec2  pos  ()C {return super::pos  ();} // set/get top    left  position
-   virtual Menu& posRU    (C Vec2 &pos  );   Vec2  posRU()C {return super::posRU();} // set/get top    right position
-   virtual Menu& posLD    (C Vec2 &pos  );   Vec2  posLD()C {return super::posLD();} // set/get bottom left  position
-   virtual Menu& posL     (C Vec2 &pos  );   Vec2  posL ()C {return super::posL ();} // set/get left         position
-   virtual Menu& posR     (C Vec2 &pos  );   Vec2  posR ()C {return super::posR ();} // set/get right        position
-   virtual Menu& posD     (C Vec2 &pos  );   Vec2  posD ()C {return super::posD ();} // set/get bottom       position
-   virtual Menu& posU     (C Vec2 &pos  );   Vec2  posU ()C {return super::posU ();} // set/get top          position
-   virtual Menu& posC     (C Vec2 &pos  );   Vec2  posC ()C {return super::posC ();} // set/get center       position
-   virtual Menu& move     (C Vec2 &delta);                                           // move by delta
-   virtual Menu& moveClamp(C Vec2 &delta);                                           // move by delta and clamp to desktop area
-   virtual Menu& show     (             );                                           // show
+   virtual Menu& rect     (C Rect &rect )override; C Rect& rect ()C {return super::rect ();} // set/get rectangle
+   virtual Menu& pos      (C Vec2 &pos  )override;   Vec2  pos  ()C {return super::pos  ();} // set/get top    left  position
+   virtual Menu& posRU    (C Vec2 &pos  )override;   Vec2  posRU()C {return super::posRU();} // set/get top    right position
+   virtual Menu& posLD    (C Vec2 &pos  )override;   Vec2  posLD()C {return super::posLD();} // set/get bottom left  position
+   virtual Menu& posL     (C Vec2 &pos  )override;   Vec2  posL ()C {return super::posL ();} // set/get left         position
+   virtual Menu& posR     (C Vec2 &pos  )override;   Vec2  posR ()C {return super::posR ();} // set/get right        position
+   virtual Menu& posD     (C Vec2 &pos  )override;   Vec2  posD ()C {return super::posD ();} // set/get bottom       position
+   virtual Menu& posU     (C Vec2 &pos  )override;   Vec2  posU ()C {return super::posU ();} // set/get top          position
+   virtual Menu& posC     (C Vec2 &pos  )override;   Vec2  posC ()C {return super::posC ();} // set/get center       position
+   virtual Menu& move     (C Vec2 &delta)override;                                           // move by delta
+   virtual Menu& moveClamp(C Vec2 &delta);                                                   // move by delta and clamp to desktop area
+   virtual Menu& show     (             )override;                                           // show
 
    virtual Menu& posAround(C Rect &rect, Flt align=1); // set menu position around the 'rect' screen rectangle while trying to avoid occluding it, 'align'=horizontal alignment (-1 .. 1) specifying on which side (left or right) the menu should be located
 
@@ -132,9 +132,9 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    void checkKeyboardShortcuts(); // manually iterate all elements to check for their keyboard shortcuts and process them if pushed
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    Flt         paddingL  ()C {return _crect.min.x- _rect.min.x;}
@@ -167,7 +167,7 @@ private:
    void        (*_func)(C Str &path, Ptr user);
 
 protected:
-   virtual GuiObj* owner()C;
+   virtual GuiObj* owner()C override;
 
    NO_COPY_CONSTRUCTOR(Menu);
 };

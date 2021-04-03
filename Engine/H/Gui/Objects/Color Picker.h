@@ -26,7 +26,7 @@ const_mem_addr struct ColorPicker : Window // !! must be stored in constant memo
    ColorPicker& show(         );
    ColorPicker& mode(Bool real); // change value display mode ('real'=0..1 range, or byte=0..255 range)
 
-   virtual void update(C GuiPC &gpc);
+   virtual void update(C GuiPC &gpc)override;
 
    ColorPicker();
 
@@ -35,18 +35,18 @@ private:
 #endif
    struct SatLum : GuiCustom
    {
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
    struct Hue : GuiCustom
    {
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
    struct Colors : GuiCustom
    {
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
    Bool           _real, _func_immediate;
    Vec            _hsb;

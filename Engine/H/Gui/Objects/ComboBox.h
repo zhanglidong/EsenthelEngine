@@ -49,8 +49,8 @@ const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in con
 #if EE_PRIVATE
            ComboBox&   setPath(C Str &start, C Str &end                           );
 #endif
-   virtual ComboBox& rect     (C Rect &rect                                       ); C Rect&       rect()C {return super::rect();} // set/get rectangle
-           ComboBox& skin     (C GuiSkinPtr &skin, Bool sub_objects=true          ); C GuiSkinPtr& skin()C {return super::skin  ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of sub-menus
+   virtual ComboBox& rect     (C Rect &rect                                       )override; C Rect&       rect()C {return super::rect();} // set/get rectangle
+           ComboBox& skin     (C GuiSkinPtr &skin, Bool sub_objects=true          );         C GuiSkinPtr& skin()C {return super::skin  ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of sub-menus
 
             ComboBox& func(void (*func)(Ptr   user), Ptr   user=null, Bool immediate=false);                                                       // set function called when selection has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
    T1(TYPE) ComboBox& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=false) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when selection has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
@@ -60,8 +60,8 @@ const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in con
             ComboBox& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when combobox state has changed
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
 
 #if EE_PRIVATE
    void zero     ();
@@ -82,8 +82,8 @@ private:
    void (*_func)(Ptr user);
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/
 inline Int Elms(C ComboBox &combobox) {return Elms(combobox.menu);}

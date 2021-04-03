@@ -21,8 +21,8 @@ const_mem_addr struct Viewport : GuiObj // Viewport !! must be stored in constan
    void setDisplayView()C; // activate display viewport settings from current viewport parameters
 
    // main
-   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    draw(C GuiPC &gpc); // draw object
+   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    draw(C GuiPC &gpc)override; // draw object
 
 #if EE_PRIVATE
    void zero ();
@@ -33,7 +33,7 @@ const_mem_addr struct Viewport : GuiObj // Viewport !! must be stored in constan
    Viewport();
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

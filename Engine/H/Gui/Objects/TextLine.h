@@ -31,8 +31,8 @@ const_mem_addr struct TextLine : GuiObj // Gui TextLine !! must be stored in con
             Bool      funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when text has changed
             TextLine& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when text has changed
 
-   virtual TextLine& rect(C Rect &rect );   C Rect& rect()C {return super::rect();} // set/get rectangle
-   virtual TextLine& move(C Vec2 &delta);                                           // move by delta
+   virtual TextLine& rect(C Rect &rect )override;   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual TextLine& move(C Vec2 &delta)override;                                           // move by delta
 
    // operations
    TextLine& selectNone  (); // select no  text
@@ -40,9 +40,9 @@ const_mem_addr struct TextLine : GuiObj // Gui TextLine !! must be stored in con
    TextLine& selectExtNot(); // select all but extension
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void  adjustOffset() ;
@@ -73,8 +73,8 @@ private:
    void     (*_func)(Ptr user);
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 
    NO_COPY_CONSTRUCTOR(TextLine);
 #if EE_PRIVATE

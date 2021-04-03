@@ -38,13 +38,13 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    T1(TYPE) SlideBar& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=true) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when value has changed, with 'user' as its parameter
    T1(TYPE) SlideBar& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=true) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when value has changed, with 'user' as its parameter
 
-   virtual SlideBar& desc(C Str &desc);   C Str& desc()C {return super::desc();} // set/get description
+   virtual SlideBar& desc(C Str &desc)override;   C Str& desc()C {return super::desc();} // set/get description
 
    SlideBar& focusable(Bool on);   Bool focusable()C {return _focusable;} // set/get if can catch keyboard focus, default=true
 
    // operations
-   virtual SlideBar& rect(C Rect &rect );   C Rect& rect()C {return super::rect();} // set/get rectangle
-   virtual SlideBar& move(C Vec2 &delta);                                           // move by delta
+   virtual SlideBar& rect(C Rect &rect )override;   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual SlideBar& move(C Vec2 &delta)override;                                           // move by delta
 
    SlideBar& scroll   (Flt delta       , Bool immediate=false); // scroll by delta
    SlideBar& scrollTo (Flt pos         , Bool immediate=false); // scroll to pos
@@ -56,9 +56,9 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    SlideBar& removeSideButtons(); // remove side buttons (left/up and right/down) leaving only the middle button
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void      zero            ();
@@ -82,8 +82,8 @@ private:
    GuiSkinPtr _skin;
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 
    NO_COPY_CONSTRUCTOR(SlideBar);
 #if EE_PRIVATE

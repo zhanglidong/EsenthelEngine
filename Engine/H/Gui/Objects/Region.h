@@ -25,24 +25,24 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
    Region& alwaysHideHorizontalSlideBar(Bool hide);   Bool alwaysHideHorizontalSlideBar()C; // set/get if horizontal SlideBar should be always hidden
 
    // set / get
-   virtual Region& rect        (C Rect &rect                             ); C Rect&  rect        ()C {return super::rect()                        ;} // set/get rectangle
-   virtual Region& move        (C Vec2 &delta                            );                                                                          // move by delta
-           Region& slidebarSize(  Flt   size                             );   Flt    slidebarSize()C {return      _slidebar_size                  ;} // set/get slidebar size, default=0.05
-                                                                              Flt    clientWidth ()C {return      _crect.w          ()            ;} //     get client   width
-                                                                              Flt    clientHeight()C {return      _crect.h          ()            ;} //     get client   height
-                                                                              Vec2   clientSize  ()C {return      _crect.size       ()            ;} //     get client   size
-                                                                            C Rect&  clientRect  ()C {return      _crect                          ;} //     get client   rectangle
-                                                                              Flt   virtualWidth ()C {return slidebar[0].lengthTotal()            ;} //     get virtual  width
-                                                                              Flt   virtualHeight()C {return slidebar[1].lengthTotal()            ;} //     get virtual  height
-           Region& virtualSize (C Vec2       *size                       );   Vec2  virtualSize  ()C {return Vec2(virtualWidth(), virtualHeight());} // set/get virtual  size, pass null to use 'childrenSize'
-                                                                              Vec2 childrenSize  ()C;                                                //     get virtual  size needed to cover all children
-           Region& skin        (C GuiSkinPtr &skin, Bool sub_objects=true); C GuiSkinPtr&    skin()C {return _skin                                ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of slidebars and view button
-                                                                              GuiSkin*    getSkin()C {return _skin ? _skin() : Gui.skin()         ;} //     get actual   skin
+   virtual Region& rect        (C Rect &rect                             )override; C Rect&  rect        ()C {return super::rect()                        ;} // set/get rectangle
+   virtual Region& move        (C Vec2 &delta                            )override;                                                                          // move by delta
+           Region& slidebarSize(  Flt   size                             );           Flt    slidebarSize()C {return      _slidebar_size                  ;} // set/get slidebar size, default=0.05
+                                                                                      Flt    clientWidth ()C {return      _crect.w          ()            ;} //     get client   width
+                                                                                      Flt    clientHeight()C {return      _crect.h          ()            ;} //     get client   height
+                                                                                      Vec2   clientSize  ()C {return      _crect.size       ()            ;} //     get client   size
+                                                                                    C Rect&  clientRect  ()C {return      _crect                          ;} //     get client   rectangle
+                                                                                      Flt   virtualWidth ()C {return slidebar[0].lengthTotal()            ;} //     get virtual  width
+                                                                                      Flt   virtualHeight()C {return slidebar[1].lengthTotal()            ;} //     get virtual  height
+           Region& virtualSize (C Vec2       *size                       );           Vec2  virtualSize  ()C {return Vec2(virtualWidth(), virtualHeight());} // set/get virtual  size, pass null to use 'childrenSize'
+                                                                                      Vec2 childrenSize  ()C;                                                //     get virtual  size needed to cover all children
+           Region& skin        (C GuiSkinPtr &skin, Bool sub_objects=true);         C GuiSkinPtr&    skin()C {return _skin                                ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of slidebars and view button
+                                                                                      GuiSkin*    getSkin()C {return _skin ? _skin() : Gui.skin()         ;} //     get actual   skin
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void        zero();
@@ -71,10 +71,10 @@ private:
    GuiObjChildren _children;
 
 protected:
-   virtual void childRectChanged(C Rect *old_rect, C Rect *new_rect, GuiObj &child);
-   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon);
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual void childRectChanged(C Rect *old_rect, C Rect *new_rect, GuiObj &child)override;
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 
    NO_COPY_CONSTRUCTOR(Region);
 };

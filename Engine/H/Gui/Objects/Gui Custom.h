@@ -23,7 +23,7 @@ private:
    Bool _focusable;
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

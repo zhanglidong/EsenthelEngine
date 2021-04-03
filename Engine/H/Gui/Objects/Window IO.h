@@ -83,11 +83,11 @@ const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! mu
    T1(TYPE) WindowIO& io            (void (*load)(C Str &name, TYPE &user)     , void (*save)(C Str &name, TYPE &user)     , TYPE &user     ) {return io((void(*)(C Str&, Ptr))load, (void(*)(C Str&, Ptr))save, &user);}
 
    // operations
-   virtual WindowIO& hide    (); // hide
-   virtual WindowIO& show    (); // show
-   virtual WindowIO& activate(); // activate
-   virtual WindowIO& save    (); // activate to save
-   virtual WindowIO& load    (); // activate to load
+   virtual WindowIO& hide    ()override; // hide
+   virtual WindowIO& show    ()override; // show
+   virtual WindowIO& activate()override; // activate
+   virtual WindowIO& save    ();         // activate to save
+   virtual WindowIO& load    ();         // activate to load
 
 #if EE_PRIVATE
    void zero           (           );
@@ -113,9 +113,9 @@ const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! mu
    Mems<FileParams> final(           )C;
 #endif
 
-   virtual Rect      sizeLimit(             )C;                                           // set     allowed size limits for the Window rectangle, you can override this method and return custom values, they will be used by 'rect' method
-   virtual WindowIO& rect     (C Rect  &rect) ;   C Rect& rect()C {return super::rect();} // set/get rectangle
-   virtual void      update   (C GuiPC &gpc ) ;
+   virtual Rect      sizeLimit(             )C override;                                           // set     allowed size limits for the Window rectangle, you can override this method and return custom values, they will be used by 'rect' method
+   virtual WindowIO& rect     (C Rect  &rect)  override;   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual void      update   (C GuiPC &gpc )  override;
 
   ~WindowIO() {del();}
    WindowIO();
@@ -136,8 +136,8 @@ private:
    const_mem_addr struct QPS : QuickPathSelector
    {
       WindowIO &win_io;
-      virtual Str  getPath(           );
-      virtual void setPath(C Str &path);
+      virtual Str  getPath(           )override;
+      virtual void setPath(C Str &path)override;
       QPS(WindowIO &win_io);
    };
 

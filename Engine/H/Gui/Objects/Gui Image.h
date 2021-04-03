@@ -18,7 +18,7 @@ const_mem_addr struct GuiImage : GuiObj // Gui Image !! must be stored in consta
    GuiImage& set(C ImagePtr &image); // set image
 
    // main
-   virtual void draw(C GuiPC &gpc); // draw object
+   virtual void draw(C GuiPC &gpc)override; // draw object
 
 #if EE_PRIVATE
    void zero();
@@ -28,7 +28,7 @@ const_mem_addr struct GuiImage : GuiObj // Gui Image !! must be stored in consta
    GuiImage();
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

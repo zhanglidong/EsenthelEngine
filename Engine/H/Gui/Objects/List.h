@@ -36,7 +36,7 @@ struct ListColumn : Button // List Column
    void     pushed();
 #endif
 
-   virtual void update(C GuiPC &gpc);
+   virtual void update(C GuiPC &gpc)override;
 
 private:
    Int _resize_edge;
@@ -223,9 +223,9 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    virtual Bool sorting() {return true;} // this is called when list is about to be sorted, you can override this method and perform custom processing, return true if you want to proceed with sorting, or false to abort it
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    Bool columnsVisible   ()C {return !_columns_hidden && _columns.elms();}
@@ -309,8 +309,8 @@ private:
   _List& _setData(_Memx &node, Int children_offset, C CMemPtr<Bool> &visible=null, Bool keep_cur=false);
 
 protected:
-   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
-   virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child);
+   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client)override;
+   virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child)override;
 
    NO_COPY_CONSTRUCTOR(_List);
 #if EE_PRIVATE

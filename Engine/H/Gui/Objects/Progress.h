@@ -26,7 +26,7 @@ const_mem_addr struct Progress : GuiObj // Gui ProgressBar !! must be stored in 
    GuiSkin*  getSkin   (                )C {return skin ? skin() : Gui.skin();} // get   actual skin
 
    // main
-   virtual void draw(C GuiPC &gpc); // draw object
+   virtual void draw(C GuiPC &gpc)override; // draw object
 
 #if EE_PRIVATE
    void zero();
@@ -41,7 +41,7 @@ private:
    Flt _progress;
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

@@ -26,8 +26,8 @@ const_mem_addr struct TextBox : GuiObj // Gui TextBox !! must be stored in const
    T1(TYPE) TextBox& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=false) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when text has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
    T1(TYPE) TextBox& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=false) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when text has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
 
-   virtual TextBox& rect(C Rect &rect );   C Rect& rect()C {return super::rect();} // set/get rectangle
-   virtual TextBox& move(C Vec2 &delta);                                           // move by delta
+   virtual TextBox& rect(C Rect &rect )override;   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual TextBox& move(C Vec2 &delta)override;                                           // move by delta
 
    // operations
    TextBox& selectNone(); // select no  text
@@ -42,9 +42,9 @@ const_mem_addr struct TextBox : GuiObj // Gui TextBox !! must be stored in const
    TextBox& scrollFitY(Flt min, Flt max, Bool immediate=false) {slidebar[1].scrollFit(min, max, immediate); return T;} // vertical scroll to fit min..max range
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void           zero();
@@ -84,8 +84,8 @@ private:
    GuiSkinPtr _skin;
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 
    NO_COPY_CONSTRUCTOR(TextBox);
 };

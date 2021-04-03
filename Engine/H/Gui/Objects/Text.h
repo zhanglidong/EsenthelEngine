@@ -31,7 +31,7 @@ const_mem_addr struct Text : GuiObj // Gui Text !! must be stored in constant me
    Vec2 textSize()C; // get visible text size
 
    // main
-   virtual void draw(C GuiPC &gpc); // draw object
+   virtual void draw(C GuiPC &gpc)override; // draw object
 
 #if EE_PRIVATE
    void zero();
@@ -41,8 +41,8 @@ const_mem_addr struct Text : GuiObj // Gui Text !! must be stored in constant me
    Text();
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 
 private:
    Str _text;

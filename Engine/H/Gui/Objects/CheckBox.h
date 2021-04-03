@@ -26,8 +26,8 @@ const_mem_addr struct CheckBox : GuiObj // Gui CheckBox !! must be stored in con
             CheckBox& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when checkbox state has changed
 
    // main
-   virtual void update(C GuiPC &gpc); // update object
-   virtual void draw  (C GuiPC &gpc); // draw   object
+   virtual void update(C GuiPC &gpc)override; // update object
+   virtual void draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void zero();
@@ -46,7 +46,7 @@ private:
    void (*_func)(Ptr user);
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/
