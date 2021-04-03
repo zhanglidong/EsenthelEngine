@@ -134,7 +134,6 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
 {
    GuiObjNearest gon;
    gon.obj=null;
-   gon.pos=pos ;
    if(desktop())
    {
       gon.plane.pos   = pos;
@@ -142,8 +141,8 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
       gon.dist=FLT_MAX;
       desktop()->nearest(gon);
    }
-   out_pos=gon.pos;
-   return  gon.obj;
+   out_pos=(gon.obj ? gon.pos : pos);
+   return   gon.obj;
 }
 /******************************************************************************/
 Color GUI::backgroundColor()C {if(GuiSkin *skin=Gui.skin())return skin->background_color; return         WHITE;}
