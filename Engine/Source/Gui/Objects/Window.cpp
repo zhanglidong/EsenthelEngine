@@ -406,10 +406,10 @@ GuiObj* Window::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
       {
          mouse_wheel=this;
 
-         GuiPC gpc2(gpc, true, enabled());
-         if(GuiObj *go=button[2].test(gpc2, pos, mouse_wheel))return go;
-         if(GuiObj *go=button[1].test(gpc2, pos, mouse_wheel))return go;
-         if(GuiObj *go=button[0].test(gpc2, pos, mouse_wheel))return go;
+         GuiPC gpc_this(gpc, true, enabled());
+         if(GuiObj *go=button[2].test(gpc_this, pos, mouse_wheel))return go;
+         if(GuiObj *go=button[1].test(gpc_this, pos, mouse_wheel))return go;
+         if(GuiObj *go=button[0].test(gpc_this, pos, mouse_wheel))return go;
 
          GuiPC gpc_children(gpc, T); if(GuiObj *go=_children.test(gpc_children, pos, mouse_wheel))return go;
 
@@ -417,6 +417,19 @@ GuiObj* Window::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
       }
    }
    return null;
+}
+void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible() && gpc.visible && _fade_type!=FADE_OUT)
+   {
+      Rect r=rect()+gpc.offset;
+      if(gon.test(r&gpc.clip))
+      {
+         //if(barVisible()){} // TODO: nearest at bar rect
+         GuiPC gpc_this    (gpc, true, enabled()); REPAO(button).nearest(gpc_this    , gon);
+         GuiPC gpc_children(gpc, T              );     _children.nearest(gpc_children, gon);
+      }
+   }
 }
 /******************************************************************************/
 static inline void UpdateStretch(Flt side, Flt &l, Flt &r, Int &li, Int &ri, Flt d)

@@ -93,9 +93,10 @@ private:
    GuiObjChildren _children;
 
 protected:
+   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon);
    virtual Bool save(File &f, CChar *path=null)C;
    virtual Bool load(File &f, CChar *path=null) ;
-   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
 
    NO_COPY_CONSTRUCTOR(Window);
 };

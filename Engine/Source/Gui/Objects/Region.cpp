@@ -224,25 +224,32 @@ GuiObj* Region::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
          if(slidebar[!priority]._usable)mouse_wheel=&slidebar[!priority];     // check !priority slidebar next
       }
 
-      GuiPC gc  (gpc, T                   ); if(GuiObj *go=_children.test(gc, pos, mouse_wheel))return go;
-      GuiPC gpc2(gpc, visible(), enabled());
-      if(GuiObj *go=slidebar[0].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=slidebar[1].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=view       .test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_children(gpc, T                   ); if(GuiObj *go=_children.test(gpc_children, pos, mouse_wheel))return go;
+      GuiPC gpc_this    (gpc, visible(), enabled());
+      if(GuiObj *go=slidebar[0].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=slidebar[1].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=view       .test(gpc_this, pos, mouse_wheel))return go;
 
       return go;
    }
    return null;
 }
+void Region::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible() && gpc.visible && gon.test((rect()+gpc.offset)&gpc.clip))
+   {
+      GuiPC gpc_children(gpc, T); _children.nearest(gpc_children, gon);
+   }
+}
 /******************************************************************************/
 void Region::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
-      view.update(gpc2);
+      view.update(gpc_this);
       if(view())
       {
          if(Gui.ms()==&view)
@@ -267,8 +274,8 @@ void Region::update(C GuiPC &gpc)
       && slidebar[0]._usable) // we will scroll only horizontally, so check if that's possible
          slidebar[0].scroll(Ms.wheelX()*(slidebar[0]._scroll_mul*slidebar[0].length()+slidebar[0]._scroll_add), slidebar[0]._scroll_immediate);
 
-      slidebar[0].update(gpc2);
-      slidebar[1].update(gpc2);
+      slidebar[0].update(gpc_this);
+      slidebar[1].update(gpc_this);
 
       GuiPC gc(gpc, T); _children.update(gc);
    }

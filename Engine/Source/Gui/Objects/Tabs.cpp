@@ -333,24 +333,32 @@ GuiObj* Tabs::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    }
    return null;
 }
+void Tabs::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible() && gpc.visible)
+   {
+      if(InRange(T(), T))tab(T())._children.nearest(gpc, gon);
+      if(gon.test((rect()+gpc.offset)&gpc.clip))REPA(T)tab(i).nearest(gpc, gon);
+   }
+}
 /******************************************************************************/
 void Tabs::update(C GuiPC &gpc)
 {
    DEBUG_BYTE_LOCK(_used);
-   GuiPC gpc2(gpc, visible(), enabled());
-   Bool  enabled=gpc2.enabled;
+   GuiPC gpc_this(gpc, visible(), enabled());
+   Bool  enabled=gpc_this.enabled;
    FREPA(T)
    {
-      gpc2.enabled=(enabled && !(valid() && i==T())); // force disabled if 'valid' is enabled and we're processing activated Tab (this way we can't click pushed Tab)
-      Tab &tab=T.tab(i); tab.update(gpc2);
+      gpc_this.enabled=(enabled && !(valid() && i==T())); // force disabled if 'valid' is enabled and we're processing activated Tab (this way we can't click pushed Tab)
+      Tab &tab=T.tab(i); tab.update(gpc_this);
       if((T()==i)!=tab())toggle(i); // if Tab update state changed
    }
-   gpc2.enabled=enabled; // restore 'enabled' after loop, because it was changed inside it
-   Bool visible=gpc2.visible;
+   gpc_this.enabled=enabled; // restore 'enabled' after loop, because it was changed inside it
+   Bool visible=gpc_this.visible;
    FREPA(T)
    {
-      gpc2.visible=(visible && i==T());
-      tab(i)._children.update(gpc2);
+      gpc_this.visible=(visible && i==T());
+      tab(i)._children.update(gpc_this);
    }
 }
 void Tabs::draw(C GuiPC &gpc)
@@ -358,10 +366,10 @@ void Tabs::draw(C GuiPC &gpc)
    if(visible() && gpc.visible)
    {
       setButtonSubType();
-      Rect     r=rect()+gpc.offset; Vec2 ofs=D.alignScreenToPixelOffset(r.lu()); r+=ofs;
-      GuiPC gpc2(gpc, visible(), enabled()); gpc2.offset+=ofs; // adjust offset so that all tabs have the same pixel alignment as the first one
-      FREPA(T)  tab(i  ).          draw(gpc2);
-      if(T()>=0)tab(T())._children.draw(gpc );
+      Rect  r=rect()+gpc.offset; Vec2 ofs=D.alignScreenToPixelOffset(r.lu()); r+=ofs;
+      GuiPC gpc_this(gpc, visible(), enabled()); gpc_this.offset+=ofs; // adjust offset so that all tabs have the same pixel alignment as the first one
+      FREPA(T)  tab(i  ).          draw(gpc_this);
+      if(T()>=0)tab(T())._children.draw(gpc     );
    }
 }
 /******************************************************************************/

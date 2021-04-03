@@ -821,9 +821,10 @@ Bool GuiObjChildren::Switch(C GuiObj &go, Bool next)
    }
    return false;
 }
-GuiObj* GuiObjChildren::test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel) { REPA(children)if(GuiObj *go=T[i])if(go=go->test(gpc, pos, mouse_wheel))return go; return null;} // order is important, go from the end (objects on top) and stop on first found
-void    GuiObjChildren::draw  (C GuiPC &gpc                                   ) {FREPA(children)if(GuiObj *go=T[i])      go->draw(gpc                  )          ;             } // order is important
-void    GuiObjChildren::update(C GuiPC &gpc                                   )
+GuiObj* GuiObjChildren::test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel) { REPA(children)if(GuiObj *go=T[i])if(go=go->test   (gpc, pos, mouse_wheel))return go; return null;} // order is important, go from the end (objects on top) and stop on first found
+void    GuiObjChildren::nearest(C GuiPC &gpc, GuiObjNearest &gon               ) {FREPA(children)if(GuiObj *go=T[i])      go->nearest(gpc, gon             )          ;             } // order is important
+void    GuiObjChildren::draw   (C GuiPC &gpc                                   ) {FREPA(children)if(GuiObj *go=T[i])      go->draw   (gpc                  )          ;             } // order is important
+void    GuiObjChildren::update (C GuiPC &gpc                                   )
 {
    // clear all children at start
    FREPA(children)if(GuiObj *go=T[i])go->_updated=false;

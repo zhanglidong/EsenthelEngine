@@ -222,12 +222,12 @@ static void Next(ComboBox &cb, Int delta)
 }
 void ComboBox::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       Bool menu_active=Button::operator()(); // remember state before button update
-      super::update(gpc2);
-      if(gpc2.visible)
+      super::update(gpc_this);
+      if(gpc_this.visible)
       {
          if(Gui.kb()==this)
          {

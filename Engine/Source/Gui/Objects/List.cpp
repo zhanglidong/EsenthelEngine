@@ -1291,16 +1291,16 @@ GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
       {
          VecI2 visible_range=visibleElmsOnScreen(&gpc); if(visible_range.y>=visible_range.x)
          {
-            GuiPC gpc2(gpc, visible(), enabled()); Vec2 offset=gpc2.offset;
+            GuiPC gpc_this(gpc, visible(), enabled()); Vec2 offset=gpc_this.offset;
             if(columnsVisible())
             {
                Flt max_y=gpc.client_rect.max.y-columnHeight();
-               MIN(gpc2.clip.max.y, max_y);
+               MIN(gpc_this.clip.max.y, max_y);
             }
             REPA(_children) // 'test' must be done from the end
             {
                Children::Child &child=_children[i];
-               if(SetGPC(T, gpc2, offset, child.abs_col, visible_range))if(GuiObj *go=child.go->test(gpc2, pos, mouse_wheel))return go;
+               if(SetGPC(T, gpc_this, offset, child.abs_col, visible_range))if(GuiObj *go=child.go->test(gpc_this, pos, mouse_wheel))return go;
             }
          }
       }
@@ -1620,8 +1620,8 @@ void _List::update(C GuiPC &gpc)
       }
 
       // update children
-      GuiPC gpc_col(gpc, T); REPAO(_columns).update(gpc_col);
-      GuiPC gpc2(gpc, visible(), enabled()); _children.update(gpc2);
+      GuiPC gpc_col (gpc, T                   ); REPAO(_columns).update(gpc_col);
+      GuiPC gpc_this(gpc, visible(), enabled());       _children.update(gpc_this);
    }
 }
 /******************************************************************************/
@@ -1840,11 +1840,11 @@ void _List::draw(C GuiPC &gpc)
          {
             VecI2 visible_range=visibleElmsOnScreen(&gpc); if(visible_range.y>=visible_range.x)
             {
-               GuiPC gpc2(gpc, visible(), enabled()); gpc2.clip=elms_rect; Vec2 offset=gpc2.offset;
+               GuiPC gpc_this(gpc, visible(), enabled()); gpc_this.clip=elms_rect; Vec2 offset=gpc_this.offset;
                FREPA(_children) // 'draw' must be done from the start
                {
                   Children::Child &child=_children[i];
-                  if(SetGPC(T, gpc2, offset, child.abs_col, visible_range))child.go->draw(gpc2);
+                  if(SetGPC(T, gpc_this, offset, child.abs_col, visible_range))child.go->draw(gpc_this);
                }
             }
          }

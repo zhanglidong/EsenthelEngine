@@ -72,7 +72,7 @@ private:
 
 protected:
    virtual void childRectChanged(C Rect *old_rect, C Rect *new_rect, GuiObj &child);
-
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon);
    virtual Bool save(File &f, CChar *path=null)C;
    virtual Bool load(File &f, CChar *path=null) ;
 

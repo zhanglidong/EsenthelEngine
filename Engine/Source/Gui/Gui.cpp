@@ -128,7 +128,20 @@ void GUI::setText()
 GuiObj* GUI::objAtPos(C Vec2 &pos)C
 {
    GuiObj *mouse_wheel=null;
-   return desktop() ? desktop()->asDesktop().test(pos, mouse_wheel) : null;
+   return desktop() ? desktop()->test(pos, mouse_wheel) : null;
+}
+GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir)C
+{
+   GuiObjNearest gon;
+   gon.obj=null;
+   if(desktop())
+   {
+      gon.pos = pos;
+      gon.dir =!dir;
+      gon.dist=FLT_MAX;
+      desktop()->nearest(gon);
+   }
+   return gon.obj;
 }
 /******************************************************************************/
 Color GUI::backgroundColor()C {if(GuiSkin *skin=Gui.skin())return skin->background_color; return         WHITE;}
@@ -273,7 +286,7 @@ void GUI::update()
   _ms_lit          =null;
   _wheel           =null;
   _overlay_textline=overlayTextLine(_overlay_textline_offset);
-   if(Ms.detected() && Ms.visible() && Ms._on_client && desktop())_ms_lit=desktop()->asDesktop().test(Ms.pos(), _wheel); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
+   if(Ms.detected() && Ms.visible() && Ms._on_client && desktop())_ms_lit=desktop()->test(Ms.pos(), _wheel); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
    Byte ms_button=0; REPA(Ms._button)ms_button|=Ms._button[i];
    if(!(ms_button&(BS_ON|BS_RELEASED)))_ms=_ms_src=msLit();
    if(App.active())
@@ -434,7 +447,7 @@ void GUI::draw()
 
    if(_desktop)
    {
-     _desktop->asDesktop().draw();
+     _desktop->draw();
       D.clip(); // reset clip after drawing all gui objects
 
       // show description

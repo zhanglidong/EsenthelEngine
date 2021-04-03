@@ -60,7 +60,7 @@ GuiObj* Desktop::test(C Vec2 &pos, GuiObj* &mouse_wheel)
    // test overlay textline
    Vec2 offset; if(Gui.desktop()==this)if(TextLine *tl=Gui.overlayTextLine(offset))
    {
-      GuiPC gpc2=gpc; gpc2.offset=offset; if(GuiObj *go=tl->test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_tl=gpc; gpc_tl.offset=offset; if(GuiObj *go=tl->test(gpc_tl, pos, mouse_wheel))return go;
       if(Cuts(pos, Rect(-D.w(), tl->rect().min.y+offset.y, D.w(), tl->rect().max.y+offset.y)))return tl;
    }
 
@@ -72,6 +72,11 @@ GuiObj* Desktop::test(C Vec2 &pos, GuiObj* &mouse_wheel)
 
    return null;
 }
+void Desktop::nearest(GuiObjNearest &gon)
+{
+   GuiPC gpc(T); _children.nearest(gpc, gon);
+}
+/******************************************************************************/
 void Desktop::update()
 {
    GuiPC gpc(T); if(gpc.enabled){DEBUG_BYTE_LOCK(_used); _children.update(gpc);}
@@ -87,7 +92,7 @@ void Desktop::draw()
       Vec2 offset; if(Gui.desktop()==this)if(TextLine *tl=Gui.overlayTextLine(offset)) // don't use "Gui._overlay_textline" because offset can change during textline's window resize
       {
          D.clip(gpc.clip); Rect(-D.w(), tl->rect().min.y+offset.y, D.w(), tl->rect().max.y+offset.y).extend(0.01f).drawShaded(Color(0, 0, 0, 128), TRANSPARENT, 0.01f);
-         GuiPC gpc2=gpc; gpc2.offset=offset; tl->draw(gpc2);
+         GuiPC gpc_tl=gpc; gpc_tl.offset=offset; tl->draw(gpc_tl);
       }
    }
 }

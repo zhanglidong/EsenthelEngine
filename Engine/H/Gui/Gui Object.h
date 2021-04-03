@@ -59,6 +59,17 @@ struct GuiPC // Gui Parent->Child Relation
 #endif
 };
 /******************************************************************************/
+struct GuiObjNearest
+{
+#if EE_PRIVATE
+   Vec2    pos, dir;
+   Flt     dist;
+   GuiObj *obj;
+
+   Bool test(C Rect &rect)C;
+#endif
+};
+/******************************************************************************/
 const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object classes (Button, CheckBox, Window, ..) !! must be stored in constant memory address !!
 {
    Ptr user; // user data pointer
@@ -214,6 +225,8 @@ private:
 
    virtual GuiObj* owner()C {return _parent;}
 
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon);
+
    NO_COPY_CONSTRUCTOR(GuiObj);
 };
 /******************************************************************************/
@@ -248,9 +261,10 @@ struct GuiObjChildren
    void                 moveBelow   (C GuiObj &child_a, C GuiObj &child_b);
    Bool                 Switch      (C GuiObj &go     , Bool next=true);
 
-   GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-   void    update(C GuiPC &gpc);
-   void    draw  (C GuiPC &gpc);
+   GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
+   void    nearest(C GuiPC &gpc, GuiObjNearest &gon);
+   void    update (C GuiPC &gpc);
+   void    draw   (C GuiPC &gpc);
 #endif
 
   ~GuiObjChildren() {del();}

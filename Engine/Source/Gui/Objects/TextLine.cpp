@@ -258,12 +258,12 @@ GuiObj* TextLine::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void TextLine::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible() && showClear(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible() && showClear(), enabled());
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
-      reset.update(gpc2);
+      reset.update(gpc_this);
       if(Gui.kb()==this)
       {
       #if !ADJUST_OFFSET_ON_SEL

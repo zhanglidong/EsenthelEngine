@@ -497,12 +497,12 @@ GuiObj* Menu::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
    if(visible() && gpc.visible)
    {
-      GuiPC gpc2(gpc, T);
-      FREPA(_elms)if(Menu *menu=_elms[i].menu())if(GuiObj *go=menu->test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_this(gpc, T);
+      FREPA(_elms)if(Menu *menu=_elms[i].menu())if(GuiObj *go=menu->test(gpc_this, pos, mouse_wheel))return go;
       if(Cuts(pos, rect()))
       {
          mouse_wheel=this;
-         if(GuiObj *go=list.test(gpc2, pos, mouse_wheel))return go;
+         if(GuiObj *go=list.test(gpc_this, pos, mouse_wheel))return go;
          return this;
       }
    }
@@ -538,8 +538,8 @@ void Menu::checkKeyboardShortcuts()
 static inline Flt ScrollSpeed(Menu &menu) {return menu.list.elmHeight()*14*Time.ad();} // speed of 14 elements per second
 void Menu::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, T);
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, T);
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
@@ -550,14 +550,14 @@ void Menu::update(C GuiPC &gpc)
          if(Ms.test(_crect+d))
          {
             move(d);
-            gpc2=GuiPC(gpc, T); // reset GuiPC because move can affect position
+            gpc_this=GuiPC(gpc, T); // reset GuiPC because move can affect position
          }
       }
 
       // list
-      list.update(gpc2);
+      list.update(gpc_this);
 
-      if(gpc2.visible)
+      if(gpc_this.visible)
       {
          if(_elms.elms())
          {
@@ -593,7 +593,7 @@ void Menu::update(C GuiPC &gpc)
             }else // use detection basing on the 'list.cur'
             if(InRange(list.cur, list.visibleElms()))
             {
-               Flt y=list.visToLocalY(list.cur)+gpc2.offset.y,
+               Flt y=list.visToLocalY(list.cur)+gpc_this.offset.y,
                    d=D.h()-(y+paddingT());
                if( d<0) // top of the screen (check this before bottom of the screen)
                {
@@ -735,7 +735,7 @@ void Menu::update(C GuiPC &gpc)
       }
 
       // children
-      REPA(_elms)if(Menu *menu=_elms[i].menu())menu->update(gpc2);
+      REPA(_elms)if(Menu *menu=_elms[i].menu())menu->update(gpc_this);
    }
 }
 /******************************************************************************/
@@ -749,7 +749,7 @@ void Menu::draw(C GuiPC &gpc)
          if(skin->menu.normal        )skin->menu.normal->draw(skin->menu.normal_color, rect());else
          if(skin->menu.normal_color.a)            rect().draw(skin->menu.normal_color);
       }
-      GuiPC gpc2(gpc, T); list.draw(gpc2); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->draw(gpc2);
+      GuiPC gpc_this(gpc, T); list.draw(gpc_this); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->draw(gpc_this);
    }
 }
 /******************************************************************************/

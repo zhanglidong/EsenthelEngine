@@ -302,8 +302,8 @@ GuiObj* SlideBar::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 /******************************************************************************/
 void SlideBar::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       Int scroll_discrete=0;
       Flt scroll_smooth  =0;
@@ -360,9 +360,9 @@ void SlideBar::update(C GuiPC &gpc)
       }
 
       // buttons
-      button[0].update(gpc2);
-      button[1].update(gpc2);
-      button[2].update(gpc2);
+      button[0].update(gpc_this);
+      button[1].update(gpc_this);
+      button[2].update(gpc_this);
       if((button[0]() || button[1]() || button[2]()) && _usable)
       {
          Flt d=0;
