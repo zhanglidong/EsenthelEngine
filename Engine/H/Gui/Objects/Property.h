@@ -17,13 +17,13 @@ const_mem_addr struct Property // Class Member Gui Control !! must be stored in 
    Flt                  mouse_edit_speed    ; //    0..Inf , default=1.0 (40 for Int's)
    Int                  real_precision      ; //             default=MAX_INT (auto-detect)
 
-   MemberDesc md      ;
-   Text       name    ;
-   CheckBox   checkbox;
-   TextLine   textline;
-   Button     button  ;
-   ComboBox   combobox;
-   Slider     slider  ;
+   MemberDesc    md      ;
+   TextNoNearest name    ;
+   CheckBox      checkbox;
+   TextLine      textline;
+   Button        button  ;
+   ComboBox      combobox;
+   Slider        slider  ;
 
    // manage
    T1(TYPE) Property& create   (C Str  &name  ,   TYPE       &member) {return create(name, MemberDesc(member));}

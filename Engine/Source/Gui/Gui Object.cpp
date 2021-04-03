@@ -689,7 +689,7 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
                   Vec2 pos=rect.center(), delta=pos-gon.start_pos;
                   Flt  dist2=delta.length2();
                        dist_plane=Dot(delta, gon.dir);
-                  if(  dist_plane>0)
+                  if(  dist_plane>gon.min_dist)
                   {
                      Flt dist=DistDot(dist2, dist_plane);
                      if( rect_dist< gon.nearest_rect_dist                            // if rect dist smaller
