@@ -173,9 +173,10 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    Window   & asWindow  () {return ( Window   &)T;}   C Window   & asWindow  ()C {return ( Window   &)T;} // return as Window   (you may use this only if type()==GO_WINDOW  )
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc) {} // update object
-   virtual void    draw  (C GuiPC &gpc) {} // draw   object
+   virtual GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    nearest(C GuiPC &gpc, GuiObjNearest &gon);
+   virtual void    update (C GuiPC &gpc) {} // update object
+   virtual void    draw   (C GuiPC &gpc) {} // draw   object
 
    // IO
    virtual Bool save(File &f, CChar *path=null)C; // save to   file, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
@@ -226,8 +227,6 @@ private:
    virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child) {} // called when        rectangle of a child    has changed
 
    virtual GuiObj* owner()C {return _parent;}
-
-   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon);
 
    NO_COPY_CONSTRUCTOR(GuiObj);
 };
