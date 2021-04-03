@@ -639,8 +639,8 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       {
          Vec2 pos=r.center(), delta=pos-gon.plane.pos;
          Flt dist2=delta.length2();
-         if( dist2>Sqr(EPS) // ignore if already focused/centered on it
-         &&  dist2<Sqr(gon.dist)) // process only if smaller than what we already have
+         if( dist2<Sqr(gon.dist) // process only if smaller than what we already have
+         &&  dist2>D.pixelToScreenSize().length2()) // ignore if already focused/centered on it
          {
             Flt dot=Dot(delta, gon.plane.normal);
             if( dot>EPS)
