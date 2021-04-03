@@ -136,8 +136,8 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir)C
    gon.obj=null;
    if(desktop())
    {
-      gon.pos = pos;
-      gon.dir =!dir;
+      gon.plane.pos   = pos;
+      gon.plane.normal=!dir;
       gon.dist=FLT_MAX;
       desktop()->nearest(gon);
    }

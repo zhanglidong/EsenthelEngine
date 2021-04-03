@@ -623,6 +623,19 @@ Flt Dist(C Rect &a, C Rect &b)
                Max(0, Abs(a.centerY()-b.centerY())-(a.h()+b.h())*0.5f));
 }
 /******************************************************************************/
+Flt Dist(C Rect &rect, C Plane2 &plane)
+{
+   Vec2 test((plane.normal.x<=0) ? rect.max.x : rect.min.x,
+             (plane.normal.y<=0) ? rect.max.y : rect.min.y);
+   return Dist(test, plane);
+}
+Flt MaxDist(C Rect &rect, C Plane2 &plane)
+{
+   Vec2 test((plane.normal.x>=0) ? rect.max.x : rect.min.x,
+             (plane.normal.y>=0) ? rect.max.y : rect.min.y);
+   return Dist(test, plane);
+}
+/******************************************************************************/
 Flt Dist2PointSquare(C Vec2 &pos, C Vec2 &square_center, Flt square_radius)
 {
    return Sqr(Max(Abs(pos.x-square_center.x)-square_radius, 0))

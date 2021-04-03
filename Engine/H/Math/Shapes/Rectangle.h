@@ -434,15 +434,18 @@ inline RectI RoundGPU(C Rect &r) {return RectI(RoundGPU(r.min.x), RoundGPU(r.min
 #endif
 
 // distance
-Flt Dist (C Vec2  &point, C Rect  &rect); //         distance between point     and a rectangle
-Flt Dist (C Vec2  &point, C RectI &rect); //         distance between point     and a rectangle
-Dbl Dist (C VecD2 &point, C RectD &rect); //         distance between point     and a rectangle
-Dbl Dist (C VecD2 &point, C RectI &rect); //         distance between point     and a rectangle
-Flt Dist2(C Vec2  &point, C Rect  &rect); // squared distance between point     and a rectangle
-Flt Dist2(C Vec2  &point, C RectI &rect); // squared distance between point     and a rectangle
-Dbl Dist2(C VecD2 &point, C RectD &rect); // squared distance between point     and a rectangle
-Dbl Dist2(C VecD2 &point, C RectI &rect); // squared distance between point     and a rectangle
-Flt Dist (C Rect  &a    , C Rect  &b   ); //         distance between rectangle and a rectangle
+Flt Dist (C Vec2  &point, C Rect   &rect ); //         distance between point     and a rectangle
+Flt Dist (C Vec2  &point, C RectI  &rect ); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectD  &rect ); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectI  &rect ); //         distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C Rect   &rect ); // squared distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C RectI  &rect ); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectD  &rect ); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectI  &rect ); // squared distance between point     and a rectangle
+Flt Dist (C Rect  &a    , C Rect   &b    ); //         distance between rectangle and a rectangle
+Flt Dist (C Rect  &rect , C Plane2 &plane); //         distance between rectangle and a plane
+
+Flt MaxDist(C Rect &rect, C Plane2 &plane); // maximum distance between rectangle and a plane
 
 Flt Dist2PointSquare(C Vec2  &pos, C Vec2  &square_center, Flt square_radius);
 Flt Dist2PointSquare(C Vec2  &pos, C VecI2 &square_center, Flt square_radius);

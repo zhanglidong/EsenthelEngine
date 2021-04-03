@@ -618,6 +618,52 @@ GuiObj* GuiObj::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    return (visible() && gpc.visible && Cuts(pos, (rect()+gpc.offset)&gpc.clip) /*&& is()*/) ? this : null; // no need to check for 'is' because we already check for 'visible' and deleted objects can't be visible
 }
 /******************************************************************************/
+void GuiObjNearest::clear()
+{
+   dist=FLT_MAX;
+   obj =null;
+}
+Bool GuiObjNearest::test(C Rect &rect)C
+{
+   return rect.valid()
+      &&    Dist(rect, plane)<dist //  closest point on the rectangle is closer than what we already have
+      && MaxDist(rect, plane)>EPS; // furthest point on the rectangle is outside of the plane (along the desired direction)
+}
+void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible() && gpc.visible)
+   {
+      Rect r=rect()+gpc.offset;
+      r&=gpc.clip;
+      if(r.valid())
+      {
+         Vec2 pos=r.center(), delta=pos-gon.plane.pos;
+         Flt dist2=delta.length2();
+         if( dist2>Sqr(EPS) // ignore if already focused/centered on it
+         &&  dist2<Sqr(gon.dist)) // process only if smaller than what we already have
+         {
+            Flt dot=Dot(delta, gon.plane.normal);
+            if( dot>EPS)
+            {
+            #if 0
+               Flt dist=SqrtFast(dist2);
+               dot /=dist;
+               dist/=dot; // increase distance according to dot. dist=dist/(dot/dist)=dist*dist/dot=dist2/dot
+            #else
+               Flt dist=dist2/dot;
+            #endif
+               if(dist<gon.dist)
+               {
+                  gon.dist=dist;
+                  gon.pos =pos;
+                  gon.obj =this;
+               }
+            }
+         }
+      }
+   }
+}
+/******************************************************************************/
 // IO
 /******************************************************************************/
 Bool GuiObj::save(File &f, CChar *path)C
