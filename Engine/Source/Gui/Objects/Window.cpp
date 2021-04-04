@@ -855,8 +855,6 @@ void ModalWindow::draw(C GuiPC &gpc)
 /******************************************************************************/
 // DIALOG
 /******************************************************************************/
-GuiObj* Dialog::Text2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel) {return null;}
-
 Dialog& Dialog::autoSize()
 {
    Flt button_w=Gui.dialog_button_padd*buttons.elms(); if(buttons.elms())button_w+=Gui.dialog_button_margin*(buttons.elms()-1);

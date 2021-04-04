@@ -55,8 +55,9 @@ private:
    NO_COPY_CONSTRUCTOR(Text);
 };
 /******************************************************************************/
-struct TextNoNearest : Text
+struct TextNoTest : Text
 {
-   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override {}
+   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override {return null;}
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon               )override {}
 };
 /******************************************************************************/

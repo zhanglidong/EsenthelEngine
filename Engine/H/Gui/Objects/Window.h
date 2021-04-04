@@ -118,11 +118,7 @@ private:
 /******************************************************************************/
 struct Dialog : Window // Dialog (has text and custom amount of buttons, creating it automatically sets the correct rectangles for the window and its children)
 {
-   struct Text2 : Text
-   {
-      virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
-   };
-   Text2        text;
+   TextNoTest   text;
    Memx<Button> buttons;
 
    Dialog& create  (C Str &title, C Str &text, C CMemPtr<Str> &buttons, C TextStylePtr &text_style=null); // create with given parameters, this automatically calls 'set'
