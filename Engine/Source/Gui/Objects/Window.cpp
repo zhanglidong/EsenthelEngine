@@ -226,7 +226,7 @@ Window& Window::setTitle(C Str  &title) {T.title=title; return T;}
 void Window::setButtons()
 {
    Flt  size=barHeight();
-   Vec2 pos(_crect.max.x, _rect.max.y);
+   Vec2 pos(_crect.w(), _rect.max.y-_crect.max.y);
    if(GuiSkin *skin=getSkin())
    {
       Flt scale;
@@ -239,7 +239,7 @@ void Window::setButtons()
       }
       if(size<=0)size=skin->menubar.bar_height; // if the size is unavailable then default to size taken from menu bar
    }
-   if(!Gui.windowButtonsRight())pos.x=_crect.min.x+(_crect.max.x-pos.x); // mirror to the left side
+   if(!Gui.windowButtonsRight())pos.x=_crect.w()-pos.x; // mirror to the left side
 
    // setup buttons
    if(button[2].visible()){Flt w=size; if(GuiSkin *s=button[2].getSkin())if(PanelImage *pi=s->window.close   .normal())if(pi->image.is())w*=pi->image.aspect(); Rect rect; if(Gui.windowButtonsRight()){rect.setRU(pos, w, size); pos.x-=w;}else{rect.setLU(pos, w, size); pos.x+=w;} button[2].rect(rect);}
@@ -295,9 +295,6 @@ Window& Window::move(C Vec2 &delta)
    {
       super::move(delta);
      _crect+=delta;
-      button[0].move(delta);
-      button[1].move(delta);
-      button[2].move(delta);
    }
    return T;
 }
@@ -406,12 +403,12 @@ GuiObj* Window::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
       {
          mouse_wheel=this;
 
-         GuiPC gpc_this(gpc, true, enabled());
+         GuiPC gpc_this(gpc, T); if(GuiObj *go=_children.test(gpc_this, pos, mouse_wheel))return go;
+
+         gpc_this.clip=gpc.clip;
          if(GuiObj *go=button[2].test(gpc_this, pos, mouse_wheel))return go;
          if(GuiObj *go=button[1].test(gpc_this, pos, mouse_wheel))return go;
          if(GuiObj *go=button[0].test(gpc_this, pos, mouse_wheel))return go;
-
-         GuiPC gpc_children(gpc, T); if(GuiObj *go=_children.test(gpc_children, pos, mouse_wheel))return go;
 
          return this;
       }
@@ -427,8 +424,8 @@ void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       {
          gon.cover(r_clip);
          //if(barVisible()){} // TODO: bar rect
-         GuiPC gpc_this    (gpc, true, enabled()); REPAO(button).nearest(gpc_this    , gon);
-         GuiPC gpc_children(gpc, T              );     _children.nearest(gpc_children, gon);
+         GuiPC gpc_this(gpc, T);           _children.nearest(gpc_this, gon);
+               gpc_this.clip=gpc.clip; REPAO(button).nearest(gpc_this, gon);
       }
    }
 }
@@ -481,15 +478,14 @@ void Window::update(C GuiPC &gpc)
 {
    DEBUG_BYTE_LOCK(_used);
 
-   GuiPC gpc_this(gpc, visible(), enabled()),
-         gpc_children(gpc, T);
+   GuiPC gpc_this(gpc, T);
 
    if(gpc_this.visible && Gui.ms()==this && (flag&WIN_RESIZABLE) && _fade_type!=FADE_OUT && !Ms.b(1))
    {
       if(!Ms.b(0)) // if not pressed then detect new resize, if pressed then keep previous
       {
         _resize=0;
-         Vec2 aligned_offset=gpc_children.offset-_crect.lu(), pos=Ms.pos()-aligned_offset;
+         Vec2 aligned_offset=gpc_this.offset-_crect.lu(), pos=Ms.pos()-aligned_offset;
          if(pos.x<=rect().min.x+D.pixelToScreenSize().x)_resize|=DIRF_LEFT ;else
          if(pos.x>=rect().max.x-D.pixelToScreenSize().x)_resize|=DIRF_RIGHT;
          if(pos.y<=rect().min.y+D.pixelToScreenSize().y)_resize|=DIRF_DOWN ;else
@@ -589,7 +585,8 @@ void Window::update(C GuiPC &gpc)
 
    if(gpc_this.enabled)
    {
-      _children.update(gpc_children);
+      _children.update(gpc_this);
+      gpc_this.clip=gpc.clip;
       button[0].update(gpc_this);
       button[1].update(gpc_this);
       button[2].update(gpc_this);
@@ -601,10 +598,9 @@ void Window::draw(C GuiPC &gpc)
    if(visible() && gpc.visible)
    {
       Bool  active=T.active(), transparent=(finalAlpha()<1-EPS_COL);
-      GuiPC gpc_children(gpc, T), // first calculate the GuiPC for children which sets the offset per pixel aligned exactly at client rect top left corner
-            gpc_aligned(gpc, true, active); // use 'active' for 'gpc_aligned' to draw buttons as half transparent when inactive
-            gpc_aligned.offset=gpc_children.offset-_crect.lu(); // now based on that offset calculate the GuiPC for the Window, which is just as 'gpc' however with offset compatible with 'gpc_children'
-      Rect  r=rect()+gpc_aligned.offset, ext_rect;
+      GuiPC gpc_this(gpc, T); // first calculate the GuiPC for children which sets the offset per pixel aligned exactly at client rect top left corner
+      Vec2  aligned_offset=gpc_this.offset-_crect.lu(); // now based on that offset calculate the offset for the Window, which is just as 'gpc.offset' however compatible with 'gpc_this'
+      Rect  r=rect()+aligned_offset, ext_rect;
 
       if(ripple || transparent)
       {
@@ -613,7 +609,7 @@ void Window::draw(C GuiPC &gpc)
          if(ripple)D.clearCol();else // clear entire screen for ripple as it may use various tex coordinates basing on the ripple intensity
          { // clear only the screen part that we're going to use
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-            extendedRect(ext_rect); ext_rect+=gpc_aligned.offset;
+            extendedRect(ext_rect); ext_rect+=aligned_offset;
             Sh.clear(Vec4Zero, &Rect(ext_rect).extend(D.pixelToScreenSize())); // extend by 1 pixel to avoid tex filtering issues
             D .alpha(alpha);
          }
@@ -632,7 +628,7 @@ void Window::draw(C GuiPC &gpc)
             if(TextStyle *text_style=(active ? skin->window.active_text_style() : skin->window.normal_text_style()))
          {
             Flt  bar_height=barHeight(), text_padd=bar_height*skin->window.text_padd;
-            Rect text_rect(_crect.min.x+gpc_aligned.offset.x+text_padd, r.max.y-bar_height, _crect.max.x+gpc_aligned.offset.x-text_padd, r.max.y);
+            Rect text_rect(_crect.min.x+aligned_offset.x+text_padd, r.max.y-bar_height, _crect.max.x+aligned_offset.x-text_padd, r.max.y);
             TextStyleParams ts=*text_style; ts.size=bar_height*skin->window.text_size; ts.color=ColorAdd(ts.color, ColorBA(highlightHover()*0.11f, 0));
             // check if title overlaps the buttons
             if(Gui.windowButtonsRight())
@@ -643,9 +639,9 @@ void Window::draw(C GuiPC &gpc)
                      x_align_mul=ts.align.x*0.5f-0.5f,
                            right=text_rect.lerpX(-x_align_mul) + text_width*x_align_mul + text_width,
                            max_x;
-                  if(button[0].visible())max_x=button[0].rect().min.x+gpc_aligned.offset.x-text_padd;else
-                  if(button[1].visible())max_x=button[1].rect().min.x+gpc_aligned.offset.x-text_padd;else
-                  if(button[2].visible())max_x=button[2].rect().min.x+gpc_aligned.offset.x-text_padd;else
+                  if(button[0].visible())max_x=button[0].rect().min.x+gpc_this.offset.x-text_padd;else
+                  if(button[1].visible())max_x=button[1].rect().min.x+gpc_this.offset.x-text_padd;else
+                  if(button[2].visible())max_x=button[2].rect().min.x+gpc_this.offset.x-text_padd;else
                                          max_x=text_rect.max.x;
                   if(right>max_x)
                   {
@@ -656,9 +652,9 @@ void Window::draw(C GuiPC &gpc)
             }else
             {
                Flt min_x;
-               if(button[0].visible())min_x=button[0].rect().max.x+gpc_aligned.offset.x+text_padd;else
-               if(button[1].visible())min_x=button[1].rect().max.x+gpc_aligned.offset.x+text_padd;else
-               if(button[2].visible())min_x=button[2].rect().max.x+gpc_aligned.offset.x+text_padd;else
+               if(button[0].visible())min_x=button[0].rect().max.x+gpc_this.offset.x+text_padd;else
+               if(button[1].visible())min_x=button[1].rect().max.x+gpc_this.offset.x+text_padd;else
+               if(button[2].visible())min_x=button[2].rect().max.x+gpc_this.offset.x+text_padd;else
                                       min_x=text_rect.min.x;
                if(ts.align.x<1-EPS) // if alignment is not to the right
                {
@@ -679,10 +675,14 @@ void Window::draw(C GuiPC &gpc)
             D.text(ts, text_rect, title);
          }
       }
-      _children.draw(gpc_children);
-      button[0].draw(gpc_aligned );
-      button[1].draw(gpc_aligned );
-      button[2].draw(gpc_aligned );
+
+     _children.draw(gpc_this);
+
+      gpc_this.clip=gpc.clip;
+      gpc_this.enabled&=active; // adjust 'enabled' by 'active' to draw buttons as half transparent when inactive
+      button[0].draw(gpc_this);
+      button[1].draw(gpc_this);
+      button[2].draw(gpc_this);
 
       if(ripple || transparent)
          if(C ImageRTPtr &rt=D.fxEnd())
@@ -727,7 +727,7 @@ Bool Window::save(File &f, CChar *path)C
 {
    if(super::save(f, path))
    {
-      f.putMulti(Byte(5), flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)<<title; // version
+      f.putMulti(Byte(6), flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)<<title; // version
       f.putAsset(_skin.id());
       if(button[0].save(f, path))
       if(button[1].save(f, path))
@@ -740,7 +740,7 @@ Bool Window::load(File &f, CChar *path)
 {
    del(); if(super::load(f, path))switch(f.decUIntV()) // version
    {
-      case 5:
+      case 6:
       {
          f.getMulti(flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)>>title;
         _skin.require(f.getAssetID(), path);
@@ -750,6 +750,16 @@ Bool Window::load(File &f, CChar *path)
             if(f.ok()){setFinalAlpha(); setParams(); return true;}
       }break;
 
+      case 5:
+      {
+         f.getMulti(flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)>>title;
+        _skin.require(f.getAssetID(), path);
+         if(button[0].load(f, path))
+         if(button[1].load(f, path))
+         if(button[2].load(f, path))
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
+      }break;
+
       case 4:
       {
          f.getMulti(flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)._getStr1(title);
@@ -757,7 +767,7 @@ Bool Window::load(File &f, CChar *path)
          if(button[0].load(f, path))
          if(button[1].load(f, path))
          if(button[2].load(f, path))
-            if(f.ok()){setFinalAlpha(); setParams(); return true;}
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
       }break;
 
       case 3:
@@ -767,7 +777,7 @@ Bool Window::load(File &f, CChar *path)
          if(button[0].load(f, path))
          if(button[1].load(f, path))
          if(button[2].load(f, path))
-            if(f.ok()){setFinalAlpha(); setParams(); return true;}
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
       }break;
 
       case 2:
@@ -777,7 +787,7 @@ Bool Window::load(File &f, CChar *path)
          if(button[0].load(f, path))
          if(button[1].load(f, path))
          if(button[2].load(f, path))
-            if(f.ok()){setFinalAlpha(); setParams(); return true;}
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
       }break;
 
       case 1:
@@ -787,7 +797,7 @@ Bool Window::load(File &f, CChar *path)
          if(button[0].load(f, path))
          if(button[1].load(f, path))
          if(button[2].load(f, path))
-            if(f.ok()){setFinalAlpha(); setParams(); return true;}
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
       }break;
 
       case 0:
@@ -797,7 +807,7 @@ Bool Window::load(File &f, CChar *path)
          if(button[0].load(f, path))
          if(button[1].load(f, path))
          if(button[2].load(f, path))
-            if(f.ok()){setFinalAlpha(); setParams(); return true;}
+            if(f.ok()){setFinalAlpha(); setParams(); setButtons(); return true;}
       }break;
    }
    del(); return false;
