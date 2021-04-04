@@ -631,8 +631,15 @@ static Flt DistDot(Flt dist2, Flt dist_plane)
    Flt dist=SqrtFast(dist2);
    Flt dot =dist_plane/dist;
    return dist/dot; // increase distance according to dot. dist=dist/(dist_plane/dist)=dist*dist/dist_plane=dist2/dist_plane
-#else
+#elif 0 // simplified
    return dist2/dist_plane;
+#else // Cos converted to Angle
+   if(!dist2)return 0;
+   Flt dist=SqrtFast(dist2);
+   Flt dot =dist_plane/dist;
+   Flt angle=Acos(dot); // convert 0..1 -> PI_2..0
+   Flt div  =1-angle/PI_2;
+   return (div>0) ? dist/div : FLT_MAX;
 #endif
 }
 static Bool Exclude(Rect &rect, C Rect &cover) // adjust 'rect' to don't have any parts belonging to 'cover' !! assumes that rectangles intersect !!
