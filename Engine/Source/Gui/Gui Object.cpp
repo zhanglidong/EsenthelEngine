@@ -625,20 +625,20 @@ GuiObj* GuiObj::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    return (visible() && gpc.visible && Cuts(pos, (rect()+gpc.offset)&gpc.clip) /*&& is()*/) ? this : null; // no need to check for 'is' because we already check for 'visible' and deleted objects can't be visible
 }
 /******************************************************************************/
-static Flt DistDot(Flt dist2, Flt dist_plane)
+static Flt DistDot(Flt dist2, Flt dist_plane) // !! assumes "dist_plane>0 || dist2==0" !!
 {
-#if 0
+   if(!dist2)return 0; // check if dist2 is 0, in that case return 0, this covers the cases when objects are touching (distance is 0 and because of that dist_plane is 0 too, in that case we must return 0, and don't do any divisions by 0 resulting in infinity), after this we're sure that "dist_plane>0 && dist2>0"
+#if 0 // distance scaled by Cos
    Flt dist=SqrtFast(dist2);
    Flt dot =dist_plane/dist;
    return dist/dot; // increase distance according to dot. dist=dist/(dist_plane/dist)=dist*dist/dist_plane=dist2/dist_plane
-#elif 0 // simplified
+#elif 0 // distance scaled by Cos optimized
    return dist2/dist_plane;
-#else // Cos converted to Angle
-   if(!dist2)return 0;
-   Flt dist=SqrtFast(dist2);
-   Flt dot =dist_plane/dist;
-   Flt angle=Acos(dot); // convert 0..1 -> PI_2..0
-   Flt div  =1-angle/PI_2;
+#else // distance scaled by Angle (better)
+   Flt dist =SqrtFast(dist2),
+       dot  =dist_plane/dist,
+       angle=Acos(dot)   , // convert    0..1 -> PI_2..0
+       div  =1-angle/PI_2; // convert PI_2..0 ->    0..1
    return (div>0) ? dist/div : FLT_MAX;
 #endif
 }
@@ -715,8 +715,8 @@ Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
       if(  dist_plane>gon.min_dist)
       {
          recalc   =false;
-         dist     =                   DistDot(delta.length2(), dist_plane     );
-         dist_rect=(rect_dist_plane ? DistDot(rect_dist2     , rect_dist_plane) : 0); // check must be done to avoid div by zero, because here we allow 'rect_dist_plane'=0
+         dist     =DistDot(delta.length2(), dist_plane     );
+         dist_rect=DistDot(rect_dist2     , rect_dist_plane);
          return true;
       }
    }
@@ -742,8 +742,8 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
                {
                   auto &obj=gon.nearest.New();
                   obj.recalc   =false;
-                  obj.dist     =                   DistDot(delta.length2(), dist_plane     );
-                  obj.dist_rect=(rect_dist_plane ? DistDot(rect_dist2     , rect_dist_plane) : 0); // check must be done to avoid div by zero, because here we allow 'rect_dist_plane'=0
+                  obj.dist     =DistDot(delta.length2(), dist_plane     );
+                  obj.dist_rect=DistDot(rect_dist2     , rect_dist_plane);
                   obj.rect     =rect;
                   obj.obj      =this;
                }
