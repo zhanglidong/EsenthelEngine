@@ -65,9 +65,10 @@ struct Joypad // Joypad Input
       Sensor& reset() {accel.zero(); gyro.zero(); orn.identity(); return T;}
    };
 
-   Vec2 dir       , //        direction
-        dir_a  [2]; // analog direction, [0]=left, [1]=right
-   Flt  trigger[2]; // trigger         , [0]=left, [1]=right
+   VecSB2 diri      ; //        direction (integer version)
+   Vec2   dir       , //        direction
+          dir_a  [2]; // analog direction, [0]=left, [1]=right
+   Flt    trigger[2]; // trigger         , [0]=left, [1]=right
 
    Bool b (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) : false;} // if button 'b' is on
    Bool bp(Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) : false;} // if button 'b' pushed   in this frame

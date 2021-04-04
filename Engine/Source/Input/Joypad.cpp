@@ -119,7 +119,12 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
                if(InRange(val, elm->max))
                {
                   CosSin(jp.dir.x, jp.dir.y, val*elm->mul+elm->add);
-               }else jp.dir.zero();
+                  jp.diri.set(Round(jp.dir.x), Round(jp.dir.y));
+               }else
+               {
+                  jp.dir .zero();
+                  jp.diri.zero();
+               }
             }break;
 
             case MacJoypad::Elm::BUTTON:
@@ -227,6 +232,7 @@ void Joypad::zero()
 {
    Zero(_button);
    REPAO(_last_t)=-FLT_MAX;
+         diri    .zero();
          dir     .zero();
    REPAO(dir_a  ).zero();
    REPAO(trigger)=0;
@@ -271,8 +277,9 @@ void Joypad::update()
          update(button, Elms(button));
 
          // digital pad
-         dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
-         dir.y=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN);
+         diri.set(FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT),
+                  FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN));
+         dir=diri;
          Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
          // analog pad
@@ -315,8 +322,9 @@ void Joypad::update()
       update(button, Elms(button));
 
       // digital pad
-      dir.x=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadRight)-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadLeft);
-      dir.y=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadUp   )-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadDown);
+      diri.set(FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadRight)-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadLeft),
+               FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadUp   )-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadDown));
+      dir=diri;
       Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
       // analog pad
@@ -342,12 +350,12 @@ void Joypad::update()
          // digital pad
          switch(state.rgdwPOV[0])
          {
-            case UINT_MAX: dir.zero(); break;
-            case        0: dir.set( 0,  1); break;
-            case     9000: dir.set( 1,  0); break;
-            case    18000: dir.set( 0, -1); break;
-            case    27000: dir.set(-1,  0); break;
-            default      : CosSin(dir.x, dir.y, PI_2-DegToRad(state.rgdwPOV[0]/100.0f)); break;
+            case UINT_MAX: diri.zero(      ); dir.zero(      ); break;
+            case        0: diri.set ( 0,  1); dir.set ( 0,  1); break;
+            case     9000: diri.set ( 1,  0); dir.set ( 1,  0); break;
+            case    18000: diri.set ( 0, -1); dir.set ( 0, -1); break;
+            case    27000: diri.set (-1,  0); dir.set (-1,  0); break;
+            default      : CosSin(dir.x, dir.y, PI_2-DegToRad(state.rgdwPOV[0]/100.0f)); diri.set(Round(dir.x), Round(dir.y)); break;
          }
 
          // analog pad
