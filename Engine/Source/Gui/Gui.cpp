@@ -266,6 +266,11 @@ void GUI::playClickSound()C
    SoundPlay(click_sound_id, 1, VOLUME_UI);
 }
 /******************************************************************************/
+void GUI::ms(GuiObj *obj)
+{
+  _ms=_ms_src=obj;
+}
+/******************************************************************************/
 Vec2 GUI::dragPos()C
 {
    if(dragging())

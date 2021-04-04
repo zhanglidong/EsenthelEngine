@@ -71,7 +71,7 @@ void Touch::eat()
    FlagDisable(_state, BS_NOT_ON);
 }
 /******************************************************************************/
-void MouseTouch::guiObj(Int i, GuiObj *obj) {if(InRange(i, Touches))Touches[i].guiObj(obj);else Gui._ms=Gui._ms_src=obj;}
+void MouseTouch::guiObj(Int i, GuiObj *obj) {if(InRange(i, Touches))Touches[i].guiObj(obj);else Gui.ms(obj);}
 /******************************************************************************/
 Touch* FindTouch(UInt id) // 0 is reserved for mouse
 {

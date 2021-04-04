@@ -69,6 +69,8 @@ struct GUI // Graphical User Interface
 
    void playClickSound()C; // play click sound based on 'click_sound_*' members
 
+   void ms(GuiObj *obj); // manually change the object for mouse
+
    // dragging
    Bool   dragging  ()C {return _dragging;} // if currently dragging an element
    Vec2   dragPos   ()C;                    // get screen position of the input that triggered dragging (this is valid if 'dragging' returns true)
