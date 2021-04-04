@@ -133,26 +133,55 @@ GuiObj* GUI::objAtPos(C Vec2 &pos)C
 GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
 {
    GuiObjNearest gon;
-   gon.nearest_obj=null;
    if(desktop())
    {
-      gon.start_rect  = pos;
-      gon.start_pos   = pos;
-      gon.dir         =!dir;
-      gon.nearest_dist=gon.nearest_rect_dist=gon.nearest_rect_dist2=FLT_MAX;
-      gon.min_dist    =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-      if(gon.start_obj=objAtPos(pos))switch(gon.start_obj->type())
+         gon.state   =   0;
+         gon.rect    = pos;
+         gon.pos     = pos;
+         gon.dir     =!dir;
+         gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+      if(gon.obj     =objAtPos(pos))switch(gon.obj->type())
       {
          case GO_DESKTOP:
          case GO_WINDOW :
          case GO_REGION :
             break;
-         default: gon.start_rect=gon.start_obj->screenRect(); break;
+         default: gon.rect=gon.obj->screenRect(); break;
       }
       desktop()->nearest(gon);
    }
-   out_pos=(gon.nearest_obj ? gon.nearest_pos : pos);
-   return   gon.nearest_obj;
+   if(gon.nearest.elms())
+   {
+      if(gon.state==2) // if start rectangle is covered
+         REPA(gon.nearest)if(!gon.nearest[i].recalcDo(gon))gon.nearest.remove(i); // recalc all
+
+   again:
+      if(gon.nearest.elms())
+      {
+         auto *nearest=&gon.nearest.last();
+         Flt   nearest_dist_rect=nearest->dist_rect;
+         REP(gon.nearest.elms()-1)
+         {
+            auto &obj=gon.nearest[i];
+            Flt   obj_dist_rect=obj.dist_rect;
+            if(obj_dist_rect< nearest_dist_rect
+            || obj_dist_rect==nearest_dist_rect && obj.dist<nearest->dist)
+            {
+               nearest=&obj;
+               nearest_dist_rect=obj_dist_rect;
+            }
+         }
+         if(nearest->recalc) // if nearest has to be recalculated
+         {
+            REPA(gon.nearest){auto &obj=gon.nearest[i]; if(obj.recalc)if(!obj.recalcDo(gon))gon.nearest.remove(i);} // recalc all
+            goto again; // find again
+         }
+         out_pos=nearest->rect.center();
+         return  nearest->obj;
+      }
+   }
+   out_pos=pos;
+   return null;
 }
 /******************************************************************************/
 Color GUI::backgroundColor()C {if(GuiSkin *skin=Gui.skin())return skin->background_color; return         WHITE;}

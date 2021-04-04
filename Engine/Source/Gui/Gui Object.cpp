@@ -628,33 +628,82 @@ static Flt DistDot(Flt dist2, Flt dist_plane)
    return dist2/dist_plane;
 #endif
 }
-void GuiObjNearest::clear()
+static Bool Exclude(Rect &rect, C Rect &cover) // adjust 'rect' to don't have any parts belonging to 'cover' !! assumes that rectangles intersect !!
 {
-   nearest_dist=nearest_rect_dist=nearest_rect_dist2=FLT_MAX;
-   nearest_obj =null;
+   Rect part[4]; // we can generate up to 4 rectangles
+   Int  parts=0; // how many generated
+   if(cover.min.x>rect.min.x)part[parts++].set( rect.min.x,  rect.min.y, cover.min.x,  rect.max.y); // set left  part
+   if(cover.max.x<rect.max.x)part[parts++].set(cover.max.x,  rect.min.y,  rect.max.x,  rect.max.y); // set right part
+   if(cover.min.y>rect.min.y)part[parts++].set( rect.min.x,  rect.min.y,  rect.max.x, cover.min.y); // set lower part
+   if(cover.max.y<rect.max.y)part[parts++].set( rect.min.x, cover.max.y,  rect.max.x,  rect.max.y); // set upper part
+   if(parts) // if have any parts
+   { // find biggest part (with biggest area)
+      Int biggest     =parts-1; // assume it's the last one
+      Flt biggest_area=part[biggest].area(); // calc its area
+      REP(parts-1) // iterate all others
+      {
+         Flt area=part[i].area();
+         if( area>biggest_area){biggest_area=area; biggest=i;}
+      }
+      rect=part[biggest]; // adjust rectangle to the biggest part
+      return true; // success
+   }
+   return false; // empty
+}
+void GuiObjNearest::cover(C Rect &rect)
+{
+   REPA(nearest)
+   {
+      auto &obj=nearest[i];
+      Rect &obj_rect=obj.rect;
+      if(Cover(obj_rect, rect))
+      {
+         if(Exclude(obj_rect, rect))obj.recalc=true; // mark that it needs to be recalculated
+         else                       nearest.remove(i); // just remove it
+      }
+   }
+   if(state) // if already encountered starting object, which means that at this stage we can occlude it
+      if(Cover(T.rect, rect))
+   {
+      state=2; // set that we've modified it
+      if(!Exclude(T.rect, rect))T.rect=T.pos; // if completely covered then set as a single point
+   }
+}
+static void GetRectDelta(Vec2 &rect_delta, C Rect &a, C Rect &b)
+{
+   if(b.min.x>a.max.x)rect_delta.x=b.min.x-a.max.x;else // +
+   if(b.max.x<a.min.x)rect_delta.x=b.max.x-a.min.x;else // -
+                      rect_delta.x=0;                   // 0
+   if(b.min.y>a.max.y)rect_delta.y=b.min.y-a.max.y;else // +
+   if(b.max.y<a.min.y)rect_delta.y=b.max.y-a.min.y;else // -
+                      rect_delta.y=0;                   // 0
 }
 Bool GuiObjNearest::test(C Rect &rect)C
 {
    if(rect.valid())
    {
-      Vec2 rect_delta;
-      if(rect.min.x>start_rect.max.x)rect_delta.x=rect.min.x-start_rect.max.x;else // +
-      if(rect.max.x<start_rect.min.x)rect_delta.x=rect.max.x-start_rect.min.x;else // -
-                                     rect_delta.x=0;                               // 0
-      if(rect.min.y>start_rect.max.y)rect_delta.y=rect.min.y-start_rect.max.y;else // +
-      if(rect.max.y<start_rect.min.y)rect_delta.y=rect.max.y-start_rect.min.y;else // -
-                                     rect_delta.y=0;                               // 0
-      Flt rect_dist2 =rect_delta.length2();
-      if( rect_dist2<=nearest_rect_dist2) // process only if smaller or equal than what we already have
+      Vec2   rect_delta; GetRectDelta(rect_delta, T.rect, rect);
+      if(Dot(rect_delta, dir)>0      // rect_dist_plane
+      ||     rect_delta.length2()==0 // rect_dist2
+      )return true;
+   }
+   return false;
+}
+Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
+{
+   Vec2 rect_delta; GetRectDelta(rect_delta, gon.rect, rect);
+   Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
+        rect_dist2     =    rect_delta.length2();
+   if(  rect_dist_plane>0 || rect_dist2==0)
+   {
+      Vec2 pos=rect.center(), delta=pos-gon.pos;
+      Flt  dist_plane=Dot(delta, gon.dir);
+      if(  dist_plane>gon.min_dist)
       {
-         if( rect_dist2==0)return true;
-         Flt dist_plane=Dot(rect_delta, dir);
-         if( dist_plane>0)
-         {
-            Flt rect_dist =DistDot(rect_dist2, dist_plane);
-            if( rect_dist<=nearest_rect_dist) // process only if smaller or equal than what we already have
-               return true;
-         }
+         recalc   =false;
+         dist     =                   DistDot(delta.length2(), dist_plane     );
+         dist_rect=(rect_dist_plane ? DistDot(rect_dist2     , rect_dist_plane) : 0); // check must be done to avoid div by zero, because here we allow 'rect_dist_plane'=0
+         return true;
       }
    }
    return false;
@@ -663,46 +712,26 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(visible() && gpc.visible)
    {
-      Rect rect=T.rect()+gpc.offset;
-      rect&=gpc.clip;
-      if(rect.valid())
+      Rect rect=T.rect()+gpc.offset; rect&=gpc.clip;
+      if(  rect.valid())
       {
-         Vec2 rect_delta;
-         if(rect.min.x>gon.start_rect.max.x)rect_delta.x=rect.min.x-gon.start_rect.max.x;else // +
-         if(rect.max.x<gon.start_rect.min.x)rect_delta.x=rect.max.x-gon.start_rect.min.x;else // -
-                                            rect_delta.x=0;                                   // 0
-         if(rect.min.y>gon.start_rect.max.y)rect_delta.y=rect.min.y-gon.start_rect.max.y;else // +
-         if(rect.max.y<gon.start_rect.min.y)rect_delta.y=rect.max.y-gon.start_rect.min.y;else // -
-                                            rect_delta.y=0;                                   // 0
-         Flt rect_dist2 =rect_delta.length2();
-         if( rect_dist2<=gon.nearest_rect_dist2) // process only if smaller or equal than what we already have
+         if(this==gon.obj)gon.state=1;else // if encountered the starting object, then mark as encountered, also don't process it
          {
-            Flt dist_plane, rect_dist;
-            if( rect_dist2==0){rect_dist=0; goto rect_dist_zero;}
-                dist_plane=Dot(rect_delta, gon.dir);
-            if( dist_plane>0)
+            Vec2 rect_delta; GetRectDelta(rect_delta, gon.rect, rect);
+            Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
+                 rect_dist2     =    rect_delta.length2();
+            if(  rect_dist_plane>0 || rect_dist2==0)
             {
-                   rect_dist =DistDot(rect_dist2, dist_plane);
-               if( rect_dist<=gon.nearest_rect_dist) // process only if smaller or equal than what we already have
+               Vec2 pos=rect.center(), delta=pos-gon.pos;
+               Flt  dist_plane=Dot(delta, gon.dir);
+               if(  dist_plane>gon.min_dist)
                {
-               rect_dist_zero:
-                  Vec2 pos=rect.center(), delta=pos-gon.start_pos;
-                  Flt  dist2=delta.length2();
-                       dist_plane=Dot(delta, gon.dir);
-                  if(  dist_plane>gon.min_dist)
-                  {
-                     Flt dist=DistDot(dist2, dist_plane);
-                     if( rect_dist< gon.nearest_rect_dist                            // if rect dist smaller
-                     || (rect_dist==gon.nearest_rect_dist && dist<gon.nearest_dist)) // or rect dist same but pos dist smaller
-                        if(this!=gon.start_obj) // ignore if already focused/centered on it
-                     {
-                        gon.nearest_dist      =dist;
-                        gon.nearest_rect_dist =rect_dist;
-                        gon.nearest_rect_dist2=rect_dist2;
-                        gon.nearest_pos       =pos;
-                        gon.nearest_obj       =this;
-                     }
-                  }
+                  auto &obj=gon.nearest.New();
+                  obj.recalc   =false;
+                  obj.dist     =                   DistDot(delta.length2(), dist_plane     );
+                  obj.dist_rect=(rect_dist_plane ? DistDot(rect_dist2     , rect_dist_plane) : 0); // check must be done to avoid div by zero, because here we allow 'rect_dist_plane'=0
+                  obj.rect     =rect;
+                  obj.obj      =this;
                }
             }
          }

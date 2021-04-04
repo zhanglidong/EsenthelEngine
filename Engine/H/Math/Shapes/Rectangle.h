@@ -464,6 +464,8 @@ Bool Inside   (C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b'
 Bool Inside   (C RectI &a, C RectI &b); // if 'a' is fully inside 'b'
 Bool InsideEps(C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b', with EPS epsilon tolerance
 
+Bool Cover(C Rect &a, C Rect &b); // if rectangles cover each other (at least partially), returns false if only borders are touching
+
 // fit
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit=FIT_FULL); // get a rectangle that will fit in the 'dest_rect' while preserving the 'src_aspect' source aspect ratio using the 'fit' mode
 

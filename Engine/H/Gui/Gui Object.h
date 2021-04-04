@@ -62,13 +62,25 @@ struct GuiPC // Gui Parent->Child Relation
 struct GuiObjNearest
 {
 #if EE_PRIVATE
-   Flt     nearest_dist, nearest_rect_dist, nearest_rect_dist2, min_dist;
-   Vec2    nearest_pos, start_pos, dir;
-   Rect    start_rect;
-   GuiObj *nearest_obj, *start_obj;
+   struct Obj
+   {
+      Bool    recalc;
+      Flt     dist, dist_rect;
+      Rect    rect;
+      GuiObj *obj;
 
-   void clear();
-   Bool test(C Rect &rect)C;
+      Bool recalcDo(GuiObjNearest &gon);
+   };
+
+   Byte      state; // 0=haven't yet encountered the starting 'obj' during processing, 1=encountered 'obj', 2='rect' becamed covered
+   Flt       min_dist;
+   Vec2      pos, dir;
+   Rect      rect;
+   GuiObj   *obj;
+   Memt<Obj> nearest;
+
+   Bool test (C Rect &rect)C;
+   void cover(C Rect &rect);
 #endif
 };
 /******************************************************************************/

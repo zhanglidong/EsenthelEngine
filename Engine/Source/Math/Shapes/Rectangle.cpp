@@ -696,6 +696,12 @@ Bool InsideEps(C Rect &a, C Rect &b)
        && a.min.y>=b.min.y-EPS && a.max.y<=b.max.y+EPS;
 }
 /******************************************************************************/
+Bool Cover(C Rect &a, C Rect &b)
+{
+   return b.max.x>a.min.x && b.min.x<a.max.x
+       && b.max.y>a.min.y && b.min.y<a.max.y;
+}
+/******************************************************************************/
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit)
 {
    Rect r=dest_rect; Bool mx=(r.min.x>r.max.x); if(mx)Swap(r.min.x, r.max.x); Flt w=r.w();

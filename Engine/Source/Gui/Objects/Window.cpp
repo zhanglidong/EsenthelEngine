@@ -423,9 +423,9 @@ void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
    if(visible() && gpc.visible && _fade_type!=FADE_OUT)
    {
       Rect r=rect()+gpc.offset, r_clip=r&gpc.clip;
-      if(Cuts(gon.nearest_pos, r_clip))gon.clear(); // if this window covers any existing nearest obj, then clear it. This must be done before 'gon.test' because of cases when the nearest obj rectangle is closer than window, however its center is further and underneath the window (only border part of the nearest obj rectangle is not covered by window, but center is covered)
       if(gon.test(r_clip))
       {
+         gon.cover(r_clip);
          //if(barVisible()){} // TODO: bar rect
          GuiPC gpc_this    (gpc, true, enabled()); REPAO(button).nearest(gpc_this    , gon);
          GuiPC gpc_children(gpc, T              );     _children.nearest(gpc_children, gon);
