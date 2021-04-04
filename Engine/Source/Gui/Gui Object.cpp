@@ -546,28 +546,35 @@ Rect GuiObj::screenRect      ()C {return Rect_LU(screenPos      (),       size()
 Vec2 GuiObj::screenPos       ()C
 {
    Vec2 pos=T.pos();
-   for(GuiObj *go=parent(); go; go=go->parent())switch(go->type())
+      C GuiObj *go=this;
+again:
+   if(C GuiObj *parent=go->parent())
    {
-      case GO_DESKTOP: break; // desktop shouldn't influence position as it stores elements relative to center
-      case GO_TAB    : break; // elements assigned to 'Tab'  aren't relative to 'Tab'  position
-      case GO_TABS   : break; // elements assigned to 'Tabs' aren't relative to 'Tabs' position
-      case GO_WINDOW : pos+=go->asWindow().clientRect().lu(); break;
-      case GO_MENU   : pos+=go->asMenu  ().clientRect().lu(); goto finished; // menus are always on top
-      default        : pos+=go->pos(); break;
-
-      case GO_REGION:
+      switch(parent->type())
       {
-         Region &region=go->asRegion();
-         pos  +=region.clientRect().lu();
-         pos.x-=region.slidebar[0].offset();
-         pos.y+=region.slidebar[1].offset();
-      }break;
+         case GO_WINDOW: pos+=parent->asWindow().clientRect().lu(); break;
+         case GO_MENU  : pos+=parent->asMenu  ().clientRect().lu(); goto finished; // menus are always on top
 
-      case GO_LIST:
-      {
-         pos+=go->asList().childOffset(T);
-         pos+=go->pos();
-      }break;
+         case GO_REGION:
+         {
+          C Region &region=parent->asRegion();
+            if(go!=&region.slidebar[0]
+            && go!=&region.slidebar[1]
+            && go!=&region.view       )
+            {
+               pos  +=region.clientRect().lu();
+               pos.x-=region.slidebar[0].offset();
+               pos.y+=region.slidebar[1].offset();
+            }
+         }break;
+
+         case GO_LIST:
+         {
+            pos+=parent->asList().childOffset(T);
+            pos+=parent->pos();
+         }break;
+      }
+      go=parent; goto again;
    }
 
 finished:;
