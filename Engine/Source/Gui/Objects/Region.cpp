@@ -277,7 +277,7 @@ void Region::update(C GuiPC &gpc)
       slidebar[0].update(gpc_this);
       slidebar[1].update(gpc_this);
 
-      GuiPC gc(gpc, T); _children.update(gc);
+      GuiPC gpc_children(gpc, T); _children.update(gpc_children);
    }
 }
 void Region::draw(C GuiPC &gpc)
@@ -299,7 +299,7 @@ void Region::draw(C GuiPC &gpc)
          slidebar[0].draw(gpc);
          slidebar[1].draw(gpc);
 
-         GuiPC gc(gpc, T); _children.draw(gc);
+         GuiPC gpc_children(gpc, T); _children.draw(gpc_children);
 
          if(kb_lit && contains(Gui.kb())){D.clip(gpc.clip); Gui.kbLit(this, rect, skin);}
       }
