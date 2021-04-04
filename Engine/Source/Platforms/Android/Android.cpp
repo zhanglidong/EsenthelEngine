@@ -284,13 +284,14 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
          {
             if(action_type==AMOTION_EVENT_ACTION_MOVE)
             {
-               Joypad &joy=Joypads(action_index); if(!joy._name.is()){joy._name=JavaInputDeviceName(device); if(!joy._name.is())joy._name="Joypad";}
-               joy.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
-               joy.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y    , action_index));
-               joy.dir_a[1].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX   , action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY   , action_index));
+               Joypad &jp=Joypads(action_index); if(!jp._name.is()){jp._name=JavaInputDeviceName(device); if(!jp._name.is())jp._name="Joypad";}
+               jp.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
+               jp.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y    , action_index));
+               jp.dir_a[1].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX   , action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY   , action_index));
+               jp.diri.set(Round(jp.dir.x), Round(jp.dir.y));
             }
          }else
          if((source&AINPUT_SOURCE_MOUSE) && !stylus)  // check for stylus because on "Samsung Galaxy Note 2" stylus input generates both "AINPUT_SOURCE_STYLUS|AINPUT_SOURCE_MOUSE" at the same time
