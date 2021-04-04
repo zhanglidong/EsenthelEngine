@@ -434,7 +434,7 @@ void Joypad::release(Byte b)
 }
 void Joypad::eat(Int b)
 {
-   if(InRange(b, _button))_button[b]&=~BS_ON;
+   if(InRange(b, _button))FlagDisable(_button[b], BS_NOT_ON);
 }
 /******************************************************************************/
 void Joypad::acquire(Bool on)
