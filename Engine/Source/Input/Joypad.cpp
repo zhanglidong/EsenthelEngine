@@ -232,6 +232,8 @@ void Joypad::zero()
 {
    Zero(_button);
    REPAO(_last_t)=-FLT_MAX;
+          _dir_t =-FLT_MAX;
+         diri_r  .zero();
          diri    .zero();
          dir     .zero();
    REPAO(dir_a  ).zero();
@@ -242,6 +244,7 @@ void Joypad::zero()
 void Joypad::clear()
 {
    REPAO(_button)&=~BS_NOT_ON;
+   diri_r.zero();
 }
 void Joypad::update(C Byte *on, Int elms)
 {
@@ -251,6 +254,20 @@ void Joypad::update(C Byte *on, Int elms)
 #if WINDOWS_NEW
 static inline Bool FlagTest(Windows::Gaming::Input::GamepadButtons flags, Windows::Gaming::Input::GamepadButtons f) {return (flags&f)!=Windows::Gaming::Input::GamepadButtons::None;}
 #endif
+inline void Joypad::updateOK()
+{
+   if(diri.any())
+   {
+      if(Time.appTime()>=_dir_t)
+      {
+         diri_r=diri;
+        _dir_t =Time.appTime()+((_dir_t<0) ? FirstRepeatPressTime : RepeatPressTime); // if first press, then wait longer
+      }
+   }else
+   {
+     _dir_t=-FLT_MAX;
+   }
+}
 void Joypad::update()
 {
 #if WINDOWS
@@ -292,7 +309,7 @@ void Joypad::update()
          trigger[0]=state.Gamepad. bLeftTrigger/255.0f;
          trigger[1]=state.Gamepad.bRightTrigger/255.0f;
 
-         return;
+         updateOK(); return;
       }
    }
 #elif JP_GAMEPAD_INPUT
@@ -335,7 +352,7 @@ void Joypad::update()
       trigger[0]=state. LeftTrigger;
       trigger[1]=state.RightTrigger;
 
-      return;
+      updateOK(); return;
    }
 #endif
 #if JP_DIRECT_INPUT
@@ -373,7 +390,7 @@ void Joypad::update()
          trigger[0]=(state.rglSlider[0]-32768)*mul;
          trigger[1]=(state.rglSlider[1]-32768)*mul;
 
-         return;
+         updateOK(); return;
       }
       if(App.active())acquire(true); // if failed then try to re-acquire
    }
@@ -384,10 +401,10 @@ void Joypad::update()
     C MacJoypad &mjp=MacJoypads[index];
       ASSERT(ELMS(T._button)==ELMS(mjp.button));
       update(mjp.button, Elms(mjp.button));
-      return;
+      updateOK(); return;
    }
 #else
-   return; // updated externally
+   updateOK(); return; // updated externally
 #endif
    zero();
 }

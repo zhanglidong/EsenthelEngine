@@ -18,6 +18,8 @@
 #define TouchDoubleClickTime 0.33f // amount of time to consider Touch                        press a double click
 #if EE_PRIVATE
 #define DragTime 0.15f
+#define FirstRepeatPressTime 0.21f // amount of time wait until triggering a first repeat press
+#define      RepeatPressTime 0.08f // amount of time wait until triggering a       repeat press
 #endif
 /******************************************************************************/
 // ACCELEROMETER, GYROSCOPE, LOCATION

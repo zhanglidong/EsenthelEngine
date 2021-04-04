@@ -65,7 +65,8 @@ struct Joypad // Joypad Input
       Sensor& reset() {accel.zero(); gyro.zero(); orn.identity(); return T;}
    };
 
-   VecSB2 diri      ; //        direction (integer version)
+   VecSB2 diri      , //        direction (integer version)
+          diri_r    ; //        direction (integer version) repeatable, will get triggered repeatedly as long as direction is pressed
    Vec2   dir       , //        direction
           dir_a  [2]; // analog direction, [0]=left, [1]=right
    Flt    trigger[2]; // trigger         , [0]=left, [1]=right
@@ -99,15 +100,16 @@ struct Joypad // Joypad Input
 
 #if EE_PRIVATE
    // manage
-   void acquire(Bool on);
-   void update (C Byte *on, Int elms);
-   void update ();
-   void clear  ();
-   void zero   ();
-   void push   (Byte b);
-   void release(Byte b);
-   Int  index  ()C;
-   void sensors(Bool calculate);
+   void acquire (Bool on);
+   void update  (C Byte *on, Int elms);
+   void updateOK();
+   void update  ();
+   void clear   ();
+   void zero    ();
+   void push    (Byte b);
+   void release (Byte b);
+   Int  index   ()C;
+   void sensors (Bool calculate);
 #endif
 
 #if !EE_PRIVATE
@@ -124,7 +126,7 @@ private:
    Bool   _vibrations=false;
 #endif
    Bool   _connected=false;
-   Flt    _last_t[32];
+   Flt    _last_t[32], _dir_t;
    UInt   _id=0;
 #if SWITCH
    UInt   _vibration_handle[2], _sensor_handle[2];
