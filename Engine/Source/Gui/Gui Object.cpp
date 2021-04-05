@@ -625,6 +625,7 @@ GuiObj* GuiObj::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    return (visible() && gpc.visible && Cuts(pos, (rect()+gpc.offset)&gpc.clip) /*&& is()*/) ? this : null; // no need to check for 'is' because we already check for 'visible' and deleted objects can't be visible
 }
 /******************************************************************************/
+#define NEAREST_AREA_MIN 0.333f // fraction of original area that must be visible to detect
 static Flt DistDot(Flt dist2, Flt dist_plane) // !! assumes "dist_plane>0 || dist2==0" !!
 {
    if(!dist2)return 0; // check if dist2 is 0, in that case return 0, this covers the cases when objects are touching (distance is 0 and because of that dist_plane is 0 too, in that case we must return 0, and don't do any divisions by 0 resulting in infinity), after this we're sure that "dist_plane>0 && dist2>0"
@@ -672,8 +673,8 @@ void GuiObjNearest::cover(C Rect &rect)
       Rect &obj_rect=obj.rect;
       if(Cover(obj_rect, rect))
       {
-         if(Exclude(obj_rect, rect))obj.recalc=true; // mark that it needs to be recalculated
-         else                       nearest.remove(i); // just remove it
+         if(Exclude(obj_rect, rect) && obj_rect.area()>=obj.area_min)obj.recalc=true; // if still have some rectangle left and its area is big enough, then mark that it needs to be recalculated
+         else                                                      nearest.remove(i); // just remove it
       }
    }
    if(state) // if already encountered starting object, which means that at this stage we can occlude it
@@ -722,23 +723,28 @@ Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
    }
    return false;
 }
-void GuiObjNearest::add(C Rect &rect, GuiObj &obj)
+void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
 {
-   Vec2 rect_delta; GetRectDelta(rect_delta, T.rect, rect);
-   Flt  rect_dist_plane=Dot(rect_delta, dir),
-        rect_dist2     =    rect_delta.length2();
-   if(  rect_dist_plane>0 || rect_dist2==0)
+   Flt area_min=area*NEAREST_AREA_MIN;
+   if(rect.area()>=area_min)
    {
-      Vec2 pos=rect.center(), delta=pos-T.pos;
-      Flt  dist_plane=Dot(delta, dir);
-      if(  dist_plane>min_dist)
+      Vec2 rect_delta; GetRectDelta(rect_delta, T.rect, rect);
+      Flt  rect_dist_plane=Dot(rect_delta, dir),
+           rect_dist2     =    rect_delta.length2();
+      if(  rect_dist_plane>0 || rect_dist2==0)
       {
-         auto &nearest=T.nearest.New();
-         nearest.recalc   =false;
-         nearest.dist     =DistDot(delta.length2(), dist_plane     );
-         nearest.dist_rect=DistDot(rect_dist2     , rect_dist_plane);
-         nearest.rect     =rect;
-         nearest.obj      =&obj;
+         Vec2 pos=rect.center(), delta=pos-T.pos;
+         Flt  dist_plane=Dot(delta, dir);
+         if(  dist_plane>min_dist)
+         {
+            auto &nearest=T.nearest.New();
+            nearest.recalc   =false;
+            nearest.area_min =area_min;
+            nearest.dist     =DistDot(delta.length2(), dist_plane     );
+            nearest.dist_rect=DistDot(rect_dist2     , rect_dist_plane);
+            nearest.rect     =rect;
+            nearest.obj      =&obj;
+         }
       }
    }
 }
@@ -746,11 +752,10 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(visible() && gpc.visible)
    {
-      Rect rect=T.rect()+gpc.offset; rect&=gpc.clip;
-      if(  rect.valid())
+      if(gon.obj==this)gon.state=1;else // if encountered the starting object, then mark as encountered, and don't process it
       {
-         if(gon.obj==this)gon.state=1; // if encountered the starting object, then mark as encountered, and don't process it
-         else             gon.add(rect, T);
+         Rect rect=T.rect()+gpc.offset; rect&=gpc.clip;
+         gon.add(rect, T.rect().area(), T);
       }
    }
 }

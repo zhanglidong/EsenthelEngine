@@ -65,7 +65,8 @@ struct GuiObjNearest
    struct Obj
    {
       Bool    recalc;
-      Flt     dist, dist_rect;
+      Flt     area_min,
+              dist, dist_rect;
       Rect    rect;
       GuiObj *obj;
 
@@ -81,7 +82,7 @@ struct GuiObjNearest
 
    Bool test (C Rect &rect)C;
    void cover(C Rect &rect);
-   void add  (C Rect &rect, GuiObj &obj);
+   void add  (C Rect &rect, Flt area, GuiObj &obj); // 'rect'=rect after clipping, 'area'=rect area before clipping
 #endif
 };
 /******************************************************************************/

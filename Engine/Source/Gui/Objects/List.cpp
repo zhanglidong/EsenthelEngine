@@ -1324,11 +1324,12 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
             case LDM_LIST:
             {
                Rect r; r.setX(gpc.clip.min.x, gpc.clip.max.x);
+               Flt area=T.rect().w()*_height_ez;
                for(Int i=visible_range.x; i<=visible_range.y; i++)
                {
                   r.max.y=pos.y-i*_height_ez;
                   r.min.y=r.max.y-_height_ez;
-                  gon.add(r&gpc.clip, T);
+                  gon.add(r&gpc.clip, area, T);
                }
             }break;
 
@@ -1336,7 +1337,8 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
             {
                for(Int i=visible_range.x; i<=visible_range.y; i++)
                {
-                  gon.add((_rects[i]+pos)&gpc.clip, T);
+                C Rect &rect=_rects[i];
+                  gon.add((rect+pos)&gpc.clip, rect.area(), T);
                }
             }break;
          }
