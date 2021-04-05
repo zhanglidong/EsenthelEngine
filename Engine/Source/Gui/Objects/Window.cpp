@@ -420,7 +420,7 @@ void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
    if(visible() && gpc.visible && _fade_type!=FADE_OUT)
    {
       Rect r=rect()+gpc.offset, r_clip=r&gpc.clip;
-      if(gon.test(r_clip))
+      if(gon.test(r_clip)) // this already tests if rect is valid
       {
          gon.cover(r_clip);
          //if(barVisible()){} // TODO: bar rect

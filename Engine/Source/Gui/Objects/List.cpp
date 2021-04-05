@@ -1308,6 +1308,41 @@ GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    }
    return null;
 }
+void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible() && gpc.visible)
+   {
+      if(gon.obj==this)gon.state=1;
+   #if 0 // skip because list covers entire parent, so if parent is OK, then list is too
+      if(gon.test((T.rect()+gpc.offset)&gpc.clip)) // this already tests if rect is valid
+   #endif
+      {
+         Vec2  pos=gpc.offset; if(columnsVisible())pos.y-=columnHeight();
+         VecI2 visible_range=visibleElmsOnScreen(&gpc);
+         switch(drawMode())
+         {
+            case LDM_LIST:
+            {
+               Rect r; r.setX(gpc.clip.min.x, gpc.clip.max.x);
+               for(Int i=visible_range.x; i<=visible_range.y; i++)
+               {
+                  r.max.y=pos.y-i*_height_ez;
+                  r.min.y=r.max.y-_height_ez;
+                  gon.add(r&gpc.clip, T);
+               }
+            }break;
+
+            case LDM_RECTS: if(_rects)
+            {
+               for(Int i=visible_range.x; i<=visible_range.y; i++)
+               {
+                  gon.add((_rects[i]+pos)&gpc.clip, T);
+               }
+            }break;
+         }
+      }
+   }
+}
 /******************************************************************************/
 Bool _List::setSel(Int visible) // returns if selection has changed, this may call ONLY 'selChanging', but NOT 'selChanged', 'curChanged'
 {

@@ -223,9 +223,10 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    virtual Bool sorting() {return true;} // this is called when list is about to be sorted, you can override this method and perform custom processing, return true if you want to proceed with sorting, or false to abort it
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc)override; // update object
-   virtual void    draw  (C GuiPC &gpc)override; // draw   object
+   virtual GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
+   virtual void    update (C GuiPC &gpc)override; // update object
+   virtual void    draw   (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    Bool columnsVisible   ()C {return !_columns_hidden && _columns.elms();}

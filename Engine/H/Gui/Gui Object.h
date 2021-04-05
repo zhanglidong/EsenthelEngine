@@ -81,6 +81,7 @@ struct GuiObjNearest
 
    Bool test (C Rect &rect)C;
    void cover(C Rect &rect);
+   void add  (C Rect &rect, GuiObj &obj);
 #endif
 };
 /******************************************************************************/
@@ -89,7 +90,7 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    Ptr user; // user data pointer
 
    // manage
-   virtual GuiObj& del   (); // manually delete
+   virtual GuiObj& del   (             ); // manually delete
            GuiObj& create(C GuiObj &src); // create from 'src', this method will succeed only if objects are of the same type
 
    // children

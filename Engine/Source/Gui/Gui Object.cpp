@@ -722,6 +722,26 @@ Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
    }
    return false;
 }
+void GuiObjNearest::add(C Rect &rect, GuiObj &obj)
+{
+   Vec2 rect_delta; GetRectDelta(rect_delta, T.rect, rect);
+   Flt  rect_dist_plane=Dot(rect_delta, dir),
+        rect_dist2     =    rect_delta.length2();
+   if(  rect_dist_plane>0 || rect_dist2==0)
+   {
+      Vec2 pos=rect.center(), delta=pos-T.pos;
+      Flt  dist_plane=Dot(delta, dir);
+      if(  dist_plane>min_dist)
+      {
+         auto &nearest=T.nearest.New();
+         nearest.recalc   =false;
+         nearest.dist     =DistDot(delta.length2(), dist_plane     );
+         nearest.dist_rect=DistDot(rect_dist2     , rect_dist_plane);
+         nearest.rect     =rect;
+         nearest.obj      =&obj;
+      }
+   }
+}
 void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(visible() && gpc.visible)
@@ -729,26 +749,8 @@ void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       Rect rect=T.rect()+gpc.offset; rect&=gpc.clip;
       if(  rect.valid())
       {
-         if(this==gon.obj)gon.state=1;else // if encountered the starting object, then mark as encountered, also don't process it
-         {
-            Vec2 rect_delta; GetRectDelta(rect_delta, gon.rect, rect);
-            Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
-                 rect_dist2     =    rect_delta.length2();
-            if(  rect_dist_plane>0 || rect_dist2==0)
-            {
-               Vec2 pos=rect.center(), delta=pos-gon.pos;
-               Flt  dist_plane=Dot(delta, gon.dir);
-               if(  dist_plane>gon.min_dist)
-               {
-                  auto &obj=gon.nearest.New();
-                  obj.recalc   =false;
-                  obj.dist     =DistDot(delta.length2(), dist_plane     );
-                  obj.dist_rect=DistDot(rect_dist2     , rect_dist_plane);
-                  obj.rect     =rect;
-                  obj.obj      =this;
-               }
-            }
-         }
+         if(gon.obj==this)gon.state=1; // if encountered the starting object, then mark as encountered, and don't process it
+         else             gon.add(rect, T);
       }
    }
 }

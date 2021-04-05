@@ -142,6 +142,7 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
          gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
       if(gon.obj     =objAtPos(pos))switch(gon.obj->type())
       {
+         case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
          case GO_DESKTOP:
          case GO_WINDOW :
          case GO_REGION :
