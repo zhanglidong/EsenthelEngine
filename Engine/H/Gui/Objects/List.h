@@ -168,6 +168,8 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
            Vec2   visToLocalPos  (  Int   visible                   )C; // convert visible index      to top left corner position of the element in local space
            Rect   visToLocalRect (  Int   visible                   )C; // convert visible index      to rectangle                of the element in local space
 
+   Int nearest(C Vec2 &screen_pos, C Vec2 &dir)C; // get nearest visible index, starting from 'screen_pos' screen position towards 'dir' direction, -1 on fail
+
    Int         columns(     )C {return _columns.elms();} // number of columns
    ListColumn& column (Int i)  {return _columns[i]    ;} // get i-th  column
 
@@ -242,6 +244,7 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    Int  localToVisY      (  Flt   local_y  )C; // this is a visible index with    clamping to existing elements (  -1..elms()-1) -1 on fail
    Int  localToVis       (C Vec2 &local_pos)C; // this is a visible index with    clamping to existing elements (  -1..elms()-1) -1 on fail
    Int  localToColumnX   (  Flt   local_x  )C; // -1 on fail
+   Int screenToVirtualX  (Flt x, C GuiPC *gpc=null)C; // convert screen position X to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    Int screenToVirtualY  (Flt y, C GuiPC *gpc=null)C; // convert screen position Y to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    Flt screenToVirtualYF (Flt y, C GuiPC *gpc=null)C; // convert screen position Y to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    void sort             ();

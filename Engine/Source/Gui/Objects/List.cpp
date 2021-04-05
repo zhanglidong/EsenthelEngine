@@ -909,6 +909,7 @@ Int _List::localToVisY(Flt local_y)C {Int v=localToVirtualY(local_y); return InR
 Int _List::screenToVisX     (  Flt   x  , C GuiPC *gpc)C {return localToVisX     (x  -(gpc ? gpc->offset.x : screenPos().x));}
 Int _List::screenToVisY     (  Flt   y  , C GuiPC *gpc)C {return localToVisY     (y  -(gpc ? gpc->offset.y : screenPos().y));}
 Int _List::screenToVis      (C Vec2 &pos, C GuiPC *gpc)C {return localToVis      (pos-(gpc ? gpc->offset   : screenPos()  ));}
+Int _List::screenToVirtualX (  Flt   x  , C GuiPC *gpc)C {return localToVirtualX (x  -(gpc ? gpc->offset.x : screenPos().x));}
 Int _List::screenToVirtualY (  Flt   y  , C GuiPC *gpc)C {return localToVirtualY (y  -(gpc ? gpc->offset.y : screenPos().y));}
 Flt _List::screenToVirtualYF(  Flt   y  , C GuiPC *gpc)C {return localToVirtualYF(y  -(gpc ? gpc->offset.y : screenPos().y));}
 Int _List::screenToColumnX  (  Flt   x  , C GuiPC *gpc)C {return localToColumnX  (x  -(gpc ? gpc->offset.x : screenPos().x));}
@@ -996,6 +997,62 @@ VecI2 _List::visibleElmsOnScreen(C GuiPC *gpc)C
       return range;
    }
    return VecI2(0, -1);
+}
+Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
+{
+   if(visibleElms())switch(drawMode())
+   {
+      case LDM_LIST: if(dir.y)
+      {
+         Int v=screenToVirtualY(screen_pos.y);
+         if(dir.y>0){v--; return Mid(v, -1, visibleElms()-1);}
+                     v++; if(v>=visibleElms())return -1; return Max(v, 0);
+      }break;
+
+      case LDM_RECTS:
+      {
+         Vec2 d=!dir;
+         Vec2 pos=screen_pos-screenPos();
+         if(_horizontal)
+         {
+            Int v=Mid(localToVirtualX(pos.x), 0, visibleElms()-1);
+            if(columnsVisible())pos.y+=columnHeight(); // make 'pos' and '_rects' in the same space
+            VecI2 range=v;
+            if(range.x>0) // go to the start of previous line
+            {
+               Flt x=_rects[--range.x].min.x; for(; range.x-1>=0 && Equal(_rects[range.x-1].min.x, x); range.x--); // keep going as long as rect.min.x is the same
+            }
+            if(range.y+1<visibleElms()) // go to the end of current line
+            {
+               Flt x=_rects[range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+               if(range.y+1<visibleElms()) // go to the end of next line
+               {
+                  Flt x=_rects[++range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+               }
+            }
+            // FIXME
+         }else
+         {
+            Int v=Mid(localToVirtualY(pos.y), 0, visibleElms()-1);
+            if(columnsVisible())pos.y+=columnHeight(); // make 'pos' and '_rects' in the same space
+            VecI2 range=v;
+            if(range.x>0) // go to the start of previous line
+            {
+               Flt y=_rects[--range.x].max.y; for(; range.x-1>=0 && Equal(_rects[range.x-1].max.y, y); range.x--); // keep going as long as rect.max.y is the same
+            }
+            if(range.y+1<visibleElms()) // go to the end of current line
+            {
+               Flt y=_rects[range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+               if(range.y+1<visibleElms()) // go to the end of next line
+               {
+                  Flt y=_rects[++range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+               }
+            }
+            // FIXME
+         }
+      }break;
+   }
+   return -1;
 }
 Int _List::pageElms(C GuiPC *gpc)C
 {
