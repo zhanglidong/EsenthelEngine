@@ -234,9 +234,8 @@ SlideBar& SlideBar::scroll(Flt delta, Bool immediate)
    }else
    {
       if(_scroll)_scroll_to+=delta        ; // if currently scrolling
-      else       _scroll_to =delta+_offset;
+      else      {_scroll_to =delta+_offset; _scroll=true;}
      _scroll_to=Max(0, Min(_scroll_to, lengthTotal()-length()));
-     _scroll   =true;
    }
    return T;
 }
