@@ -233,8 +233,8 @@ SlideBar& SlideBar::scroll(Flt delta, Bool immediate)
       setOffset(_offset+delta, false); // adjust current offset but without stopping
    }else
    {
-      if(_scroll && Sign(_scroll_to-_offset)==Sign(delta))_scroll_to+=delta        ; // if currently scrolling and in the same direction
-      else                                                _scroll_to =delta+_offset;
+      if(_scroll)_scroll_to+=delta        ; // if currently scrolling and in the same direction
+      else       _scroll_to =delta+_offset;
      _scroll_to=Max(0, Min(_scroll_to, lengthTotal()-length()));
      _scroll   =true;
    }
