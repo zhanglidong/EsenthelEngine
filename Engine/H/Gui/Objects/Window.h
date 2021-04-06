@@ -109,6 +109,7 @@ struct ClosableWindow : Window // Closable Window (automatically hides on Escape
 struct ModalWindow : Window // Modal Window (draws half transparent black color on entire desktop below the window, after clicking the background the window fades out)
 {
    virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
    virtual void  update(C GuiPC &gpc)override;
    virtual void    draw(C GuiPC &gpc)override;
 

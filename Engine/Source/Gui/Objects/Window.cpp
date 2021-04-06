@@ -838,6 +838,14 @@ GuiObj* ModalWindow::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    }
    return null;
 }
+void ModalWindow::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(visible())
+   {
+      gon.nearest.clear();
+      super::nearest(gpc, gon);
+   }
+}
 void ModalWindow::update(C GuiPC &gpc)
 {
    super::update(gpc);
