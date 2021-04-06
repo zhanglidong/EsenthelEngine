@@ -160,16 +160,18 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
       if(gon.nearest.elms())
       {
          auto *nearest=&gon.nearest.last();
-         Flt   nearest_dist_rect=nearest->dist_rect;
+         Flt   nearest_dist_rect_min=nearest->dist_rect   -EPS*0.5f,
+               nearest_dist_rect_max=nearest_dist_rect_min+EPS;
          REP(gon.nearest.elms()-1)
          {
             auto &obj=gon.nearest[i];
             Flt   obj_dist_rect=obj.dist_rect;
-            if(obj_dist_rect< nearest_dist_rect
-            || obj_dist_rect==nearest_dist_rect && obj.dist<nearest->dist)
+            if(obj_dist_rect< nearest_dist_rect_min
+            || obj_dist_rect<=nearest_dist_rect_max && obj.dist<nearest->dist)
             {
                nearest=&obj;
-               nearest_dist_rect=obj_dist_rect;
+               nearest_dist_rect_min=    obj_dist_rect    -EPS*0.5f;
+               nearest_dist_rect_max=nearest_dist_rect_min+EPS;
             }
          }
          if(nearest->recalc) // if nearest has to be recalculated
