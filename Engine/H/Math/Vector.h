@@ -231,6 +231,26 @@ inline Bool Any(C Dbl &x, C Dbl &y                    ); // faster version of "x
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z          ); // faster version of "x!=0 || y!=0 || z!=0"
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z, C Dbl &w); // faster version of "x!=0 || y!=0 || z!=0 || w!=0"
 /******************************************************************************/
+// CHANGE SIGN
+/******************************************************************************/
+inline void CHS(Int  &x) {x=-x;}
+inline void CHS(Long &x) {x=-x;}
+inline void CHS(Flt  &x) {((U32&) x)   ^=SIGN_BIT;} // works as "x=-x;" but faster
+inline void CHS(Dbl  &x) {((U32*)&x)[1]^=SIGN_BIT;} // works as "x=-x;" but faster
+#if EE_PRIVATE
+INLINE Bool NegativeSB(Flt  x) {return FlagTest   ((UInt&)x, SIGN_BIT);}
+INLINE void      CHSSB(Flt &x) {       FlagToggle ((UInt&)x, SIGN_BIT);}
+INLINE void      ABSSB(Flt &x) {       FlagDisable((UInt&)x, SIGN_BIT);}
+
+inline Flt Xor(Flt a, UInt b) {((U32&) a)   ^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
+inline Dbl Xor(Dbl a, UInt b) {((U32*)&a)[1]^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
+
+void DecRealByBit(Flt &r); // decrement real value by just 1 bit
+void DecRealByBit(Dbl &r); // decrement real value by just 1 bit
+void IncRealByBit(Flt &r); // increment real value by just 1 bit
+void IncRealByBit(Dbl &r); // increment real value by just 1 bit
+#endif
+/******************************************************************************/
 // 16-BIT FLOAT
 /******************************************************************************/
 typedef struct Half
@@ -383,6 +403,8 @@ struct Vec2 // Vector 2D
    Vec2&     rotate       (Flt angle       );                        // rotate by angle
    Vec2&     rotateCosSin (Flt cos, Flt sin);                        // rotate by cos and sin of angle
    Vec2&     chs          (                );                        // change sign of all components
+   Vec2&     chsX         (                ) {CHS(x);     return T;} // change sign of X   component
+   Vec2&     chsY         (                ) {CHS(y);     return T;} // change sign of Y   component
    Vec2&     abs          (                );                        // absolute       all components
    Vec2&     sat          (                );                        // saturate       all components
    Vec2&     swap         (                ) {Swap(x, y); return T;} // swap               components
@@ -524,6 +546,8 @@ struct VecD2 // Vector 2D (double precision)
    VecD2&     divNormalized(C MatrixD3 &m );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD2&     divNormalized(C MatrixD  &m );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD2&     chs          (              );                        // change sign of all components
+   VecD2&     chsX         (              ) {CHS(x);     return T;} // change sign of X   component
+   VecD2&     chsY         (              ) {CHS(y);     return T;} // change sign of Y   component
    VecD2&     abs          (              );                        // absolute       all components
    VecD2&     sat          (              );                        // saturate       all components
    VecD2&     swap         (              ) {Swap(x, y); return T;} // swap               components
@@ -684,6 +708,9 @@ struct Vec // Vector 3D
    Vec&     rotateY      (Flt angle     );                           // rotate along Y axis by angle
    Vec&     rotateZ      (Flt angle     );                           // rotate along Z axis by angle
    Vec&     chs          (              );                           // change sign of all components
+   Vec&     chsX         (              ) {CHS(x); return T;}        // change sign of X   component
+   Vec&     chsY         (              ) {CHS(y); return T;}        // change sign of Y   component
+   Vec&     chsZ         (              ) {CHS(z); return T;}        // change sign of Z   component
    Vec&     abs          (              );                           // absolute       all components
    Vec&     sat          (              );                           // saturate       all components
    Vec&     swapYZ       (              ) {Swap(y, z); return T;}    // swap       Y and Z components
@@ -897,6 +924,9 @@ struct VecD // Vector 3D (double precision)
    VecD&     divNormalized(C MatrixM  &m );                           // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD&     divNormalized(C MatrixD  &m );                           // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD&     chs          (              );                           // change sign of all components
+   VecD&     chsX         (              ) {CHS(x); return T;}        // change sign of X   component
+   VecD&     chsY         (              ) {CHS(y); return T;}        // change sign of Y   component
+   VecD&     chsZ         (              ) {CHS(z); return T;}        // change sign of Z   component
    VecD&     abs          (              );                           // absolute       all components
    VecD&     sat          (              );                           // saturate       all components
    VecD&     swapYZ       (              ) {Swap(y, z); return T;}    // swap       Y and Z components
@@ -1004,6 +1034,10 @@ struct Vec4 // Vector 4D
    Flt   normalize   ();                                 // normalize and return previous length
    Vec4& mul         (C Matrix4 &m);                     // transform by matrix
    Vec4& chs         ();                                 // change sign of all components
+   Vec4& chsX        () {CHS(x); return T;}              // change sign of X   component
+   Vec4& chsY        () {CHS(y); return T;}              // change sign of Y   component
+   Vec4& chsZ        () {CHS(z); return T;}              // change sign of Z   component
+   Vec4& chsW        () {CHS(w); return T;}              // change sign of W   component
    Vec4& abs         ();                                 // absolute       all components
    Vec4& sat         ();                                 // saturate       all components
 
@@ -1118,6 +1152,10 @@ struct VecD4 // Vector 4D (double precision)
    Dbl    length2     ()C {return x*x + y*y + z*z + w*w;} // get squared length
    Dbl    normalize   ();                                 // normalize and return previous length
    VecD4& chs         ();                                 // change sign of all components
+   VecD4& chsX        () {CHS(x); return T;}              // change sign of X   component
+   VecD4& chsY        () {CHS(y); return T;}              // change sign of Y   component
+   VecD4& chsZ        () {CHS(z); return T;}              // change sign of Z   component
+   VecD4& chsW        () {CHS(w); return T;}              // change sign of W   component
    VecD4& abs         ();                                 // absolute       all components
    VecD4& sat         ();                                 // saturate       all components
 
@@ -1705,6 +1743,8 @@ struct VecI2 // Vector 2D (integer)
    VecI2& reverse     (         ) {Swap(c[0], c[1]); return T;} // reverse components order
    VecI2& rotateOrder (         ) {Swap(c[0], c[1]); return T;} // rotate  components order
    VecI2& chs         (         );                              // change sign of all components
+   VecI2& chsX        (         ) {CHS(x); return T;}           // change sign of X   component
+   VecI2& chsY        (         ) {CHS(y); return T;}           // change sign of Y   component
    VecI2& abs         (         );                              // absolute       all components
    VecI2& sat         (         );                              // saturate       all components
 
@@ -1872,6 +1912,9 @@ struct VecI // Vector 3D (integer)
    VecI& reverse     (         ) {Swap(c[0], c[2]); return T;}   // reverse  components order
    VecI& rotateOrder (         );                                // rotate   components order
    VecI& chs         (         );                                // change sign of all components
+   VecI& chsX        (         ) {CHS(x); return T;}             // change sign of X   component
+   VecI& chsY        (         ) {CHS(y); return T;}             // change sign of Y   component
+   VecI& chsZ        (         ) {CHS(z); return T;}             // change sign of Z   component
    VecI& abs         (         );                                // absolute       all components
    VecI& sat         (         );                                // saturate       all components
 
@@ -2023,6 +2066,10 @@ struct VecI4 // Vector 4D (integer)
    VecI4& reverse     (         ) {Swap(c[0], c[3]); Swap(c[1], c[2]); return T;}         // reverse  components order
    VecI4& rotateOrder (         );                                                        // rotate   components order
    VecI4& chs         (         );                                                        // change sign of all components
+   VecI4& chsX        (         ) {CHS(x); return T;}                                     // change sign of X   component
+   VecI4& chsY        (         ) {CHS(y); return T;}                                     // change sign of Y   component
+   VecI4& chsZ        (         ) {CHS(z); return T;}                                     // change sign of Z   component
+   VecI4& chsW        (         ) {CHS(w); return T;}                                     // change sign of W   component
    VecI4& abs         (         );                                                        // absolute       all components
    VecI4& sat         (         );                                                        // saturate       all components
 

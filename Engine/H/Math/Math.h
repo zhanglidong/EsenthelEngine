@@ -49,25 +49,6 @@ inline void MinMax (  Dbl  a, Dbl  b   , Dbl  &min, Dbl  &max) {if(a<b){min=a; m
        void MinMaxI(C Dbl *f, Int  elms, Int  &min, Int  &max); // get min max index  : f[min]=Min(f[]); f[max]=Max(f[]);
 #endif
 
-// change sign
-inline void CHS(Int  &x) {x=-x;}
-inline void CHS(Long &x) {x=-x;}
-inline void CHS(Flt  &x) {((U32&) x)   ^=SIGN_BIT;} // works as "x=-x;" but faster
-inline void CHS(Dbl  &x) {((U32*)&x)[1]^=SIGN_BIT;} // works as "x=-x;" but faster
-#if EE_PRIVATE
-INLINE Bool NegativeSB(Flt  x) {return FlagTest   ((UInt&)x, SIGN_BIT);}
-INLINE void      CHSSB(Flt &x) {       FlagToggle ((UInt&)x, SIGN_BIT);}
-INLINE void      ABSSB(Flt &x) {       FlagDisable((UInt&)x, SIGN_BIT);}
-
-inline Flt Xor(Flt a, UInt b) {((U32&) a)   ^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
-inline Dbl Xor(Dbl a, UInt b) {((U32*)&a)[1]^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
-
-void DecRealByBit(Flt &r); // decrement real value by just 1 bit
-void DecRealByBit(Dbl &r); // decrement real value by just 1 bit
-void IncRealByBit(Flt &r); // increment real value by just 1 bit
-void IncRealByBit(Dbl &r); // increment real value by just 1 bit
-#endif
-
 // get absolute value
 constexpr Int   Abs(  Int    x) {return (x>=0) ? x : -x;}
 constexpr Long  Abs(  Long   x) {return (x>=0) ? x : -x;}
