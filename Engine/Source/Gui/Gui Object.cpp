@@ -684,20 +684,20 @@ void GuiObjNearest::cover(C Rect &rect)
       if(!Exclude(T.rect, rect))T.rect=T.pos; // if completely covered then set as a single point
    }
 }
-static void GetRectDelta(Vec2 &rect_delta, C Rect &a, C Rect &b)
+static void GetDelta(Vec2 &delta, C Rect &a, C Rect &b) // get shortest delta from 'a' to 'b' rectangle
 {
-   if(b.min.x>a.max.x)rect_delta.x=b.min.x-a.max.x;else // +
-   if(b.max.x<a.min.x)rect_delta.x=b.max.x-a.min.x;else // -
-                      rect_delta.x=0;                   // 0
-   if(b.min.y>a.max.y)rect_delta.y=b.min.y-a.max.y;else // +
-   if(b.max.y<a.min.y)rect_delta.y=b.max.y-a.min.y;else // -
-                      rect_delta.y=0;                   // 0
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else // +
+   if(b.max.x<a.min.x)delta.x=b.max.x-a.min.x;else // -
+                      delta.x=0;                   // 0
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else // +
+   if(b.max.y<a.min.y)delta.y=b.max.y-a.min.y;else // -
+                      delta.y=0;                   // 0
 }
 Bool GuiObjNearest::test(C Rect &rect)C
 {
    if(rect.valid())
    {
-      Vec2   rect_delta; GetRectDelta(rect_delta, T.rect, rect);
+      Vec2   rect_delta; GetDelta(rect_delta, T.rect, rect);
       if(Dot(rect_delta, dir)>0      // rect_dist_plane
       ||     rect_delta.length2()==0 // rect_dist2
       )return true;
@@ -706,7 +706,7 @@ Bool GuiObjNearest::test(C Rect &rect)C
 }
 Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
 {
-   Vec2 rect_delta; GetRectDelta(rect_delta, gon.rect, rect);
+   Vec2 rect_delta; GetDelta(rect_delta, gon.rect, rect);
    Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
         rect_dist2     =    rect_delta.length2();
    if(  rect_dist_plane>0 || rect_dist2==0)
@@ -728,7 +728,7 @@ void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
    Flt area_min=area*NEAREST_AREA_MIN;
    if(rect.area()>=area_min)
    {
-      Vec2 rect_delta; GetRectDelta(rect_delta, T.rect, rect);
+      Vec2 rect_delta; GetDelta(rect_delta, T.rect, rect);
       Flt  rect_dist_plane=Dot(rect_delta, dir),
            rect_dist2     =    rect_delta.length2();
       if(  rect_dist_plane>0 || rect_dist2==0)
