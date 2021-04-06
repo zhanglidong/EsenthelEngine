@@ -6,9 +6,15 @@ enum SLIDEBAR_BACK_CLICK_MODE : Byte // action when clicking on the background o
    SBC_SMOOTH , // smooth scrolling  will be performed as long as the click is hold
    SBC_SET_POS, // slidebar position will be immediately set to the click position
 };
+enum SLIDEBAR_BUTTON
+{
+   SB_MIDDLE    ,
+   SB_LEFT_UP   ,
+   SB_RIGHT_DOWN,
+};
 const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in constant memory address !!
 {
-   Button                   button[3]; // 3 buttons (0=middle, 1=left/up, 2=right/down)
+   Button                   button[3]; // 3 SLIDEBAR_BUTTON buttons
    SLIDEBAR_BACK_CLICK_MODE sbc      ; // default=SBC_STEP
 
    // manage
@@ -28,6 +34,7 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    Flt         lengthTotal(                                     )C {return  _length_total;} // get slidebar length total
    Bool           vertical(                                     )C {return  _vertical    ;} // if  slidebar is   vertical
    Bool         horizontal(                                     )C {return !_vertical    ;} // if  slidebar is horizontal
+   Bool          scrolling(                                     )C {return  _scroll      ;} // if  slidebar is currently scrolling
    SlideBar&      skin    (C GuiSkinPtr &skin                   );                          // set skin override, default=null (if set to null then current value of 'Gui.skin' is used), changing this value will automatically change the skin of the SlideBar buttons
  C GuiSkinPtr&    skin    (                                     )C {return _skin         ;} // get skin override, default=null (if set to null then current value of 'Gui.skin' is used)
    GuiSkin*    getSkin    (                                     )C {return _skin ? _skin() : Gui.skin();} // get actual skin

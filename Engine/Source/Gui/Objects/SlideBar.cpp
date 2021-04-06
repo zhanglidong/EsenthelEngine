@@ -38,9 +38,9 @@ SlideBar& SlideBar::del()
 /******************************************************************************/
 void SlideBar::setButtonSubType()
 {
-   button[0]._sub_type=BUTTON_TYPE_SLIDEBAR_CENTER;
-   button[1]._sub_type=(_vertical ? BUTTON_TYPE_SLIDEBAR_RIGHT : BUTTON_TYPE_SLIDEBAR_LEFT ); // this is the "min" button (left /up  ), because of how this button is positioned in the slidebar and how 'drawVertical' is performed, in vertical mode this actually needs to be drawn from the right skin
-   button[2]._sub_type=(_vertical ? BUTTON_TYPE_SLIDEBAR_LEFT  : BUTTON_TYPE_SLIDEBAR_RIGHT); // this is the "max" button (right/down), because of how this button is positioned in the slidebar and how 'drawVertical' is performed, in vertical mode this actually needs to be drawn from the left  skin
+   button[SB_MIDDLE    ]._sub_type=BUTTON_TYPE_SLIDEBAR_CENTER;
+   button[SB_LEFT_UP   ]._sub_type=(_vertical ? BUTTON_TYPE_SLIDEBAR_RIGHT : BUTTON_TYPE_SLIDEBAR_LEFT ); // this is the "min" button (left /up  ), because of how this button is positioned in the slidebar and how 'drawVertical' is performed, in vertical mode this actually needs to be drawn from the right skin
+   button[SB_RIGHT_DOWN]._sub_type=(_vertical ? BUTTON_TYPE_SLIDEBAR_LEFT  : BUTTON_TYPE_SLIDEBAR_RIGHT); // this is the "max" button (right/down), because of how this button is positioned in the slidebar and how 'drawVertical' is performed, in vertical mode this actually needs to be drawn from the left  skin
 }
 void SlideBar::setParams()
 {
@@ -110,27 +110,27 @@ void SlideBar::setButtonRect()
       Rect r;
       Flt  button_w=_button_size,
            button_h=_button_size;
-      GuiSkin *skin1=button[1].getSkin(); GuiSkin::ButtonImage *image1=(skin1 ? _vertical ? &skin1->slidebar.right : &skin1->slidebar.left  : null); // vertical mode has images swapped
-      GuiSkin *skin2=button[2].getSkin(); GuiSkin::ButtonImage *image2=(skin2 ? _vertical ? &skin2->slidebar.left  : &skin2->slidebar.right : null); // vertical mode has images swapped
-      button[1].visible(image1 && (image1->normal || image1->image));
-      button[2].visible(image2 && (image2->normal || image2->image));
-      Int buttons=(button[1].visible()+button[2].visible());
+      GuiSkin *skin1=button[SB_LEFT_UP   ].getSkin(); GuiSkin::ButtonImage *image1=(skin1 ? _vertical ? &skin1->slidebar.right : &skin1->slidebar.left  : null); // vertical mode has images swapped
+      GuiSkin *skin2=button[SB_RIGHT_DOWN].getSkin(); GuiSkin::ButtonImage *image2=(skin2 ? _vertical ? &skin2->slidebar.left  : &skin2->slidebar.right : null); // vertical mode has images swapped
+      button[SB_LEFT_UP   ].visible(image1 && (image1->normal || image1->image));
+      button[SB_RIGHT_DOWN].visible(image2 && (image2->normal || image2->image));
+      Int buttons=(button[SB_LEFT_UP].visible()+button[SB_RIGHT_DOWN].visible());
       if(_vertical)
       {
          if(buttons)MIN(button_h, rect().h()/buttons);else button_h=0; // if buttons don't fit in space
          Flt space=rect().h()-buttons*button_h, size=(lengthTotal() ? space*Sat(length()/lengthTotal()) : 0), clamped_size=Max(size, Min(_button_size*0.9f, space));
-         r.min.x=rect().min.x; r.max.y=rect().max.y-(space-clamped_size)*T(); if(button[1].visible())r.max.y-=button_h;
+         r.min.x=rect().min.x; r.max.y=rect().max.y-(space-clamped_size)*T(); if(button[SB_LEFT_UP].visible())r.max.y-=button_h;
          r.max.x=rect().max.x; r.min.y=     r.max.y-       clamped_size;
       }else
       {
          if(buttons)MIN(button_w, rect().w()/buttons);else button_w=0; // if buttons don't fit in space
          Flt space=rect().w()-buttons*button_w, size=(lengthTotal() ? space*Sat(length()/lengthTotal()) : 0), clamped_size=Max(size, Min(_button_size*0.9f, space));
-         r.min.y=rect().min.y; r.min.x=rect().min.x+(space-clamped_size)*T(); if(button[1].visible())r.min.x+=button_w;
+         r.min.y=rect().min.y; r.min.x=rect().min.x+(space-clamped_size)*T(); if(button[SB_LEFT_UP].visible())r.min.x+=button_w;
          r.max.y=rect().max.y; r.max.x=     r.min.x+       clamped_size;
       }
-      button[0].rect(                                                                                                                                                                               r); button[0]._vertical=_vertical;
-      button[1].rect(Rect(rect().min.x                             , rect().max.y-button_h*button[1].visible(), rect().min.x+button_w*button[1].visible(), rect().max.y                             )); button[1]._vertical=_vertical;
-      button[2].rect(Rect(rect().max.x-button_w*button[2].visible(), rect().min.y                             , rect().max.x                             , rect().min.y+button_h*button[2].visible())); button[2]._vertical=_vertical;
+      button[SB_MIDDLE    ].rect(                                                                                                                                                                                                                         r); button[SB_MIDDLE    ]._vertical=_vertical;
+      button[SB_LEFT_UP   ].rect(Rect(rect().min.x                                         , rect().max.y-button_h*button[SB_LEFT_UP].visible(), rect().min.x+button_w*button[SB_LEFT_UP].visible(), rect().max.y                                         )); button[SB_LEFT_UP   ]._vertical=_vertical;
+      button[SB_RIGHT_DOWN].rect(Rect(rect().max.x-button_w*button[SB_RIGHT_DOWN].visible(), rect().min.y                                      , rect().max.x                                      , rect().min.y+button_h*button[SB_RIGHT_DOWN].visible())); button[SB_RIGHT_DOWN]._vertical=_vertical;
    }
 }
 /******************************************************************************/
@@ -268,8 +268,8 @@ SlideBar& SlideBar::scrollOptions(Flt relative, Flt base, Bool immediate, Flt bu
 }
 SlideBar& SlideBar::removeSideButtons()
 {
-   button[1].del();
-   button[2].del();
+   button[SB_LEFT_UP   ].del();
+   button[SB_RIGHT_DOWN].del();
    setButtonRect();
    return T;
 }
@@ -317,12 +317,12 @@ void SlideBar::update(C GuiPC &gpc)
             {
                if(sbc==SBC_STEP)
                {
-                  if(_vertical)scroll_discrete-=Sign(MT.pos(i).y-(button[0].rect().centerY()+gpc.offset.y));
-                  else         scroll_discrete+=Sign(MT.pos(i).x-(button[0].rect().centerX()+gpc.offset.x));
+                  if(_vertical)scroll_discrete-=Sign(MT.pos(i).y-(button[SB_MIDDLE].rect().centerY()+gpc.offset.y));
+                  else         scroll_discrete+=Sign(MT.pos(i).x-(button[SB_MIDDLE].rect().centerX()+gpc.offset.x));
                }else // change focus to buttons
                {
-                  if(_vertical)MT.guiObj(i, &button[(MT.pos(i).y>button[0].rect().centerY()+gpc.offset.y) ? 1 : 2]);
-                  else         MT.guiObj(i, &button[(MT.pos(i).x<button[0].rect().centerX()+gpc.offset.x) ? 1 : 2]);
+                  if(_vertical)MT.guiObj(i, &button[(MT.pos(i).y>button[SB_MIDDLE].rect().centerY()+gpc.offset.y) ? 1 : 2]);
+                  else         MT.guiObj(i, &button[(MT.pos(i).x<button[SB_MIDDLE].rect().centerX()+gpc.offset.x) ? 1 : 2]);
                }
             }
          }break;
@@ -331,8 +331,8 @@ void SlideBar::update(C GuiPC &gpc)
          {
             REPA(MT)if(MT.guiObj(i)==this && (MT.state(i)&(BS_ON|BS_PUSHED))) // check for 'bp' as well because single touchpad taps are not registered as 'b'
             {
-               if(_vertical){Flt h_2=button[0].rect().h()*0.5f; set(LerpR(button[1].rect().min.y-h_2, button[2].rect().max.y+h_2, MT.pos(i).y-gpc.offset.y));}
-               else         {Flt w_2=button[0].rect().w()*0.5f; set(LerpR(button[1].rect().max.x+w_2, button[2].rect().min.x-w_2, MT.pos(i).x-gpc.offset.x));}
+               if(_vertical){Flt h_2=button[SB_MIDDLE].rect().h()*0.5f; set(LerpR(button[SB_LEFT_UP].rect().min.y-h_2, button[SB_RIGHT_DOWN].rect().max.y+h_2, MT.pos(i).y-gpc.offset.y));}
+               else         {Flt w_2=button[SB_MIDDLE].rect().w()*0.5f; set(LerpR(button[SB_LEFT_UP].rect().max.x+w_2, button[SB_RIGHT_DOWN].rect().min.x-w_2, MT.pos(i).x-gpc.offset.x));}
             }
          }break;
       }
@@ -345,12 +345,12 @@ void SlideBar::update(C GuiPC &gpc)
       {
          if(_vertical)
          {
-            if(Kb.b(KB_UP  ))button[1].push();
-            if(Kb.b(KB_DOWN))button[2].push();
+            if(Kb.b(KB_UP  ))button[SB_LEFT_UP   ].push();
+            if(Kb.b(KB_DOWN))button[SB_RIGHT_DOWN].push();
          }else
          {
-            if(Kb.b(KB_LEFT ))button[1].push();
-            if(Kb.b(KB_RIGHT))button[2].push();
+            if(Kb.b(KB_LEFT ))button[SB_LEFT_UP   ].push();
+            if(Kb.b(KB_RIGHT))button[SB_RIGHT_DOWN].push();
          }
          scroll_discrete+=Kb.k(KB_PGDN);
          scroll_discrete-=Kb.k(KB_PGUP);
@@ -365,13 +365,13 @@ void SlideBar::update(C GuiPC &gpc)
       if((button[0]() || button[1]() || button[2]()) && _usable)
       {
          Flt d=0;
-         if(button[0]())REPA(MT)if(MT.guiObj(i)==&button[0] && MT.b(i))
+         if(button[SB_MIDDLE]())REPA(MT)if(MT.guiObj(i)==&button[SB_MIDDLE] && MT.b(i))
          {
-            if(_vertical)d-=MT.dc(i).y*lengthTotal()/(button[1].rect().min.y-button[2].rect().max.y);
-            else         d+=MT.dc(i).x*lengthTotal()/(button[2].rect().min.x-button[1].rect().max.x);
+            if(_vertical)d-=MT.dc(i).y*lengthTotal()/(button[SB_LEFT_UP   ].rect().min.y-button[SB_RIGHT_DOWN].rect().max.y);
+            else         d+=MT.dc(i).x*lengthTotal()/(button[SB_RIGHT_DOWN].rect().min.x-button[SB_LEFT_UP   ].rect().max.x);
          }
-         if(button[1]())d-=Time.ad()*_scroll_button;
-         if(button[2]())d+=Time.ad()*_scroll_button;
+         if(button[SB_LEFT_UP   ]())d-=Time.ad()*_scroll_button;
+         if(button[SB_RIGHT_DOWN]())d+=Time.ad()*_scroll_button;
          setOffset(_offset+d);
       }
 
@@ -403,12 +403,12 @@ void SlideBar::draw(C GuiPC &gpc)
          Rect background_rect=r;
          if(_vertical)
          {
-            background_rect.min.y=button[2].rect().max.y+gpc.offset.y;
-            background_rect.max.y=button[1].rect().min.y+gpc.offset.y;
+            background_rect.min.y=button[SB_RIGHT_DOWN].rect().max.y+gpc.offset.y;
+            background_rect.max.y=button[SB_LEFT_UP   ].rect().min.y+gpc.offset.y;
          }else
          {
-            background_rect.min.x=button[1].rect().max.x+gpc.offset.x;
-            background_rect.max.x=button[2].rect().min.x+gpc.offset.x;
+            background_rect.min.x=button[SB_LEFT_UP   ].rect().max.x+gpc.offset.x;
+            background_rect.max.x=button[SB_RIGHT_DOWN].rect().min.x+gpc.offset.x;
          }
          if(skin->slidebar.background)
          {
@@ -419,11 +419,11 @@ void SlideBar::draw(C GuiPC &gpc)
 
          // scroll target
          if(_scroll && _usable)
-            if(GuiSkin *button_skin=button[0].getSkin())
+            if(GuiSkin *button_skin=button[SB_MIDDLE].getSkin())
               if(Flt d=lengthTotal()-length())
          {
             d=(_scroll_to-_offset)/d;
-            Button button_temp; button_temp.create(button[0]);
+            Button button_temp; button_temp.create(button[SB_MIDDLE]);
 
             // !! do a fast copy that avoids expensive cache elm assignment, must be in sync with 'ZeroFast' below !!
             CopyFast(GuiSkinTemp.slidebar.center, button_skin->slidebar.center);
@@ -437,21 +437,21 @@ void SlideBar::draw(C GuiPC &gpc)
          #endif
             if(_vertical)
             {
-               d*=button[1].rect().min.y-button[2].rect().max.y-button[0].rect().h();
+               d*=button[SB_LEFT_UP].rect().min.y-button[SB_RIGHT_DOWN].rect().max.y-button[SB_MIDDLE].rect().h();
                button_temp._rect.min.y-=d;
                button_temp._rect.max.y-=d;
             #if CLIP_UNDER
-               if(d>0)MIN(temp.clip.max.y, button[0].rect().min.y+gpc.offset.y); // sliding down
-               else   MAX(temp.clip.min.y, button[0].rect().max.y+gpc.offset.y); // sliding up
+               if(d>0)MIN(temp.clip.max.y, button[SB_MIDDLE].rect().min.y+gpc.offset.y); // sliding down
+               else   MAX(temp.clip.min.y, button[SB_MIDDLE].rect().max.y+gpc.offset.y); // sliding up
             #endif
             }else
             {
-               d*=button[2].rect().min.x-button[1].rect().max.x-button[0].rect().w();
+               d*=button[SB_RIGHT_DOWN].rect().min.x-button[SB_LEFT_UP].rect().max.x-button[SB_MIDDLE].rect().w();
                button_temp._rect.min.x+=d;
                button_temp._rect.max.x+=d;
             #if CLIP_UNDER
-               if(d<0)MIN(temp.clip.max.x, button[0].rect().min.x+gpc.offset.x); // sliding left
-               else   MAX(temp.clip.min.x, button[0].rect().max.x+gpc.offset.x); // sliding right
+               if(d<0)MIN(temp.clip.max.x, button[SB_MIDDLE].rect().min.x+gpc.offset.x); // sliding left
+               else   MAX(temp.clip.min.x, button[SB_MIDDLE].rect().max.x+gpc.offset.x); // sliding right
             #endif
             }
          #if CLIP_UNDER
@@ -463,9 +463,9 @@ void SlideBar::draw(C GuiPC &gpc)
             // !! do a fast clear that avoids expensive cache elm release, must be in sync with 'CopyFast' above !!
             ZeroFast(GuiSkinTemp.slidebar.center);
          }
-                           button[0].draw(gpc);
-         if(button[1].is())button[1].draw(gpc);
-         if(button[2].is())button[2].draw(gpc);
+                                       button[SB_MIDDLE    ].draw(gpc);
+         if(button[SB_LEFT_UP   ].is())button[SB_LEFT_UP   ].draw(gpc);
+         if(button[SB_RIGHT_DOWN].is())button[SB_RIGHT_DOWN].draw(gpc);
          if(Gui.kb()==this)Gui.kbLit(this, r, skin);
       }
    }
@@ -478,9 +478,9 @@ Bool SlideBar::save(File &f, CChar *path)C
       f.putMulti(Byte(6), sbc, _scroll_immediate, _vertical, _usable, _focusable, _offset, _length, _length_total); // version
       f.putMulti(_scroll_mul, _scroll_add, _scroll_button, _button_size);
       f.putAsset(_skin.id());
-      if(button[0].save(f, path))
-      if(button[1].save(f, path))
-      if(button[2].save(f, path))
+      if(button[SB_MIDDLE    ].save(f, path))
+      if(button[SB_LEFT_UP   ].save(f, path))
+      if(button[SB_RIGHT_DOWN].save(f, path))
          return f.ok();
    }
    return false;
@@ -494,9 +494,9 @@ Bool SlideBar::load(File &f, CChar *path)
          f.getMulti(sbc, _scroll_immediate, _vertical, _usable, _focusable, _offset, _length, _length_total);
          f.getMulti(_scroll_mul, _scroll_add, _scroll_button, _button_size);
         _skin.require(f.getAssetID(), path);
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
@@ -504,9 +504,9 @@ Bool SlideBar::load(File &f, CChar *path)
       {
          f>>sbc>>_scroll_immediate>>_vertical>>_usable>>_focusable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_scroll_button>>_button_size;
         _skin.require(f._getAsset(), path);
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
@@ -514,9 +514,9 @@ Bool SlideBar::load(File &f, CChar *path)
       {
          f>>_focusable; f.skip(4); f>>_scroll_immediate>>_vertical>>_usable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_scroll_button>>_button_size>>sbc;
          f._getStr();
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
@@ -524,9 +524,9 @@ Bool SlideBar::load(File &f, CChar *path)
       {
          f>>_focusable; f.skip(4); f>>_scroll_immediate>>_vertical>>_usable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_scroll_button>>_button_size; sbc=SBC_STEP;
          f._getStr();
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
@@ -534,9 +534,9 @@ Bool SlideBar::load(File &f, CChar *path)
       {
          f>>_focusable; f.skip(4); f>>_scroll_immediate>>_vertical>>_usable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_button_size; sbc=SBC_STEP;
          f._getStr();
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
@@ -544,18 +544,18 @@ Bool SlideBar::load(File &f, CChar *path)
       {
          f>>_focusable; f.skip(4); f>>_scroll_immediate>>_vertical>>_usable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_button_size; sbc=SBC_STEP;
          f._getStr();
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
 
       case 0:
       {
          f>>_focusable; f.skip(4); f>>_scroll_immediate>>_vertical>>_usable>>_offset>>_length>>_length_total>>_scroll_mul>>_scroll_add>>_button_size; sbc=SBC_STEP;
-         if(button[0].load(f, path))
-         if(button[1].load(f, path))
-         if(button[2].load(f, path))
+         if(button[SB_MIDDLE    ].load(f, path))
+         if(button[SB_LEFT_UP   ].load(f, path))
+         if(button[SB_RIGHT_DOWN].load(f, path))
             if(f.ok()){setParams(); setButtonRect(); return true;} // call 'setButtonRect' because it may be dependent on current 'Gui.skin'
       }break;
    }
