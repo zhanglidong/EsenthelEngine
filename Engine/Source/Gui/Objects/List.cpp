@@ -1047,7 +1047,7 @@ Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
             }
          }
          Int  nearest=-1;
-         Flt  dist=FLT_MAX, min_dist=0;
+         Flt  dist=FLT_MAX, min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
          Vec2 dir_n=!dir;
          if(columnsVisible())local_pos.y+=columnHeight(); // make 'local_pos' and '_rects' in the same space
          for(Int i=range.x; i<=range.y; i++)
