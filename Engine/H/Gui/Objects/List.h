@@ -214,11 +214,12 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
   _List& offsetAllColumns(Bool on); // if apply per element offset to all columns, if set to false then only first column is offsetted, default=false
 
    // operations
-  _List& scrollTo  (Int i     , Bool immediate=false, Flt center=0.0f); // scroll to i-th visible element, 'center'=how much (0..1) to center on the element (0=no centering, 0.5=half centering, 1=full centering)
-  _List& scrollY   (Flt delta , Bool immediate=false                 ); // vertical scroll by delta
-  _List& sort      (Int column, Int  swap     =-1                    ); // sort according to 'column' column
-  _List& setCur    (Int i                                            ); // set     cursor    to specified index, and if list has 'LIST_MULTI_SEL' enabled then set 'sel' accordingly
-  _List& processSel(Int absolute, Int sel_mode=-1                    ); // process selection of specified 'absolute' element index, 'sel_mode'=selection mode (use -1 for 'selMode')
+   Bool  scrolling (                                                 )C; // if list is currently scrolling along its main direction
+  _List& scrollTo  (Int i     , Bool immediate=false, Flt center=0.0f) ; // scroll to i-th visible element, 'center'=how much (0..1) to center on the element (0=no centering, 0.5=half centering, 1=full centering)
+  _List& scrollY   (Flt delta , Bool immediate=false                 ) ; // vertical scroll by delta
+  _List& sort      (Int column, Int  swap     =-1                    ) ; // sort according to 'column' column
+  _List& setCur    (Int i                                            ) ; // set     cursor    to specified index, and if list has 'LIST_MULTI_SEL' enabled then set 'sel' accordingly
+  _List& processSel(Int absolute, Int sel_mode=-1                    ) ; // process selection of specified 'absolute' element index, 'sel_mode'=selection mode (use -1 for 'selMode')
 
   _List& addChild(GuiObj &child, Int abs, Int column=0); // add 'child' to the list, 'abs'=absolute element index, 'column'=list column
 

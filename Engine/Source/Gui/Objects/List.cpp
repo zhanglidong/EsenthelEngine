@@ -1081,6 +1081,19 @@ Int _List::pageElms(C GuiPC *gpc)C
    return page_elms;
 }
 /******************************************************************************/
+Bool _List::scrolling()C
+{
+   if(_parent && _parent->type()==GO_REGION)
+   {
+      Region &region=_parent->asRegion();
+      switch(drawMode())
+      {
+         case LDM_LIST : return region.slidebar[         1].scrolling();
+         case LDM_RECTS: return region.slidebar[vertical()].scrolling();
+      }
+   }
+   return false;
+}
 _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 {
    Clamp(i, 0, elms()-1);
