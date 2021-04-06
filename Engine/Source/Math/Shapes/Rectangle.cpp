@@ -629,7 +629,7 @@ Flt Dist(C Rect &a, C Rect &b)
    {               // delta.x=0
       if(b.min.y>a.max.y)return b.min.y-a.max.y;
       if(b.max.y<a.min.y)return a.min.y-b.max.y;
-                         return 0;
+                         return 0; // delta.y=0
    }
    if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else
    if(b.max.y<a.min.y)delta.y=a.min.y-b.max.y;else
