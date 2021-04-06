@@ -8,6 +8,8 @@
       benefit depends on amount of discarded pixels and the GPU
 
 /******************************************************************************/
+#pragma ruledisable "abs instruction to abs modifier match" // workaround for https://github.com/Esenthel/EsenthelEngine/issues/21 FIXME: TODO: check again in the future if this is still needed
+
 #include "!Header.h"
 #include "Water.h"
 
