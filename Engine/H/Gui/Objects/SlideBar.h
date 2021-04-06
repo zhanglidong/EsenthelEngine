@@ -6,7 +6,7 @@ enum SLIDEBAR_BACK_CLICK_MODE : Byte // action when clicking on the background o
    SBC_SMOOTH , // smooth scrolling  will be performed as long as the click is hold
    SBC_SET_POS, // slidebar position will be immediately set to the click position
 };
-enum SLIDEBAR_BUTTON
+enum SLIDEBAR_BUTTON : Byte
 {
    SB_MIDDLE    ,
    SB_LEFT_UP   ,
