@@ -90,6 +90,14 @@ void MinMaxI(C Dbl *f, Int elms, Int &min, Int &max)
    }
 }
 /******************************************************************************/
+Flt Sqrt(Int x) {return (x<=0) ? 0 : SqrtFast(x);}
+Flt Sqrt(Flt x) {return (x<=0) ? 0 : SqrtFast(x);}
+Dbl Sqrt(Dbl x) {return (x<=0) ? 0 : SqrtFast(x);}
+
+Flt SqrtS(Int x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+Flt SqrtS(Flt x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+Dbl SqrtS(Dbl x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+
 UInt SqrtI(UInt x, Int max_steps)
 {
    if(x<=1)return x;
@@ -143,6 +151,23 @@ Flt Log(Flt x, Flt base) {return logf(x)/logf(base);}
 Dbl Log(Dbl x, Dbl base) {return log (x)/log (base);}
 
 Flt Pinch(Flt x, Flt pinch) {return x*pinch/(1+x*(pinch-1));}
+/******************************************************************************/
+Flt Dist(Int x, Int y       ) {return SqrtFast(Dist2(x, y   ));}
+Flt Dist(Flt x, Flt y       ) {return SqrtFast(Dist2(x, y   ));}
+Dbl Dist(Dbl x, Dbl y       ) {return SqrtFast(Dist2(x, y   ));}
+Flt Dist(Int x, Int y, Int z) {return SqrtFast(Dist2(x, y, z));}
+Flt Dist(Flt x, Flt y, Flt z) {return SqrtFast(Dist2(x, y, z));}
+Dbl Dist(Dbl x, Dbl y, Dbl z) {return SqrtFast(Dist2(x, y, z));}
+/******************************************************************************/
+Flt DistDot(Flt dist2, Flt dist_plane) // calculate distance scaled by angle, 'dist2'=squared distance, 'dist_plane'=distance along the plane of interest
+{
+   if( dist2<=0)return 0; // check if dist2 is 0, in that case return 0, this covers the cases when objects are touching (distance is 0 and because of that dist_plane is 0 too, in that case we must return 0, and don't do any divisions by 0 resulting in infinity), after this we're sure that "dist_plane>0 && dist2>0"
+   Flt dist =SqrtFast(dist2),
+       cos  =dist_plane/dist,
+       angle=Acos(cos)   , // convert    0..1 -> PI_2..0
+       div  =1-angle/PI_2; // convert PI_2..0 ->    0..1
+   return (div>0) ? dist/div : FLT_MAX;
+}
 /******************************************************************************/
 // ROUNDING
 /******************************************************************************/

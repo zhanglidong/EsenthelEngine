@@ -626,23 +626,6 @@ GuiObj* GuiObj::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 /******************************************************************************/
 #define NEAREST_AREA_MIN 0.333f // fraction of original area that must be visible to detect
-static Flt DistDot(Flt dist2, Flt dist_plane) // !! assumes "dist_plane>0 || dist2==0" !!
-{
-   if(!dist2)return 0; // check if dist2 is 0, in that case return 0, this covers the cases when objects are touching (distance is 0 and because of that dist_plane is 0 too, in that case we must return 0, and don't do any divisions by 0 resulting in infinity), after this we're sure that "dist_plane>0 && dist2>0"
-#if 0 // distance scaled by Cos
-   Flt dist=SqrtFast(dist2);
-   Flt dot =dist_plane/dist;
-   return dist/dot; // increase distance according to dot. dist=dist/(dist_plane/dist)=dist*dist/dist_plane=dist2/dist_plane
-#elif 0 // distance scaled by Cos optimized
-   return dist2/dist_plane;
-#else // distance scaled by Angle (better)
-   Flt dist =SqrtFast(dist2),
-       dot  =dist_plane/dist,
-       angle=Acos(dot)   , // convert    0..1 -> PI_2..0
-       div  =1-angle/PI_2; // convert PI_2..0 ->    0..1
-   return (div>0) ? dist/div : FLT_MAX;
-#endif
-}
 static Bool Exclude(Rect &rect, C Rect &cover) // adjust 'rect' to don't have any parts belonging to 'cover' !! assumes that rectangles intersect !!
 {
    Rect part[4]; // we can generate up to 4 rectangles
@@ -697,7 +680,7 @@ Bool GuiObjNearest::test(C Rect &rect)C
 }
 Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
 {
-   Vec2 rect_delta=Delta(gon.rect, rect);
+   Vec2 rect_delta     =Delta(gon.rect, rect);
    Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
         rect_dist2     =    rect_delta.length2();
    if(  rect_dist_plane>0 || rect_dist2==0)
@@ -719,7 +702,7 @@ void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
    Flt area_min=area*NEAREST_AREA_MIN;
    if(rect.area()>=area_min)
    {
-      Vec2 rect_delta=Delta(T.rect, rect);
+      Vec2 rect_delta     =Delta(T.rect, rect);
       Flt  rect_dist_plane=Dot(rect_delta, dir),
            rect_dist2     =    rect_delta.length2();
       if(  rect_dist_plane>0 || rect_dist2==0)

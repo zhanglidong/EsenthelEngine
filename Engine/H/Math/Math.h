@@ -280,6 +280,7 @@ Flt SigmoidTanh   (Flt x);
 Flt SigmoidErf    (Flt x);
 
 #if EE_PRIVATE
+       Flt DistDot(Flt dist2, Flt dist_plane); // calculate distance scaled by angle, 'dist2'=squared distance, 'dist_plane'=distance along the plane of interest
 inline Flt LengthMul(C Vec &a, C Vec &b) {return SqrtFast(a.length2()*b.length2());} // return multiplication of vector lengths, faster version of "a.length()*b.length()"
 #endif
 /******************************************************************************/

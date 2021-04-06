@@ -1011,13 +1011,12 @@ Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
 
       case LDM_RECTS:
       {
-         Vec2 d=!dir;
-         Vec2 pos=screen_pos-screenPos();
+         Vec2  local_pos=screen_pos-screenPos();
+         VecI2 range;
          if(_horizontal)
          {
-            Int v=Mid(localToVirtualX(pos.x), 0, visibleElms()-1);
-            if(columnsVisible())pos.y+=columnHeight(); // make 'pos' and '_rects' in the same space
-            VecI2 range=v;
+            Int v=Mid(localToVirtualX(local_pos.x), 0, visibleElms()-1);
+            range=v;
             if(range.x>0) // go to the start of previous line
             {
                Flt x=_rects[--range.x].min.x; for(; range.x-1>=0 && Equal(_rects[range.x-1].min.x, x); range.x--); // keep going as long as rect.min.x is the same
@@ -1030,12 +1029,10 @@ Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
                   Flt x=_rects[++range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
                }
             }
-            // FIXME
          }else
          {
-            Int v=Mid(localToVirtualY(pos.y), 0, visibleElms()-1);
-            if(columnsVisible())pos.y+=columnHeight(); // make 'pos' and '_rects' in the same space
-            VecI2 range=v;
+            Int v=Mid(localToVirtualY(local_pos.y), 0, visibleElms()-1);
+            range=v;
             if(range.x>0) // go to the start of previous line
             {
                Flt y=_rects[--range.x].max.y; for(; range.x-1>=0 && Equal(_rects[range.x-1].max.y, y); range.x--); // keep going as long as rect.max.y is the same
@@ -1048,8 +1045,27 @@ Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
                   Flt y=_rects[++range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
                }
             }
-            // FIXME
          }
+         Int  nearest=-1;
+         Flt  dist=FLT_MAX, min_dist=0;
+         Vec2 dir_n=!dir;
+         if(columnsVisible())local_pos.y+=columnHeight(); // make 'local_pos' and '_rects' in the same space
+         for(Int i=range.x; i<=range.y; i++)
+         {
+          C Rect &rect=_rects[i];
+            if(!Cuts(local_pos, rect)) // ignore starting rect
+            {
+               Vec2 pos  =rect.center(),
+                    delta=pos-local_pos;
+               Flt  dist_plane=Dot(delta, dir_n);
+               if(  dist_plane>min_dist)
+               {
+                  Flt d=DistDot(delta.length2(), dist_plane);
+                  if( d<dist){dist=d; nearest=i;}
+               }
+            }
+         }
+         return nearest;
       }break;
    }
    return -1;
