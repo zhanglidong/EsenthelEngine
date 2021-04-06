@@ -702,6 +702,18 @@ Bool Cover(C Rect &a, C Rect &b)
        && b.max.y>a.min.y && b.min.y<a.max.y;
 }
 /******************************************************************************/
+Vec2 Delta(C Rect &a, C Rect &b)
+{
+   Vec2 delta;
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else // +
+   if(b.max.x<a.min.x)delta.x=b.max.x-a.min.x;else // -
+                      delta.x=0;                   // 0
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else // +
+   if(b.max.y<a.min.y)delta.y=b.max.y-a.min.y;else // -
+                      delta.y=0;                   // 0
+   return delta;
+}
+/******************************************************************************/
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit)
 {
    Rect r=dest_rect; Bool mx=(r.min.x>r.max.x); if(mx)Swap(r.min.x, r.max.x); Flt w=r.w();
