@@ -70,11 +70,6 @@ class ImageSkin : GuiImage
   ~ImageSkin() {images.exclude(T);}
 }
 /******************************************************************************/
-class TextNoTest : Text
-{
-   virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override {return null;}
-}
-/******************************************************************************/
 class PropEx : Property
 {
    static ObjPtrs<PropEx> props;

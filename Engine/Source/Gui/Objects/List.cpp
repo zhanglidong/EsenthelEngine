@@ -1081,7 +1081,7 @@ Int _List::pageElms(C GuiPC *gpc)C
    return page_elms;
 }
 /******************************************************************************/
-Bool _List::scrolling()C
+Bool _List::scrollingMain()C
 {
    if(_parent && _parent->type()==GO_REGION)
    {
@@ -1093,6 +1093,11 @@ Bool _List::scrolling()C
       }
    }
    return false;
+}
+Vec2 _List::scrollDelta()C
+{
+   if(_parent && _parent->type()==GO_REGION)return _parent->asRegion().scrollDelta();
+   return 0;
 }
 _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 {
@@ -1398,7 +1403,8 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(visible() && gpc.visible)
    {
-      if(gon.obj==this)gon.state=1;
+      Bool ignore_start;
+      if(  ignore_start=(gon.obj==this))gon.state=1;
    #if 0 // skip because list covers entire parent, so if parent is OK, then list is too
       if(gon.test((T.rect()+gpc.offset)&gpc.clip)) // this already tests if rect is valid
    #endif
@@ -1409,13 +1415,14 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
          {
             case LDM_LIST:
             {
-               Rect r; r.setX(gpc.clip.min.x, gpc.clip.max.x);
+               Rect rect; rect.setX(gpc.clip.min.x, gpc.clip.max.x);
                Flt area=T.rect().w()*_height_ez;
                for(Int i=visible_range.x; i<=visible_range.y; i++)
                {
-                  r.max.y=pos.y-i*_height_ez;
-                  r.min.y=r.max.y-_height_ez;
-                  gon.add(r&gpc.clip, area, T);
+                  rect.max.y=pos.y     -i*_height_ez;
+                  rect.min.y=rect.max.y-  _height_ez;
+                  if(ignore_start && Cuts(gon.pos, rect))continue;
+                  gon.add(rect&gpc.clip, area, T);
                }
             }break;
 
@@ -1424,7 +1431,9 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
                for(Int i=visible_range.x; i<=visible_range.y; i++)
                {
                 C Rect &rect=_rects[i];
-                  gon.add((rect+pos)&gpc.clip, rect.area(), T);
+                  Rect  screen_rect=rect+pos;
+                  if(ignore_start && Cuts(gon.pos, screen_rect))continue;
+                  gon.add(screen_rect&gpc.clip, rect.area(), T);
                }
             }break;
          }

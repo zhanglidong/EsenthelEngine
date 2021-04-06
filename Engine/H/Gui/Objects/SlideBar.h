@@ -27,14 +27,13 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    SlideBar&  setLengths  (Flt length, Flt length_total         );                          // set, 'length'=covered length, 'length_total'=total length
    SlideBar&  set         (Flt step  , SET_MODE mode=SET_DEFAULT);                          // set slidebar step                 (0..1)
    Flt        operator()  (                                     )C;                         // get slidebar step                 (0..1)
-   Flt        wantedOffset(                                     )C;                         // get slidebar offset desired       (0..length_total-length)
+   Flt        wantedOffset(                                     )C;                         // get slidebar offset target        (0..length_total-length), if slidebar is currently scrolling then this returns target offset
    Flt              offset(                                     )C {return  _offset      ;} // get slidebar offset at the moment (0..length_total-length)
    SlideBar&        offset(Flt offset, SET_MODE mode=SET_DEFAULT);                          // set slidebar offset               (0..length_total-length)
    Flt         length     (                                     )C {return  _length      ;} // get slidebar length
    Flt         lengthTotal(                                     )C {return  _length_total;} // get slidebar length total
    Bool           vertical(                                     )C {return  _vertical    ;} // if  slidebar is   vertical
    Bool         horizontal(                                     )C {return !_vertical    ;} // if  slidebar is horizontal
-   Bool          scrolling(                                     )C {return  _scroll      ;} // if  slidebar is currently scrolling
    SlideBar&      skin    (C GuiSkinPtr &skin                   );                          // set skin override, default=null (if set to null then current value of 'Gui.skin' is used), changing this value will automatically change the skin of the SlideBar buttons
  C GuiSkinPtr&    skin    (                                     )C {return _skin         ;} // get skin override, default=null (if set to null then current value of 'Gui.skin' is used)
    GuiSkin*    getSkin    (                                     )C {return _skin ? _skin() : Gui.skin();} // get actual skin
@@ -49,9 +48,9 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
 
    SlideBar& focusable(Bool on);   Bool focusable()C {return _focusable;} // set/get if can catch keyboard focus, default=true
 
-   // operations
-   virtual SlideBar& rect(C Rect &rect )override;   C Rect& rect()C {return super::rect();} // set/get rectangle
-   virtual SlideBar& move(C Vec2 &delta)override;                                           // move by delta
+   // scroll
+   Bool scrolling  ()C {return _scroll;} // if  currently scrolling
+   Flt  scrollDelta()C;                  // get amount of scroll that's still left to be done
 
    SlideBar& scroll   (Flt delta       , Bool immediate=false); // scroll by delta
    SlideBar& scrollTo (Flt pos         , Bool immediate=false); // scroll to pos
@@ -59,6 +58,10 @@ const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in con
    SlideBar& scrollEnd(                  Bool immediate=false); // scroll to end
 
    SlideBar& scrollOptions(Flt relative=0.5f, Flt base=0, Bool immediate=false, Flt button_speed=1.5f); // set scrolling options, 'relative'=amount of scrolling using the mouse wheel relative to slidebar 'length' (0..Inf, default=1), 'base'=constant amount of scrolling using mouse wheel (0..Inf, default=0), 'immediate'=if mouse wheel scrolling is immediate or smooth, 'button_speed'=speed of scrolling upon pressing the left/up/right/down buttons
+
+   // operations
+   virtual SlideBar& rect(C Rect &rect )override;   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual SlideBar& move(C Vec2 &delta)override;                                           // move by delta
 
    SlideBar& removeSideButtons(); // remove side buttons (left/up and right/down) leaving only the middle button
 

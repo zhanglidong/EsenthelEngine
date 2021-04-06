@@ -213,6 +213,10 @@ SlideBar& SlideBar::move(C Vec2 &delta)
    return T;
 }
 /******************************************************************************/
+Flt SlideBar::scrollDelta()C
+{
+   return _scroll ? _scroll_to-_offset : 0;
+}
 SlideBar& SlideBar::setOffset(Flt offset, Bool stop, SET_MODE mode)
 {
    if(stop)_scroll=false;

@@ -354,7 +354,6 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ImageSkin::skinChanged() {rect_color=Gui.borderColor();}
    ImageSkin::ImageSkin() {images.include(T);}
   ImageSkin::~ImageSkin() {images.exclude(T);}
-   GuiObj* TextNoTest::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
    void PropEx::Clear(PropEx &prop) {prop.clear();}
    bool PropEx::compatible(ELM_TYPE elm_type)C {return ElmCompatible(elm_type, T.elm_type);}
    void    PropEx::setDesc(                        ) {Str d=_desc; if(elm_type)d.line()+=S+"Drag and drop "+ElmTypeName[elm_type]+" element here\nCtrl+LeftClick to open it"; super::desc(d);}

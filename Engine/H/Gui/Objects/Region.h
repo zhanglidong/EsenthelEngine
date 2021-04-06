@@ -21,6 +21,8 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
    Region& scrollFitY(Flt min, Flt max, Bool immediate=false) {slidebar[1].scrollFit(min, max, immediate); return T;} // vertical scroll to fit min..max range
    Region& scrollEndY(                  Bool immediate=false) {slidebar[1].scrollEnd(          immediate); return T;} // vertical scroll to end
 
+   Vec2 scrollDelta()C {return Vec2(slidebar[0].scrollDelta(), slidebar[1].scrollDelta());}
+
    Region& removeSlideBars(); // remove slide bars, this will completely remove the SlideBars (they can't be used unless the Region is recreated, effectively disabling any scrolling)
    Region& alwaysHideHorizontalSlideBar(Bool hide);   Bool alwaysHideHorizontalSlideBar()C; // set/get if horizontal SlideBar should be always hidden
 
