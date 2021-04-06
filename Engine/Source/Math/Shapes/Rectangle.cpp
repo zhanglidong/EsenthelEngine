@@ -619,8 +619,23 @@ Dbl Dist2(C VecD2 &point, C RectI &rect)
 /******************************************************************************/
 Flt Dist(C Rect &a, C Rect &b)
 {
+#if 0 // slower
    return Dist(Max(0, Abs(a.centerX()-b.centerX())-(a.w()+b.w())*0.5f),
                Max(0, Abs(a.centerY()-b.centerY())-(a.h()+b.h())*0.5f));
+#else // faster
+   Vec2 delta;
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else
+   if(b.max.x<a.min.x)delta.x=a.min.x-b.max.x;else
+   {               // delta.x=0
+      if(b.min.y>a.max.y)return b.min.y-a.max.y;
+      if(b.max.y<a.min.y)return a.min.y-b.max.y;
+                         return 0;
+   }
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else
+   if(b.max.y<a.min.y)delta.y=a.min.y-b.max.y;else
+               return delta.x; // delta.y=0
+   return delta.length();
+#endif
 }
 /******************************************************************************/
 Flt Dist(C Rect &rect, C Plane2 &plane)
