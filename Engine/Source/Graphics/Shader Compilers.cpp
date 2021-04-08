@@ -813,7 +813,7 @@ static void SetShaderHash()
 }
 void MainShaderClass::compile()
 {
-#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
+#if COMPILE_DX || COMPILE_DX_AMD || COMPILE_GL || COMPILE_GL_SPIRV
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_DX
@@ -829,13 +829,14 @@ void MainShaderClass::compile()
    Compile(API_GL, SC_SPIRV);
 #endif
 
-   ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    if(ShaderCompilers.elms())
    {
+      WindowShow(false); // show in case it's hidden
+      ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
       Threads threads; threads.create(false, Cpu.threads()-1, 0, "EE.ShaderCompiler #");
       FREPAO(ShaderCompilers).compile(threads);
+      ProcPriority(0);
    }
-   ProcPriority(0);
 
 #if COMPILE_GL
    SetShaderHash();
