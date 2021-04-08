@@ -328,24 +328,32 @@ void MouseClass::pos(C Vec2 &pos)
 
    Vec2  pixel =D.screenToWindowPixel(T._pos);
    VecI2 pixeli=Round(pixel);
+   VecI2 deltai=pixeli-_window_posi;
+  _window_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
 #if WINDOWS_OLD
    POINT point={pixeli.x, pixeli.y};
    ClientToScreen(App.Hwnd(), &point);
+  _desktop_posi.set(point.x, point.y);
    SetCursorPos(point.x, point.y);
 #elif WINDOWS_NEW
    if(App.hwnd())
    {
       Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(pixel.x), bounds.Y+PixelsToDips(pixel.y));
+      auto x=bounds.X+PixelsToDips(pixel.x),
+           y=bounds.Y+PixelsToDips(pixel.y);
+      App.Hwnd()->PointerPosition=Windows::Foundation::Point(x, y);
+     _desktop_posi.set(DipsToPixelsI(x), DipsToPixelsI(y));
    }
 #elif MAC
    RectI   client=WindowRect(true);
+  _desktop_posi=_window_posi+client.min;
    CGPoint point; point.x=pixel.x+client.min.x; point.y=pixel.y+client.min.y;
    CGWarpMouseCursorPosition(point);
 #elif LINUX
    if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, pixeli.x, pixeli.y);
-#elif SWITCH
-  _window_posi=_desktop_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
+  _desktop_posi+=deltai;
+#elif MOBILE
+  _desktop_posi=pixeli;
 #endif
 }
 /******************************************************************************/
