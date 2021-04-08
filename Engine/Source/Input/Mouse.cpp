@@ -320,42 +320,46 @@ void MouseClass::speed(Flt speed)  {       T._speed=speed*SPEED;}
 Flt  MouseClass::speed(         )C {return T._speed      /SPEED;}
 /******************************************************************************/
 void MouseClass::pos(C Vec2 &pos)
-{
-   T._pos=pos;
+{{ // double brackets needed for "Vec2 pos" declaration inside MOBILE
 #if MOBILE // for mobile prevent cursor from going outside the window
-   T._pos&=D.rect();
+   Vec2 clipped_pos=pos&D.rect(); C Vec2 &pos=clipped_pos;
 #endif
-
-   Vec2  pixel =D.screenToWindowPixel(T._pos);
-   VecI2 pixeli=Round(pixel);
-   VecI2 deltai=pixeli-_window_posi;
-  _window_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
-#if WINDOWS_OLD
-   POINT point={pixeli.x, pixeli.y};
-   ClientToScreen(App.Hwnd(), &point);
-  _desktop_posi.set(point.x, point.y);
-   SetCursorPos(point.x, point.y);
-#elif WINDOWS_NEW
-   if(App.hwnd())
+   if(T._pos!=pos)
    {
-      Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-      auto x=bounds.X+PixelsToDips(pixel.x),
-           y=bounds.Y+PixelsToDips(pixel.y);
-      App.Hwnd()->PointerPosition=Windows::Foundation::Point(x, y);
-     _desktop_posi.set(DipsToPixelsI(x), DipsToPixelsI(y));
+      T._pos=pos;
+      if(_freezed && App.active())clipUpdate();
+
+      Vec2  pixel =D.screenToWindowPixel(T._pos);
+      VecI2 pixeli=Round(pixel);
+      VecI2 deltai=pixeli-_window_posi;
+     _window_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
+   #if WINDOWS_OLD
+      POINT point={pixeli.x, pixeli.y};
+      ClientToScreen(App.Hwnd(), &point);
+     _desktop_posi.set(point.x, point.y);
+      SetCursorPos(point.x, point.y);
+   #elif WINDOWS_NEW
+      if(App.hwnd())
+      {
+         Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
+         auto x=bounds.X+PixelsToDips(pixel.x),
+              y=bounds.Y+PixelsToDips(pixel.y);
+         App.Hwnd()->PointerPosition=Windows::Foundation::Point(x, y);
+        _desktop_posi.set(DipsToPixelsI(x), DipsToPixelsI(y));
+      }
+   #elif MAC
+      RectI   client=WindowRect(true);
+     _desktop_posi=_window_posi+client.min;
+      CGPoint point; point.x=pixel.x+client.min.x; point.y=pixel.y+client.min.y;
+      CGWarpMouseCursorPosition(point);
+   #elif LINUX
+      if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, pixeli.x, pixeli.y);
+     _desktop_posi+=deltai;
+   #elif MOBILE
+     _desktop_posi=pixeli;
+   #endif
    }
-#elif MAC
-   RectI   client=WindowRect(true);
-  _desktop_posi=_window_posi+client.min;
-   CGPoint point; point.x=pixel.x+client.min.x; point.y=pixel.y+client.min.y;
-   CGWarpMouseCursorPosition(point);
-#elif LINUX
-   if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, pixeli.x, pixeli.y);
-  _desktop_posi+=deltai;
-#elif MOBILE
-  _desktop_posi=pixeli;
-#endif
-}
+}}
 /******************************************************************************/
 static void Clip(RectI *rect) // 'rect' is in window client space, full rect is (0, 0), (D.resW, D.resH)
 {
