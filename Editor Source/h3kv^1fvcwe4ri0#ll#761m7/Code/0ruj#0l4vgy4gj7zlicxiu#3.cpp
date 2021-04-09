@@ -2734,8 +2734,8 @@ force_src_resize:
                                  if(lum<=next.lum)
                                  {
                                   C Palette &prev=PaletteFire[i-1];
-                                    flt step=LerpRS(prev.lum, next.lum, lum);
-                                         pal=Lerp  (prev.col, next.col, lum);
+                                    flt step=LerpRS(prev.lum, next.lum, lum );
+                                         pal=Lerp  (prev.col, next.col, step);
                                     goto has_pal;
                                  }
                               }
