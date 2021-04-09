@@ -215,6 +215,67 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
       }
    }
 
+   /* at this stage:
+      <TYPE> class FixedArray
+      {
+         TYPE data[..];
+      }
+      FixedArray depends on 'TYPE', however:
+      <TYPE1> class FixedArrayExt : FixedArray<TYPE1>
+      {
+      }
+      FixedArrayExt doesn't depend on 'TYPE1', but should, because its base does, so we have to fix that.
+
+      Be careful because following situation can happen:
+      <TYPE2> class FixedArrayExtExt : FixedArrayExt<TYPE2>
+      {
+      }
+      So we have to make sure that 'FixedArrayExt' gets processed first, and then 'FixedArrayExtExt' which checks 'FixedArrayExt'
+
+      TYPE1 and TYPE2 don't need to come from templates, following situation can happen:
+      class FixedArrayExtExt : FixedArrayExt<AnotherClass>
+      {
+      }
+   */
+   Memc<Symbol*> classes;
+   REPA(Symbols) // get a list of all classes that have a base with some dependable templates
+   {
+      Symbol &symbol=Symbols.lockedData(i); if(symbol.type==Symbol::CLASS)REPA(symbol.base) // check all bases
+      {
+         Symbol::Modif &base=symbol.base[i]; REPA(base.templates) // check all templates
+         {
+            Symbol::Modif &templat=base.templates[i]; if(templat.dependable()) // if at least one dependable
+            {
+               classes.add(&symbol); goto added;
+            }
+         }
+      }
+      added:;
+   }
+   for(;;)
+   {
+      Bool processed=false;
+
+      REPA(classes)
+      {
+         Symbol &symbol=*classes[i]; REPA(symbol.base) // check all bases of Class : Base0, Base1
+         {
+            Symbol::Modif &base=symbol.base[i]; REPA(base.templates) // check all templates for each base: Base<T0, T1>
+            {
+               Symbol::Modif &templat=base.templates[i]; if(templat.dependable()) // get 'T0'
+                  if(Symbol *src_template=templat.src_template()) // this gets 'TA' from "<TA, TB> class Base"
+                     if(base->dependencies.has(src_template))
+               {
+                  processed|=symbol.addDependency(templat); // remember if we've added any dependency
+               }
+            }
+         }
+      }
+
+      if(!processed)break; // if no class was processed in this step, then break the loop
+   }
+   classes.clear();
+
    // now that we know what typenames are used by what classes "<TYPE> class A { class Sub : TYPE { class Sub2 {} }}" (Sub has TYPE in its 'dependencies', Sub2 doesn't, however it should check for all parents)
    REPA(active_symbols)
    {
@@ -225,8 +286,7 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
          Symbol::Modif &value=symbol.value; // get its value "Memc<int> x" -> "Memc<int>"
          REPA(value.templates)if(Symbol::Modif &templat=value.templates[i]) // "Memc<int>" -> "int"
          {
-            if(templat->type==Symbol::CLASS && templat()!=templat->rootClass() // nested classes can't be forward declared
-            || templat->type==Symbol::ENUM)                                    // enums          can't be forward declared (they can in VS but not in GCC)
+            if(templat->nested()) // nested symbols can't be forward declared
             {
                symbol_parent->addDependency(templat); // add dependency to 'templat'
             }else
@@ -257,7 +317,6 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
    }
 
    // create list of global classes
-   Memc<Symbol*> classes;
    REPA(active_symbols)
    {
       Symbol &symbol=*active_symbols[i];

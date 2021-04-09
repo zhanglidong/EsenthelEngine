@@ -91,15 +91,16 @@ void Symbol::Modif::clear(Bool clear_templates)
    super::clear();
 }
 /******************************************************************************/
-Bool Symbol::Modif:: isConst(       ) {return (const_level&(1<<(ptr_level+array_dims.elms())))!=0;}
-void Symbol::Modif::setConst(Bool on) {FlagSet(const_level, 1<<(ptr_level+array_dims.elms()), on);}
+Bool Symbol::Modif:: isConst(       )C {return (const_level&(1<<(ptr_level+array_dims.elms())))!=0;}
+void Symbol::Modif::setConst(Bool on)  {FlagSet(const_level, 1<<(ptr_level+array_dims.elms()), on);}
 /******************************************************************************/
-Bool Symbol::Modif:: isObj   () {return !ptr_level && !array_dims.elms();}
-Bool Symbol::Modif:: isPtr   () {return array_dims.elms() ? array_dims.last()==DIM_PTR : ptr_level>0;}
-Bool Symbol::Modif:: isArray () {return array_dims.elms() && array_dims.last()!=DIM_PTR;}
-Bool Symbol::Modif::anyPtr   () {if(ptr_level>0)return true; REPA(array_dims)if(array_dims[i]==DIM_PTR)return true; return false;}
-Bool Symbol::Modif::isVoidPtr() {return ptr_level==1 && !array_dims.elms() && T && T->var_type==VAR_VOID;}
-Bool Symbol::Modif::basicType() {return (T && T->var_type!=VAR_NONE) || ptr_level>0 || array_dims.elms();}
+Bool Symbol::Modif:: isObj    ()C {return !ptr_level && !array_dims.elms();}
+Bool Symbol::Modif:: isPtr    ()C {return array_dims.elms() ? array_dims.last()==DIM_PTR : ptr_level>0;}
+Bool Symbol::Modif:: isArray  ()C {return array_dims.elms() && array_dims.last()!=DIM_PTR;}
+Bool Symbol::Modif::anyPtr    ()C {if(ptr_level>0)return true; REPA(array_dims)if(array_dims[i]==DIM_PTR)return true; return false;}
+Bool Symbol::Modif::isVoidPtr ()C {return ptr_level==1 && !array_dims.elms() && T && T->var_type==VAR_VOID;}
+Bool Symbol::Modif::basicType ()C {return (T && T->var_type!=VAR_NONE) || ptr_level>0 || array_dims.elms();}
+Bool Symbol::Modif::dependable()C {return !(modifiers&MODIF_REF) && !anyPtr();}
 /******************************************************************************/
 Bool Symbol::Modif::same(Modif &modif, Bool test_const, Bool test_ref)
 {
@@ -187,7 +188,7 @@ Bool Symbol::Modif::constMemAddrOK()
       if(templat.src_template && (templat.src_template->modifiers&MODIF_CONST_MEM_ADDR)) // "<const_mem_addr TYPE> class Memc {..}" if source template has 'const_mem_addr' specified, then it means it will not preserve constant memory address
          if(templat && (templat->modifiers&MODIF_CONST_MEM_ADDR)) // if this element requires constant memory address "const_mem_addr class Thread"
             if(!(templat.modifiers&MODIF_CONST_MEM_ADDR)) // and not marked to ignore "Memc<const_mem_addr Thread>"
-               if(!templat.anyPtr()) // "Memc<Thread*>" is ok, so ignore pointers
+               if(templat.dependable()) // "Memc<Thread*>" is ok, so ignore pointers
                   return false;
       if(!templat.constMemAddrOK())return false; // if any sub-templates have issue then fail too, "Memx< Memc<const_mem_addr Thread> >" the Memx is OK but the sub Memc should fail
    }
@@ -450,6 +451,14 @@ Symbol* Symbol::Class()
 Symbol* Symbol::Namespace()
 {
    for(Symbol *symbol=this; symbol; symbol=symbol->parent())if(symbol->type==NAMESPACE)return symbol;
+   return null;
+}
+Symbol* Symbol::nested()
+{
+   if(type!=TYPENAME) // ignore unresolved templates
+      if(Symbol *root=rootClass()) // get the root of symbol
+         if(root!=this) // if nested
+            return root;
    return null;
 }
 Symbol* Symbol::func()
@@ -996,29 +1005,30 @@ void Symbol::adjustIndexes(Memc<Token> &tokens)
    }
 }
 /******************************************************************************/
-void Symbol::addDependency(Modif &symbol)
+Bool Symbol::addDependency(Modif &symbol)
 {
+   Bool  added=false;
    Modif final=symbol;
    for(Int i=0; final && i<64; i++) // find first value which has 'rootClass'
    {
       if(Symbol *root=final->rootClass()) // we need to be actually dependent on the root class of symbol (because only root classes are stored as headers)
       {
-         if(final->valid && !(final.modifiers&MODIF_REF) && !final.anyPtr()) // ignore references and pointers
+         if(final->valid && final.dependable()) // ignore references and pointers
          {
-            if(final->type==TYPENAME)dependencies.include(final()); // if this is a TYPENAME, then add dependency to it and only to class using it "<TYPE> class A { TYPE t; }" A depends on TYPE, "<TYPE> class A { class Sub {TYPE t;} }" Sub depends on TYPE
-            if(root!=this && !(root->helper&HELPER_PROCESSED))dependencies.include(root); // ignore self-dependencies
+            if(final->type==TYPENAME                         )added|=dependencies.include(final()); // if this is a TYPENAME, then add dependency to it and only to class using it "<TYPE> class A { TYPE t; }" A depends on TYPE, "<TYPE> class A { class Sub {TYPE t;} }" Sub depends on TYPE
+            if(root!=this && !(root->helper&HELPER_PROCESSED))added|=dependencies.include(root   ); // ignore self-dependencies
          }
          break;
       }
       final.proceedTo(final->value); // proceed to next value
    }
+   return added;
 }
-void Symbol::addDependencyIfNested(Symbol *symbol) // if 'symbol' is nested (defined inside some class) then add dependency to that "root class" to this (this ignores references and pointers because we are interested in only declaration of the symbol - its existence)
+void Symbol::addDependencyIfNested(Symbol *symbol) // if 'symbol' is nested (defined inside some class) then add dependency to that "root class" to this (this ignores checking for references and pointers - "dependable", because we are interested only in declaration of the symbol - its existence)
 {
-   if(symbol && symbol->type!=TYPENAME) // ignore unresolved templates
-      if(Symbol *root=symbol->rootClass()) // get the root of symbol
-         if(root!=symbol // if 'symbol' is nested
-         && root!=this)  // if 'root' is not this
+   if(symbol)
+      if(Symbol *root=symbol->nested()) // if 'symbol' is nested
+         if(root!=this)  // if 'root' is not this (so we don't make 'root' to be dependent on itself)
             if(!(root->helper&HELPER_PROCESSED))dependencies.include(root);
 }
 /******************************************************************************/
