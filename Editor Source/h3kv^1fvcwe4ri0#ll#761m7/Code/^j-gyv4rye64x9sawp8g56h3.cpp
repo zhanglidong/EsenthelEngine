@@ -716,17 +716,17 @@ class AppPropsEditor : PropWin
    static void FacebookAppID               (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.fb_app_id=TextULong(text); app_data.fb_app_id_time.getUTC();}}
    static Str  FacebookAppID               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.fb_app_id)return app_data.fb_app_id; return S;}
    static void AdMobAppIDiOS               (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.am_app_id_ios=text; app_data.am_app_id_ios_time.getUTC();}}
-   static Str  AdMobAppIDiOS               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.am_app_id_ios)return app_data.am_app_id_ios; return S;}
+   static Str  AdMobAppIDiOS               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.am_app_id_ios; return S;}
    static void AdMobAppIDGoogle            (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.am_app_id_google=text; app_data.am_app_id_google_time.getUTC();}}
-   static Str  AdMobAppIDGoogle            (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.am_app_id_google)return app_data.am_app_id_google; return S;}
+   static Str  AdMobAppIDGoogle            (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.am_app_id_google; return S;}
    static void ChartboostAppIDiOS          (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_id_ios=text; app_data.cb_app_id_ios_time.getUTC();}}
-   static Str  ChartboostAppIDiOS          (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_id_ios)return app_data.cb_app_id_ios; return S;}
+   static Str  ChartboostAppIDiOS          (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_id_ios; return S;}
    static void ChartboostAppSignatureiOS   (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_signature_ios=text; app_data.cb_app_signature_ios_time.getUTC();}}
-   static Str  ChartboostAppSignatureiOS   (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_signature_ios)return app_data.cb_app_signature_ios; return S;}
+   static Str  ChartboostAppSignatureiOS   (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_signature_ios; return S;}
    static void ChartboostAppIDGoogle       (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_id_google=text; app_data.cb_app_id_google_time.getUTC();}}
-   static Str  ChartboostAppIDGoogle       (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_id_google)return app_data.cb_app_id_google; return S;}
+   static Str  ChartboostAppIDGoogle       (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_id_google; return S;}
    static void ChartboostAppSignatureGoogle(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_signature_google=text; app_data.cb_app_signature_google_time.getUTC();}}
-   static Str  ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_signature_google)return app_data.cb_app_signature_google; return S;}
+   static Str  ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_signature_google; return S;}
    static void Storage                     (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.storage=Edit.STORAGE_MODE(TextInt(text)); app_data.storage_time.getUTC();}}
    static Str  Storage                     (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.storage; return S;}
    static void GuiSkin                     (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.gui_skin=Proj.findElmID(text, ELM_GUI_SKIN); app_data.gui_skin_time.getUTC(); if(ap.elm_id==Proj.curApp())CodeEdit.makeAuto();}}

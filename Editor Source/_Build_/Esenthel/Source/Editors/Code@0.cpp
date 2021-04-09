@@ -677,17 +677,17 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    void AppPropsEditor::FacebookAppID(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->fb_app_id=TextULong(text); app_data->fb_app_id_time.getUTC();}}
    Str  AppPropsEditor::FacebookAppID(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->fb_app_id)return app_data->fb_app_id; return S;}
    void AppPropsEditor::AdMobAppIDiOS(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->am_app_id_ios=text; app_data->am_app_id_ios_time.getUTC();}}
-   Str  AppPropsEditor::AdMobAppIDiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->am_app_id_ios)return app_data->am_app_id_ios; return S;}
+   Str  AppPropsEditor::AdMobAppIDiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->am_app_id_ios; return S;}
    void AppPropsEditor::AdMobAppIDGoogle(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->am_app_id_google=text; app_data->am_app_id_google_time.getUTC();}}
-   Str  AppPropsEditor::AdMobAppIDGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->am_app_id_google)return app_data->am_app_id_google; return S;}
+   Str  AppPropsEditor::AdMobAppIDGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->am_app_id_google; return S;}
    void AppPropsEditor::ChartboostAppIDiOS(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->cb_app_id_ios=text; app_data->cb_app_id_ios_time.getUTC();}}
-   Str  AppPropsEditor::ChartboostAppIDiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->cb_app_id_ios)return app_data->cb_app_id_ios; return S;}
+   Str  AppPropsEditor::ChartboostAppIDiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->cb_app_id_ios; return S;}
    void AppPropsEditor::ChartboostAppSignatureiOS(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->cb_app_signature_ios=text; app_data->cb_app_signature_ios_time.getUTC();}}
-   Str  AppPropsEditor::ChartboostAppSignatureiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->cb_app_signature_ios)return app_data->cb_app_signature_ios; return S;}
+   Str  AppPropsEditor::ChartboostAppSignatureiOS(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->cb_app_signature_ios; return S;}
    void AppPropsEditor::ChartboostAppIDGoogle(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->cb_app_id_google=text; app_data->cb_app_id_google_time.getUTC();}}
-   Str  AppPropsEditor::ChartboostAppIDGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->cb_app_id_google)return app_data->cb_app_id_google; return S;}
+   Str  AppPropsEditor::ChartboostAppIDGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->cb_app_id_google; return S;}
    void AppPropsEditor::ChartboostAppSignatureGoogle(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->cb_app_signature_google=text; app_data->cb_app_signature_google_time.getUTC();}}
-   Str  AppPropsEditor::ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())if(app_data->cb_app_signature_google)return app_data->cb_app_signature_google; return S;}
+   Str  AppPropsEditor::ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->cb_app_signature_google; return S;}
    void AppPropsEditor::Storage(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->storage=Edit::STORAGE_MODE(TextInt(text)); app_data->storage_time.getUTC();}}
    Str  AppPropsEditor::Storage(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData())return app_data->storage; return S;}
    void AppPropsEditor::GuiSkin(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm->appData()){app_data->gui_skin=Proj.findElmID(text, ELM_GUI_SKIN); app_data->gui_skin_time.getUTC(); if(ap.elm_id==Proj.curApp())CodeEdit.makeAuto();}}

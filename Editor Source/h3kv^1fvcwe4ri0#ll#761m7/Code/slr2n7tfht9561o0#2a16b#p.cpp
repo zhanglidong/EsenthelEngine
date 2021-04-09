@@ -138,7 +138,7 @@ class StoreClass : ClosableWindow
          {
             if(temp.icon=="keep" || !temp.icon.is())
             {
-               if(icon_path)icon=IC.getImage(icon_path);
+               if(icon_path.is())icon=IC.getImage(icon_path);
             }else
             {
                if(temp.icon!="null")icon=IC.getImage(ItemRes(id, temp.icon, "icon_temp."));

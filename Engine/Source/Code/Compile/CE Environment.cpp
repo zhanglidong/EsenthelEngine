@@ -218,26 +218,25 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
    // now that we know what typenames are used by what classes "<TYPE> class A { class Sub : TYPE { class Sub2 {} }}" (Sub has TYPE in its 'dependencies', Sub2 doesn't, however it should check for all parents)
    REPA(active_symbols)
    {
-      Symbol &symbol=*active_symbols[i];
-      if(symbol.Parent() && symbol.Parent()->type==Symbol::CLASS) // element that belongs to class
+         Symbol &symbol=*active_symbols[i];
+      if(Symbol *symbol_parent=symbol.Parent())
+      if(symbol_parent && symbol_parent->type==Symbol::CLASS) // element that belongs to class
       {
          Symbol::Modif &value=symbol.value; // get its value "Memc<int> x" -> "Memc<int>"
-         REPA(value.templates)
+         REPA(value.templates)if(Symbol::Modif &templat=value.templates[i])
          {
-            Symbol::Modif &templat=value.templates[i];
-            if(Symbol *src_template=templat.src_template()) // iterate all its templates "Memc.TYPE"
+            if(templat->type==Symbol::CLASS && templat()!=templat->rootClass() // nested classes can't be forward declared (they can in VS but not in GCC)
+            || templat->type==Symbol::ENUM)                                    // enums          can't be forward declared (they can in VS but not in GCC)
             {
-               if(templat && templat->type==Symbol::ENUM) // enums can't be forward declared (they can in VS but not in GCC)
-               {
-                  symbol.Parent()->addDependency(templat); // add dependency to "enum"
-               }else
+               symbol_parent->addDependency(templat); // add dependency to "enum"
+            }else
+            if(Symbol *src_template=templat.src_template()) // iterate all its templates "Memc.TYPE"
                for(Symbol *cur=value(); cur; cur=cur->parent()) // check if that template is used by class or any of its parents
                   if(cur->type==Symbol::CLASS)
                      if(cur->dependencies.has(src_template))
-               {
-                  symbol.Parent()->addDependency(templat); // add dependency to "int"
-                  break;
-               }
+            {
+               symbol_parent->addDependency(templat); // add dependency to "int"
+               break;
             }
          }
       }
