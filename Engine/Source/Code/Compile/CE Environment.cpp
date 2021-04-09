@@ -195,7 +195,7 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
          {
             if(symbol.Parent() && symbol.Parent()->type==Symbol::CLASS)
             {
-               symbol.Parent()->addDependencyIfNested(symbol.value()); // include value of the varaible
+               symbol.Parent()->addDependencyIfNested(symbol.value()); // include value of the variable
                REPA(symbol.params)if(Symbol *param=symbol.params[i]()) // iterate all params of a function
                {
                   symbol.Parent()->addDependencyIfNested(param->value()); // include value of all parameters of the function to handle "void func(A.AA *x)"
