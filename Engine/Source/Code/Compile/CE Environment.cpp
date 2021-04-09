@@ -225,7 +225,7 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
          Symbol::Modif &value=symbol.value; // get its value "Memc<int> x" -> "Memc<int>"
          REPA(value.templates)if(Symbol::Modif &templat=value.templates[i])
          {
-            if(templat->type==Symbol::CLASS && templat()!=templat->rootClass() // nested classes can't be forward declared (they can in VS but not in GCC)
+            if(templat->type==Symbol::CLASS && templat()!=templat->rootClass() // nested classes can't be forward declared
             || templat->type==Symbol::ENUM)                                    // enums          can't be forward declared (they can in VS but not in GCC)
             {
                symbol_parent->addDependency(templat); // add dependency to "enum"
