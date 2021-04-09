@@ -1941,18 +1941,6 @@ void VtxIndBuf::line(C Vec2 &a, C Vec2 &b)
       v[1].pos=b;
    }
 }
-void VtxIndBuf::line(C Vec2 &a, C Vec2 &b, Flt width)
-{
-   Vec2 perp=Perp(b-a); perp.setLength(width);
-   setFirst(VI_2D_FLAT, VI_QUAD_IND);
-   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(4))
-   {
-      v[0].pos.set(a.x-perp.x, a.y-perp.y);
-      v[1].pos.set(b.x-perp.x, b.y-perp.y);
-      v[2].pos.set(b.x+perp.x, b.y+perp.y);
-      v[3].pos.set(a.x+perp.x, a.y+perp.y);
-   }
-}
 void VtxIndBuf::line(C Vec &a, C Vec &b)
 {
    setFirst(VI_3D_FLAT, VI_LINE);
@@ -1998,6 +1986,46 @@ void VtxIndBuf::line(C Color &col_a, C Color &col_b, C Vec &a, C Vec &b)
    {
       v[0].pos=a; v[0].color=col_a;
       v[1].pos=b; v[1].color=col_b;
+   }
+}
+/******************************************************************************/
+void VtxIndBuf::line(C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_FLAT, VI_QUAD_IND);
+   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+   }
+}
+void VtxIndBuf::line(C Color &color, C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_COL, VI_QUAD_IND);
+   if(Vtx2DCol *v=(Vtx2DCol*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
+   }
+}
+void VtxIndBuf::line(C Color &col_a, C Color &col_b, C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_COL, VI_QUAD_IND);
+   if(Vtx2DCol *v=(Vtx2DCol*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+      v[0].color=v[3].color=col_a;
+      v[1].color=v[2].color=col_b;
    }
 }
 /******************************************************************************/

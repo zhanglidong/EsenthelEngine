@@ -184,8 +184,10 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
    static void line(                                C Vec2 &a, C Vec2 &b, Flt width); // this uses 'VI.color'
    static void line(                                C Vec  &a, C Vec  &b           ); // this uses 'VI.color'
    static void line(C Color &color,                 C Vec2 &a, C Vec2 &b           );
+   static void line(C Color &color,                 C Vec2 &a, C Vec2 &b, Flt width);
    static void line(C Color &color,                 C Vec  &a, C Vec  &b           );
    static void line(C Color &col_a, C Color &col_b, C Vec2 &a, C Vec2 &b           );
+   static void line(C Color &col_a, C Color &col_b, C Vec2 &a, C Vec2 &b, Flt width);
    static void line(C Color &col_a, C Color &col_b, C Vec  &a, C Vec  &b           );
 
    // draw triangles
