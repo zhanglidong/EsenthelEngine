@@ -170,7 +170,7 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
       || symbol.type==Symbol::VAR && symbol.value && symbol.value->type==Symbol::TYPENAME // or engine defined if they're a template, this is needed because:
       )
       /*
-         <TYPE> class FixedArray // this Engine Defined
+         <TYPE> class FixedArray // this is Engine defined:
          {
             TYPE data[..];
          }
