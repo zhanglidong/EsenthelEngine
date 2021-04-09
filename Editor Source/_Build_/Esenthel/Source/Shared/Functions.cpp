@@ -2277,7 +2277,7 @@ bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FilePar
    }
    image.del(); return false;
 }
-const ColorPalette PaletteFire[]=
+const Palette PaletteFire[]=
 {
    {0.00f, Vec(0xE8, 0x1F, 0x00)/255},
    {0.45f, Vec(0xFF, 0x8E, 0x0B)/255},
@@ -2556,10 +2556,10 @@ force_src_resize:
                               Vec pal;
                               for(int i=1; i<Elms(PaletteFire); i++)
                               {
-                               C ColorPalette &next=PaletteFire[i];
+                               C Palette &next=PaletteFire[i];
                                  if(lum<=next.lum)
                                  {
-                                  C ColorPalette &prev=PaletteFire[i-1];
+                                  C Palette &prev=PaletteFire[i-1];
                                     flt step=LerpRS(prev.lum, next.lum, lum);
                                          pal=Lerp  (prev.col, next.col, lum);
                                     goto has_pal;
