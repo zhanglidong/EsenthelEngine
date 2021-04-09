@@ -2277,6 +2277,13 @@ bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FilePar
    }
    image.del(); return false;
 }
+const ColorPalette PaletteFire[]=
+{
+   {0.00f, Vec(0xE8, 0x1F, 0x00)/255},
+   {0.45f, Vec(0xFF, 0x8E, 0x0B)/255},
+   {0.90f, Vec(0xFF, 0xD6, 0x13)/255},
+   {1.00f, Vec(0xFF, 0xFF, 0xA0)/255},
+};
 bool LoadImages(C Project *proj, Image &image, TextParam *image_resize, C Str &src, bool srgb, bool clamp, C Color &background, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize)
 {
    image.del(); if(image_resize)image_resize->del(); if(!src.is())return true;
@@ -2345,6 +2352,7 @@ force_src_resize:
             if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
             if(p->value=="metal"                                              )mode=APPLY_METAL;else
             if(p->value=="scale"                                              )mode=APPLY_SCALE;else
+            if(p->value=="fire"                                               )mode=APPLY_FIRE;else
             if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
          }
          bool alpha_1=Equal(alpha, 1),
@@ -2536,6 +2544,30 @@ force_src_resize:
                               n.z/=scale;
                               n.normalize();
                               n=n*0.5f+0.5f;
+                           }
+                        }break;
+
+                        case APPLY_FIRE:
+                        {
+                           c=base;
+                           if(flt alpha=l.xyz.max())
+                           {
+                              flt lum=base.xyz.max();
+                              Vec pal;
+                              for(int i=1; i<Elms(PaletteFire); i++)
+                              {
+                               C ColorPalette &next=PaletteFire[i];
+                                 if(lum<=next.lum)
+                                 {
+                                  C ColorPalette &prev=PaletteFire[i-1];
+                                    flt step=LerpRS(prev.lum, next.lum, lum);
+                                         pal=Lerp  (prev.col, next.col, lum);
+                                    goto has_pal;
+                                 }
+                              }
+                              pal=PaletteFire[Elms(PaletteFire)-1].col; // get last one
+                           has_pal:
+                              c.xyz=Lerp(c.xyz, pal, alpha);
                            }
                         }break;
                      }

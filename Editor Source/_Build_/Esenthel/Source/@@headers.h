@@ -54,6 +54,7 @@ class ClassNameDesc;
 class Code;
 class CodeView;
 class ColorBrushClass;
+class ColorPalette;
 class CompareProjects;
 class ConvertToAtlasClass;
 class ConvertToDeAtlasClass;
@@ -307,6 +308,7 @@ enum APPLY_MODE
    APPLY_MASK_ADD,
    APPLY_METAL,
    APPLY_SCALE,
+   APPLY_FIRE,
    APPLY_SKIP,
 };
 /******************************************************************************/
@@ -799,6 +801,7 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@EditEnums.h"
 #include "@EditEnum.h"
 #include "@Cursor.h"
+#include "@ColorPalette.h"
 #include "@ColorBrushClass.h"
 #include "@CodeView.h"
 #include "@Code.h"
@@ -867,8 +870,8 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@ProjectSettings.h"
 #include "@Projects.h"
 #include "@SizeStatistics.h"
-#include "@BrushClass.h"
 #include "@ImageEditor.h"
+#include "@BrushClass.h"
 #include "@ProjectHierarchy.h"
 #include "@ImageAtlasEditor.h"
 #include "@ProjectEx.h"
@@ -876,47 +879,47 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@AppPropsEditor.h"
 #include "@AnimEditor.h"
 #include "@AdjustBoneOrns.h"
-#include "@EnumEditor.h"
-#include "@PhysMtrlEditor.h"
+#include "@GuiView.h"
 #include "@MulSoundVolumeClass.h"
 #include "@VideoOptions.h"
 #include "@VideoEditor.h"
-#include "@SetMtrlColorClass.h"
+#include "@GuiSkinEditor.h"
 #include "@RemoveProjWin.h"
 #include "@MiniMapEditor.h"
-#include "@GuiView.h"
-#include "@GuiSkinEditor.h"
-#include "@MergeSimilarMaterials.h"
 #include "@ParamEditor.h"
-#include "@SoundEditor.h"
 #include "@PanelImageEditor.h"
-#include "@IconSettings.h"
-#include "@DetectSimilarTextures.h"
+#include "@MergeSimilarMaterials.h"
 #include "@GroupRegion.h"
+#include "@SoundEditor.h"
+#include "@GridPlaneLevel.h"
+#include "@TheaterClass.h"
+#include "@DetectSimilarTextures.h"
+#include "@ElmProperties.h"
 #include "@CreateMaterials.h"
 #include "@CopyElements.h"
 #include "@ConvertToDeAtlasClass.h"
 #include "@ConvertToAtlasClass.h"
 #include "@CompareProjects.h"
-#include "@GridPlaneLevel.h"
-#include "@ElmProperties.h"
-#include "@TheaterClass.h"
 #include "@FontEditor.h"
+#include "@SetMtrlColorClass.h"
+#include "@WaterMtrlRegion.h"
 #include "@ObjScale.h"
-#include "@IconEditor.h"
+#include "@TextureDownsize.h"
 #include "@ObjRot.h"
 #include "@TextStyleEditor.h"
 #include "@ObjPos.h"
 #include "@ObjPaintClass.h"
 #include "@ObjListClass.h"
-#include "@WaterMtrlRegion.h"
-#include "@TextureDownsize.h"
-#include "@ObjClassEditor.h"
 #include "@EnvEditor.h"
+#include "@EnumEditor.h"
+#include "@ObjClassEditor.h"
 #include "@PanelEditor.h"
-#include "@RenameProjWin.h"
 #include "@ObjView.h"
+#include "@RenameProjWin.h"
+#include "@PhysMtrlEditor.h"
+#include "@IconSettings.h"
 #include "@WorldView.h"
+#include "@IconEditor.h"
 #include "@IconSettsEditor.h"
 #include "@WorldBrushClass.h"
 /******************************************************************************/
