@@ -228,7 +228,7 @@ Bool CodeEnvironment::VerifySymbols(Memc<Message> &msgs, Memc<Symbol*> &sorted_c
             if(templat->type==Symbol::CLASS && templat()!=templat->rootClass() // nested classes can't be forward declared
             || templat->type==Symbol::ENUM)                                    // enums          can't be forward declared (they can in VS but not in GCC)
             {
-               symbol_parent->addDependency(templat); // add dependency to "enum"
+               symbol_parent->addDependency(templat); // add dependency to 'templat'
             }else
             if(Symbol *src_template=templat.src_template()) // iterate all its templates "Memc.TYPE"
                for(Symbol *cur=value(); cur; cur=cur->parent()) // check if that template is used by class or any of its parents
