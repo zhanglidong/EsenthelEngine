@@ -1304,11 +1304,11 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
     //case WM_DPICHANGED: break;
 
-      // MOUSE, because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to Ms.exclusive or Ms.clip, then we always need to activate when the user clicks on the client area
-      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;
-      case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;
-      case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
-      case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
+      // MOUSE, because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to 'Ms.exclusive' or 'Ms.clip', then we always need to activate when the user clicks on the client area
+      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
+   #if !MS_RAW_INPUT // already handled in WM_INPUT\RIM_TYPEMOUSE
+      case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;   case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
+   #endif
 
       case WM_NCLBUTTONDOWN: // when clicking on the title bar, this will get called before WM_ACTIVATE, but when clicking on minimize/maximize/close, then it will get called after
       {
@@ -1354,12 +1354,18 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
                case RIM_TYPEMOUSE:
                {
-                  if(raw.data.mouse.usFlags&MOUSE_MOVE_ABSOLUTE)
-                  {
-                  }else
+                  if(!(raw.data.mouse.usFlags&MOUSE_MOVE_ABSOLUTE))
                   {
                      Ms._delta_relative.x+=raw.data.mouse.lLastX;
                      Ms._delta_relative.y-=raw.data.mouse.lLastY;
+                  }
+                  if(raw.data.mouse.usButtonFlags&(RI_MOUSE_BUTTON_1_UP|RI_MOUSE_BUTTON_2_UP|RI_MOUSE_BUTTON_3_UP|RI_MOUSE_BUTTON_4_UP|RI_MOUSE_BUTTON_5_UP)) // check for releases only, because WM_*BUTTONUP aren't processed when mouse is outside of client window even when app is still active 
+                  {
+                     if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_1_UP)Ms.release(0);
+                     if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_2_UP)Ms.release(1);
+                     if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_3_UP)Ms.release(2);
+                     if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_4_UP)Ms.release(3);
+                     if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_5_UP)Ms.release(4);
                   }
                }break;
             }

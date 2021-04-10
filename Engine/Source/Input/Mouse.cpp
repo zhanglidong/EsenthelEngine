@@ -656,6 +656,7 @@ void MouseClass::update()
       }
    #endif
 
+   #if !MS_RAW_INPUT
       // need to manually check for releases because WM_*BUTTONUP aren't processed when mouse is outside of client window even when app is still active
       REP(Min(Elms(_button), Elms(Keys)))
       {
@@ -665,6 +666,7 @@ void MouseClass::update()
          if(b(i) && GetAsyncKeyState(Keys[i])>=0)release(i);
       #endif
       }
+   #endif
 
       // position and delta
       POINT p; if(GetCursorPos(&p))
