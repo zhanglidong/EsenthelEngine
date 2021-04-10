@@ -57,9 +57,11 @@ Touch& Touch::init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus)
 }
 Touch& Touch::reinit(C VecI2 &pixeli, C Vec2 &pos)
 {
+   // don't modify '_remove' and '_state', caller has to modify them
    user_type =0;
    user_ptr  =null;
   _allow_scrolling=true;
+  _selecting=_dragging=_scrolling=false;
   _start_time=Time.appTime();
   _start_pos =_pos=pos;
   _pixeli    =pixeli;
