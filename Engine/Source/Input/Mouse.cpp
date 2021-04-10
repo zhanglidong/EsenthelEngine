@@ -158,7 +158,7 @@ MouseClass::MouseClass()
 {
 #if 0 // there's only one 'MouseClass' global 'Ms' and it doesn't need clearing members to zero
    REPAO(_button)=0;
-  _selecting=_dragging=_first=_detected=_on_client=_freezed=_clip_rect_on=_clip_window=_freeze=_action=_locked=false;
+  _selecting=_dragging=_first=_detected=_on_client=_clip_rect_on=_clip_window=_freeze=_frozen=_action=_locked=false;
   _start_time=_wheel_time=0;
   _pos=_delta=_delta_clp=_delta_relative=_start_pos=_wheel=_wheel_f=0;
   _window_posi=_desktop_posi=_deltai=_wheel_i=0;
@@ -316,7 +316,7 @@ void MouseClass::pos(C Vec2 &pos)
    if(T._pos!=pos)
    {
       T._pos=pos;
-      if(_freezed && App.active())clipUpdate();
+      if(_frozen && App.active())clipUpdate();
 
       Vec2  pixel =D.screenToWindowPixel(T._pos);
       VecI2 pixeli=Round(pixel);
@@ -412,7 +412,7 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
 }
 void MouseClass::clipUpdate() // !! Don't call always, to avoid changing clip for other apps when inactive !!
 {
-   if(App.active() && (_freezed || _clip_rect_on || _clip_window))
+   if(App.active() && (_frozen || _clip_rect_on || _clip_window))
    {
       RectI recti, window_rect;
       if(_clip_window)
@@ -428,7 +428,7 @@ void MouseClass::clipUpdate() // !! Don't call always, to avoid changing clip fo
          }
       #endif
       }
-      if(_freezed)
+      if(_frozen)
       {
          Vec2  p =pos(); if(_clip_rect_on)p&=_clip_rect;
          VecI2 pi=D.screenToWindowPixelI(p);
@@ -455,7 +455,7 @@ void MouseClass::clipUpdate() // !! Don't call always, to avoid changing clip fo
 }
 void MouseClass::clipUpdateConditional()
 {
-   if(App.active() && (/*_freezed || */_clip_rect_on || _clip_window))clipUpdate(); // update only if clipping to rect/window (this ignores freeze because cases calling this method don't need it)
+   if(App.active() && (/*_frozen || */_clip_rect_on || _clip_window))clipUpdate(); // update only if clipping to rect/window (this ignores freeze because cases calling this method don't need it)
 }
 MouseClass& MouseClass::clip(C Rect *rect, Int window)
 {
@@ -554,7 +554,7 @@ void MouseClass::acquire(Bool on)
    if(on)SetHook();else UnHook();
 #endif
 #endif
-   if(_freezed || _clip_rect_on || _clip_window)clipUpdate(); // this gets called when app gets de/activated, so we have to update clip only if we want any clip (to enable it when activating and disable when deactivating)
+   if(_frozen || _clip_rect_on || _clip_window)clipUpdate(); // this gets called when app gets de/activated, so we have to update clip only if we want any clip (to enable it when activating and disable when deactivating)
    resetCursor();
 }
 /******************************************************************************/
@@ -620,15 +620,22 @@ void MouseClass::release(Byte b)
       else                 _release(b);
    }
 }
+void MouseClass::moveAbs(C Vec2 &screen_d) {move(screen_d/D.scale());}
+void MouseClass::move   (C Vec2 &screen_d)
+{
+   Vec2 pixel_d=D.screenToPixelSize(screen_d);
+  _delta+=pixel_d*_speed;
+   if(!frozen())pos(pos()+screen_d);
+}
 void MouseClass::scroll(C Vec2 &d) {_wheel+=d;}
 /******************************************************************************/
 void MouseClass::update()
 {
    // clip
-   if(_freeze){if(!_freezed){_freezed=true ; clipUpdate();} _freeze=false;}
-   else       {if( _freezed){_freezed=false; clipUpdate();}               }
+   if(_freeze){if(!_frozen){_frozen=true ; clipUpdate();} _freeze=false;}
+   else       {if( _frozen){_frozen=false; clipUpdate();}               }
 #if WINDOWS_NEW
-   if(App.active() && (_freezed || _clip_rect_on || _clip_window))clipUpdate();
+   if(App.active() && (_frozen || _clip_rect_on || _clip_window))clipUpdate();
 #endif
 
 #if !SWITCH // if this is restored for Nintendo Switch, then remove "_on_client=true" in 'create'
@@ -747,7 +754,7 @@ void MouseClass::update()
 #if WINDOWS_NEW || WEB
    if(_locked) // for WINDOWS_NEW and WEB when '_locked', the '_window_posi' never changes so we need to manually adjust the '_pos' based on '_delta_relative'
    {
-      if(!_freezed)_pos+=_delta_relative*(D.size().max()*0.7f); // make movement speed dependent on the screen size
+      if(!_frozen)_pos+=_delta_relative*(D.size().max()*0.7f); // make movement speed dependent on the screen size
 
       // clip
       if(_clip_rect_on)

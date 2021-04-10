@@ -48,7 +48,7 @@ private:
 /******************************************************************************/
 struct MouseClass // Mouse Input
 {
- C Vec2&      pos()C {return _pos      ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates)
+ C Vec2&      pos()C {return _pos      ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates), setting position ignores 'freeze' (new position is always set regardless if mouse is frozen)
  C Vec2& startPos()C {return _start_pos;}                          // get     cursor position of first button push (in Screen Coordinates), this     is equal to the most recent cursor position at the moment of first button push - "bp(0)"
  C Vec2&      d  ()C {return _delta    ;}                          // get     cursor position delta                (in Screen Coordinates), delta    is not affected by mouse clipping or  display scale, use this for smooth unlimited mouse movement deltas (for example rotate the player)
  C Vec2&      dc ()C {return _delta_clp;}                          // get     cursor position delta clipped        (in Screen Coordinates), delta    is     affected by mouse clipping and display scale, use this for 2D gui object movement, limited by mouse cursor position
@@ -94,6 +94,7 @@ struct MouseClass // Mouse Input
    // cursor movement clipping
    MouseClass& clip  (C Rect *rect=null, Int window=-1); // clip mouse cursor to given rectangle, 'window'=if additionally clip to the application window client rectangle (-1=don't change, 0=off, 1=on)
    MouseClass& freeze(                                ); // call this in each frame when you want to freeze the mouse cursor position
+   Bool        frozen()C {return _frozen;}               // if currently frozen
 
    // cursor visuals
 #if EE_PRIVATE
@@ -116,9 +117,11 @@ struct MouseClass // Mouse Input
 
    void simulate() {_detected=true;} // specify that mouse will be manually simulated via 'pos', 'push', 'release' methods, this method will force mouse status as "detected" in the device, even if the mouse is not present
 
-   void push   (  Byte  b); // manually push    'b' button
-   void release(  Byte  b); // manually release 'b' button
-   void scroll (C Vec2 &d); // manually apply wheel delta
+   void push   (  Byte  b       ); // manually push    'b' button
+   void release(  Byte  b       ); // manually release 'b' button
+   void move   (C Vec2 &screen_d); // manually move position by 'screen_d' screen delta
+   void moveAbs(C Vec2 &screen_d); // manually move position by 'screen_d' screen delta (unaffected by current display scale)
+   void scroll (C Vec2 &d       ); // manually apply wheel delta
 
 #if EE_PRIVATE
    // manage
@@ -139,7 +142,7 @@ struct MouseClass // Mouse Input
 private:
 #endif
    BS_FLAG          _button[8];
-   Bool             _selecting, _dragging, _first, _detected, _on_client, _visible, _freezed, _clip_rect_on, _clip_window, _freeze, _action, _want_cur_hw, _locked;
+   Bool             _selecting, _dragging, _first, _detected, _on_client, _visible, _clip_rect_on, _clip_window, _freeze, _frozen, _action, _want_cur_hw, _locked;
    Int              _cur;
    Flt              _speed;
    Dbl              _start_time, _wheel_time;
