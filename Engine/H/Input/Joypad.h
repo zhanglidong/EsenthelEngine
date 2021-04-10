@@ -29,7 +29,7 @@ enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch c
    JB_LSR         , // Nintendo Switch Left  SR
    JB_RSL         , // Nintendo Switch Right SL
    JB_RSR         , // Nintendo Switch Right SR
-   JB_NINTENDO_NUM, // number of buttons for NintendoSwitch controllers
+   JB_NINTENDO_NUM, // number of buttons for Nintendo Switch controllers
 
    // alternative names
    JB_SELECT=JB_BACK , // Sony Playstation
