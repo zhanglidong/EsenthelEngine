@@ -3,7 +3,7 @@
 namespace EE{
 /******************************************************************************/
 static Bool CalculateJoypadSensors;
-CChar* Joypad::_button_name[32];
+CChar8* Joypad::_button_name[32];
 MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
 #if MAC
@@ -168,11 +168,8 @@ Joypad::Joypad()
 
    zero();
 }
-Str Joypad::buttonName(Int b)C
-{
-   if(InRange(b, _button_name))return _button_name[b];
-   return S;
-}
+CChar8* Joypad::buttonName(Int b)C {return InRange(b, _button_name) ? _button_name[b] : null;}
+CChar8* Joypad::ButtonName(Int b)  {return InRange(b, _button_name) ? _button_name[b] : null;}
 /******************************************************************************/
 Bool Joypad::supportsVibrations()C
 {
@@ -654,38 +651,75 @@ void ListJoypads()
 void InitJoypads()
 {
    if(LogInit)LogN("InitJoypads");
-   Joypad::_button_name[ 0]=u"Joypad1";
-   Joypad::_button_name[ 1]=u"Joypad2";
-   Joypad::_button_name[ 2]=u"Joypad3";
-   Joypad::_button_name[ 3]=u"Joypad4";
-   Joypad::_button_name[ 4]=u"Joypad5";
-   Joypad::_button_name[ 5]=u"Joypad6";
-   Joypad::_button_name[ 6]=u"Joypad7";
-   Joypad::_button_name[ 7]=u"Joypad8";
-   Joypad::_button_name[ 8]=u"Joypad9";
-   Joypad::_button_name[ 9]=u"Joypad10";
-   Joypad::_button_name[10]=u"Joypad11";
-   Joypad::_button_name[11]=u"Joypad12";
-   Joypad::_button_name[12]=u"Joypad13";
-   Joypad::_button_name[13]=u"Joypad14";
-   Joypad::_button_name[14]=u"Joypad15";
-   Joypad::_button_name[15]=u"Joypad16";
-   Joypad::_button_name[16]=u"Joypad17";
-   Joypad::_button_name[17]=u"Joypad18";
-   Joypad::_button_name[18]=u"Joypad19";
-   Joypad::_button_name[19]=u"Joypad20";
-   Joypad::_button_name[20]=u"Joypad21";
-   Joypad::_button_name[21]=u"Joypad22";
-   Joypad::_button_name[22]=u"Joypad23";
-   Joypad::_button_name[23]=u"Joypad24";
-   Joypad::_button_name[24]=u"Joypad25";
-   Joypad::_button_name[25]=u"Joypad26";
-   Joypad::_button_name[26]=u"Joypad27";
-   Joypad::_button_name[27]=u"Joypad28";
-   Joypad::_button_name[28]=u"Joypad29";
-   Joypad::_button_name[29]=u"Joypad30";
-   Joypad::_button_name[30]=u"Joypad31";
-   Joypad::_button_name[31]=u"Joypad32";
+
+   // set this first so other codes can overwrite it
+   Joypad::_button_name[ 0]="1";
+   Joypad::_button_name[ 1]="2";
+   Joypad::_button_name[ 2]="3";
+   Joypad::_button_name[ 3]="4";
+   Joypad::_button_name[ 4]="5";
+   Joypad::_button_name[ 5]="6";
+   Joypad::_button_name[ 6]="7";
+   Joypad::_button_name[ 7]="8";
+   Joypad::_button_name[ 8]="9";
+   Joypad::_button_name[ 9]="10";
+   Joypad::_button_name[10]="11";
+   Joypad::_button_name[11]="12";
+   Joypad::_button_name[12]="13";
+   Joypad::_button_name[13]="14";
+   Joypad::_button_name[14]="15";
+   Joypad::_button_name[15]="16";
+   Joypad::_button_name[16]="17";
+   Joypad::_button_name[17]="18";
+   Joypad::_button_name[18]="19";
+   Joypad::_button_name[19]="20";
+   Joypad::_button_name[20]="21";
+   Joypad::_button_name[21]="22";
+   Joypad::_button_name[22]="23";
+   Joypad::_button_name[23]="24";
+   Joypad::_button_name[24]="25";
+   Joypad::_button_name[25]="26";
+   Joypad::_button_name[26]="27";
+   Joypad::_button_name[27]="28";
+   Joypad::_button_name[28]="29";
+   Joypad::_button_name[29]="30";
+   Joypad::_button_name[30]="31";
+   Joypad::_button_name[31]="32";
+
+   // set universal first
+   Joypad::_button_name[JB_A]="A";
+   Joypad::_button_name[JB_B]="B";
+   Joypad::_button_name[JB_X]="X";
+   Joypad::_button_name[JB_Y]="Y";
+
+   Joypad::_button_name[JB_L1]="L1";
+   Joypad::_button_name[JB_R1]="R1";
+   Joypad::_button_name[JB_L2]="L2";
+   Joypad::_button_name[JB_R2]="R2";
+
+   Joypad::_button_name[JB_LTHUMB]="LThumb";
+   Joypad::_button_name[JB_RTHUMB]="RThumb";
+
+   Joypad::_button_name[JB_BACK ]="Back";
+   Joypad::_button_name[JB_START]="Start";
+
+   // set platform specific
+#if WINDOWS
+   Joypad::_button_name[JB_PADDLE1]="Paddle1";
+   Joypad::_button_name[JB_PADDLE2]="Paddle2";
+   Joypad::_button_name[JB_PADDLE3]="Paddle3";
+   Joypad::_button_name[JB_PADDLE4]="Paddle4";
+#endif
+
+#if SWITCH
+   Joypad::_button_name[JB_LSL]= "Left SL";
+   Joypad::_button_name[JB_LSR]= "Left SR";
+   Joypad::_button_name[JB_RSL]="Right SL";
+   Joypad::_button_name[JB_RSR]="Right SR";
+
+   Joypad::_button_name[JB_MINUS]="-",
+   Joypad::_button_name[JB_PLUS ]="+",
+#endif
 
    ListJoypads();
 }

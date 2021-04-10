@@ -32,9 +32,22 @@ enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch c
    JB_NINTENDO_NUM, // number of buttons for NintendoSwitch controllers
 
    // alternative names
-   JB_SELECT=JB_BACK ,
-   JB_MINUS =JB_BACK ,
-   JB_PLUS  =JB_START,
+   JB_SELECT=JB_BACK , // Sony Playstation
+   JB_MINUS =JB_BACK , // Nintendo Switch
+   JB_PLUS  =JB_START, // Nintendo Switch
+
+   // Left/Right/Up/Down
+#if SWITCH
+   JB_L=JB_Y, // button located at the Left  side on Nintendo Switch
+   JB_R=JB_A, // button located at the Right side on Nintendo Switch
+   JB_U=JB_X, // button located at the Up    side on Nintendo Switch
+   JB_D=JB_B, // button located at the Down  side on Nintendo Switch
+#else
+   JB_L=JB_X, // button located at the Left  side
+   JB_R=JB_B, // button located at the Right side
+   JB_U=JB_Y, // button located at the Up    side
+   JB_D=JB_A, // button located at the Down  side
+#endif
 };
 /******************************************************************************/
 struct Vibration
@@ -81,9 +94,10 @@ struct Joypad // Joypad Input
    Bool supportsVibrations()C; // if supports vibrations
    Bool supportsSensors   ()C; // if supports sensors, available only if 'JoypadSensors' was enabled
 
-   UInt         id(     )C {return _id  ;} // get unique ID of this Joypad
- C Str&       name(     )C {return _name;} // get Joypad name
-   Str  buttonName(Int b)C;                // get button name, buttonName(0) -> "Joypad1", buttonName(1) -> "Joypad2", ..
+            UInt          id(     )C {return _id  ;} // get unique ID of this Joypad
+           C Str&       name(     )C {return _name;} // get Joypad name
+          CChar8* buttonName(Int b)C;                // get button name, buttonName(JB_A) -> "A", buttonName(JB_B) -> "B", ..
+   static CChar8* ButtonName(Int b);                 // get button name, ButtonName(JB_A) -> "A", ButtonName(JB_B) -> "B", ..
 
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
    Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations
@@ -150,7 +164,7 @@ private:
    Ptr    _device=null;
 #endif
 
-   static CChar *_button_name[32];
+   static CChar8 *_button_name[32];
 
   ~Joypad();
    Joypad();
