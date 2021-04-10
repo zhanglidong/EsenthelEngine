@@ -191,18 +191,18 @@ void Button::update(C GuiPC &gpc)
    Bool enabled=(T.enabled() && gpc.enabled);
    if(  enabled)
    {
-      Bool call_func=false, lit=false;
-      Byte state=0;
+      Bool    call_func=false, lit=false;
+      BS_FLAG state=BS_NONE;
       if(Gui.ms()==this)
       {
          lit   =true;
-         state|=((Ms.b (0) && (mode!=BUTTON_DEFAULT || Gui.msLit()==this)) ? BS_ON       : 0) // mode==BUTTON_DEFAULT requires Gui.msLit()==this while other modes don't
-              | ((Ms.bp(0)                                               ) ? BS_PUSHED   : 0)
-              | ((Ms.br(0) &&                          Gui.msLit()==this ) ? BS_RELEASED : 0);
+         state|=((Ms.b (0) && (mode!=BUTTON_DEFAULT || Gui.msLit()==this)) ? BS_ON       : BS_NONE) // mode==BUTTON_DEFAULT requires Gui.msLit()==this while other modes don't
+              | ((Ms.bp(0)                                               ) ? BS_PUSHED   : BS_NONE)
+              | ((Ms.br(0) &&                          Gui.msLit()==this ) ? BS_RELEASED : BS_NONE);
       }
       if(Gui.kb()==this)
       {
-         if(mode==BUTTON_CONTINUOUS)state|=((Kb.b(KB_ENTER) || Kb.b(KB_NPENTER)) ? BS_ON : 0);
+         if(mode==BUTTON_CONTINUOUS)state|=((Kb.b(KB_ENTER) || Kb.b(KB_NPENTER)) ? BS_ON : BS_NONE);
          if((Kb.k(KB_ENTER) || Kb.k(KB_NPENTER)) && Kb.k.first()){Kb.eatKey(); state|=(BS_PUSHED|BS_RELEASED|BS_ON);} // 'BS_RELEASED' to work for 'BUTTON_DEFAULT', this is because there's no way to cancel keyboard activation (mouse cursor for example can be moved away before releasing button, while keyboard can't)
       }
       REPA(Touches)
@@ -212,14 +212,14 @@ void Button::update(C GuiPC &gpc)
             lit|=t.stylus();
             if(t.scrolling()) // if touch is used for scrolling, then we need to process the button differently
             {
-               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON                 : 0)  // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
-                  //| ((t.pd()                                                         ) ? BS_PUSHED             : 0)  // ignore the first push
-                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED|BS_PUSHED : 0); // process touch release as both BS_RELEASED|BS_PUSHED so it can be used instead of touch pushes
+               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON                 : BS_NONE)  // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
+                  //| ((t.pd()                                                         ) ? BS_PUSHED             : BS_NONE)  // ignore the first push
+                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED|BS_PUSHED : BS_NONE); // process touch release as both BS_RELEASED|BS_PUSHED so it can be used instead of touch pushes
             }else
             {
-               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON       : 0) // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
-                    | ((t.pd()                                                         ) ? BS_PUSHED   : 0)
-                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED : 0);
+               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON       : BS_NONE) // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
+                    | ((t.pd()                                                         ) ? BS_PUSHED   : BS_NONE)
+                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED : BS_NONE);
             }
          }
       }

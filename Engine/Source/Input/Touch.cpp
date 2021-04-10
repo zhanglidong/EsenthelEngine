@@ -36,7 +36,7 @@ Touch::Touch()
    user_ptr =null;
   _selecting=_dragging=_scrolling=_remove=false;
   _first=true;
-  _state=0;
+  _state=BS_NONE;
   _axis_moved=0;
   _id=0;
   _start_time=0;

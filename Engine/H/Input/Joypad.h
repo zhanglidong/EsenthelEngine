@@ -84,10 +84,11 @@ struct Joypad // Joypad Input
           dir_a  [2]; // analog direction, [0]=left, [1]=right
    Flt    trigger[2]; // trigger         , [0]=left, [1]=right
 
-   Bool b (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) : false;} // if button 'b' is on
-   Bool bp(Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) : false;} // if button 'b' pushed   in this frame
-   Bool br(Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) : false;} // if button 'b' released in this frame
-   Bool bd(Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) : false;} // if button 'b' double clicked
+   BS_FLAG state(Int b)C {return InRange(b, _button) ?          _button[b]  : BS_NONE;} // get button 'b' state
+   Bool    b    (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) :   false;} // if  button 'b' is on
+   Bool    bp   (Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) :   false;} // if  button 'b' pushed   in this frame
+   Bool    br   (Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) :   false;} // if  button 'b' released in this frame
+   Bool    bd   (Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) :   false;} // if  button 'b' double clicked
 
    void eat(Int b); // eat 'b' button from this frame so it will not be processed by the remaining codes in frame
 
@@ -129,39 +130,39 @@ struct Joypad // Joypad Input
 #if !EE_PRIVATE
 private:
 #endif
-   Byte   _button[32];
+   BS_FLAG _button[32];
 #if WINDOWS
-   Byte   _xinput=0xFF;
+   Byte    _xinput=0xFF;
 #endif
 #if WINDOWS_OLD
-   Byte   _offset_x=0, _offset_y=0;
+   Byte    _offset_x=0, _offset_y=0;
 #endif
 #if WINDOWS_NEW
-   Bool   _vibrations=false;
+   Bool    _vibrations=false;
 #endif
-   Bool   _connected=false;
-   Flt    _last_t[32], _dir_t;
-   UInt   _id=0;
+   Bool    _connected=false;
+   Flt     _last_t[32], _dir_t;
+   UInt    _id=0;
 #if SWITCH
-   UInt   _vibration_handle[2], _sensor_handle[2];
+   UInt    _vibration_handle[2], _sensor_handle[2];
 #endif
-   Color2 _color_left, _color_right;
-   Sensor _sensor_left, _sensor_right;
-   Str    _name;
+   Color2  _color_left, _color_right;
+   Sensor  _sensor_left, _sensor_right;
+   Str     _name;
 #if WINDOWS_OLD
 #if EE_PRIVATE && JP_DIRECT_INPUT
    IDirectInputDevice8 *_device=null;
 #else
-   Ptr    _device=null;
+   Ptr     _device=null;
 #endif
 #elif WINDOWS_NEW
 #if EE_PRIVATE && JP_GAMEPAD_INPUT
    Windows::Gaming::Input::Gamepad ^_gamepad;   ASSERT(SIZE(Windows::Gaming::Input::Gamepad^)==SIZE(Ptr));
 #else
-   Ptr    _gamepad;
+   Ptr     _gamepad;
 #endif
 #elif MAC
-   Ptr    _device=null;
+   Ptr     _device=null;
 #endif
 
    static CChar8 *_button_name[32];

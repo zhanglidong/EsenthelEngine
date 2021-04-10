@@ -415,8 +415,8 @@ void TextBox::update(C GuiPC &gpc)
          if(Kb.k(KB_PGDN)){moveCursor(0,  1); Kb.eatKey();}
          if(cur!=_edit.cur || changed){cur=_edit.cur; _edit.cur=-1; cursor(cur);} // set -1 to force adjustment of offset and calling 'setTextInput'
       }
-    C Vec2 *touch_pos  =null;
-      Byte  touch_state=0   ; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
+    C Vec2   *touch_pos  =null;
+      BS_FLAG touch_state=BS_NONE; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
       if(_text.is() && touch_pos)
       {
          if(GuiSkin *skin=getSkin())

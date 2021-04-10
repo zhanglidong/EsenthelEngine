@@ -287,8 +287,8 @@ void TextLine::update(C GuiPC &gpc)
       #endif
          ){adjustOffset(); setTextInput();}
       }
-    C Vec2 *touch_pos  =null;
-      Byte  touch_state=0   ; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
+    C Vec2   *touch_pos  =null;
+      BS_FLAG touch_state=BS_NONE; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
       if(_text.is() && touch_pos)
       {
          if(GuiSkin *skin=getSkin())

@@ -54,13 +54,13 @@ struct MouseClass // Mouse Input
  C Vec2&      dc ()C {return _delta_clp;}                          // get     cursor position delta clipped        (in Screen Coordinates), delta    is     affected by mouse clipping and display scale, use this for 2D gui object movement, limited by mouse cursor position
  C Vec2&      vel()C {return _vel      ;}                          // get     cursor velocity                      (in Screen Coordinates), velocity is not affected by mouse clipping or  display scale, it's calculated based on few last positions
 
-   Byte state      (Int b)C {return InRange(b, _button) ?          _button[b]  :     0;} // get button 'b' BS_FLAG state
-   Bool b          (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) : false;} // if  button 'b' is on
-   Bool bp         (Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) : false;} // if  button 'b' pushed   in this frame
-   Bool br         (Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) : false;} // if  button 'b' released in this frame
-   Bool bd         (Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) : false;} // if  button 'b' double clicked
-   Bool tapped     (Int b)C {return InRange(b, _button) ? ButtonTp(_button[b]) : false;} // if  button 'b' tapped, tapping is a single quick push and release of the button without any movement, this can be true at the moment of the release with the condition that there was no movement and the push life was very short
-   Bool tappedFirst(Int b)C {return tapped (b) && _first                              ;} // if  tapped which was caused by first click of a double-click, double-clicks generate two taps, you can use this method to detect only the first one
+   BS_FLAG state      (Int b)C {return InRange(b, _button) ?          _button[b]  : BS_NONE;} // get button 'b' state
+   Bool    b          (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) :   false;} // if  button 'b' is on
+   Bool    bp         (Int b)C {return InRange(b, _button) ? ButtonPd(_button[b]) :   false;} // if  button 'b' pushed   in this frame
+   Bool    br         (Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) :   false;} // if  button 'b' released in this frame
+   Bool    bd         (Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) :   false;} // if  button 'b' double clicked
+   Bool    tapped     (Int b)C {return InRange(b, _button) ? ButtonTp(_button[b]) :   false;} // if  button 'b' tapped, tapping is a single quick push and release of the button without any movement, this can be true at the moment of the release with the condition that there was no movement and the push life was very short
+   Bool    tappedFirst(Int b)C {return tapped (b) && _first                                ;} // if  tapped which was caused by first click of a double-click, double-clicks generate two taps, you can use this method to detect only the first one
 
    Flt wheel ()C {return _wheel.y;} // get vertical   mouse wheel delta
    Flt wheelX()C {return _wheel.x;} // get horizontal mouse wheel delta
@@ -138,7 +138,7 @@ struct MouseClass // Mouse Input
 #if !EE_PRIVATE
 private:
 #endif
-   Byte             _button[8];
+   BS_FLAG          _button[8];
    Bool             _selecting, _dragging, _first, _detected, _on_client, _visible, _freezed, _clip_rect_on, _clip_window, _freeze, _action, _want_cur_hw, _locked;
    Int              _cur;
    Flt              _speed;
