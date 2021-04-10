@@ -1304,10 +1304,13 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
     //case WM_DPICHANGED: break;
 
-      // MOUSE, because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to 'Ms.exclusive' or 'Ms.clip', then we always need to activate when the user clicks on the client area
-      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
-   #if !MS_RAW_INPUT // already handled in WM_INPUT\RIM_TYPEMOUSE
-      case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;   case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0;
+      // MOUSE
+      // because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to 'Ms.exclusive' or 'Ms.clip', then we always need to activate when the user clicks on client area
+   #if MS_RAW_INPUT
+      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client
+    //case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;   case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client unless SetCapture was called during WM_*BUTTONDOWN, disable because it's already handled in WM_INPUT\RIM_TYPEMOUSE
+   #elif MS_DIRECT_INPUT
+      case WM_LBUTTONDOWN: App.setActive(true); return 0;
    #endif
 
       case WM_NCLBUTTONDOWN: // when clicking on the title bar, this will get called before WM_ACTIVATE, but when clicking on minimize/maximize/close, then it will get called after
@@ -1328,7 +1331,8 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       case    WM_MOUSEWHEEL : Ms._wheel.y+=Flt(GET_WHEEL_DELTA_WPARAM(wParam))/WHEEL_DELTA; break;
 
       // KEYBOARD
-      // Order of events 0-WM_INPUT, 1-WM_KEYDOWN, 2-WM_CHAR, 3-WM_KEYUP
+      // Order of keyboard events: 0-WM_INPUT, 1-WM_KEYDOWN, 2-WM_CHAR, 3-WM_KEYUP
+   #if KB_RAW_INPUT || MS_RAW_INPUT
       case WM_INPUT:
       {
          UINT size=0; GetRawInputData((HRAWINPUT)lParam, RID_INPUT, null, &size, sizeof(RAWINPUTHEADER));
@@ -1337,6 +1341,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          {
             RAWINPUT &raw=*(RAWINPUT*)temp.data(); switch(raw.header.dwType)
             {
+            #if KB_RAW_INPUT
                case RIM_TYPEKEYBOARD:
                {
                   KB_KEY key;
@@ -1351,7 +1356,9 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                   if(raw.data.keyboard.Flags&RI_KEY_BREAK)Kb.release(key);else Kb.push(key, raw.data.keyboard.MakeCode);
                   return 0;
                }break;
+            #endif
 
+            #if MS_RAW_INPUT
                case RIM_TYPEMOUSE:
                {
                   if(!(raw.data.mouse.usFlags&MOUSE_MOVE_ABSOLUTE))
@@ -1359,7 +1366,10 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                      Ms._delta_relative.x+=raw.data.mouse.lLastX;
                      Ms._delta_relative.y-=raw.data.mouse.lLastY;
                   }
-                  if(raw.data.mouse.usButtonFlags&(RI_MOUSE_BUTTON_1_UP|RI_MOUSE_BUTTON_2_UP|RI_MOUSE_BUTTON_3_UP|RI_MOUSE_BUTTON_4_UP|RI_MOUSE_BUTTON_5_UP)) // check for releases only, because WM_*BUTTONUP aren't processed when mouse is outside of client window even when app is still active 
+                  // events are reported even when clicking outside window client
+                  // ignore  pushes because we use WM_*BUTTONDOWN to get clicks only on window client
+                  // check releases because WM_*BUTTONUP aren't processed when mouse is outside window client even when app is still active
+                  if(raw.data.mouse.usButtonFlags&(RI_MOUSE_BUTTON_1_UP|RI_MOUSE_BUTTON_2_UP|RI_MOUSE_BUTTON_3_UP|RI_MOUSE_BUTTON_4_UP|RI_MOUSE_BUTTON_5_UP))
                   {
                      if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_1_UP)Ms.release(0);
                      if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_2_UP)Ms.release(1);
@@ -1367,10 +1377,13 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                      if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_4_UP)Ms.release(3);
                      if(raw.data.mouse.usButtonFlags&RI_MOUSE_BUTTON_5_UP)Ms.release(4);
                   }
+                  return 0;
                }break;
+            #endif
             }
          }
       }break;
+   #endif
 
       case WM_KEYDOWN   :
       case WM_SYSKEYDOWN: // SYSKEYDOWN handles Alt+keys

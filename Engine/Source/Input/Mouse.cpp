@@ -134,16 +134,7 @@ void MouseCursor::create(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware)
    if(this==Ms._cursor)Ms.resetCursor();
 }
 /******************************************************************************/
-#if WINDOWS_OLD
-   static const Byte Keys[]=
-   {
-      VK_LBUTTON ,
-      VK_RBUTTON ,
-      VK_MBUTTON ,
-      VK_XBUTTON1,
-      VK_XBUTTON2,
-   };
-#elif WINDOWS_NEW
+#if WINDOWS_NEW
    static const Byte Keys[]=
    {
       (Byte)VirtualKey::LeftButton,
@@ -161,7 +152,14 @@ void MouseCursor::create(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware)
    static XWindow       Grab;
 #endif
 
-static Bool DelayPush;
+struct MouseEvent
+{
+   Bool push;
+   Byte button;
+
+   void set(Bool push, Byte button) {T.push=push; T.button=button;}
+};
+static Memc<MouseEvent> MouseEvents;
 
 MouseClass Ms;
 /******************************************************************************/
@@ -575,43 +573,60 @@ void MouseClass::clear()
   _delta_relative.zero();
   _deltai        .zero();
    REPAO(_button)&=~BS_NOT_ON;
-   if(DelayPush){DelayPush=false; push(0);}
-}
-/******************************************************************************/
-void MouseClass::push(Byte b) {push(b, DoubleClickTime);}
-void MouseClass::push(Byte b, Flt double_click_time)
-{
-   if(InRange(b, _button) && !(_button[b]&BS_ON))
+   REP(Min(2, MouseEvents.elms())) // process only up to 2 queued mouse events (so we can do push+release in one time, but not push+release+push)
    {
-      if(br(b) && !b) // if the button was released in the same frame, then don't push it now, but delay for the next frame, so 'tapped' 'tappedFirst' can be properly detected (this is only for first button because of double clicks)
-      {
-         DelayPush=true;
-      }else
-      {
-         InputCombo.add(InputButton(INPUT_MOUSE, b));
-        _button[b]|=BS_PUSHED|BS_ON;
-         if(_cur==b && _first && Time.appTime()<=_start_time+double_click_time+Time.ad())
-         {
-           _button[b]|=BS_DOUBLE;
-           _first=false;
-         }else
-         {
-           _first   =true;
-           _detected=true;
-         }
-        _cur       =b;
-        _start_pos =pos();
-        _start_time=Time.appTime();
-      }
+    C MouseEvent &event=MouseEvents.first();
+      if(event.push)_push   (event.button);
+      else          _release(event.button);
+      MouseEvents.remove(0, true);
    }
 }
-void MouseClass::release(Byte b)
+/******************************************************************************/
+void MouseClass::_push(Byte b) // !! assumes 'b' is in range !!
 {
-   if(InRange(b, _button) && (_button[b]&BS_ON))
+   DEBUG_RANGE_ASSERT(b, _button);
+   if(!(_button[b]&BS_ON))
+   {
+      InputCombo.add(InputButton(INPUT_MOUSE, b));
+     _button[b]|=BS_PUSHED|BS_ON;
+      if(_cur==b && _first && Time.appTime()<=_start_time+DoubleClickTime+Time.ad())
+      {
+        _button[b]|=BS_DOUBLE;
+        _first=false;
+      }else
+      {
+        _first   =true;
+        _detected=true;
+      }
+     _cur       =b;
+     _start_pos =pos();
+     _start_time=Time.appTime();
+   }
+}
+void MouseClass::_release(Byte b) // !! assumes 'b' is in range !!
+{
+   DEBUG_RANGE_ASSERT(b, _button);
+   if(_button[b]&BS_ON)
    {
       FlagDisable(_button[b], BS_ON      );
       FlagEnable (_button[b], BS_RELEASED);
       if(!selecting() && life()<=0.25f+Time.ad())_button[b]|=BS_TAPPED;
+   }
+}
+void MouseClass::push(Byte b)
+{
+   if(InRange(b, _button))
+   {
+      if(MouseEvents.elms() || br(b))MouseEvents.New().set(true, b); // if have any events queued or button was released in the same frame, then can't push it now, but delay for the next frame, also needed for 'tapped' 'tappedFirst' can be properly detected
+      else                          _push(b);
+   }
+}
+void MouseClass::release(Byte b)
+{
+   if(InRange(b, _button))
+   {
+      if(MouseEvents.elms())MouseEvents.New().set(false, b); // if have any events queued
+      else                 _release(b);
    }
 }
 void MouseClass::scroll(C Vec2 &d) {_wheel+=d;}
@@ -628,6 +643,19 @@ void MouseClass::update()
 #if !SWITCH // if this is restored for Nintendo Switch, then remove "_on_client=true" in 'create'
    {
    #if WINDOWS_OLD
+      // position and delta
+      POINT p; if(GetCursorPos(&p))
+      {
+        _deltai.x=p.x-_desktop_posi.x; _desktop_posi.x=p.x;
+        _deltai.y=p.y-_desktop_posi.y; _desktop_posi.y=p.y;
+
+         ScreenToClient(App.Hwnd(), &p);
+        _window_posi.x=p.x;
+        _window_posi.y=p.y;
+      }
+     _on_client=(InRange(_window_posi.x, D.resW()) && InRange(_window_posi.y, D.resH()) && WindowMouse()==App.hwnd());
+      // 'resetCursor' is always called in 'WM_SETCURSOR'
+
    #if MS_DIRECT_INPUT
       // button state
       if(_device)
@@ -646,40 +674,16 @@ void MouseClass::update()
                 && DIMOFS_BUTTON3+1==DIMOFS_BUTTON4
                 && DIMOFS_BUTTON4+1==DIMOFS_BUTTON5
                 && DIMOFS_BUTTON5+1==DIMOFS_BUTTON6
-                && DIMOFS_BUTTON6+1==DIMOFS_BUTTON7); // check that macros are continuous
+                && DIMOFS_BUTTON6+1==DIMOFS_BUTTON7); // check that values are continuous
           C DIDEVICEOBJECTDATA &didod=didods[i];
-            Int b=didod.dwOfs-DIMOFS_BUTTON0; if(b>=5 && InRange(b, 8)) // buttons 0..4 are processed in 'WindowMsg'
+            Int b=didod.dwOfs-DIMOFS_BUTTON0; if(InRange(b, 8)) // check range because this is also called for other events (like movements, not only buttons)
             {
-               if(didod.dwData&0x80){if(MOUSE_MODE==FOREGROUND || App.active())push(b);}else release(b);
+               if(didod.dwData&0x80){if((MOUSE_MODE==FOREGROUND || App.active()) && _on_client)push(b);}else release(b);
             }
          }
       }
    #endif
 
-   #if !MS_RAW_INPUT
-      // need to manually check for releases because WM_*BUTTONUP aren't processed when mouse is outside of client window even when app is still active
-      REP(Min(Elms(_button), Elms(Keys)))
-      {
-      #if 1 // this is faster
-         if(b(i) && GetKeyState     (Keys[i])>=0)release(i);
-      #else
-         if(b(i) && GetAsyncKeyState(Keys[i])>=0)release(i);
-      #endif
-      }
-   #endif
-
-      // position and delta
-      POINT p; if(GetCursorPos(&p))
-      {
-        _deltai.x=p.x-_desktop_posi.x; _desktop_posi.x=p.x;
-        _deltai.y=p.y-_desktop_posi.y; _desktop_posi.y=p.y;
-
-         ScreenToClient(App.Hwnd(), &p);
-        _window_posi.x=p.x;
-        _window_posi.y=p.y;
-      }
-     _on_client=(InRange(_window_posi.x, D.resW()) && InRange(_window_posi.y, D.resH()) && WindowMouse()==App.hwnd());
-      // 'resetCursor' is always called in 'WM_SETCURSOR'
    #elif WINDOWS_NEW
       if(App.hwnd())
       {

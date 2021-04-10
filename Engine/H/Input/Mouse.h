@@ -128,7 +128,8 @@ struct MouseClass // Mouse Input
 
    // operations
    void clear     ();
-   void push      (Byte b, Flt double_click_time);
+   void _push     (Byte b);
+   void _release  (Byte b);
    void update    ();
    void clipUpdate();   void clipUpdateConditional();
    void draw      ();
