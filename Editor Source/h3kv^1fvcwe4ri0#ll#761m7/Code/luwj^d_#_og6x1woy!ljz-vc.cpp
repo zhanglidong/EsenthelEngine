@@ -28,7 +28,9 @@ class UpdaterClass
       ||  rel=="Esenthel Old"
       ||  EqualPath(rel, "Bin/Store.dat")
       ||  EqualPath(rel, "Bin/Code Editor.font")
-      ||  EqualPath(rel, "Bin/Update"))return FILE_LIST_SKIP; // skip these elements
+      ||  EqualPath(rel, "Bin/Update"
+      ||  EqualPath(rel, "Bin/Nintendo/Switch ShaderCache.pak"
+      ))return FILE_LIST_SKIP; // skip these elements
 
       if(StartsPath(rel, "Projects"))
       {
