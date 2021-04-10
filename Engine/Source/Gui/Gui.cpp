@@ -293,7 +293,7 @@ void GUI::drag(C Str &name, Touch *touch)
    dragCancel();
    if(_drag_want=true) // previously this checked for "if(_drag_want=name.is())" however empty names are now allowed
    {
-      if(touch)touch->_scrolling=false; // when dragging is initiated, then unmark touch from scrolling
+      if(touch)touch->disableScroll(); // when dragging is initiated, then disable scrolling
      _drag_touch_id=(touch ? touch->id () :        0);
      _drag_pos     =(touch ? touch->pos() : Ms.pos());
      _drag_name    =name;
@@ -308,7 +308,7 @@ void GUI::drag(void finish(Ptr user, GuiObj *obj, C Vec2 &screen_pos), Ptr user,
    dragCancel();
    if(_drag_want=true) // previously this checked for "if(_drag_want=(finish!=null))" however empty functions are now allowed
    {
-      if(touch)touch->_scrolling=false; // when dragging is initiated, then unmark touch from scrolling
+      if(touch)touch->disableScroll(); // when dragging is initiated, then disable scrolling
      _drag_touch_id=(touch ? touch->id () :        0);
      _drag_pos     =(touch ? touch->pos() : Ms.pos());
      _drag_name    .clear();

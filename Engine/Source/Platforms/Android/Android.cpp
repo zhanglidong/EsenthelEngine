@@ -342,7 +342,7 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                      Vec2   pixel (AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
                             pos   =D.windowPixelToScreen(pixel);
                      VecI2  pixeli=Round(pixel);
-                     Touch *touch=FindTouchByHandle(pid);
+                     Touch *touch =FindTouchByHandle(pid);
                      if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {
                         touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)

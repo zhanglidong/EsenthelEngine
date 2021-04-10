@@ -47,7 +47,7 @@ struct Touch // Single Touch on a Touch-Screen
 #if !EE_PRIVATE
 private:
 #endif
-   Bool             _selecting, _dragging, _scrolling, _stylus, _first, _remove;
+   Bool             _selecting, _dragging, _allow_scrolling, _scrolling, _stylus, _first, _remove;
    Byte             _axis_moved;
    BS_FLAG          _state;
    UInt             _id;
@@ -62,6 +62,7 @@ private:
 #if EE_PRIVATE
    Touch&   init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus);
    Touch& reinit(C VecI2 &pixeli, C Vec2 &pos);
+   void   disableScroll();
 #endif
 };
 

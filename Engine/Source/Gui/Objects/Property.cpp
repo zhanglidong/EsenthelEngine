@@ -639,7 +639,7 @@ void Property::SelectFile(Property &prop)
 void Property::MouseEdit(Property &prop)
 {
    // get total delta movement (and number of start touches)
-   Vec2 d=0; Int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&prop.button){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
+   Vec2 d=0; Int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&prop.button){d+=MT.ad(i); if(Touch *touch=MT.touch(i))touch->disableScroll();else Ms.freeze(); if(MT.bp(i))pd++;else on++;}
 
    if(pd && !on)switch(prop.md.type) // on start set initial value
    {
