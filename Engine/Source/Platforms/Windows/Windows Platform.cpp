@@ -78,6 +78,24 @@ void Application::ExecuteRecordedEvents()
    Events.clear();
 }
 /******************************************************************************/
+static Bool MouseButton[5]; // keep own mouse button state, because 'Ms.b' may not be most recent, because it can have a queue
+static void UpdateMouseButton(Windows::UI::Input::PointerPointProperties ^properties)
+{
+   Bool state[]=
+   {
+      properties->  IsLeftButtonPressed,
+      properties-> IsRightButtonPressed,
+      properties->IsMiddleButtonPressed,
+      properties->    IsXButton1Pressed,
+      properties->    IsXButton2Pressed,
+   }; ASSERT(Elms(state)==Elms(MouseButton));
+   FREPA(MouseButton)if(MouseButton[i]!=state[i])
+   {
+      if(MouseButton[i]^=1)Ms.push   (i);
+      else                 Ms.release(i);
+   }
+}
+/******************************************************************************/
 Bool Application::Fullscreen() {return Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->IsFullScreenMode;}
 
 void SetMagnetometerRefresh(Flt interval)
@@ -325,7 +343,8 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-            // this is handled in 'Ms.update' because this is not called when mouse is outside the window
+            // position is handled in 'Ms.update' because this is not called when mouse is outside the window
+            UpdateMouseButton(pointer->Properties); // need to update buttons, because this is the only place where button states are reported if there already other buttons pressed
          }break;
 
          default: // pen, touch
@@ -404,12 +423,7 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-         /* Handled in 'Ms.update' because this won't be called if there's already one button pressed
-            if(pointer->Properties->  IsLeftButtonPressed)Ms.push(0);
-            if(pointer->Properties-> IsRightButtonPressed)Ms.push(1);
-            if(pointer->Properties->IsMiddleButtonPressed)Ms.push(2);
-            if(pointer->Properties->    IsXButton1Pressed)Ms.push(3);
-            if(pointer->Properties->    IsXButton2Pressed)Ms.push(4);*/
+            UpdateMouseButton(pointer->Properties); // this will get called only if no other mouse button is currently pressed, for simultaneous presses 'OnPointerMoved' has to be checked
          }break;
 
          default: // pen, touch
@@ -428,12 +442,7 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-         /* Handled in 'Ms.update' because this won't be called if there's already one button pressed
-            if(!pointer->Properties->  IsLeftButtonPressed)Ms.release(0);
-            if(!pointer->Properties-> IsRightButtonPressed)Ms.release(1);
-            if(!pointer->Properties->IsMiddleButtonPressed)Ms.release(2);
-            if(!pointer->Properties->    IsXButton1Pressed)Ms.release(3);
-            if(!pointer->Properties->    IsXButton2Pressed)Ms.release(4);*/
+            UpdateMouseButton(pointer->Properties); // this will get called only after all mouse buttons have been released, for individual button releases 'OnPointerMoved' has to be checked
          }break;
 
          default: // pen, touch

@@ -134,16 +134,7 @@ void MouseCursor::create(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware)
    if(this==Ms._cursor)Ms.resetCursor();
 }
 /******************************************************************************/
-#if WINDOWS_NEW
-   static const Byte Keys[]=
-   {
-      (Byte)VirtualKey::LeftButton,
-      (Byte)VirtualKey::RightButton,
-      (Byte)VirtualKey::MiddleButton,
-      (Byte)VirtualKey::XButton1,
-      (Byte)VirtualKey::XButton2,
-   };
-#elif MAC
+#if MAC
           VecI2 MouseIgnore;
    static Bool  MouseClipOn;
    static RectI MouseClipRect;
@@ -693,17 +684,6 @@ void MouseClass::update()
          Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
         _window_posi.set(pixeli.x-DipsToPixelsI(bounds.X),
                          pixeli.y-DipsToPixelsI(bounds.Y));
-
-         // need to check buttons manually, because 'OnPointerPressed' will not catch events for other buttons if one button is already pressed
-         REP(Min(Elms(_button), Elms(Keys)))
-         {
-         #if 0 // this is faster, however is broken in latest SDK
-            Int on=((Int)App.Hwnd()->GetKeyState     (VirtualKey(Keys[i])) & (Int)CoreVirtualKeyStates::Down);
-         #else
-            Int on=((Int)App.Hwnd()->GetAsyncKeyState(VirtualKey(Keys[i])) & (Int)CoreVirtualKeyStates::Down);
-         #endif
-            if(!on)release(i);else if(_on_client)push(i); // don't push when clicking on title bar or another system window (but allow releases in that case)
-         }
       }
       // '_on_client' is managed through 'OnPointerEntered' and 'OnPointerExited' callbacks
    #elif MAC
