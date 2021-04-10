@@ -106,12 +106,12 @@ class RayTest // first all areas are added, then they are sorted depending on di
    }
 }
 /******************************************************************************/
-void UpdateButtonState(byte *dest, byte *on, int num)
+void UpdateButtonState(BS_FLAG *dest, byte *on, int num)
 {
    REP(num)
    {
       bool last=FlagTest(*dest, BS_ON);
-      *dest++=(*on++ ? (BS_ON|(last?0:BS_PUSHED)) : (last?BS_RELEASED:0));
+     *dest++=(*on++ ? (BS_ON|(last?BS_NONE:BS_PUSHED)) : (last?BS_RELEASED:BS_NONE));
    }
 }
 /******************************************************************************/
@@ -237,7 +237,7 @@ class Cursor
 
 //private:
    bool                 _valid=false, _on_heightmap=false;
-   byte                 _state=0;
+   BS_FLAG              _state=BS_NONE;
    uint                 _touch_id=0;
    flt                  _brush_height=0, _brush_height_help=0;
    Vec2                 _screen_pos=0;
