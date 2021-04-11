@@ -3538,6 +3538,11 @@ Vec2 DisplayClass::windowPixelToScreenSize(C Vec2 &pixel)
    return Vec2(pixel.x* D._window_pixel_to_screen_mul.x,
                pixel.y*-D._window_pixel_to_screen_mul.y);
 }
+Vec2 DisplayClass::windowPixelToScreenSize(C VecI2 &pixel)
+{
+   return Vec2(pixel.x* D._window_pixel_to_screen_mul.x,
+               pixel.y*-D._window_pixel_to_screen_mul.y);
+}
 Vec2 DisplayClass::screenToWindowPixel(C Vec2 &screen)
 {
    return Vec2((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x,

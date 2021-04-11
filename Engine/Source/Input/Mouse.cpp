@@ -160,7 +160,7 @@ MouseClass::MouseClass()
    REPAO(_button)=0;
   _selecting=_dragging=_first=_detected=_on_client=_clip_rect_on=_clip_window=_freeze=_frozen=_action=_locked=false;
   _start_time=_wheel_time=0;
-  _pos=_delta=_delta_clp=_delta_relative=_start_pos=_wheel=_wheel_f=0;
+  _pos=_delta=_delta_clp=_delta_relative=_start_pos=_move_offset=_wheel=_wheel_f=0;
   _window_posi=_desktop_posi=_deltai=_wheel_i=0;
   _clip_rect.zero();
   _cursor=null;
@@ -625,7 +625,16 @@ void MouseClass::move   (C Vec2 &screen_d)
 {
    Vec2 pixel_d=D.screenToWindowPixelSize(screen_d); // convert to pixel delta
   _delta+=pixel_d*_speed; // adjust by speed
-   if(!frozen())pos(pos()+screen_d);
+   if(!frozen())
+   {
+   #if 1 // pixel align
+      pixel_d+=_move_offset;
+      VecI2 pixel_di=Round(pixel_d);
+     _move_offset=pixel_d-pixel_di;
+      Vec2 screen_d=D.windowPixelToScreenSize(pixel_di);
+   #endif
+      pos(pos()+screen_d);
+   }
 }
 void MouseClass::scroll(C Vec2 &d) {_wheel+=d;}
 /******************************************************************************/

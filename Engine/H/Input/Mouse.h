@@ -146,7 +146,7 @@ private:
    Int              _cur;
    Flt              _speed;
    Dbl              _start_time, _wheel_time;
-   Vec2             _pos, _delta, _delta_clp, _delta_relative, _vel, _start_pos, _wheel, _wheel_f;
+   Vec2             _pos, _delta, _delta_clp, _delta_relative, _vel, _start_pos, _move_offset, _wheel, _wheel_f;
    VecI2            _window_posi, _desktop_posi, _deltai, _wheel_i;
    Rect             _clip_rect;
    SmoothValue2     _sv_delta;
