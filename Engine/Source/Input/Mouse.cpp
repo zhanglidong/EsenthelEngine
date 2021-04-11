@@ -627,11 +627,11 @@ void MouseClass::move   (C Vec2 &screen_d)
   _delta+=pixel_d*_speed; // adjust by speed
    if(!frozen())
    {
-   #if 1 // pixel align
-      pixel_d+=_move_offset;
-      VecI2 pixel_di=Round(pixel_d);
-     _move_offset=pixel_d-pixel_di;
-      Vec2 screen_d=D.windowPixelToScreenSize(pixel_di);
+   #if 1 // pixel align (needed because all Operating Systems internally store mouse position as 'int')
+      pixel_d+=_move_offset; // add what we've accumulated before
+      VecI2 pixel_di=Round(pixel_d); // round to nearest pixel
+     _move_offset=pixel_d-pixel_di; // calculate what we want - what we've got
+      Vec2 screen_d=D.windowPixelToScreenSize(pixel_di); // move by aligned pixel delta
    #endif
       pos(pos()+screen_d);
    }
