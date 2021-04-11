@@ -293,6 +293,7 @@ ok:;
    }
 #endif
 
+  _desktop_pixeli=_window_pixeli=D.res()/2; // initially set at screen center, in case mouse is unavailable
    updatePos(); _delta_pixeli_clp.zero(); // always get position at the start, and clear any pixel delta. This is needed so that further readings of mouse position will properly detect if there was any change, so we can trigger '_detected'. Also initial position is needed in codes below
 
 #if WINDOWS_NEW
