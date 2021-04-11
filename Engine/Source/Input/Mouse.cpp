@@ -656,40 +656,33 @@ void MouseClass::updatePos()
    }
    // '_on_client' is managed through 'OnPointerEntered' and 'OnPointerExited' callbacks
 #elif MAC
-   // '_on_client' is managed through 'mouseEntered' and 'mouseExited' callbacks
    VecI2 screen=D.screen();
    RectI client=WindowRect(true);
+   VecI2 desktop_pixeli;
 
-   // desktop position
-   VecI2 old_posi=_desktop_pixeli;
-
-   // apply clipping
-   if(MouseClipOn)
+   if(MouseClipOn) // clipping
    {
-      VecI2 cur_pos=_desktop_pixeli;
-
       RectI clip=MouseClipRect;
             clip.min+=client.min; MAX(clip.min.x,          2); MAX(clip.min.y,          2); // padd to don't touch edges in order to avoid popping dock
             clip.max+=client.min; MIN(clip.max.x, screen.x-3); MIN(clip.max.y, screen.y-3);
 
-     _desktop_pixeli.x=Round(_desktop_pixeli.x+_delta_rel.x);
-     _desktop_pixeli.y=Round(_desktop_pixeli.y-_delta_rel.y);
-     _desktop_pixeli &=clip;
+      desktop_pixeli.set(_desktop_pixeli.x+Round(_delta_rel.x),
+                         _desktop_pixeli.y-Round(_delta_rel.y))&=clip;
 
-      MouseIgnore+=_desktop_pixeli-cur_pos;
-      CGPoint p; p.x=_desktop_pixeli.x; p.y=_desktop_pixeli.y;
+      MouseIgnore+=desktop_pixeli-_desktop_pixeli;
+      CGPoint p; p.x=desktop_pixeli.x; p.y=desktop_pixeli.y;
       CGWarpMouseCursorPosition(p);
    }else
    {
       NSPoint p=[NSEvent mouseLocation];
-     _desktop_pixeli.x=         Round(p.x);
-     _desktop_pixeli.y=screen.y-Round(p.y);
+      desktop_pixeli.x=         Round(p.x);
+      desktop_pixeli.y=screen.y-Round(p.y);
    }
 
-  _delta_pixeli_clp+=_desktop_pixeli-old_posi; // calc based on desktop position and not window position
-
-   // window position
-  _window_pixeli=_desktop_pixeli-client.min;
+    _delta_pixeli_clp+=desktop_pixeli-_desktop_pixeli; // calc based on desktop position and not window position
+  _desktop_pixeli     =desktop_pixeli;
+   _window_pixeli     =desktop_pixeli-client.min;
+   // '_on_client' is managed through 'mouseEntered' and 'mouseExited' callbacks
 #elif LINUX
    if(XDisplay)
    {
@@ -700,7 +693,6 @@ void MouseClass::updatePos()
 
        _delta_pixeli_clp+=desktop_pixeli-_desktop_pixeli; // calc based on desktop position and not window position
      _desktop_pixeli     =desktop_pixeli;
-
       // '_on_client' is managed through 'EnterNotify' and 'LeaveNotify' events
    }
 #else
