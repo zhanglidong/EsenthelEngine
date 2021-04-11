@@ -316,7 +316,7 @@ void MouseClass::pos(C Vec2 &pos)
    if(T._pos!=pos)
    {
       T._pos=pos;
-      if(_frozen && App.active())clipUpdate();
+      if(_frozen && App.active())clipUpdate(); // update clip before setting new position
 
       Vec2  pixel =D.screenToWindowPixel(T._pos);
       VecI2 pixeli=Round(pixel);
@@ -381,12 +381,7 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
       App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_posi.x), bounds.Y+PixelsToDips(Ms._window_posi.y));
    }
 #elif MAC
-   if(rect)
-   {
-      MouseClipRect=*rect;
-      if(MouseClipRect.max.x>MouseClipRect.min.x)MouseClipRect.max.x--; // decrease width  by 1 pixel
-      if(MouseClipRect.max.y>MouseClipRect.min.y)MouseClipRect.max.y--; // decrease height by 1 pixel
-   }
+   if(rect)MouseClipRect=*rect;
    MouseClipOn=(rect!=null);
    CGAssociateMouseAndMouseCursorPosition(!MouseClipOn); // freeze mouse cursor when needed
    // !! warning: clipping using CGAssociateMouseAndMouseCursorPosition + CGWarpMouseCursorPosition will introduce delay in mouse movement, because 'CGAssociateMouseAndMouseCursorPosition' always freezes mouse, and 'CGWarpMouseCursorPosition' moves it manually based on detected input, there used to be "CGSetLocalEventsSuppressionInterval(0)" removing this delay, but it's now deprecated and its replacement doesn't affect clipping anymore
@@ -447,11 +442,12 @@ void MouseClass::clipUpdate() // !! Don't call always, to avoid changing clip fo
       {
          recti=window_rect;
       }
-   #if !WINDOWS_NEW // can't do this for WINDOWS_NEW because we need 'recti' to be inclusive
+      // at this stage 'recti' is inclusive (0..resW()-1, 0..resH()-1)
+   #if !WINDOWS_NEW && !MAC // can't do this for WINDOWS_NEW and MAC because there we need 'recti' to be inclusive
       recti.max++;
    #endif
-      Clip(&recti);
-   }else Clip(null);
+         Clip(&recti);
+   }else Clip( null );
 }
 void MouseClass::clipUpdateConditional()
 {
