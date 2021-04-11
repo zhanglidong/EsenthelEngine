@@ -708,9 +708,6 @@ void MouseClass::update()
    // clip
    if(_freeze){if(!_frozen){_frozen=true ; clipUpdate();} _freeze=false;}
    else       {if( _frozen){_frozen=false; clipUpdate();}               }
-#if WINDOWS_NEW
-   if(App.active() && (_frozen || _clip_rect_on || _clip_window))clipUpdate();
-#endif
 
 #if WINDOWS_OLD && MS_DIRECT_INPUT
    if(_device)
@@ -742,6 +739,9 @@ void MouseClass::update()
   _delta_rel*=_speed;
 
    updatePos();
+#if WINDOWS_NEW
+   if(App.active() && (_frozen || _clip_rect_on || _clip_window))clipUpdate();
+#endif
 
    Vec2 old=_pos; // remember old
 
