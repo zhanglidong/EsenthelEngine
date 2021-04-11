@@ -723,6 +723,7 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
 #if WINDOWS_NEW
    extern Flt ScreenScale;
 
+   Flt DipsToPixels (Flt dips);
    Int DipsToPixelsI(Flt dips);
    Flt PixelsToDips (Int pix );
    Flt PixelsToDips (Flt pix );

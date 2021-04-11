@@ -3695,6 +3695,7 @@ DisplayClass& DisplayClass::colorPalette1    (C ImagePtr &palette) {SetPalette(1
 DisplayClass& DisplayClass::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
+Flt DipsToPixels (Flt dips) {return       dips*ScreenScale ;}
 Int DipsToPixelsI(Flt dips) {return Round(dips*ScreenScale);}
 Flt PixelsToDips (Int pix ) {return       pix /ScreenScale ;}
 Flt PixelsToDips (Flt pix ) {return       pix /ScreenScale ;}
