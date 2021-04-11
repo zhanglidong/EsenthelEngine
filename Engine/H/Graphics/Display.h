@@ -430,11 +430,13 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 #if EE_PRIVATE
    static void  alignScreenXToPixel     (  Flt   &screen_x); // align screen space x position to nearest pixel
    static void  alignScreenYToPixel     (  Flt   &screen_y); // align screen space y position to nearest pixel
-   static Vec2  windowPixelToScreen     (C Vec2  &pixel   ); // from pixel  (   0 .. D.resW,    0 .. D.resH) to screen (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
-   static Vec2  windowPixelToScreen     (C VecI2 &pixel   ); // from pixel  (   0 .. D.resW,    0 .. D.resH) to screen (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
-   static Vec2  screenToWindowPixel     (C Vec2  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
-   static VecI2 screenToWindowPixelI    (C Vec2  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
-   static RectI screenToWindowPixelI    (C Rect  &screen  ); // from screen (-D.w .. D.w   , -D.h .. D.h   ) to pixel  (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
+   static Vec2  windowPixelToScreen     (C Vec2  &pixel   ); // from pixel       (   0 .. D.resW,    0 .. D.resH) to screen      (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
+   static Vec2  windowPixelToScreen     (C VecI2 &pixel   ); // from pixel       (   0 .. D.resW,    0 .. D.resH) to screen      (-D.w .. D.w   , -D.h .. D.h   ) taking into account System Window -> VR Gui
+   static Vec2  windowPixelToScreenSize (C Vec2  &pixel   ); // from pixel  size (   0 .. D.resW,    0 .. D.resH) to screen size (   0 .. D.w*2 ,    0 .. D.h*2 ) taking into account System Window -> VR Gui, use this function for widths and heights
+   static Vec2  screenToWindowPixel     (C Vec2  &screen  ); // from screen      (-D.w .. D.w   , -D.h .. D.h   ) to pixel       (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
+   static Vec2  screenToWindowPixelSize (C Vec2  &screen  ); // from screen size (   0 .. D.w*2 ,    0 .. D.h*2 ) to pixel  size (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui, use this function for widths and heights
+   static VecI2 screenToWindowPixelI    (C Vec2  &screen  ); // from screen      (-D.w .. D.w   , -D.h .. D.h   ) to pixel       (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
+   static RectI screenToWindowPixelI    (C Rect  &screen  ); // from screen      (-D.w .. D.w   , -D.h .. D.h   ) to pixel       (   0 .. D.resW,    0 .. D.resH) taking into account System Window -> VR Gui
 #endif
 
    // Clear Screen

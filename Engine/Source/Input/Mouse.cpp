@@ -623,7 +623,7 @@ void MouseClass::release(Byte b)
 void MouseClass::moveAbs(C Vec2 &screen_d) {move(screen_d/D.scale());}
 void MouseClass::move   (C Vec2 &screen_d)
 {
-   Vec2 pixel_d=D.screenToPixelSize(screen_d); // convert to pixel delta
+   Vec2 pixel_d=D.screenToWindowPixelSize(screen_d); // convert to pixel delta
   _delta+=pixel_d*_speed; // adjust by speed
    if(!frozen())pos(pos()+screen_d);
 }

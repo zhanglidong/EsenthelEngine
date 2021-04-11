@@ -3522,20 +3522,31 @@ Vec2 DisplayClass::pixelToScreenSize(  Flt    pixel ) {return  pixel*D._pixel_si
 Vec2 DisplayClass::pixelToScreenSize(C Vec2  &pixel ) {return  pixel*D._pixel_size    ;}
 Vec2 DisplayClass::pixelToScreenSize(C VecI2 &pixel ) {return  pixel*D._pixel_size    ;}
 
-Vec2 DisplayClass::windowPixelToScreen(C Vec2 &pixel) // this is used by mouse/touch pointers
+// this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C Vec2 &pixel)
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
 }
-Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel) // this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel)
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
+}
+Vec2 DisplayClass::windowPixelToScreenSize(C Vec2 &pixel)
+{
+   return Vec2(pixel.x* D._window_pixel_to_screen_mul.x,
+               pixel.y*-D._window_pixel_to_screen_mul.y);
 }
 Vec2 DisplayClass::screenToWindowPixel(C Vec2 &screen)
 {
    return Vec2((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x,
                (screen.y-D._window_pixel_to_screen_add.y)/D._window_pixel_to_screen_mul.y);
+}
+Vec2 DisplayClass::screenToWindowPixelSize(C Vec2 &screen)
+{
+   return Vec2(screen.x/ D._window_pixel_to_screen_mul.x,
+               screen.y/-D._window_pixel_to_screen_mul.y);
 }
 VecI2 DisplayClass::screenToWindowPixelI(C Vec2 &screen)
 {
