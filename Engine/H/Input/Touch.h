@@ -15,7 +15,7 @@ struct Touch // Single Touch on a Touch-Screen
  C Vec2&        ad()C {return _abs_delta;} // absolute position delta since last frame (unaffected by current display scale)
  C Vec2&       vel()C {return _vel      ;} // absolute velocity                        (unaffected by current display scale), it's calculated based on few last positions
 
- C VecI2& pixelDelta()C {return _deltai;} // cursor position delta in Pixel Coordinates
+ C VecI2& pixelDelta()C {return _delta_pixeli_clp;} // cursor position delta in Pixel Coordinates
 
    BS_FLAG state      ()C {return          _state   ;} // get state
    Bool    on         ()C {return ButtonOn(_state)  ;} // if is on
@@ -52,7 +52,7 @@ private:
    BS_FLAG          _state;
    UInt             _id;
    Dbl              _start_time;
-   VecI2            _pixeli, _deltai;
+   VecI2            _pixeli, _delta_pixeli_clp;
    Vec2             _start_pos, _prev_pos, _pos, _sm_pos, _delta, _abs_delta, _vel;
    CPtr             _handle;
    GuiObj          *_gui_obj;

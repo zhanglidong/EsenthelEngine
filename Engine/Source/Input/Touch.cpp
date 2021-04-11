@@ -41,7 +41,7 @@ Touch::Touch()
   _axis_moved=0;
   _id=0;
   _start_time=Time.appTime();
-  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _pixeli=_deltai=0;
+  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _pixeli=_delta_pixeli_clp=0;
   _handle=null;
   _gui_obj=null;
 }
@@ -145,14 +145,14 @@ void TouchesUpdate()
             t->_pixeli=pixeli;
             t->_pos   =pos;
          }
-         t->_deltai=Ms.pixelDelta();
+         t->_delta_pixeli_clp=Ms.pixelDelta();
       }
       if(Ms.br(0) || !Ms.b(0))if(Touch *t=FindTouchByHandle(handle)) // simulate 'touchesReleased'
       {
-         t->_pixeli=pixeli;
-         t->_pos   =pos;
-         t->_deltai=Ms.pixelDelta();
-         t->_remove=true;
+         t->_pixeli          =pixeli;
+         t->_pos             =pos;
+         t->_delta_pixeli_clp=Ms.pixelDelta();
+         t->_remove          =true;
          if(t->_state&BS_ON) // check for state in case it was manually eaten
          {
             t->_state|= BS_RELEASED;
@@ -267,7 +267,7 @@ void TouchesClear()
          Touches.remove(i, true);
       }else
       {
-         t._deltai.zero();
+         t._delta_pixeli_clp.zero();
          FlagDisable(t._state, BS_NOT_ON);
       }
    }

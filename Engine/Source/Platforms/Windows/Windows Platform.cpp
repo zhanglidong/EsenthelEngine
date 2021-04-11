@@ -333,8 +333,8 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    void OnMouseMoved(MouseDevice^ mouseDevice, MouseEventArgs^ args) // this is not clipped by desktop (if mouse is moved but the cursor remains in the same position, it will still generate move events). WINDOWS_NEW BUG: this will not be called if mouse hovers over title bar or border, but if mouse is moved quickly outside without touching the borders, then it will continue to receive data
    {
-      Ms._delta_relative.x+=args->MouseDelta.X;
-      Ms._delta_relative.y-=args->MouseDelta.Y;
+      Ms._delta_rel.x+=args->MouseDelta.X;
+      Ms._delta_rel.y-=args->MouseDelta.Y;
    }
    void OnPointerMoved(CoreWindow^ sender, PointerEventArgs^ args)
    {
@@ -352,9 +352,9 @@ ref struct FrameworkView sealed : IFrameworkView
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
                VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=pixeli-touch->_pixeli;
-               touch->_pixeli =pixeli;
-               touch->_pos    =D.windowPixelToScreen(pixeli);
+               touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+               touch->_pixeli           =pixeli;
+               touch->_pos              =D.windowPixelToScreen(pixeli);
             }
          }break;
       }
@@ -367,8 +367,8 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=true;
-          //Ms._deltai=Ms._window_posi-pixeli; don't calculate delta here to avoid big jumps
-          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
+          //Ms._delta_pixeli_clp=Ms._window_pixeli-pixeli; don't calculate delta here to avoid big jumps
+          //Ms._window_pixeli=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
@@ -394,8 +394,8 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=false;
-          //Ms._deltai=Ms._window_posi-pixeli; this is handled in 'Ms.update'
-          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
+          //Ms._delta_pixeli_clp=Ms._window_pixeli-pixeli; this is handled in 'Ms.update'
+          //Ms._window_pixeli=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
@@ -403,10 +403,10 @@ ref struct FrameworkView sealed : IFrameworkView
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
                VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=pixeli-touch->_pixeli;
-               touch->_pixeli =pixeli;
-               touch->_pos    =D.windowPixelToScreen(pixeli);
-               touch->_remove =true;
+               touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+               touch->_pixeli           =pixeli;
+               touch->_pos              =D.windowPixelToScreen(pixeli);
+               touch->_remove           =true;
                if(touch->_state&BS_ON) // check for state in case it was manually eaten
                {
                   touch->_state|= BS_RELEASED;

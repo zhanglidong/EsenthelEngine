@@ -323,9 +323,9 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                   Ms._wheel.y+=(pos.y-LastMousePos.y)*mul;
                }else
                {
-                  Ms._desktop_posi=pos;
-                  Ms. _window_posi.x=Round(AMotionEvent_getX(event, 0));
-                  Ms. _window_posi.y=Round(AMotionEvent_getY(event, 0));
+                  Ms._desktop_pixeli=pos;
+                  Ms. _window_pixeli.x=Round(AMotionEvent_getX(event, 0));
+                  Ms. _window_pixeli.y=Round(AMotionEvent_getY(event, 0));
                }
                LastMousePos=pos;
             }
@@ -380,9 +380,9 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                      Touch *touch =FindTouchByHandle(pid);
                      if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {  // update
-                        touch->_deltai+=pixeli-touch->_pixeli;
-                        touch->_pixeli =pixeli;
-                        touch->_pos    =pos;
+                        touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+                        touch->_pixeli           =pixeli;
+                        touch->_pos              =pos;
                         if(!touch->_state)touch->_gui_obj=Gui.objAtPos(touch->pos()); // when hovering then also update gui object (check for 'state' because hover can be called the same frame that release is called, and for release we want to keep the original values)
                      }
                   }
@@ -410,10 +410,10 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                   {
                      Vec2  pixel (AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index));
                      VecI2 pixeli=Round(pixel);
-                     touch->_deltai+=pixeli-touch->_pixeli;
-                     touch->_pixeli =pixeli;
-                     touch->_pos    =D.windowPixelToScreen(pixel);
-                     touch->_remove =true;
+                     touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+                     touch->_pixeli           =pixeli;
+                     touch->_pos              =D.windowPixelToScreen(pixel);
+                     touch->_remove           =true;
                      if(touch->_state&BS_ON) // check for state in case it was manually eaten
                      {
                         touch->_state|= BS_RELEASED;
@@ -1228,9 +1228,9 @@ void android_main(android_app *app)
    stop:
 
       // process input
-      Ms._deltai          = Ms. desktopPos()-old_posi;
-      Ms._delta_relative.x= Ms._deltai.x;
-      Ms._delta_relative.y=-Ms._deltai.y;
+      Ms._delta_pixeli_clp= Ms. desktopPos()-old_posi;
+      Ms._delta_rel.x     = Ms._delta_pixeli_clp.x;
+      Ms._delta_rel.y     =-Ms._delta_pixeli_clp.y;
 
       LOG2(S+"AndroidApp->window:"+(AndroidApp->window!=null));
    #if DEBUG

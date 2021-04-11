@@ -160,8 +160,8 @@ MouseClass::MouseClass()
    REPAO(_button)=0;
   _selecting=_dragging=_first=_detected=_on_client=_clip_rect_on=_clip_window=_freeze=_frozen=_action=_locked=false;
   _start_time=_wheel_time=0;
-  _pos=_delta=_delta_clp=_delta_relative=_start_pos=_move_offset=_wheel=_wheel_f=0;
-  _window_posi=_desktop_posi=_deltai=_wheel_i=0;
+  _pos=_delta_rel_sm=_delta_clp=_delta_rel=_start_pos=_move_offset=_wheel=_wheel_f=0;
+  _window_pixeli=_desktop_pixeli=_delta_pixeli_clp=_wheel_i=0;
   _clip_rect.zero();
   _cursor=null;
 #if WINDOWS_OLD
@@ -242,7 +242,7 @@ again:
       }
    }
 #elif MS_DIRECT_INPUT
-   if(InputDevices.DI) // need to use DirectInput to be able to obtain '_delta_relative'
+   if(InputDevices.DI) // need to use DirectInput to be able to obtain '_delta_rel'
    if(OK(InputDevices.DI->CreateDevice(GUID_SysMouse, &_device, null)))
    {
       if(OK(_device->SetDataFormat(&c_dfDIMouse2)))
@@ -265,10 +265,7 @@ again:
 ok:;
 #endif
 #elif WINDOWS_NEW
-   Bool detected=_detected; // remember '_detected' because 'update' may set it falsely based on setting initial '_desktop_posi'
-   update(); // 'update' to get '_window_posi' needed below, and set initial value of '_desktop_posi'
-  _detected=detected|(Windows::Devices::Input::MouseCapabilities().MousePresent>0); // set '_detected' after 'update', OR with previous setting in case user called 'Ms.simulate'
-  _on_client=Cuts(_window_posi, RectI(0, 0, D.resW(), D.resH())); // set initial value of '_on_client', because 'OnPointerEntered' is not called at start
+  _detected|=(Windows::Devices::Input::MouseCapabilities().MousePresent>0); // OR in case user called 'Ms.simulate'
 #elif DESKTOP // assume that desktops always have a mouse
   _detected=true;
 #endif
@@ -295,8 +292,11 @@ ok:;
       }
    }
 #endif
-#if SWITCH
-  _on_client=true;
+
+   updatePos(); _delta_pixeli_clp.zero(); // always get position at the start, and clear any pixel delta. This is needed so that further readings of mouse position will properly detect if there was any change, so we can trigger '_detected'. Also initial position is needed in codes below
+
+#if WINDOWS_NEW
+  _on_client=Cuts(_window_pixeli, RectI(0, 0, D.resW(), D.resH())); // set initial value of '_on_client', because 'OnPointerEntered' is not called at start
 #endif
 }
 /******************************************************************************/
@@ -309,46 +309,40 @@ void MouseClass::speed(Flt speed)  {       T._speed=speed*SPEED;}
 Flt  MouseClass::speed(         )C {return T._speed      /SPEED;}
 /******************************************************************************/
 void MouseClass::pos(C Vec2 &pos)
-{{ // double brackets needed for "Vec2 pos" declaration inside MOBILE
+{
+   Vec2 old=T._pos;
+   T._pos=pos;
 #if MOBILE // for mobile prevent cursor from going outside the window
-   Vec2 clipped_pos=pos&D.rect(); C Vec2 &pos=clipped_pos;
+   T._pos&=D.rect();
 #endif
-   if(T._pos!=pos)
-   {
-      T._pos=pos;
-      if(_frozen && App.active())clipUpdate(); // update clip before setting new position
 
-      Vec2  pixel =D.screenToWindowPixel(T._pos);
-      VecI2 pixeli=Round(pixel);
-      VecI2 deltai=pixeli-_window_posi;
-     _window_posi=pixeli; // if this is ever changed to operate on 'pixel' instead of 'pixeli' then some code from 'NS.UpdateInput' could be removed and 'Ms.update' used instead
-   #if WINDOWS_OLD
-      POINT point={pixeli.x, pixeli.y};
-      ClientToScreen(App.Hwnd(), &point);
-     _desktop_posi.set(point.x, point.y);
-      SetCursorPos(point.x, point.y);
-   #elif WINDOWS_NEW
-      if(App.hwnd())
-      {
-         Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-         auto x=bounds.X+PixelsToDips(pixel.x),
-              y=bounds.Y+PixelsToDips(pixel.y);
-         App.Hwnd()->PointerPosition=Windows::Foundation::Point(x, y);
-        _desktop_posi.set(DipsToPixelsI(x), DipsToPixelsI(y));
-      }
-   #elif MAC
-      RectI   client=WindowRect(true);
-     _desktop_posi=_window_posi+client.min;
-      CGPoint point; point.x=pixel.x+client.min.x; point.y=pixel.y+client.min.y;
-      CGWarpMouseCursorPosition(point);
-   #elif LINUX
-      if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, pixeli.x, pixeli.y);
-     _desktop_posi+=deltai;
-   #elif MOBILE
-     _desktop_posi=pixeli;
-   #endif
+   if(_frozen && App.active())clipUpdate(); // update clip before setting new position !! after adjusting T._pos !!
+   VecI2 window_pixel_i=D.screenToWindowPixelI(T._pos);
+
+#if WINDOWS_OLD
+   POINT point={window_pixel_i.x, window_pixel_i.y};
+   ClientToScreen(App.Hwnd(), &point); // convert from window to desktop
+   SetCursorPos(point.x, point.y);
+#elif WINDOWS_NEW
+   if(App.hwnd())
+   {
+      Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
+      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(window_pixel_i.x), bounds.Y+PixelsToDips(window_pixel_i.y));
    }
-}}
+#elif MAC
+   RectI   client=WindowRect(true);
+   CGPoint point; point.x=window_pixel_i.x+client.min.x; point.y=window_pixel_i.y+client.min.y;
+   CGWarpMouseCursorPosition(point);
+#elif LINUX
+   if(XDisplay)XWarpPointer(XDisplay, NULL, App.Hwnd(), 0, 0, 0, 0, window_pixel_i.x, window_pixel_i.y);
+#else
+  _window_pixeli=_desktop_pixeli=window_pixel_i;
+#endif
+
+   updatePos();
+  _pos       =D.windowPixelToScreen(_window_pixeli);
+  _delta_clp+=T._pos-old;
+}
 /******************************************************************************/
 static void Clip(RectI *rect) // 'rect' is in window client space, full rect is (0, 0), (D.resW, D.resH)
 {
@@ -372,13 +366,13 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
       if(rect)App.Hwnd()->    SetPointerCapture();
       else    App.Hwnd()->ReleasePointerCapture();
    }*/
-   if(rect && !Cuts(Ms._window_posi, *rect) && App.Hwnd())
+   if(rect && !Cuts(Ms._window_pixeli, *rect) && App.Hwnd())
    {
-      VecI2 pixeli=Ms._window_posi; Ms._window_posi&=*rect; pixeli-=Ms._window_posi;
-      Ms._desktop_posi-=pixeli;
-      Ms._deltai      +=pixeli;
+      VecI2 pixeli=Ms._window_pixeli; Ms._window_pixeli&=*rect; pixeli-=Ms._window_pixeli;
+      Ms._desktop_pixeli    -=pixeli;
+      Ms.  _delta_pixeli_clp+=pixeli;
       Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_posi.x), bounds.Y+PixelsToDips(Ms._window_posi.y));
+      App.Hwnd()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_pixeli.x), bounds.Y+PixelsToDips(Ms._window_pixeli.y));
    }
 #elif MAC
    if(rect)MouseClipRect=*rect;
@@ -557,8 +551,8 @@ void MouseClass::acquire(Bool on)
 void MouseClass::clear()
 {
    eatWheel();
-  _delta_relative.zero();
-  _deltai        .zero();
+  _delta_rel       .zero();
+  _delta_pixeli_clp.zero();
    REPAO(_button)&=~BS_NOT_ON;
    REP(Min(2, MouseEvents.elms())) // process only up to 2 queued mouse events (so we can do push+release in one time, but not push+release+push)
    {
@@ -620,7 +614,7 @@ void MouseClass::moveAbs(C Vec2 &screen_d) {move(screen_d/D.scale());}
 void MouseClass::move   (C Vec2 &screen_d)
 {
    Vec2 pixel_d=D.screenToWindowPixelSize(screen_d); // convert to pixel delta
-  _delta+=pixel_d*_speed; // adjust by speed
+  _delta_rel_sm+=pixel_d*_speed; // adjust by speed
    if(!frozen())
    {
    #if 1 // pixel align (needed because all Operating Systems internally store mouse position as 'int')
@@ -634,6 +628,89 @@ void MouseClass::move   (C Vec2 &screen_d)
 }
 void MouseClass::scroll(C Vec2 &d) {_wheel+=d;}
 /******************************************************************************/
+void MouseClass::updatePos()
+{
+   // !! here '_delta_pixeli_clp' is += because this can be called several times per frame (once in 'update' and many in 'pos') !!
+#if WINDOWS_OLD
+   // position and delta
+   POINT p; if(GetCursorPos(&p))
+   {
+     _delta_pixeli_clp.x+=p.x-_desktop_pixeli.x; _desktop_pixeli.x=p.x; // calc based on desktop position and not window position
+     _delta_pixeli_clp.y+=p.y-_desktop_pixeli.y; _desktop_pixeli.y=p.y;
+
+      ScreenToClient(App.Hwnd(), &p);
+     _window_pixeli.x=p.x;
+     _window_pixeli.y=p.y;
+   }
+  _on_client=(InRange(_window_pixeli.x, D.resW()) && InRange(_window_pixeli.y, D.resH()) && WindowMouse()==App.hwnd());
+   // 'resetCursor' is always called in 'WM_SETCURSOR'
+#elif WINDOWS_NEW
+   if(App.hwnd())
+   {
+      VecI2 desktop_pixeli(DipsToPixelsI(App.Hwnd()->PointerPosition.X), DipsToPixelsI(App.Hwnd()->PointerPosition.Y));
+       _delta_pixeli_clp+=desktop_pixeli-_desktop_pixeli; // calc based on desktop position and not window position
+     _desktop_pixeli     =desktop_pixeli;
+      Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
+     _window_pixeli.set(desktop_pixeli.x-DipsToPixelsI(bounds.X),
+                        desktop_pixeli.y-DipsToPixelsI(bounds.Y));
+   }
+   // '_on_client' is managed through 'OnPointerEntered' and 'OnPointerExited' callbacks
+#elif MAC
+   // '_on_client' is managed through 'mouseEntered' and 'mouseExited' callbacks
+   VecI2 screen=D.screen();
+   RectI client=WindowRect(true);
+
+   // desktop position
+   VecI2 old_posi=_desktop_pixeli;
+
+   // apply clipping
+   if(MouseClipOn)
+   {
+      VecI2 cur_pos=_desktop_pixeli;
+
+      RectI clip=MouseClipRect;
+            clip.min+=client.min; MAX(clip.min.x,          2); MAX(clip.min.y,          2); // padd to don't touch edges in order to avoid popping dock
+            clip.max+=client.min; MIN(clip.max.x, screen.x-3); MIN(clip.max.y, screen.y-3);
+
+     _desktop_pixeli.x=Round(_desktop_pixeli.x+_delta_rel.x);
+     _desktop_pixeli.y=Round(_desktop_pixeli.y-_delta_rel.y);
+     _desktop_pixeli &=clip;
+
+      MouseIgnore+=_desktop_pixeli-cur_pos;
+      CGPoint p; p.x=_desktop_pixeli.x; p.y=_desktop_pixeli.y;
+      CGWarpMouseCursorPosition(p);
+   }else
+   {
+      NSPoint p=[NSEvent mouseLocation];
+     _desktop_pixeli.x=         Round(p.x);
+     _desktop_pixeli.y=screen.y-Round(p.y);
+   }
+
+  _delta_pixeli_clp+=_desktop_pixeli-old_posi; // calc based on desktop position and not window position
+
+   // window position
+  _window_pixeli=_desktop_pixeli-client.min;
+#elif LINUX
+   if(XDisplay)
+   {
+      VecI2 desktop_pixeli;
+      unsigned int mask;
+      XWindow root, child;
+      XQueryPointer(XDisplay, App.Hwnd(), &root, &child, &desktop_pixeli.x, &desktop_pixeli.y, &_window_pixeli.x, &_window_pixeli.y, &mask);
+
+       _delta_pixeli_clp+=desktop_pixeli-_desktop_pixeli; // calc based on desktop position and not window position
+     _desktop_pixeli     =desktop_pixeli;
+
+      // '_on_client' is managed through 'EnterNotify' and 'LeaveNotify' events
+   }
+#else
+   // desktop and window pos obtained externally in main loop
+  _on_client=(InRange(_window_pixeli.x, D.resW()) && InRange(_window_pixeli.y, D.resH()));
+   #if WEB
+     _on_client|=_locked;
+   #endif
+#endif
+}
 void MouseClass::update()
 {
    // clip
@@ -643,130 +720,47 @@ void MouseClass::update()
    if(App.active() && (_frozen || _clip_rect_on || _clip_window))clipUpdate();
 #endif
 
-#if !SWITCH // if this is restored for Nintendo Switch, then remove "_on_client=true" in 'create'
+#if WINDOWS_OLD && MS_DIRECT_INPUT
+   if(_device)
    {
-   #if WINDOWS_OLD
-      // position and delta
-      POINT p; if(GetCursorPos(&p))
+      DIMOUSESTATE2 dims; if(OK(_device->GetDeviceState(SIZE(dims), &dims)))
       {
-        _deltai.x=p.x-_desktop_posi.x; _desktop_posi.x=p.x;
-        _deltai.y=p.y-_desktop_posi.y; _desktop_posi.y=p.y;
+        _delta_rel.x= dims.lX;
+        _delta_rel.y=-dims.lY;
+      }else _device->Acquire(); // try to re-acquire if lost access for some reason
 
-         ScreenToClient(App.Hwnd(), &p);
-        _window_posi.x=p.x;
-        _window_posi.y=p.y;
-      }
-     _on_client=(InRange(_window_posi.x, D.resW()) && InRange(_window_posi.y, D.resH()) && WindowMouse()==App.hwnd());
-      // 'resetCursor' is always called in 'WM_SETCURSOR'
-
-   #if MS_DIRECT_INPUT
-      // button state
-      if(_device)
+      DIDEVICEOBJECTDATA didods[BUF_BUTTONS]; DWORD elms=BUF_BUTTONS; if(OK(_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didods, &elms, 0)))FREP(elms) // process in order
       {
-         DIMOUSESTATE2 dims; if(OK(_device->GetDeviceState(SIZE(dims), &dims)))
+         ASSERT(DIMOFS_BUTTON0+1==DIMOFS_BUTTON1
+             && DIMOFS_BUTTON1+1==DIMOFS_BUTTON2
+             && DIMOFS_BUTTON2+1==DIMOFS_BUTTON3
+             && DIMOFS_BUTTON3+1==DIMOFS_BUTTON4
+             && DIMOFS_BUTTON4+1==DIMOFS_BUTTON5
+             && DIMOFS_BUTTON5+1==DIMOFS_BUTTON6
+             && DIMOFS_BUTTON6+1==DIMOFS_BUTTON7); // check that values are continuous
+       C DIDEVICEOBJECTDATA &didod=didods[i];
+         Int b=didod.dwOfs-DIMOFS_BUTTON0; if(InRange(b, 8)) // check range because this is also called for other events (like movements, not only buttons)
          {
-           _delta_relative.x= dims.lX;
-           _delta_relative.y=-dims.lY;
-         }else _device->Acquire(); // try to re-acquire if lost access for some reason
-
-         DIDEVICEOBJECTDATA didods[BUF_BUTTONS]; DWORD elms=BUF_BUTTONS; if(OK(_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didods, &elms, 0)))FREP(elms) // process in order
-         {
-            ASSERT(DIMOFS_BUTTON0+1==DIMOFS_BUTTON1
-                && DIMOFS_BUTTON1+1==DIMOFS_BUTTON2
-                && DIMOFS_BUTTON2+1==DIMOFS_BUTTON3
-                && DIMOFS_BUTTON3+1==DIMOFS_BUTTON4
-                && DIMOFS_BUTTON4+1==DIMOFS_BUTTON5
-                && DIMOFS_BUTTON5+1==DIMOFS_BUTTON6
-                && DIMOFS_BUTTON6+1==DIMOFS_BUTTON7); // check that values are continuous
-          C DIDEVICEOBJECTDATA &didod=didods[i];
-            Int b=didod.dwOfs-DIMOFS_BUTTON0; if(InRange(b, 8)) // check range because this is also called for other events (like movements, not only buttons)
-            {
-               if(didod.dwData&0x80){if((MOUSE_MODE==FOREGROUND || App.active()) && _on_client)push(b);}else release(b);
-            }
+            if(didod.dwData&0x80){if((MOUSE_MODE==FOREGROUND || App.active()) && _on_client)push(b);}else release(b);
          }
       }
-   #endif
-
-   #elif WINDOWS_NEW
-      if(App.hwnd())
-      {
-         VecI2 pixeli(DipsToPixelsI(App.Hwnd()->PointerPosition.X), DipsToPixelsI(App.Hwnd()->PointerPosition.Y));
-        _deltai      =_desktop_posi-pixeli; // calc based on '_desktop_posi' because '_window_posi' is relative to window position (so if we move the window based on delta issues could happen)
-        _desktop_posi=              pixeli;
-         Windows::Foundation::Rect bounds=App.Hwnd()->Bounds;
-        _window_posi.set(pixeli.x-DipsToPixelsI(bounds.X),
-                         pixeli.y-DipsToPixelsI(bounds.Y));
-      }
-      // '_on_client' is managed through 'OnPointerEntered' and 'OnPointerExited' callbacks
-   #elif MAC
-      // '_on_client' is managed through 'mouseEntered' and 'mouseExited' callbacks
-      VecI2 screen=D.screen();
-      RectI client=WindowRect(true);
-
-      // desktop position
-      VecI2 old_posi=_desktop_posi;
-
-      // apply clipping
-      if(MouseClipOn)
-      {
-         VecI2 cur_pos=_desktop_posi;
-
-         RectI clip=MouseClipRect;
-               clip.min+=client.min; MAX(clip.min.x,          2); MAX(clip.min.y,          2); // padd to don't touch edges in order to avoid popping dock
-               clip.max+=client.min; MIN(clip.max.x, screen.x-3); MIN(clip.max.y, screen.y-3);
-
-        _desktop_posi.x=Round(_desktop_posi.x+_delta_relative.x);
-        _desktop_posi.y=Round(_desktop_posi.y-_delta_relative.y);
-        _desktop_posi &=clip;
-
-         MouseIgnore+=_desktop_posi-cur_pos;
-         CGPoint p; p.x=_desktop_posi.x; p.y=_desktop_posi.y;
-         CGWarpMouseCursorPosition(p);
-      }else
-      {
-         NSPoint p=[NSEvent mouseLocation];
-        _desktop_posi.x=         Round(p.x);
-        _desktop_posi.y=screen.y-Round(p.y);
-      }
-
-     _deltai=_desktop_posi-old_posi;
-
-      // window position
-     _window_posi=_desktop_posi-client.min;
-   #elif LINUX
-      if(XDisplay)
-      {
-         int x, y;
-         unsigned int mask;
-         XWindow root, child;
-         XQueryPointer(XDisplay, App.Hwnd(), &root, &child, &x, &y, &_window_posi.x, &_window_posi.y, &mask);
-        _deltai.x=x-_desktop_posi.x; _desktop_posi.x=x;
-        _deltai.y=y-_desktop_posi.y; _desktop_posi.y=y;
-         // '_on_client' is managed through 'EnterNotify' and 'LeaveNotify' events
-      }
-   #else
-      // desktop and win pos obtained externally in main loop
-     _on_client=(InRange(_window_posi.x, D.resW()) && InRange(_window_posi.y, D.resH()));
-      #if WEB
-        _on_client|=_locked;
-      #endif
-   #endif
    }
+#endif
 
-  _delta_relative*=_speed;
-   Vec2 old=_pos;
+  _delta_rel*=_speed;
 
+   updatePos();
+
+   Vec2 old=_pos; // remember old
+
+   // calculate new
 #if WINDOWS_NEW || WEB
-   if(_locked) // for WINDOWS_NEW and WEB when '_locked', the '_window_posi' never changes so we need to manually adjust the '_pos' based on '_delta_relative'
+   if(_locked) // for WINDOWS_NEW and WEB when '_locked', the '_window_pixeli' never changes so we need to manually adjust the '_pos' based on '_delta_rel'
    {
-      if(!_frozen)_pos+=_delta_relative*(D.size().max()*0.7f); // make movement speed dependent on the screen size
+      if(!_frozen)_pos+=_delta_rel*(D.size().max()*0.7f); // make movement speed dependent on the screen size
 
       // clip
-      if(_clip_rect_on)
-      {
-         Clamp(_pos.x, _clip_rect.min.x, _clip_rect.max.x);
-         Clamp(_pos.y, _clip_rect.min.y, _clip_rect.max.y);
-      }else
+      if(_clip_rect_on)_pos&=_clip_rect;else
       {
          Clamp(_pos.x, -D.w(), D.w());
          Clamp(_pos.y, -D.h(), D.h());
@@ -774,14 +768,12 @@ void MouseClass::update()
    }else
 #endif
    {
-     _pos=D.windowPixelToScreen(_window_posi);
+     _pos=D.windowPixelToScreen(_window_pixeli);
    }
 
-  _delta_clp=_pos-old;
-#endif
-
-                _delta=_sv_delta.update(_delta_relative); // yes, mouse delta smoothing is needed, especially for low fps (for example ~40), without this, player camera rotation was not smooth
-   if(Time.ad())_vel  =_sv_vel  .update(_delta_clp/Time.ad(), Time.ad()); // use '_delta_clp' to match exact cursor position
+                _delta_clp   =_pos-old; // get delta = new-old
+                _delta_rel_sm=_sv_delta.update(_delta_rel); // yes, mouse delta smoothing is needed, especially for low fps (for example ~40), without this, player camera rotation was not smooth
+   if(Time.ad())_vel         =_sv_vel  .update(_delta_clp/Time.ad(), Time.ad()); // use '_delta_clp' to match exact cursor position
 
    // dragging
    if(b(_cur))

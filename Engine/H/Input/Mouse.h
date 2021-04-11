@@ -48,11 +48,11 @@ private:
 /******************************************************************************/
 struct MouseClass // Mouse Input
 {
- C Vec2&      pos()C {return _pos      ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates), setting position ignores 'freeze' (new position is always set regardless if mouse is frozen)
- C Vec2& startPos()C {return _start_pos;}                          // get     cursor position of first button push (in Screen Coordinates), this     is equal to the most recent cursor position at the moment of first button push - "bp(0)"
- C Vec2&      d  ()C {return _delta    ;}                          // get     cursor position delta                (in Screen Coordinates), delta    is not affected by mouse clipping or  display scale, use this for smooth unlimited mouse movement deltas (for example rotate the player)
- C Vec2&      dc ()C {return _delta_clp;}                          // get     cursor position delta clipped        (in Screen Coordinates), delta    is     affected by mouse clipping and display scale, use this for 2D gui object movement, limited by mouse cursor position
- C Vec2&      vel()C {return _vel      ;}                          // get     cursor velocity                      (in Screen Coordinates), velocity is not affected by mouse clipping or  display scale, it's calculated based on few last positions
+ C Vec2&      pos()C {return _pos         ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates), setting position ignores 'freeze' (new position is always set regardless if mouse is frozen)
+ C Vec2& startPos()C {return _start_pos   ;}                          // get     cursor position of first button push (in Screen Coordinates), this     is equal to the most recent cursor position at the moment of first button push - "bp(0)"
+ C Vec2&      d  ()C {return _delta_rel_sm;}                          // get     cursor position delta                (in Screen Coordinates), delta    is not affected by mouse clipping or  display scale, use this for smooth unlimited mouse movement deltas (for example rotate the player)
+ C Vec2&      dc ()C {return _delta_clp   ;}                          // get     cursor position delta clipped        (in Screen Coordinates), delta    is     affected by mouse clipping and display scale, use this for 2D gui object movement, limited by mouse cursor position
+ C Vec2&      vel()C {return _vel         ;}                          // get     cursor velocity                      (in Screen Coordinates), velocity is not affected by mouse clipping or  display scale, it's calculated based on few last positions
 
    BS_FLAG state      (Int b)C {return InRange(b, _button) ?          _button[b]  : BS_NONE;} // get button 'b' state
    Bool    b          (Int b)C {return InRange(b, _button) ? ButtonOn(_button[b]) :   false;} // if  button 'b' is on
@@ -74,9 +74,9 @@ struct MouseClass // Mouse Input
    Bool selecting()C {return _selecting;} // if enough                     movement occurred since the latest button was pushed to consider it selecting
    Bool dragging ()C {return _dragging ;} // if enough time has passed and movement occurred since the latest button was pushed to consider it dragging
 
- C VecI2&  windowPos()C {return  _window_posi;} // cursor position in Application Window  in Pixel Coordinates
- C VecI2& desktopPos()C {return _desktop_posi;} // cursor position in System      Desktop in Pixel Coordinates
- C VecI2& pixelDelta()C {return       _deltai;} // cursor position delta                  in Pixel Coordinates
+ C VecI2&  windowPos()C {return  _window_pixeli    ;} // cursor position in Application Window  in Pixel Coordinates
+ C VecI2& desktopPos()C {return _desktop_pixeli    ;} // cursor position in System      Desktop in Pixel Coordinates
+ C VecI2& pixelDelta()C {return   _delta_pixeli_clp;} // cursor position delta                  in Pixel Coordinates
 
    Bool detected()C {return _detected ;} // if mouse was detected in the system
    Bool onClient()C {return _on_client;} // if mouse is currently on top of the application window client area (and not occluded by other windows)
@@ -133,6 +133,7 @@ struct MouseClass // Mouse Input
    void clear     ();
    void _push     (Byte b);
    void _release  (Byte b);
+   void updatePos ();
    void update    ();
    void clipUpdate();   void clipUpdateConditional();
    void draw      ();
@@ -146,8 +147,8 @@ private:
    Int              _cur;
    Flt              _speed;
    Dbl              _start_time, _wheel_time;
-   Vec2             _pos, _delta, _delta_clp, _delta_relative, _vel, _start_pos, _move_offset, _wheel, _wheel_f;
-   VecI2            _window_posi, _desktop_posi, _deltai, _wheel_i;
+   Vec2             _pos, _delta_rel_sm, _delta_clp, _delta_rel, _vel, _start_pos, _move_offset, _wheel, _wheel_f;
+   VecI2            _window_pixeli, _desktop_pixeli, _delta_pixeli_clp, _wheel_i;
    Rect             _clip_rect;
    SmoothValue2     _sv_delta;
    SmoothValueTime2 _sv_vel;

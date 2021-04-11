@@ -1363,8 +1363,8 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                {
                   if(!(raw.data.mouse.usFlags&MOUSE_MOVE_ABSOLUTE))
                   {
-                     Ms._delta_relative.x+=raw.data.mouse.lLastX;
-                     Ms._delta_relative.y-=raw.data.mouse.lLastY;
+                     Ms._delta_rel.x+=raw.data.mouse.lLastX;
+                     Ms._delta_rel.y-=raw.data.mouse.lLastY;
                   }
                   // events are reported even when clicking outside window client
                   // ignore  pushes because we use WM_*BUTTONDOWN to get clicks only on window client
@@ -1546,9 +1546,9 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          if(Touch *touch=FindTouchByHandle(pid))
          {
             POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
-            touch->_deltai+=pixeli-touch->_pixeli;
-            touch->_pixeli =pixeli;
-            touch->_pos    =D.windowPixelToScreen(VecI2(point.x, point.y));
+            touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+            touch->_pixeli           =pixeli;
+            touch->_pos              =D.windowPixelToScreen(VecI2(point.x, point.y));
          }
       }return 0; // don't process by OS
 
@@ -1560,10 +1560,10 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          if(Touch *touch=FindTouchByHandle(pid))
          {
             POINT point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.Hwnd(), &point);
-            touch->_deltai+=pixeli-touch->_pixeli;
-            touch->_pixeli =pixeli;
-            touch->_pos    =D.windowPixelToScreen(VecI2(point.x, point.y));
-            touch->_remove =true;
+            touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+            touch->_pixeli           =pixeli;
+            touch->_pos              =D.windowPixelToScreen(VecI2(point.x, point.y));
+            touch->_remove           =true;
             if(touch->_state&BS_ON) // check for state in case it was manually eaten
             {
                touch->_state|= BS_RELEASED;
@@ -2568,8 +2568,8 @@ again:
                   {
                      XIRawEvent &raw=*(XIRawEvent*)event.xcookie.data;
                      Dbl delta[2]; SetXInputValues(raw.raw_values, raw.valuators.mask, raw.valuators.mask_len, delta, Elms(delta));
-                     Ms._delta_relative.x+=delta[0];
-                     Ms._delta_relative.y-=delta[1];
+                     Ms._delta_rel.x+=delta[0];
+                     Ms._delta_rel.y-=delta[1];
                   }break;
 
                   case XI_RawButtonPress: if(active()) // this will get called even if app is not active

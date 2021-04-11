@@ -103,8 +103,8 @@ static Bool  Active;   void SetActive() {App.setActive(Active && !App.minimized(
       case NSRightMouseDragged:
       case NSOtherMouseDragged:
       {
-         Ms._delta_relative.x+=[theEvent deltaX]-MouseIgnore.x; MouseIgnore.x=0;
-         Ms._delta_relative.y-=[theEvent deltaY]-MouseIgnore.y; MouseIgnore.y=0;
+         Ms._delta_rel.x+=[theEvent deltaX]-MouseIgnore.x; MouseIgnore.x=0;
+         Ms._delta_rel.y-=[theEvent deltaY]-MouseIgnore.y; MouseIgnore.y=0;
       }return;
    }
    [super sendEvent:theEvent];

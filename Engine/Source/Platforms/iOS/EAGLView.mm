@@ -231,9 +231,9 @@ EAGLView* GetUIView()
          t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
       }else
       {
-         t->_deltai+=pi-t->_pixeli;
-         t->_pixeli =pi;
-         t->_pos    =p;
+         t->_delta_pixeli_clp+=pi-t->_pixeli;
+         t->_pixeli           =pi;
+         t->_pos              =p;
       }
       Int taps =[touch tapCount]; // it starts from 1
       t->_first=(taps&1); // it's a first click on odd numbers, 1, 3, 5, ..
@@ -254,9 +254,9 @@ EAGLView* GetUIView()
          t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
          t->_state=BS_ON|BS_PUSHED;
       }
-      t->_deltai+=pi-t->_pixeli;
-      t->_pixeli =pi;
-      t->_pos    =p;
+      t->_delta_pixeli_clp+=pi-t->_pixeli;
+      t->_pixeli           =pi;
+      t->_pos              =p;
    }
 }
 -(void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event
@@ -266,10 +266,10 @@ EAGLView* GetUIView()
       CGPoint pos=[touch locationInView:self];
       Vec2    p(pos.x, pos.y); p*=ScreenScale;
       VecI2   pi=Round(p); p=D.windowPixelToScreen(p);
-      t->_deltai+=pi-t->_pixeli;
-      t->_pixeli =pi;
-      t->_pos    =p;
-      t->_remove =true;
+      t->_delta_pixeli_clp+=pi-t->_pixeli;
+      t->_pixeli           =pi;
+      t->_pos              =p;
+      t->_remove           =true;
       if(t->_state&BS_ON) // check for state in case it was manually eaten
       {
          t->_state|= BS_RELEASED;
