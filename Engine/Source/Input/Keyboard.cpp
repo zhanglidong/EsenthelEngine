@@ -961,7 +961,7 @@ void KeyboardClass::setLayout()
    REPAO(_qwerty)=KB_KEY(i); REPA(ScanCodeToKey)if(KB_KEY qwerty_key=ScanCodeToQwertyKey[i])if(KB_KEY key=ScanCodeToKey[i])_qwerty[qwerty_key]=key;
 #endif
 }
-void KeyboardClass::swappedCtrlCmd(Bool swapped) {T._swapped_ctrl_cmd=swapped;}
+void KeyboardClass::swapCtrlCmd(Bool swapped) {T._swap_ctrl_cmd=swapped;}
 /******************************************************************************/
 #if WINDOWS_OLD
 Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}

@@ -127,7 +127,7 @@ struct KeyboardClass // Keyboard Input
    void update ();
    void setModifiers();
 
-   void swappedCtrlCmd(Bool swapped);   Bool swappedCtrlCmd()C {return _swapped_ctrl_cmd;} // set/get if Ctrl is swapped with Cmd key under Mac OS, enable this method if you have swapped Ctrl with Cmd key under System Preferences but you wish to get their original mapping under the engine, this method is used only under Mac, default=false
+   void swapCtrlCmd(Bool swapped);   Bool swapCtrlCmd()C {return _swap_ctrl_cmd;} // set/get swap Ctrl with Cmd key on Mac, enable this method if you want to swap Ctrl with Cmd key input, this method is used only on Mac, default=false
 #endif
 
    Bool    ctrlCmd    ()C {return APPLE ? _win  : _ctrl ;} // if any Ctrl is on (on platforms other than Apple), and if any Command is on (on Apple platforms)
@@ -138,7 +138,7 @@ struct KeyboardClass // Keyboard Input
 #if !EE_PRIVATE
 private:
 #endif
-   Bool        _ctrl, _shift, _alt, _win, _cur_hidden, _swapped_ctrl_cmd, _visible, _imm, _imm_candidate_hidden, _exclusive;
+   Bool        _ctrl, _shift, _alt, _win, _cur_hidden, _swap_ctrl_cmd, _visible, _imm, _imm_candidate_hidden, _exclusive;
    Byte        _key_buffer_pos, _key_buffer_len;
    BS_FLAG     _button[256];
    Char8       _key_char[256];
