@@ -134,13 +134,13 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
 {
    if(desktop())
    {
-      GuiObjNearest gon; gon.dir=dir; if(gon.dir.normalize())
+      GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
       {
-            gon.state   =   0;
-            gon.rect    = pos;
-            gon.pos     = pos;
-            gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-         if(gon.obj     =objAtPos(pos))switch(gon.obj->type())
+            gon.state    =   0;
+            gon.rect     = pos;
+            gon.plane.pos= pos;
+            gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+         if(gon.obj      =objAtPos(pos))switch(gon.obj->type())
          {
             case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
             case GO_DESKTOP:

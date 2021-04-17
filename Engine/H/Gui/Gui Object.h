@@ -75,7 +75,7 @@ struct GuiObjNearest
 
    Byte      state; // 0=haven't yet encountered the starting 'obj' during processing, 1=encountered 'obj', 2='rect' becamed covered
    Flt       min_dist;
-   Vec2      pos, dir;
+   Plane2    plane;
    Rect      rect;
    GuiObj   *obj;
    Memt<Obj> nearest;

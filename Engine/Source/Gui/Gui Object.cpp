@@ -664,30 +664,28 @@ void GuiObjNearest::cover(C Rect &rect)
       if(Cover(T.rect, rect))
    {
       state=2; // set that we've modified it
-      if(!Exclude(T.rect, rect))T.rect=T.pos; // if completely covered then set as a single point
+      if(!Exclude(T.rect, rect))T.rect=T.plane.pos; // if completely covered then set as a single point
    }
 }
 Bool GuiObjNearest::test(C Rect &rect)C
 {
-   if(rect.valid())
-   {
-      Vec2   rect_delta=Delta(T.rect, rect);
-      if(Dot(rect_delta, dir)>0      // rect_dist_plane
-      ||     rect_delta.length2()==0 // rect_dist2
-      )return true;
-   }
-   return false;
+   return rect.valid() && MaxDist(rect, plane)>min_dist;
+}
+static Vec2 Delta(C Vec2 &delta, C Rect &start_rect, C Rect &test_rect)
+{
+   return Vec2(CutsX(start_rect, test_rect) ? 0 : delta.x,  // if start and test rectangle intersect, then use delta as 0 (this is for things like Property where fields are stored as vertical list, but some are narrow (checkbox) and some wide (combobox))
+               CutsY(start_rect, test_rect) ? 0 : delta.y);
 }
 Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
 {
-   Vec2 rect_delta     =Delta(gon.rect, rect);
-   Flt  rect_dist_plane=Dot(rect_delta, gon.dir),
-        rect_dist2     =    rect_delta.length2();
-   if(  rect_dist_plane>0 || rect_dist2==0)
+   Vec2 rect_center=rect.center(), delta=rect_center-gon.plane.pos;
+   Flt  dist_plane=Dot(delta, gon.plane.normal);
+   if(  dist_plane>gon.min_dist)
    {
-      Vec2 pos=rect.center(), delta=pos-gon.pos;
-      Flt  dist_plane=Dot(delta, gon.dir);
-      if(  dist_plane>gon.min_dist)
+      Vec2 rect_delta     =Delta(delta, gon.rect, rect);
+      Flt  rect_dist_plane=Dot(rect_delta, gon.plane.normal),
+           rect_dist2     =    rect_delta.length2();
+      if(  rect_dist_plane>0 || rect_dist2==0)
       {
          recalc   =false;
          dist     =DistDot(delta.length2(), dist_plane     );
@@ -702,14 +700,14 @@ void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
    Flt area_min=area*NEAREST_AREA_MIN;
    if(rect.area()>=area_min)
    {
-      Vec2 rect_delta     =Delta(T.rect, rect);
-      Flt  rect_dist_plane=Dot(rect_delta, dir),
-           rect_dist2     =    rect_delta.length2();
-      if(  rect_dist_plane>0 || rect_dist2==0)
+      Vec2 rect_center=rect.center(), delta=rect_center-T.plane.pos;
+      Flt  dist_plane=Dot(delta, T.plane.normal);
+      if(  dist_plane>T.min_dist)
       {
-         Vec2 pos=rect.center(), delta=pos-T.pos;
-         Flt  dist_plane=Dot(delta, dir);
-         if(  dist_plane>min_dist)
+         Vec2 rect_delta     =Delta(delta, T.rect, rect);
+         Flt  rect_dist_plane=Dot(rect_delta, T.plane.normal),
+              rect_dist2     =    rect_delta.length2();
+         if(  rect_dist_plane>0 || rect_dist2==0)
          {
             auto &nearest=T.nearest.New();
             nearest.recalc   =false;

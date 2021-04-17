@@ -1423,7 +1423,7 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
                {
                   rect.max.y=pos.y     -i*_height_ez;
                   rect.min.y=rect.max.y-  _height_ez;
-                  if(ignore_start && Cuts(gon.pos, rect))continue;
+                  if(ignore_start && Cuts(gon.plane.pos, rect))continue;
                   gon.add(rect&gpc.clip, area, T);
                }
             }break;
@@ -1434,7 +1434,7 @@ void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
                {
                 C Rect &rect=_rects[i];
                   Rect  screen_rect=rect+pos;
-                  if(ignore_start && Cuts(gon.pos, screen_rect))continue;
+                  if(ignore_start && Cuts(gon.plane.pos, screen_rect))continue;
                   gon.add(screen_rect&gpc.clip, rect.area(), T);
                }
             }break;
