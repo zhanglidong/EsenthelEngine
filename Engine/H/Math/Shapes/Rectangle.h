@@ -459,6 +459,10 @@ inline Bool Cuts   (C VecI2 &point, C RectI &rect) {return rect.includes(point);
        Bool Cuts   (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle
        Bool Cuts   (C RectI &a    , C RectI &b   );                               // if rectangle cuts rectangle
        Bool CutsEps(C Vec2  &point, C Rect  &rect);                               // if point     cuts rectangle, with EPS epsilon tolerance
+#if EE_PRIVATE
+       Bool CutsX  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in X coordinates
+       Bool CutsY  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in Y coordinates
+#endif
 
 Bool Inside   (C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b'
 Bool Inside   (C RectI &a, C RectI &b); // if 'a' is fully inside 'b'

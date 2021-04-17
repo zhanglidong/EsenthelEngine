@@ -132,55 +132,58 @@ GuiObj* GUI::objAtPos(C Vec2 &pos)C
 }
 GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
 {
-   GuiObjNearest gon;
    if(desktop())
    {
-         gon.state   =   0;
-         gon.rect    = pos;
-         gon.pos     = pos;
-         gon.dir     =!dir;
-         gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-      if(gon.obj     =objAtPos(pos))switch(gon.obj->type())
+      GuiObjNearest gon; gon.dir=dir; if(gon.dir.normalize())
       {
-         case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
-         case GO_DESKTOP:
-         case GO_WINDOW :
-         case GO_REGION :
-            break;
-         default: gon.rect=gon.obj->screenRect(); break;
-      }
-      desktop()->nearest(gon);
-   }
-   if(gon.nearest.elms())
-   {
-      if(gon.state==2) // if start rectangle is covered
-         REPA(gon.nearest)if(!gon.nearest[i].recalcDo(gon))gon.nearest.remove(i); // recalc all
-
-   again:
-      if(gon.nearest.elms())
-      {
-         auto *nearest=&gon.nearest.last();
-         Flt   nearest_dist_rect_min=nearest->dist_rect   -EPS*0.5f,
-               nearest_dist_rect_max=nearest_dist_rect_min+EPS;
-         REP(gon.nearest.elms()-1)
+            gon.state   =   0;
+            gon.rect    = pos;
+            gon.pos     = pos;
+            gon.min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+         if(gon.obj     =objAtPos(pos))switch(gon.obj->type())
          {
-            auto &obj=gon.nearest[i];
-            Flt   obj_dist_rect=obj.dist_rect;
-            if(obj_dist_rect< nearest_dist_rect_min
-            || obj_dist_rect<=nearest_dist_rect_max && obj.dist<nearest->dist)
+            case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
+            case GO_DESKTOP:
+            case GO_WINDOW :
+            case GO_REGION :
+               break;
+            default: gon.rect=gon.obj->screenRect().extend(-EPS); break;
+         }
+
+         desktop()->nearest(gon);
+
+         if(gon.nearest.elms())
+         {
+            if(gon.state==2) // if start rectangle is covered
+               REPA(gon.nearest)if(!gon.nearest[i].recalcDo(gon))gon.nearest.remove(i); // recalc all
+
+         again:
+            if(gon.nearest.elms())
             {
-               nearest=&obj;
-               nearest_dist_rect_min=    obj_dist_rect    -EPS*0.5f;
-               nearest_dist_rect_max=nearest_dist_rect_min+EPS;
+               auto *nearest=&gon.nearest.last();
+               Flt   nearest_dist_rect_min=nearest->dist_rect   -EPS*0.5f,
+                     nearest_dist_rect_max=nearest_dist_rect_min+EPS;
+               REP(gon.nearest.elms()-1)
+               {
+                  auto &obj=gon.nearest[i];
+                  Flt   obj_dist_rect=obj.dist_rect;
+                  if(obj_dist_rect< nearest_dist_rect_min
+                  || obj_dist_rect<=nearest_dist_rect_max && obj.dist<nearest->dist)
+                  {
+                     nearest=&obj;
+                     nearest_dist_rect_min=    obj_dist_rect    -EPS*0.5f;
+                     nearest_dist_rect_max=nearest_dist_rect_min+EPS;
+                  }
+               }
+               if(nearest->recalc) // if nearest has to be recalculated
+               {
+                  REPA(gon.nearest){auto &obj=gon.nearest[i]; if(obj.recalc)if(!obj.recalcDo(gon))gon.nearest.remove(i);} // recalc all
+                  goto again; // find again
+               }
+               out_pos=nearest->rect.center();
+               return  nearest->obj;
             }
          }
-         if(nearest->recalc) // if nearest has to be recalculated
-         {
-            REPA(gon.nearest){auto &obj=gon.nearest[i]; if(obj.recalc)if(!obj.recalcDo(gon))gon.nearest.remove(i);} // recalc all
-            goto again; // find again
-         }
-         out_pos=nearest->rect.center();
-         return  nearest->obj;
       }
    }
    out_pos=pos;

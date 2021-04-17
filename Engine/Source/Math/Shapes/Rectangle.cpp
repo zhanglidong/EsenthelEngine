@@ -667,7 +667,9 @@ Dbl Dist2PointSquare(C VecD2 &pos, C VecI2 &square_center, Dbl square_radius)
          +Sqr(Max(Abs(pos.y-square_center.y)-square_radius, 0));
 }
 /******************************************************************************/
-Bool Cuts(C Rect &a, C Rect &b)
+Bool CutsX(C Rect &a, C Rect &b) {return b.max.x>=a.min.x && b.min.x<=a.max.x;}
+Bool CutsY(C Rect &a, C Rect &b) {return b.max.y>=a.min.y && b.min.y<=a.max.y;}
+Bool Cuts (C Rect &a, C Rect &b)
 {
    return b.max.x>=a.min.x && b.min.x<=a.max.x
        && b.max.y>=a.min.y && b.min.y<=a.max.y;

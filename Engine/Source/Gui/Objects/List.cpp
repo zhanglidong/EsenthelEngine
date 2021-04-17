@@ -1011,61 +1011,63 @@ Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
 
       case LDM_RECTS:
       {
-         Vec2  local_pos=screen_pos-screenPos();
-         VecI2 range;
-         if(_horizontal)
+         Vec2 dir_n=dir; if(dir_n.normalize())
          {
-            Int v=Mid(localToVirtualX(local_pos.x), 0, visibleElms()-1);
-            range=v;
-            if(range.x>0) // go to the start of previous line
+            Vec2  local_pos=screen_pos-screenPos();
+            VecI2 range;
+            if(_horizontal)
             {
-               Flt x=_rects[--range.x].min.x; for(; range.x-1>=0 && Equal(_rects[range.x-1].min.x, x); range.x--); // keep going as long as rect.min.x is the same
-            }
-            if(range.y+1<visibleElms()) // go to the end of current line
-            {
-               Flt x=_rects[range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
-               if(range.y+1<visibleElms()) // go to the end of next line
+               Int v=Mid(localToVirtualX(local_pos.x), 0, visibleElms()-1);
+               range=v;
+               if(range.x>0) // go to the start of previous line
                {
-                  Flt x=_rects[++range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+                  Flt x=_rects[--range.x].min.x; for(; range.x-1>=0 && Equal(_rects[range.x-1].min.x, x); range.x--); // keep going as long as rect.min.x is the same
+               }
+               if(range.y+1<visibleElms()) // go to the end of current line
+               {
+                  Flt x=_rects[range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+                  if(range.y+1<visibleElms()) // go to the end of next line
+                  {
+                     Flt x=_rects[++range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+                  }
+               }
+            }else
+            {
+               Int v=Mid(localToVirtualY(local_pos.y), 0, visibleElms()-1);
+               range=v;
+               if(range.x>0) // go to the start of previous line
+               {
+                  Flt y=_rects[--range.x].max.y; for(; range.x-1>=0 && Equal(_rects[range.x-1].max.y, y); range.x--); // keep going as long as rect.max.y is the same
+               }
+               if(range.y+1<visibleElms()) // go to the end of current line
+               {
+                  Flt y=_rects[range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+                  if(range.y+1<visibleElms()) // go to the end of next line
+                  {
+                     Flt y=_rects[++range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+                  }
                }
             }
-         }else
-         {
-            Int v=Mid(localToVirtualY(local_pos.y), 0, visibleElms()-1);
-            range=v;
-            if(range.x>0) // go to the start of previous line
+            Int nearest=-1;
+            Flt dist=FLT_MAX, min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+            if(columnsVisible())local_pos.y+=columnHeight(); // make 'local_pos' and '_rects' in the same space
+            for(Int i=range.x; i<=range.y; i++)
             {
-               Flt y=_rects[--range.x].max.y; for(; range.x-1>=0 && Equal(_rects[range.x-1].max.y, y); range.x--); // keep going as long as rect.max.y is the same
-            }
-            if(range.y+1<visibleElms()) // go to the end of current line
-            {
-               Flt y=_rects[range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
-               if(range.y+1<visibleElms()) // go to the end of next line
+             C Rect &rect=_rects[i];
+               if(!Cuts(local_pos, rect)) // ignore starting rect
                {
-                  Flt y=_rects[++range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+                  Vec2 pos  =rect.center(),
+                       delta=pos-local_pos;
+                  Flt  dist_plane=Dot(delta, dir_n);
+                  if(  dist_plane>min_dist)
+                  {
+                     Flt d=DistDot(delta.length2(), dist_plane);
+                     if( d<dist){dist=d; nearest=i;}
+                  }
                }
             }
+            return nearest;
          }
-         Int  nearest=-1;
-         Flt  dist=FLT_MAX, min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-         Vec2 dir_n=!dir;
-         if(columnsVisible())local_pos.y+=columnHeight(); // make 'local_pos' and '_rects' in the same space
-         for(Int i=range.x; i<=range.y; i++)
-         {
-          C Rect &rect=_rects[i];
-            if(!Cuts(local_pos, rect)) // ignore starting rect
-            {
-               Vec2 pos  =rect.center(),
-                    delta=pos-local_pos;
-               Flt  dist_plane=Dot(delta, dir_n);
-               if(  dist_plane>min_dist)
-               {
-                  Flt d=DistDot(delta.length2(), dist_plane);
-                  if( d<dist){dist=d; nearest=i;}
-               }
-            }
-         }
-         return nearest;
       }break;
    }
    return -1;
