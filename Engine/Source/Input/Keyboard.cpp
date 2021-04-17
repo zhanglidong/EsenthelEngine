@@ -1266,8 +1266,11 @@ void KeyboardClass::eat(Char  c)
 }
 void KeyboardClass::eat(KB_KEY key)
 {
-   FlagDisable(_button[key&0xFF], BS_NOT_ON); // always disable even if "T.k!=key"
-   if(T.k(key) && key)k.clear();
+   if(InRange(key, _button))
+   {
+      FlagDisable(_button[key], BS_NOT_ON); // always disable even if "T.k!=key"
+      if(T.k(key) && key)k.clear();
+   }
 }
 void KeyboardClass::eatKey()
 {

@@ -111,8 +111,8 @@ struct MouseClass // Mouse Input
    MouseClass& cursor(const_mem_addr C MouseCursor *cursor                                                  ); // set cursor from an already created cursor, which will avoid some overhead each time a cursor is changed, 'cursor' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
 
    // operations
-   void eat     (          ); // eat any button  input from this frame so it will not be processed by the remaining codes in frame
-   void eat     (Int button); // eat    'button' input from this frame so it will not be processed by the remaining codes in frame
+   void eat     (          ); // eat all buttons input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat     (Int button); // eat    'button' input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
    void eatWheel(          ); // eat    'wheel'  input from this frame so it will not be processed by the remaining codes in frame
 
    void simulate() {_detected=true;} // specify that mouse will be manually simulated via 'pos', 'push', 'release' methods, this method will force mouse status as "detected" in the device, even if the mouse is not present

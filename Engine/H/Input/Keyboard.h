@@ -78,11 +78,11 @@ struct KeyboardClass // Keyboard Input
    KB_KEY qwerty(KB_KEY qwerty)C; // convert key from QWERTY layout to layout of current keyboard
 
    // operations
-   void eat(          ); // eat all    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(Char   c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(Char8  c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(KB_KEY key); // eat 'key'  input from this frame so it will not be processed by the remaining codes in frame
-   void eatKey(       ); // eat 'Kb.k' input from this frame so it will not be processed by the remaining codes in frame
+   void eat(          ); // eat all    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(Char   c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(Char8  c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(KB_KEY key); // eat 'key'  input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eatKey(       ); // eat 'Kb.k' input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
 
 #if EE_PRIVATE
    void         nextInQueue(); // proceed to next key from the buffer, same like 'nextKey' but without 'eatKey'

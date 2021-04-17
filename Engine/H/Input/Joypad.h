@@ -90,7 +90,7 @@ struct Joypad // Joypad Input
    Bool    br   (Int b)C {return InRange(b, _button) ? ButtonRs(_button[b]) :   false;} // if  button 'b' released in this frame
    Bool    bd   (Int b)C {return InRange(b, _button) ? ButtonDb(_button[b]) :   false;} // if  button 'b' double clicked
 
-   void eat(Int b); // eat 'b' button from this frame so it will not be processed by the remaining codes in frame
+   void eat(Int b); // eat 'b' button from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
 
    Bool supportsVibrations()C; // if supports vibrations
    Bool supportsSensors   ()C; // if supports sensors, available only if 'JoypadSensors' was enabled
