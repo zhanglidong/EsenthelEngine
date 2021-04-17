@@ -41,6 +41,7 @@ struct Touch // Single Touch on a Touch-Screen
 
    // operations
    void eat(); // eat input state of this touch from this frame so it will not be processed by the remaining codes in frame
+   void disableScroll(); // disable scrolling by this touch
 
    Touch();
 
@@ -62,7 +63,6 @@ private:
 #if EE_PRIVATE
    Touch&   init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus);
    Touch& reinit(C VecI2 &pixeli, C Vec2 &pos);
-   void   disableScroll();
 #endif
 };
 
