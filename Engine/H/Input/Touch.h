@@ -40,7 +40,7 @@ struct Touch // Single Touch on a Touch-Screen
    Bool stylus()C {return _stylus;} // if this touch is generated with a stylus
 
    // operations
-   void eat(); // eat input state of this touch from this frame so it will not be processed by the remaining codes in frame
+   void eat(); // eat input state of this touch from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
    void disableScroll(); // disable scrolling by this touch
 
    Touch();
@@ -114,8 +114,8 @@ struct MouseTouch // Mouse and Touch input combined into one class
    static GuiObj* guiObj(Int i             ) {return InRange(i, Touches) ? Touches[i].guiObj() : Gui.ms();} // get gui object focus of i-th touch or mouse
    static void    guiObj(Int i, GuiObj *obj); // manually change the gui object for i-th touch or mouse
 
-   static void eat(Int i       ) {return InRange(i, Touches) ? Touches[i].eat() : Ms.eat( );} // eat any button  input of i-th touch or mouse from this frame so it will not be processed by the remaining codes in frame
-   static void eat(Int i, Int b) {return InRange(i, Touches) ? Touches[i].eat() : Ms.eat(b);} // eat    'button' input of i-th touch or mouse from this frame so it will not be processed by the remaining codes in frame
+   static void eat(Int i       ) {return InRange(i, Touches) ? Touches[i].eat() : Ms.eat( );} // eat any button  input of i-th touch or mouse from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   static void eat(Int i, Int b) {return InRange(i, Touches) ? Touches[i].eat() : Ms.eat(b);} // eat    'button' input of i-th touch or mouse from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
 
    static Int elms() {return Touches.elms()+Ms.detected();} // all touches + mouse
 }extern
