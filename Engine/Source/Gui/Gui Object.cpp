@@ -673,8 +673,8 @@ Bool GuiObjNearest::test(C Rect &rect)C
 }
 static Vec2 Delta(C Vec2 &delta, C Rect &start_rect, C Rect &test_rect)
 {
-   return Vec2(CutsX(start_rect, test_rect) ? 0 : delta.x,  // if start and test rectangle intersect, then use delta as 0 (this is for things like Property where fields are stored as vertical list, but some are narrow (checkbox) and some wide (combobox))
-               CutsY(start_rect, test_rect) ? 0 : delta.y);
+   return Vec2(CoverX(start_rect, test_rect) ? 0 : delta.x,  // if start and test rectangle intersect, then use delta as 0 (this is for things like Property where fields are stored as vertical list, but some are narrow (checkbox) and some wide (combobox))
+               CoverY(start_rect, test_rect) ? 0 : delta.y);
 }
 Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
 {

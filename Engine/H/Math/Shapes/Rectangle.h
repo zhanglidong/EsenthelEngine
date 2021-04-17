@@ -462,6 +462,8 @@ inline Bool Cuts   (C VecI2 &point, C RectI &rect) {return rect.includes(point);
 #if EE_PRIVATE
        Bool CutsX  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in X coordinates
        Bool CutsY  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in Y coordinates
+       Bool CoverX (C Rect  &a    , C Rect  &b   );                               // if rectangles cover each other (at least partially) in X coordinates, returns false if only borders are touching
+       Bool CoverY (C Rect  &a    , C Rect  &b   );                               // if rectangles cover each other (at least partially) in Y coordinates, returns false if only borders are touching
 #endif
 
 Bool Inside   (C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b'

@@ -713,7 +713,9 @@ Bool InsideEps(C Rect &a, C Rect &b)
        && a.min.y>=b.min.y-EPS && a.max.y<=b.max.y+EPS;
 }
 /******************************************************************************/
-Bool Cover(C Rect &a, C Rect &b)
+Bool CoverX(C Rect &a, C Rect &b) {return b.max.x>a.min.x && b.min.x<a.max.x;}
+Bool CoverY(C Rect &a, C Rect &b) {return b.max.y>a.min.y && b.min.y<a.max.y;}
+Bool Cover (C Rect &a, C Rect &b)
 {
    return b.max.x>a.min.x && b.min.x<a.max.x
        && b.max.y>a.min.y && b.min.y<a.max.y;
