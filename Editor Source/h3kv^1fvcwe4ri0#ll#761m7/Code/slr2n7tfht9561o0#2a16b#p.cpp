@@ -1991,7 +1991,7 @@ class StoreClass : ClosableWindow
          {
             D.clip();
             D.fxBegin();
-            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.7)); D.alpha(alpha);
+            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.rect().draw(ColorAlpha(BLACK, 0.7)); D.alpha(alpha);
             Rect rect=image_preview->fit(Gui.desktop().rect())*0.9;
             D.drawShadow(128, rect, 0.07);
             image_preview->drawFilter(rect);

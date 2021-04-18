@@ -389,7 +389,7 @@ class BuyClass : Window
       if(gpc.visible && visible())
       {
          D.clip();
-         Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.4));
+         D.rect().draw(ColorAlpha(BLACK, 0.4));
          super.draw(gpc);
       }
    }

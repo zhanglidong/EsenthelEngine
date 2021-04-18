@@ -58,7 +58,7 @@ void Highlight(C Rect &rect, flt alpha, C Color &color, flt e) // Color(100, 240
    if(GlowBorder && alpha>0)
    {
       MIN(e, rect.size().min());
-      Rect r=rect; r&=Rect(-D.w(), -D.h(), D.w(), D.h()); r.extend(-e/2);
+      Rect r=rect; r&=D.rect(); r.extend(-e/2);
       GlowBorder->drawBorder(Color(0, 0, 0, Mid(Round(alpha*255), 0, 255)), Color(color.r, color.g, color.b, 0), r, -e);
    }
 }

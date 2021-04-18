@@ -151,7 +151,7 @@ AppPropsEditor AppPropsEdit;
    void CodeView::validateActiveSources(){Proj.activateSources(1);}
    Rect CodeView::menuRect()
 {
-      Rect r(-D.w(), -D.h(), D.w(), D.h());
+      Rect r=D.rect();
       if(         Mode.visibleTabs())MIN(r.max.y,          Mode.rect().min.y);
       if(     MtrlEdit.visible    ())MIN(r.max.x,      MtrlEdit.rect().min.x);
       if(WaterMtrlEdit.visible    ())MIN(r.max.x, WaterMtrlEdit.rect().min.x);

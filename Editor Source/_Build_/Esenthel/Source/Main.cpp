@@ -95,7 +95,7 @@ void SetProjectState()
 }
 Rect EditRect(bool modes)
 {
-   Rect r(-D.w(), -D.h(), D.w(), D.h());
+   Rect r=D.rect();
    if(modes && Mode.visibleTabs())MIN(r.max.y,          Mode.rect().min.y+D.pixelToScreenSize(Vec2(0, 0.5f)).y);
    if(         Proj.visible    ())MAX(r.min.x,          Proj.rect().max.x-D.pixelToScreenSize(Vec2(0.5f, 0)).x);
    if(     MtrlEdit.visible    ())MIN(r.max.x,      MtrlEdit.rect().min.x);

@@ -1775,7 +1775,7 @@ StoreClass AppStore;
          {
             D.clip();
             D.fxBegin();
-            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.7f)); D.alpha(alpha);
+            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.rect().draw(ColorAlpha(BLACK, 0.7f)); D.alpha(alpha);
             Rect rect=image_preview->fit(Gui.desktop()->rect())*0.9f;
             D.drawShadow(128, rect, 0.07f);
             image_preview->drawFilter(rect);

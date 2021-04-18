@@ -277,9 +277,8 @@ MiscRegion Misc;
    }
    void MiscRegion::resize()
    {
-      Rect screen(-D.w(), -D.h(), D.w(), D.h());
       Vec2 cur=rect().lerp(pos.x, pos.y),
-        target(screen.lerp(pos.x, pos.y));
+      target(D.rect().lerp(pos.x, pos.y));
       move(target-cur);
          cur=move_misc.rect().lerp(  pos.x, 0);
       target=          rect().lerp(1-pos.x, 0);

@@ -215,7 +215,7 @@ void DrawCreateMaterials()
    D.text(0, 0.05, "Creating Materials");
    GuiPC gpc;
    gpc.visible=gpc.enabled=true; 
-   gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+   gpc.client_rect=gpc.clip=D.rect();
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
