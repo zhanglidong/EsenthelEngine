@@ -22,7 +22,6 @@ Bool Image::ImportWEBP(File &f)
       if(f.left()>=size
       && f.getUInt()==CC4('W','E','B','P'))
       {
-         f.skip(-12);
          WebPDecoderConfig            config;
          WebPDecBuffer         *const output_buffer=&config.output;
          WebPBitstreamFeatures *const bitstream    =&config.input;
@@ -30,7 +29,7 @@ Bool Image::ImportWEBP(File &f)
          {
             //config.options.use_threads=1; made no difference in performance
             Memt<Byte> temp; temp.setNum(size+8); // we have to add 8 for the RIFF+size data
-            if(f.getFast(temp.data(), temp.elms()))
+            if(f.skip(-12) && f.getFast(temp.data(), temp.elms()))
                if(WebPGetFeatures(temp.data(), temp.elms(), bitstream)==VP8_STATUS_OK)
             {
                IMAGE_TYPE type;
