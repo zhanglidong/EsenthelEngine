@@ -319,11 +319,10 @@ void GUI::update()
    SyncLocker locker(_lock);
 
    // test
-  _ms_lit          =null;
-  _wheel           =null;
   _overlay_textline=overlayTextLine(_overlay_textline_offset);
-   if(Ms.detected() && Ms.visible() && Ms._on_client && desktop())_ms_lit=desktop()->test(Ms.pos(), _wheel); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
-   Byte ms_button=0; REPA(Ms._button)ms_button|=Ms._button[i];
+  _wheel           =null;
+  _ms_lit          =((Ms.detected() && Ms.visible() && Ms._on_client && desktop()) ? desktop()->test(Ms.pos(), _wheel) : null); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
+   BS_FLAG ms_button=BS_NONE; REPA(Ms._button)ms_button|=Ms._button[i];
    if(!(ms_button&(BS_ON|BS_RELEASED)))_ms=_ms_src=msLit();
    if(App.active())
    {
@@ -481,9 +480,9 @@ void GUI::draw()
 {
    SyncLocker locker(_lock);
 
-   if(_desktop)
+   if(desktop())
    {
-     _desktop->draw();
+      desktop()->draw();
       D.clip(); // reset clip after drawing all gui objects
 
       // show description

@@ -159,6 +159,8 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
 
                                                  Bool         visibleOnActiveDesktop()C;               //     get if visible and all parents are also visible, and belongs to active desktop
 
+   Region* firstScrollableRegion(); // get first parent which is a scrollable region
+
    // helpers
    Bool contains    (C GuiObj *child)C; // if object contains 'child'
    Int  compareLevel(C GuiObj &obj  )C; // compare level between this object and 'obj' in parent's children hierarchy, <0 value is returned if this object is below 'obj', 0 value is returned if they share the same level or have different parents, >0 value is returned if this object is above 'obj'
@@ -207,8 +209,7 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    GuiObj* first                (GUI_OBJ_TYPE type) ; // get first parent of     'type'
    GuiObj* firstNon             (GUI_OBJ_TYPE type) ; // get first parent of non 'type'
    GuiObj* firstContainer       (                 ) ; // get first parent which is a container
-   GuiObj* firstKbParent        (                 ) ; // get first parent which is a kb storage
-   Region* firstScrollableRegion(                 ) ; // get first parent which is a scrollable region
+   GuiObj* firstKbParent        (                 ) ; // get first parent which is a Keyboard storage
    Int     parents              (                 )C; // get how many parents this object belongs to
 
    Vec2       clientOffset()C; // get client offset (from position to client position)

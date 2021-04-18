@@ -484,7 +484,6 @@ GuiObj& GuiObj::deactivate()
    // hide all menus that belong to 'this'
    for(GuiObj *menu=Gui.menu(); menu->is(GO_MENU); menu=menu->parent())if(contains(menu))menu->hide();else break;
 
-   if(this ==  Gui.desktop        () )Gui._desktop         =null;
    if(contains(Gui.menu           ()))Gui._menu            =&_parent->first(GO_MENU  )->asMenu  ();
    if(contains(Gui.windowLit      ()))Gui._window_lit      =&_parent->first(GO_WINDOW)->asWindow();
    if(contains(Gui.ms             ()))Gui._ms              =null;
