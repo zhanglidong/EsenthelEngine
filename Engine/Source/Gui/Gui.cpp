@@ -333,7 +333,11 @@ void GUI::update()
   _window_lit=&msLit()->first(GO_WINDOW)->asWindow();
 
    // update
+#if 1 // update all
    FREPAO(_desktops).update();
+#else // update active
+   if(desktop())desktop()->update();
+#endif
 
    // callbacks
   _callbacks.update();
