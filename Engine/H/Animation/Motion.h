@@ -33,6 +33,8 @@ struct Motion // Animation Motion, helper class for playing a single Animation
    Flt  eventProgress(CChar8 *from, CChar8 *to)C; // get motion 'time' progress between 'from' and 'to'      , 0 on fail
    Flt  eventProgress(Flt     from, Flt     to)C; // get motion 'time' progress between 'from' and 'to' times, 0 on fail
 
+   void getRootTransform(RevMatrix &transform)C; // get root transform matrix
+
    // update
    Bool updateAuto(Flt blend_in_speed, Flt blend_out_speed, Flt time_speed=1); // update (blend in -> play animation -> blend out), returns false when animation finished playing and blending out
    Bool updateIn  (Flt blend_in_speed,                      Flt time_speed=1); // update (blend in -> play animation             ), returns false when animation finished playing
