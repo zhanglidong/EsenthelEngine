@@ -136,9 +136,9 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
    {
       GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
       {
-            gon.state    =   0;
-            gon.rect     = pos;
-            gon.plane.pos= pos;
+            gon.state    =0;
+            gon.rect     =pos;
+            gon.plane.pos=pos;
             gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
          if(gon.obj      =objAtPos(pos))switch(gon.obj->type())
          {
@@ -158,23 +158,8 @@ GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
                REPA(gon.nearest)if(!gon.nearest[i].recalcDo(gon))gon.nearest.remove(i); // recalc all
 
          again:
-            if(gon.nearest.elms())
+            if(auto *nearest=gon.findNearest())
             {
-               auto *nearest=&gon.nearest.last();
-               Flt   nearest_dist_rect_min=nearest->dist_rect   -EPS*0.5f,
-                     nearest_dist_rect_max=nearest_dist_rect_min+EPS;
-               REP(gon.nearest.elms()-1)
-               {
-                  auto &obj=gon.nearest[i];
-                  Flt   obj_dist_rect=obj.dist_rect;
-                  if(obj_dist_rect< nearest_dist_rect_min
-                  || obj_dist_rect<=nearest_dist_rect_max && obj.dist<nearest->dist)
-                  {
-                     nearest=&obj;
-                     nearest_dist_rect_min=    obj_dist_rect    -EPS*0.5f;
-                     nearest_dist_rect_max=nearest_dist_rect_min+EPS;
-                  }
-               }
                if(nearest->recalc) // if nearest has to be recalculated
                {
                   REPA(gon.nearest){auto &obj=gon.nearest[i]; if(obj.recalc)if(!obj.recalcDo(gon))gon.nearest.remove(i);} // recalc all

@@ -720,6 +720,29 @@ void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
       }
    }
 }
+GuiObjNearest::Obj* GuiObjNearest::findNearest()
+{
+   if(nearest.elms())
+   {
+      auto *nearest=&T.nearest.last();
+      Flt   nearest_dist_rect_min=nearest->dist_rect   -EPS*0.5f,
+            nearest_dist_rect_max=nearest_dist_rect_min+EPS;
+      REP(T.nearest.elms()-1)
+      {
+         auto &obj=T.nearest[i];
+         Flt   obj_dist_rect=obj.dist_rect;
+         if(obj_dist_rect< nearest_dist_rect_min
+         || obj_dist_rect<=nearest_dist_rect_max && obj.dist<nearest->dist)
+         {
+            nearest=&obj;
+            nearest_dist_rect_min=    obj_dist_rect    -EPS*0.5f;
+            nearest_dist_rect_max=nearest_dist_rect_min+EPS;
+         }
+      }
+      return nearest;
+   }
+   return null;
+}
 void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(visible() && gpc.visible)

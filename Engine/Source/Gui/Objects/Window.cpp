@@ -6,12 +6,11 @@ namespace EE{
 /******************************************************************************/
 GuiPC::GuiPC(C GuiPC &old, Window &window)
 {
-   T=old;
-   visible   &=window.visible();
-   enabled   &=window.enabled();
-   client_rect=window._crect+offset;
+   visible    =old.visible&window.visible();
+   enabled    =old.enabled&window.enabled();
+   client_rect=window._crect+old.offset;
    offset     =client_rect.lu();
-   GuiSkin *skin=window.getSkin(); if(skin && skin->region.normal && skin->region.normal->pixelBorder())clip&=Rect(client_rect).extend(-D._pixel_size);else clip&=client_rect; // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
+   GuiSkin *skin=window.getSkin(); clip=old.clip&((skin && skin->region.normal && skin->region.normal->pixelBorder()) ? Rect(client_rect).extend(-D._pixel_size) : client_rect); // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
 
    if(1)D.alignScreenToPixel(offset);
 }

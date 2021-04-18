@@ -4,14 +4,13 @@ namespace EE{
 /******************************************************************************/
 GuiPC::GuiPC(C GuiPC &old, Region &region)
 {
-   T=old;
-   visible   &=region.visible();
-   enabled   &=region.enabled();
-   client_rect=region.clientRect()+offset;
+   visible    =old.visible&region.visible();
+   enabled    =old.enabled&region.enabled();
+   client_rect=region.clientRect()+old.offset;
    offset     =client_rect.lu();
    offset.x  -=region.slidebar[0].offset();
    offset.y  +=region.slidebar[1].offset();
-   GuiSkin *skin=region.getSkin(); if(skin && skin->region.normal && skin->region.normal->pixelBorder())clip&=Rect(client_rect).extend(-D._pixel_size);else clip&=client_rect; // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
+   GuiSkin *skin=region.getSkin(); clip=old.clip&((skin && skin->region.normal && skin->region.normal->pixelBorder()) ? Rect(client_rect).extend(-D._pixel_size) : client_rect); // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
 
    if(1)D.alignScreenToPixel(offset);
 }
@@ -131,7 +130,7 @@ Region& Region::alwaysHideHorizontalSlideBar(Bool hide)
    }
    return T;
 }
-
+/******************************************************************************/
 void Region::setButtons()
 {
    Bool vertical, horizontal;

@@ -26,6 +26,8 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
    Region& removeSlideBars(); // remove slide bars, this will completely remove the SlideBars (they can't be used unless the Region is recreated, effectively disabling any scrolling)
    Region& alwaysHideHorizontalSlideBar(Bool hide);   Bool alwaysHideHorizontalSlideBar()C; // set/get if horizontal SlideBar should be always hidden
 
+   GuiObj* nearest(C Vec2 &screen_pos, C Vec2 &dir); // get nearest child object, starting from 'screen_pos' screen position towards 'dir' direction, null on fail
+
    // set / get
    virtual Region& rect        (C Rect &rect                             )override; C Rect&  rect        ()C {return super::rect()                        ;} // set/get rectangle
    virtual Region& move        (C Vec2 &delta                            )override;                                                                          // move by delta

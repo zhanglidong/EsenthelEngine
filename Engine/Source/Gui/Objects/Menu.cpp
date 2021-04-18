@@ -41,9 +41,8 @@ namespace EE{
 /******************************************************************************/
 GuiPC::GuiPC(C GuiPC &old, Menu &menu)
 {
-   T=old;
-   visible   &=menu.visible();
-   enabled   &=menu.enabled(); if(menu._owner)enabled&=menu._owner->enabledFull();
+   visible    =old.visible&menu.visible();
+   enabled    =old.enabled&menu.enabled(); if(menu._owner)enabled&=menu._owner->enabledFull();
    client_rect=menu._crect;
    clip       =client_rect; // set instead of intersection because child Menu's would be clipped fully
    offset     =client_rect.lu();
