@@ -130,7 +130,7 @@ void Property::Color::update(C GuiPC &gpc)
 }
 void Property::Color::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Property &prop=*(Property*)user;
