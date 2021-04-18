@@ -272,7 +272,7 @@ GuiObj* Region::nearest(C Vec2 &screen_pos, C Vec2 &dir)
             gon.rect     =screen_pos;
             gon.plane.pos=screen_pos;
             gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-         if(gon.obj      =test(gpc, screen_pos, mouse_wheel))switch(gon.obj->type())
+         if(gon.obj      =_children.test(gpc, screen_pos, mouse_wheel))switch(gon.obj->type())
          {
             case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
             case GO_DESKTOP:
