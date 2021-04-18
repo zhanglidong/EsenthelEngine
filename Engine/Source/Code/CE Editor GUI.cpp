@@ -962,7 +962,7 @@ void CodeEditor::BuildList::update(C GuiPC &gpc)
 }
 void CodeEditor::BuildList::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible && InRange(highlight_line, T))
+   if(/*gpc.visible &&*/ visible() && InRange(highlight_line, T))
    {
       Flt alpha=1-(Time.appTime()-highlight_time);
       if( alpha>0)

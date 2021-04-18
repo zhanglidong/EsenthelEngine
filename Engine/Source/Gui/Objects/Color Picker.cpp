@@ -138,7 +138,7 @@ void ColorPicker::SatLum::update(C GuiPC &gpc)
 }
 void ColorPicker::SatLum::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       ColorPicker &cp  =*(ColorPicker*)user;
@@ -190,7 +190,7 @@ void ColorPicker::Hue::update(C GuiPC &gpc)
 }
 void ColorPicker::Hue::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       ColorPicker &cp  =*(ColorPicker*)user;
@@ -236,7 +236,7 @@ void ColorPicker::Colors::update(C GuiPC &gpc)
 }
 void ColorPicker::Colors::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       ColorPicker &cp  =*(ColorPicker*)user;

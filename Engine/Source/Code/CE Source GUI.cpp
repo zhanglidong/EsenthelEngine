@@ -857,7 +857,7 @@ static void ShowElmNames(C Str &str, C Rect &rect, C GuiPC &gpc, C Line *line, C
 /******************************************************************************/
 void Line::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(rect().max.y+gpc.offset.y>=gpc.clip.min.y
       && rect().min.y+gpc.offset.y<=gpc.clip.max.y)
    {
@@ -896,7 +896,7 @@ void Line::draw(C GuiPC &gpc)
 }
 void Source::ViewLine::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(rect().max.y+gpc.offset.y>=gpc.clip.min.y
       && rect().min.y+gpc.offset.y<=gpc.clip.max.y)
    {
@@ -933,7 +933,7 @@ void Source::drawSelection(C Color &color, C VecI2 &a, C VecI2 &b, Bool includin
 /******************************************************************************/
 void Source::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(_crect);
 
