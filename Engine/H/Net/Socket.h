@@ -3,7 +3,7 @@
    Use 'Socket' to communicate with external devices through the internet.
 
 /******************************************************************************/
-#define NULL_SOCKET Ptr(~0)
+#define NULL_SOCKET -1
 /******************************************************************************/
 struct SockAddr // Socket Address
 {
@@ -167,7 +167,11 @@ struct Socket
 #if !EE_PRIVATE
 private:
 #endif
-   CPtr _s=NULL_SOCKET;
+#if WINDOWS
+   UIntPtr _s=NULL_SOCKET;
+#else
+   Int _s=NULL_SOCKET;
+#endif
    NO_COPY_CONSTRUCTOR(Socket);
 };
 /******************************************************************************/

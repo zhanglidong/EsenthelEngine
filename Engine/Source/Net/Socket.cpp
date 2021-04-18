@@ -8,7 +8,6 @@
 #define UPDATE_CERTIFICATES (DEBUG && 0)
 /******************************************************************************/
 #if !WINDOWS
-   #define SOCKET        UIntPtr
    #define SOCKET_ERROR -1
 #endif
 
@@ -448,7 +447,7 @@ Str8 SockAddr::ipText()C
 Bool SockAddr::setFrom(C Socket &socket)
 {
    socklen_t size=SIZE(_data);
-   return getsockname((SOCKET)socket._s, (sockaddr*)&_data, &size)!=SOCKET_ERROR;
+   return getsockname(socket._s, (sockaddr*)&_data, &size)!=SOCKET_ERROR;
 }
 SockAddr& SockAddr::setLocal(Int port)
 {
@@ -713,11 +712,11 @@ Bool SockAddr::load(File &f)
 void Socket::init(Bool ipv6) // !! assumes 'is' !!
 {
 #if APPLE || SWITCH
-   int val=1; setsockopt((SOCKET)_s, SOL_SOCKET, SO_NOSIGPIPE, &val, SIZE(val)); // disable SIGPIPE process signal on Unix machines (it is received when writing to closed socket, and it causes process termination)
+   int val=1; setsockopt(_s, SOL_SOCKET, SO_NOSIGPIPE, &val, SIZE(val)); // disable SIGPIPE process signal on Unix machines (it is received when writing to closed socket, and it causes process termination)
 #endif
    if(ipv6 && DualStackSocket) // don't bother if it's not supported
    {
-      int val=0; setsockopt((SOCKET)_s, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&val, SIZE(val)); // this allows binding to IPv4-mapped IPv6
+      int val=0; setsockopt(_s, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&val, SIZE(val)); // this allows binding to IPv4-mapped IPv6
    }
 }
 void Socket::del()
@@ -725,15 +724,15 @@ void Socket::del()
    if(is())
    {
    #if WINDOWS
-      closesocket((SOCKET)_s);
+      closesocket(_s);
    #else
-      close((SOCKET)_s);
+      close(_s);
    #endif
      _s=NULL_SOCKET;
    }
 }
-Bool Socket::createTcp(Bool ipv6) {del(); _s=(CPtr)socket(ipv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP); if(is()){init(ipv6); return true;} return false;}
-Bool Socket::createUdp(Bool ipv6) {del(); _s=(CPtr)socket(ipv6 ? AF_INET6 : AF_INET, SOCK_DGRAM , IPPROTO_UDP); if(is()){init(ipv6); return true;} return false;}
+Bool Socket::createTcp(Bool ipv6) {del(); _s=socket(ipv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP); if(is()){init(ipv6); return true;} return false;}
+Bool Socket::createUdp(Bool ipv6) {del(); _s=socket(ipv6 ? AF_INET6 : AF_INET, SOCK_DGRAM , IPPROTO_UDP); if(is()){init(ipv6); return true;} return false;}
 
 // if we support 'DualStackSocket' then always create IPv6, because IPv6 with 'DualStackSocket' can support both modes
 // otherwise the address can be v4 only - use IPv4, v6 only - use IPv6, or universal (LOCAL_HOST / ANY) - use IPv4
@@ -752,11 +751,11 @@ Bool Socket::block(Bool on)
    #if WEB
       return !on; // web sockets are always non-blocking, this can't be changed, so return success only if non-blocking mode was requested
    #elif WINDOWS
-      DWORD non_block=(on ? false : true); return ioctlsocket((SOCKET)_s, FIONBIO, &non_block)!=SOCKET_ERROR;
+      DWORD non_block=(on ? false : true); return ioctlsocket(_s, FIONBIO, &non_block)!=SOCKET_ERROR;
    #elif !SWITCH // Nintendo Switch doesn't support FIONBIO
-      UInt  non_block=(on ? false : true); return ioctl      ((SOCKET)_s, FIONBIO, &non_block)!=SOCKET_ERROR;
+      UInt  non_block=(on ? false : true); return ioctl      (_s, FIONBIO, &non_block)!=SOCKET_ERROR;
    #else
-      auto flags=fcntl((SOCKET)_s, F_GETFL, 0); FlagSet(flags, O_NONBLOCK, !on); return fcntl((SOCKET)_s, F_SETFL, flags)!=SOCKET_ERROR;
+      auto flags=fcntl(_s, F_GETFL, 0); FlagSet(flags, O_NONBLOCK, !on); return fcntl(_s, F_SETFL, flags)!=SOCKET_ERROR;
    #endif
    }
    return false;
@@ -765,7 +764,7 @@ Bool Socket::tcpNoDelay(Bool on)
 {
    if(is())
    {
-      int val=on; return !setsockopt((SOCKET)_s, IPPROTO_TCP, TCP_NODELAY, (char*)&val, SIZE(val));
+      int val=on; return !setsockopt(_s, IPPROTO_TCP, TCP_NODELAY, (char*)&val, SIZE(val));
    }
    return false;
 }
@@ -773,7 +772,7 @@ Bool Socket::broadcast(Bool on)
 {
    if(is())
    {
-      int val=on; return !setsockopt((SOCKET)_s, SOL_SOCKET, SO_BROADCAST, (char*)&val, SIZE(val)); // this allows broadcast mode, sending to 255.255.255.255 addr (all devices in local network)
+      int val=on; return !setsockopt(_s, SOL_SOCKET, SO_BROADCAST, (char*)&val, SIZE(val)); // this allows broadcast mode, sending to 255.255.255.255 addr (all devices in local network)
    }
    return false;
 }
@@ -784,7 +783,7 @@ Socket::RESULT Socket::connect(C SockAddr &addr, Int timeout) // !! warning: thi
 #if !WINDOWS
 again:
 #endif
-   if(::connect((SOCKET)_s, (C sockaddr*)&addr._data, addr.size())!=SOCKET_ERROR)return CONNECTED;
+   if(::connect(_s, (C sockaddr*)&addr._data, addr.size())!=SOCKET_ERROR)return CONNECTED;
    switch(PLATFORM(WSAGetLastError(), errno)) // don't use 'Socket::WouldBlock' here because it's not meant for 'connect'
    {
       case PLATFORM(WSAEWOULDBLOCK, EINPROGRESS): // according to docs only these enums can occur for IN_PROGRESS, Win - https://msdn.microsoft.com/en-us/library/windows/desktop/ms737625(v=vs.85).aspx Mac - http://www.manpages.info/macosx/connect.2.html Linux - http://man7.org/linux/man-pages/man2/connect.2.html
@@ -813,7 +812,7 @@ again:
          #if !WINDOWS
          again_2:
          #endif
-            if(::connect((SOCKET)_s, (C sockaddr*)&temp._data, temp.size())!=SOCKET_ERROR)return CONNECTED;
+            if(::connect(_s, (C sockaddr*)&temp._data, temp.size())!=SOCKET_ERROR)return CONNECTED;
             switch(PLATFORM(WSAGetLastError(), errno)) // don't use 'Socket::WouldBlock' here because it's not meant for 'connect'
             {
                case PLATFORM(WSAEWOULDBLOCK, EINPROGRESS): goto in_progress;
@@ -836,14 +835,14 @@ Bool Socket::connectFailed()
    if(is())
    {
       Int error=0; socklen_t size=SIZE(error);
-      if(getsockopt((SOCKET)_s, SOL_SOCKET, SO_ERROR, (char*)&error, &size)!=SOCKET_ERROR)return error!=0;
+      if(getsockopt(_s, SOL_SOCKET, SO_ERROR, (char*)&error, &size)!=SOCKET_ERROR)return error!=0;
    }
 #endif
    return false;
 }
 Bool Socket::bind(C SockAddr &addr)
 {
-   if(::bind((SOCKET)_s, (C sockaddr*)&addr._data, addr.size())!=SOCKET_ERROR)return true;
+   if(::bind(_s, (C sockaddr*)&addr._data, addr.size())!=SOCKET_ERROR)return true;
    switch(PLATFORM(WSAGetLastError(), errno))
    {
    #if !WINDOWS    // leave these extra checks just in case
@@ -852,7 +851,7 @@ Bool Socket::bind(C SockAddr &addr)
    #endif
       case PLATFORM(WSAEAFNOSUPPORT, EAFNOSUPPORT):
       {
-         SockAddr temp; if(temp.convert(addr))return ::bind((SOCKET)_s, (C sockaddr*)&temp._data, temp.size())!=SOCKET_ERROR;
+         SockAddr temp; if(temp.convert(addr))return ::bind(_s, (C sockaddr*)&temp._data, temp.size())!=SOCKET_ERROR;
       }break;
 
    #if LOG_ERROR
@@ -861,13 +860,13 @@ Bool Socket::bind(C SockAddr &addr)
    }
    return false;
 }
-Bool Socket::listen(                                  ) {return ::listen((SOCKET)_s, SOMAXCONN)!=SOCKET_ERROR;}
+Bool Socket::listen(                                  ) {return ::listen(_s, SOMAXCONN)!=SOCKET_ERROR;}
 Bool Socket::accept(Socket &connection, SockAddr &addr)
 {
    connection.del(); addr.clear();
    if(is())
    {
-      socklen_t size=SIZE(addr._data); connection._s=(CPtr)::accept((SOCKET)_s, (sockaddr*)&addr._data, &size);
+      socklen_t size=SIZE(addr._data); connection._s=::accept(_s, (sockaddr*)&addr._data, &size);
       if(connection.is())
       {
       	connection.init(false); // don't adjust IPV6_V6ONLY because the socket is already connected to an address and can't be adjusted afterwards, doing that would fail and cause an error
@@ -882,12 +881,12 @@ Bool Socket::accept(Socket &connection, SockAddr &addr)
 #else
    #define SEND_FLAGS 0
 #endif
-Int Socket::send   (                  CPtr data, Int size) {                                      return ::send    ((SOCKET)_s, (Char8*)data, size, SEND_FLAGS);}
-Int Socket::receive(                   Ptr data, Int size) {                                      return ::recv    ((SOCKET)_s, (Char8*)data, size,          0);}
-Int Socket::receive(  SockAddr &addr,  Ptr data, Int size) {socklen_t addr_size=SIZE(addr._data); return ::recvfrom((SOCKET)_s, (Char8*)data, size,          0, (sockaddr*)&addr._data, &addr_size);}
+Int Socket::send   (                  CPtr data, Int size) {                                      return ::send    (_s, (Char8*)data, size, SEND_FLAGS);}
+Int Socket::receive(                   Ptr data, Int size) {                                      return ::recv    (_s, (Char8*)data, size,          0);}
+Int Socket::receive(  SockAddr &addr,  Ptr data, Int size) {socklen_t addr_size=SIZE(addr._data); return ::recvfrom(_s, (Char8*)data, size,          0, (sockaddr*)&addr._data, &addr_size);}
 Int Socket::send   (C SockAddr &addr, CPtr data, Int size)
 {
-   Int sent=::sendto((SOCKET)_s, (Char8*)data, size, SEND_FLAGS, (C sockaddr*)&addr._data, addr.size());
+   Int sent=::sendto(_s, (Char8*)data, size, SEND_FLAGS, (C sockaddr*)&addr._data, addr.size());
    if( sent<0)switch(PLATFORM(WSAGetLastError(), errno))
    {
    #if !WINDOWS    // leave these extra checks just in case
@@ -896,7 +895,7 @@ Int Socket::send   (C SockAddr &addr, CPtr data, Int size)
    #endif
       case PLATFORM(WSAEAFNOSUPPORT, EAFNOSUPPORT):
       {
-         SockAddr temp; if(temp.convert(addr))sent=::sendto((SOCKET)_s, (Char8*)data, size, SEND_FLAGS, (C sockaddr*)&temp._data, temp.size());
+         SockAddr temp; if(temp.convert(addr))sent=::sendto(_s, (Char8*)data, size, SEND_FLAGS, (C sockaddr*)&temp._data, temp.size());
       }break;
 
    #if LOG_ERROR
@@ -931,13 +930,13 @@ Bool Socket::select(Bool read, Bool write, Int time)
    {
       fd_set fd;
    #if WINDOWS
-      fd.fd_count=1; fd.fd_array[0]=SOCKET(_s);
+      fd.fd_count=1; fd.fd_array[0]=_s;
    #else
-      FD_ZERO(&fd); FD_SET(SOCKET(_s), &fd);
+      FD_ZERO(&fd); FD_SET(_s, &fd);
    #endif
       timeval tv; if(time>0){tv.tv_sec=time/1000; tv.tv_usec=(time%1000)*1000;}else tv.tv_sec=tv.tv_usec=0;
 
-      return ::select(SOCKET(_s)+1, read ? &fd : null, write ? &fd : null, null, &tv)>0;
+      return ::select(_s+1, read ? &fd : null, write ? &fd : null, null, &tv)>0;
    }
    return false;
 }
@@ -950,9 +949,9 @@ Int Socket::available()C
    if(is())
    {
    #if WINDOWS
-      DWORD size; if(ioctlsocket((SOCKET)_s, FIONREAD, &size)!=SOCKET_ERROR)return size;
+      DWORD size; if(ioctlsocket(_s, FIONREAD, &size)!=SOCKET_ERROR)return size;
    #else
-      UInt  size; if(ioctl      ((SOCKET)_s, FIONREAD, &size)!=SOCKET_ERROR)return size;
+      UInt  size; if(ioctl      (_s, FIONREAD, &size)!=SOCKET_ERROR)return size;
    #endif
    }
    return -1;
@@ -1113,7 +1112,7 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
             ifc.ifc_len=SIZE(buffer);
             ifc.ifc_req=buffer;
 
-            if(ioctl((SOCKET)sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
+            if(ioctl(sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
             {
                FREP(ifc.ifc_len/SIZE(ifreq))
                {
@@ -1259,10 +1258,10 @@ static Bool InitSocketEx()
       {
          ifreq ifr;
          // try ethernet first
-         Set(ifr.ifr_name, "eth0"); if(ioctl((SOCKET)sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)CopyFast(&Mac, ifr.ifr_hwaddr.sa_data, Min(SIZEU(Mac), 6));
+         Set(ifr.ifr_name, "eth0"); if(ioctl(sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)CopyFast(&Mac, ifr.ifr_hwaddr.sa_data, Min(SIZEU(Mac), 6));
          if(!Mac) // try wireless lan next
          {
-            Set(ifr.ifr_name, "wlan0"); if(ioctl((SOCKET)sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)CopyFast(&Mac, ifr.ifr_hwaddr.sa_data, Min(SIZEU(Mac), 6));
+            Set(ifr.ifr_name, "wlan0"); if(ioctl(sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)CopyFast(&Mac, ifr.ifr_hwaddr.sa_data, Min(SIZEU(Mac), 6));
             if(!Mac) // if failed then try all available interfaces
             {
                ifreq  buffer[32];
@@ -1270,13 +1269,13 @@ static Bool InitSocketEx()
                ifc.ifc_len=SIZE(buffer);
                ifc.ifc_req=buffer;
 
-               if(ioctl((SOCKET)sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
+               if(ioctl(sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
                   FREP(ifc.ifc_len/SIZE(ifreq))
                {
                   ifreq &ifr=buffer[i];
-                  if(ioctl((SOCKET)sock._s, SIOCGIFFLAGS, &ifr)!=SOCKET_ERROR)
+                  if(ioctl(sock._s, SIOCGIFFLAGS, &ifr)!=SOCKET_ERROR)
                      if(!(ifr.ifr_flags&IFF_LOOPBACK)) // ignore loopback
-                        if(ioctl((SOCKET)sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)
+                        if(ioctl(sock._s, SIOCGIFHWADDR, &ifr)!=SOCKET_ERROR)
                   {
                      CopyFast(&Mac, ifr.ifr_hwaddr.sa_data, Min(SIZEU(Mac), 6));
                      break; // stop on first found
@@ -1313,7 +1312,7 @@ static Bool InitSocketEx()
          ifc.ifc_len=SIZE(buffer);
          ifc.ifc_req=buffer;
 
-         if(ioctl((SOCKET)sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
+         if(ioctl(sock._s, SIOCGIFCONF, &ifc)!=SOCKET_ERROR)
             FREP(ifc.ifc_len/SIZE(ifreq))
          {
             ifreq &ifr=buffer[i];
