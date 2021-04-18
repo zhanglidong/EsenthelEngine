@@ -1379,7 +1379,10 @@ GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    if(/*gpc.visible &&*/ visible() && Cuts(pos, gpc.clip))
    {
       if(Kb.ctrlCmd() && (flag&LIST_SCALABLE))mouse_wheel=this;
-      GuiPC gpc_col(gpc, T); REP(columns())if(GuiObj *go=column(i).test(gpc_col, pos, mouse_wheel))return go;
+      if(columnsVisible())
+      {
+         GuiPC gpc_col(gpc, T); REP(columns())if(GuiObj *go=column(i).test(gpc_col, pos, mouse_wheel))return go;
+      }
       if(_children.children.elms())
       {
          VecI2 visible_range=visibleElmsOnScreen(&gpc); if(visible_range.y>=visible_range.x)
