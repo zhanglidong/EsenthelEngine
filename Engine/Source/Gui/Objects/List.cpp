@@ -1376,7 +1376,7 @@ _List& _List::  setElmGroup     (Str        &member) {      _group_offset=UInt(U
 /******************************************************************************/
 GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible && Cuts(pos, gpc.clip))
+   if(/*gpc.visible &&*/ visible() && Cuts(pos, gpc.clip))
    {
       if(Kb.ctrlCmd() && (flag&LIST_SCALABLE))mouse_wheel=this;
       GuiPC gpc_col(gpc, T); REP(columns())if(GuiObj *go=column(i).test(gpc_col, pos, mouse_wheel))return go;
@@ -1403,7 +1403,7 @@ GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Bool ignore_start;
       if(  ignore_start=(gon.obj==this))gon.state=1;
@@ -1592,7 +1592,7 @@ void _List::update(C GuiPC &gpc)
    {
       if(cur_mode==LCM_MOUSE)setCur(-1);
    }else
-   if(visible() && gpc.visible)
+   if(gpc.visible && visible())
    {
       DEBUG_BYTE_LOCK(_used); // because updating children
       if(visibleElms())
@@ -1761,7 +1761,7 @@ void _List::update(C GuiPC &gpc)
 /******************************************************************************/
 void _List::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin       *     skin=getSkin();
       GuiSkin::List *list_skin=(skin ? &skin->list : null);

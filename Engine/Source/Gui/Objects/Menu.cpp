@@ -494,7 +494,7 @@ ListColumn* Menu::listColumn()
 /******************************************************************************/
 GuiObj* Menu::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiPC gpc_this(gpc, T);
       FREPA(_elms)if(Menu *menu=_elms[i].menu())if(GuiObj *go=menu->test(gpc_this, pos, mouse_wheel))return go;
@@ -740,7 +740,7 @@ void Menu::update(C GuiPC &gpc)
 /******************************************************************************/
 void Menu::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       if(GuiSkin *skin=getSkin())
       {

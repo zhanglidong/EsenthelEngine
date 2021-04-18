@@ -622,7 +622,7 @@ GuiObj& GuiObj::baseLevel(Int level) {if(_base_level!=level){_base_level=level; 
 /******************************************************************************/
 GuiObj* GuiObj::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   return (visible() && gpc.visible && Cuts(pos, (rect()+gpc.offset)&gpc.clip) /*&& is()*/) ? this : null; // no need to check for 'is' because we already check for 'visible' and deleted objects can't be visible
+   return (/*gpc.visible &&*/ visible() && Cuts(pos, (rect()+gpc.offset)&gpc.clip) /*&& is()*/) ? this : null; // no need to check for 'is' because we already check for 'visible' and deleted objects can't be visible
 }
 /******************************************************************************/
 #define NEAREST_AREA_MIN 0.333f // fraction of original area that must be visible to detect
@@ -745,7 +745,7 @@ GuiObjNearest::Obj* GuiObjNearest::findNearest()
 }
 void GuiObj::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       if(gon.obj==this)gon.state=1;else // if encountered the starting object, then mark as encountered, and don't process it
       {

@@ -177,7 +177,7 @@ void MenuBar::update(C GuiPC &gpc)
 
       // activate
       if((Kb.bp(KB_LALT) || Kb.bp(KB_MENU)) // if menu key pressed this frame
-      && visible() && gpc.visible // this MenuBar is visible
+      && gpc.visible && visible() // this MenuBar is visible
       && first(GO_WINDOW)==Gui.window() // it belongs to the focused window (this also works OK if there's no focused window and this MenuBar doesn't belong to any window)
       )_alt=true; // mark that alt is being pressed
       if(_alt) // if alt is being pressed
@@ -265,7 +265,7 @@ void MenuBar::update(C GuiPC &gpc)
 /******************************************************************************/
 void MenuBar::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       D.clip(gpc.clip);

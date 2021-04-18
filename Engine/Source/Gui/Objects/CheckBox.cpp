@@ -111,7 +111,7 @@ void CheckBox::update(C GuiPC &gpc)
 }
 void CheckBox::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
         if(PanelImage *panel_image=(_multi ? skin->checkbox.multi() : T() ? skin->checkbox.on() : skin->checkbox.off()))
    {

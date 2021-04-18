@@ -235,7 +235,7 @@ GuiObj* Region::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void Region::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible() && gpc.visible && gon.test((rect()+gpc.offset)&gpc.clip))
+   if(/*gpc.visible &&*/ visible() && gon.test((rect()+gpc.offset)&gpc.clip))
    {
       GuiPC gpc_children(gpc, T); _children.nearest(gpc_children, gon);
    }
@@ -281,7 +281,7 @@ void Region::update(C GuiPC &gpc)
 }
 void Region::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin *skin=getSkin();
       Rect     rect=T.rect()+gpc.offset, ext_rect;

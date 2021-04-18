@@ -49,7 +49,7 @@ Progress& Progress::set  (Flt  progress   ) {T._progress=Sat(progress)          
 /******************************************************************************/
 void Progress::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect rect=T.rect()+gpc.offset, ext_rect, prog_ext_rect;

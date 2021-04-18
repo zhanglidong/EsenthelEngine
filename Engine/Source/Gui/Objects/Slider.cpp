@@ -93,7 +93,7 @@ Slider& Slider::rect(C Rect &rect)
 /******************************************************************************/
 GuiObj* Slider::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Rect r=rect();
       if(GuiSkin *skin=getSkin())
@@ -146,7 +146,7 @@ void Slider::update(C GuiPC &gpc)
 }
 void Slider::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect rect=T.rect()+gpc.offset, ext_rect;

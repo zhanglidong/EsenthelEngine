@@ -394,7 +394,7 @@ void SlideBar::update(C GuiPC &gpc)
 /******************************************************************************/
 void SlideBar::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect r=rect()+gpc.offset, ext_rect;

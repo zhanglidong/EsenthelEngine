@@ -388,7 +388,7 @@ void Window::parentClientRectChanged(C Rect *old_client, C Rect *new_client)
 /******************************************************************************/
 GuiObj* Window::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible && _fade_type!=FADE_OUT)
+   if(/*gpc.visible &&*/ visible() && _fade_type!=FADE_OUT)
    {
       Rect r=rect()+gpc.offset;
       if(flag&WIN_RESIZABLE)
@@ -416,7 +416,7 @@ GuiObj* Window::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void Window::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible() && gpc.visible && _fade_type!=FADE_OUT)
+   if(/*gpc.visible &&*/ visible() && _fade_type!=FADE_OUT)
    {
       Rect r=rect()+gpc.offset, r_clip=r&gpc.clip;
       if(gon.test(r_clip)) // this already tests if rect is valid
@@ -594,7 +594,7 @@ void Window::update(C GuiPC &gpc)
 /******************************************************************************/
 void Window::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Bool  active=T.active(), transparent=(finalAlpha()<1-EPS_COL);
       GuiPC gpc_this(gpc, T); // first calculate the GuiPC for children which sets the offset per pixel aligned exactly at client rect top left corner

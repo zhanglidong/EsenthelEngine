@@ -73,7 +73,7 @@ GuiObj* Viewport::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void Viewport::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Rect r=rect()+gpc.offset;
       if(draw_func && (r&Rect(gpc.clip).extend(-D.pixelToScreenSize().x, -D.pixelToScreenSize().y)).valid())

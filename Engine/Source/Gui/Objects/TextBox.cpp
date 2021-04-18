@@ -478,7 +478,7 @@ void TextBox::update(C GuiPC &gpc)
 }
 void TextBox::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin *skin=getSkin();
       Rect     rect=T.rect()+gpc.offset, ext_rect;

@@ -262,7 +262,7 @@ void Button::update(C GuiPC &gpc)
 /******************************************************************************/
 void Button::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect                  r=rect()+gpc.offset;

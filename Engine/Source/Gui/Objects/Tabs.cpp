@@ -322,7 +322,7 @@ Tabs& Tabs::desc(C Str &desc)
 /******************************************************************************/
 GuiObj* Tabs::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible && Cuts(pos, gpc.clip))
+   if(/*gpc.visible &&*/ visible() && Cuts(pos, gpc.clip))
    {
       if(InRange(T(), T))if(GuiObj *go=tab(T())._children.test(gpc, pos, mouse_wheel))return go;
       if(Cuts(pos, rect()+gpc.offset))
@@ -335,7 +335,7 @@ GuiObj* Tabs::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void Tabs::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       if(InRange(T(), T))tab(T())._children.nearest(gpc, gon);
       if(gon.test((rect()+gpc.offset)&gpc.clip))REPA(T)tab(i).nearest(gpc, gon);
@@ -363,7 +363,7 @@ void Tabs::update(C GuiPC &gpc)
 }
 void Tabs::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       setButtonSubType();
       Rect  r=rect()+gpc.offset; Vec2 ofs=D.alignScreenToPixelOffset(r.lu()); r+=ofs;

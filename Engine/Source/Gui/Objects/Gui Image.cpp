@@ -51,7 +51,7 @@ GuiImage& GuiImage::set(C ImagePtr &image) {T.image=image; return T;}
 /******************************************************************************/
 void GuiImage::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Rect rect=T.rect()+gpc.offset;
       if(Cuts(rect, gpc.clip))

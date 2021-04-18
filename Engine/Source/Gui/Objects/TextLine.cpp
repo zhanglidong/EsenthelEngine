@@ -341,7 +341,7 @@ void TextLine::update(C GuiPC &gpc)
 }
 void TextLine::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Bool        enabled=(T.enabled() && gpc.enabled);
