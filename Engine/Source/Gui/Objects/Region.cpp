@@ -240,6 +240,44 @@ void Region::nearest(C GuiPC &gpc, GuiObjNearest &gon)
       GuiPC gpc_children(gpc, T); _children.nearest(gpc_children, gon);
    }
 }
+GuiObj* Region::nearest(C Vec2 &screen_pos, C Vec2 &dir)
+{
+   if(_children.children.elms())
+   {
+      GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
+      {
+         GuiPC gpc;
+         gpc.visible=gpc.enabled=true;
+         gpc.offset =screenPos();
+         gpc.client_rect=gpc.clip.set(-FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX);
+         GuiPC   gpc_children(gpc, T); gpc_children.visible=true; // force 'visible' because we want this method to work even if region is hidden
+         GuiObj *mouse_wheel=null;
+
+            gon.state    =0;
+            gon.rect     =screen_pos;
+            gon.plane.pos=screen_pos;
+            gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+         if(gon.obj      =test(gpc_children, screen_pos, mouse_wheel))switch(gon.obj->type())
+         {
+            case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
+            case GO_DESKTOP:
+            case GO_WINDOW :
+            case GO_REGION :
+               break;
+            default: gon.rect=gon.obj->screenRect().extend(-EPS); break;
+         }
+
+        _children.nearest(gpc_children, gon);
+
+         if(auto *nearest=gon.findNearest())
+         {
+          //out_pos=nearest->rect.center();
+            return  nearest->obj;
+         }
+      }
+   }
+   return null;
+}
 /******************************************************************************/
 void Region::update(C GuiPC &gpc)
 {
