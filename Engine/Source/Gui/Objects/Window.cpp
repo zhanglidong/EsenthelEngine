@@ -830,7 +830,7 @@ void ClosableWindow::update(C GuiPC &gpc)
 /******************************************************************************/
 GuiObj* ModalWindow::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible())
+   if(/*gpc.visible &&*/ visible())
    {
       if(GuiObj *go=super::test(gpc, pos, mouse_wheel))return go;
       return &_background;
@@ -839,7 +839,7 @@ GuiObj* ModalWindow::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void ModalWindow::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
-   if(visible())
+   if(/*gpc.visible &&*/ visible())
    {
       gon.nearest.clear();
       super::nearest(gpc, gon);
@@ -848,11 +848,11 @@ void ModalWindow::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 void ModalWindow::update(C GuiPC &gpc)
 {
    super::update(gpc);
-   if(visible())REPA(MT)if(MT.bp(i) && MT.guiObj(i)==&_background)fadeOut();
+   if(gpc.visible && visible())REPA(MT)if(MT.bp(i) && MT.guiObj(i)==&_background)fadeOut();
 }
 void ModalWindow::draw(C GuiPC &gpc)
 {
-   if(visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip();
       D.rect().draw(ColorBA(0, finalAlpha()*0.5f));
