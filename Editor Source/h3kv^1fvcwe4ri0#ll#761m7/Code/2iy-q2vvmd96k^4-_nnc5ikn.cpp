@@ -436,7 +436,7 @@ class AnimEditor : Viewport4Region
       virtual void update(C GuiPC &gpc)override
       {
          flt old_time=AnimEdit.animTime();
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             if(contains(Gui.kb()))
             {
@@ -1336,7 +1336,7 @@ class AnimEditor : Viewport4Region
    virtual void update(C GuiPC &gpc)override
    {
       lit_bone=-1;
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          optimize_anim .refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
          scale_pos_keys.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)

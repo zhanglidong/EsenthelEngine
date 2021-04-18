@@ -1421,7 +1421,7 @@ class WorldView : Viewport4Region, WorldData
 
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          super.draw(gpc);
          Memt<Str> a;

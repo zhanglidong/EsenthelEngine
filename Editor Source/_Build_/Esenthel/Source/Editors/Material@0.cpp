@@ -206,7 +206,7 @@ MaterialTech mtrl_techs[]=
       }
       void MaterialRegion::Texture::update(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             super::update(gpc);
             rect_color=((Gui.msLit()==this && Gui.skin) ? Gui.skin->keyboard_highlight_color : Gui.borderColor());
@@ -295,7 +295,7 @@ MaterialTech mtrl_techs[]=
       }
       void MaterialRegion::Texture::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect   r=rect()+gpc.offset;

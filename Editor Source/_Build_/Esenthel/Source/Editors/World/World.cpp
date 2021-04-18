@@ -1203,7 +1203,7 @@ WorldView WorldEdit;
    }
    void WorldView::draw(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          super::draw(gpc);
          Memt<Str> a;

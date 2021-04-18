@@ -127,7 +127,7 @@ class Viewport4Region : Region
    virtual void camCenter(bool zoom) {}
    virtual void update   (C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          v4.update(); // this sets D.viewRect
          if(fpp_speed.visible() && Ms.wheel() && v4.focus() && !Kb.ctrlCmd() && !Kb.shift())fpp_speed.set(fpp_speed()+Ms.wheel()*0.1); // ctrl and shift are reserved for terrain brush params

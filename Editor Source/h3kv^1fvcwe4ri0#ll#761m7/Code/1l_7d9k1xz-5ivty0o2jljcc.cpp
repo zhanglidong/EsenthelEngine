@@ -140,7 +140,7 @@ parent+=slope_window.create(Rect_RD(rect().ld()-Vec2(0.03, 0), 0.22, 0.13), "Slo
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          setChildWindows();
          if(Ms.wheel() && (Gui.wheel()==Gui.desktop() || !Gui.wheel() || hasMsWheelFocus()))

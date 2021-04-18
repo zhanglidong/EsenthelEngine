@@ -2266,7 +2266,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       lit_phys=-1;
       selLod(sel_lod);
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          // get lit
          if(mode()==SLOTS)

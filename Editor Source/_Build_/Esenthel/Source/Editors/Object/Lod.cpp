@@ -8,7 +8,7 @@ NewLodClass NewLod;
    Str LodView::TextSimple(flt x) {return x<10 ? TextReal(x, -1) : TextInt(Round(x));}
    void LodView::draw(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          D.clip(gpc.clip);
          Rect r=rect()+gpc.offset;
@@ -322,7 +322,7 @@ draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass
    void NewLodClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(needRebuild())startThread();
          if(processed_ready)

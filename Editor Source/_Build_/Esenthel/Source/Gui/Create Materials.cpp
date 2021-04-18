@@ -162,7 +162,7 @@ void DrawCreateMaterials()
    void CreateMaterials::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Ms.tappedFirst(0) && Gui.ms()==&list)if(Src *src=list())if(Elm *elm=Proj.findElm(src->id))ImageEdit.toggle(elm);
       }

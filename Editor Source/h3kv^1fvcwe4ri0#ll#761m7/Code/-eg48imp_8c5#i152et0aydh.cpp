@@ -312,7 +312,7 @@ class MiscRegion : Region
    }
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Proj.visible() && Proj.rect().max.x>rect().max.x+EPS)
             if(Mode()==MODE_OBJ || Mode()==MODE_ANIM || Mode()==MODE_WORLD || Mode()==MODE_TEX_DOWN)

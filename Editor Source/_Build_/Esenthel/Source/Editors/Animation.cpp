@@ -390,7 +390,7 @@ AnimEditor AnimEdit;
       void AnimEditor::Preview::update(C GuiPC &gpc)
 {
          flt old_time=AnimEdit.animTime();
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             if(contains(Gui.kb()))
             {
@@ -1207,7 +1207,7 @@ AnimEditor AnimEdit;
    void AnimEditor::update(C GuiPC &gpc)
 {
       lit_bone=-1;
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          optimize_anim .refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
          scale_pos_keys.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)

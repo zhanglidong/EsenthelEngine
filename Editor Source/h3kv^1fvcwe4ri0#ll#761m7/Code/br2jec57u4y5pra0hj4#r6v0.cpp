@@ -91,7 +91,7 @@ class SelectionClass
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             /*if(Gui.image_button)REPA(T)

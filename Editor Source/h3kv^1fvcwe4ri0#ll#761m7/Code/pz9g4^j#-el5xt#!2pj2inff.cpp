@@ -295,7 +295,7 @@ class DetectSimilarTextures : PropWin
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          progress.set(compared, UniquePairs(proj_texs.elms())); progress.visible(progress()<1 && proj_texs.elms()); // !! do not merge into a single instruction !!
          if(similar_pair.elms())

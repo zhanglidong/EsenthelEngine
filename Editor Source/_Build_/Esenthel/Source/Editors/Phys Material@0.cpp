@@ -156,7 +156,7 @@ PhysMtrlEditor PhysMtrlEdit;
    void PhysMtrlEditor::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(MS_BACK)){cam.yaw-=Ms.d().x; cam.pitch+=Ms.d().y; Ms.freeze();}
          if(Gui.wheel()==&viewport)Clamp(cam.dist*=ScaleFactor(Ms.wheel()*-0.2f), 10, 36);

@@ -207,7 +207,7 @@ class MaterialRegion : Region
       }
       virtual void update(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             super.update(gpc);
             rect_color=((Gui.msLit()==this && Gui.skin) ? Gui.skin->keyboard_highlight_color : Gui.borderColor());
@@ -296,7 +296,7 @@ class MaterialRegion : Region
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect   r=rect()+gpc.offset;

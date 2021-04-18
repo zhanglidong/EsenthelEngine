@@ -111,7 +111,7 @@
       int MeshVariations::ListVariation::getPos(C Vec2 &pos) {int p=screenToVisY(pos.y-elmHeight()/2); return (p>=0) ? p : visibleElms();}
       void MeshVariations::ListVariation::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiSkin skin; 
             int elm=-1; if(Gui.dragging() && Gui.objAtPos(Gui.dragPos())==this)elm=getPos(Gui.dragPos());

@@ -168,7 +168,7 @@ WorldBrushClass Brush;
 {
       super::update(gpc);
       setVisibility();
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          // parameters
          flt cds=(bsize() ? CamMoveScale(WorldEdit.v4.perspective())/25 : 1); // camera distance scale

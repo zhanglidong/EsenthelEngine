@@ -197,7 +197,7 @@ class GuiSkinEditor : Region
    {
       virtual void update(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
             super.update(gpc);
@@ -206,7 +206,7 @@ class GuiSkinEditor : Region
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
             super.draw(gpc);

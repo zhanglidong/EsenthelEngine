@@ -5,7 +5,7 @@ class ConvertToDeAtlasClass : PropWin
    {
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset;
@@ -363,7 +363,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          VecI2 size=finalSize();
          if(sw)sw.name.set(S+"Source Width: " +source_rect.w());

@@ -101,7 +101,7 @@ public:
    /*virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
       }
    }*/

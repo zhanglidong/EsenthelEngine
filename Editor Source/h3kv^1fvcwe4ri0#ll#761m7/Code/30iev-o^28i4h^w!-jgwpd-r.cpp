@@ -340,7 +340,7 @@ class NewWorldClass : ClosableWindow
    {
       super.update(gpc);
 
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          density.set(S+TextReal(flt(heightmapRes())/areaSize(), -3)+MLTC(u" per meter", PL, u" na metr", DE, u" pro Meter", RU, u" за метр", PO, u" por metro"));
          if(Gui.window()==this && Kb.k(KB_ENTER))ok.push();
@@ -530,7 +530,7 @@ class ModeTabs : Tabs
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible && Ms.bp(2))REPA(T)if(Gui.ms()==&tab(i)) // close Tab on middle mouse
+      if(gpc.visible && visible() && Ms.bp(2))REPA(T)if(Gui.ms()==&tab(i)) // close Tab on middle mouse
       {
          closeTab(i, true);
          break;

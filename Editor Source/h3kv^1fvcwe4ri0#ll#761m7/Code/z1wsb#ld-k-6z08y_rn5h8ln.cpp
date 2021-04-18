@@ -488,7 +488,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    virtual void update(C GuiPC &gpc)override
    {
       // process mouse wheel before super.update so it's not handled by the region slidebars
-      if(visible() && gpc.visible && Gui.ms()==&list && Ms.wheel())
+      if(gpc.visible && visible() && Gui.ms()==&list && Ms.wheel())
          if(Kb.ctrl() || Kb.shift() || Kb.alt())
       {
             if(Kb.ctrl ())options. rowsDelta (-Ms.wheel()    );else
@@ -502,7 +502,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       super.update(gpc);
       ElmMatrixes.update();
 
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          bool rotate=options.rotate, can_transform=false;
          if(Gui.ms()==&list)

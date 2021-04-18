@@ -39,7 +39,7 @@ ImageEditor ImageEdit;
       }
       void ImageEditor::GuiImage2::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect rect=T.rect()+gpc.offset;
             if(image)
@@ -96,7 +96,7 @@ ImageEditor ImageEdit;
       }
       void ImageEditor::CubeFace::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect rect=T.rect()+gpc.offset;
             if(image && image->mode()==IMAGE_CUBE)

@@ -15,7 +15,7 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
 /******************************************************************************/
       void ConvertToDeAtlasClass::Preview::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset;
@@ -345,7 +345,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
    void ConvertToDeAtlasClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          VecI2 size=finalSize();
          if(sw)sw->name.set(S+"Source Width: " +source_rect.w());

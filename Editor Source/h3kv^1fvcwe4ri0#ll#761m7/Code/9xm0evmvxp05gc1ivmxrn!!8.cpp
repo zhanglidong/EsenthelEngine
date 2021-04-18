@@ -26,7 +26,7 @@ class PanelEditor : PropWin
 
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiPC gpc2=gpc;
             MAX(gpc2.clip.min.x, clip_x+parent().screenPos().x);

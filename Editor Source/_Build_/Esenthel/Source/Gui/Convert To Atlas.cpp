@@ -28,7 +28,7 @@ ConvertToAtlasClass ConvertToAtlas;
       }
       void ConvertToAtlasClass::Preview::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset;

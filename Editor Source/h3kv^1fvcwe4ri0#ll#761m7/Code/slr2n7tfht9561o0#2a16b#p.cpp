@@ -477,7 +477,7 @@ class StoreClass : ClosableWindow
    {
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect  clip=gpc.clip; if(!columnsHidden())clip.max.y-=columnHeight();
             VecI2 visible_elms=visibleElmsOnScreen(&gpc);
@@ -1735,7 +1735,7 @@ class StoreClass : ClosableWindow
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(MS_BACK) && Gui.window()==this && !(Gui.kb() && Gui.kb().type()==GO_TEXTLINE)))back.push();
          REPA(MT)if(MT.tapped(i) && MT.guiObj(i)==&items_list)if(Item *item=items_list())openItem(item.id);
@@ -1985,7 +1985,7 @@ class StoreClass : ClosableWindow
    virtual void draw(C GuiPC &gpc)override
    {
       super.draw(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(image_preview && image_preview_step>EPS_COL)
          {

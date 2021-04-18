@@ -199,7 +199,7 @@ SizeStatistics SizeStats;
    void SizeStatistics::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Ms.bd(       0) && Gui.ms()==&list
          || Kb.k (KB_ENTER) && Gui.kb()==&list)

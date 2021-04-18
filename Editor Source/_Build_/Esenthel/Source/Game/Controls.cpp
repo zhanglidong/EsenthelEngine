@@ -56,7 +56,7 @@ void GameScreenChanged()
    }
    void Rotator::draw(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          D.clip(gpc.clip);
          Circle circle(rect().h()*0.5f, rect().center()+gpc.offset);

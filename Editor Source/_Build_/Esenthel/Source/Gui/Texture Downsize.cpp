@@ -642,7 +642,7 @@ TextureDownsize TexDownsize;
    void TextureDownsize::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          Elm *elm=Proj.list(); if(elm)if(elm->type!=ELM_OBJ && elm->type!=ELM_MTRL)elm=null;
          if( !elm)elm=MtrlEdit.elm;

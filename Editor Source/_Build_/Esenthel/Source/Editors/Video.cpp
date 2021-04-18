@@ -8,7 +8,7 @@ VideoEditor VideoEdit;
       GuiObj* VideoEditor::Custom::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
       void    VideoEditor::Custom::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset; 

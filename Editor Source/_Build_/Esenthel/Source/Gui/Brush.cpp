@@ -103,7 +103,7 @@ parent+=slope_window.create(Rect_RD(rect().ld()-Vec2(0.03f, 0), 0.22f, 0.13f), "
    void BrushClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          setChildWindows();
          if(Ms.wheel() && (Gui.wheel()==Gui.desktop() || !Gui.wheel() || hasMsWheelFocus()))

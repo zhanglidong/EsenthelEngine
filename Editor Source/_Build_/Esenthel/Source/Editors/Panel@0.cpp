@@ -20,7 +20,7 @@ PanelEditor PanelEdit;
       GuiObj* PanelEditor::GuiPanel::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
       void PanelEditor::GuiPanel::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiPC gpc2=gpc;
             MAX(gpc2.clip.min.x, clip_x+parent()->screenPos().x);

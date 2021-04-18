@@ -27,7 +27,7 @@ class ImageEditor : PropWin
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect rect=T.rect()+gpc.offset;
             if(image)
@@ -90,7 +90,7 @@ class ImageEditor : PropWin
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect rect=T.rect()+gpc.offset;
             if(image && image->mode()==IMAGE_CUBE)
