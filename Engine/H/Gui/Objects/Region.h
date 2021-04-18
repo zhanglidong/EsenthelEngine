@@ -11,7 +11,10 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
            Region& create(C Rect   &rect) {create().rect(rect); return T;} // create
            Region& create(C Region &src );                                 // create from 'src'
 
-   // operations
+   // scroll
+   Bool scrolling  ()C {return      slidebar[0].scrolling() || slidebar[1].scrolling  () ;} // if  currently scrolling
+   Vec2 scrollDelta()C {return Vec2(slidebar[0].scrollDelta(), slidebar[1].scrollDelta());} // get amount of scroll that's still left to be done
+
    Region& scrollX   (Flt delta       , Bool immediate=false) {slidebar[0].scroll   (delta   , immediate); return T;} // horizontal scroll by delta
    Region& scrollToX (Flt pos         , Bool immediate=false) {slidebar[0].scrollTo (pos     , immediate); return T;} // horizontal scroll to pos
    Region& scrollFitX(Flt min, Flt max, Bool immediate=false) {slidebar[0].scrollFit(min, max, immediate); return T;} // horizontal scroll to fit min..max range
@@ -21,8 +24,9 @@ const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constan
    Region& scrollFitY(Flt min, Flt max, Bool immediate=false) {slidebar[1].scrollFit(min, max, immediate); return T;} // vertical scroll to fit min..max range
    Region& scrollEndY(                  Bool immediate=false) {slidebar[1].scrollEnd(          immediate); return T;} // vertical scroll to end
 
-   Vec2 scrollDelta()C {return Vec2(slidebar[0].scrollDelta(), slidebar[1].scrollDelta());}
+   Region& scrollTo(C GuiObj &child, Bool immediate=false); // scroll to 'child' object (if 'child' is not a child of this region then this function does nothing)
 
+   // operations
    Region& removeSlideBars(); // remove slide bars, this will completely remove the SlideBars (they can't be used unless the Region is recreated, effectively disabling any scrolling)
    Region& alwaysHideHorizontalSlideBar(Bool hide);   Bool alwaysHideHorizontalSlideBar()C; // set/get if horizontal SlideBar should be always hidden
 

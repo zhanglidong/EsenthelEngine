@@ -201,6 +201,20 @@ Region& Region::move(C Vec2 &delta)
    return T;
 }
 /******************************************************************************/
+Region& Region::scrollTo(C GuiObj &child, Bool immediate)
+{
+   if(contains(&child))
+   {
+      Rect child_rect=child.screenRect();
+      Vec2  this_pos =      screenPos ();
+      this_pos.x-=slidebar[0].offset();
+      this_pos.y+=slidebar[1].offset();
+      slidebar[0].scrollFit(child_rect.min.x-this_pos.x, child_rect.max.x-this_pos.x, immediate);
+      slidebar[1].scrollFit(this_pos.y-child_rect.max.y, this_pos.y-child_rect.min.y, immediate);
+   }
+   return T;
+}
+/******************************************************************************/
 Region& Region::skin(C GuiSkinPtr &skin, Bool sub_objects)
 {
   _skin=skin;
@@ -247,17 +261,18 @@ GuiObj* Region::nearest(C Vec2 &screen_pos, C Vec2 &dir)
       GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
       {
          GuiPC gpc;
-         gpc.visible=gpc.enabled=true;
-         gpc.offset =screenPos();
+         gpc.visible  =gpc.enabled=true;
+         gpc.offset   =screenPos();
+         gpc.offset.x-=slidebar[0].offset();
+         gpc.offset.y+=slidebar[1].offset();
          gpc.client_rect=gpc.clip.set(-FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX);
-         GuiPC   gpc_children(gpc, T); gpc_children.visible=true; // force 'visible' because we want this method to work even if region is hidden
          GuiObj *mouse_wheel=null;
 
             gon.state    =0;
             gon.rect     =screen_pos;
             gon.plane.pos=screen_pos;
             gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
-         if(gon.obj      =test(gpc_children, screen_pos, mouse_wheel))switch(gon.obj->type())
+         if(gon.obj      =test(gpc, screen_pos, mouse_wheel))switch(gon.obj->type())
          {
             case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
             case GO_DESKTOP:
@@ -267,7 +282,7 @@ GuiObj* Region::nearest(C Vec2 &screen_pos, C Vec2 &dir)
             default: gon.rect=gon.obj->screenRect().extend(-EPS); break;
          }
 
-        _children.nearest(gpc_children, gon);
+        _children.nearest(gpc, gon);
 
          if(auto *nearest=gon.findNearest())
          {
