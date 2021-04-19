@@ -38,8 +38,8 @@ enum VI_USER_FLAG // VertexIndex user flags
    VI_CULL              =1<<0, // perform triangle culling
    VI_ALPHA_TEST        =1<<1, // perform alpha    testing
    VI_FOG               =1<<2, // make use of Fog
-   VI_CUSTOM_TEX_WRAP   =1<<3, // custom texture wrapping was specified
-   VI_CUSTOM_DEPTH_WRITE=1<<4, // custom depth   write    was specified
+   VI_CUSTOM_SAMPLER    =1<<3, // custom texture sampler was specified
+   VI_CUSTOM_DEPTH_WRITE=1<<4, // custom depth   write   was specified
 };
 /******************************************************************************/
 struct Vtx2DFlat
@@ -158,6 +158,7 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
    static void wrap      (                ); // set texture addressing to (X:wrap , Y:wrap )
    static void wrapX     (                ); // set texture addressing to (X:wrap , Y:clamp)
    static void wrapY     (                ); // set texture addressing to (X:clamp, Y:wrap )
+   static void clampAniso(                ); // set texture addressing to (X:clamp, Y:clamp) anisotropic
    static void flush     (                ); // flush queued data, calling this method is optional as 'end' method will automatically call it, you can call this method during drawing before changing some shader parameters
    static void end       (                ); // flush and finish drawing, this must be called after each series of drawing
 

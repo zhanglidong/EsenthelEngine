@@ -1669,7 +1669,7 @@ void VtxIndBuf::clear()
    if(VI._user_flag)
    {
       if(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)D.depthWrite(VI._depth_write); // reset depth writing
-      if(VI._user_flag&VI_CUSTOM_TEX_WRAP   ) // reset the sampler
+      if(VI._user_flag&VI_CUSTOM_SAMPLER    ) // reset the sampler
       {
       #if DX11
          if(D._sampler2D)SamplerLinearClamp.setPS(SSI_DEFAULT);
@@ -1714,7 +1714,7 @@ void VtxIndBuf::depthWrite(Bool on  ) {if(!(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)
 
 void VtxIndBuf::clamp()
 {
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
+   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
 #if DX11
    SamplerLinearClamp.setPS(SSI_DEFAULT);
 #else
@@ -1723,7 +1723,7 @@ void VtxIndBuf::clamp()
 }
 void VtxIndBuf::wrap()
 {
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
+   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
 #if DX11
    SamplerLinearWrap.setPS(SSI_DEFAULT);
 #else
@@ -1732,7 +1732,7 @@ void VtxIndBuf::wrap()
 }
 void VtxIndBuf::wrapX()
 {
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
+   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
 #if DX11
    SamplerLinearWCC.setPS(SSI_DEFAULT);
 #else
@@ -1741,11 +1741,20 @@ void VtxIndBuf::wrapX()
 }
 void VtxIndBuf::wrapY()
 {
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
+   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
 #if DX11
    SamplerLinearCWC.setPS(SSI_DEFAULT);
 #else
    Sh.Img[0]->_sampler=&SamplerLinearCWC;
+#endif
+}
+void VtxIndBuf::clampAniso()
+{
+   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
+#if DX11
+   SamplerAnisotropicClamp.setPS(SSI_DEFAULT);
+#else
+   Sh.Img[0]->_sampler=&SamplerAnisotropicClamp;
 #endif
 }
 /******************************************************************************/

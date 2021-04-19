@@ -1295,6 +1295,7 @@ void PanelImage::defaultInnerPaddingSize(Vec2 &padd_size)C
 void PanelImage::draw(                                    C Rect &rect)C {draw(WHITE, TRANSPARENT, rect);}
 void PanelImage::draw(C Color &color, C Color &color_add, C Rect &rect)C
 {
+   if(image.mipMaps()>1)VI.clampAniso(); // if have mip maps then use high quality sampler to workaround that when squeezing image in one dimension then smaller mip maps are used even the other dimension is stretched
    VI.color  (color    );
    VI.color1 (color_add);
    VI.image  (&image   );
@@ -1447,6 +1448,7 @@ void PanelImage::draw(C Color &color, C Color &color_add, C Rect &rect)C
 void PanelImage::drawVertical(                                    C Rect &rect)C {drawVertical(WHITE, TRANSPARENT, rect);}
 void PanelImage::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 {
+   if(image.mipMaps()>1)VI.clampAniso(); // if have mip maps then use high quality sampler to workaround that when squeezing image in one dimension then smaller mip maps are used even the other dimension is stretched
    VI.color  (color    );
    VI.color1 (color_add);
    VI.image  (&image   );
@@ -1598,6 +1600,7 @@ void PanelImage::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 /******************************************************************************/
 void PanelImage::drawBorders(C Color &color, C Color &color_add, C Rect &rect)C
 {
+   if(image.mipMaps()>1)VI.clampAniso(); // if have mip maps then use high quality sampler to workaround that when squeezing image in one dimension then smaller mip maps are used even the other dimension is stretched
    VI.color  (color    );
    VI.color1 (color_add);
    VI.image  (&image   );
@@ -1759,6 +1762,7 @@ static void Clip(Flt &min_pos, Flt &max_pos, Flt min_tex, Flt &max_tex, Flt clip
 }
 void PanelImage::drawFrac(C Color &color, C Color &color_add, C Rect &rect, Flt frac_x, Bool include_padding)C
 {
+   if(image.mipMaps()>1)VI.clampAniso(); // if have mip maps then use high quality sampler to workaround that when squeezing image in one dimension then smaller mip maps are used even the other dimension is stretched
    VI.color  (color    );
    VI.color1 (color_add);
    VI.image  (&image   );
@@ -1935,6 +1939,7 @@ void PanelImage::drawFrac(C Color &color, C Color &color_add, C Rect &rect, Flt 
 }
 void PanelImage::drawVerticalFrac(C Color &color, C Color &color_add, C Rect &rect, Flt frac_y, Bool include_padding)C
 {
+   if(image.mipMaps()>1)VI.clampAniso(); // if have mip maps then use high quality sampler to workaround that when squeezing image in one dimension then smaller mip maps are used even the other dimension is stretched
    VI.color  (color    );
    VI.color1 (color_add);
    VI.image  (&image   );
