@@ -163,10 +163,11 @@ Button& Button::set(Bool on, SET_MODE mode)
    }
    return T;
 }
-Button& Button::push    (                 ) {T._push_button=true ; return T;}
-Button& Button::setText (C Str      &text ) {T. text       =text ; return T;}
-Button& Button::setImage(C ImagePtr &image) {T. image      =image; return T;}
-Button& Button::subType (BUTTON_TYPE type ) {T._sub_type   =type ; return T;}
+Button& Button::push    (                   ) {T._push_button=true ; return T;}
+Button& Button::setText (C Str        &text ) {T. text       =text ; return T;}
+Button& Button::setImage(C ImagePtr   &image) {T. image      =image; return T;}
+Button& Button::setSkin (C GuiSkinPtr &skin ) {T. skin       =skin ; return T;}
+Button& Button::subType (BUTTON_TYPE   type ) {T._sub_type   =type ; return T;}
 /******************************************************************************/
 Button& Button:: enabled (Bool  enabled) {if(T. enabled()!= enabled){if(!enabled && mode!=BUTTON_TOGGLE)_on=false; super:: enabled( enabled);} return T;}
 Button& Button::disabled (Bool disabled) {if(T.disabled()!=disabled){if(disabled && mode!=BUTTON_TOGGLE)_on=false; super::disabled(disabled);} return T;}

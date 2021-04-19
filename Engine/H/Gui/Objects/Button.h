@@ -64,7 +64,7 @@ const_mem_addr struct Button : GuiObj // Gui Button !! must be stored in constan
    virtual Button&  enabled  (Bool  enabled                     )override;   Bool        enabled()C {return          super:: enabled();} // set/get if  enabled
    virtual Button& disabled  (Bool disabled                     )override;   Bool       disabled()C {return          super::disabled();} // set/get if disabled
            Button& focusable (Bool on                           );           Bool      focusable()C {return                 _focusable;} // set/get if can catch keyboard focus, default=true
-                                                                             GuiSkin*    getSkin()C {return skin ? skin() : Gui.skin();} //     get actual skin
+           Button& setSkin   (C GuiSkinPtr &skin                );           GuiSkin*    getSkin()C {return skin ? skin() : Gui.skin();} //     get actual skin
 
    Flt        textWidth (                                C Flt *height=null)C; // calculate button text width     , 'height'=if calculate based on custom button height (if null then current button height is used)
    TextStyle* textParams(Flt &text_size, Flt &text_padd, C Flt *height=null)C; // calculate button text parameters, 'height'=if calculate based on custom button height (if null then current button height is used)
