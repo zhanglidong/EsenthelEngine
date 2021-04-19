@@ -99,7 +99,8 @@ struct PanelImageParams
            shadow_opacity    , // 0..1, default=0.5
            shadow_spread     , // 0..1, default=0.5
            max_side_stretch  ; // affects maximum allowed stretching of the side parts of the image, 0..Inf, default=0.2
-   Vec2    smooth_depth      , // depth smoothing intensity, x=horizontal, y=vertical, 0..1, default=(0, 0)
+   Vec2    min_size          , // affects minimum size of the             center part  of the image, 0..Inf, default=0
+           smooth_depth      , // depth smoothing intensity, x=horizontal, y=vertical, 0..1, default=(0, 0)
            extend            ; // extend side outwards,  0..1, default=0
    Rect    extend_inner_padd ; // extend inner padding, -1..1, default=0
    Light   lights  [2]       ; // lights  for this panel image
@@ -167,7 +168,7 @@ private:
 #endif
    Bool _same_x, _padd_any, _force_uniform_stretch[2];
    Flt  _size_x[3][2], _size_y[2], _tex_x[3][2], _tex_y[2]; // [y][x]
-   Vec2 _side_size, _padd, _tex_left_top, _tex_right_bottom;
+   Vec2 _min_size, _padd, _tex_left_top, _tex_right_bottom;
    Rect _inner_padding;
 };
 /******************************************************************************/

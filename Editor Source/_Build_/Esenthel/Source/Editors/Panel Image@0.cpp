@@ -125,6 +125,7 @@ PanelImageEditor PanelImageEdit;
    void PanelImageEditor::SetRightSlope(Params &p, C Str &t) {p.right_slope     =TextFlt (t); p.base.right_slope     .getUTC();}
    void PanelImageEditor::SetBorderSize(Params &p, C Str &t) {p.border_size     =TextFlt (t); p.base.border_size     .getUTC();}
    void PanelImageEditor::SetMaxSideStretch(Params &p, C Str &t) {p.max_side_stretch=TextFlt (t); p.base.max_side_stretch.getUTC();}
+   void PanelImageEditor::SetMinSize(Params &p, C Str &t) {p.min_size        =TextVec2(t); p.base.min_size        .getUTC();}
    void PanelImageEditor::SetExtend(Params &p, C Str &t) {p.extend          =TextVec2(t); p.base.extend          .getUTC();}
    void PanelImageEditor::ExtendInnerPaddLR(  Params &p, C Str &t) {p.extend_inner_padd.min.x=p.extend_inner_padd.max.x=TextFlt(t); p.base.extend_inner_padd.getUTC();}
    Str  PanelImageEditor::ExtendInnerPaddLR(C Params &p          ) {return p.extend_inner_padd.min.x;}
@@ -211,6 +212,7 @@ PanelImageEditor PanelImageEdit;
       add("Right Slope"         , MemberDesc(MEMBER(Params, right_slope      )).setTextToDataFunc(SetRightSlope     )).range(-1,  1).mouseEditSpeed(0.5f);
       add("Border Size"         , MemberDesc(MEMBER(Params, border_size      )).setTextToDataFunc(SetBorderSize     )).range( 0,  1).mouseEditSpeed(0.1f);
       add("Max Side Stretch"    , MemberDesc(MEMBER(Params, max_side_stretch )).setTextToDataFunc(SetMaxSideStretch )).range( 0, 16).mouseEditSpeed(0.2f);
+      add("Min Center Size"     , MemberDesc(MEMBER(Params, min_size         )).setTextToDataFunc(SetMinSize        )).range( 0, 16).mouseEditSpeed(0.2f);
       add("Extend"              , MemberDesc(MEMBER(Params, extend           )).setTextToDataFunc(SetExtend         )).range( 0,  1).mouseEditSpeed(0.2f);
       add("Inner Padding Left Right", MemberDesc(DATA_REAL).setFunc(ExtendInnerPaddLR, ExtendInnerPaddLR)).range(-1,  1).mouseEditSpeed(0.1f);
       add("Inner Padding Top"       , MemberDesc(DATA_REAL).setFunc(ExtendInnerPaddT , ExtendInnerPaddT )).range(-1,  1).mouseEditSpeed(0.1f);

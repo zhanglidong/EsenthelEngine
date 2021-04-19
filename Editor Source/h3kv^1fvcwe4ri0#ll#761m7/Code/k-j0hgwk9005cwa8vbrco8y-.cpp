@@ -148,6 +148,7 @@ class PanelImageEditor : PropWin
    static void SetRightSlope    (Params &p, C Str &t) {p.right_slope     =TextFlt (t); p.base.right_slope     .getUTC();}
    static void SetBorderSize    (Params &p, C Str &t) {p.border_size     =TextFlt (t); p.base.border_size     .getUTC();}
    static void SetMaxSideStretch(Params &p, C Str &t) {p.max_side_stretch=TextFlt (t); p.base.max_side_stretch.getUTC();}
+   static void SetMinSize       (Params &p, C Str &t) {p.min_size        =TextVec2(t); p.base.min_size        .getUTC();}
    static void SetExtend        (Params &p, C Str &t) {p.extend          =TextVec2(t); p.base.extend          .getUTC();}
 
    static void ExtendInnerPaddLR(  Params &p, C Str &t) {p.extend_inner_padd.min.x=p.extend_inner_padd.max.x=TextFlt(t); p.base.extend_inner_padd.getUTC();}
@@ -321,6 +322,7 @@ class PanelImageEditor : PropWin
       add("Right Slope"         , MemberDesc(MEMBER(Params, right_slope      )).setTextToDataFunc(SetRightSlope     )).range(-1,  1).mouseEditSpeed(0.5);
       add("Border Size"         , MemberDesc(MEMBER(Params, border_size      )).setTextToDataFunc(SetBorderSize     )).range( 0,  1).mouseEditSpeed(0.1);
       add("Max Side Stretch"    , MemberDesc(MEMBER(Params, max_side_stretch )).setTextToDataFunc(SetMaxSideStretch )).range( 0, 16).mouseEditSpeed(0.2);
+      add("Min Center Size"     , MemberDesc(MEMBER(Params, min_size         )).setTextToDataFunc(SetMinSize        )).range( 0, 16).mouseEditSpeed(0.2);
       add("Extend"              , MemberDesc(MEMBER(Params, extend           )).setTextToDataFunc(SetExtend         )).range( 0,  1).mouseEditSpeed(0.2);
       add("Inner Padding Left Right", MemberDesc(DATA_REAL).setFunc(ExtendInnerPaddLR, ExtendInnerPaddLR)).range(-1,  1).mouseEditSpeed(0.1);
       add("Inner Padding Top"       , MemberDesc(DATA_REAL).setFunc(ExtendInnerPaddT , ExtendInnerPaddT )).range(-1,  1).mouseEditSpeed(0.1);

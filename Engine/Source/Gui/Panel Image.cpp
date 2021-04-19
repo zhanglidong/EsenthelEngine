@@ -364,6 +364,7 @@ PanelImageParams::PanelImageParams()
    outer_glow_spread=0.5f;
    outer_glow_radius=inner_glow_radius=border_size*12;
    max_side_stretch=0.2f;
+   min_size.zero();
    extend.zero();
    extend_inner_padd.zero();
 
@@ -388,11 +389,11 @@ PanelImageParams::PanelImageParams()
 }
 Bool PanelImageParams::save(File &f)C
 {
-   f.cmpUIntV(1);
+   f.cmpUIntV(2);
    f<<cut_left<<cut_right<<cut_bottom<<cut_top<<cut_corners<<force_uniform_stretch
     <<resolution<<width<<height<<round_corners<<cut_corner_slope<<cut_corner_amount<<left_slope<<right_slope
     <<border_size<<outer_glow_spread<<outer_glow_radius<<inner_glow_radius
-    <<light_ambient<<depth<<round_depth<<inner_distance<<shadow_radius<<shadow_opacity<<shadow_spread<<max_side_stretch<<smooth_depth<<extend<<extend_inner_padd
+    <<light_ambient<<depth<<round_depth<<inner_distance<<shadow_radius<<shadow_opacity<<shadow_spread<<max_side_stretch<<min_size<<smooth_depth<<extend<<extend_inner_padd
     <<color<<color_top<<color_bottom<<color_left<<color_right<<outer_glow_color<<inner_glow_color
     <<images_size<<top_height<<bottom_height<<left_right_width<<top_corner_width<<bottom_corner_width;
    FREPA(lights  )if(!lights  [i].save(f))return false;
@@ -403,6 +404,19 @@ Bool PanelImageParams::load(File &f)
 {
    switch(f.decUIntV())
    {
+      case 2:
+      {
+         f>>cut_left>>cut_right>>cut_bottom>>cut_top>>cut_corners>>force_uniform_stretch
+          >>resolution>>width>>height>>round_corners>>cut_corner_slope>>cut_corner_amount>>left_slope>>right_slope
+          >>border_size>>outer_glow_spread>>outer_glow_radius>>inner_glow_radius
+          >>light_ambient>>depth>>round_depth>>inner_distance>>shadow_radius>>shadow_opacity>>shadow_spread>>max_side_stretch>>min_size>>smooth_depth>>extend>>extend_inner_padd
+          >>color>>color_top>>color_bottom>>color_left>>color_right>>outer_glow_color>>inner_glow_color
+          >>images_size>>top_height>>bottom_height>>left_right_width>>top_corner_width>>bottom_corner_width;
+         FREPA(lights  )if(!lights  [i].load(f))goto error;
+         FREPA(sections)if(!sections[i].load(f))goto error;
+         if(f.ok())return true;
+      }break;
+
       case 1:
       {
          f>>cut_left>>cut_right>>cut_bottom>>cut_top>>cut_corners>>force_uniform_stretch
@@ -413,6 +427,7 @@ Bool PanelImageParams::load(File &f)
           >>images_size>>top_height>>bottom_height>>left_right_width>>top_corner_width>>bottom_corner_width;
          FREPA(lights  )if(!lights  [i].load(f))goto error;
          FREPA(sections)if(!sections[i].load(f))goto error;
+         min_size.zero();
          if(f.ok())return true;
       }break;
 
@@ -426,6 +441,7 @@ Bool PanelImageParams::load(File &f)
           >>images_size>>top_height>>bottom_height>>left_right_width>>top_corner_width>>bottom_corner_width;
          FREPA(lights  )if(!lights  [i].load(f))goto error;
          FREPA(sections)if(!sections[i].load(f))goto error;
+         min_size.zero();
          extend_inner_padd.zero();
          if(f.ok())return true;
       }break;
@@ -445,7 +461,7 @@ void PanelImage::zero()
    REPAD(y,  _tex_x)REPAD(x,  _tex_x[y]) _tex_x[y][x]=0;
    REPAO(   _size_y)=0;
    REPAO(    _tex_y)=0;
-  _side_size       .zero();
+  _min_size        .zero();
   _padd            .zero();
   _tex_left_top    .zero();
   _tex_right_bottom.zero();
@@ -757,7 +773,7 @@ struct PanelImageCreate
 
          max_scale=Max(params.max_side_stretch, 0);
          panel_image._same_x=true; REPAD(x, panel_image._tex_x[0])if(!Equal(panel_image._tex_x[0][x], panel_image._tex_x[1][x]) || !Equal(panel_image._tex_x[1][x], panel_image._tex_x[2][x]))panel_image._same_x=false;
-         panel_image._tex_left_top=0;
+         panel_image._tex_left_top    =0;
          panel_image._tex_right_bottom=1;
 
          Flt  mulx  =params.width * max_scale,
@@ -772,8 +788,9 @@ struct PanelImageCreate
             panel_image._size_x[y][1]=(1-panel_image._tex_x[y][1])*mulx-extend.x;
          }
 
-         if(include_size_mid[0])panel_image._side_size.x=mulx;else{panel_image._side_size.x=0; REPAD(y, panel_image._size_x)MAX(panel_image._side_size.x, Max(panel_image._size_x[y][0], 0)+Max(panel_image._size_x[y][1], 0));}
-         if(include_size_mid[1])panel_image._side_size.y=muly;else panel_image._side_size.y=Max(panel_image._size_y[0], 0)+Max(panel_image._size_y[1], 0);
+         if(include_size_mid[0])panel_image._min_size.x=mulx;else{panel_image._min_size.x=0; REPAD(y, panel_image._size_x)MAX(panel_image._min_size.x, Max(panel_image._size_x[y][0], 0)+Max(panel_image._size_x[y][1], 0));}
+         if(include_size_mid[1])panel_image._min_size.y=muly;else panel_image._min_size.y=Max(panel_image._size_y[0], 0)+Max(panel_image._size_y[1], 0);
+         panel_image._min_size+=params.min_size;
 
          REPAO(sps).setDepthNoise(params.sections[i], image.w(), image.h(), super_sample);
 
@@ -1234,15 +1251,15 @@ void PanelImage::create(C PanelImageParams &params, Image *depth_map, Int super_
 Bool PanelImage::getSideScale(C Rect &rect, Flt &scale)C
 {
    Flt w=rect.w(), h=rect.h();
-   if(_side_size.x>w){scale=w/_side_size.x; Flt side_size_y=_side_size.y*scale; if(side_size_y>h)scale*=h/side_size_y; return true;}
-   if(_side_size.y>h){scale=h/_side_size.y;                                                                            return true;}
+   if(_min_size.x>w){scale=w/_min_size.x; Flt side_size_y=_min_size.y*scale; if(side_size_y>h)scale*=h/side_size_y; return true;}
+   if(_min_size.y>h){scale=h/_min_size.y;                                                                           return true;}
    return false;
 }
 Bool PanelImage::getSideScaleVertical(C Rect &rect, Flt &scale)C
 {
    Flt w=rect.h(), h=rect.w();
-   if(_side_size.x>w){scale=w/_side_size.x; Flt side_size_y=_side_size.y*scale; if(side_size_y>h)scale*=h/side_size_y; return true;}
-   if(_side_size.y>h){scale=h/_side_size.y;                                                                            return true;}
+   if(_min_size.x>w){scale=w/_min_size.x; Flt side_size_y=_min_size.y*scale; if(side_size_y>h)scale*=h/side_size_y; return true;}
+   if(_min_size.y>h){scale=h/_min_size.y;                                                                           return true;}
    return false;
 }
 Bool PanelImage::extendedRect(C Rect &rect, Rect &extended)C
@@ -2169,7 +2186,7 @@ Bool PanelImage::save(File &f)C
 {
    f.putUInt(CC4_PIMG);
    f.cmpUIntV(1);
-   f<<_same_x<<_padd_any<<_force_uniform_stretch<<_size_x<<_size_y<<_tex_x<<_tex_y<<_side_size<<_padd<<_tex_left_top<<_tex_right_bottom<<_inner_padding;
+   f<<_same_x<<_padd_any<<_force_uniform_stretch<<_size_x<<_size_y<<_tex_x<<_tex_y<<_min_size<<_padd<<_tex_left_top<<_tex_right_bottom<<_inner_padding;
    if(!image.save(f))return false;
    return f.ok();
 }
@@ -2179,14 +2196,14 @@ Bool PanelImage::load(File &f)
    {
       case 1:
       {
-         f>>_same_x>>_padd_any>>_force_uniform_stretch>>_size_x>>_size_y>>_tex_x>>_tex_y>>_side_size>>_padd>>_tex_left_top>>_tex_right_bottom>>_inner_padding;
+         f>>_same_x>>_padd_any>>_force_uniform_stretch>>_size_x>>_size_y>>_tex_x>>_tex_y>>_min_size>>_padd>>_tex_left_top>>_tex_right_bottom>>_inner_padding;
          if(!image.load(f))goto error;
          if(f.ok())return true;
       }break;
 
       case 0:
       {
-         f>>_same_x>>_padd_any>>_force_uniform_stretch>>_size_x>>_size_y>>_tex_x>>_tex_y>>_side_size>>_padd>>_tex_left_top>>_tex_right_bottom;
+         f>>_same_x>>_padd_any>>_force_uniform_stretch>>_size_x>>_size_y>>_tex_x>>_tex_y>>_min_size>>_padd>>_tex_left_top>>_tex_right_bottom;
         _inner_padding.set(_size_x[1][0], _size_y[1], _size_x[1][1], _size_y[0]);
          if(!image.load(f))goto error;
          if(f.ok())return true;

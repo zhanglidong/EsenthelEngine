@@ -85,7 +85,7 @@ void Progress::draw(C GuiPC &gpc)
                {
                   if(vertical)
                   {
-                     Flt h=prog_rect.h(), size=skin->progress.progress->_side_size.y, scale; if(skin->progress.progress->getSideScale(rect, scale))size*=scale;
+                     Flt h=prog_rect.h(), size=skin->progress.progress->_min_size.y, scale; if(skin->progress.progress->getSideScale(rect, scale))size*=scale;
                      if(size>h)
                      {
                         scale=h/size; scale=(1-scale)*prog_rect.w()*0.5f;
@@ -94,7 +94,7 @@ void Progress::draw(C GuiPC &gpc)
                      }
                   }else
                   {
-                     Flt w=prog_rect.w(), size=skin->progress.progress->_side_size.x, scale; if(skin->progress.progress->getSideScale(rect, scale))size*=scale;
+                     Flt w=prog_rect.w(), size=skin->progress.progress->_min_size.x, scale; if(skin->progress.progress->getSideScale(rect, scale))size*=scale;
                      if(size>w)
                      {
                         Flt scale=w/size; scale=(1-scale)*prog_rect.h()*0.5f;

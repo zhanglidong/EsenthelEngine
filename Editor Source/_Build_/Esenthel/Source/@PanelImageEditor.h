@@ -78,6 +78,7 @@ class PanelImageEditor : PropWin
    static void SetRightSlope    (Params &p, C Str &t);
    static void SetBorderSize    (Params &p, C Str &t);
    static void SetMaxSideStretch(Params &p, C Str &t);
+   static void SetMinSize       (Params &p, C Str &t);
    static void SetExtend        (Params &p, C Str &t);
 
    static void ExtendInnerPaddLR(  Params &p, C Str &t);
