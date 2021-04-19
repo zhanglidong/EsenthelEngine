@@ -854,8 +854,9 @@ void ModalWindow::draw(C GuiPC &gpc)
 {
    if(/*gpc.visible &&*/ visible())
    {
+      Flt alpha=finalAlpha()*0.5f;
       D.clip();
-      D.rect().draw(ColorBA(0, finalAlpha()*0.5f));
+      D.rect().draw(Vec4(0, 0, 0, 1-SRGBToDisplay(1-alpha)));
       super::draw(gpc);
    }
 }

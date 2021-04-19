@@ -234,6 +234,32 @@ RectI& RectI::rotatePI_2(Int rotations)
    return T;
 }
 /******************************************************************************/
+void Rect::draw(C Vec4 &color, Bool fill)C
+{
+   VI.color  (color);
+   VI.setType(VI_2D_FLAT, fill ? VI_STRIP : VI_LINE|VI_STRIP);
+   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(fill ? 4 : 5))
+   {
+      if(fill)
+      {
+         v[0].pos.set(min.x, max.y);
+         v[1].pos.set(max.x, max.y);
+         v[2].pos.set(min.x, min.y);
+         v[3].pos.set(max.x, min.y);
+      }else
+      {
+         // drawing lines needs adjustments
+         Rect r(min.x+D._pixel_size_2.x, min.y+D._pixel_size_2.y,
+                max.x-D._pixel_size_2.x, max.y-D._pixel_size_2.y);
+         v[0].pos.set(r.min.x, r.min.y);
+         v[1].pos.set(r.min.x, r.max.y);
+         v[2].pos.set(r.max.x, r.max.y);
+         v[3].pos.set(r.max.x, r.min.y);
+         v[4].pos.set(r.min.x, r.min.y);
+      }
+   }
+   VI.end();
+}
 void Rect::draw(C Color &color, Bool fill)C
 {
    VI.color  (color);
