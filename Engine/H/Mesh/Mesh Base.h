@@ -142,7 +142,9 @@ struct VtxFull // Vertex containing all possible data
    VtxFull& from(C MeshBase &mshb, Int i) ; // set VtxFull from i-th vertex in 'mshb'
    void     to  (  MeshBase &mshb, Int i)C; // set i-th 'mshb' vertex from VtxFull
 
-   VtxFull& avg(C VtxFull &a, C VtxFull &b); // set as average from vertexes, T=Avg(a, b)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b                            ); // set as average from vertexes, T=Avg(a, b)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b, C VtxFull &c              ); // set as average from vertexes, T=Avg(a, b, c)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b, C VtxFull &c, C VtxFull &d); // set as average from vertexes, T=Avg(a, b, c, d)
 
    VtxFull& lerp(C VtxFull &a, C VtxFull &b,                 Flt  step ); // set as linear interpolation from vertexes, T=Lerp(a, b, step)
    VtxFull& lerp(C VtxFull &a, C VtxFull &b, C VtxFull &c, C Vec &blend); // set as linear interpolation from vertexes, T=a*blend.x + b*blend.y + c*blend.z

@@ -348,6 +348,53 @@ VtxFull& VtxFull::avg(C VtxFull &a, C VtxFull &b)
 
    return T;
 }
+VtxFull& VtxFull::avg(C VtxFull &a, C VtxFull &b, C VtxFull &c)
+{
+   pos     =Avg (a.pos     , b.pos     , c.pos     );
+   nrm     =   !(a.nrm     + b.nrm     + c.nrm     );
+   tan     =   !(a.tan     + b.tan     + c.tan     );
+   bin     =   !(a.bin     + b.bin     + c.bin     );
+   hlp     =Avg (a.hlp     , b.hlp     , c.hlp     );
+   tex0    =Avg (a.tex0    , b.tex0    , c.tex0    );
+   tex1    =Avg (a.tex1    , b.tex1    , c.tex1    );
+   tex2    =Avg (a.tex2    , b.tex2    , c.tex2    );
+   tex3    =Avg (a.tex3    , b.tex3    , c.tex3    );
+   size    =Avg (a.size    , b.size    , c.size    );
+   color   =Avg (a.color   , b.color   , c.color   );
+   material=AvgI(a.material, b.material, c.material);
+
+   MemtN<IndexWeight, 256> skin;
+   FREPA(a.matrix)skin.New().set(a.matrix.c[i], a.blend.c[i]);
+   FREPA(b.matrix)skin.New().set(b.matrix.c[i], b.blend.c[i]);
+   FREPA(c.matrix)skin.New().set(c.matrix.c[i], c.blend.c[i]);
+   SetSkin(skin, matrix, blend, null);
+
+   return T;
+}
+VtxFull& VtxFull::avg(C VtxFull &a, C VtxFull &b, C VtxFull &c, C VtxFull &d)
+{
+   pos     =Avg (a.pos     , b.pos     , c.pos     , d.pos     );
+   nrm     =   !(a.nrm     + b.nrm     + c.nrm     + d.nrm     );
+   tan     =   !(a.tan     + b.tan     + c.tan     + d.tan     );
+   bin     =   !(a.bin     + b.bin     + c.bin     + d.bin     );
+   hlp     =Avg (a.hlp     , b.hlp     , c.hlp     , d.hlp     );
+   tex0    =Avg (a.tex0    , b.tex0    , c.tex0    , d.tex0    );
+   tex1    =Avg (a.tex1    , b.tex1    , c.tex1    , d.tex1    );
+   tex2    =Avg (a.tex2    , b.tex2    , c.tex2    , d.tex2    );
+   tex3    =Avg (a.tex3    , b.tex3    , c.tex3    , d.tex3    );
+   size    =Avg (a.size    , b.size    , c.size    , d.size    );
+   color   =Avg (a.color   , b.color   , c.color   , d.color   );
+   material=AvgI(a.material, b.material, c.material, d.material);
+
+   MemtN<IndexWeight, 256> skin;
+   FREPA(a.matrix)skin.New().set(a.matrix.c[i], a.blend.c[i]);
+   FREPA(b.matrix)skin.New().set(b.matrix.c[i], b.blend.c[i]);
+   FREPA(c.matrix)skin.New().set(c.matrix.c[i], c.blend.c[i]);
+   FREPA(d.matrix)skin.New().set(d.matrix.c[i], d.blend.c[i]);
+   SetSkin(skin, matrix, blend, null);
+
+   return T;
+}
 VtxFull& VtxFull::lerp(C VtxFull &a, C VtxFull &b, Flt step)
 {
    Flt step1=1-step;
