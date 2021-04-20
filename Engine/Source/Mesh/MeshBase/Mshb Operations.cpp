@@ -489,6 +489,15 @@ struct TriHull
       nrm.normalize();
    }
 #endif
+   Vec2 uv(Int edge)C // get UV based on edge index in triangle in clockwise order
+   {
+      switch(edge)
+      {
+         default: return Vec2(0.5f, 0   ); // 0
+         case  1: return Vec2(0.5f, 0.5f);
+         case  2: return Vec2(0   , 0.5f);
+      }
+   }
 };
 struct QuadHull
 {
@@ -578,6 +587,17 @@ struct QuadHull
         + NV2*(NU0*N3 + NU1*N23 + NU2*N2);
       nrm.normalize();
    }
+   Vec2 uv(Int edge)C // get UV based on edge index in quad in clockwise order
+   {
+      switch(edge)
+      {
+         default: return Vec2(0.5f, 0   ); // 0
+         case  1: return Vec2(1   , 0.5f);
+         case  2: return Vec2(0.5f, 1   );
+         case  3: return Vec2(0   , 0.5f);
+      }
+   }
+   Vec2 uvCenter(Int edge)C {return 0.5f;} // get UV for quad center
 };
 static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, C Vec &test_n1, Vec &out_n0, Vec &out_n1) // check if the neighboring 'face' face has the same vtx normals for 'v0,v1' vertexes
 {
