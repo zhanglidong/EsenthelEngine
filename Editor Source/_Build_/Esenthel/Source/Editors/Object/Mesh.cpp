@@ -605,6 +605,23 @@ void ObjView::meshTesselate()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("meshTess");
+   if(mesh_parts.edit_selected())
+   {
+      Memt<VecI2> vtxs; getSelectedVtxs(vtxs);
+      if(!vtxs.elms())Gui.msgBox(S, "No vertexes selected");else
+      REPAD(p, lod)
+      {
+         Memt<int> part_vtxs; REPAD(v, vtxs)if(vtxs[v].x==p)part_vtxs.add(vtxs[v].y); // get vertexes for this part
+         if(       part_vtxs.elms()) // if have any vtx to tesselate
+         {
+            MeshPart &part=lod.parts[p];
+            part.base.tesselate(part_vtxs);
+            part.setRender();
+            changed=true;
+         }
+      }
+      litSelVFClear();
+   }else
    REPA(lod)if(partOp(i))
    {
       MeshPart &part=lod.parts[i];

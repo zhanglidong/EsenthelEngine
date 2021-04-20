@@ -413,8 +413,10 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    MeshBase& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
-   MeshBase& tesselate    (); // smooth subdivide faces, preserving original vertexes
-   MeshBase& subdivide    (); // smooth subdivide faces,  smoothing original vertexes
+   MeshBase& tesselate    (                        ); // smooth subdivide faces, preserving original vertexes
+   MeshBase& tesselate    (C CMemPtr<Bool> &vtx_sel); // smooth subdivide faces, preserving original vertexes, only selected vertexes will be tesselated, 'vtx_sel'=array of all vertexes in mesh specifying if each vertex is selected (true) or not (false)
+   MeshBase& tesselate    (C CMemPtr<Int > &vtx_sel); // smooth subdivide faces, preserving original vertexes, only selected vertexes will be tesselated, 'vtx_sel'=list of selected vertexes
+   MeshBase& subdivide    (                        ); // smooth subdivide faces,  smoothing original vertexes
    MeshBase& subdivideEdge(Bool freeze_z=false, C CMemPtr<Bool> &is=null); // smooth subdivide edges, 'is'=only selected edges
 
    MeshBase&   boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap

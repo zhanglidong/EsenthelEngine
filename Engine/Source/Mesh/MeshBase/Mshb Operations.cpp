@@ -489,6 +489,8 @@ struct TriHull
       nrm.normalize();
    }
 #endif
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(pos, nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx, C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv);}
    Vec2 uv(Int edge)C // get UV based on edge index in triangle in clockwise order
    {
       switch(edge)
@@ -587,6 +589,8 @@ struct QuadHull
         + NV2*(NU0*N3 + NU1*N23 + NU2*N2);
       nrm.normalize();
    }
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(pos, nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx, C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv);}
    Vec2 uv(Int edge)C // get UV based on edge index in quad in clockwise order
    {
       switch(edge)
@@ -597,7 +601,7 @@ struct QuadHull
          case  3: return Vec2(0   , 0.5f);
       }
    }
-   Vec2 uvCenter()C {return 0.5f;} // get UV for quad center
+   Vec2 uvCenter()C {return Vec2(0.5f, 0.5f);} // get UV for quad center
 };
 static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, C Vec &test_n1, Vec &out_n0, Vec &out_n1) // check if the neighboring 'face' face has the same vtx normals for 'v0,v1' vertexes
 {
@@ -1101,6 +1105,199 @@ MeshBase& MeshBase::tesselate()
 
       temp.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
       Swap(temp, T);
+   }
+   return T;
+}
+MeshBase& MeshBase::tesselate(C CMemPtr<Int > &vtx_sel) {Memt<Bool> vtx_is; CreateIs(vtx_is, vtx_sel, vtxs()); return tesselate(vtx_is);}
+MeshBase& MeshBase::tesselate(C CMemPtr<Bool> &vtx_sel)
+{
+   if(C Vec *vtx_pos=vtx.pos())
+   {
+      setVtxDup().setAdjacencies(true);
+
+    C Vec   *vtx_nrm =vtx .nrm    ();
+    C Int   *vtx_dup =vtx .dup    ();
+    C VecI  *tri_adjf=tri .adjFace();
+    C VecI4 *qud_adjf=quad.adjFace();
+
+      Memc<VtxFull>  vtxs;
+      Memc<VecI   >  tris;
+      Memc<VecI4  > quads;
+      Bool vs[4]; // cached copy of selected vertexes in a face
+
+       vtxs.reserve(T. vtxs() + T.tris()*3 + T.quads()*5);
+       tris.reserve(T. tris()*4);
+      quads.reserve(T.quads()*4);
+
+      FREPA(tri)
+      {
+         VecI ind=tri.ind(i);
+         Int  tess_vtxs=0; REPA(ind)if(vs[i]=vtx_sel[ind.c[i]])tess_vtxs++; // how many vertexes want to be tesselated
+         Int  ofs=vtxs.elms(); // vertex offset - how many vtxs created so far
+         FREPA(ind)vtxs.New().from(T, ind.c[i]); // copy original vtxs
+         if(tess_vtxs<2)tris.New().set(ofs, ofs+1, ofs+2);else // set as original
+         {
+            TriHull hull;
+            if(vtx_nrm)
+            {
+               hull.P0=vtx_pos[ind.x];
+               hull.P1=vtx_pos[ind.y];
+               hull.P2=vtx_pos[ind.z];
+               hull.N0=vtx_nrm[ind.x];
+		         hull.N1=vtx_nrm[ind.y];
+		         hull.N2=vtx_nrm[ind.z];
+
+               VecI af=tri_adjf[i], ind_dup=ind; ind_dup.remap(vtx_dup); Vec NA, NB;
+               if(SameNrm(T, af.x, ind_dup.x, ind_dup.y, hull.N0, hull.N1, NA, NB))hull.set01();else hull.set01(NA, NB);
+               if(SameNrm(T, af.y, ind_dup.y, ind_dup.z, hull.N1, hull.N2, NA, NB))hull.set12();else hull.set12(NA, NB);
+               if(SameNrm(T, af.z, ind_dup.z, ind_dup.x, hull.N2, hull.N0, NA, NB))hull.set20();else hull.set20(NA, NB);
+
+               hull.finalize();
+            }
+            if(tess_vtxs==3) // if all want to be tesselated
+            {
+               vtxs.addNum(3); // make room for 3 vtxs at edges !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+               vtxs[ofs+3].avg(vtxs[ofs+0], vtxs[ofs+1]);
+               vtxs[ofs+4].avg(vtxs[ofs+1], vtxs[ofs+2]);
+               vtxs[ofs+5].avg(vtxs[ofs+2], vtxs[ofs+0]);
+               if(vtx_nrm)
+               {
+                  hull.set(vtxs[ofs+3], hull.uv(0));
+                  hull.set(vtxs[ofs+4], hull.uv(1));
+                  hull.set(vtxs[ofs+5], hull.uv(2));
+               }
+               tris.New().set(ofs+0, ofs+3, ofs+5);
+               tris.New().set(ofs+3, ofs+4, ofs+5);
+               tris.New().set(ofs+5, ofs+4, ofs+2);
+               tris.New().set(ofs+4, ofs+3, ofs+1);
+            }else
+            REPAD(v0, ind) // check which face vtxs want to be tesselated
+               if(vs[v0]) // if 'v0' wants
+            {
+               Int v1=(v0+1)%Elms(ind); if(vs[v1]) // and 'v1' wants
+               {
+                  Int v2=(v0+2)%Elms(ind);
+                  vtxs.addNum(1); // create 1 vtx at v0-v1 edge !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                  vtxs[ofs+3].avg(vtxs[ofs+v0], vtxs[ofs+v1]);
+                  if(vtx_nrm)hull.set(vtxs[ofs+3], hull.uv(v0));
+                  tris.New().set(ofs+v0, ofs+3, ofs+v2);
+                  tris.New().set(ofs+v2, ofs+3, ofs+v1);
+                  break;
+               }
+            }
+         }
+      }
+
+      FREPA(quad)
+      {
+         VecI4 ind=quad.ind(i);
+         Int   tess_vtxs=0; REPA(ind)if(vs[i]=vtx_sel[ind.c[i]])tess_vtxs++; // how many vtxs want to be tesselated
+         Int   ofs=vtxs.elms(); // vertex offset - how many vtxs created so far
+         FREPA(ind)vtxs.New().from(T, ind.c[i]); // copy original vtxs
+         if(tess_vtxs<2)quads.New().set(ofs, ofs+1, ofs+2, ofs+3);else // set as original
+         {
+            QuadHull hull;
+            if(vtx_nrm)
+            {
+               hull.P0=vtx_pos[ind.x];
+               hull.P1=vtx_pos[ind.y];
+               hull.P2=vtx_pos[ind.z];
+               hull.P3=vtx_pos[ind.w];
+               hull.N0=vtx_nrm[ind.x];
+		         hull.N1=vtx_nrm[ind.y];
+		         hull.N2=vtx_nrm[ind.z];
+		         hull.N3=vtx_nrm[ind.w];
+
+               VecI4 af=qud_adjf[i], ind_dup=ind; ind_dup.remap(vtx_dup); Vec NA, NB;
+               if(SameNrm(T, af.x, ind_dup.x, ind_dup.y, hull.N0, hull.N1, NA, NB))hull.set01();else hull.set01(NA, NB);
+               if(SameNrm(T, af.y, ind_dup.y, ind_dup.z, hull.N1, hull.N2, NA, NB))hull.set12();else hull.set12(NA, NB);
+               if(SameNrm(T, af.z, ind_dup.z, ind_dup.w, hull.N2, hull.N3, NA, NB))hull.set23();else hull.set23(NA, NB);
+               if(SameNrm(T, af.w, ind_dup.w, ind_dup.x, hull.N3, hull.N0, NA, NB))hull.set30();else hull.set30(NA, NB);
+
+               hull.finalize();
+            }
+            if(tess_vtxs==4) // if all want to be tesselated
+            {
+               vtxs.addNum(5); // make room for 4 vtxs at edges and 1 at center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+               vtxs[ofs+4].avg(vtxs[ofs+0], vtxs[ofs+1]);
+               vtxs[ofs+5].avg(vtxs[ofs+1], vtxs[ofs+2]);
+               vtxs[ofs+6].avg(vtxs[ofs+2], vtxs[ofs+3]);
+               vtxs[ofs+7].avg(vtxs[ofs+3], vtxs[ofs+0]);
+               vtxs[ofs+8].avg(vtxs[ofs+0], vtxs[ofs+1], vtxs[ofs+2], vtxs[ofs+3]);
+               if(vtx_nrm)
+               {
+                  hull.set(vtxs[ofs+4], hull.uv(0));
+                  hull.set(vtxs[ofs+5], hull.uv(1));
+                  hull.set(vtxs[ofs+6], hull.uv(2));
+                  hull.set(vtxs[ofs+7], hull.uv(3));
+                  hull.set(vtxs[ofs+8], hull.uvCenter());
+               }
+               quads.New().set(ofs+0, ofs+4, ofs+8, ofs+7);
+               quads.New().set(ofs+1, ofs+5, ofs+8, ofs+4);
+               quads.New().set(ofs+2, ofs+6, ofs+8, ofs+5);
+               quads.New().set(ofs+3, ofs+7, ofs+8, ofs+6);
+            }else
+            REPAD(v0, ind) // check which face vtxs want to be tesselated
+               if(vs[v0]) // if 'v0' wants
+            {
+               Int v1=(v0+1)%Elms(ind);
+               Int v2=(v0+2)%Elms(ind);
+               Int v3=(v0+3)%Elms(ind);
+               if(tess_vtxs==3)
+               {
+                  if(vs[v1] && vs[v2]) // and 'v1' 'v2' want
+                  {
+                     vtxs.addNum(3); // create vtx at v0-v1 edge, v1-v2 edge, center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+v0], vtxs[ofs+v1]); // v0-v1
+                     vtxs[ofs+5].avg(vtxs[ofs+v1], vtxs[ofs+v2]); // v1-v2
+                     vtxs[ofs+6].avg(vtxs[ofs+ 0], vtxs[ofs+ 1], vtxs[ofs+2], vtxs[ofs+3]); // center
+                     if(vtx_nrm)
+                     {
+                        hull.set(vtxs[ofs+4], hull.uv(v0));
+                        hull.set(vtxs[ofs+5], hull.uv(v1));
+                        hull.set(vtxs[ofs+6], hull.uvCenter());
+                     }
+                      tris.New().set(ofs+v3, ofs+v0, ofs+6); // big
+                      tris.New().set(ofs+v2, ofs+v3, ofs+6); // big
+                      tris.New().set(ofs+v0, ofs+ 4, ofs+6); // small
+                      tris.New().set(ofs+ 5, ofs+v2, ofs+6); // small
+                     quads.New().set(ofs+v1, ofs+ 5, ofs+6, ofs+4);
+                     break;
+                  }
+               }else
+             //if(tess_vtxs==2)
+               {
+                  if(vs[v1]) // and 'v1' wants
+                  {
+                     vtxs.addNum(1); // create vtx at v0-v1 edge !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+v0], vtxs[ofs+v1]); // v0-v1
+                     if(vtx_nrm)hull.set(vtxs[ofs+4], hull.uv(v0));
+                     tris.New().set(ofs+v0, ofs+ 4, ofs+v3);
+                     tris.New().set(ofs+ 4, ofs+v1, ofs+v2);
+                     tris.New().set(ofs+v2, ofs+v3, ofs+ 4);
+                     break;
+                  }
+                  if(vs[v2]) // and 'v2' wants
+                  {
+                     vtxs.addNum(1); // create vtx at center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+0], vtxs[ofs+1], vtxs[ofs+2], vtxs[ofs+3]); // center
+                     if(vtx_nrm)hull.set(vtxs[ofs+4], hull.uvCenter());
+                     tris.New().set(ofs+v0, ofs+v1, ofs+4);
+                     tris.New().set(ofs+v1, ofs+v2, ofs+4);
+                     tris.New().set(ofs+v2, ofs+v3, ofs+4);
+                     tris.New().set(ofs+v3, ofs+v0, ofs+4);
+                     break;
+                  }
+               }
+            }
+         }
+      }
+
+      create(vtxs.elms(), 0, tris.elms(), quads.elms(), flag()&~(VTX_DUP|EDGE_ALL|ADJ_ALL|FACE_NRM));
+      REPA( vtxs)vtxs[i].to(T, i);
+      REPA( tris) tri.ind(i)= tris[i];
+      REPA(quads)quad.ind(i)=quads[i];
+      weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
    }
    return T;
 }
