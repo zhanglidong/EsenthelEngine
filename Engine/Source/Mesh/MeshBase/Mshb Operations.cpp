@@ -641,18 +641,18 @@ MeshBase& MeshBase::tesselate()
            *tex3_src=temp.vtx.tex3(),
            *tex3_dst=temp.vtx.tex3();
 
-      VecB4 * mt_src=temp.vtx.matrix  (),
-            * mt_dst=temp.vtx.matrix  ();
-      VecB4 *bln_src=temp.vtx.blend   (),
-            *bln_dst=temp.vtx.blend   ();
-      Flt   *siz_src=temp.vtx.size    (),
-            *siz_dst=temp.vtx.size    ();
-      VecB4 *mtl_src=temp.vtx.material(),
-            *mtl_dst=temp.vtx.material();
-      Color *col_src=temp.vtx.color   (),
-            *col_dst=temp.vtx.color   ();
-      Byte  *flg_src=temp.vtx.flag    (),
-            *flg_dst=temp.vtx.flag    ();
+      VecB4 *mtrx_src=temp.vtx.matrix  (),
+            *mtrx_dst=temp.vtx.matrix  ();
+      VecB4 *blnd_src=temp.vtx.blend   (),
+            *blnd_dst=temp.vtx.blend   ();
+      Flt   *size_src=temp.vtx.size    (),
+            *size_dst=temp.vtx.size    ();
+      VecB4 *mtrl_src=temp.vtx.material(),
+            *mtrl_dst=temp.vtx.material();
+      Color * col_src=temp.vtx.color   (),
+            * col_dst=temp.vtx.color   ();
+      Byte  *flag_src=temp.vtx.flag    (),
+            *flag_dst=temp.vtx.flag    ();
 
       VecI  *tri_src   =     tri .ind    (),
             *tri_dst   =temp.tri .ind    (),
@@ -679,12 +679,12 @@ MeshBase& MeshBase::tesselate()
       if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
       if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
       if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
-      if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
-      if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
-      if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
-      if( mtl_dst){CopyN( mtl_dst, vtx.material(), vtxs);  mtl_dst+=vtxs;}
+      if(mtrx_dst){CopyN(mtrx_dst, vtx.matrix  (), vtxs); mtrx_dst+=vtxs;}
+      if(blnd_dst){CopyN(blnd_dst, vtx.blend   (), vtxs); blnd_dst+=vtxs;}
+      if(size_dst){CopyN(size_dst, vtx.size    (), vtxs); size_dst+=vtxs;}
+      if(mtrl_dst){CopyN(mtrl_dst, vtx.material(), vtxs); mtrl_dst+=vtxs;}
       if( col_dst){CopyN( col_dst, vtx.color   (), vtxs);  col_dst+=vtxs;}
-      if( flg_dst){CopyN( flg_dst, vtx.flag    (), vtxs);  flg_dst+=vtxs;}
+      if(flag_dst){CopyN(flag_dst, vtx.flag    (), vtxs); flag_dst+=vtxs;}
 
       // set faces
       FREP(tris)
@@ -794,21 +794,21 @@ MeshBase& MeshBase::tesselate()
             tex3_dst[2]=Avg(t2, t0);
             tex3_dst+=3;
          }
-         if(siz_dst)
+         if(size_dst)
          {
-            Flt s0=siz_src[ind.x], s1=siz_src[ind.y], s2=siz_src[ind.z];
-            siz_dst[0]=Avg(s0, s1);
-            siz_dst[1]=Avg(s1, s2);
-            siz_dst[2]=Avg(s2, s0);
-            siz_dst+=3;
+            Flt s0=size_src[ind.x], s1=size_src[ind.y], s2=size_src[ind.z];
+            size_dst[0]=Avg(s0, s1);
+            size_dst[1]=Avg(s1, s2);
+            size_dst[2]=Avg(s2, s0);
+            size_dst+=3;
          }
-         if(mtl_dst)
+         if(mtrl_dst)
          {
-            VecB4 m0=mtl_src[ind.x], m1=mtl_src[ind.y], m2=mtl_src[ind.z];
-            mtl_dst[0]=AvgI(m0, m1);
-            mtl_dst[1]=AvgI(m1, m2);
-            mtl_dst[2]=AvgI(m2, m0);
-            mtl_dst+=3;
+            VecB4 m0=mtrl_src[ind.x], m1=mtrl_src[ind.y], m2=mtrl_src[ind.z];
+            mtrl_dst[0]=AvgI(m0, m1);
+            mtrl_dst[1]=AvgI(m1, m2);
+            mtrl_dst[2]=AvgI(m2, m0);
+            mtrl_dst+=3;
          }
          if(col_dst)
          {
@@ -818,45 +818,45 @@ MeshBase& MeshBase::tesselate()
             col_dst[2]=Avg(c2, c0);
             col_dst+=3;
          }
-         if(flg_dst)
+         if(flag_dst)
          {
-            Byte f0=flg_src[ind.x], f1=flg_src[ind.y], f2=flg_src[ind.z];
-            flg_dst[0]=(f0|f1);
-            flg_dst[1]=(f1|f2);
-            flg_dst[2]=(f2|f0);
-            flg_dst+=3;
+            Byte f0=flag_src[ind.x], f1=flag_src[ind.y], f2=flag_src[ind.z];
+            flag_dst[0]=(f0|f1);
+            flag_dst[1]=(f1|f2);
+            flag_dst[2]=(f2|f0);
+            flag_dst+=3;
          }
-         if(mt_dst && bln_dst)
+         if(mtrx_dst && blnd_dst)
          {
-            VecB4 m0= mt_src[ind.x], m1= mt_src[ind.y], m2= mt_src[ind.z];
-            VecB4 b0=bln_src[ind.x], b1=bln_src[ind.y], b2=bln_src[ind.z];
+            VecB4 m0=mtrx_src[ind.x], m1=mtrx_src[ind.y], m2=mtrx_src[ind.z];
+            VecB4 b0=blnd_src[ind.x], b1=blnd_src[ind.y], b2=blnd_src[ind.z];
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
          }else
          {
-            if(mt_dst)
+            if(mtrx_dst)
             {
-               mt_dst[0]=mt_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               mt_dst[1]=mt_src[ind.y];
-               mt_dst[2]=mt_src[ind.z];
-               mt_dst+=3;
+               mtrx_dst[0]=mtrx_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               mtrx_dst[1]=mtrx_src[ind.y];
+               mtrx_dst[2]=mtrx_src[ind.z];
+               mtrx_dst+=3;
             }
-            if(bln_dst)
+            if(blnd_dst)
             {
-               bln_dst[0]=bln_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               bln_dst[1]=bln_src[ind.y];
-               bln_dst[2]=bln_src[ind.z];
-               bln_dst+=3;
+               blnd_dst[0]=blnd_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               blnd_dst[1]=blnd_src[ind.y];
+               blnd_dst[2]=blnd_src[ind.z];
+               blnd_dst+=3;
             }
          }
          vtxs+=3;
@@ -989,25 +989,25 @@ MeshBase& MeshBase::tesselate()
             tex3_dst[4]=Avg(t0, t1, t2, t3);
             tex3_dst+=5;
          }
-         if(siz_dst)
+         if(size_dst)
          {
-            Flt s0=siz_src[ind.x], s1=siz_src[ind.y], s2=siz_src[ind.z], s3=siz_src[ind.w];
-            siz_dst[0]=Avg(s0, s1);
-            siz_dst[1]=Avg(s1, s2);
-            siz_dst[2]=Avg(s2, s3);
-            siz_dst[3]=Avg(s3, s0);
-            siz_dst[4]=Avg(s0, s1, s2, s3);
-            siz_dst+=5;
+            Flt s0=size_src[ind.x], s1=size_src[ind.y], s2=size_src[ind.z], s3=size_src[ind.w];
+            size_dst[0]=Avg(s0, s1);
+            size_dst[1]=Avg(s1, s2);
+            size_dst[2]=Avg(s2, s3);
+            size_dst[3]=Avg(s3, s0);
+            size_dst[4]=Avg(s0, s1, s2, s3);
+            size_dst+=5;
          }
-         if(mtl_dst)
+         if(mtrl_dst)
          {
-            VecB4 m0=mtl_src[ind.x], m1=mtl_src[ind.y], m2=mtl_src[ind.z], m3=mtl_src[ind.w];
-            mtl_dst[0]=AvgI(m0, m1);
-            mtl_dst[1]=AvgI(m1, m2);
-            mtl_dst[2]=AvgI(m2, m3);
-            mtl_dst[3]=AvgI(m3, m0);
-            mtl_dst[4]=AvgI(m0, m1, m2, m3);
-            mtl_dst+=5;
+            VecB4 m0=mtrl_src[ind.x], m1=mtrl_src[ind.y], m2=mtrl_src[ind.z], m3=mtrl_src[ind.w];
+            mtrl_dst[0]=AvgI(m0, m1);
+            mtrl_dst[1]=AvgI(m1, m2);
+            mtrl_dst[2]=AvgI(m2, m3);
+            mtrl_dst[3]=AvgI(m3, m0);
+            mtrl_dst[4]=AvgI(m0, m1, m2, m3);
+            mtrl_dst+=5;
          }
          if(col_dst)
          {
@@ -1019,61 +1019,61 @@ MeshBase& MeshBase::tesselate()
             col_dst[4]=Avg(c0, c1, c2, c3);
             col_dst+=5;
          }
-         if(flg_dst)
+         if(flag_dst)
          {
-            Byte f0=flg_src[ind.x], f1=flg_src[ind.y], f2=flg_src[ind.z], f3=flg_src[ind.w];
-            flg_dst[0]=(f0|f1);
-            flg_dst[1]=(f1|f2);
-            flg_dst[2]=(f2|f3);
-            flg_dst[3]=(f3|f0);
-            flg_dst[4]=(f0|f1|f2|f3);
-            flg_dst+=5;
+            Byte f0=flag_src[ind.x], f1=flag_src[ind.y], f2=flag_src[ind.z], f3=flag_src[ind.w];
+            flag_dst[0]=(f0|f1);
+            flag_dst[1]=(f1|f2);
+            flag_dst[2]=(f2|f3);
+            flag_dst[3]=(f3|f0);
+            flag_dst[4]=(f0|f1|f2|f3);
+            flag_dst+=5;
          }
-         if(mt_dst && bln_dst)
+         if(mtrx_dst && blnd_dst)
          {
-            VecB4 m0= mt_src[ind.x], m1= mt_src[ind.y], m2= mt_src[ind.z], m3= mt_src[ind.w];
-            VecB4 b0=bln_src[ind.x], b1=bln_src[ind.y], b2=bln_src[ind.z], b3=bln_src[ind.w];
+            VecB4 m0=mtrx_src[ind.x], m1=mtrx_src[ind.y], m2=mtrx_src[ind.z], m3=mtrx_src[ind.w];
+            VecB4 b0=blnd_src[ind.x], b1=blnd_src[ind.y], b2=blnd_src[ind.z], b3=blnd_src[ind.w];
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
          }else
          {
-            if(mt_dst)
+            if(mtrx_dst)
             {
-               mt_dst[0]=mt_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               mt_dst[1]=mt_src[ind.y];
-               mt_dst[2]=mt_src[ind.z];
-               mt_dst[3]=mt_src[ind.w];
-               mt_dst[4]=mt_src[ind.x];
-               mt_dst+=5;
+               mtrx_dst[0]=mtrx_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               mtrx_dst[1]=mtrx_src[ind.y];
+               mtrx_dst[2]=mtrx_src[ind.z];
+               mtrx_dst[3]=mtrx_src[ind.w];
+               mtrx_dst[4]=mtrx_src[ind.x];
+               mtrx_dst+=5;
             }
-            if(bln_dst)
+            if(blnd_dst)
             {
-               bln_dst[0]=bln_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               bln_dst[1]=bln_src[ind.y];
-               bln_dst[2]=bln_src[ind.z];
-               bln_dst[3]=bln_src[ind.w];
-               bln_dst[4]=bln_src[ind.x];
-               bln_dst+=5;
+               blnd_dst[0]=blnd_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               blnd_dst[1]=blnd_src[ind.y];
+               blnd_dst[2]=blnd_src[ind.z];
+               blnd_dst[3]=blnd_src[ind.w];
+               blnd_dst[4]=blnd_src[ind.x];
+               blnd_dst+=5;
             }
          }
          vtxs+=5;
@@ -1159,18 +1159,18 @@ MeshBase& MeshBase::subdivide()
         *tex3_src=temp.vtx.tex3(),
         *tex3_dst=temp.vtx.tex3();
 
-   VecB4 * mt_src=temp.vtx.matrix  (),
-         * mt_dst=temp.vtx.matrix  ();
-   VecB4 *bln_src=temp.vtx.blend   (),
-         *bln_dst=temp.vtx.blend   ();
-   Flt   *siz_src=temp.vtx.size    (),
-         *siz_dst=temp.vtx.size    ();
-   VecB4 *mtl_src=temp.vtx.material(),
-         *mtl_dst=temp.vtx.material();
-   Color *col_src=temp.vtx.color   (),
-         *col_dst=temp.vtx.color   ();
-   Byte  *flg_src=temp.vtx.flag    (),
-         *flg_dst=temp.vtx.flag    ();
+   VecB4 *mtrx_src=temp.vtx.matrix  (),
+         *mtrx_dst=temp.vtx.matrix  ();
+   VecB4 *blnd_src=temp.vtx.blend   (),
+         *blnd_dst=temp.vtx.blend   ();
+   Flt   *size_src=temp.vtx.size    (),
+         *size_dst=temp.vtx.size    ();
+   VecB4 *mtrl_src=temp.vtx.material(),
+         *mtrl_dst=temp.vtx.material();
+   Color * col_src=temp.vtx.color   (),
+         * col_dst=temp.vtx.color   ();
+   Byte  *flag_src=temp.vtx.flag    (),
+         *flag_dst=temp.vtx.flag    ();
 
    VecI2 *edg_src=     edge.ind    (),
          *edg_adj=     edge.adjFace();
@@ -1189,12 +1189,12 @@ MeshBase& MeshBase::subdivide()
    if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
    if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
    if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
-   if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
-   if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
-   if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
-   if( mtl_dst){CopyN( mtl_dst, vtx.material(), vtxs);  mtl_dst+=vtxs;}
+   if(mtrx_dst){CopyN(mtrx_dst, vtx.matrix  (), vtxs); mtrx_dst+=vtxs;}
+   if(blnd_dst){CopyN(blnd_dst, vtx.blend   (), vtxs); blnd_dst+=vtxs;}
+   if(size_dst){CopyN(size_dst, vtx.size    (), vtxs); size_dst+=vtxs;}
+   if(mtrl_dst){CopyN(mtrl_dst, vtx.material(), vtxs); mtrl_dst+=vtxs;}
    if( col_dst){CopyN( col_dst, vtx.color   (), vtxs);  col_dst+=vtxs;}
-   if( flg_dst){CopyN( flg_dst, vtx.flag    (), vtxs);  flg_dst+=vtxs;}
+   if(flag_dst){CopyN(flag_dst, vtx.flag    (), vtxs); flag_dst+=vtxs;}
 
    // reposition original points
    Int *vtx_edg_num  =AllocZero<Int>(vtxs),
@@ -1219,18 +1219,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2]);
       if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2]);
-      if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2]);
-      if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2]);
+      if(size_dst)*size_dst++=Avg (size_src[p0],size_src[p1],size_src[p2]);
+      if(mtrl_dst)*mtrl_dst++=AvgI(mtrl_src[p0],mtrl_src[p1],mtrl_src[p2]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2]);
-      if( flg_dst)* flg_dst++=    ( flg_src[p0]| flg_src[p1]| flg_src[p2]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)*flag_dst++=    (flag_src[p0]|flag_src[p1]|flag_src[p2]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(3){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(3){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
    }else FREP(tris)
    {
@@ -1250,18 +1250,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2],tex1_src[p3]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2],tex2_src[p3]);
       if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2],tex3_src[p3]);
-      if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2], siz_src[p3]);
-      if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2], mtl_src[p3]);
+      if(size_dst)*size_dst++=Avg (size_src[p0],size_src[p1],size_src[p2],size_src[p3]);
+      if(mtrl_dst)*mtrl_dst++=AvgI(mtrl_src[p0],mtrl_src[p1],mtrl_src[p2],mtrl_src[p3]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2], col_src[p3]);
-      if( flg_dst)* flg_dst++=    ( flg_src[p0]| flg_src[p1]| flg_src[p2]| flg_src[p3]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)*flag_dst++=    (flag_src[p0]|flag_src[p1]|flag_src[p2]|flag_src[p3]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(4){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(4){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
    }
 
@@ -1278,18 +1278,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)tex1_dst[i]=Avg (tex1_src[p0],tex1_src[p1]);
       if(tex2_dst)tex2_dst[i]=Avg (tex2_src[p0],tex2_src[p1]);
       if(tex3_dst)tex3_dst[i]=Avg (tex3_src[p0],tex3_src[p1]);
-      if( siz_dst) siz_dst[i]=Avg ( siz_src[p0], siz_src[p1]);
-      if( mtl_dst) mtl_dst[i]=AvgI( mtl_src[p0], mtl_src[p1]);
+      if(size_dst)size_dst[i]=Avg (size_src[p0],size_src[p1]);
+      if(mtrl_dst)mtrl_dst[i]=AvgI(mtrl_src[p0],mtrl_src[p1]);
       if( col_dst) col_dst[i]=Avg ( col_src[p0], col_src[p1]);
-      if( flg_dst) flg_dst[i]=    ( flg_src[p0]| flg_src[p1]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)flag_dst[i]=    (flag_src[p0]|flag_src[p1]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(2){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(2){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
 
       p=(dup_vtx ? dup_edge_adj[dup_edge_edg[i]] : edg_adj[i]).c; p0=p[0]; p1=p[1];
