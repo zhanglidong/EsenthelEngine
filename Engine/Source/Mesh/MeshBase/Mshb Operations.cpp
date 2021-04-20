@@ -745,9 +745,9 @@ MeshBase& MeshBase::tesselate()
 
             hull.finalize();
 
-            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0);
+            hull.set(pos_dst[0], nrm_dst[0], 0.5f,    0);
             hull.set(pos_dst[1], nrm_dst[1], 0.5f, 0.5f);
-            hull.set(pos_dst[2], nrm_dst[2], 0, 0.5f);
+            hull.set(pos_dst[2], nrm_dst[2],    0, 0.5f);
             pos_dst+=3;
             nrm_dst+=3;
          }else
@@ -922,10 +922,10 @@ MeshBase& MeshBase::tesselate()
 
             hull.finalize();
 
-            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0);
-            hull.set(pos_dst[1], nrm_dst[1], 1, 0.5f);
-            hull.set(pos_dst[2], nrm_dst[2], 0.5f, 1);
-            hull.set(pos_dst[3], nrm_dst[3], 0, 0.5f);
+            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0   );
+            hull.set(pos_dst[1], nrm_dst[1], 1   , 0.5f);
+            hull.set(pos_dst[2], nrm_dst[2], 0.5f, 1   );
+            hull.set(pos_dst[3], nrm_dst[3], 0   , 0.5f);
             hull.set(pos_dst[4], nrm_dst[4], 0.5f, 0.5f);
             pos_dst+=5;
             nrm_dst+=5;
