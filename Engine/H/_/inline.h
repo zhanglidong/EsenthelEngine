@@ -122,7 +122,7 @@ T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(ULong i, C TYPE &container) {return
 T1(TYPE) struct ClassFunc // various basic functions used by many classes
 {
    static void New      (Ptr elm                        ) {    new(        elm )                     TYPE  ;}
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->PLATFORM(, TYPE::)~TYPE();} // for non-Windows (Clang) directly call specified destructor (ignoring any virtual) because this function is always paired with 'New' above, so we always operate on the same type of class, this improves performance and silences -Wdelete-non-abstract-non-virtual-dtor
+   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->PLATFORM(, TYPE::)~TYPE();} // for non-Windows (Clang) directly call specified destructor (ignoring any virtual) because this function is always paired with 'New' above, so we always operate on the same type of class, this improves performance and silences -Wdelete-non-abstract-non-virtual-dtor. Not supported on Windows compiler
    static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src             ;}
    static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->  load(file      )       ;}
    static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->  load(file, user)       ;}
