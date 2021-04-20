@@ -489,8 +489,9 @@ struct TriHull
       nrm.normalize();
    }
 #endif
-   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(pos, nrm, uv.x, uv.y);}
-   inline void set(VtxFull &vtx, C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv);}
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(    pos,     nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx      , C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv.x, uv.y);}
+
    Vec2 uv(Int edge)C // get UV based on edge index in triangle in clockwise order
    {
       switch(edge)
@@ -589,9 +590,11 @@ struct QuadHull
         + NV2*(NU0*N3 + NU1*N23 + NU2*N2);
       nrm.normalize();
    }
-   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(pos, nrm, uv.x, uv.y);}
-   inline void set(VtxFull &vtx, C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv);}
-   Vec2 uv(Int edge)C // get UV based on edge index in quad in clockwise order
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(    pos,     nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx      , C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv.x, uv.y);}
+
+   Vec2 uvCenter(        )C {return Vec2(0.5f, 0.5f);} // get UV for quad center
+   Vec2 uv      (Int edge)C // get UV based on edge index in quad in clockwise order
    {
       switch(edge)
       {
@@ -601,7 +604,6 @@ struct QuadHull
          case  3: return Vec2(0   , 0.5f);
       }
    }
-   Vec2 uvCenter()C {return Vec2(0.5f, 0.5f);} // get UV for quad center
 };
 static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, C Vec &test_n1, Vec &out_n0, Vec &out_n1) // check if the neighboring 'face' face has the same vtx normals for 'v0,v1' vertexes
 {
