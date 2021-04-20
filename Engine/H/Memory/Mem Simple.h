@@ -54,12 +54,13 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    TYPE pop     (Int i, Bool keep_order=true); // get i-th  element and remove it from the container, if 'keep_order'=true then moves all elements after i-th to the left (keeping order)
    TYPE pop     (                           ); // get last  element and remove it from the container
 
-   Mems& setNum    (Int num); // set number of elements to 'num'                                                                              , this method changes the memory address of all elements
-   Mems& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
-   Int   addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method changes the memory address of all elements
+   Mems& setNum       (Int num); // set number of elements to 'num'                                                                              , this method may change the memory address of all elements
+   Mems& setNumZero   (Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
+   Mems& setNumDiscard(Int num); // set number of elements to 'num', if reallocating then discard previous elements                              , this method may change the memory address of all elements
+   Int   addNum       (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
 
-   Mems& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                               this method changes the memory address of all elements
-   Mems& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
+   Mems& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                               this method may change the memory address of all elements
+   Mems& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
 
    // values
    T1(VALUE) Int   find   (C VALUE &value)C {REPA(T)if(T[i]==value)return i; return -1;                                        } // check if 'value' is present in container and return its index, -1 if not found
@@ -102,7 +103,6 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems& copyFrom(C TYPE *src ) ; // copy raw memory of all elements from 'src'
    void   setFrom(  TYPE* &data, Int elms); // this takes ownership of 'data' and sets that pointer to null
    void   setTemp(  TYPE*  data, Int elms); // this is not safe !!
-   void   setNumDiscard(Int num); // set          'num' elements, if reallocating then discard previous elements
    void   minNumDiscard(Int num); // set at least 'num' elements, if reallocating then discard previous elements
 #endif
 

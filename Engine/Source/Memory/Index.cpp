@@ -120,16 +120,16 @@ Int CountIs(C CMemPtr<Bool> &is)
 }
 void CreateIs(MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms)
 {
-   is.setNum(elms); REPAO(is)=false; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=true;}
+   is.setNumDiscard(elms); REPAO(is)=false; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=true;}
 }
 void CreateIsNot(MemPtr<Bool> is, C CMemPtr<Int> &selection, Int elms)
 {
-   is.setNum(elms); REPAO(is)=true; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=false;}
+   is.setNumDiscard(elms); REPAO(is)=true; REPA(selection){Int index=selection[i]; if(InRange(index, is))is[index]=false;}
 }
 void CreateFaceIs(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads)
 {
-    tri_is.setNum( tris); REPAO( tri_is)=false;
-   quad_is.setNum(quads); REPAO(quad_is)=false;
+    tri_is.setNumDiscard( tris); REPAO( tri_is)=false;
+   quad_is.setNumDiscard(quads); REPAO(quad_is)=false;
    REPA(faces)
    {
       UInt f=faces[i];
@@ -139,8 +139,8 @@ void CreateFaceIs(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &fac
 }
 void CreateFaceIsNot(MemPtr<Bool> tri_is, MemPtr<Bool> quad_is, C CMemPtr<Int> &faces, Int tris, Int quads)
 {
-    tri_is.setNum( tris); REPAO( tri_is)=true;
-   quad_is.setNum(quads); REPAO(quad_is)=true;
+    tri_is.setNumDiscard( tris); REPAO( tri_is)=true;
+   quad_is.setNumDiscard(quads); REPAO(quad_is)=true;
    REPA(faces)
    {
       UInt f=faces[i];
@@ -164,7 +164,7 @@ void SetFaceIndex(Ptr data, C VecI *tri, Int tris, C VecI4 *quad, Int quads, Boo
 /******************************************************************************/
 void SetRemap(MemPtr<Int> remap, C CMemPtr<Bool> &is, Int elms)
 {
-   remap.setNum(elms);
+   remap.setNumDiscard(elms);
    Int full=Min(remap.elms(), is.elms()), i=0, index=0;
    for(; i<      full  ; i++)remap[i]=(is[i] ? index++ : -1);
    for(; i<remap.elms(); i++)remap[i]=                   -1 ;

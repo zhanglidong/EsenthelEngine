@@ -307,7 +307,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num)
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
       CopyFastN(temp, data(), num);
       Free(_data); _data=temp; _elms=num;
@@ -328,7 +328,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num)
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
       CopyFastN(temp, data(), num);
       Free(_data); _data=temp; _elms=num;
@@ -340,7 +340,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(num!=elms()) // resize memory
    {
       TYPE *temp=Alloc<TYPE>(num);
@@ -354,7 +354,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(num!=elms()) // resize memory
    {
       TYPE *temp=Alloc<TYPE>(num);
@@ -366,8 +366,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
    return T;
 }
 
-#if EE_PRIVATE
-T1(TYPE)  void  Mems<TYPE>::setNumDiscard(Int num)
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumDiscard(Int num)
 {
    MAX(num, 0);
    if( num!=elms())
@@ -376,7 +375,9 @@ T1(TYPE)  void  Mems<TYPE>::setNumDiscard(Int num)
       Alloc(Free(_data), _elms=num);
       if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
    }
+   return T;
 }
+#if EE_PRIVATE
 T1(TYPE)  void  Mems<TYPE>::minNumDiscard(Int num)
 {
    if(Greater(num, elms())) // num>elms()
@@ -486,11 +487,12 @@ T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::remove    (  Int   i  ,        Bool keep_orde
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeNum (  Int   i  , Int n, Bool keep_order) {super::removeNum (i, n, keep_order); return T;}
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeData(C TYPE *elm,        Bool keep_order) {super::removeData(elm,  keep_order); return T;}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num          ) {       super::setNum    (num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num, Int keep) {       super::setNum    (num, keep); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num          ) {       super::setNumZero(num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num, Int keep) {       super::setNumZero(num, keep); return T;}
-T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return super::addNum    (num      );          }
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum       (Int num          ) {       super::setNum       (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum       (Int num, Int keep) {       super::setNum       (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero   (Int num          ) {       super::setNumZero   (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero   (Int num, Int keep) {       super::setNumZero   (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumDiscard(Int num          ) {       super::setNumDiscard(num      ); return T;}
+T1(TYPE)  Int          Memc<TYPE>::addNum       (Int num          ) {return super::addNum       (num      );          }
 
 T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -759,7 +761,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNum(I
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
      _elms=num;
    }
    return T;
@@ -776,7 +778,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
      _elms=num;
    }
    return T;
@@ -786,7 +788,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNum(I
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
@@ -800,7 +802,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
@@ -812,46 +814,45 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    return T;
 }
 
-#if EE_PRIVATE
-template<typename TYPE, Int size>  void  Memt<TYPE, size>::setNumDiscard(Int num)
+template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumDiscard(Int num)
 {
    MAX(num, 0);
    if( num!=elms())
    {
       if(Greater(num, maxElms())) // resize memory, num>maxElms()
       {
-         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
-        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         clear(); // clear before 'reserve' to skip copying old elements
          reserve(num);
         _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
       }else
       if(num>elms()) // add elements in existing memory
       {
-         Int old_elms=elms(); _elms=num;
+         Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
       }else
     //if(num<elms()) // remove elements, "if" not needed because we already know that "num!=elms && !(num>elms())"
       {
-         if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+         if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
         _elms=num;
       }
    }
+   return T;
 }
+#if EE_PRIVATE
 template<typename TYPE, Int size>  void  Memt<TYPE, size>::minNumDiscard(Int num)
 {
    if(Greater(num, elms())) // num>elms()
    {
       if(Greater(num, maxElms())) // resize memory, num>maxElms()
       {
-         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
-        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         clear(); // clear before 'reserve' to skip copying old elements
          reserve(num);
         _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
       }else // add elements in existing memory
       {
-         Int old_elms=elms(); _elms=num;
+         Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
       }
    }
@@ -1544,6 +1545,20 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
       case super::MEMB: ConstCast(T._memb)->setNumZero(num); break;
       case super::MEMX: Exit("'MemPtr.setNumZero' does not support MEMX mode"); break;
       case super::MEML: ConstCast(T._meml)->setNumZero(num); break;
+   }
+   return T;
+}
+template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::setNumDiscard(Int num)
+{
+   switch(T._mode)
+   {
+      case super::PTR : if(T._elms!=num)Exit("'MemPtr.setNumDiscard' does not support PTR mode"); break;
+      case super::MEMS: ConstCast(T._mems)->setNumDiscard(num); break;
+      case super::MEMC: ConstCast(T._memc)->setNumDiscard(num); break;
+      case super::MEMT: ConstCast(T._memt)->setNumDiscard(num); break;
+      case super::MEMB: ConstCast(T._memb)->setNum       (num); break;
+      case super::MEMX: ConstCast(T._memx)->setNum       (num); break;
+      case super::MEML: ConstCast(T._meml)->setNum       (num); break;
    }
    return T;
 }

@@ -166,9 +166,10 @@ template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> 
    MemPtr& remove    (  Int   i  , Bool keep_order=false); // remove i-th element                        , if 'keep_order'=false then moves the last element to i-th, if 'keep_order'=true then moves all elements after i-th to the left (keeping order), this method may      change the memory address of some elements
    MemPtr& removeData(C TYPE *elm, Bool keep_order=false); // remove element by giving its memory address, if 'keep_order'=false then moves the last element to i-th, if 'keep_order'=true then moves all elements after i-th to the left (keeping order), this method may      change the memory address of some elements
 
-   MemPtr& setNum    (Int num); // set number of elements to 'num'                                                                              , this method changes the memory address of all elements
-   MemPtr& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
-   Int     addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method changes the memory address of all elements
+   MemPtr& setNum       (Int num); // set number of elements to 'num'                                                                              , this method may change the memory address of all elements
+   MemPtr& setNumZero   (Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
+   MemPtr& setNumDiscard(Int num); // set number of elements to 'num', if reallocating then discard previous elements                              , this method may change the memory address of all elements
+   Int     addNum       (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
 
    // values
    T1(VALUE) Int     find   (C VALUE &value                       )C {REPA(T)if(T[i]==value)return i; return -1;                                                 } // check if 'value' is present in container and return its index, -1 if not found
