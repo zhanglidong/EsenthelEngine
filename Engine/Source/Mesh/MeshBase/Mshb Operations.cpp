@@ -597,7 +597,7 @@ struct QuadHull
          case  3: return Vec2(0   , 0.5f);
       }
    }
-   Vec2 uvCenter(Int edge)C {return 0.5f;} // get UV for quad center
+   Vec2 uvCenter()C {return 0.5f;} // get UV for quad center
 };
 static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, C Vec &test_n1, Vec &out_n0, Vec &out_n1) // check if the neighboring 'face' face has the same vtx normals for 'v0,v1' vertexes
 {
