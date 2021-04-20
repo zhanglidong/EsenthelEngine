@@ -121,17 +121,13 @@ T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(ULong i, C TYPE &container) {return
 /******************************************************************************/
 T1(TYPE) struct ClassFunc // various basic functions used by many classes
 {
-   static void New      (Ptr elm                        ) {    new(        elm )         TYPE        ;}
-#if WINDOWS
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->      ~TYPE(      );}
-#else
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->TYPE::~TYPE(      );} // silence -Wdelete-non-abstract-non-virtual-dtor
-#endif
-   static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src       ;}
-   static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->   load(file      );}
-   static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->   load(file, user);}
-   static Bool LoadEmpty(Ptr elm                        ) {return ( (TYPE*)elm )->   load(          );}
-   static void Unload   (Ptr elm                        ) {return ( (TYPE*)elm )-> unload(          );}
+   static void New      (Ptr elm                        ) {    new(        elm )                     TYPE  ;}
+   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->PLATFORM(, TYPE::)~TYPE();} // for non-Windows (Clang) directly call specified destructor (ignoring any virtual) because this function is always paired with 'New' above, so we always operate on the same type of class, this improves performance and silences -Wdelete-non-abstract-non-virtual-dtor
+   static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src             ;}
+   static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->  load(file      )       ;}
+   static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->  load(file, user)       ;}
+   static Bool LoadEmpty(Ptr elm                        ) {return ( (TYPE*)elm )->  load(          )       ;}
+   static void Unload   (Ptr elm                        ) {return ( (TYPE*)elm )->unload(          )       ;}
 
    static inline Bool HasNew() {return !std::is_trivially_default_constructible<TYPE>::value && New!=ClassFunc<Int>::New;} // check also if the '<TYPE>.New' function address is different than '<Int>.New' because 'is_trivially_default_constructible' is not enough for cases when constructor exists but is empty
    static inline Bool HasDel() {return !std::is_trivially_destructible         <TYPE>::value && Del!=ClassFunc<Int>::Del;} // check also if the '<TYPE>.Del' function address is different than '<Int>.Del' because 'is_trivially_destructible'          is not enough for cases when  destructor exists but is empty
