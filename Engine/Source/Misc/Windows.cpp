@@ -1400,7 +1400,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          KB_KEY key=KB_KEY(wParam);
          switch(key)
          {
-          //case KB_CTRL :    if(lParam&(1<<24))key=KB_RCTRL;else return 0; break; // can't push KB_LCTRL, because it could be triggered by KB_RALT, ignore this and rely on RawInput/DirectInput
+          //case KB_CTRL :    if(lParam&(1<<24))key=KB_RCTRL;else return 0; break; can't push KB_LCTRL, because it could be triggered by KB_RALT, ignore this and rely on RawInput/DirectInput
           //case KB_SHIFT: key=((lParam&(1<<24)) ?  KB_RSHIFT : KB_LSHIFT); break; this is not working OK, lParam&(1<<24) is always false
           //case KB_SHIFT: key=((scan_code==42 ) ?  KB_LSHIFT : KB_RSHIFT); break; 42=KB_LSHIFT, 54=KB_RSHIFT, releasing doesn't work OK
           //case KB_SHIFT: key=(KB_KEY)MapVirtualKey((lParam>>16)&0xFF, MAPVK_VSC_TO_VK_EX); break; releasing doesn't work OK
@@ -1598,12 +1598,14 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       {
          Byte pushed=0; if(!App.active()) // check for key-states if app is inactive, in case the 'drop' callback wants to know about them
          {
-            if(!Kb.b(KB_LCTRL ) && GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){Kb.push(KB_LCTRL , 29); pushed|= 1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
-            if(!Kb.b(KB_RCTRL ) && GetKeyState(VK_RCONTROL)<0                            ){Kb.push(KB_RCTRL , 29); pushed|= 2;}
-            if(!Kb.b(KB_LSHIFT) && GetKeyState(VK_LSHIFT  )<0                            ){Kb.push(KB_LSHIFT, 42); pushed|= 4;}
-            if(!Kb.b(KB_RSHIFT) && GetKeyState(VK_RSHIFT  )<0                            ){Kb.push(KB_RSHIFT, 54); pushed|= 8;}
-            if(!Kb.b(KB_LALT  ) && GetKeyState(VK_LMENU   )<0                            ){Kb.push(KB_LALT  , 56); pushed|=16;}
-            if(!Kb.b(KB_RALT  ) && GetKeyState(VK_RMENU   )<0                            ){Kb.push(KB_RALT  , 56); pushed|=32;}
+            if(!Kb.b(KB_LCTRL ) && GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){Kb.push(KB_LCTRL , 29); pushed|=  1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(!Kb.b(KB_RCTRL ) && GetKeyState(VK_RCONTROL)<0                            ){Kb.push(KB_RCTRL , 29); pushed|=  2;}
+            if(!Kb.b(KB_LSHIFT) && GetKeyState(VK_LSHIFT  )<0                            ){Kb.push(KB_LSHIFT, 42); pushed|=  4;}
+            if(!Kb.b(KB_RSHIFT) && GetKeyState(VK_RSHIFT  )<0                            ){Kb.push(KB_RSHIFT, 54); pushed|=  8;}
+            if(!Kb.b(KB_LALT  ) && GetKeyState(VK_LMENU   )<0                            ){Kb.push(KB_LALT  , 56); pushed|= 16;}
+            if(!Kb.b(KB_RALT  ) && GetKeyState(VK_RMENU   )<0                            ){Kb.push(KB_RALT  , 56); pushed|= 32;}
+            if(!Kb.b(KB_LWIN  ) && GetKeyState(VK_LWIN    )<0                            ){Kb.push(KB_LWIN  , 91); pushed|= 64;}
+            if(!Kb.b(KB_RWIN  ) && GetKeyState(VK_RWIN    )<0                            ){Kb.push(KB_RWIN  , 92); pushed|=128;}
             if(pushed)Kb.setModifiers();
          }
 
@@ -1617,12 +1619,14 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
          if(pushed) // release what was pushed
          {
-            if(pushed& 1)Kb.release(KB_LCTRL );
-            if(pushed& 2)Kb.release(KB_RCTRL );
-            if(pushed& 4)Kb.release(KB_LSHIFT);
-            if(pushed& 8)Kb.release(KB_RSHIFT);
-            if(pushed&16)Kb.release(KB_LALT  );
-            if(pushed&32)Kb.release(KB_RALT  );
+            if(pushed&  1)Kb.release(KB_LCTRL );
+            if(pushed&  2)Kb.release(KB_RCTRL );
+            if(pushed&  4)Kb.release(KB_LSHIFT);
+            if(pushed&  8)Kb.release(KB_RSHIFT);
+            if(pushed& 16)Kb.release(KB_LALT  );
+            if(pushed& 32)Kb.release(KB_RALT  );
+            if(pushed& 64)Kb.release(KB_LWIN  );
+            if(pushed&128)Kb.release(KB_RWIN  );
             Kb.setModifiers();
          }
 
