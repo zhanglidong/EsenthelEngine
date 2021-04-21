@@ -1150,10 +1150,14 @@ void KeyboardClass::update()
       }else // if most recent state wasn't checked
       if(_special) // if we're forcing keys, then check if any got released
       {
-         if((_special&1) && GetKeyState(VK_LCONTROL)>=0){release(KB_LCTRL ); FlagDisable(_special, 1);}
-         if((_special&2) && GetKeyState(VK_RCONTROL)>=0){release(KB_RCTRL ); FlagDisable(_special, 2);}
-         if((_special&4) && GetKeyState(VK_LSHIFT  )>=0){release(KB_LSHIFT); FlagDisable(_special, 4);}
-         if((_special&8) && GetKeyState(VK_RSHIFT  )>=0){release(KB_RSHIFT); FlagDisable(_special, 8);}
+         if((_special&  1) && GetKeyState(VK_LCONTROL)>=0){release(KB_LCTRL ); FlagDisable(_special,   1);}
+         if((_special&  2) && GetKeyState(VK_RCONTROL)>=0){release(KB_RCTRL ); FlagDisable(_special,   2);}
+         if((_special&  4) && GetKeyState(VK_LSHIFT  )>=0){release(KB_LSHIFT); FlagDisable(_special,   4);}
+         if((_special&  8) && GetKeyState(VK_RSHIFT  )>=0){release(KB_RSHIFT); FlagDisable(_special,   8);}
+         if((_special& 16) && GetKeyState(VK_LMENU   )>=0){release(KB_LALT  ); FlagDisable(_special,  16);}
+         if((_special& 32) && GetKeyState(VK_RMENU   )>=0){release(KB_RALT  ); FlagDisable(_special,  32);}
+         if((_special& 64) && GetKeyState(VK_LWIN    )>=0){release(KB_LWIN  ); FlagDisable(_special,  64);}
+         if((_special&128) && GetKeyState(VK_RWIN    )>=0){release(KB_RWIN  ); FlagDisable(_special, 128);}
       }
    }
 #endif
@@ -1325,10 +1329,14 @@ void KeyboardClass::acquire(Bool on)
          {
            _device->Acquire();
             // upon activating the app, we need to check if some keys are pressed, for some reason 'GetDeviceState' will not return it until the next frame
-            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL , 29); _special|=1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
-            if(GetKeyState(VK_RCONTROL)<0                            ){push(KB_RCTRL , 29); _special|=2;}
-            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT, 42); _special|=4;}
-            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT, 54); _special|=8;}
+            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL , 29); _special|=  1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(GetKeyState(VK_RCONTROL)<0                            ){push(KB_RCTRL , 29); _special|=  2;}
+            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT, 42); _special|=  4;}
+            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT, 54); _special|=  8;}
+            if(GetKeyState(VK_LMENU   )<0                            ){push(KB_LALT  , 56); _special|= 16;}
+            if(GetKeyState(VK_RMENU   )<0                            ){push(KB_RALT  , 56); _special|= 32;}
+            if(GetKeyState(VK_LWIN    )<0                            ){push(KB_LWIN  , 91); _special|= 64;}
+            if(GetKeyState(VK_RWIN    )<0                            ){push(KB_RWIN  , 92); _special|=128;}
          }else _device->Unacquire();
       }else
       {
@@ -1381,9 +1389,13 @@ void KeyboardClass::exclusive(Bool on)
          if(KEYBOARD_MODE==BACKGROUND || App.active())_device->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
          // because calling 'Unacquire' resets the state, we need to remember if some keys are pressed, other keys don't have to be remembered because they are processed using WM_*KEY*
         _special=1*Kb.b(KB_LCTRL )
-                |2*Kb.b(KB_RCTRL )
-                |4*Kb.b(KB_LSHIFT)
-                |8*Kb.b(KB_RSHIFT);
+              |  2*Kb.b(KB_RCTRL )
+              |  4*Kb.b(KB_LSHIFT)
+              |  8*Kb.b(KB_RSHIFT)
+              | 16*Kb.b(KB_LALT  )
+              | 32*Kb.b(KB_RALT  )
+              | 64*Kb.b(KB_LWIN  )
+              |128*Kb.b(KB_RWIN  );
       }
    #endif
    }
