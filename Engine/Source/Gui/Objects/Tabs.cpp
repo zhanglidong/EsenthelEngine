@@ -368,8 +368,8 @@ void Tabs::draw(C GuiPC &gpc)
       setButtonSubType();
       Rect  r=rect()+gpc.offset; Vec2 ofs=D.alignScreenToPixelOffset(r.lu()); r+=ofs;
       GuiPC gpc_this(gpc, visible(), enabled()); gpc_this.offset+=ofs; // adjust offset so that all tabs have the same pixel alignment as the first one
-      FREPA(T)  tab(i  ).          draw(gpc_this);
-      if(T()>=0)tab(T())._children.draw(gpc     );
+      FREPA(T)           tab(i  ).          draw(gpc_this);
+      if(InRange(T(), T))tab(T())._children.draw(gpc     );
    }
 }
 /******************************************************************************/
