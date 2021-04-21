@@ -37,7 +37,7 @@ namespace EE{
    static const DIK Keys[]= // only keys known to have the same physical location on all keyboard layouts can be listed here
    {
       {KB_LCTRL , DIK_LCONTROL},
-    //{KB_RCTRL , DIK_RCONTROL}, processed using WM_*KEY*
+      {KB_RCTRL , DIK_RCONTROL},
       {KB_LSHIFT, DIK_LSHIFT  }, // WM_*KEY* does not provide an option to check for left/right shift
       {KB_RSHIFT, DIK_RSHIFT  }, // WM_*KEY* does not provide an option to check for left/right shift
     //{KB_LALT  , DIK_LALT    }, processed using WM_*KEY*
@@ -1126,7 +1126,7 @@ void KeyboardClass::update()
          {
           C DIK &key=Keys[i]; if(key.dik==dik)
             {
-               if(d.dwData&0x80)push(key.key);else release(key.key);
+               if(d.dwData&0x80)push(key.key, 0);else release(key.key);
                break;
             }
          }
@@ -1141,17 +1141,19 @@ void KeyboardClass::update()
          REPA(Keys) // process only special keys
          {
           C DIK &key=Keys[i];
-            Bool on =(dik[key.dik] || ((key.key==KB_LCTRL) ? _special&1 : GetKeyState(key.key)<0)); // use a combination of both DirectInput and WinApi, because DirectInput loses state when changing exclusive mode (calling 'Unacquire' and 'Acquire'), however we can't use 'GetKeyState' for control (because it can be triggered by AltGr and may be disabled by Ctrl+Shift system shortcut)
+            Bool on =(dik[key.dik] || ((key.key==KB_LCTRL) ? _special&1 : GetKeyState(key.key)<0)); // use a combination of both DirectInput and WinApi, because DirectInput loses state when changing exclusive mode (calling 'Unacquire' and 'Acquire'), however we can't use 'GetKeyState' for LeftControl (because it can be triggered by AltGr and may be disabled by Ctrl+Shift system shortcut)
             if(  on!=FlagTest(_button[key.key], BS_ON))
             {
-               if(on)push(key.key);else release(key.key);
+               if(on)push(key.key, 0);else release(key.key);
             }
          }
       }else // if most recent state wasn't checked
-      if(_special&(2|4)) // if we're forcing Shifts, then check if any got released
+      if(_special) // if we're forcing keys, then check if any got released
       {
-         if((_special&2) && GetKeyState(VK_LSHIFT)>=0){release(KB_LSHIFT); FlagDisable(_special, 2);}
-         if((_special&4) && GetKeyState(VK_RSHIFT)>=0){release(KB_RSHIFT); FlagDisable(_special, 4);}
+         if((_special&1) && GetKeyState(VK_LCONTROL)>=0){release(KB_LCTRL ); FlagDisable(_special, 1);}
+         if((_special&2) && GetKeyState(VK_RCONTROL)>=0){release(KB_RCTRL ); FlagDisable(_special, 2);}
+         if((_special&4) && GetKeyState(VK_LSHIFT  )>=0){release(KB_LSHIFT); FlagDisable(_special, 4);}
+         if((_special&8) && GetKeyState(VK_RSHIFT  )>=0){release(KB_RSHIFT); FlagDisable(_special, 8);}
       }
    }
 #endif
@@ -1323,9 +1325,10 @@ void KeyboardClass::acquire(Bool on)
          {
            _device->Acquire();
             // upon activating the app, we need to check if some keys are pressed, for some reason 'GetDeviceState' will not return it until the next frame
-            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL ); _special|=1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
-            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT); _special|=2;}
-            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT); _special|=4;}
+            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL , 0); _special|=1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(GetKeyState(VK_RCONTROL)<0                            ){push(KB_RCTRL , 0); _special|=2;}
+            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT, 0); _special|=4;}
+            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT, 0); _special|=8;}
          }else _device->Unacquire();
       }else
       {
@@ -1333,6 +1336,14 @@ void KeyboardClass::acquire(Bool on)
          DIDEVICEOBJECTDATA didod[BUF_KEYS];
          DWORD elms=BUF_KEYS, ret=_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
       }
+   }
+#elif KB_RAW_INPUT
+   if(KEYBOARD_MODE==FOREGROUND && on)
+   { // upon activating the app, we need to check if some keys are pressed, for some reason they will not be reported until the next frame
+      if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0)push(KB_LCTRL , 0); // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+      if(GetKeyState(VK_RCONTROL)<0                            )push(KB_RCTRL , 0);
+      if(GetKeyState(VK_LSHIFT  )<0                            )push(KB_LSHIFT, 0);
+      if(GetKeyState(VK_RSHIFT  )<0                            )push(KB_RSHIFT, 0);
    }
 #endif
 #endif
@@ -1366,8 +1377,9 @@ void KeyboardClass::exclusive(Bool on)
          if(KEYBOARD_MODE==BACKGROUND || App.active())_device->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
          // because calling 'Unacquire' resets the state, we need to remember if some keys are pressed, other keys don't have to be remembered because they are processed using WM_*KEY*
         _special=1*Kb.b(KB_LCTRL )
-                |2*Kb.b(KB_LSHIFT)
-                |4*Kb.b(KB_RSHIFT);
+                |2*Kb.b(KB_RCTRL )
+                |4*Kb.b(KB_LSHIFT)
+                |8*Kb.b(KB_RSHIFT);
       }
    #endif
    }

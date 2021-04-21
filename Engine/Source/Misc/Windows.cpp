@@ -1150,6 +1150,7 @@ static void ConditionalDraw()
 {
    if(!(App.active() || (App.flag&APP_WORK_IN_BACKGROUND)))DrawState(); // draw only if will not draw by itself
 }
+Int frame=0;
 static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lParam)
 {
 #if 0
@@ -1307,7 +1308,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       // MOUSE
       // because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to 'Ms.exclusive' or 'Ms.clip', then we always need to activate when the user clicks on client area
    #if MS_RAW_INPUT
-      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client
+      case WM_LBUTTONDOWN: frame=Time.frame(); App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client
     //case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;   case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client unless SetCapture was called during WM_*BUTTONDOWN, disable because it's already handled in WM_INPUT\RIM_TYPEMOUSE
    #elif MS_DIRECT_INPUT
       case WM_LBUTTONDOWN: App.setActive(true); return 0;
@@ -1347,8 +1348,8 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
                   KB_KEY key;
                   switch(raw.data.keyboard.VKey)
                   {
-                     case VK_CONTROL : if(raw.data.keyboard.Flags&RI_KEY_E0)goto def; key=KB_LCTRL; break; // skip RI_KEY_E0 right control (it's already handled in WM_KEYDOWN)
-                     case VK_SHIFT   : key=((raw.data.keyboard.MakeCode==42) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
+                     case VK_CONTROL : key=((raw.data.keyboard.Flags&RI_KEY_E0) ? KB_RCTRL  : KB_LCTRL ); break;
+                     case VK_SHIFT   : key=((raw.data.keyboard.MakeCode==42   ) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
                      case VK_SNAPSHOT: key=KB_PRINT; break; // needed for exclusive mode
                    //case 255        : if(raw.data.keyboard.MakeCode==42 && (raw.data.keyboard.Flags&(RI_KEY_E0|RI_KEY_E1))==RI_KEY_E0){key=KB_PRINT; break;} goto def; detect KB_PRINT because in 'Kb.exclusive', WM_HOTKEY isn't called, however this is also called when pressing "Insert" when NumLock is off so it can't be used
                      default         : goto def;
@@ -1399,7 +1400,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          KB_KEY key=KB_KEY(wParam);
          switch(key)
          {
-            case KB_CTRL :    if(lParam&(1<<24))key=KB_RCTRL;else return 0; break; // can't push KB_LCTRL, because it could be triggered by KB_RALT, just ignore this rely on RawInput/DirectInput
+          //case KB_CTRL :    if(lParam&(1<<24))key=KB_RCTRL;else return 0; break; // can't push KB_LCTRL, because it could be triggered by KB_RALT, ignore this and rely on RawInput/DirectInput
           //case KB_SHIFT: key=((lParam&(1<<24)) ?  KB_RSHIFT : KB_LSHIFT); break; this is not working OK, lParam&(1<<24) is always false
           //case KB_SHIFT: key=((scan_code==42 ) ?  KB_LSHIFT : KB_RSHIFT); break; 42=KB_LSHIFT, 54=KB_RSHIFT, releasing doesn't work OK
           //case KB_SHIFT: key=(KB_KEY)MapVirtualKey((lParam>>16)&0xFF, MAPVK_VSC_TO_VK_EX); break; releasing doesn't work OK
@@ -1441,13 +1442,13 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
          KB_KEY key=KB_KEY(wParam);
          switch(key)
          {
-            case KB_CTRL : if(lParam&(1<<24))key=KB_RCTRL;else
+          /*case KB_CTRL : if(lParam&(1<<24))key=KB_RCTRL;else
                            #if KB_RAW_INPUT
                               return 0;
                            #else
                               if(Kb._special&1){key=KB_LCTRL; FlagDisable(Kb._special, 1);}else return 0; // release LCTRL only if it was locked
                            #endif
-            break;
+            break; ignore this and rely on RawInput/DirectInput*/
           //case KB_SHIFT: key=((lParam&(1<<24)) ? KB_RSHIFT : KB_LSHIFT); break; this is not working OK, lParam&(1<<24) is always false
           //case KB_SHIFT: key=((scan_code==42 ) ? KB_LSHIFT : KB_RSHIFT); break; 42=KB_LSHIFT, 54=KB_RSHIFT, will not be called for one Shift key if other is already pressed
           //case KB_SHIFT: key=(KB_KEY)MapVirtualKey((lParam>>16)&0xFF, MAPVK_VSC_TO_VK_EX); break; will not be called for one Shift key if other is already pressed
@@ -1597,7 +1598,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       {
          Byte pushed=0; if(!App.active()) // check for key-states if app is inactive, in case the 'drop' callback wants to know about them
          {
-            if(!Kb.b(KB_LCTRL ) && GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){Kb.push(KB_LCTRL , 29); pushed|= 1;}// we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(!Kb.b(KB_LCTRL ) && GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){Kb.push(KB_LCTRL , 29); pushed|= 1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
             if(!Kb.b(KB_RCTRL ) && GetKeyState(VK_RCONTROL)<0                            ){Kb.push(KB_RCTRL , 29); pushed|= 2;}
             if(!Kb.b(KB_LSHIFT) && GetKeyState(VK_LSHIFT  )<0                            ){Kb.push(KB_LSHIFT, 42); pushed|= 4;}
             if(!Kb.b(KB_RSHIFT) && GetKeyState(VK_RSHIFT  )<0                            ){Kb.push(KB_RSHIFT, 54); pushed|= 8;}
