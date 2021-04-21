@@ -337,8 +337,8 @@ void Tabs::nearest(C GuiPC &gpc, GuiObjNearest &gon)
 {
    if(/*gpc.visible &&*/ visible())
    {
-      if(InRange(T(), T))tab(T())._children.nearest(gpc, gon);
       if(gon.test((rect()+gpc.offset)&gpc.clip))REPA(T)tab(i).nearest(gpc, gon);
+      if(InRange(T(), T))tab(T())._children.nearest(gpc, gon);
    }
 }
 /******************************************************************************/

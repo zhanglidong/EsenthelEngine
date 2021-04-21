@@ -507,6 +507,14 @@ GuiObj* Menu::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    }
    return null;
 }
+void Menu::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(/*gpc.visible &&*/ visible())
+   { // menus are always on top, so we can ignore offset and clip, also don't do 'test' because sub menus can be located outside of this Menu rectangle
+      gon.cover(rect());
+      GuiPC gpc_this(gpc, T); list.nearest(gpc_this, gon); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->nearest(gpc_this, gon);
+   }
+}
 /******************************************************************************/
 void Menu::hideAll() {if(GuiObj *root=last(GO_MENU))root->deactivate();}
 /******************************************************************************/

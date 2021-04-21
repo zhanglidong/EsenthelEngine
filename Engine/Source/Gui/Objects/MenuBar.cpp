@@ -161,6 +161,18 @@ MenuBar& MenuBar::setCommand(C Str &command, Bool visible, Bool enabled)
    return T;
 }
 /******************************************************************************/
+void MenuBar::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+#if 1
+   super::nearest(gpc, gon);
+#else
+   if(/*gpc.visible &&*/ visible())
+   {
+      FIXME: TODO: individual elements
+   }
+#endif
+}
+/******************************************************************************/
 static void Activate(MenuBar &menu, MenuBar::Elm &elm, C GuiPC &gpc)
 {
    Vec2 pos(menu.rect().min.x+elm.x+gpc.offset.x-elm.menu.paddingL(), menu.rect().min.y+gpc.offset.y);

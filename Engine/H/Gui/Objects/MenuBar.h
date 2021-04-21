@@ -65,6 +65,7 @@ private:
 
 protected:
    virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client)override;
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
 #if EE_PRIVATE
    friend struct GUI; friend struct GuiObjChildren; friend struct GuiObj;
 #endif

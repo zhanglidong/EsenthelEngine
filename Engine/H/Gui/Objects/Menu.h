@@ -168,6 +168,7 @@ private:
 
 protected:
    virtual GuiObj* owner()C override;
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
 
    NO_COPY_CONSTRUCTOR(Menu);
 };
