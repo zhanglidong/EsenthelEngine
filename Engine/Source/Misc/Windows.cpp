@@ -1150,7 +1150,6 @@ static void ConditionalDraw()
 {
    if(!(App.active() || (App.flag&APP_WORK_IN_BACKGROUND)))DrawState(); // draw only if will not draw by itself
 }
-Int frame=0;
 static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lParam)
 {
 #if 0
@@ -1308,7 +1307,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       // MOUSE
       // because there can be a case when the Window is activated by System through WM_ACTIVATE, but we don't activate the App due to 'Ms.exclusive' or 'Ms.clip', then we always need to activate when the user clicks on client area
    #if MS_RAW_INPUT
-      case WM_LBUTTONDOWN: frame=Time.frame(); App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client
+      case WM_LBUTTONDOWN: App.setActive(true); Ms.push   (0); return 0;   case WM_RBUTTONDOWN: Ms.push   (1); return 0;   case WM_MBUTTONDOWN: Ms.push   (2); return 0;   case WM_XBUTTONDOWN: Ms.push   ((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client
     //case WM_LBUTTONUP  :                      Ms.release(0); return 0;   case WM_RBUTTONUP  : Ms.release(1); return 0;   case WM_MBUTTONUP  : Ms.release(2); return 0;   case WM_XBUTTONUP  : Ms.release((GET_XBUTTON_WPARAM(wParam)&XBUTTON1) ? 3 : 4); return 0; // events are reported only when clicking on window client unless SetCapture was called during WM_*BUTTONDOWN, disable because it's already handled in WM_INPUT\RIM_TYPEMOUSE
    #elif MS_DIRECT_INPUT
       case WM_LBUTTONDOWN: App.setActive(true); return 0;
