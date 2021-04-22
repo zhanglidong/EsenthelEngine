@@ -445,7 +445,10 @@ void FreeAlign16(Ptr &data)
       data=null;
    }
 }
-#elif WINDOWS && !X64 // Win 32-bit has only 8-byte alignment
+#elif ALLOC16
+Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
+void  FreeAlign16(Ptr   &data) {Free(data);}
+#elif WINDOWS
 Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
@@ -468,10 +471,7 @@ void FreeAlign16(Ptr &data)
                    data=null;
    }
 }
-#elif ALLOC16
-Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
-void  FreeAlign16(Ptr   &data) {Free(data);}
-#elif LINUX || ANDROID || WEB
+#else
 Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
