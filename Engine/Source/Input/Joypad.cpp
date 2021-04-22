@@ -228,8 +228,10 @@ Joypad& Joypad::vibration(C Vibration &left, C Vibration &right)
 void Joypad::zero()
 {
    Zero(_button);
-   REPAO(_last_t)=-FLT_MAX;
-          _dir_t =-FLT_MAX;
+   REPAO(_last_t )=-FLT_MAX;
+          _dir_t  =-FLT_MAX;
+   REPAO( _dir_at)=-FLT_MAX;
+   REPAO(diri_ar).zero();
          diri_r  .zero();
          diri    .zero();
          dir     .zero();
@@ -241,7 +243,8 @@ void Joypad::zero()
 void Joypad::clear()
 {
    REPAO(_button)&=~BS_NOT_ON;
-   diri_r.zero();
+         diri_r  .zero();
+   REPAO(diri_ar).zero();
 }
 void Joypad::update(C Byte *on, Int elms)
 {
@@ -251,19 +254,36 @@ void Joypad::update(C Byte *on, Int elms)
 #if WINDOWS_NEW
 static inline Bool FlagTest(Windows::Gaming::Input::GamepadButtons flags, Windows::Gaming::Input::GamepadButtons f) {return (flags&f)!=Windows::Gaming::Input::GamepadButtons::None;}
 #endif
-inline void Joypad::updateOK()
+static void UpdateDirRep(VecSB2 &diri_r, C VecSB2 &diri, Flt &time)
 {
    if(diri.any())
    {
-      if(Time.appTime()>=_dir_t)
+      if(Time.appTime()>=time)
       {
          diri_r=diri;
-        _dir_t =Time.appTime()+((_dir_t<0) ? FirstRepeatPressTime : RepeatPressTime); // if first press, then wait longer
+         time  =Time.appTime()+((time<0) ? FirstRepeatPressTime : RepeatPressTime); // if first press, then wait longer
       }
    }else
    {
-     _dir_t=-FLT_MAX;
+      time=-FLT_MAX;
    }
+}
+static VecSB2 DirToDirI(C Vec2 &d)
+{
+#if 0
+   const Flt tan=0.414213568f; // Tan(PI_4/2) correct value
+#else
+   const Flt tan=0.5f; // use higher value to minimize chance of moving diagonally by accident
+#endif
+   const Flt dead=0.1f;
+   Flt v=Abs(d).max(); if(v>dead)return SignEpsB(d/v, tan);
+   return 0;
+}
+inline void Joypad::updateOK()
+{
+   UpdateDirRep(diri_r    ,           diri     , _dir_t    );
+   UpdateDirRep(diri_ar[0], DirToDirI(dir_a[0]), _dir_at[0]);
+   UpdateDirRep(diri_ar[1], DirToDirI(dir_a[1]), _dir_at[1]);
 }
 void Joypad::update()
 {

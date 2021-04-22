@@ -36,6 +36,9 @@ enum JOYPAD_BUTTON // button indexes as defined for XInput/Xbox/NintendoSwitch c
    JB_MINUS =JB_BACK , // Nintendo Switch
    JB_PLUS  =JB_START, // Nintendo Switch
 
+   JB_MINI_S1=JB_LSL, // Nintendo Switch Mini Side Button 1
+   JB_MINI_S2=JB_LSR, // Nintendo Switch Mini Side Button 2
+
    // Left/Right/Up/Down
 #if SWITCH
    JB_L=JB_Y, // button located at the Left  side on Nintendo Switch
@@ -79,7 +82,8 @@ struct Joypad // Joypad Input
    };
 
    VecSB2 diri      , //        direction (integer version)
-          diri_r    ; //        direction (integer version) repeatable, will get triggered repeatedly as long as direction is pressed
+          diri_r    , //        direction (integer version) repeatable, will get triggered repeatedly as long as        direction is pressed
+          diri_ar[2]; // analog direction (integer version) repeatable, will get triggered repeatedly as long as analog direction is pressed, [0]=left, [1]=right
    Vec2   dir       , //        direction
           dir_a  [2]; // analog direction, [0]=left, [1]=right
    Flt    trigger[2]; // trigger         , [0]=left, [1]=right
@@ -99,6 +103,7 @@ struct Joypad // Joypad Input
            C Str&       name(     )C {return _name;} // get Joypad name
           CChar8* buttonName(Int b)C;                // get button name, buttonName(JB_A) -> "A", buttonName(JB_B) -> "B", ..
    static CChar8* ButtonName(Int b);                 // get button name, ButtonName(JB_A) -> "A", ButtonName(JB_B) -> "B", ..
+            Bool        mini(     )C;                // if  this is a mini Joypad (a single Nintendo Switch Joy-Con Left or Right held horizontally)
 
    Joypad& vibration(C Vec2 &vibration                    ); // set vibrations, 'vibration.x'=left motor intensity (0..1), 'vibration.y'=right motor intensity (0..1)
    Joypad& vibration(C Vibration &left, C Vibration &right); // set vibrations
@@ -140,8 +145,11 @@ private:
 #if WINDOWS_NEW
    Bool    _vibrations=false;
 #endif
+#if SWITCH
+   Bool    _mini=false;
+#endif
    Bool    _connected=false;
-   Flt     _last_t[32], _dir_t;
+   Flt     _last_t[32], _dir_t, _dir_at[2];
    UInt    _id=0;
 #if SWITCH
    UInt    _vibration_handle[2], _sensor_handle[2];
