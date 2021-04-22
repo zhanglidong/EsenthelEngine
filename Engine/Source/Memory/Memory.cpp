@@ -420,7 +420,7 @@ void _ReallocZero(Ptr &data, ULong size_new, ULong size_old)
 /******************************************************************************/
 // ALIGNED
 /******************************************************************************/
-#if MEM_CUSTOM || (WINDOWS && !X64) // Win 32-bit has only 8-byte alignment (for it use this version instead of the one below with '_aligned_malloc/_aligned_free' because it's more efficient)
+#if MEM_CUSTOM || (WINDOWS && !X64) // Win 32-bit has only 8-byte alignment (for it always use this version instead of the one below, because '_aligned_malloc' and '_aligned_free' are just wrappers for 'malloc' and 'free')
 typedef Byte AAOffs; // Byte is enough to store 0..16 offset
 Ptr AllocAlign16(IntPtr size)
 {
@@ -496,6 +496,7 @@ Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(dat
 void  FreeAlign16(Ptr   &data) {Free(data);}
 #endif
 /******************************************************************************/
+#if MEM_CUSTOM || WINDOWS // on Windows always use this version instead of the one below, because '_aligned_malloc' and '_aligned_free' are just wrappers for 'malloc' and 'free'
 typedef U16 AAOffs2; // U16 is enough to store 0..32768 offset
 Ptr AllocAlign(IntPtr size, Int align)
 {
@@ -522,6 +523,56 @@ void FreeAlign(Ptr &data)
       data=null;
    }
 }
+#elif WINDOWS
+Ptr AllocAlign(IntPtr size, Int align)
+{
+   if(size>0)
+   {
+      DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
+      UInt align2=CeilPow2(align);
+      if(Ptr data=_aligned_malloc(size, align2))
+      {
+         AllocInc();
+         return data;
+      }
+      AllocError(size);
+   }
+   return null;
+}
+void FreeAlign(Ptr &data)
+{
+   if(data)
+   {
+      AllocDec    ();
+     _aligned_free(data);
+                   data=null;
+   }
+}
+#else
+Ptr AllocAlign(IntPtr size, Int align)
+{
+   if(size>0)
+   {
+      DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
+      if(Ptr data=memalign(align, size))
+      {
+         AllocInc();
+         return data;
+      }
+      AllocError(size);
+   }
+   return null;
+}
+void FreeAlign(Ptr &data)
+{
+   if(data)
+   {
+      AllocDec();
+      free    (data);
+               data=null;
+   }
+}
+#endif
 /******************************************************************************/
 // ZERO
 /******************************************************************************/
