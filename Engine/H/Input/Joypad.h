@@ -185,6 +185,8 @@ extern MemtN<Joypad, 4> Joypads;
 void JoypadSensors(Bool calculate); // if want Joypad sensors to be calculated (accelerometer, gyroscope, orientation)
 Bool JoypadSensors();               // if want Joypad sensors to be calculated (accelerometer, gyroscope, orientation)
 
+void ConfigureJoypads(Int min_players, Int max_players, C CMemPtr<Color> &player_colors=null); // open OS joypad configuration screen, 'min_players'=minimum number of players required, 'max_players'=maximum number of players allowed, 'player_colors'=colors for each player (optional), supported only on Nintendo Switch
+
 Joypad* FindJoypad(UInt id); // find Joypad in 'Joypads' container according to its 'id', null on fail
 #if EE_PRIVATE
 Joypad& GetJoypad  (UInt id, Bool &added);

@@ -462,9 +462,7 @@ void Joypad::acquire(Bool on)
    if(!on)zero();
 }
 #if !SWITCH
-void Joypad::sensors(Bool calculate)
-{
-}
+void Joypad::sensors(Bool calculate) {}
 #endif
 /******************************************************************************/
 Bool JoypadSensors() {return CalculateJoypadSensors;}
@@ -476,6 +474,10 @@ void JoypadSensors(Bool calculate)
       REPAO(Joypads).sensors(CalculateJoypadSensors);
    }
 }
+/******************************************************************************/
+#if !SWITCH
+void ConfigureJoypads(Int min_players, Int max_players, C CMemPtr<Color> &player_colors) {}
+#endif
 /******************************************************************************/
 Joypad* FindJoypad(UInt id)
 {
