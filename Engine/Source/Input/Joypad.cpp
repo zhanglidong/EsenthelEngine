@@ -275,7 +275,7 @@ static VecSB2 DirToDirI(C Vec2 &d)
 #else
    const Flt tan=0.5f; // use higher value to minimize chance of moving diagonally by accident
 #endif
-   const Flt dead=0.1f;
+   const Flt dead=0.333f;
    Flt v=Abs(d).max(); if(v>dead)return SignEpsB(d/v, tan);
    return 0;
 }
