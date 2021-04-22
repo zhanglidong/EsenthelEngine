@@ -476,7 +476,7 @@ void JoypadSensors(Bool calculate)
 }
 /******************************************************************************/
 #if !SWITCH
-void ConfigureJoypads(Int min_players, Int max_players, C CMemPtr<Color> &player_colors) {}
+void ConfigureJoypads(Int min_players, Int max_players, C CMemPtr<Str> &player_names, C CMemPtr<Color> &player_colors) {}
 #endif
 /******************************************************************************/
 Joypad* FindJoypad(UInt id)
