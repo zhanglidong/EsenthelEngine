@@ -169,6 +169,9 @@ void ListMemLeaks();
 Ptr  AllocAlign16(IntPtr size);
 void  FreeAlign16(Ptr    &ptr);
 
+Ptr  AllocAlign(IntPtr size, Int align);
+void  FreeAlign(Ptr    &ptr);
+
          void _CopyIs  (Ptr   dest,   CPtr  src, C CMemPtr<Bool> &is  , UInt elm_size);                                                // copy only elements with "is[]=true"
          void _CopyList(Ptr   dest,   CPtr  src, C CMemPtr<Int > &list, UInt elm_size);                                                // copy only elements mentioned on the list
 T1(TYPE) void  CopyIs  (TYPE *dest, C TYPE *src, C CMemPtr<Bool> &is                 ) {_CopyIs  (dest, (CPtr)src, is  , SIZE(TYPE));} // copy only elements with "is[]=true"

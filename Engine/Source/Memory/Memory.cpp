@@ -11,6 +11,8 @@
 #if (MEM_SINGLE_MAX || MEM_LEAK_FULL || MEM_GUARD || MEM_PEAK || MEM_COUNT_USAGE) && !DEBUG
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
+
+#define ALLOC16 ((WINDOWS && X64) || APPLE || SWITCH || PLAYSTATION) // platforms that have 16-byte guaranteed alignment (Win-32, Android-64 are confirmed to have only 8, Linux most likely too), Apple - https://developer.apple.com/library/archive/documentation/Performance/Conceptual/ManagingMemory/Articles/MemoryAlloc.html
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
@@ -359,7 +361,7 @@ Ptr Alloc(UIntPtr size)
       #endif
 
          // test alignment to verify that EE codes haven't messed up required alignment by the system (in case some codes or the system make assumption about alignment)
-      #if X64 || APPLE // 64-bit platforms and all Apple have 16-byte alignment
+      #if ALLOC16
          DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned");
       #else // other platforms should have at least 8-byte alignment
          // https://msdn.microsoft.com/en-us/library/ycsb6wwf.aspx
@@ -419,7 +421,7 @@ void _ReallocZero(Ptr &data, ULong size_new, ULong size_old)
 // ALIGNED
 /******************************************************************************/
 #if MEM_CUSTOM || (WINDOWS && !X64) // Win 32-bit has only 8-byte alignment (for it use this version instead of the one below with '_aligned_malloc/_aligned_free' because it's more efficient)
-typedef Byte AAOffs; // Byte is enough to store the 0..16 offset
+typedef Byte AAOffs; // Byte is enough to store 0..16 offset
 Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
@@ -466,7 +468,7 @@ void FreeAlign16(Ptr &data)
                    data=null;
    }
 }
-#elif LINUX || ANDROID
+#elif LINUX || ANDROID || WEB
 Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
@@ -489,10 +491,37 @@ void FreeAlign16(Ptr &data)
                data=null;
    }
 }
-#else // Win64, Apple, XBox/UWP, PlayStation, Switch, have 16-byte alignment
+#elif ALLOC16
 Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
 void  FreeAlign16(Ptr   &data) {Free(data);}
 #endif
+/******************************************************************************/
+typedef U16 AAOffs2; // U16 is enough to store 0..32768 offset
+Ptr AllocAlign(IntPtr size, Int align)
+{
+   if(size>0)
+   {
+      DYNAMIC_ASSERT(align>=1 && align<=32768, "Invalid alignment");
+      UInt align1=CeilPow2(align)-1;
+      Int  padd  =align1+SIZE(AAOffs2); // 'align1' for alignment and AAOffs2 for offset to the original pointer
+      if(Byte *original=Alloc<Byte>(size+padd))
+      {
+         Byte      *aligned=(Byte*)(UIntPtr(original+padd)&~(UIntPtr)align1);
+         ((AAOffs2*)aligned)[-1]=aligned-original; // store offset to the original pointer
+         return     aligned;
+      }
+   }
+   return null;
+}
+void FreeAlign(Ptr &data)
+{
+   if(data)
+   {
+      Ptr  original=((Byte*)data)-((AAOffs2*)data)[-1];
+      Free(original);
+      data=null;
+   }
+}
 /******************************************************************************/
 // ZERO
 /******************************************************************************/
