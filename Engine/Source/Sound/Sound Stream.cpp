@@ -67,24 +67,6 @@ static Int OpusMaxFrameSize(Int channels)
 #pragma warning(disable:4267) // 64bit - conversion from 'size_t' to 'Int', possible loss of data
 namespace EE{
 /******************************************************************************/
-struct FileData
-{
-   Mems<Byte> data; // file data
-
-   Bool load(C Str &name) // load, false on fail
-   {
-      File f; if(f.readTry(name))
-      {
-         data.setNum(f.size());
-         if(f.getFast(data.data(), data.elms()))return true;
-      }
-      data.del(); return false;
-   }
-};
-/******************************************************************************/
-DECLARE_CACHE(FileData, FileDatas, FileDataPtr);
- DEFINE_CACHE(FileData, FileDatas, FileDataPtr, "Sound");
-/******************************************************************************/
 CChar8* CodecName(SOUND_CODEC codec)
 {
    switch(codec)
@@ -1586,17 +1568,6 @@ static AAC* LoadAACHeader(File &f, SoundStream::Params &params, Int audio_track=
 }
 #endif
 /******************************************************************************/
-// SOUND CACHE
-/******************************************************************************/
-Bool CacheSound(C Str &name)
-{
-   return FileDatas.get(name)!=null; // load and keep forever
-}
-Bool CacheSound(C UID &id)
-{
-   return FileDatas.get(id)!=null; // load and keep forever
-}
-/******************************************************************************/
 // SOUND STREAM
 /******************************************************************************/
 Flt SoundStream::Params::length()C {Int div=block*frequency; return div ? Dbl(size)/div : 0;} // use Dbl because 'size' can be huge (more than INT_MAX)
@@ -1646,7 +1617,7 @@ Bool SoundStream::open(C Str &name)
 {
    if(name.is())
    {
-      if(FileData *fd=FileDatas.find(name)){_f.readMem(fd->data.data(), fd->data.elms()); return true;} // try from cache if was loaded
+      // here can try to load from cache
       return _f.readTry(name); // try from file on disk
    }
    return false;

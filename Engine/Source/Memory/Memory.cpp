@@ -420,7 +420,7 @@ void _ReallocZero(Ptr &data, ULong size_new, ULong size_old)
 /******************************************************************************/
 #if MEM_CUSTOM || (WINDOWS && !X64) // Win 32-bit has only 8-byte alignment (for it use this version instead of the one below with '_aligned_malloc/_aligned_free' because it's more efficient)
 typedef Byte AAOffs; // Byte is enough to store the 0..16 offset
-Ptr AlignedAlloc(IntPtr size)
+Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
    {
@@ -434,7 +434,7 @@ Ptr AlignedAlloc(IntPtr size)
    }
    return null;
 }
-void AlignedFree(Ptr &data)
+void FreeAlign16(Ptr &data)
 {
    if(data)
    {
@@ -444,7 +444,7 @@ void AlignedFree(Ptr &data)
    }
 }
 #elif WINDOWS && !X64 // Win 32-bit has only 8-byte alignment
-Ptr AlignedAlloc(IntPtr size)
+Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
    {
@@ -457,7 +457,7 @@ Ptr AlignedAlloc(IntPtr size)
    }
    return null;
 }
-void AlignedFree(Ptr &data)
+void FreeAlign16(Ptr &data)
 {
    if(data)
    {
@@ -466,8 +466,8 @@ void AlignedFree(Ptr &data)
                    data=null;
    }
 }
-#elif LINUX || ANDROID || SWITCH
-Ptr AlignedAlloc(IntPtr size)
+#elif LINUX || ANDROID
+Ptr AllocAlign16(IntPtr size)
 {
    if(size>0)
    {
@@ -480,7 +480,7 @@ Ptr AlignedAlloc(IntPtr size)
    }
    return null;
 }
-void AlignedFree(Ptr &data)
+void FreeAlign16(Ptr &data)
 {
    if(data)
    {
@@ -489,9 +489,9 @@ void AlignedFree(Ptr &data)
                data=null;
    }
 }
-#else // PS, XBox, Win64, Apple have 16-byte alignment
-Ptr  AlignedAlloc(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
-void AlignedFree (Ptr   &data) {Free(data);}
+#else // Win64, Apple, XBox/UWP, PlayStation, Switch, have 16-byte alignment
+Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
+void  FreeAlign16(Ptr   &data) {Free(data);}
 #endif
 /******************************************************************************/
 // ZERO

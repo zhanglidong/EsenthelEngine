@@ -260,9 +260,6 @@ private:
 #endif
 };
 /******************************************************************************/
-Bool CacheSound(C Str &name); // cache sound file into memory so it won't be played every time from the disk, usage of this function is optional, you can call it at some initialization stage of your game, false on fail
-Bool CacheSound(C UID &id  ); // cache sound file into memory so it won't be played every time from the disk, usage of this function is optional, you can call it at some initialization stage of your game, false on fail
-
 void SoundPlay(               C Str         &name,                          Flt volume=1, VOLUME_GROUP volume_group=VOLUME_FX, Flt speed=1); // play    sound, 'name'=sound file name                                                                           , 'volume'=sound volume (0..1), 'speed'=sound speed (0..3)
 void SoundPlay(               C UID         &id  ,                          Flt volume=1, VOLUME_GROUP volume_group=VOLUME_FX, Flt speed=1); // play    sound, 'id'  =sound file name ID                                                                        , 'volume'=sound volume (0..1), 'speed'=sound speed (0..3)
 void SoundPlay(const_mem_addr SoundCallback &call,                          Flt volume=1, VOLUME_GROUP volume_group=VOLUME_FX, Flt speed=1); // play    sound, 'call'=sound call back                                                                           , 'volume'=sound volume (0..1), 'speed'=sound speed (0..3)

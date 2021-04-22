@@ -102,14 +102,14 @@ void PhysMesh::del()
    }
    Delete(_base);
                 _physx_cooked_data.del();
-   AlignedFree(_bullet_cooked_data);
+   FreeAlign16(_bullet_cooked_data);
    zero();
 }
 /******************************************************************************/
 void PhysMesh::freeHelperData()
 {
 #if PHYSX
-   AlignedFree(_bullet_cooked_data); _bullet_cooked_data_size=0;
+   FreeAlign16(_bullet_cooked_data); _bullet_cooked_data_size=0;
    if(_convex || _mesh         ){Delete(_base); _physx_cooked_data.del();}else // delete helpers only if we've created data from them
    if(_physx_cooked_data.elms()){Delete(_base);}
 #else
@@ -167,10 +167,10 @@ Bool PhysMesh::adjustStorage(Bool universal, Bool physx, Bool bullet, Bool *chan
             if(changed)*changed=true;
             if(_bullet_cooked_data_size=temp_bvh->calculateSerializeBufferSize())
             {
-              _bullet_cooked_data=AlignedAlloc(_bullet_cooked_data_size);
+              _bullet_cooked_data=AllocAlign16(_bullet_cooked_data_size);
                if( !temp_bvh->serializeInPlace(_bullet_cooked_data, _bullet_cooked_data_size, false))
                {
-                  AlignedFree(_bullet_cooked_data);
+                  FreeAlign16(_bullet_cooked_data);
                               _bullet_cooked_data_size=0;
                }
             }
@@ -182,7 +182,7 @@ Bool PhysMesh::adjustStorage(Bool universal, Bool physx, Bool bullet, Bool *chan
       // then delete all unwanted
       if(!universal && _physx_cooked_data.elms() &&  _base                    ){Delete(_base);                                                if(changed)*changed=true;} // delete only if there's physx     left (don't delete if there's no physx    )
       if(!physx     && _base                     &&  _physx_cooked_data.elms()){             _physx_cooked_data.del();                        if(changed)*changed=true;} // delete only if there's universal left (don't delete if there's no universal)
-      if(!bullet                                 && _bullet_cooked_data       ){AlignedFree(_bullet_cooked_data); _bullet_cooked_data_size=0; if(changed)*changed=true;}
+      if(!bullet                                 && _bullet_cooked_data       ){FreeAlign16(_bullet_cooked_data); _bullet_cooked_data_size=0; if(changed)*changed=true;}
 
       // check for failure
                           if((!universal)!=(! _base                    ))return false;
@@ -433,7 +433,7 @@ PhysMesh& PhysMesh::operator=(C PhysMesh &src)
       if(src._bullet_cooked_data)
       {
         _bullet_cooked_data_size=         src._bullet_cooked_data_size;
-        _bullet_cooked_data     =AlignedAlloc(_bullet_cooked_data_size);
+        _bullet_cooked_data     =AllocAlign16(_bullet_cooked_data_size);
          CopyFast(_bullet_cooked_data, src._bullet_cooked_data, _bullet_cooked_data_size);
       }
 
@@ -935,7 +935,7 @@ Bool PhysPart::loadData(File &f)
                      if(bullet_ver!=1)f.skip(f.getUInt());else // other versions aren't supported
                      {
                         f>>pm._bullet_cooked_data_size;
-                              pm._bullet_cooked_data=AlignedAlloc(pm._bullet_cooked_data_size);
+                              pm._bullet_cooked_data=AllocAlign16(pm._bullet_cooked_data_size);
                         f.get(pm._bullet_cooked_data,             pm._bullet_cooked_data_size);
                      }
                   }
@@ -971,7 +971,7 @@ Bool PhysPart::loadData(File &f)
                      if(bullet_ver!=1)f.skip(f.getUInt());else // other versions aren't supported
                      {
                         f>>pm._bullet_cooked_data_size;
-                              pm._bullet_cooked_data=AlignedAlloc(pm._bullet_cooked_data_size);
+                              pm._bullet_cooked_data=AllocAlign16(pm._bullet_cooked_data_size);
                         f.get(pm._bullet_cooked_data,             pm._bullet_cooked_data_size);
                      }
                   }
