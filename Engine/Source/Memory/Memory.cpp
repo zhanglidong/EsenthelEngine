@@ -468,6 +468,9 @@ void FreeAlign16(Ptr &data)
                    data=null;
    }
 }
+#elif ALLOC16
+Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
+void  FreeAlign16(Ptr   &data) {Free(data);}
 #elif LINUX || ANDROID || WEB
 Ptr AllocAlign16(IntPtr size)
 {
@@ -491,9 +494,6 @@ void FreeAlign16(Ptr &data)
                data=null;
    }
 }
-#elif ALLOC16
-Ptr  AllocAlign16(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
-void  FreeAlign16(Ptr   &data) {Free(data);}
 #endif
 /******************************************************************************/
 #if MEM_CUSTOM || WINDOWS // on Windows always use this version instead of the one below, because '_aligned_malloc' and '_aligned_free' are just wrappers for 'malloc' and 'free'
