@@ -930,6 +930,7 @@ bool SizeDependentTransform(C TextParam &p)
        || p.name=="trim"   // coordinates/size depend on size
        || p.name=="extend" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
+       || p.name=="rotate"
        || p.name=="tile" // tile range depends on size
        || (p.name=="pos" || p.name=="position") && p.asVecI2().any() // coordinates depend on size
        || PartialTransform(p); // coordinates/size depend on size
