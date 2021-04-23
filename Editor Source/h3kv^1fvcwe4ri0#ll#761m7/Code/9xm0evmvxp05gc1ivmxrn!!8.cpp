@@ -58,7 +58,6 @@ class PanelEditor : PropWin
    static void    Changed(C Property &prop) {PanelEdit.setChanged();}
 
    static void ParamsCenterStretch(EditPanel &e, C Str &t) {e.center_stretch=TextBool(t); e.center_stretch_time.getUTC();}
-   static void ParamsSideStretch  (EditPanel &e, C Str &t) {e.  side_stretch=TextBool(t); e.  side_stretch_time.getUTC();}
 
    static void ParamsCenterColor(EditPanel &e, C Str &t) {e.center_color=TextVec4(t); e.center_color_time.getUTC();}
    static void ParamsBarColor   (EditPanel &e, C Str &t) {e.   bar_color=TextVec4(t); e.   bar_color_time.getUTC();}
@@ -74,6 +73,7 @@ class PanelEditor : PropWin
    static void ParamsCenterScale       (EditPanel &e, C Str &t) {e.       center_scale =TextFlt (t); e.        center_scale_time.getUTC();}
    static void ParamsBarSize           (EditPanel &e, C Str &t) {e.          bar_size  =TextFlt (t); e.            bar_size_time.getUTC();}
    static void ParamsBorderSize        (EditPanel &e, C Str &t) {e.       border_size  =TextFlt (t); e.         border_size_time.getUTC();}
+   static void ParamsSideMinScale      (EditPanel &e, C Str &t) {e.     side_min_scale =TextFlt (t); e.      side_min_scale_time.getUTC();}
    static void ParamsTopSize           (EditPanel &e, C Str &t) {e.          top_size  =TextFlt (t); e.            top_size_time.getUTC();}
    static void ParamsTopOffset         (EditPanel &e, C Str &t) {e.          top_offset=TextFlt (t); e.          top_offset_time.getUTC();}
    static void ParamsBottomSize        (EditPanel &e, C Str &t) {e.       bottom_size  =TextFlt (t); e.         bottom_size_time.getUTC();}
@@ -177,7 +177,7 @@ class PanelEditor : PropWin
       add("Border Image", MemberDesc(DATA_STR                       ).setFunc          (ParamsBorderImage, ParamsBorderImage)).elmType(ELM_IMAGE);
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
-      add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images to fit the whole side\nAffects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
+      add("Side Min Scale"      , MemberDesc(MEMBER(EditPanel,       side_min_scale)).setTextToDataFunc(ParamsSideMinScale      )).range(0, 1).mouseEditSpeed(0.1).desc("If the side images (Top, Bottom) are bigger than the rectangle then they can be scaled down.\nThis value specifies the minimum allowed scale:\n0=allow full shrink\n1=no scale");
       add("Top Image"           , MemberDesc(DATA_STR                               ).setFunc          (ParamsTopImage         , ParamsTopImage         )).elmType(ELM_IMAGE);
       add("Top Size"            , MemberDesc(MEMBER(EditPanel,           top_size  )).setTextToDataFunc(ParamsTopSize           )).mouseEditSpeed(0.05);
       add("Top Offset"          , MemberDesc(MEMBER(EditPanel,           top_offset)).setTextToDataFunc(ParamsTopOffset         )).mouseEditSpeed(0.05);

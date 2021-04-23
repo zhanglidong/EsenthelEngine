@@ -1,39 +1,39 @@
 /******************************************************************************/
 struct Panel
 {
-   Bool         center_stretch, // if stretch center image  to fit the whole rectangle, default=false
-                  side_stretch, // if stretch side   images to fit the whole side     , default=false, this affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
-                center_shadow ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also draw underneath the center
-   Byte         shadow_opacity; // shadow        opacity, 0..255, default=170
-   Color        center_color  , // center        color  , default=WHITE      , this is affects 'center_image' and 'panel_image'
-                   bar_color  , // bar           color  , default=TRANSPARENT, this is affects 'bar_image'
-                border_color  , // border        color  , default=WHITE      , this is affects 'border_image'
-                  side_color  , // side image    color  , default=WHITE      , this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
-                  blur_color  ; // blur          color  , default=TRANSPARENT
-   Flt          shadow_radius , // shadow        radius , default=0.035
-                shadow_offset , // shadow        offset , default=0
-                center_scale  , // center        scale  , default=1
-                   bar_size   , // bar           size   , default=0
-                border_size   , // border        size   , default=0
-                   top_size   , // top           size   , default=0.1
-                bottom_size   , // bottom        size   , default=0.1
-            left_right_size   , // left/right    size   , default=0.1
-            top_corner_size   , // top    corner size   , default=0.1
-         bottom_corner_size   , // bottom corner size   , default=0.1
-                   top_offset , // top           offset , default=0
-                bottom_offset ; // bottom        offset , default=0
-   Vec2     left_right_offset , // left/right    offset , default=Vec2(0, 0)
-            top_corner_offset , // top    corner offset , default=Vec2(0, 0)
-         bottom_corner_offset ; // bottom corner offset , default=Vec2(0, 0)
-   ImagePtr     center_image  , // center        image  , default=null
-                   bar_image  , // bar           image  , default=null
-                border_image  , // border        image  , default=null
-                   top_image  , // top           image  , default=null
-                bottom_image  , // bottom        image  , default=null
-            left_right_image  , // left/right    image  , default=null
-            top_corner_image  , // top    corner image  , default=null
-         bottom_corner_image  ; // bottom corner image  , default=null
-   PanelImagePtr panel_image  ; // panel         image  , default=null
+   Bool         center_stretch  , // if stretch center image  to fit the whole rectangle, default=false
+                center_shadow   ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also draw underneath the center
+   Byte         shadow_opacity  ; // shadow        opacity, 0..255, default=170
+   Color        center_color    , // center        color  , default=WHITE      , this is affects 'center_image' and 'panel_image'
+                   bar_color    , // bar           color  , default=TRANSPARENT, this is affects 'bar_image'
+                border_color    , // border        color  , default=WHITE      , this is affects 'border_image'
+                  side_color    , // side image    color  , default=WHITE      , this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
+                  blur_color    ; // blur          color  , default=TRANSPARENT
+   Flt          shadow_radius   , // shadow        radius , default=0.035
+                shadow_offset   , // shadow        offset , default=0
+                center_scale    , // center        scale  , default=1
+                   bar_size     , // bar           size   , default=0
+                border_size     , // border        size   , default=0
+                  side_min_scale, // side  minimum scale  , default=1, 0..1, if the side images ('top_image', 'bottom_image') are bigger than panel rectangle then they can be scaled down, this value specifies the minimum allowed scale (0=allow full shrink, 1=no scale)
+                   top_size     , // top           size   , default=0.1
+                bottom_size     , // bottom        size   , default=0.1
+            left_right_size     , // left/right    size   , default=0.1
+            top_corner_size     , // top    corner size   , default=0.1
+         bottom_corner_size     , // bottom corner size   , default=0.1
+                   top_offset   , // top           offset , default=0
+                bottom_offset   ; // bottom        offset , default=0
+   Vec2     left_right_offset   , // left/right    offset , default=Vec2(0, 0)
+            top_corner_offset   , // top    corner offset , default=Vec2(0, 0)
+         bottom_corner_offset   ; // bottom corner offset , default=Vec2(0, 0)
+   ImagePtr     center_image    , // center        image  , default=null
+                   bar_image    , // bar           image  , default=null
+                border_image    , // border        image  , default=null
+                   top_image    , // top           image  , default=null
+                bottom_image    , // bottom        image  , default=null
+            left_right_image    , // left/right    image  , default=null
+            top_corner_image    , // top    corner image  , default=null
+         bottom_corner_image    ; // bottom corner image  , default=null
+   PanelImagePtr panel_image    ; // panel         image  , default=null
 
    // get
    void extendedRect           (C Rect &rect, Rect &extended )C; // get rectangle containing panel drawn at 'rect' rectangle

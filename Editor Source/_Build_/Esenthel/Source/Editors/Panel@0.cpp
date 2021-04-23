@@ -37,7 +37,6 @@ PanelEditor PanelEdit;
    void PanelEditor::PreChanged(C Property &prop) {PanelEdit.undos.set(&prop);}
    void    PanelEditor::Changed(C Property &prop) {PanelEdit.setChanged();}
    void PanelEditor::ParamsCenterStretch(EditPanel &e, C Str &t) {e.center_stretch=TextBool(t); e.center_stretch_time.getUTC();}
-   void PanelEditor::ParamsSideStretch(EditPanel &e, C Str &t) {e.  side_stretch=TextBool(t); e.  side_stretch_time.getUTC();}
    void PanelEditor::ParamsCenterColor(EditPanel &e, C Str &t) {e.center_color=TextVec4(t); e.center_color_time.getUTC();}
    void PanelEditor::ParamsBarColor(EditPanel &e, C Str &t) {e.   bar_color=TextVec4(t); e.   bar_color_time.getUTC();}
    void PanelEditor::ParamsBorderColor(EditPanel &e, C Str &t) {e.border_color=TextVec4(t); e.border_color_time.getUTC();}
@@ -50,6 +49,7 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsCenterScale(EditPanel &e, C Str &t) {e.       center_scale =TextFlt (t); e.        center_scale_time.getUTC();}
    void PanelEditor::ParamsBarSize(EditPanel &e, C Str &t) {e.          bar_size  =TextFlt (t); e.            bar_size_time.getUTC();}
    void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size  =TextFlt (t); e.         border_size_time.getUTC();}
+   void PanelEditor::ParamsSideMinScale(EditPanel &e, C Str &t) {e.     side_min_scale =TextFlt (t); e.      side_min_scale_time.getUTC();}
    void PanelEditor::ParamsTopSize(EditPanel &e, C Str &t) {e.          top_size  =TextFlt (t); e.            top_size_time.getUTC();}
    void PanelEditor::ParamsTopOffset(EditPanel &e, C Str &t) {e.          top_offset=TextFlt (t); e.          top_offset_time.getUTC();}
    void PanelEditor::ParamsBottomSize(EditPanel &e, C Str &t) {e.       bottom_size  =TextFlt (t); e.         bottom_size_time.getUTC();}
@@ -148,7 +148,7 @@ PanelEditor PanelEdit;
       add("Border Image", MemberDesc(DATA_STR                       ).setFunc          (ParamsBorderImage, ParamsBorderImage)).elmType(ELM_IMAGE);
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
-      add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images to fit the whole side\nAffects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
+      add("Side Min Scale"      , MemberDesc(MEMBER(EditPanel,       side_min_scale)).setTextToDataFunc(ParamsSideMinScale      )).range(0, 1).mouseEditSpeed(0.1f).desc("If the side images (Top, Bottom) are bigger than the rectangle then they can be scaled down.\nThis value specifies the minimum allowed scale:\n0=allow full shrink\n1=no scale");
       add("Top Image"           , MemberDesc(DATA_STR                               ).setFunc          (ParamsTopImage         , ParamsTopImage         )).elmType(ELM_IMAGE);
       add("Top Size"            , MemberDesc(MEMBER(EditPanel,           top_size  )).setTextToDataFunc(ParamsTopSize           )).mouseEditSpeed(0.05f);
       add("Top Offset"          , MemberDesc(MEMBER(EditPanel,           top_offset)).setTextToDataFunc(ParamsTopOffset         )).mouseEditSpeed(0.05f);

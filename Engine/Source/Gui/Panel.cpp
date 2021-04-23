@@ -18,11 +18,11 @@ DEFINE_CACHE(Panel, Panels, PanelPtr, "Panel");
 void Panel::getRectTop(C Rect &rect, Rect &top, Bool mirror)C
 {
    Flt w=top_size*top_image->aspect();
-   if(side_stretch)
+   if(side_min_scale<1)
    {
       Flt aw=Abs(w), rect_w=rect.w(); if(aw>rect_w)
       {
-         Flt scale=rect_w/aw;
+         Flt scale=Max(rect_w/aw, side_min_scale);
          top.setD(rect.centerX()/*+top_offset.x*/, rect.max.y+top_offset*scale, w*scale, top_size*scale);
          return;
       }
@@ -32,11 +32,11 @@ void Panel::getRectTop(C Rect &rect, Rect &top, Bool mirror)C
 void Panel::getRectBottom(C Rect &rect, Rect &bottom, Bool mirror)C
 {
    Flt w=bottom_size*bottom_image->aspect();
-   if(side_stretch)
+   if(side_min_scale<1)
    {
       Flt aw=Abs(w), rect_w=rect.w(); if(aw>rect_w)
       {
-         Flt scale=rect_w/aw;
+         Flt scale=Max(rect_w/aw, side_min_scale);
          bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.min.y+bottom_offset*scale, w*scale, bottom_size*scale);
          goto end;
       }
@@ -122,7 +122,7 @@ void Panel::defaultInnerPaddingSize(Vec2 &padd_size)C
 /******************************************************************************/
 void Panel::reset()
 {
-   center_stretch=side_stretch=false;
+   center_stretch=false;
    center_color=WHITE;
       bar_color=TRANSPARENT;
    border_color=WHITE;
@@ -135,6 +135,7 @@ void Panel::reset()
    center_scale  =1;
    bar_size=0;
    border_size=0;
+   side_min_scale=1;
    top_size=bottom_size=left_right_size=top_corner_size=bottom_corner_size=DEFAULT_SIZE;
    top_offset=bottom_offset=0;
    left_right_offset=top_corner_offset=bottom_corner_offset.zero();
@@ -323,11 +324,11 @@ void Panel::drawLines(C Color &line_color, C Rect &rect)C
 #pragma pack(push, 1)
 struct PanelDesc
 {
-   Bool  center_stretch, side_stretch, center_shadow;
+   Bool  center_stretch, center_shadow;
    Byte  shadow_opacity;
    Color center_color, bar_color, border_color, side_color, blur_color;
    Flt   shadow_radius, shadow_offset,
-         center_scale, bar_size, border_size, top_size, bottom_size, left_right_size, top_corner_size, bottom_corner_size,
+         center_scale, bar_size, border_size, side_min_scale, top_size, bottom_size, left_right_size, top_corner_size, bottom_corner_size,
          top_offset, bottom_offset;
    Vec2  left_right_offset, top_corner_offset, bottom_corner_offset;
 };
@@ -357,30 +358,30 @@ Bool Panel::save(File &f, CChar *path)C
 
    PanelDesc desc;
 
-   Unaligned(desc.       center_stretch,        center_stretch);
-   Unaligned(desc.         side_stretch,          side_stretch);
-   Unaligned(desc.       center_shadow ,        center_shadow );
-   Unaligned(desc.       shadow_opacity,        shadow_opacity);
-   Unaligned(desc.       center_color  ,        center_color  );
-   Unaligned(desc.          bar_color  ,           bar_color  );
-   Unaligned(desc.       border_color  ,        border_color  );
-   Unaligned(desc.         side_color  ,          side_color  );
-   Unaligned(desc.         blur_color  ,          blur_color  );
-   Unaligned(desc.       shadow_radius ,        shadow_radius );
-   Unaligned(desc.       shadow_offset ,        shadow_offset );
-   Unaligned(desc.       center_scale  ,        center_scale  );
-   Unaligned(desc.          bar_size   ,           bar_size   );
-   Unaligned(desc.       border_size   ,        border_size   );
-   Unaligned(desc.          top_size   ,           top_size   );
-   Unaligned(desc.       bottom_size   ,        bottom_size   );
-   Unaligned(desc.   left_right_size   ,    left_right_size   );
-   Unaligned(desc.   top_corner_size   ,    top_corner_size   );
-   Unaligned(desc.bottom_corner_size   , bottom_corner_size   );
-   Unaligned(desc.          top_offset ,           top_offset );
-   Unaligned(desc.       bottom_offset ,        bottom_offset );
-   Unaligned(desc.   left_right_offset ,    left_right_offset );
-   Unaligned(desc.   top_corner_offset ,    top_corner_offset );
-   Unaligned(desc.bottom_corner_offset , bottom_corner_offset );
+   Unaligned(desc.       center_stretch  ,        center_stretch  );
+   Unaligned(desc.       center_shadow   ,        center_shadow   );
+   Unaligned(desc.       shadow_opacity  ,        shadow_opacity  );
+   Unaligned(desc.       center_color    ,        center_color    );
+   Unaligned(desc.          bar_color    ,           bar_color    );
+   Unaligned(desc.       border_color    ,        border_color    );
+   Unaligned(desc.         side_color    ,          side_color    );
+   Unaligned(desc.         blur_color    ,          blur_color    );
+   Unaligned(desc.       shadow_radius   ,        shadow_radius   );
+   Unaligned(desc.       shadow_offset   ,        shadow_offset   );
+   Unaligned(desc.       center_scale    ,        center_scale    );
+   Unaligned(desc.          bar_size     ,           bar_size     );
+   Unaligned(desc.       border_size     ,        border_size     );
+   Unaligned(desc.         side_min_scale,          side_min_scale);
+   Unaligned(desc.          top_size     ,           top_size     );
+   Unaligned(desc.       bottom_size     ,        bottom_size     );
+   Unaligned(desc.   left_right_size     ,    left_right_size     );
+   Unaligned(desc.   top_corner_size     ,    top_corner_size     );
+   Unaligned(desc.bottom_corner_size     , bottom_corner_size     );
+   Unaligned(desc.          top_offset   ,           top_offset   );
+   Unaligned(desc.       bottom_offset   ,        bottom_offset   );
+   Unaligned(desc.   left_right_offset   ,    left_right_offset   );
+   Unaligned(desc.   top_corner_offset   ,    top_corner_offset   );
+   Unaligned(desc.bottom_corner_offset   , bottom_corner_offset   );
    f<<desc;
    f.putAsset(       center_image.id());
    f.putAsset(          bar_image.id());
@@ -399,32 +400,32 @@ Bool Panel::load(File &f, CChar *path)
    {
       case 7:
       {
-         PanelDesc desc; if(f.get(desc))
+         PanelDesc desc; if(f.getFast(desc))
          {
-            Unaligned(       center_stretch, desc.       center_stretch);
-            Unaligned(         side_stretch, desc.         side_stretch);
-            Unaligned(       center_shadow , desc.       center_shadow );
-            Unaligned(       shadow_opacity, desc.       shadow_opacity);
-            Unaligned(       center_color  , desc.       center_color  );
-            Unaligned(          bar_color  , desc.          bar_color  );
-            Unaligned(       border_color  , desc.       border_color  );
-            Unaligned(         side_color  , desc.         side_color  );
-            Unaligned(         blur_color  , desc.         blur_color  );
-            Unaligned(       shadow_radius , desc.       shadow_radius );
-            Unaligned(       shadow_offset , desc.       shadow_offset );
-            Unaligned(       center_scale  , desc.       center_scale  );
-            Unaligned(          bar_size   , desc.          bar_size   );
-            Unaligned(       border_size   , desc.       border_size   );
-            Unaligned(          top_size   , desc.          top_size   );
-            Unaligned(       bottom_size   , desc.       bottom_size   );
-            Unaligned(   left_right_size   , desc.   left_right_size   );
-            Unaligned(   top_corner_size   , desc.   top_corner_size   );
-            Unaligned(bottom_corner_size   , desc.bottom_corner_size   );
-            Unaligned(          top_offset , desc.          top_offset );
-            Unaligned(       bottom_offset , desc.       bottom_offset );
-            Unaligned(   left_right_offset , desc.   left_right_offset );
-            Unaligned(   top_corner_offset , desc.   top_corner_offset );
-            Unaligned(bottom_corner_offset , desc.bottom_corner_offset );
+            Unaligned(       center_stretch  , desc.       center_stretch  );
+            Unaligned(       center_shadow   , desc.       center_shadow   );
+            Unaligned(       shadow_opacity  , desc.       shadow_opacity  );
+            Unaligned(       center_color    , desc.       center_color    );
+            Unaligned(          bar_color    , desc.          bar_color    );
+            Unaligned(       border_color    , desc.       border_color    );
+            Unaligned(         side_color    , desc.         side_color    );
+            Unaligned(         blur_color    , desc.         blur_color    );
+            Unaligned(       shadow_radius   , desc.       shadow_radius   );
+            Unaligned(       shadow_offset   , desc.       shadow_offset   );
+            Unaligned(       center_scale    , desc.       center_scale    );
+            Unaligned(          bar_size     , desc.          bar_size     );
+            Unaligned(       border_size     , desc.       border_size     );
+            Unaligned(         side_min_scale, desc.         side_min_scale);
+            Unaligned(          top_size     , desc.          top_size     );
+            Unaligned(       bottom_size     , desc.       bottom_size     );
+            Unaligned(   left_right_size     , desc.   left_right_size     );
+            Unaligned(   top_corner_size     , desc.   top_corner_size     );
+            Unaligned(bottom_corner_size     , desc.bottom_corner_size     );
+            Unaligned(          top_offset   , desc.          top_offset   );
+            Unaligned(       bottom_offset   , desc.       bottom_offset   );
+            Unaligned(   left_right_offset   , desc.   left_right_offset   );
+            Unaligned(   top_corner_offset   , desc.   top_corner_offset   );
+            Unaligned(bottom_corner_offset   , desc.bottom_corner_offset   );
 
             center_image.require(f.getAssetID(), path);
                bar_image.require(f.getAssetID(), path);
@@ -442,10 +443,9 @@ Bool Panel::load(File &f, CChar *path)
 
       case 6:
       {
-         PanelDesc6 desc; if(f.get(desc))
+         PanelDesc6 desc; if(f.getFast(desc))
          {
             Unaligned(       center_stretch, desc.       center_stretch);
-            Unaligned(         side_stretch, desc.         side_stretch);
             Unaligned(       center_shadow , desc.       center_shadow );
             Unaligned(       shadow_opacity, desc.       shadow_opacity);
             Unaligned(       center_color  , desc.       center_color  );
@@ -475,7 +475,7 @@ Bool Panel::load(File &f, CChar *path)
         top_corner_image.require(f.getAssetID(), path);
      bottom_corner_image.require(f.getAssetID(), path);
              panel_image.require(f.getAssetID(), path);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
 
             if(f.ok())return true;
          }
@@ -483,10 +483,9 @@ Bool Panel::load(File &f, CChar *path)
 
       case 5:
       {
-         PanelDesc6 desc; if(f.get(desc))
+         PanelDesc6 desc; if(f.getFast(desc))
          {
             Unaligned(       center_stretch, desc.       center_stretch);
-            Unaligned(         side_stretch, desc.         side_stretch);
             Unaligned(       center_shadow , desc.       center_shadow );
             Unaligned(       shadow_opacity, desc.       shadow_opacity);
             Unaligned(       center_color  , desc.       center_color  );
@@ -516,7 +515,7 @@ Bool Panel::load(File &f, CChar *path)
         top_corner_image.require(f._getAsset(), path);
      bottom_corner_image.require(f._getAsset(), path);
              panel_image.require(f._getAsset(), path);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
 
             if(f.ok())return true;
          }
@@ -533,7 +532,7 @@ Bool Panel::load(File &f, CChar *path)
             Vec2  corner_offset, top_offset, bottom_offset, left_right_offset;
          }desc;
          #pragma pack(pop)
-         if(f.get(desc))
+         if(f.getFast(desc))
          {
                           center_stretch=(Unaligned(desc.center_stretch)!=0);
             Unaligned(    shadow_opacity, desc.    shadow_opacity );
@@ -560,7 +559,6 @@ Bool Panel::load(File &f, CChar *path)
                 bottom_image.require(f._getStr1(), path);
             left_right_image.require(f._getStr1(), path);
 
-              side_stretch      =false;
               side_color        =border_color;
             shadow_offset      *=shadow_radius;
             bottom_corner_size  =top_corner_size;
@@ -568,7 +566,7 @@ Bool Panel::load(File &f, CChar *path)
             bottom_corner_offset.set(top_corner_offset.x, -top_corner_offset.y);
              panel_image        .clear();
              center_shadow=!Equal(shadow_offset, 0);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -576,7 +574,7 @@ Bool Panel::load(File &f, CChar *path)
 
       case 3:
       {
-         PanelDesc2 desc; if(f.get(desc))
+         PanelDesc2 desc; if(f.getFast(desc))
          {
                           center_stretch=(Unaligned(desc.center_stretch)!=0);
             Unaligned(    shadow_opacity, desc.shadow_opacity );
@@ -597,7 +595,6 @@ Bool Panel::load(File &f, CChar *path)
                 border_image.require(f._getStr(), path);
             top_corner_image.require(f._getStr(), path);
 
-              side_stretch      =false;
               side_color        =border_color;
             shadow_offset      *=shadow_radius;
             bottom_corner_size  =top_corner_size;
@@ -606,7 +603,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
              center_shadow=!Equal(shadow_offset, 0);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -614,7 +611,7 @@ Bool Panel::load(File &f, CChar *path)
 
       case 2:
       {
-         PanelDesc2 desc; if(f.get(desc))
+         PanelDesc2 desc; if(f.getFast(desc))
          {
                           center_stretch=(Unaligned(desc.center_stretch)!=0);
             Unaligned(    shadow_opacity, desc.shadow_opacity );
@@ -635,7 +632,6 @@ Bool Panel::load(File &f, CChar *path)
                 border_image.require(f._getStr(), path);
             top_corner_image.require(f._getStr(), path);
 
-              side_stretch      =false;
               side_color        =border_color;
             shadow_offset      *=shadow_radius;
             bottom_corner_size  =top_corner_size;
@@ -644,7 +640,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
              center_shadow=!Equal(shadow_offset, 0);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -660,7 +656,7 @@ Bool Panel::load(File &f, CChar *path)
             Flt   center_scale, border_size, shadow_radius, shadow_offset;
          }desc;
          #pragma pack(pop)
-         if(f.get(desc))
+         if(f.getFast(desc))
          {
                           center_stretch=(Unaligned(desc.center_stretch)!=0);
             Unaligned(    shadow_opacity, desc.shadow_opacity);
@@ -681,7 +677,6 @@ Bool Panel::load(File &f, CChar *path)
                 border_image.require(f._getStr8(), path);
             top_corner_image.require(f._getStr8(), path);
 
-              side_stretch      =false;
               side_color        =border_color;
             shadow_offset      *=shadow_radius;
             bottom_corner_size  =top_corner_size;
@@ -690,7 +685,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
              center_shadow=!Equal(shadow_offset, 0);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -706,7 +701,7 @@ Bool Panel::load(File &f, CChar *path)
             Flt   center_scale, border_size, shadow_radius, shadow_offset;
          }desc;
          #pragma pack(pop)
-         if(f.get(desc))
+         if(f.getFast(desc))
          {
                           center_stretch=(Unaligned(desc.center_stretch)!=0);
             Unaligned(    shadow_opacity, desc.shadow_opacity);
@@ -727,7 +722,6 @@ Bool Panel::load(File &f, CChar *path)
                 border_image.require(f._getStr8(), path);
             top_corner_image.require(f._getStr8(), path);
 
-              side_stretch      =false;
               side_color        =border_color;
             shadow_offset      *=shadow_radius;
             bottom_corner_size  =top_corner_size;
@@ -736,7 +730,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
             center_shadow=!Equal(shadow_offset, 0);
-               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); if(side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+               bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }

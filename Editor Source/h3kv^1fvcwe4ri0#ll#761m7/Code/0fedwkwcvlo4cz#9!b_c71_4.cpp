@@ -3,31 +3,31 @@ class EditPanel : Panel
 {
    UID       center_image=UIDZero, bar_image=UIDZero, border_image=UIDZero, top_image=UIDZero, bottom_image=UIDZero, left_right_image=UIDZero, top_corner_image=UIDZero, bottom_corner_image=UIDZero, 
              panel_image=UIDZero;
-   TimeStamp center_stretch_time, side_stretch_time, center_shadow_time,
+   TimeStamp center_stretch_time, center_shadow_time,
              center_color_time, bar_color_time, border_color_time, side_color_time, blur_color_time,
              shadow_opacity_time, shadow_radius_time, shadow_offset_time,
-             center_scale_time, bar_size_time, border_size_time, top_size_time, bottom_size_time, left_right_size_time, top_corner_size_time, bottom_corner_size_time,
+             center_scale_time, bar_size_time, border_size_time, side_min_scale_time, top_size_time, bottom_size_time, left_right_size_time, top_corner_size_time, bottom_corner_size_time,
              top_offset_time, bottom_offset_time, left_right_offset_time, top_corner_offset_time, bottom_corner_offset_time,
-             center_image_time, bar_image_time, border_image_time, top_image_time, bottom_image_time, left_right_image_time, top_corner_image_time, bottom_corner_image_time, 
+             center_image_time, bar_image_time, border_image_time, top_image_time, bottom_image_time, left_right_image_time, top_corner_image_time, bottom_corner_image_time,
              panel_image_time;
 
    // get
    bool newer(C EditPanel &src)C
    {
-      return center_stretch_time>src.center_stretch_time || side_stretch_time>src.side_stretch_time || center_shadow_time>src.center_shadow_time
+      return center_stretch_time>src.center_stretch_time || center_shadow_time>src.center_shadow_time
           || center_color_time>src.center_color_time || bar_color_time>src.bar_color_time || border_color_time>src.border_color_time || side_color_time>src.side_color_time || blur_color_time>src.blur_color_time
           || shadow_opacity_time>src.shadow_opacity_time || shadow_radius_time>src.shadow_radius_time || shadow_offset_time>src.shadow_offset_time
-          || center_scale_time>src.center_scale_time || bar_size_time>src.bar_size_time || border_size_time>src.border_size_time || top_size_time>src.top_size_time || bottom_size_time>src.bottom_size_time || left_right_size_time>src.left_right_size_time || top_corner_size_time>src.top_corner_size_time || bottom_corner_size_time>src.bottom_corner_size_time
+          || center_scale_time>src.center_scale_time || bar_size_time>src.bar_size_time || border_size_time>src.border_size_time || side_min_scale_time>src.side_min_scale_time || top_size_time>src.top_size_time || bottom_size_time>src.bottom_size_time || left_right_size_time>src.left_right_size_time || top_corner_size_time>src.top_corner_size_time || bottom_corner_size_time>src.bottom_corner_size_time
           || top_offset_time>src.top_offset_time || bottom_offset_time>src.bottom_offset_time || left_right_offset_time>src.left_right_offset_time || top_corner_offset_time>src.top_corner_offset_time || bottom_corner_offset_time>src.bottom_corner_offset_time
           || center_image_time>src.center_image_time || bar_image_time>src.bar_image_time || border_image_time>src.border_image_time || top_image_time>src.top_image_time || bottom_image_time>src.bottom_image_time || left_right_image_time>src.left_right_image_time || top_corner_image_time>src.top_corner_image_time || bottom_corner_image_time>src.bottom_corner_image_time
           || panel_image_time>src.panel_image_time;
    }
    bool equal(C EditPanel &src)C
    {
-      return center_stretch_time==src.center_stretch_time && side_stretch_time==src.side_stretch_time && center_shadow_time==src.center_shadow_time
+      return center_stretch_time==src.center_stretch_time && center_shadow_time==src.center_shadow_time
           && center_color_time==src.center_color_time && bar_color_time==src.bar_color_time && border_color_time==src.border_color_time && side_color_time==src.side_color_time && blur_color_time==src.blur_color_time
           && shadow_opacity_time==src.shadow_opacity_time && shadow_radius_time==src.shadow_radius_time && shadow_offset_time==src.shadow_offset_time
-          && center_scale_time==src.center_scale_time && bar_size_time==src.bar_size_time && border_size_time==src.border_size_time && top_size_time==src.top_size_time && bottom_size_time==src.bottom_size_time && left_right_size_time==src.left_right_size_time && top_corner_size_time==src.top_corner_size_time && bottom_corner_size_time==src.bottom_corner_size_time
+          && center_scale_time==src.center_scale_time && bar_size_time==src.bar_size_time && border_size_time==src.border_size_time && side_min_scale_time==src.side_min_scale_time && top_size_time==src.top_size_time && bottom_size_time==src.bottom_size_time && left_right_size_time==src.left_right_size_time && top_corner_size_time==src.top_corner_size_time && bottom_corner_size_time==src.bottom_corner_size_time
           && top_offset_time==src.top_offset_time && bottom_offset_time==src.bottom_offset_time && left_right_offset_time==src.left_right_offset_time && top_corner_offset_time==src.top_corner_offset_time && bottom_corner_offset_time==src.bottom_corner_offset_time
           && center_image_time==src.center_image_time && bar_image_time==src.bar_image_time && border_image_time==src.border_image_time && top_image_time==src.top_image_time && bottom_image_time==src.bottom_image_time && left_right_image_time==src.left_right_image_time && top_corner_image_time==src.top_corner_image_time && bottom_corner_image_time==src.bottom_corner_image_time
           && panel_image_time==src.panel_image_time;
@@ -36,10 +36,10 @@ class EditPanel : Panel
    // operations
    void newData()
    {
-      center_stretch_time++; side_stretch_time++; center_shadow_time++;
+      center_stretch_time++; center_shadow_time++;
       center_color_time++; bar_color_time++; border_color_time++; side_color_time++; blur_color_time++;
       shadow_opacity_time++; shadow_radius_time++; shadow_offset_time++;
-      center_scale_time++; bar_size_time++; border_size_time++; top_size_time++; bottom_size_time++; left_right_size_time++; top_corner_size_time++; bottom_corner_size_time++;
+      center_scale_time++; bar_size_time++; border_size_time++; side_min_scale_time++; top_size_time++; bottom_size_time++; left_right_size_time++; top_corner_size_time++; bottom_corner_size_time++;
       top_offset_time++; bottom_offset_time++; left_right_offset_time++; top_corner_offset_time++; bottom_corner_offset_time++;
       center_image_time++; bar_image_time++; border_image_time++; top_image_time++; bottom_image_time++; left_right_image_time++; top_corner_image_time++; bottom_corner_image_time++;
       panel_image_time++;
@@ -53,7 +53,6 @@ class EditPanel : Panel
    {
       bool changed=false;
       changed|=Sync(center_stretch_time, src.center_stretch_time, center_stretch, src.center_stretch);
-      changed|=Sync(  side_stretch_time, src.  side_stretch_time,   side_stretch, src.  side_stretch);
       changed|=Sync( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
 
       changed|=Sync(center_color_time, src.center_color_time, center_color, src.center_color);
@@ -69,6 +68,7 @@ class EditPanel : Panel
       changed|=Sync(      center_scale_time, src.      center_scale_time,       center_scale, src.      center_scale);
       changed|=Sync(          bar_size_time, src.          bar_size_time,           bar_size, src.          bar_size);
       changed|=Sync(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
+      changed|=Sync(    side_min_scale_time, src.    side_min_scale_time,     side_min_scale, src.    side_min_scale);
       changed|=Sync(          top_size_time, src.          top_size_time,           top_size, src.          top_size);
       changed|=Sync(       bottom_size_time, src.       bottom_size_time,        bottom_size, src.       bottom_size);
       changed|=Sync(   left_right_size_time, src.   left_right_size_time,    left_right_size, src.   left_right_size);
@@ -97,7 +97,6 @@ class EditPanel : Panel
    {
       bool changed=false;
       changed|=Undo(center_stretch_time, src.center_stretch_time, center_stretch, src.center_stretch);
-      changed|=Undo(  side_stretch_time, src.  side_stretch_time,   side_stretch, src.  side_stretch);
       changed|=Undo( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
 
       changed|=Undo(center_color_time, src.center_color_time, center_color, src.center_color);
@@ -113,6 +112,7 @@ class EditPanel : Panel
       changed|=Undo(      center_scale_time, src.      center_scale_time,       center_scale, src.      center_scale);
       changed|=Undo(          bar_size_time, src.          bar_size_time,           bar_size, src.          bar_size);
       changed|=Undo(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
+      changed|=Undo(    side_min_scale_time, src.    side_min_scale_time,     side_min_scale, src.    side_min_scale);
       changed|=Undo(          top_size_time, src.          top_size_time,           top_size, src.          top_size);
       changed|=Undo(       bottom_size_time, src.       bottom_size_time,        bottom_size, src.       bottom_size);
       changed|=Undo(   left_right_size_time, src.   left_right_size_time,    left_right_size, src.   left_right_size);
@@ -143,10 +143,11 @@ class EditPanel : Panel
       SCAST(Panel, T)=src;
       super.center_image=super.bar_image=super.border_image=super.top_image=super.bottom_image=super.left_right_image=super.top_corner_image=super.bottom_corner_image=null; super.panel_image=null;
           T.center_image=center_image; T.bar_image=bar_image; T.border_image=border_image; T.top_image=top_image; T.bottom_image=bottom_image; T.left_right_image=left_right_image; T.top_corner_image=top_corner_image; T.bottom_corner_image=bottom_corner_image; T.panel_image=panel_image;
-      center_stretch_time=side_stretch_time
+
+      center_stretch_time=center_shadow_time
          =center_color_time=bar_color_time=border_color_time=side_color_time=blur_color_time
          =shadow_opacity_time=shadow_radius_time=shadow_offset_time
-         =center_scale_time=bar_size_time=border_size_time=top_size_time=bottom_size_time=left_right_size_time=top_corner_size_time=bottom_corner_size_time
+         =center_scale_time=bar_size_time=border_size_time=side_min_scale_time=top_size_time=bottom_size_time=left_right_size_time=top_corner_size_time=bottom_corner_size_time
          =top_offset_time=bottom_offset_time=left_right_offset_time=top_corner_offset_time=bottom_corner_offset_time
          =center_image_time=bar_image_time=border_image_time=top_image_time=bottom_image_time=left_right_image_time=top_corner_image_time=bottom_corner_image_time
          =panel_image_time=time;
@@ -172,10 +173,10 @@ class EditPanel : Panel
       super.save(f);
       f<<center_image<<bar_image<<border_image<<top_image<<bottom_image<<left_right_image<<top_corner_image<<bottom_corner_image
        <<panel_image
-       <<center_stretch_time<<side_stretch_time<<center_shadow_time
+       <<center_stretch_time<<center_shadow_time
        <<center_color_time<<bar_color_time<<border_color_time<<side_color_time<<blur_color_time
        <<shadow_opacity_time<<shadow_radius_time<<shadow_offset_time
-       <<center_scale_time<<bar_size_time<<border_size_time<<top_size_time<<bottom_size_time<<left_right_size_time<<top_corner_size_time<<bottom_corner_size_time
+       <<center_scale_time<<bar_size_time<<border_size_time<<side_min_scale_time<<top_size_time<<bottom_size_time<<left_right_size_time<<top_corner_size_time<<bottom_corner_size_time
        <<top_offset_time<<bottom_offset_time<<left_right_offset_time<<top_corner_offset_time<<bottom_corner_offset_time
        <<center_image_time<<bar_image_time<<border_image_time<<top_image_time<<bottom_image_time<<left_right_image_time<<top_corner_image_time<<bottom_corner_image_time
        <<panel_image_time;
@@ -183,6 +184,7 @@ class EditPanel : Panel
    }
    bool load(File &f)
    {
+      TimeStamp side_stretch_time;
       reset(); switch(f.decUIntV())
       {
          case 3:
@@ -190,10 +192,10 @@ class EditPanel : Panel
             if(!super.load(f))break;
             f>>center_image>>bar_image>>border_image>>top_image>>bottom_image>>left_right_image>>top_corner_image>>bottom_corner_image
              >>panel_image
-             >>center_stretch_time>>side_stretch_time>>center_shadow_time
+             >>center_stretch_time>>center_shadow_time
              >>center_color_time>>bar_color_time>>border_color_time>>side_color_time>>blur_color_time
              >>shadow_opacity_time>>shadow_radius_time>>shadow_offset_time
-             >>center_scale_time>>bar_size_time>>border_size_time>>top_size_time>>bottom_size_time>>left_right_size_time>>top_corner_size_time>>bottom_corner_size_time
+             >>center_scale_time>>bar_size_time>>border_size_time>>side_min_scale_time>>top_size_time>>bottom_size_time>>left_right_size_time>>top_corner_size_time>>bottom_corner_size_time
              >>top_offset_time>>bottom_offset_time>>left_right_offset_time>>top_corner_offset_time>>bottom_corner_offset_time
              >>center_image_time>>bar_image_time>>border_image_time>>top_image_time>>bottom_image_time>>left_right_image_time>>top_corner_image_time>>bottom_corner_image_time
              >>panel_image_time;
@@ -202,6 +204,9 @@ class EditPanel : Panel
 
          case 2:
          {
+            long pos=f.pos();
+            bool side_stretch=false; if(f.getUInt()==CC4('G','S','T','L')){uint ver=f.decUIntV(); if(ver>=5 && ver<=6 && f.skip(1))side_stretch=f.getBool();}
+            f.pos(pos);
             if(!super.load(f))break;
             f>>center_image>>border_image>>top_image>>bottom_image>>left_right_image>>top_corner_image>>bottom_corner_image
              >>panel_image
@@ -212,7 +217,7 @@ class EditPanel : Panel
              >>top_offset_time>>bottom_offset_time>>left_right_offset_time>>top_corner_offset_time>>bottom_corner_offset_time
              >>center_image_time>>border_image_time>>top_image_time>>bottom_image_time>>left_right_image_time>>top_corner_image_time>>bottom_corner_image_time
              >>panel_image_time;
-            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
+            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
             if(f.ok())return true;
          }break;
 
@@ -225,7 +230,6 @@ class EditPanel : Panel
              >>top_corner_offset_time>>top_offset_time>>bottom_offset_time>>left_right_offset_time
              >>center_image_time>>border_image_time>>top_corner_image_time>>top_image_time>>bottom_image_time>>left_right_image_time;
              bottom_corner_image=top_corner_image; bottom_corner_image_time=top_corner_image_time; bottom_corner_size_time=top_corner_size_time; bottom_corner_offset_time=top_corner_offset_time;
-            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
             if(f.ok())return true;
          }break;
 
@@ -236,7 +240,6 @@ class EditPanel : Panel
              >>center_stretch_time>>shadow_opacity_time>>center_color_time>>border_color_time>>blur_color_time>>shadow_offset_time>>shadow_radius_time>>border_size_time
              >>center_scale_time>>top_corner_size_time>>top_size_time>>top_corner_offset_time>>top_offset_time>>center_image_time>>border_image_time>>top_corner_image_time>>top_image_time;
             bottom_corner_image=top_corner_image; bottom_corner_image_time=top_corner_image_time; bottom_corner_size_time=top_corner_size_time; bottom_corner_offset_time=top_corner_offset_time;
-            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
             if(f.ok())return true;
          }break;
       }
