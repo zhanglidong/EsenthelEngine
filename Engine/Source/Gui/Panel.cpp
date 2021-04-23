@@ -20,9 +20,9 @@ void Panel::getRectTop(C Rect &rect, Rect &top, Bool mirror)C
    Flt w=top_size*top_image->aspect();
    if(side_stretch)
    {
-      Flt rect_w=rect.w(); if(w>rect_w)
+      Flt aw=Abs(w), rect_w=rect.w(); if(aw>rect_w)
       {
-         Flt scale=rect_w/w;
+         Flt scale=rect_w/aw;
          top.setD(rect.centerX()/*+top_offset.x*/, rect.max.y+top_offset*scale, w*scale, top_size*scale);
          return;
       }
@@ -34,9 +34,9 @@ void Panel::getRectBottom(C Rect &rect, Rect &bottom, Bool mirror)C
    Flt w=bottom_size*bottom_image->aspect();
    if(side_stretch)
    {
-      Flt rect_w=rect.w(); if(w>rect_w)
+      Flt aw=Abs(w), rect_w=rect.w(); if(aw>rect_w)
       {
-         Flt scale=rect_w/w;
+         Flt scale=rect_w/aw;
          bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.min.y+bottom_offset*scale, w*scale, bottom_size*scale);
          goto end;
       }
