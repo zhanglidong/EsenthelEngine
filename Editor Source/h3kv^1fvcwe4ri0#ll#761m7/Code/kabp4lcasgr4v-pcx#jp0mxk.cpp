@@ -693,6 +693,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                Elm &elm=Proj.Project.newElm(name, Proj.getPathID(path), ELM_PANEL);
                EditPanel edit;
                edit.create(game, ImportFindID(game.       center_image.name(), ELM_IMAGE),
+                                 ImportFindID(game.          bar_image.name(), ELM_IMAGE),
                                  ImportFindID(game.       border_image.name(), ELM_IMAGE),
                                  ImportFindID(game.          top_image.name(), ELM_IMAGE),
                                  ImportFindID(game.       bottom_image.name(), ELM_IMAGE),

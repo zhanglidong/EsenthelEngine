@@ -511,71 +511,71 @@ void Image::drawTile(C Color &color, C Color &color_add, C Rect &rect, Flt tex_s
    VI.end();
 }
 /******************************************************************************/
-void Image::drawBorder(C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
+void Image::drawBorder(C Rect &rect, Flt border, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
 {
    VI.image  (this);
    VI.wrapX  (    );
    VI.setType(VI_2D_TEX, wrap_mode ? VI_STRIP : 0);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(10))
    {
-      Flt x0=rect.min.x, x1=rect.min.x+b, x2=rect.max.x-b, x3=rect.max.x,
-          y0=rect.max.y, y1=rect.max.y-b, y2=rect.min.y+b, y3=rect.min.y;
+      Flt x1=rect.min.x, x2=rect.max.x, x0=x1-border, x3=x2+border,
+          y1=rect.min.y, y2=rect.max.y, y0=y1-border, y3=y2+border;
 
-      Flt scale=b*aspect(),
+      Flt scale=border*aspect(),
           w    =rect.w()/scale,
-          h    =rect.h()/scale;
-          b   /=         scale;
+          h    =rect.h()/scale,
+          b    =border  /scale;
 
       if(wrap_mode)
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x1, y1);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x0, y3);
 
-         v[2].pos.set(x3, y0);
-         v[3].pos.set(x2, y1);
+         v[2].pos.set(x2, y2);
+         v[3].pos.set(x3, y3);
 
-         v[4].pos.set(x3, y3);
-         v[5].pos.set(x2, y2);
+         v[4].pos.set(x2, y1);
+         v[5].pos.set(x3, y0);
 
-         v[6].pos.set(x0, y3);
-         v[7].pos.set(x1, y2);
+         v[6].pos.set(x1, y1);
+         v[7].pos.set(x0, y0);
 
-         v[8].pos.set(x0, y0);
-         v[9].pos.set(x1, y1);
+         v[8].pos.set(x1, y2);
+         v[9].pos.set(x0, y3);
 
-         v[0].tex.set(      0,       0);
-         v[1].tex.set(      0, _part.y);
-         v[2].tex.set(w      ,       0);
-         v[3].tex.set(w      , _part.y);
-         v[4].tex.set(w+h    ,       0);
-         v[5].tex.set(w+h    , _part.y);
-         v[6].tex.set(w+h+w  ,       0);
-         v[7].tex.set(w+h+w  , _part.y);
-         v[8].tex.set(w+h+w+h,       0);
-         v[9].tex.set(w+h+w+h, _part.y);
+         v[0].tex.set(      0, _part.y);
+         v[1].tex.set(      0,       0);
+         v[2].tex.set(w      , _part.y);
+         v[3].tex.set(w      ,       0);
+         v[4].tex.set(w+h    , _part.y);
+         v[5].tex.set(w+h    ,       0);
+         v[6].tex.set(w+h+w  , _part.y);
+         v[7].tex.set(w+h+w  ,       0);
+         v[8].tex.set(w+h+w+h, _part.y);
+         v[9].tex.set(w+h+w+h,       0);
       }else
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x3, y0);
-         v[2].pos.set(x3, y3);
-         v[3].pos.set(x0, y3);
-         v[4].pos.set(x1, y1);
-         v[5].pos.set(x2, y1);
-         v[6].pos.set(x2, y2);
-         v[7].pos.set(x1, y2);
-         v[8].pos.set(x3, y3);
-         v[9].pos.set(x2, y2);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x2, y2);
+         v[2].pos.set(x2, y1);
+         v[3].pos.set(x1, y1);
+         v[4].pos.set(x0, y3);
+         v[5].pos.set(x3, y3);
+         v[6].pos.set(x3, y0);
+         v[7].pos.set(x0, y0);
+         v[8].pos.set(x2, y1);
+         v[9].pos.set(x3, y0);
 
-         v[0].tex.set(    0,       0);
-         v[1].tex.set(w    ,       0);
-         v[2].tex.set(w-h  ,       0);
-         v[3].tex.set(  h  ,       0);
-         v[4].tex.set(    b, _part.y);
-         v[5].tex.set(w  -b, _part.y);
-         v[6].tex.set(w-h+b, _part.y);
-         v[7].tex.set(  h-b, _part.y);
-         v[8].tex.set(h-w  ,       0);
-         v[9].tex.set(h-w+b, _part.y);
+         v[0].tex.set(    0, _part.y);
+         v[1].tex.set(w    , _part.y);
+         v[2].tex.set(w-h  , _part.y);
+         v[3].tex.set(  h  , _part.y);
+         v[4].tex.set(   -b,       0);
+         v[5].tex.set(w  +b,       0);
+         v[6].tex.set(w-h-b,       0);
+         v[7].tex.set(  h+b,       0);
+         v[8].tex.set(h-w  , _part.y);
+         v[9].tex.set(h-w-b,       0);
       }
 
       if(tex_scale!=1 || tex_offset!=0)REP(10)v[i].tex.x=v[i].tex.x*tex_scale+tex_offset;
@@ -584,7 +584,7 @@ void Image::drawBorder(C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool 
    }
    VI.clear();
 }
-void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
+void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt border, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
 {
    VI.color  (color    );
    VI.color1 (color_add);
@@ -593,64 +593,64 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, 
    VI.setType(VI_2D_TEX, (wrap_mode ? VI_STRIP : 0)|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(10))
    {
-      Flt x0=rect.min.x, x1=rect.min.x+b, x2=rect.max.x-b, x3=rect.max.x,
-          y0=rect.max.y, y1=rect.max.y-b, y2=rect.min.y+b, y3=rect.min.y;
+      Flt x1=rect.min.x, x2=rect.max.x, x0=x1-border, x3=x2+border,
+          y1=rect.min.y, y2=rect.max.y, y0=y1-border, y3=y2+border;
 
-      Flt scale=b*aspect(),
+      Flt scale=border*aspect(),
           w    =rect.w()/scale,
-          h    =rect.h()/scale;
-          b   /=         scale;
+          h    =rect.h()/scale,
+          b    =border  /scale;
 
       if(wrap_mode)
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x1, y1);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x0, y3);
 
-         v[2].pos.set(x3, y0);
-         v[3].pos.set(x2, y1);
+         v[2].pos.set(x2, y2);
+         v[3].pos.set(x3, y3);
 
-         v[4].pos.set(x3, y3);
-         v[5].pos.set(x2, y2);
+         v[4].pos.set(x2, y1);
+         v[5].pos.set(x3, y0);
 
-         v[6].pos.set(x0, y3);
-         v[7].pos.set(x1, y2);
+         v[6].pos.set(x1, y1);
+         v[7].pos.set(x0, y0);
 
-         v[8].pos.set(x0, y0);
-         v[9].pos.set(x1, y1);
+         v[8].pos.set(x1, y2);
+         v[9].pos.set(x0, y3);
 
-         v[0].tex.set(      0,       0);
-         v[1].tex.set(      0, _part.y);
-         v[2].tex.set(w      ,       0);
-         v[3].tex.set(w      , _part.y);
-         v[4].tex.set(w+h    ,       0);
-         v[5].tex.set(w+h    , _part.y);
-         v[6].tex.set(w+h+w  ,       0);
-         v[7].tex.set(w+h+w  , _part.y);
-         v[8].tex.set(w+h+w+h,       0);
-         v[9].tex.set(w+h+w+h, _part.y);
+         v[0].tex.set(      0, _part.y);
+         v[1].tex.set(      0,       0);
+         v[2].tex.set(w      , _part.y);
+         v[3].tex.set(w      ,       0);
+         v[4].tex.set(w+h    , _part.y);
+         v[5].tex.set(w+h    ,       0);
+         v[6].tex.set(w+h+w  , _part.y);
+         v[7].tex.set(w+h+w  ,       0);
+         v[8].tex.set(w+h+w+h, _part.y);
+         v[9].tex.set(w+h+w+h,       0);
       }else
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x3, y0);
-         v[2].pos.set(x3, y3);
-         v[3].pos.set(x0, y3);
-         v[4].pos.set(x1, y1);
-         v[5].pos.set(x2, y1);
-         v[6].pos.set(x2, y2);
-         v[7].pos.set(x1, y2);
-         v[8].pos.set(x3, y3);
-         v[9].pos.set(x2, y2);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x2, y2);
+         v[2].pos.set(x2, y1);
+         v[3].pos.set(x1, y1);
+         v[4].pos.set(x0, y3);
+         v[5].pos.set(x3, y3);
+         v[6].pos.set(x3, y0);
+         v[7].pos.set(x0, y0);
+         v[8].pos.set(x2, y1);
+         v[9].pos.set(x3, y0);
 
-         v[0].tex.set(    0,       0);
-         v[1].tex.set(w    ,       0);
-         v[2].tex.set(w-h  ,       0);
-         v[3].tex.set(  h  ,       0);
-         v[4].tex.set(    b, _part.y);
-         v[5].tex.set(w  -b, _part.y);
-         v[6].tex.set(w-h+b, _part.y);
-         v[7].tex.set(  h-b, _part.y);
-         v[8].tex.set(h-w  ,       0);
-         v[9].tex.set(h-w+b, _part.y);
+         v[0].tex.set(    0, _part.y);
+         v[1].tex.set(w    , _part.y);
+         v[2].tex.set(w-h  , _part.y);
+         v[3].tex.set(  h  , _part.y);
+         v[4].tex.set(   -b,       0);
+         v[5].tex.set(w  +b,       0);
+         v[6].tex.set(w-h-b,       0);
+         v[7].tex.set(  h+b,       0);
+         v[8].tex.set(h-w  , _part.y);
+         v[9].tex.set(h-w-b,       0);
       }
 
       if(tex_scale!=1 || tex_offset!=0)REP(10)v[i].tex.x=v[i].tex.x*tex_scale+tex_offset;

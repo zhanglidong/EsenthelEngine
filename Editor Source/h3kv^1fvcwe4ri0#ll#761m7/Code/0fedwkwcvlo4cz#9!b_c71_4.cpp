@@ -1,35 +1,35 @@
 /******************************************************************************/
 class EditPanel : Panel
 {
-   UID       center_image=UIDZero, border_image=UIDZero, top_image=UIDZero, bottom_image=UIDZero, left_right_image=UIDZero, top_corner_image=UIDZero, bottom_corner_image=UIDZero, 
+   UID       center_image=UIDZero, bar_image=UIDZero, border_image=UIDZero, top_image=UIDZero, bottom_image=UIDZero, left_right_image=UIDZero, top_corner_image=UIDZero, bottom_corner_image=UIDZero, 
              panel_image=UIDZero;
    TimeStamp center_stretch_time, side_stretch_time, center_shadow_time,
-             center_color_time, border_color_time, side_color_time, blur_color_time,
+             center_color_time, bar_color_time, border_color_time, side_color_time, blur_color_time,
              shadow_opacity_time, shadow_radius_time, shadow_offset_time,
-             border_size_time, center_scale_time, top_size_time, bottom_size_time, left_right_size_time, top_corner_size_time, bottom_corner_size_time,
+             center_scale_time, bar_size_time, border_size_time, top_size_time, bottom_size_time, left_right_size_time, top_corner_size_time, bottom_corner_size_time,
              top_offset_time, bottom_offset_time, left_right_offset_time, top_corner_offset_time, bottom_corner_offset_time,
-             center_image_time, border_image_time, top_image_time, bottom_image_time, left_right_image_time, top_corner_image_time, bottom_corner_image_time, 
+             center_image_time, bar_image_time, border_image_time, top_image_time, bottom_image_time, left_right_image_time, top_corner_image_time, bottom_corner_image_time, 
              panel_image_time;
 
    // get
    bool newer(C EditPanel &src)C
    {
       return center_stretch_time>src.center_stretch_time || side_stretch_time>src.side_stretch_time || center_shadow_time>src.center_shadow_time
-          || center_color_time>src.center_color_time || border_color_time>src.border_color_time || side_color_time>src.side_color_time || blur_color_time>src.blur_color_time
+          || center_color_time>src.center_color_time || bar_color_time>src.bar_color_time || border_color_time>src.border_color_time || side_color_time>src.side_color_time || blur_color_time>src.blur_color_time
           || shadow_opacity_time>src.shadow_opacity_time || shadow_radius_time>src.shadow_radius_time || shadow_offset_time>src.shadow_offset_time
-          || border_size_time>src.border_size_time || center_scale_time>src.center_scale_time || top_size_time>src.top_size_time || bottom_size_time>src.bottom_size_time || left_right_size_time>src.left_right_size_time || top_corner_size_time>src.top_corner_size_time || bottom_corner_size_time>src.bottom_corner_size_time
+          || center_scale_time>src.center_scale_time || bar_size_time>src.bar_size_time || border_size_time>src.border_size_time || top_size_time>src.top_size_time || bottom_size_time>src.bottom_size_time || left_right_size_time>src.left_right_size_time || top_corner_size_time>src.top_corner_size_time || bottom_corner_size_time>src.bottom_corner_size_time
           || top_offset_time>src.top_offset_time || bottom_offset_time>src.bottom_offset_time || left_right_offset_time>src.left_right_offset_time || top_corner_offset_time>src.top_corner_offset_time || bottom_corner_offset_time>src.bottom_corner_offset_time
-          || center_image_time>src.center_image_time || border_image_time>src.border_image_time || top_image_time>src.top_image_time || bottom_image_time>src.bottom_image_time || left_right_image_time>src.left_right_image_time || top_corner_image_time>src.top_corner_image_time || bottom_corner_image_time>src.bottom_corner_image_time
+          || center_image_time>src.center_image_time || bar_image_time>src.bar_image_time || border_image_time>src.border_image_time || top_image_time>src.top_image_time || bottom_image_time>src.bottom_image_time || left_right_image_time>src.left_right_image_time || top_corner_image_time>src.top_corner_image_time || bottom_corner_image_time>src.bottom_corner_image_time
           || panel_image_time>src.panel_image_time;
    }
    bool equal(C EditPanel &src)C
    {
       return center_stretch_time==src.center_stretch_time && side_stretch_time==src.side_stretch_time && center_shadow_time==src.center_shadow_time
-          && center_color_time==src.center_color_time && border_color_time==src.border_color_time && side_color_time==src.side_color_time && blur_color_time==src.blur_color_time
+          && center_color_time==src.center_color_time && bar_color_time==src.bar_color_time && border_color_time==src.border_color_time && side_color_time==src.side_color_time && blur_color_time==src.blur_color_time
           && shadow_opacity_time==src.shadow_opacity_time && shadow_radius_time==src.shadow_radius_time && shadow_offset_time==src.shadow_offset_time
-          && border_size_time==src.border_size_time && center_scale_time==src.center_scale_time && top_size_time==src.top_size_time && bottom_size_time==src.bottom_size_time && left_right_size_time==src.left_right_size_time && top_corner_size_time==src.top_corner_size_time && bottom_corner_size_time==src.bottom_corner_size_time
+          && center_scale_time==src.center_scale_time && bar_size_time==src.bar_size_time && border_size_time==src.border_size_time && top_size_time==src.top_size_time && bottom_size_time==src.bottom_size_time && left_right_size_time==src.left_right_size_time && top_corner_size_time==src.top_corner_size_time && bottom_corner_size_time==src.bottom_corner_size_time
           && top_offset_time==src.top_offset_time && bottom_offset_time==src.bottom_offset_time && left_right_offset_time==src.left_right_offset_time && top_corner_offset_time==src.top_corner_offset_time && bottom_corner_offset_time==src.bottom_corner_offset_time
-          && center_image_time==src.center_image_time && border_image_time==src.border_image_time && top_image_time==src.top_image_time && bottom_image_time==src.bottom_image_time && left_right_image_time==src.left_right_image_time && top_corner_image_time==src.top_corner_image_time && bottom_corner_image_time==src.bottom_corner_image_time
+          && center_image_time==src.center_image_time && bar_image_time==src.bar_image_time && border_image_time==src.border_image_time && top_image_time==src.top_image_time && bottom_image_time==src.bottom_image_time && left_right_image_time==src.left_right_image_time && top_corner_image_time==src.top_corner_image_time && bottom_corner_image_time==src.bottom_corner_image_time
           && panel_image_time==src.panel_image_time;
    }
 
@@ -37,16 +37,16 @@ class EditPanel : Panel
    void newData()
    {
       center_stretch_time++; side_stretch_time++; center_shadow_time++;
-      center_color_time++; border_color_time++; side_color_time++; blur_color_time++;
+      center_color_time++; bar_color_time++; border_color_time++; side_color_time++; blur_color_time++;
       shadow_opacity_time++; shadow_radius_time++; shadow_offset_time++;
-      border_size_time++; center_scale_time++; top_size_time++; bottom_size_time++; left_right_size_time++; top_corner_size_time++; bottom_corner_size_time++;
+      center_scale_time++; bar_size_time++; border_size_time++; top_size_time++; bottom_size_time++; left_right_size_time++; top_corner_size_time++; bottom_corner_size_time++;
       top_offset_time++; bottom_offset_time++; left_right_offset_time++; top_corner_offset_time++; bottom_corner_offset_time++;
-      center_image_time++; border_image_time++; top_image_time++; bottom_image_time++; left_right_image_time++; top_corner_image_time++; bottom_corner_image_time++;
+      center_image_time++; bar_image_time++; border_image_time++; top_image_time++; bottom_image_time++; left_right_image_time++; top_corner_image_time++; bottom_corner_image_time++;
       panel_image_time++;
    }
    void includeIDs(MemPtr<UID> ids)C
    {
-      Include(ids, center_image); Include(ids, border_image); Include(ids, top_image); Include(ids, bottom_image);
+      Include(ids, center_image); Include(ids, bar_image); Include(ids, border_image); Include(ids, top_image); Include(ids, bottom_image);
       Include(ids, left_right_image); Include(ids, top_corner_image); Include(ids, bottom_corner_image); Include(ids, panel_image);
    }
    bool sync(C EditPanel &src)
@@ -57,6 +57,7 @@ class EditPanel : Panel
       changed|=Sync( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
 
       changed|=Sync(center_color_time, src.center_color_time, center_color, src.center_color);
+      changed|=Sync(   bar_color_time, src.   bar_color_time,    bar_color, src.   bar_color);
       changed|=Sync(border_color_time, src.border_color_time, border_color, src.border_color);
       changed|=Sync(  side_color_time, src.  side_color_time,   side_color, src.  side_color);
       changed|=Sync(  blur_color_time, src.  blur_color_time,   blur_color, src.  blur_color);
@@ -65,8 +66,9 @@ class EditPanel : Panel
       changed|=Sync( shadow_radius_time, src. shadow_radius_time, shadow_radius , src.shadow_radius );
       changed|=Sync( shadow_offset_time, src. shadow_offset_time, shadow_offset , src.shadow_offset );
 
-      changed|=Sync(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
       changed|=Sync(      center_scale_time, src.      center_scale_time,       center_scale, src.      center_scale);
+      changed|=Sync(          bar_size_time, src.          bar_size_time,           bar_size, src.          bar_size);
+      changed|=Sync(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
       changed|=Sync(          top_size_time, src.          top_size_time,           top_size, src.          top_size);
       changed|=Sync(       bottom_size_time, src.       bottom_size_time,        bottom_size, src.       bottom_size);
       changed|=Sync(   left_right_size_time, src.   left_right_size_time,    left_right_size, src.   left_right_size);
@@ -80,6 +82,7 @@ class EditPanel : Panel
       changed|=Sync(bottom_corner_offset_time, src.bottom_corner_offset_time, bottom_corner_offset, src.bottom_corner_offset);
 
       changed|=Sync(       center_image_time, src.       center_image_time,        center_image, src.       center_image);
+      changed|=Sync(          bar_image_time, src.          bar_image_time,           bar_image, src.          bar_image);
       changed|=Sync(       border_image_time, src.       border_image_time,        border_image, src.       border_image);
       changed|=Sync(          top_image_time, src.          top_image_time,           top_image, src.          top_image);
       changed|=Sync(       bottom_image_time, src.       bottom_image_time,        bottom_image, src.       bottom_image);
@@ -98,6 +101,7 @@ class EditPanel : Panel
       changed|=Undo( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
 
       changed|=Undo(center_color_time, src.center_color_time, center_color, src.center_color);
+      changed|=Undo(   bar_color_time, src.   bar_color_time,    bar_color, src.   bar_color);
       changed|=Undo(border_color_time, src.border_color_time, border_color, src.border_color);
       changed|=Undo(  side_color_time, src.  side_color_time,   side_color, src.  side_color);
       changed|=Undo(  blur_color_time, src.  blur_color_time,   blur_color, src.  blur_color);
@@ -106,8 +110,9 @@ class EditPanel : Panel
       changed|=Undo( shadow_radius_time, src. shadow_radius_time, shadow_radius , src.shadow_radius );
       changed|=Undo( shadow_offset_time, src. shadow_offset_time, shadow_offset , src.shadow_offset );
 
-      changed|=Undo(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
       changed|=Undo(      center_scale_time, src.      center_scale_time,       center_scale, src.      center_scale);
+      changed|=Undo(          bar_size_time, src.          bar_size_time,           bar_size, src.          bar_size);
+      changed|=Undo(       border_size_time, src.       border_size_time,        border_size, src.       border_size);
       changed|=Undo(          top_size_time, src.          top_size_time,           top_size, src.          top_size);
       changed|=Undo(       bottom_size_time, src.       bottom_size_time,        bottom_size, src.       bottom_size);
       changed|=Undo(   left_right_size_time, src.   left_right_size_time,    left_right_size, src.   left_right_size);
@@ -121,6 +126,7 @@ class EditPanel : Panel
       changed|=Undo(bottom_corner_offset_time, src.bottom_corner_offset_time, bottom_corner_offset, src.bottom_corner_offset);
 
       changed|=Undo(       center_image_time, src.       center_image_time,        center_image, src.       center_image);
+      changed|=Undo(          bar_image_time, src.          bar_image_time,           bar_image, src.          bar_image);
       changed|=Undo(       border_image_time, src.       border_image_time,        border_image, src.       border_image);
       changed|=Undo(          top_image_time, src.          top_image_time,           top_image, src.          top_image);
       changed|=Undo(       bottom_image_time, src.       bottom_image_time,        bottom_image, src.       bottom_image);
@@ -132,23 +138,24 @@ class EditPanel : Panel
       return changed;
    }
    void reset() {T=EditPanel();}
-   void create(C Panel &src, C UID &center_image, C UID &border_image, C UID &top_image, C UID &bottom_image, C UID &left_right_image, C UID &top_corner_image, C UID &bottom_corner_image, C UID &panel_image, C TimeStamp &time=TimeStamp().getUTC())
+   void create(C Panel &src, C UID &center_image, C UID &bar_image, C UID &border_image, C UID &top_image, C UID &bottom_image, C UID &left_right_image, C UID &top_corner_image, C UID &bottom_corner_image, C UID &panel_image, C TimeStamp &time=TimeStamp().getUTC())
    {
       SCAST(Panel, T)=src;
-      super.center_image=super.border_image=super.top_image=super.bottom_image=super.left_right_image=super.top_corner_image=super.bottom_corner_image=null; super.panel_image=null;
-          T.center_image=center_image; T.border_image=border_image; T.top_image=top_image; T.bottom_image=bottom_image; T.left_right_image=left_right_image; T.top_corner_image=top_corner_image; T.bottom_corner_image=bottom_corner_image; T.panel_image=panel_image;
+      super.center_image=super.bar_image=super.border_image=super.top_image=super.bottom_image=super.left_right_image=super.top_corner_image=super.bottom_corner_image=null; super.panel_image=null;
+          T.center_image=center_image; T.bar_image=bar_image; T.border_image=border_image; T.top_image=top_image; T.bottom_image=bottom_image; T.left_right_image=left_right_image; T.top_corner_image=top_corner_image; T.bottom_corner_image=bottom_corner_image; T.panel_image=panel_image;
       center_stretch_time=side_stretch_time
-         =center_color_time=border_color_time=side_color_time=blur_color_time
+         =center_color_time=bar_color_time=border_color_time=side_color_time=blur_color_time
          =shadow_opacity_time=shadow_radius_time=shadow_offset_time
-         =border_size_time=center_scale_time=top_size_time=bottom_size_time=left_right_size_time=top_corner_size_time=bottom_corner_size_time
+         =center_scale_time=bar_size_time=border_size_time=top_size_time=bottom_size_time=left_right_size_time=top_corner_size_time=bottom_corner_size_time
          =top_offset_time=bottom_offset_time=left_right_offset_time=top_corner_offset_time=bottom_corner_offset_time
-         =center_image_time=border_image_time=top_image_time=bottom_image_time=left_right_image_time=top_corner_image_time=bottom_corner_image_time
+         =center_image_time=bar_image_time=border_image_time=top_image_time=bottom_image_time=left_right_image_time=top_corner_image_time=bottom_corner_image_time
          =panel_image_time=time;
    }
    void copyTo(Panel &panel, C Project &proj)C
    {
       panel=T;
       panel.       center_image=proj.gamePath(       center_image);
+      panel.          bar_image=proj.gamePath(          bar_image);
       panel.       border_image=proj.gamePath(       border_image);
       panel.          top_image=proj.gamePath(          top_image);
       panel.       bottom_image=proj.gamePath(       bottom_image);
@@ -161,16 +168,16 @@ class EditPanel : Panel
 
    bool save(File &f)C
    {
-      f.cmpUIntV(2);
+      f.cmpUIntV(3);
       super.save(f);
-      f<<center_image<<border_image<<top_image<<bottom_image<<left_right_image<<top_corner_image<<bottom_corner_image
+      f<<center_image<<bar_image<<border_image<<top_image<<bottom_image<<left_right_image<<top_corner_image<<bottom_corner_image
        <<panel_image
        <<center_stretch_time<<side_stretch_time<<center_shadow_time
-       <<center_color_time<<border_color_time<<side_color_time<<blur_color_time
+       <<center_color_time<<bar_color_time<<border_color_time<<side_color_time<<blur_color_time
        <<shadow_opacity_time<<shadow_radius_time<<shadow_offset_time
-       <<border_size_time<<center_scale_time<<top_size_time<<bottom_size_time<<left_right_size_time<<top_corner_size_time<<bottom_corner_size_time
+       <<center_scale_time<<bar_size_time<<border_size_time<<top_size_time<<bottom_size_time<<left_right_size_time<<top_corner_size_time<<bottom_corner_size_time
        <<top_offset_time<<bottom_offset_time<<left_right_offset_time<<top_corner_offset_time<<bottom_corner_offset_time
-       <<center_image_time<<border_image_time<<top_image_time<<bottom_image_time<<left_right_image_time<<top_corner_image_time<<bottom_corner_image_time
+       <<center_image_time<<bar_image_time<<border_image_time<<top_image_time<<bottom_image_time<<left_right_image_time<<top_corner_image_time<<bottom_corner_image_time
        <<panel_image_time;
       return f.ok();
    }
@@ -178,6 +185,21 @@ class EditPanel : Panel
    {
       reset(); switch(f.decUIntV())
       {
+         case 3:
+         {
+            if(!super.load(f))break;
+            f>>center_image>>bar_image>>border_image>>top_image>>bottom_image>>left_right_image>>top_corner_image>>bottom_corner_image
+             >>panel_image
+             >>center_stretch_time>>side_stretch_time>>center_shadow_time
+             >>center_color_time>>bar_color_time>>border_color_time>>side_color_time>>blur_color_time
+             >>shadow_opacity_time>>shadow_radius_time>>shadow_offset_time
+             >>center_scale_time>>bar_size_time>>border_size_time>>top_size_time>>bottom_size_time>>left_right_size_time>>top_corner_size_time>>bottom_corner_size_time
+             >>top_offset_time>>bottom_offset_time>>left_right_offset_time>>top_corner_offset_time>>bottom_corner_offset_time
+             >>center_image_time>>bar_image_time>>border_image_time>>top_image_time>>bottom_image_time>>left_right_image_time>>top_corner_image_time>>bottom_corner_image_time
+             >>panel_image_time;
+            if(f.ok())return true;
+         }break;
+
          case 2:
          {
             if(!super.load(f))break;
@@ -190,6 +212,7 @@ class EditPanel : Panel
              >>top_offset_time>>bottom_offset_time>>left_right_offset_time>>top_corner_offset_time>>bottom_corner_offset_time
              >>center_image_time>>border_image_time>>top_image_time>>bottom_image_time>>left_right_image_time>>top_corner_image_time>>bottom_corner_image_time
              >>panel_image_time;
+            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
             if(f.ok())return true;
          }break;
 
@@ -202,6 +225,7 @@ class EditPanel : Panel
              >>top_corner_offset_time>>top_offset_time>>bottom_offset_time>>left_right_offset_time
              >>center_image_time>>border_image_time>>top_corner_image_time>>top_image_time>>bottom_image_time>>left_right_image_time;
              bottom_corner_image=top_corner_image; bottom_corner_image_time=top_corner_image_time; bottom_corner_size_time=top_corner_size_time; bottom_corner_offset_time=top_corner_offset_time;
+            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
             if(f.ok())return true;
          }break;
 
@@ -212,6 +236,7 @@ class EditPanel : Panel
              >>center_stretch_time>>shadow_opacity_time>>center_color_time>>border_color_time>>blur_color_time>>shadow_offset_time>>shadow_radius_time>>border_size_time
              >>center_scale_time>>top_corner_size_time>>top_size_time>>top_corner_offset_time>>top_offset_time>>center_image_time>>border_image_time>>top_corner_image_time>>top_image_time;
             bottom_corner_image=top_corner_image; bottom_corner_image_time=top_corner_image_time; bottom_corner_size_time=top_corner_size_time; bottom_corner_offset_time=top_corner_offset_time;
+            if(side_stretch && top_image.valid()){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image); side_stretch=false;}
             if(f.ok())return true;
          }break;
       }

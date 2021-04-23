@@ -39,6 +39,7 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsCenterStretch(EditPanel &e, C Str &t) {e.center_stretch=TextBool(t); e.center_stretch_time.getUTC();}
    void PanelEditor::ParamsSideStretch(EditPanel &e, C Str &t) {e.  side_stretch=TextBool(t); e.  side_stretch_time.getUTC();}
    void PanelEditor::ParamsCenterColor(EditPanel &e, C Str &t) {e.center_color=TextVec4(t); e.center_color_time.getUTC();}
+   void PanelEditor::ParamsBarColor(EditPanel &e, C Str &t) {e.   bar_color=TextVec4(t); e.   bar_color_time.getUTC();}
    void PanelEditor::ParamsBorderColor(EditPanel &e, C Str &t) {e.border_color=TextVec4(t); e.border_color_time.getUTC();}
    void PanelEditor::ParamsSideColor(EditPanel &e, C Str &t) {e.  side_color=TextVec4(t); e.  side_color_time.getUTC();}
    void PanelEditor::ParamsBlurColor(EditPanel &e, C Str &t) {e.  blur_color=TextVec4(t); e.  blur_color_time.getUTC();}
@@ -46,8 +47,9 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsShadowRadius(EditPanel &e, C Str &t) {e.shadow_radius =TextFlt (t); e. shadow_radius_time.getUTC();}
    void PanelEditor::ParamsShadowOffset(EditPanel &e, C Str &t) {e.shadow_offset =TextFlt (t); e. shadow_offset_time.getUTC();}
    void PanelEditor::ParamsShadowCenter(EditPanel &e, C Str &t) {e.center_shadow =TextBool(t); e. center_shadow_time.getUTC();}
-   void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size  =TextFlt (t); e.         border_size_time.getUTC();}
    void PanelEditor::ParamsCenterScale(EditPanel &e, C Str &t) {e.       center_scale =TextFlt (t); e.        center_scale_time.getUTC();}
+   void PanelEditor::ParamsBarSize(EditPanel &e, C Str &t) {e.          bar_size  =TextFlt (t); e.            bar_size_time.getUTC();}
+   void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size  =TextFlt (t); e.         border_size_time.getUTC();}
    void PanelEditor::ParamsTopSize(EditPanel &e, C Str &t) {e.          top_size  =TextFlt (t); e.            top_size_time.getUTC();}
    void PanelEditor::ParamsTopOffset(EditPanel &e, C Str &t) {e.          top_offset=TextFlt (t); e.          top_offset_time.getUTC();}
    void PanelEditor::ParamsBottomSize(EditPanel &e, C Str &t) {e.       bottom_size  =TextFlt (t); e.         bottom_size_time.getUTC();}
@@ -59,6 +61,7 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsBottomCornerSize(EditPanel &e, C Str &t) {e.bottom_corner_size  =TextFlt (t); e.  bottom_corner_size_time.getUTC();}
    void PanelEditor::ParamsBottomCornerOffset(EditPanel &e, C Str &t) {e.bottom_corner_offset=TextVec2(t); e.bottom_corner_offset_time.getUTC();}
    Str PanelEditor::ParamsCenterImage(C EditPanel &e) {return Proj.elmFullName(e.       center_image);}
+   Str PanelEditor::ParamsBarImage(C EditPanel &e) {return Proj.elmFullName(e.          bar_image);}
    Str PanelEditor::ParamsBorderImage(C EditPanel &e) {return Proj.elmFullName(e.       border_image);}
    Str PanelEditor::ParamsTopImage(C EditPanel &e) {return Proj.elmFullName(e.          top_image);}
    Str PanelEditor::ParamsBottomImage(C EditPanel &e) {return Proj.elmFullName(e.       bottom_image);}
@@ -67,6 +70,7 @@ PanelEditor PanelEdit;
    Str PanelEditor::ParamsBottomCornerImage(C EditPanel &e) {return Proj.elmFullName(e.bottom_corner_image);}
    Str PanelEditor::ParamsPanelImage(C EditPanel &e) {return Proj.elmFullName(e.        panel_image);}
    void PanelEditor::ParamsCenterImage(EditPanel &e, C Str &t) {e.       center_image=Proj.findElmImageID(t                 ); e.       center_image_time.getUTC();}
+   void PanelEditor::ParamsBarImage(EditPanel &e, C Str &t) {e.          bar_image=Proj.findElmImageID(t                 ); e.          bar_image_time.getUTC();}
    void PanelEditor::ParamsBorderImage(EditPanel &e, C Str &t) {e.       border_image=Proj.findElmImageID(t                 ); e.       border_image_time.getUTC();}
    void PanelEditor::ParamsTopImage(EditPanel &e, C Str &t) {e.          top_image=Proj.findElmImageID(t                 ); e.          top_image_time.getUTC();}
    void PanelEditor::ParamsBottomImage(EditPanel &e, C Str &t) {e.       bottom_image=Proj.findElmImageID(t                 ); e.       bottom_image_time.getUTC();}
@@ -128,16 +132,20 @@ PanelEditor PanelEdit;
       add("Shadow Radius"            , MemberDesc(MEMBER(EditPanel, shadow_radius )).setTextToDataFunc(ParamsShadowRadius)).mouseEditSpeed(0.05f).min(0);
       add("Shadow Offset"            , MemberDesc(MEMBER(EditPanel, shadow_offset )).setTextToDataFunc(ParamsShadowOffset)).mouseEditSpeed(0.05f);
       add("Shadow At Center (Slower)", MemberDesc(MEMBER(EditPanel, center_shadow )).setTextToDataFunc(ParamsShadowCenter));
-
+      add();
       add("Center Color"  , MemberDesc(MEMBER(EditPanel, center_color  )).setTextToDataFunc(ParamsCenterColor  )).setColor().desc("Affects Center Image and Panel Image");
       add("Center Stretch", MemberDesc(MEMBER(EditPanel, center_stretch)).setTextToDataFunc(ParamsCenterStretch)).desc("If stretch center image to fit the whole rectangle");
       add("Center Scale"  , MemberDesc(MEMBER(EditPanel, center_scale  )).setTextToDataFunc(ParamsCenterScale  )).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).range(-64, 64);
       add("Center Image"  , MemberDesc(DATA_STR                         ).setFunc          (ParamsCenterImage, ParamsCenterImage)).elmType(ELM_IMAGE);
       add("Panel Image"   , MemberDesc(DATA_STR                         ).setFunc          (ParamsPanelImage , ParamsPanelImage )).elmType(ELM_PANEL_IMAGE);
-
+      add();
+      add("Bar Color", MemberDesc(MEMBER(EditPanel, bar_color)).setTextToDataFunc(ParamsBarColor)).setColor().desc("Affects Bar Image");
+      add("Bar Size" , MemberDesc(MEMBER(EditPanel, bar_size )).setTextToDataFunc(ParamsBarSize )).mouseEditSpeed(0.05f).min(0);
+      add("Bar Image", MemberDesc(DATA_STR                    ).setFunc          (ParamsBarImage, ParamsBarImage)).elmType(ELM_IMAGE);
+      add();
       add("Border Color", MemberDesc(MEMBER(EditPanel, border_color)).setTextToDataFunc(ParamsBorderColor)).setColor().desc("Affects Border Image");
       add("Border Size" , MemberDesc(MEMBER(EditPanel, border_size )).setTextToDataFunc(ParamsBorderSize )).mouseEditSpeed(0.05f);
-      add("Border Image", MemberDesc(DATA_STR                       ).setFunc          (ParamsBorderImage, ParamsBorderImage      )).elmType(ELM_IMAGE);
+      add("Border Image", MemberDesc(DATA_STR                       ).setFunc          (ParamsBorderImage, ParamsBorderImage)).elmType(ELM_IMAGE);
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
       add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images to fit the whole side\nAffects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
@@ -156,7 +164,7 @@ PanelEditor PanelEdit;
       add("Bottom Corner Image" , MemberDesc(DATA_STR                               ).setFunc          (ParamsBottomCornerImage, ParamsBottomCornerImage)).elmType(ELM_IMAGE);
       add("Bottom Corner Size"  , MemberDesc(MEMBER(EditPanel, bottom_corner_size  )).setTextToDataFunc(ParamsBottomCornerSize  )).mouseEditSpeed(0.05f);
       add("Bottom Corner Offset", MemberDesc(MEMBER(EditPanel, bottom_corner_offset)).setTextToDataFunc(ParamsBottomCornerOffset)).mouseEditSpeed(0.05f);
-
+      add();
       add("Blur Color", MemberDesc(MEMBER(EditPanel, blur_color)).setTextToDataFunc(ParamsBlurColor)).setColor();
 
       autoData(&edit);

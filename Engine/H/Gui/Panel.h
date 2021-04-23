@@ -5,14 +5,16 @@ struct Panel
                   side_stretch, // if stretch side   images to fit the whole side     , default=false, this affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
                 center_shadow ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also draw underneath the center
    Byte         shadow_opacity; // shadow        opacity, 0..255, default=170
-   Color        center_color  , // center        color  , default=WHITE, this is affects 'center_image' and 'panel_image'
-                border_color  , // border        color  , default=WHITE, this is affects 'border_image'
-                  side_color  , // side image    color  , default=WHITE, this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
+   Color        center_color  , // center        color  , default=WHITE      , this is affects 'center_image' and 'panel_image'
+                   bar_color  , // bar           color  , default=TRANSPARENT, this is affects 'bar_image'
+                border_color  , // border        color  , default=WHITE      , this is affects 'border_image'
+                  side_color  , // side image    color  , default=WHITE      , this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
                   blur_color  ; // blur          color  , default=TRANSPARENT
    Flt          shadow_radius , // shadow        radius , default=0.035
                 shadow_offset , // shadow        offset , default=0
-                border_size   , // border        size   , default=0
                 center_scale  , // center        scale  , default=1
+                   bar_size   , // bar           size   , default=0
+                border_size   , // border        size   , default=0
                    top_size   , // top           size   , default=0.1
                 bottom_size   , // bottom        size   , default=0.1
             left_right_size   , // left/right    size   , default=0.1
@@ -24,6 +26,7 @@ struct Panel
             top_corner_offset , // top    corner offset , default=Vec2(0, 0)
          bottom_corner_offset ; // bottom corner offset , default=Vec2(0, 0)
    ImagePtr     center_image  , // center        image  , default=null
+                   bar_image  , // bar           image  , default=null
                 border_image  , // border        image  , default=null
                    top_image  , // top           image  , default=null
                 bottom_image  , // bottom        image  , default=null
@@ -40,6 +43,18 @@ struct Panel
 #if EE_PRIVATE
    Bool pixelBorder()C; // if this panel draws a 1 pixel border
    Bool getSideScale(C Rect &rect, Flt &scale)C;
+
+   void getRectTop         (C Rect &rect, Rect &top              , Bool mirror=true)C;
+   void getRectBottom      (C Rect &rect, Rect &bottom           , Bool mirror=true)C;
+   void getRectLeftRight   (C Rect &rect, Rect &left, Rect &right, Bool mirror=true)C;
+   void getRectTopCorner   (C Rect &rect, Rect &left, Rect &right, Bool mirror=true)C;
+   void getRectBottomCorner(C Rect &rect, Rect &left, Rect &right, Bool mirror=true)C;
+
+   void drawShadow(  Byte   shadow, C Rect &rect)C;
+   void drawCenter(C Color &color , C Rect &rect)C;
+   void drawBar   (C Color &color , C Rect &rect)C;
+   void drawBorder(C Color &color , C Rect &rect)C;
+   void drawSide  (C Color &color , C Rect &rect)C;
 #endif
 
    // operations

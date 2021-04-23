@@ -409,7 +409,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
       dilate_rect_ptr=&(dilate_rect=D.viewRect()).extend(dilate_size);
              rect_ptr=&(       rect=D.viewRect()).extend( pixel_size); // just 1 pixel because of texture filtering
 
-                    D.viewRect().drawBorder(D.signedMtnRT() ? Vec4Zero : Vec4(0.5f, 0.5f, 0, 0), -dilate_size); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+                    D.viewRect().drawBorder(D.signedMtnRT() ? Vec4Zero : Vec4(0.5f, 0.5f, 0, 0), dilate_size); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       shader->draw(&D.viewRect());
    }
   _vel.clear();
@@ -1899,7 +1899,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          const Int pixel_range=6; // currently FXAA/SMAA shaders use this range
          set(_col, null, false); // need full viewport
-         D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(-pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+         D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixel_range)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       }
       ImageRTDesc rt_desc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision()));
       ImageRTPtr  dest(rt_desc);
@@ -2125,7 +2125,7 @@ void RendererClass::postProcess()
             if(!D._view_main.full)
             {
                set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
-               D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(-pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+               D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
             }
             set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
             shader->draw(_col); alpha_set=true;

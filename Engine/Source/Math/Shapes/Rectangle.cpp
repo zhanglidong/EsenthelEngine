@@ -292,8 +292,8 @@ void Rect::drawBorder(C Color &color, Flt border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border, y1=y0+border,
-          x3=max.x, y3=max.y, x2=x3-border, y2=y3-border;
+      Flt x1=min.x, x2=max.x, x0=x1-border, x3=x2+border,
+          y1=min.y, y2=max.y, y0=y1-border, y3=y2+border;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
@@ -313,8 +313,8 @@ void Rect::drawBorder(C Color &color, C Vec2 &border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border.x, y1=y0+border.y,
-          x3=max.x, y3=max.y, x2=x3-border.x, y2=y3-border.y;
+      Flt x1=min.x, x2=max.x, x0=x1-border.x, x3=x2+border.x,
+          y1=min.y, y2=max.y, y0=y1-border.y, y3=y2+border.y;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
@@ -334,8 +334,8 @@ void Rect::drawBorder(C Vec4 &color, C Vec2 &border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border.x, y1=y0+border.y,
-          x3=max.x, y3=max.y, x2=x3-border.x, y2=y3-border.y;
+      Flt x1=min.x, x2=max.x, x0=x1-border.x, x3=x2+border.x,
+          y1=min.y, y2=max.y, y0=y1-border.y, y3=y2+border.y;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
