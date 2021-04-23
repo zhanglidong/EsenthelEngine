@@ -37,11 +37,11 @@ void Panel::getRectBottom(C Rect &rect, Rect &bottom, Bool mirror)C
       Flt rect_w=rect.w(); if(w>rect_w)
       {
          Flt scale=rect_w/w;
-         bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.max.y+bottom_offset*scale, w*scale, bottom_size*scale);
+         bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.min.y+bottom_offset*scale, w*scale, bottom_size*scale);
          goto end;
       }
    }
-   bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.max.y+bottom_offset, w, bottom_size);
+   bottom.setU(rect.centerX()/*+bottom_offset.x*/, rect.min.y+bottom_offset, w, bottom_size);
 end:
    if(mirror && bottom_image==top_image)bottom.swapY(); // mirror vertically if it's the same as top
 }
