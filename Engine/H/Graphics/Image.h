@@ -573,6 +573,9 @@ struct Image // Image (Texture)
    // draw masked
    void drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C;
 
+   // draw faded
+   void drawFadeLR(C Color &color, C Rect &rect, Flt x_trans_l, Flt x_opaque_l, Flt x_opaque_r, Flt x_trans_r)C; // draw and fade out left/right sides, 'x*'=x screen positions
+
    // draw image as tiled background, 'tex_scale'=texture coordinates scaling
    void drawTile(                                    C Rect &rect, Flt tex_scale=1)C;
    void drawTile(C Color &color, C Color &color_add, C Rect &rect, Flt tex_scale=1)C;

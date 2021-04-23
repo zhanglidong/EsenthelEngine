@@ -660,6 +660,85 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt bor
    VI.clear();
 }
 /******************************************************************************/
+void Image::drawFadeLR(C Color &color, C Rect &rect, Flt x_trans_l, Flt x_opaque_l, Flt x_opaque_r, Flt x_trans_r)C
+{
+   VI.image  (this);
+   VI.setType(VI_2D_TEX_COL);
+   if(Vtx2DTexCol *v=(Vtx2DTexCol*)VI.addVtx(16))
+   {
+      Flt x0=Mid(x_trans_l, rect.min.x, rect.max.x), x1=Mid(x_opaque_l, rect.min.x, rect.max.x), x2=Mid(x_opaque_r, rect.min.x, rect.max.x), x3=Mid(x_trans_r, rect.min.x, rect.max.x),
+        //y0=Mid(y_trans_l, rect.min.y, rect.max.y), y1=Mid(y_opaque_l, rect.min.y, rect.max.y), y2=Mid(y_opaque_r, rect.min.y, rect.max.y), y3=Mid(y_trans_r, rect.min.y, rect.max.y);
+          y0=               rect.min.y             , y1=                rect.min.y             , y2=                            rect.max.y , y3=                           rect.max.y ;
+
+      Flt u0=LerpR(rect.min.x, rect.max.x, x0),
+          u1=LerpR(rect.min.x, rect.max.x, x1),
+          u2=LerpR(rect.min.x, rect.max.x, x2),
+          u3=LerpR(rect.min.x, rect.max.x, x3),
+          v0=0,
+          v1=0,
+          v2=1,
+          v3=1;
+
+      Color trans=color; trans.a=0;
+
+      v[ 0].pos.set(x0, y3);
+      v[ 1].pos.set(x1, y3);
+      v[ 2].pos.set(x2, y3);
+      v[ 3].pos.set(x3, y3);
+      v[ 4].pos.set(x0, y2);
+      v[ 5].pos.set(x1, y2);
+      v[ 6].pos.set(x2, y2);
+      v[ 7].pos.set(x3, y2);
+      v[ 8].pos.set(x0, y1);
+      v[ 9].pos.set(x1, y1);
+      v[10].pos.set(x2, y1);
+      v[11].pos.set(x3, y1);
+      v[12].pos.set(x0, y0);
+      v[13].pos.set(x1, y0);
+      v[14].pos.set(x2, y0);
+      v[15].pos.set(x3, y0);
+
+      v[ 0].tex.set(u0, v0);
+      v[ 1].tex.set(u1, v0);
+      v[ 2].tex.set(u2, v0);
+      v[ 3].tex.set(u3, v0);
+      v[ 4].tex.set(u0, v1);
+      v[ 5].tex.set(u1, v1);
+      v[ 6].tex.set(u2, v1);
+      v[ 7].tex.set(u3, v1);
+      v[ 8].tex.set(u0, v2);
+      v[ 9].tex.set(u1, v2);
+      v[10].tex.set(u2, v2);
+      v[11].tex.set(u3, v2);
+      v[12].tex.set(u0, v3);
+      v[13].tex.set(u1, v3);
+      v[14].tex.set(u2, v3);
+      v[15].tex.set(u3, v3);
+
+      v[ 0].color=trans;
+      v[ 1].color=trans;
+      v[ 2].color=trans;
+      v[ 3].color=trans;
+      v[ 4].color=trans;
+      v[ 5].color=color;
+      v[ 6].color=color;
+      v[ 7].color=trans;
+      v[ 8].color=trans;
+      v[ 9].color=color;
+      v[10].color=color;
+      v[11].color=trans;
+      v[12].color=trans;
+      v[13].color=trans;
+      v[14].color=trans;
+      v[15].color=trans;
+
+      if(partial())REP(16)v[i].tex*=_part.xy;
+
+      VI.flushIndexed(IndBufPanel, 3*3*2*3);
+   }
+   VI.clear();
+}
+/******************************************************************************/
 void Image::draw3x3(C Color &color, C Color &color_add, C Rect &rect, Flt border_size, Flt tex_frac)C
 {
    VI.color  (color    );
