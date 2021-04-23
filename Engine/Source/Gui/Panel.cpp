@@ -12,6 +12,10 @@ namespace EE{
 /******************************************************************************/
 #define CC4_GSTL CC4('G','S','T','L')
 #define DEFAULT_SIZE 0.1f
+
+// TODO: these could be set as Panel members
+#define side_fade_ext -0.025f // when side image fading starts relative to rect border, example: fade_right_start=panel_rect.max.x+side_fade_ext (<0 means that fading starts already inside the rectangle)
+#define side_max_ext   0.025f // when side image fading ends   relative to rect border, example: fade_right_end  =panel_rect.max.x+side_max_ext
 /******************************************************************************/
 DEFINE_CACHE(Panel, Panels, PanelPtr, "Panel");
 /******************************************************************************/
@@ -87,6 +91,14 @@ void Panel::getRectBottomCorner(C Rect &rect, Rect &left, Rect &right, Bool mirr
    if(mirror && bottom_corner_image==top_corner_image){left.swapY(); right.swapY();} // mirror vertically if it's the same as top
 }
 /******************************************************************************/
+static inline void ClipX(C Panel &panel, Rect &elm_rect, C Rect &panel_rect)
+{
+   if(elm_rect.max.x>panel_rect.max.x) // 'elm_rect' is always at the center X of 'panel_rect', so we can check if only one side (right) is outside 'panel_rect', because other side (left) will be the same
+   {
+      MAX(elm_rect.min.x, panel_rect.min.x-side_max_ext);
+      MIN(elm_rect.max.x, panel_rect.max.x+side_max_ext);
+   }
+}
 void Panel::extendedRect(C Rect &rect, Rect &extended)C
 {
    Rect r; if(panel_image)panel_image->extendedRect(rect, r);else r=rect;
@@ -94,8 +106,8 @@ void Panel::extendedRect(C Rect &rect, Rect &extended)C
    if(border_color.a && border_size>0)r.extend(border_size);
    if(  side_color.a)
    {
-      if(          top_image){Rect top        ; getRectTop         (rect, top        , false); r|=top   ;}
-      if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     , false); r|=bottom;}
+      if(          top_image){Rect top        ; getRectTop         (rect, top        , false); ClipX(T, top   , rect); r|=top   ;}
+      if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     , false); ClipX(T, bottom, rect); r|=bottom;}
       if(   left_right_image){Rect left, right; getRectLeftRight   (rect, left, right, false); r|=left; r|=right;}
       if(   top_corner_image){Rect left, right; getRectTopCorner   (rect, left, right, false); r|=left; r|=right;}
       if(bottom_corner_image){Rect left, right; getRectBottomCorner(rect, left, right, false); r|=left; r|=right;}
@@ -192,10 +204,27 @@ void Panel::drawBorder(C Color &color, C Rect &rect)C
    if(border_size )r           . drawBorder(color, border_size);else
                    r           . draw      (color, false);
 }
+static void Draw(C Panel &panel, C ImagePtr &image, C Color &color, C Rect &elm_rect, C Rect &panel_rect)
+{
+ // 'elm_rect' is always at the center X of 'panel_rect', so we can check if only one side (right) is outside 'panel_rect', because other side (left) will be the same
+ //if(elm_rect.max.x>panel_rect.max.x) can't do this if 'side_fade_ext' can be <0
+   {
+      Flt opaque_r=panel_rect.max.x+side_fade_ext; if(elm_rect.max.x>opaque_r
+                                                   || elm_rect.min.x>opaque_r) // this is needed when using negative sizes which cause 'elm_rect' to be flipped
+      {
+         Flt trans_r=panel_rect.max.x+side_max_ext,
+             trans_l=panel_rect.min.x-side_max_ext,
+            opaque_l=panel_rect.min.x-side_fade_ext;
+         image->drawFadeLR(color, elm_rect, trans_l, opaque_l, opaque_r, trans_r);
+         return;
+      }
+   }
+   image->draw(color, TRANSPARENT, elm_rect);
+}
 void Panel::drawSide(C Color &color, C Rect &rect)C
 {
-   if(          top_image){Rect top        ; getRectTop         (rect, top        );           top_image->draw(color, TRANSPARENT, top   );}
-   if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     );        bottom_image->draw(color, TRANSPARENT, bottom);}
+   if(          top_image){Rect top        ; getRectTop         (rect, top        ); Draw(T,    top_image, color, top   , rect);}
+   if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     ); Draw(T, bottom_image, color, bottom, rect);}
    if(   left_right_image){Rect left, right; getRectLeftRight   (rect, left, right);    left_right_image->draw(color, TRANSPARENT, left  );
                                                                                         left_right_image->draw(color, TRANSPARENT, right );}
    if(   top_corner_image){Rect left, right; getRectTopCorner   (rect, left, right);    top_corner_image->draw(color, TRANSPARENT, left  );

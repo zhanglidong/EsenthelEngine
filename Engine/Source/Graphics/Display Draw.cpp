@@ -660,15 +660,15 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt bor
    VI.clear();
 }
 /******************************************************************************/
-void Image::drawFadeLR(C Color &color, C Rect &rect, Flt x_trans_l, Flt x_opaque_l, Flt x_opaque_r, Flt x_trans_r)C
+void Image::drawFadeLR(C Color &color, C Rect &rect, Flt trans_l, Flt opaque_l, Flt opaque_r, Flt trans_r)C
 {
    VI.image  (this);
    VI.setType(VI_2D_TEX_COL);
    if(Vtx2DTexCol *v=(Vtx2DTexCol*)VI.addVtx(16))
    {
-      Flt x0=Mid(x_trans_l, rect.min.x, rect.max.x), x1=Mid(x_opaque_l, rect.min.x, rect.max.x), x2=Mid(x_opaque_r, rect.min.x, rect.max.x), x3=Mid(x_trans_r, rect.min.x, rect.max.x),
-        //y0=Mid(y_trans_l, rect.min.y, rect.max.y), y1=Mid(y_opaque_l, rect.min.y, rect.max.y), y2=Mid(y_opaque_r, rect.min.y, rect.max.y), y3=Mid(y_trans_r, rect.min.y, rect.max.y);
-          y0=               rect.min.y             , y1=                rect.min.y             , y2=                            rect.max.y , y3=                           rect.max.y ;
+      Flt min, max; MinMax(rect.min.x, rect.max.x, min, max); // this is needed in case 'rect' is flipped
+      Flt x0=Mid(trans_l, min, max), x3=Mid(trans_r, min, max), x1=Mid(opaque_l, x0, x3), x2=Mid(opaque_r, x0, x3),
+          y0=rect.min.y, y1=rect.min.y, y2=rect.max.y, y3=rect.max.y;
 
       Flt u0=LerpR(rect.min.x, rect.max.x, x0),
           u1=LerpR(rect.min.x, rect.max.x, x1),
