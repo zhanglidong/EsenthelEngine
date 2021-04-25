@@ -195,7 +195,7 @@ DisplayClass& DisplayClass::shaderCache(C Str &path)
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
 #elif GL
-static UInt                      Tex[MAX_SHADER_IMAGES];
+static UInt                      Tex[MAX_SHADER_IMAGES], TexSampler[MAX_SHADER_IMAGES];
 #endif
 INLINE void DisplayState::texVS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
@@ -267,12 +267,20 @@ INLINE static void TexBind(UInt mode, UInt tex)
     Tex[ActiveTexture]=tex;
    glBindTexture(mode, tex);
 }
-static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler) // this is called only on the Main thread
+static UInt SamplerSlot[SSI_NUM]; // this contains the ShaderSampler.sampler for each sampler slot
+void ShaderSampler::set(Int index)C
 {
+   DEBUG_RANGE_ASSERT(index, SamplerSlot);
+   SamplerSlot[index]=sampler; // set GL 'sampler' object to requested SSI slot
+}
+static void SetTexture(Int index, Int sampler, C Image *image) // this is called only on the Main thread
+{
+   // texture
 #if 0
    glBindMultiTextureEXT(GL_TEXTURE0+index, GL_TEXTURE_2D, txtr); // not supported on ATI (tested on Radeon 5850)
 #else
    UInt txtr=(image ? image->_txtr : 0);
+   DEBUG_RANGE_ASSERT(index, Tex);
    if(Tex[index]!=txtr || FORCE_TEX)
    {
       ActivateTexture(index);
@@ -404,7 +412,7 @@ Cache<ShaderFile> ShaderFiles("Shader");
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderImage> ShaderImages(CompareCS);
 /******************************************************************************/
-void ShaderImage::Sampler::del()
+void ShaderSampler::del()
 {
 #if DX11
    if(state)
@@ -426,14 +434,14 @@ void ShaderImage::Sampler::del()
 #endif
 }
 #if DX11
-Bool ShaderImage::Sampler::createTry(D3D11_SAMPLER_DESC &desc)
+Bool ShaderSampler::createTry(D3D11_SAMPLER_DESC &desc)
 {
  //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
    del();
    if(D3D)D3D->CreateSamplerState(&desc, &state);
    return state!=null;
 }
-void ShaderImage::Sampler::create(D3D11_SAMPLER_DESC &desc)
+void ShaderSampler::create(D3D11_SAMPLER_DESC &desc)
 {
    if(!createTry(desc))Exit(S+"Can't create Sampler State\n"
                               "Filter: "+desc.Filter+"\n"
@@ -443,13 +451,13 @@ void ShaderImage::Sampler::create(D3D11_SAMPLER_DESC &desc)
                               "ComparisonFunc: "+desc.ComparisonFunc+"\n"
                               "MinMaxLOD: "+desc.MinLOD+','+desc.MaxLOD);
 }
-void ShaderImage::Sampler::setVS(Int index) {D3DC->VSSetSamplers(index, 1, &state);}
-void ShaderImage::Sampler::setHS(Int index) {D3DC->HSSetSamplers(index, 1, &state);}
-void ShaderImage::Sampler::setDS(Int index) {D3DC->DSSetSamplers(index, 1, &state);}
-void ShaderImage::Sampler::setPS(Int index) {D3DC->PSSetSamplers(index, 1, &state);}
-void ShaderImage::Sampler::set  (Int index) {setVS(index); setHS(index); setDS(index); setPS(index);}
+void ShaderSampler::setVS(Int index)C {D3DC->VSSetSamplers(index, 1, &state);}
+void ShaderSampler::setHS(Int index)C {D3DC->HSSetSamplers(index, 1, &state);}
+void ShaderSampler::setDS(Int index)C {D3DC->DSSetSamplers(index, 1, &state);}
+void ShaderSampler::setPS(Int index)C {D3DC->PSSetSamplers(index, 1, &state);}
+void ShaderSampler::set  (Int index)C {setVS(index); setHS(index); setDS(index); setPS(index);}
 #elif GL
-void ShaderImage::Sampler::create()
+void ShaderSampler::create()
 {
    if(!sampler)glGenSamplers(1, &sampler);
    if( sampler)
@@ -1519,7 +1527,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    if(!prog)
       if(UInt prog=compile(shader._vs, shader._ps, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
-      MemtN<ImageLink, 256> images;
+      MemtN<SamplerImageLink, 256> images;
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
       FREP(params)
       {
@@ -1544,18 +1552,11 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
             case GL_SAMPLER_2D_SHADOW_EXT:
          #endif
             {
+               if(name[0]!='S' || name[2]!='_')Exit("Invalid Sampler name"); // all GL buffers assume to start with 'S' this is adjusted in 'ShaderCompiler' #SamplerName
                Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
-               Int location=glGetUniformLocation(prog, name); if(location<0)
-               {
-               #if WEB // this can happen on MS Edge for images that aren't actually used
-                  LogN
-               #else
-                  Exit
-               #endif
-                     (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
-                  continue;
-               }
-               images.New().set(tex_unit, *GetShaderImage(name));
+               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
+               Int sampler_index=TextInt(name+1);
+               images.New().set(tex_unit, sampler_index, *GetShaderImage(name+3));
              //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
 
                glUseProgram(prog);
@@ -1921,6 +1922,7 @@ Int GetSamplerIndex(CChar8 *name)
    if(Equal(name, "SamplerLinearCWW"  ))return SSI_LINEAR_CWW;
    if(Equal(name, "SamplerShadowMap"  ))return SSI_SHADOW;
    if(Equal(name, "SamplerFont"       ))return SSI_FONT;
+                                        ASSERT(SSI_NUM==7);
                                         return -1;
 }
 static void TestBuffer(C Str8 &name, Int bind_slot)

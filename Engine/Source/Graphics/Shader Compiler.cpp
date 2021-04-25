@@ -1353,9 +1353,10 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    FREP(num_samplers)
    {
     C spvc_combined_image_sampler &cis=samplers[i];
-      CChar8 *  image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
-    //CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
-      spvc_compiler_set_name(spirv_compiler, cis.combined_id, image_name);
+      CChar8 *  image_name =spvc_compiler_get_name(spirv_compiler, cis.  image_id);
+      CChar8 *sampler_name =spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
+      Int     sampler_index=GetSamplerIndex(sampler_name); if(sampler_index<0)Exit(S+"Unknown sampler for '"+image_name+"'");
+      spvc_compiler_set_name(spirv_compiler, cis.combined_id, S8+'S'+sampler_index+'_'+image_name); // use S sampler_index _ image_name format, so we can use SkipStart when loading shaders without having to allocate memory for Str, so the name must be at the end, and sampler index before that, since name can't start with a number then S is also added at the start #SamplerName
       {SyncLocker lock(cc.lock); compiler.images.binaryInclude(Str8(image_name), CompareCS);}
    }
 

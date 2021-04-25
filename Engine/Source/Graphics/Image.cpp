@@ -904,45 +904,6 @@ Image& Image::del()
    Free(_data_all);
    zero(); return T;
 }
-/******************************************************************************
-void Image::duplicate(C Image &src)
-{
-   if(this!=&src)
-   {
-      del();
-
-   #if DX11
-      if(_txtr=src._txtr)_txtr->AddRef();
-      if(_srv =src._srv )_srv ->AddRef();
-      if(_rtv =src._rtv )_rtv ->AddRef();
-      if(_dsv =src._dsv )_dsv ->AddRef();
-      if(_rdsv=src._rdsv)_rdsv->AddRef();
-   #elif GL
-      _dup =true     ;
-      _txtr=src._txtr;
-      _rb  =src._rb  ;
-      _w_s =src._w_s ;
-      _w_t =src._w_t ;
-      _w_r =src._w_r ;
-   #endif
-
-     _type   =src._type   ;
-     _hw_type=src._hw_type;
-     _mode   =src._mode   ;
-     _mms    =src._mms    ;
-     _samples=src._samples;
-     _byte_pp=src._byte_pp;
-     _partial=src._partial;
-     _part   =src._part   ;
-     _pitch  =src._pitch  ;
-     _pitch2 =src._pitch2 ;
-        _size=src.   _size;
-     _hw_size=src._hw_size;
-
-   //_lmm, _lcf, _lock_mode, _lock_count, _lock_size, _discard, _data, _data_all - ignored
-      this may break because of _data, _data_all
-   }
-}
 /******************************************************************************/
 void Image::setPartial()
 {
@@ -1081,7 +1042,7 @@ void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
    setPartial();
 }
 /******************************************************************************/
-void Image::setGLParams() // #GLSampler
+void Image::setGLParams()
 {
 #if GL
 #if GL_LOCK

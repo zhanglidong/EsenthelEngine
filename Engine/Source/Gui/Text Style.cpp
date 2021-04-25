@@ -501,15 +501,6 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
       {
          Flt xsize_2=xsize*0.5f;
 
-         // texture bias
-         {
-         #if DX11
-            // bias is set using 'SamplerFont' which is accessed in 'Font' shader
-         #elif GL
-            // bias is set using 'Font.setGLFont' and 'Image.setGLFont'
-         #endif
-         }
-
          // sub-pixel rendering
          ALPHA_MODE   alpha;
          Bool         sub_pixel=font->_sub_pixel;
@@ -637,15 +628,6 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
             c=n;
          }
          VI.end();
-
-         // texture bias
-         {
-         #if DX11
-            // bias is set using 'SamplerFont' which is accessed in 'Font' shader
-         #elif GL
-            // bias is set using 'Font.setGLFont' and 'Image.setGLFont'
-         #endif
-         }
 
          // sub-pixel
          if(sub_pixel)D.alpha(alpha); // restore alpha

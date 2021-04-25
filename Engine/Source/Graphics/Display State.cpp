@@ -765,8 +765,7 @@ void DisplayState::setDeviceSettings()
    sampler2D();
    DisplayState old=T;
 
-#if DX11
-   SamplerLinearWrap .set(SSI_DEFAULT); SamplerLinearClamp.setPS(SSI_DEFAULT); // use linear wrap everywhere (needed for example in Vertex Shaders for Water), but use linear clamp for PS as it's the default 2D sampler used everywhere except 3D
+   SamplerLinearClamp.set(SSI_DEFAULT);
    SamplerPoint      .set(SSI_POINT);
    SamplerLinearWrap .set(SSI_LINEAR_WRAP);
    SamplerLinearClamp.set(SSI_LINEAR_CLAMP);
@@ -774,7 +773,8 @@ void DisplayState::setDeviceSettings()
    SamplerShadowMap  .set(SSI_SHADOW);
    SamplerFont       .set(SSI_FONT);
  //SPSet("AllowAlphaToCoverage", D.multiSample() || D.densityByte()==255);
-#elif GL
+
+#if GL
       glEnable     (GL_DITHER);
    #if GL_ES
       glClearDepthf(REVERSE_DEPTH ? 0.5f : 1.0f); // #glClipControl

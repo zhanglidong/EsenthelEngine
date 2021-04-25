@@ -688,8 +688,6 @@ struct Image // Image (Texture)
    void  setGLParams();
    void  setGLFont  ();
 
-   void duplicate(C Image &src);
-
    Bool copySoft(Image   &dest, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP, Int max_mip_maps=INT_MAX, Flt sharp_smooth=1.0f)C; // software             copy, 'flags'=IMAGE_COPY_FLAG, 'sharp_smooth'=factor affecting sharpness/smoothness (0..Inf, the closer to 0.0 then the sharper result, the bigger than 1.0 then the more blurry result, default=1.0)
    void copyMs  (ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *rect    =null                                          )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
    void copyMs  (ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect  &rect                                                   )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size

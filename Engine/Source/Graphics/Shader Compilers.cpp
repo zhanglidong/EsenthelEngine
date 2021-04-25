@@ -809,7 +809,7 @@ static void SetShaderHash()
    Str header=GetPath(__FILE__)+"/Shader Hash.h";
    FileText ft;
    ft.write(header, ANSI);
-   ft.putLine(S+"#define SHADER_HASH "+hash());
+   ft.putLine(S+"#define SHADER_HASH "+hash()+"ull");
 }
 void MainShaderClass::compile()
 {

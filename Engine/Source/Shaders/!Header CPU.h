@@ -61,6 +61,7 @@
 #define SSI_SHADOW       4
 #define SSI_FONT         5
 #define SSI_LINEAR_CWW   6
+#define SSI_NUM          7
 
 // Other
 #define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per-triangle)

@@ -12,7 +12,7 @@ MotionBlur         Mtn;
 DepthOfField       Dof;
 WaterShader        WS;
 
-ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
+ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
 /******************************************************************************/
 // MAIN SHADER
 /******************************************************************************/

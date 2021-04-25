@@ -190,6 +190,7 @@
 
 #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
 #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
+#define TexLodWrap(  image, uv )   image.SampleLevel(SamplerLinearWrap , uv , 0)
 #define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
@@ -465,11 +466,6 @@ Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
-#if GL // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's #GLSampler
-   #define SamplerPoint       SamplerDefault
-   #define SamplerLinearClamp SamplerDefault
-   #define SamplerLinearWrap  SamplerDefault
-#endif
 /******************************************************************************/
 // force convert to Half (can be used for testing Precisions)
 Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}

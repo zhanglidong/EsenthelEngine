@@ -76,8 +76,8 @@ This code calculates lighting by taking samples along the view ray, which is ref
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   return Avg(TexLod(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
-              TexLod(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
+   return Avg(TexLodWrap(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
+              TexLodWrap(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
 }
 /******************************************************************************/
 void Surface_VS

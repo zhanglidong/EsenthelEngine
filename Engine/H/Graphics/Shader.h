@@ -1,4 +1,31 @@
 /******************************************************************************/
+#if EE_PRIVATE
+struct ShaderSampler
+{
+#if DX11
+   ID3D11SamplerState *state=null;
+
+   Bool is()C {return state!=null;}
+
+   Bool createTry(D3D11_SAMPLER_DESC &desc); // false on fail
+   void create   (D3D11_SAMPLER_DESC &desc); // Exit  on fail
+   void setVS    (Int index)C;
+   void setHS    (Int index)C;
+   void setDS    (Int index)C;
+   void setPS    (Int index)C;
+#elif GL
+   UInt sampler=0;
+   UInt filter_min, filter_mag;
+   UInt address[3];
+
+          void create();
+   inline void setPS(Int index)C {set(index);}
+#endif
+   void             set(Int index)C;
+   void             del();
+  ~ShaderSampler() {del();}
+};
+#endif
 struct ShaderImage // Shader Image
 {
  C Image* get(                   )C {return   _image  ;}
@@ -11,34 +38,9 @@ struct ShaderImage // Shader Image
 #if !EE_PRIVATE
 private:
 #endif
- C Image *_image;
+ C Image *_image=null;
 #if EE_PRIVATE
-   struct Sampler
-   {
-   #if DX11
-      ID3D11SamplerState *state=null;
-
-      Bool is()C {return state!=null;}
-
-      Bool createTry(D3D11_SAMPLER_DESC &desc); // false on fail
-      void create   (D3D11_SAMPLER_DESC &desc); // Exit  on fail
-      void setVS    (Int index);
-      void setHS    (Int index);
-      void setDS    (Int index);
-      void setPS    (Int index);
-      void set      (Int index);
-   #elif GL
-      UInt sampler=0;
-      UInt filter_min, filter_mag;
-      UInt address[3];
-
-      void create();
-   #endif
-      void       del();
-     ~Sampler() {del();}
-   };
    Sampler *_sampler;
-
    #if DX11
       INLINE ID3D11ShaderResourceView* getSRV()C {return _image ? _image->_srv  : null;}
    #endif
@@ -379,14 +381,21 @@ struct Shader11
 };
 #endif
 /******************************************************************************/
+struct SamplerImageLink
+{
+   Int          index, sampler;
+   ShaderImage *image;
+
+   void set(Int index, Int sampler, ShaderImage &image) {T.index=index; T.sampler=sampler; T.image=&image;}
+};
 struct ShaderGL
 {
-   UInt                     prog=0, vs=0, ps=0;
-   Int                 vs_index=-1, ps_index=-1;
-   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
-   Mems<BufferLink>        buffers;
-   Mems< ImageLink>         images;
-   Str8                       name;
+   UInt                        prog=0, vs=0, ps=0;
+   Int                     vs_index=-1, ps_index=-1;
+   Mems<ShaderBuffer*   > all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   Mems<      BufferLink>     buffers;
+   Mems<SamplerImageLink>      images;
+   Str8                          name;
 
    Str  source   ()C;
    UInt compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages);
