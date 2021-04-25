@@ -523,62 +523,23 @@ void FreeAlign(Ptr &data)
       data=null;
    }
 }
-#elif WINDOWS
-Ptr AllocAlign(IntPtr size, Int align)
-{
-   if(size>0)
-   {
-      DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
-      if(Ptr data=_aligned_malloc(size, CeilPow2(align)))
-      {
-         AllocInc();
-         return data;
-      }
-      AllocError(size);
-   }
-   return null;
-}
-void FreeAlign(Ptr &data)
-{
-   if(data)
-   {
-      AllocDec    ();
-     _aligned_free(data);
-                   data=null;
-   }
-}
-#elif APPLE
-Ptr AllocAlign(IntPtr size, Int align)
-{
-   if(size>0)
-   {
-      DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
-      auto align2=CeilPow2(align);
-      if(Ptr data=aligned_alloc(align2, AlignCeil(size, (IntPtr)align2)))
-      {
-         AllocInc();
-         return data;
-      }
-      AllocError(size);
-   }
-   return null;
-}
-void FreeAlign(Ptr &data)
-{
-   if(data)
-   {
-      AllocDec();
-      free    (data);
-               data=null;
-   }
-}
 #else
 Ptr AllocAlign(IntPtr size, Int align)
 {
    if(size>0)
    {
       DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
-      if(Ptr data=memalign(CeilPow2(align), size))
+      align=CeilPow2(align);
+
+   #if WINDOWS
+      if(Ptr data=_aligned_malloc(size, align))
+   #elif APPLE && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_15 || __IPHONE_OS_VERSION_MIN_REQUIRED>=__IPHONE_13_0)
+      if(Ptr data=aligned_alloc(align, AlignCeil((UIntPtr)size, (UIntPtr)align)))
+   #elif APPLE
+      Ptr data=null; posix_memalign(&data, Max(SIZEI(Ptr), align), size); if(data)
+   #else
+      if(Ptr data=memalign(align, size))
+   #endif
       {
          AllocInc();
          return data;
@@ -592,8 +553,14 @@ void FreeAlign(Ptr &data)
    if(data)
    {
       AllocDec();
-      free    (data);
-               data=null;
+
+   #if WINDOWS
+     _aligned_free(data);
+   #else
+      free        (data);
+   #endif
+
+      data=null;
    }
 }
 #endif
