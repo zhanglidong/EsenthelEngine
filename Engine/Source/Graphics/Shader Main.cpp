@@ -378,8 +378,8 @@ void MainShaderClass::getTechniques()
 
    Depth    =ShaderImages("Depth"  );
    DepthMS  =ShaderImages("DepthMS");
-   ShdMap[0]=ShaderImages("ShdMap" ); ShdMap[0]->_sampler=&SamplerLinearClamp;
-   ShdMap[1]=ShaderImages("ShdMap1"); ShdMap[1]->_sampler=&SamplerLinearClamp;
+   ShdMap[0]=ShaderImages("ShdMap" );
+   ShdMap[1]=ShaderImages("ShdMap1");
 
    // material textures
    Col[0]=ShaderImages("Col" );

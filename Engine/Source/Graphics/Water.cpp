@@ -409,14 +409,12 @@ void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 void WaterClass::setImages(Image *src, Image *depth)
 {
    // these are used by both draw surface and apply water shaders
-   Sh.Img  [1]->set(Renderer._mirror_rt); Sh.Img[1]->_sampler=&SamplerLinearClamp; // reflection
-   Sh.Img  [2]->set(          src      ); Sh.Img[2]->_sampler=&SamplerLinearClamp; // background underwater
-   Sh.ImgXF[0]->set(          depth    );                                          // background depth
+   Sh.Img  [1]->set(Renderer._mirror_rt); // reflection
+   Sh.Img  [2]->set(          src      ); // background underwater
+   Sh.ImgXF[0]->set(          depth    ); // background depth
 }
 void WaterClass::endImages()
 {
-   Sh.Img[1]->_sampler=null;
-   Sh.Img[2]->_sampler=null;
 }
 /******************************************************************************/
 Bool WaterClass::ocean()

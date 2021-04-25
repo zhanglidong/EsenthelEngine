@@ -200,9 +200,6 @@ void RendererClass::create()
    if(_env_dfg.load("Img/Environment DFG.img"))
    {
       ShaderImage *env_dfg=GetShaderImage("EnvDFG"); env_dfg->set(_env_dfg);
-   #if GL
-      env_dfg->_sampler=&SamplerLinearClamp; // have to force Linear Clamp sampler on GL in case it's used during 3D (Forward Renderer where default sampler is set to wrap)
-   #endif
    }
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
@@ -1322,11 +1319,6 @@ void RendererClass::ao()
 
    if(D.ambientSoft()) // this needs to be in sync with 'D.shadowSoft'
    {
-   #if GL && !GL_ES // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually, GLES3 doesn't support filtering F32/Depth textures - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml   "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
-      D.texBind(GL_TEXTURE_2D, _ds_1s->_txtr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   #endif
       rt_desc.type(IMAGERT_ONE);
     //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.ambientSoft()>=5)
@@ -1339,11 +1331,6 @@ void RendererClass::ao()
          ImageRTPtr src=_ao; _ao.get(rt_desc);
          set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[0][D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
-   #if GL && !GL_ES
-      D.texBind(GL_TEXTURE_2D, _ds_1s->_txtr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   #endif
    }
    if(foreground)D.depth2DOff();
 }
@@ -1927,19 +1914,13 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 
          case EDGE_SOFTEN_SMAA:
          {
-         #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-            D.texBind(GL_TEXTURE_2D, _smaa_search._txtr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-         #endif
-
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
             ImageRTPtr blend(rt_desc.type(IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
-            set(blend, _ds_1s, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); Sh.Img[2]->_sampler=null; D.stencil(STENCIL_NONE);
+            set(blend, _ds_1s, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); D.stencil(STENCIL_NONE);
 
             swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
             set(dest, null, true); Sh.SMAA->draw(_col);
@@ -2093,11 +2074,7 @@ void RendererClass::postProcess()
                case FILTER_NONE:
                {
                   pixels=1; // 1 for borders
-               #if DX11
                   SamplerPoint.setPS(SSI_DEFAULT);
-               #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-                  D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-               #endif
                }break;
 
                case FILTER_CUBIC_FAST       :
@@ -2129,14 +2106,7 @@ void RendererClass::postProcess()
             }
             set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
             shader->draw(_col); alpha_set=true;
-            if(upscale && D.densityFilter()==FILTER_NONE)
-            {
-            #if DX11
-               SamplerLinearClamp.setPS(SSI_DEFAULT);
-            #elif GL
-               if(_col->filterable()){D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
-            #endif
-            }
+            if(upscale && D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
          }
       }
      _col.clear(); // release as it's no longer needed

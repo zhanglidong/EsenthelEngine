@@ -245,11 +245,6 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
    {
       ImageRTDesc rt_desc(Renderer._shd_1s->w(), Renderer._shd_1s->h(), IMAGERT_ONE);
     //Sh.imgSize(*Renderer._shd_1s); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   #if GL && !GL_ES // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually, GLES3 doesn't support filtering F32/Depth textures - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml   "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
-      D.texBind(GL_TEXTURE_2D, Renderer._ds_1s->_txtr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   #endif
       Bool geom=(CurrentLight.type!=LIGHT_DIR);
    #if !DEPTH_CLIP_SUPPORTED // Flat
       if(CurrentLight.type==LIGHT_CONE && !D._depth_clip && CurrentLightZRange.y>D.viewRange()) // if light is behind far plane
@@ -283,11 +278,6 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
             }else shader->draw(&CurrentLightRect[Renderer._eye]);
          }
       }
-   #if GL && !GL_ES
-      D.texBind(GL_TEXTURE_2D, Renderer._ds_1s->_txtr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   #endif
       Sh.ImgX[0]->set(Renderer._shd_1s);
    }
 }
