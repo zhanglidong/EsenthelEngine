@@ -732,7 +732,7 @@ struct SystemFontDrawContext
    #if USE_FREE_TYPE
       if(!image.is())
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!FT_Init_FreeType(&library))
          {
             FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
@@ -779,8 +779,8 @@ struct SystemFontDrawContext
    #elif MAC
       if(!context)
       {
-         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!image       .is())       image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!bitmap_image.is())bitmap_image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!bitmap)
          {
             unsigned char *image_data=bitmap_image.data();
