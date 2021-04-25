@@ -2185,18 +2185,26 @@ inline    Flt FracS(Flt x, Flt range) {return FracS(x/range)*range;} // (-range.
 inline    Dbl FracS(Dbl x, Dbl range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
 
 // align
-constexpr Int AlignTrunc(Flt x, Int align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Flt AlignTrunc(Flt x, Flt align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Dbl AlignTrunc(Dbl x, Dbl align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Int AlignRound(Flt x, Int align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-constexpr Flt AlignRound(Flt x, Flt align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-constexpr Dbl AlignRound(Dbl x, Dbl align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-inline    Int AlignFloor(Flt x, Int align) {return Floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor
-inline    Flt AlignFloor(Flt x, Flt align) {return floorf(x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
-inline    Dbl AlignFloor(Dbl x, Dbl align) {return floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
-inline    Int AlignCeil (Flt x, Int align) {return Ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil
-inline    Flt AlignCeil (Flt x, Flt align) {return ceilf (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
-inline    Dbl AlignCeil (Dbl x, Dbl align) {return ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
+constexpr Int  AlignTrunc(Int  x, Int  align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Long AlignTrunc(Long x, Long align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Int  AlignTrunc(Flt  x, Int  align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Flt  AlignTrunc(Flt  x, Flt  align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Dbl  AlignTrunc(Dbl  x, Dbl  align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Int  AlignRound(Int  x, Int  align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Long AlignRound(Long x, Long align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Int  AlignRound(Flt  x, Int  align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Flt  AlignRound(Flt  x, Flt  align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Dbl  AlignRound(Dbl  x, Dbl  align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+inline    Int  AlignFloor(Int  x, Int  align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Long AlignFloor(Long x, Long align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Int  AlignFloor(Flt  x, Int  align) {return    Floor (x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Flt  AlignFloor(Flt  x, Flt  align) {return    floorf(x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Dbl  AlignFloor(Dbl  x, Dbl  align) {return    floor (x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Int  AlignCeil (Int  x, Int  align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Long AlignCeil (Long x, Long align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Int  AlignCeil (Flt  x, Int  align) {return    Ceil  (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Flt  AlignCeil (Flt  x, Flt  align) {return    ceilf (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
+inline    Dbl  AlignCeil (Dbl  x, Dbl  align) {return    ceil  (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/

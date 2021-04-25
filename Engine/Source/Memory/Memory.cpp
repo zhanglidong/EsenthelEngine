@@ -529,8 +529,7 @@ Ptr AllocAlign(IntPtr size, Int align)
    if(size>0)
    {
       DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
-      UInt align2=CeilPow2(align);
-      if(Ptr data=_aligned_malloc(size, align2))
+      if(Ptr data=_aligned_malloc(size, CeilPow2(align)))
       {
          AllocInc();
          return data;
@@ -548,13 +547,38 @@ void FreeAlign(Ptr &data)
                    data=null;
    }
 }
+#elif APPLE
+Ptr AllocAlign(IntPtr size, Int align)
+{
+   if(size>0)
+   {
+      DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
+      auto align2=CeilPow2(align);
+      if(Ptr data=aligned_alloc(align2, AlignCeil(size, (IntPtr)align2)))
+      {
+         AllocInc();
+         return data;
+      }
+      AllocError(size);
+   }
+   return null;
+}
+void FreeAlign(Ptr &data)
+{
+   if(data)
+   {
+      AllocDec();
+      free    (data);
+               data=null;
+   }
+}
 #else
 Ptr AllocAlign(IntPtr size, Int align)
 {
    if(size>0)
    {
       DYNAMIC_ASSERT(align>=1 && align<=65536, "Invalid alignment");
-      if(Ptr data=memalign(align, size))
+      if(Ptr data=memalign(CeilPow2(align), size))
       {
          AllocInc();
          return data;
