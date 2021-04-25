@@ -253,10 +253,6 @@ Font& Font::freeOpenGLESData()
    REPAO(_images).freeOpenGLESData();
    return T;
 }
-void Font::setGLFont() // #GLSampler
-{
-   REPAO(_images).setGLFont();
-}
 /******************************************************************************/
 Bool Font::imageType(IMAGE_TYPE type)
 {
@@ -284,7 +280,6 @@ Bool Font::imageType(IMAGE_TYPE type)
       if(image.type()!=type || image.w()!=w || image.h()!=h || image.mipMaps()!=mip_maps) // if change is needed
          if(image.copyTry(image, w, h, -1, type, -1, mip_maps))changed=true;
    }
-   if(changed)setGLFont();
    return changed;
 }
 void Font::toSoft()
@@ -466,7 +461,6 @@ Bool Font::load(File &f)
          if(f.ok())
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -479,7 +473,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 1))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -493,7 +486,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 1))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -507,7 +499,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -521,7 +512,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -535,7 +525,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -549,7 +538,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -1261,8 +1249,7 @@ Bool Font::create(C Params &params)
    #endif
 
       MultiThreadedCall(_images, CompressTextures, fc);
-      setRemap ();
-      setGLFont();
+      setRemap();
       return true;
    }
    del(); return false;
