@@ -353,6 +353,9 @@ void ShaderSampler::del()
    #endif
       {
          if(D.created())glDeleteSamplers(1, &sampler);
+      #if GL_ES
+         if(sampler==sampler_no_filter)sampler_no_filter=0; // if 'sampler_no_filter' is the same, then clear it too, so we don't delete the same sampler 2 times
+      #endif
          sampler=0; // clear while in lock
       }
    }
@@ -410,19 +413,17 @@ UInt GLNoFilter(UInt filter)
 #endif
 void ShaderSampler::create()
 {
-   if(!sampler)glGenSamplers(1, &sampler);
-   if( sampler)
-   {
-      glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, filter_min);
-      glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, filter_mag);
-      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, address[0]);
-      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, address[1]);
-      glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, address[2]);
-   }
+   if(!sampler){glGenSamplers(1, &sampler); if(!sampler)Exit("Can't create OpenGL Sampler");}
+   glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, filter_min);
+   glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, filter_mag);
+   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, address[0]);
+   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, address[1]);
+   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, address[2]);
 #if GL_ES
-   if(!sampler_no_filter)glGenSamplers(1, &sampler_no_filter);
-   if( sampler_no_filter)
+   DYNAMIC_ASSERT(!sampler_no_filter, "Sampler already created"); // assume it's not created yet, otherwise we may have to delete it first
+   if(filter_min==GLNoFilter(filter_min) && filter_mag==GLNoFilter(filter_mag))sampler_no_filter=sampler;else // if parameters are the same, then just set as copy
    {
+      if(!sampler_no_filter){glGenSamplers(1, &sampler_no_filter); if(!sampler_no_filter)Exit("Can't create OpenGL Sampler");}
       glSamplerParameteri(sampler_no_filter, GL_TEXTURE_MIN_FILTER, GLNoFilter(filter_min));
       glSamplerParameteri(sampler_no_filter, GL_TEXTURE_MAG_FILTER, GLNoFilter(filter_mag));
       glSamplerParameteri(sampler_no_filter, GL_TEXTURE_WRAP_S, address[0]);
