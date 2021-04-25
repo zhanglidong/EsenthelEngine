@@ -394,6 +394,10 @@ static void SetTexture(Int index, Int sampler, C Image *image) // this is called
       }break;
    }
 #endif
+
+   // sampler
+   DEBUG_RANGE_ASSERT(sampler, SamplerSlot); UInt gl_sampler=SamplerSlot[sampler];
+   DEBUG_RANGE_ASSERT(index  , TexSampler ); if(TexSampler[index]!=gl_sampler)glBindSampler(index, TexSampler[index]=gl_sampler);
 }
 #endif
 /******************************************************************************/
@@ -1652,7 +1656,7 @@ void ShaderGL::commit()C
 }
 void ShaderGL::commitTex()C
 {
-   REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+   REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
 }
 void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
@@ -1676,7 +1680,7 @@ void ShaderGL::commit()C
 }
 void ShaderGL::commitTex()C
 {
-   REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+   REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
 }
 void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
@@ -1686,15 +1690,15 @@ void ShaderGL::start()C // same as 'begin' but without committing buffers and te
 void ShaderGL::startTex()C // same as 'begin' but without committing buffers
 {
    glUseProgram(prog);
-   REPA( images){C  ImageLink &t= images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
-   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   REPA( images){C SamplerImageLink &t= images[i]; SetTexture(t.index, t.sampler, t.image->get());} // 'commitTex'
+   REPA(buffers){C       BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 void ShaderGL::begin()C
 {
    glUseProgram(prog);
-   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
-   REPA(     images){C  ImageLink &t=      images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
-   REPA(    buffers){C BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   REPA(all_buffers){      ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
+   REPA(     images){C SamplerImageLink &t=      images[i]; SetTexture(t.index, t.sampler, t.image->get());} // 'commitTex'
+   REPA(    buffers){C       BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 #endif
 #endif

@@ -1050,7 +1050,6 @@ void Image::setGLParams()
 #endif
    if(D.created() && _txtr)
    {
-      Bool mip_maps=(mipMaps()>1), filterable=T.filterable();
       UInt target;
       switch(mode())
       {
@@ -1067,10 +1066,14 @@ void Image::setGLParams()
       D.texBind(target, _txtr);
 
       // first call those that can generate GL ERROR and we're OK with that, so we will call 'glGetError' to clear them
-                  glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0);
-      if(mip_maps)glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY,      Max(D.texFilter(), 1));
-                  glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
-                  glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+      Bool mip_maps=(mipMaps()>1);
+      glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0);
+   #if 0 // this is now handled in the sampler
+      Bool filterable=T.filterable();
+      glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter(), 1));
+      glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
+      glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+   #endif
       glGetError(); // clear error in case GL_TEXTURE_MAX_LEVEL, anisotropy, .. are not supported
 
       // now call thost that must succeed
@@ -1103,25 +1106,6 @@ void Image::setGLParams()
          }break;
       }
    #endif
-   }
-#endif
-}
-/******************************************************************************/
-void Image::setGLFont() // #GLSampler
-{
-#if GL
-#if GL_LOCK
-   SyncLocker locker(D._lock);
-#endif
-   if(D.created() && _txtr && mipMaps()>1)switch(mode())
-   {
-      case IMAGE_2D:
-      case IMAGE_RT:
-      {
-         D.texBind      (GL_TEXTURE_2D, _txtr);
-         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
-         glFlush        (); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-      }break;
    }
 #endif
 }
