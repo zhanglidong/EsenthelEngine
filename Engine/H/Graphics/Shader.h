@@ -15,6 +15,9 @@ struct ShaderSampler
    void setPS    (Int index)C;
 #elif GL
    UInt sampler=0;
+#if GL_ES
+   UInt sampler_no_filter=0; // GLES3 doesn't support filtering F32/Depth textures, so use a separate sampler with filtering disabled - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml   "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
+#endif
    UInt filter_min, filter_mag;
    UInt address[3];
 
@@ -579,6 +582,10 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
+
+#if GL && GL_ES
+UInt GLNoFilter(UInt filter);
+#endif
 
 Bool VerifyPrecompiledShaderCache(C Str &name);
 #endif

@@ -37,14 +37,12 @@ void Create2DSampler()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    SamplerLinearClamp.create(sd);
 #elif GL
-   if(SamplerLinearWrap.sampler)
-   {
-      glSamplerParameterf(SamplerLinearWrap.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   }
-   if(SamplerLinearClamp.sampler)
-   {
-      glSamplerParameterf(SamplerLinearClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   }
+   if(SamplerLinearWrap .sampler)glSamplerParameterf(SamplerLinearWrap .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp.sampler)glSamplerParameterf(SamplerLinearClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+#if GL_ES
+   if(SamplerLinearWrap .sampler_no_filter)glSamplerParameterf(SamplerLinearWrap .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp.sampler_no_filter)glSamplerParameterf(SamplerLinearClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+#endif
 #endif
 }
 void CreateFontSampler()
@@ -62,10 +60,10 @@ void CreateFontSampler()
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerFont.create(sd);
 #elif GL
-   if(SamplerFont.sampler)
-   {
-      glSamplerParameterf(SamplerFont.sampler, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
-   }
+   if(SamplerFont.sampler)glSamplerParameterf(SamplerFont.sampler, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
+#if GL_ES
+   if(SamplerFont.sampler_no_filter)glSamplerParameterf(SamplerFont.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
+#endif
 #endif
 }
 void CreateAnisotropicSampler()
@@ -106,6 +104,24 @@ void CreateAnisotropicSampler()
       glSamplerParameteri(SamplerAnisotropicClamp.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
       glSamplerParameterf(SamplerAnisotropicClamp.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
    }
+#if GL_ES
+   if(SamplerAnisotropic.sampler_no_filter)
+   {
+      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
+      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
+      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
+      glSamplerParameterf(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
+   }
+   if(SamplerAnisotropicClamp.sampler_no_filter)
+   {
+      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
+      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
+      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
+      glSamplerParameterf(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
+   }
+#endif
 #endif
 }
 /******************************************************************************/
@@ -232,6 +248,13 @@ void MainShaderClass::createSamplers()
          glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
          glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
       }
+   #if GL_ES
+      if(SamplerShadowMap.sampler_no_filter)
+      {
+         glSamplerParameteri(SamplerShadowMap.sampler_no_filter, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+         glSamplerParameteri(SamplerShadowMap.sampler_no_filter, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
+      }
+   #endif
 #endif
    Create2DSampler         ();
    CreateFontSampler       ();

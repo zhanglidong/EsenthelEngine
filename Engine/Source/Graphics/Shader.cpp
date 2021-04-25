@@ -268,10 +268,16 @@ INLINE static void TexBind(UInt mode, UInt tex)
    glBindTexture(mode, tex);
 }
 static UInt SamplerSlot[SSI_NUM]; // this contains the ShaderSampler.sampler for each sampler slot
+#if GL_ES
+static UInt SamplerSlotNoFilter[SSI_NUM];
+#endif
 void ShaderSampler::set(Int index)C
 {
    DEBUG_RANGE_ASSERT(index, SamplerSlot);
    SamplerSlot[index]=sampler; // set GL 'sampler' object to requested SSI slot
+#if GL_ES
+   SamplerSlotNoFilter[index]=sampler_no_filter;
+#endif
 }
 static void SetTexture(Int index, Int sampler, C Image *image) // this is called only on the Main thread
 {
@@ -306,7 +312,12 @@ static void SetTexture(Int index, Int sampler, C Image *image) // this is called
 #endif
 
    // sampler
+#if GL_ES
+   if(!txtr)return; // skip sampler if we don't have a texture, this is also needed for image=null case below
+   DEBUG_RANGE_ASSERT(sampler, SamplerSlot); UInt gl_sampler=(image->filterable() ? SamplerSlot[sampler] : SamplerSlotNoFilter[sampler]); // here 'image'!=null because above we return if "!txtr"
+#else
    DEBUG_RANGE_ASSERT(sampler, SamplerSlot); UInt gl_sampler=SamplerSlot[sampler];
+#endif
    DEBUG_RANGE_ASSERT(index  , TexSampler ); if(TexSampler[index]!=gl_sampler)glBindSampler(index, TexSampler[index]=gl_sampler);
 }
 #endif
@@ -345,6 +356,18 @@ void ShaderSampler::del()
          sampler=0; // clear while in lock
       }
    }
+#if GL_ES
+   if(sampler_no_filter)
+   {
+   #if GL_LOCK
+      SyncLocker locker(D._lock); if(sampler_no_filter)
+   #endif
+      {
+         if(D.created())glDeleteSamplers(1, &sampler_no_filter);
+         sampler_no_filter=0; // clear while in lock
+      }
+   }
+#endif
 #endif
 }
 #if DX11
@@ -371,6 +394,20 @@ void ShaderSampler::setDS(Int index)C {D3DC->DSSetSamplers(index, 1, &state);}
 void ShaderSampler::setPS(Int index)C {D3DC->PSSetSamplers(index, 1, &state);}
 void ShaderSampler::set  (Int index)C {setVS(index); setHS(index); setDS(index); setPS(index);}
 #elif GL
+#if GL_ES
+UInt GLNoFilter(UInt filter)
+{
+   switch(filter)
+   {
+      default                      : return filter; // GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST
+      case GL_LINEAR               : return GL_NEAREST;
+
+      case GL_LINEAR_MIPMAP_NEAREST:
+      case GL_NEAREST_MIPMAP_LINEAR:
+      case GL_LINEAR_MIPMAP_LINEAR : return GL_NEAREST_MIPMAP_NEAREST; // all must use this, because GL_NEAREST_MIPMAP_LINEAR didn't work
+   }
+}
+#endif
 void ShaderSampler::create()
 {
    if(!sampler)glGenSamplers(1, &sampler);
@@ -382,6 +419,17 @@ void ShaderSampler::create()
       glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, address[1]);
       glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, address[2]);
    }
+#if GL_ES
+   if(!sampler_no_filter)glGenSamplers(1, &sampler_no_filter);
+   if( sampler_no_filter)
+   {
+      glSamplerParameteri(sampler_no_filter, GL_TEXTURE_MIN_FILTER, GLNoFilter(filter_min));
+      glSamplerParameteri(sampler_no_filter, GL_TEXTURE_MAG_FILTER, GLNoFilter(filter_mag));
+      glSamplerParameteri(sampler_no_filter, GL_TEXTURE_WRAP_S, address[0]);
+      glSamplerParameteri(sampler_no_filter, GL_TEXTURE_WRAP_T, address[1]);
+      glSamplerParameteri(sampler_no_filter, GL_TEXTURE_WRAP_R, address[2]);
+   }
+#endif
 }
 #endif
 /******************************************************************************/
