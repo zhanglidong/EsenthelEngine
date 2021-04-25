@@ -2946,14 +2946,7 @@ DisplayClass& DisplayClass::texFilter(Byte filter)
    if(T._tex_filter!=filter)
    {
       T._tex_filter=filter;
-      if(created())
-      {
-         CreateAnisotropicSampler();
-      #if GL // #GLSampler
-         Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
-         Images.unlock();
-      #endif
-      }
+      if(created())CreateAnisotropicSampler();
    }
    return T;
 }
@@ -2962,14 +2955,7 @@ DisplayClass& DisplayClass::texMipFilter(Bool on)
    if(T._tex_mip_filter!=on)
    {
       T._tex_mip_filter=on;
-      if(created())
-      {
-         CreateAnisotropicSampler();
-      #if GL // #GLSampler
-         Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
-         Images.unlock();
-      #endif
-      }
+      if(created())CreateAnisotropicSampler();
    }
    return T;
 }
@@ -3006,14 +2992,7 @@ DisplayClass& DisplayClass::fontMipBias(Flt bias)
    if(T._font_mip_bias!=bias)
    {
       T._font_mip_bias=bias;
-      if(created())
-      {
-         CreateFontSampler();
-      #if GL // #GLSampler
-         Fonts.  lock(); REPA(Fonts)Fonts.lockedData(i).setGLFont();
-         Fonts.unlock();
-      #endif
-      }
+      if(created())CreateFontSampler();
    }
    return T;
 }
