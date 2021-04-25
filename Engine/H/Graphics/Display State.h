@@ -161,7 +161,7 @@ private:
    ALPHA_MODE _alpha;
    Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _sampler2D, _linear_gamma;
    Byte       _depth_bias, _stencil, _stencil_ref, _col_write[4];
-   UInt       _depth_func, _sampler_filter[3], _sampler_address, _sample_mask, _fbo;
+   UInt       _depth_func, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;
    Rect       _clip_rect;
    Color      _alpha_factor;

@@ -689,38 +689,12 @@ void DisplayState::vf(GPU_API(ID3D11InputLayout, VtxFormatGL) *vf)
 void DisplayState::sampler2D()
 {
    D._sampler2D=true;
-#if DX11
    SamplerLinearClamp.setPS(SSI_DEFAULT);
-#elif GL
- //D._sampler_filter[0]=GL_LINEAR; unused
- //D._sampler_filter[1]=GL_LINEAR; unused
- //D._sampler_filter[2]=GL_LINEAR; unused
-   D._sampler_address  =GL_CLAMP_TO_EDGE;
-#endif
 }
 void DisplayState::sampler3D()
 {
    D._sampler2D=false;
-#if DX11
    SamplerAnisotropic.setPS(SSI_DEFAULT);
-#elif GL
- /*switch(D.texFilter()) unused
-   {
-      case  0: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-      case  1: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-      default: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-   }
-
-   switch(D.texFilter())
-   {
-      case  0: D._sampler_filter[1]=GL_NEAREST; break;
-      default: D._sampler_filter[1]=GL_LINEAR ; break; // or GL_LINEAR_MIPMAP_LINEAR
-   }
-
-   D._sampler_filter[2]=(D.texMipFilter() ? GL_LINEAR : GL_NEAREST);*/
-
-   D._sampler_address=GL_REPEAT;
-#endif
 }
 void DisplayState::samplerShadow()
 {

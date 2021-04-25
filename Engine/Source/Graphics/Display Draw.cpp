@@ -145,14 +145,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE:
-      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      #else
-         VI.shader(Sh.DrawTexPoint);
-       //SamplerPoint.setPS(SSI_DEFAULT);
-      #endif
-      break;
+      case FILTER_NONE: VI.shader(Sh.DrawTexPoint); break; // or SamplerPoint.setPS(SSI_DEFAULT);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
@@ -178,14 +171,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
-   if(filter==FILTER_NONE)
-   {
-   #if DX11
-    //SamplerLinearClamp.setPS(SSI_DEFAULT);
-   #elif GL
-      if(filterable()){D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
-   #endif
-   }
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
 }
 void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_TYPE filter)C
 {
@@ -194,14 +180,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE:
-      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      #else
-         VI.shader(Sh.DrawTexPointC);
-       //SamplerPoint.setPS(SSI_DEFAULT);
-      #endif
-      break;
+      case FILTER_NONE: VI.shader(Sh.DrawTexPointC); break; // or SamplerPoint.setPS(SSI_DEFAULT);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
@@ -229,14 +208,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
-   if(filter==FILTER_NONE)
-   {
-   #if DX11
-    //SamplerLinearClamp.setPS(SSI_DEFAULT);
-   #elif GL
-      if(filterable()){D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
-   #endif
-   }
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
 }
 /******************************************************************************
 void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
@@ -1082,7 +1054,7 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 
       D .alphaFactor(TRANSPARENT); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
       ShaderImage &si=(LA ? *Sh.VolXY[0] : *Sh.Vol);
-      si          .set(T        ); si._sampler=&SamplerLinearClamp;
+      si          .set(T        );
       Sh.Color[0]->set(color    );
       Sh.Color[1]->set(color_add);
       Sh.Volume  ->set(v);
@@ -1109,8 +1081,6 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          D .depthWrite(false);
          Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
       }
-
-      si._sampler=null;
    }
 }
 /******************************************************************************/

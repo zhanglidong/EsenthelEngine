@@ -33,19 +33,14 @@ struct ShaderImage // Shader Image
    void   set(C Image      &image)  {T._image=&image  ;}
  //void   set(C ImagePtr   &image)  {T._image= image();} this is not safe, as 'ShaderImage' does not store 'ImagePtr' for performance reasons
 
-   ShaderImage() {_image=null; _sampler=null;}
-
 #if !EE_PRIVATE
 private:
 #endif
  C Image *_image=null;
 #if EE_PRIVATE
-   Sampler *_sampler;
    #if DX11
       INLINE ID3D11ShaderResourceView* getSRV()C {return _image ? _image->_srv  : null;}
    #endif
-#else
-   Ptr    _sampler;
 #endif
 };
 /******************************************************************************/

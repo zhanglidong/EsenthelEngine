@@ -641,15 +641,12 @@ void VolumetricClouds::draw()
       VolCloud.Cloud->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.VolXY[0]->set(cloud._image); Sh.VolXY[0]->_sampler=&SamplerLinearCWW;
-                                      Sh.VolXY[1]->_sampler=&SamplerLinearWrap; // reserved for detail map
+      Sh.VolXY[0]->set(cloud._image);
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       VolCloud.Clouds->draw(rect);
-      Sh.VolXY[0]->_sampler=null;
-      Sh.VolXY[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
       Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, null, true);
@@ -686,8 +683,7 @@ void VolumetricClouds::shadowMap() // !! Warning: 'Frustum' is invalid here !!
 
       cloud.checkBuild(); // check if there are any finished image builds
       Sh.VolXY[0]->set(cloud._image);
-      Sh.VolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.CloudsMap->draw();
-      Sh.VolXY[0]->_sampler=null;
+      VolCloud.CloudsMap->draw();
    }
 }
 /******************************************************************************/
