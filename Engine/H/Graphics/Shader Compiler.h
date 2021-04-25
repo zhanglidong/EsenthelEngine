@@ -41,6 +41,7 @@ struct ShaderIndexes
 #pragma pack(pop)
 
 Int ExpectedBufferSlot(C Str8 &name);
+Int GetSamplerIndex   (CChar8 *name);
 
 enum API : Byte // !! These enums are saved !!
 {

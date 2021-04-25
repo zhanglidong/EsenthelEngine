@@ -2427,6 +2427,8 @@ enum APPLY_MODE
    APPLY_ADD,
    APPLY_ADD_RGB,
    APPLY_ADD_LUM,
+   APPLY_ADD_SAT,
+   APPLY_ADD_SAT_PHOTO,
    APPLY_ADD_HUE,
    APPLY_ADD_HUE_PHOTO,
    APPLY_SET_HUE,
@@ -2510,6 +2512,7 @@ force_src_resize:
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
             if(p.value=="addLum"                                             )mode=APPLY_ADD_LUM;else
+            if(p.value=="addSat"                                             )mode=APPLY_ADD_SAT;else
             if(p.value=="addHue"                                             )mode=APPLY_ADD_HUE;else
             if(p.value=="addHuePhoto"                                        )mode=APPLY_ADD_HUE_PHOTO;else
             if(p.value=="setHue"                                             )mode=APPLY_SET_HUE;else
@@ -2590,6 +2593,7 @@ force_src_resize:
                         case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
                         case APPLY_MUL_LUM       : c.set(base.xyz*l.xyz.max(), base.w); break;
                         case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
+                        case APPLY_ADD_SAT       : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                         case APPLY_DIV           : c=base/l; break;
                         case APPLY_ADD           : c=base+l; break;
                         case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
@@ -2673,6 +2677,18 @@ force_src_resize:
                            c.xyz=RgbToHsb(base.xyz);
                            c.w=base.w;
                            c.y*=l.xyz.max();
+                           c.xyz=HsbToRgb(c.xyz);
+
+                           if(flt cur_lum=SRGBLumOfSRGBColor(c.xyz))c.xyz*=lum/cur_lum; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
+                        }break;
+
+                        case APPLY_ADD_SAT_PHOTO: 
+                        {
+                           flt lum=SRGBLumOfSRGBColor(base.xyz);
+
+                           c.xyz=RgbToHsb(base.xyz);
+                           c.w=base.w;
+                           c.y+=l.xyz.max();
                            c.xyz=HsbToRgb(c.xyz);
 
                            if(flt cur_lum=SRGBLumOfSRGBColor(c.xyz))c.xyz*=lum/cur_lum; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation

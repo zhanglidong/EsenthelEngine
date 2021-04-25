@@ -1912,6 +1912,17 @@ Int ExpectedBufferSlot(C Str8 &name)
                             ASSERT(SBI_NUM==8);
                             return -1;
 }
+Int GetSamplerIndex(CChar8 *name)
+{
+   if(Equal(name, "SamplerDefault"    ))return SSI_DEFAULT;
+   if(Equal(name, "SamplerPoint"      ))return SSI_POINT;
+   if(Equal(name, "SamplerLinearClamp"))return SSI_LINEAR_CLAMP;
+   if(Equal(name, "SamplerLinearWrap" ))return SSI_LINEAR_WRAP;
+   if(Equal(name, "SamplerLinearCWW"  ))return SSI_LINEAR_CWW;
+   if(Equal(name, "SamplerShadowMap"  ))return SSI_SHADOW;
+   if(Equal(name, "SamplerFont"       ))return SSI_FONT;
+                                        return -1;
+}
 static void TestBuffer(C Str8 &name, Int bind_slot)
 {
    Int expected=ExpectedBufferSlot(name);

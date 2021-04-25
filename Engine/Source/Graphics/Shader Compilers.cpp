@@ -75,7 +75,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       default: return;
 
       case API_GL: dest_path+=((flag&SC_SPIRV) ? "Shader\\GL SPIR-V\\" : "Shader\\GL\\"); break;
-      case API_DX: dest_path+=((flag&SC_AMD  ) ? "Shader\\4 AMD\\" : "Shader\\4\\" ); break;
+      case API_DX: dest_path+=((flag&SC_AMD  ) ? "Shader\\4 AMD\\"     : "Shader\\4\\" ); break;
    }
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
