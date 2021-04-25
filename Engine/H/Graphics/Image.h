@@ -719,10 +719,7 @@ private:
       {
          struct
          {
-            UInt   _txtr, _rb;
-         #if X64 // on X64 size of pointer is 8, so we have room for caching UVW addressing
-            UShort _addr_u, _addr_v, _addr_w;
-         #endif
+            UInt _txtr, _rb;
          };
          Ptr _ptr[2]; // need pointers to force alignment
       };
