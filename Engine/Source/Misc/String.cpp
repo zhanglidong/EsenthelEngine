@@ -4321,10 +4321,15 @@ static Bool HasUnicode(NSString *str)
    return false;
 }
 /******************************************************************************/
+CFStringRef AppleString1(C Str &str)
+{
+   ASSERT(SIZE(UniChar)==SIZE(Char));
+   return CFStringCreateWithCharacters(kCFAllocatorDefault, (C UniChar*)(str() ? str() : u""), str.length()); // don't pass null because some Apple functions may crash if null is provided
+}
 NSString* AppleString(C Str &str)
 {
    ASSERT(SIZE(unichar)==SIZE(Char));
-   return [[NSString alloc] initWithCharacters:(const unichar*)(str() ? str() : u"") length:str.length()];
+   return [[NSString alloc] initWithCharacters:(C unichar*)(str() ? str() : u"") length:str.length()]; // don't pass null because some Apple functions may crash if null is provided
 }
 Str AppleString(NSString *str)
 {
@@ -4338,6 +4343,17 @@ Str AppleString(NSString *str)
          temp.reserve(length); [s getCharacters:(unichar*)temp()]; temp._d[temp._length=length]='\0';
       }
     //if(s!=str)[s release]; don't release this as crashes may occur
+      return temp;
+   }
+   return S;
+}
+Str AppleString(CFStringRef str)
+{
+   if(str)
+      if(Int length=CFStringGetLength(str))
+   {
+      ASSERT(SIZE(UniChar)==SIZE(Char));
+      Str    temp; temp.reserve(length); CFStringGetCharacters(str, CFRangeMake(0, length), (UniChar*)temp()); temp._d[temp._length=length]='\0';
       return temp;
    }
    return S;

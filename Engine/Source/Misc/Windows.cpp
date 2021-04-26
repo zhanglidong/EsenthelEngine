@@ -1046,11 +1046,7 @@ void WindowMsgBox(C Str &title, C Str &text, Bool error)
    Str safe_text =XmlString(Str(text ).replace('`', '\''));
    Run("zenity", S+(error ? "--error" : "--info")+" --title=\""+safe_title+"\" --text=\""+safe_text+"\"");
 #elif MAC
-   CFStringRef	cf_title=              CFStringCreateWithCString(kCFAllocatorDefault, title.is() ? UTF8(title)() : "", kCFStringEncodingUTF8); // 'CFUserNotificationDisplayAlert' will freeze if this param is null
-   CFStringRef	cf_text =(text .is() ? CFStringCreateWithCString(kCFAllocatorDefault,              UTF8(text )       , kCFStringEncodingUTF8) : null);
-   CFUserNotificationDisplayAlert(0, error ? kCFUserNotificationStopAlertLevel : kCFUserNotificationNoteAlertLevel, null, null, null, cf_title, cf_text, CFSTR("OK"), null, null, null);
-   if(cf_title)CFRelease(cf_title);
-   if(cf_text )CFRelease(cf_text );
+   CFUserNotificationDisplayAlert(0, error ? kCFUserNotificationStopAlertLevel : kCFUserNotificationNoteAlertLevel, null, null, null, CFStringAuto(title), CFStringAuto(text), CFSTR("OK"), null, null, null);
 #elif IOS
 	if(NSString *ns_title=AppleString(title)) // have to use 'AppleString' because it will get copied in the local function below
    {

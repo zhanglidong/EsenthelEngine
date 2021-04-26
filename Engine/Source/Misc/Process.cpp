@@ -192,12 +192,10 @@ Str ProcName(UInt id)
          ProcessSerialNumber psn; 
          if(GetProcessForPID(id, &psn)==noErr)
          {
-            CFStringRef proc_name=null; CopyProcessName(&psn, &proc_name);
-            if(proc_name)
+            CFStringRef proc_name=null; CopyProcessName(&psn, &proc_name); if(proc_name)
             {
-               Char8 name[MAX_UTF_PATH]; CFStringGetCString(proc_name, name, Elms(name), kCFStringEncodingUTF8);
-               CFRelease(proc_name);
-               return FromUTF8(name);
+               Str    name=proc_name; CFRelease(proc_name);
+               return name;
             }
          }
       #endif

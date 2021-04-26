@@ -729,11 +729,7 @@ Bool FRename(C Str &src, C Str &dest)
    #if MAC
       if(FileInfoSystem(s).type!=FSTD_LINK) // links can't be processed by 'FSPathMoveObjectSync' because the target file will be moved instead of the link
       {
-         Str8   dest_base=UnixPathUTF8(GetBase(d));
-         CFStringRef name=(dest_base.is() ? CFStringCreateWithCString(kCFAllocatorDefault, dest_base, kCFStringEncodingUTF8) : null);
-         Bool          ok=(FSPathMoveObjectSync(UnixPathUTF8(s), UnixPathUTF8(GetPath(d)), name, null, kFSFileOperationOverwrite|kFSFileOperationSkipPreflight)==noErr);
-         if(name)CFRelease(name);
-         if(ok)return true; // return only on success, if failed, then try methods below (this can fail for current app's exe file)
+         if(FSPathMoveObjectSync(UnixPathUTF8(s), UnixPathUTF8(GetPath(d)), CFStringAuto(UnixPath(GetBase(d))), null, kFSFileOperationOverwrite|kFSFileOperationSkipPreflight)==noErr)return true; // return only on success, if failed, then try methods below (this can fail for current app's exe file)
       }
    #endif
       auto s_up=UnixPathUTF8(s), d_up=UnixPathUTF8(d);

@@ -512,12 +512,7 @@ void SoundRecord::GetDevices(MemPtr<Device> devices)
                   CFStringRef deviceName=null; dataSize=SIZE(deviceName);
                   propertyAddress.mSelector=kAudioDevicePropertyDeviceNameCFString;
                   if(AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, null, &dataSize, &deviceName)==kAudioHardwareNoError) {}
-                  if(deviceName)
-                  {
-                     Char8 str[1024]; str[0]='\0'; CFStringGetCString(deviceName, str, Elms(str), kCFStringEncodingUTF8);
-                     device.name=FromUTF8(str);
-                     CFRelease(deviceName);
-                  }
+                  if(deviceName){device.name=deviceName; CFRelease(deviceName);}
 
                   /*
                   // Query device UID

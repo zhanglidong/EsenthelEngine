@@ -1418,17 +1418,13 @@ Str OSUserName(Bool short_name)
 #elif WINDOWS_NEW // calling this method will result in asking for permission on the screen
    return UserName.get();
 #elif MAC
-   Char8 name[MAX_UTF_PATH]; name[0]=0;
    #if 0
+      Char8 name[MAX_UTF_PATH]; name[0]=0;
       getlogin_r(name, Elms(name));
+      return FromUTF8(name);
    #else
-      if(CFStringRef cf_name=CSCopyUserName(short_name))
-      {
-         CFStringGetCString(cf_name, name, Elms(name), kCFStringEncodingUTF8);
-         CFRelease(cf_name);
-      }
+      return CFStringAuto(CSCopyUserName(short_name))(); // use CFStringAuto to auto-release
    #endif
-   return FromUTF8(name);
 #elif LINUX
    __uid_t uid=geteuid();
    passwd pw, *pwp;
@@ -1554,7 +1550,7 @@ LANG_TYPE OSLanguage()
       FREP(CFArrayGetCount(langs))
       {
          CFStringRef l=(CFStringRef)CFArrayGetValueAtIndex(langs, i);
-         Char8       name[MAX_UTF_PATH]; CFStringGetCString(l, name, Elms(name), kCFStringEncodingUTF8);
+         Char8       name[256]; CFStringGetCString(l, name, Elms(name), kCFStringEncodingASCII);
          if(lang=LanguageCode(name))break;
       }
       CFRelease(langs);
@@ -1791,11 +1787,23 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       command+=" &"; // normally 'system' is blocking on Linux, but adding " &" makes the call non-blocking
       return system(command)!=0;
    #elif MAC
-      Str8 command; Bool open=false; FileInfoSystem fi(name);
-      if(SpecialLink(name) || fi.type==FSTD_DRIVE || fi.type==FSTD_DIR){open=true; command="open"; if(fi.type==FSTD_DIR && Equal(_GetExt(name), "app"))command.space()+="--new"; if(hidden)command.space()+="--hide";} // special links and folders/drives can be opened only with "open" command, use --new for apps so multiple instances can be opened
-      command.space()+='"'; command+=UnixPathUTF8(name); command+='"';
-      if(params.is()){if(open)command.space()+="--args"; command.space()+=UnixPathUTF8(params);}
-      return system(command)!=0;
+      if(SpecialLink(name)) // system "open" will fail on http:// with spaces
+      {
+         Str8 utf=UTF8(name);
+         if(CFURLRef url=CFURLCreateWithBytes(null, (UInt8*)utf(), utf.length(), kCFStringEncodingUTF8, null))
+         {
+            Bool ok=(LSOpenCFURLRef(url, null)==noErr);
+            CFRelease(url);
+            return ok;
+         }
+      }else
+      {
+         Str8 command; Bool open=false; FileInfoSystem fi(name);
+         if(fi.type==FSTD_DRIVE || fi.type==FSTD_DIR){open=true; command="open"; if(fi.type==FSTD_DIR && Equal(_GetExt(name), "app"))command.space()+="--new"; if(hidden)command.space()+="--hide";} // special links and folders/drives can be opened only with "open" command, use --new for apps so multiple instances can be opened
+         command.space()+='"'; command+=UnixPathUTF8(name); command+='"';
+         if(params.is()){if(open)command.space()+="--args"; command.space()+=UnixPathUTF8(params);}
+         return system(command)!=0;
+      }
    #elif IOS
       Bool ok=false;
     //if(SpecialLink(name)) open everything through 'openURL' as there's no other way

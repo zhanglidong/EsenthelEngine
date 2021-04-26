@@ -373,21 +373,28 @@ inline CChar8*  TextDbl   (Dbl   r, Char8 (&temp)[256],                Int separ
    #endif
 
    #if APPLE
-      NSString* AppleString(C Str    &str);
-      Str       AppleString(NSString *str);
+      CFStringRef AppleString1(C Str      &str);
+      NSString*   AppleString (C Str      &str);
+      Str         AppleString (NSString   *str);
+      Str         AppleString (CFStringRef str);
 
       inline      Str::Str       (NSString *s) :      Str(AppleString(s)) {}
       inline Str& Str::operator =(NSString *s) {return T =AppleString(s);}
       inline Str& Str::operator+=(NSString *s) {return T+=AppleString(s);}
       inline Str  Str::operator+ (NSString *s)C{return T+ AppleString(s);}
 
+      inline      Str::Str       (CFStringRef s) :      Str(AppleString(s)) {}
+      inline Str& Str::operator =(CFStringRef s) {return T =AppleString(s);}
+      inline Str& Str::operator+=(CFStringRef s) {return T+=AppleString(s);}
+      inline Str  Str::operator+ (CFStringRef s)C{return T+ AppleString(s);}
+
       struct NSStringAuto // 'NSString' with auto-release
       {
          operator   NSString*()C {return str;}
          NSString* operator()()C {return str;}
 
-        ~NSStringAuto() {[str release]; /*str=null;*/} // it's safe to call "[null release]"
-         NSStringAuto() {str=null;}
+        ~NSStringAuto(           ) {[str release]; /*str=null;*/} // it's safe to call "[null release]"
+         NSStringAuto(           ) {str=null;}
          NSStringAuto(C Str  &str) {T.str=AppleString(str);}
          NSStringAuto(C Str8 &str) {T.str=AppleString(str);}
          NSStringAuto(CChar  *str) {T.str=AppleString(str);}
@@ -396,6 +403,23 @@ inline CChar8*  TextDbl   (Dbl   r, Char8 (&temp)[256],                Int separ
       private:
          NSString *str;
          NO_COPY_CONSTRUCTOR(NSStringAuto);
+      };
+      struct CFStringAuto // 'CFStringRef' with auto-release
+      {
+         operator   CFStringRef()C {return str;}
+         CFStringRef operator()()C {return str;}
+
+        ~CFStringAuto(               ) {if(str){CFRelease(str); /*str=null;*/}}
+         CFStringAuto(               ) {T.str=null;}
+         CFStringAuto(C Str      &str) {T.str=AppleString1(str);}
+         CFStringAuto(C Str8     &str) {T.str=AppleString1(str);}
+         CFStringAuto(CChar      *str) {T.str=AppleString1(str);}
+         CFStringAuto(CChar       chr) {T.str=AppleString1(chr);}
+         CFStringAuto(CFStringRef str) {T.str=str;}
+
+      private:
+         CFStringRef str;
+         NO_COPY_CONSTRUCTOR(CFStringAuto);
       };
       struct NSURLAuto : NSStringAuto // 'NSURL' with auto-release
       {
