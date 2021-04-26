@@ -192,6 +192,10 @@ Bool Cuts(C Edge &edge, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Dist2(capsule.edge(), edge)<=Sqr(capsule.r);
 }
+Bool Cuts(C Tri &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
+{
+   return Dist2(capsule.edge(), tri)<=Sqr(capsule.r);
+}
 Bool Cuts(C TriN &tri, C Capsule &capsule) // safe in case "capsule.isBall()"
 {
    return Dist2(capsule.edge(), tri)<=Sqr(capsule.r);
