@@ -3584,8 +3584,9 @@ void DisplayClass::alignScreenYToPixel(Flt &screen_y)
 /******************************************************************************/
 // FADE
 /******************************************************************************/
+static inline Flt FadeSpeed(Flt seconds) {return (seconds<FLT_MAX) ? 1/seconds : 0;} // assumes "seconds>0", if FLT_MAX was specified, then force 0 speed, to make sure it won't be changed
 Bool DisplayClass::fading()C {return Renderer._fade || _fade_get;}
-void DisplayClass::setFade(Flt seconds, Bool previous_frame)
+void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
 {
    if(!VR.active()) // fading is currently not supported in VR mode, because fading operates on a static image that's not rotating when moving headset
    {
@@ -3601,9 +3602,10 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
             SyncLocker locker(_lock);
             Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
             Renderer._ptr_main->copyHw(*Renderer._fade, true);
-           _fade_get =false  ;
-           _fade_step=0      ;
-           _fade_len =seconds;
+           _fade_get  =false;
+           _fade_alpha=1;
+           _fade_speed=FadeSpeed(seconds);
+           _fade_auto_draw=auto_draw;
          }
       #else // draw now
         _fade_get=false; // disable before calling 'fadeDraw'
@@ -3620,7 +3622,7 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
                StateActive->draw();
                Renderer.cleanup1();
                fadeDraw(); // draw old fade if any
-              _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
+              _fade_alpha=1; _fade_speed=FadeSpeed(seconds); _fade_auto_draw=auto_draw; // set after calling 'fadeDraw'
                Swap(Renderer._fade, temp); // swap RT as new fade
             } // <- 'discard' will be called for 'temp' and 'ds'
             Renderer._cur_main   =cur_main   ; Renderer._ui   =ui   ;
@@ -3630,8 +3632,9 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
       #endif
       }else
       {
-        _fade_get=true;
-        _fade_len=seconds;
+        _fade_get  =true;
+        _fade_speed=FadeSpeed(seconds);
+        _fade_auto_draw=auto_draw;
       }
    }
 }
@@ -3639,23 +3642,36 @@ void DisplayClass::clearFade()
 {
    Renderer._fade.clear();
   _fade_get=false;
-  _fade_step=_fade_len=0;
+  _fade_alpha=0;
 }
 void DisplayClass::fadeUpdate()
 {
-   if(Renderer._fade && (_fade_step+=Time.ad()/_fade_len)>=1)clearFade();
+   if(Renderer._fade && (_fade_alpha-=Time.ad()*_fade_speed)<=0)clearFade();
 }
-void DisplayClass::fadeDraw()
+Bool DisplayClass::drawFade()C
 {
    if(Renderer._fade)
    {
-      Sh.Step->set(1-_fade_step);
-      Sh.DrawA->draw(Renderer._fade);
+      if(_fade_alpha>=1) // if have full Alpha
+      { // disable alpha blending, this is important in case the user expects fade to completely overwrite existing screen, so it can be unset before drawing fade
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.Draw->draw(Renderer._fade);
+                          D.alpha(alpha);
+      }else
+      {
+         Sh.Step->set(_fade_alpha);
+         Sh.DrawA->draw(Renderer._fade);
+      }
+      return true;
    }
+   return false;
+}
+void DisplayClass::fadeDraw()
+{
+   if(Renderer._fade && _fade_auto_draw)drawFade();
    if(_fade_get)
    {
-     _fade_get =false;
-     _fade_step=0    ;
+     _fade_get  =false;
+     _fade_alpha=1    ;
       Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
       Renderer._ptr_main->copyHw(*Renderer._fade, true);
    }

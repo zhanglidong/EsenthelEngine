@@ -233,9 +233,10 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
                                                               static Bool created                       ();                              //     get if display is created, this can be false when the Engine still hasn't finished initializing (before 'Init'), or on Linux if XDisplay is not available and APP_ALLOW_NO_XDISPLAY was specified
 
    // screen fading
-   Bool      fading()C;                                 // if    fading is currently enabled
-   void   setFade  (Flt seconds, Bool immediate=false); // start fading screen for the following 'seconds', 'immediate'=if make an immediate copy of the screen when calling this function with current application state (this is slower because it re-draws entire screen, but uses current application state), false=use the next frame result (faster but uses next frame which may not have current application state)
-   void clearFade  (                                 ); // clear any active fading, the change is instant, you can call it real-time
+   Bool      fading()C;                                                      // if    fading is currently enabled
+   void   setFade  (Flt seconds, Bool immediate=false, Bool auto_draw=true); // start fading screen for the following 'seconds', 'immediate'=if make an immediate copy of the screen when calling this function with current application state (this is slower because it re-draws entire screen, but uses current application state), false=use the next frame result (faster but uses next frame which may not have current application state), 'auto_draw'=if automatically perform fade drawing (if false then 'drawFade' has to be called manually)
+   void clearFade  (                                                      ); // clear any active fading, the change is instant, you can call it real-time
+   Bool  drawFade  ()C;                                                      // manually draw fading, this has to be called only if 'auto_draw' was set to false in 'setFade', returns true if fade was drawn on the screen
 
    // Color Palette
    DisplayClass& colorPaletteAllow(  Bool      on     );   Bool      colorPaletteAllow()C {return _color_palette_allow;} // set/get if RM_PALETTE/RM_PALETTE1 rendering modes are allowed, disabling them increases rendering performance, default=true (false for Mobile)
@@ -542,7 +543,7 @@ private:
                      _grass_shadow, _grass_mirror,
                      _vol_light, _vol_add,
                      _taa, _taa_dual,
-                     _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _max_lights_soft,
+                     _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _fade_auto_draw, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _max_lights_soft,
                      _initialized, _resetting, _no_gpu;
    Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
@@ -569,7 +570,7 @@ private:
                      _tesselation_density,
                      _fur_gravity, _fur_vel_scale,
                      _view_fov, _view_from,
-                     _fade_len, _fade_step,
+                     _fade_alpha, _fade_speed,
                      _smaa_threshold;
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
