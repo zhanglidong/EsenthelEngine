@@ -14,8 +14,8 @@ namespace EE{
 #define DEFAULT_SIZE 0.1f
 
 // TODO: these could be set as Panel members
-#define side_fade_ext -0.025f // when side image fading starts relative to rect border, example: fade_right_start=panel_rect.max.x+side_fade_ext (<0 means that fading starts already inside the rectangle)
-#define side_max_ext   0.025f // when side image fading ends   relative to rect border, example: fade_right_end  =panel_rect.max.x+side_max_ext
+#define side_fade_ext -0.03f // when side image fading starts relative to rect border, example: fade_right_start=panel_rect.max.x+side_fade_ext (<0 means that fading starts already inside the rectangle)
+#define side_max_ext   0.01f // when side image fading ends   relative to rect border, example: fade_right_end  =panel_rect.max.x+side_max_ext
 /******************************************************************************/
 DEFINE_CACHE(Panel, Panels, PanelPtr, "Panel");
 /******************************************************************************/
