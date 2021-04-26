@@ -26,6 +26,7 @@ Bool LogInit=false;
    static int      ErrorHandler (::Display *d, XErrorEvent *e)
    {
       if(e->error_code==BadWindow)return 0;
+      if(e->error_code==167 && e->request_code==152 && e->minor_code==34)return 0; // can happen when trying to create OpenGL context using 'glXCreateContextAttribsARB' with unsupported version
       return OldErrorHandler ? OldErrorHandler(d, e) : 0;
    }
 #endif
