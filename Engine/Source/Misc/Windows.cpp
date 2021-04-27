@@ -276,10 +276,6 @@ void WindowList(MemPtr<SysWindow> windows)
    windows.clear();
    EnumWindows(EnumWindowList, LPARAM(&windows));
 }
-Ptr WindowMonitor(SysWindow window)
-{
-   return MonitorFromWindow(window, MONITOR_DEFAULTTONULL);
-}
 /******************************************************************************/
 #elif MAC
 /******************************************************************************/

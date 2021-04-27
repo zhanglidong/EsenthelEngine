@@ -36,11 +36,7 @@ SysWindow WindowActive   (                                                      
 SysWindow WindowMouse    (                                                          ); // get      window under mouse cursor
 SysWindow WindowParent   (                             SysWindow window             ); // get      window          parent
 SysWindow WindowParentTop(                             SysWindow window             ); // get      window most top parent
-void      WindowSendData (CPtr data, Int size,         SysWindow window             ); // send binary data to an application of the specified window, that application can receive the data using "App.receive_data" callback function
+void      WindowSendData (CPtr data, Int size,         SysWindow window             ); // send binary data to application of the specified window, that application can receive the data using "App.receive_data" callback function
 UInt      WindowProc     (                             SysWindow window             ); // get process ID of window
 void      WindowList     (MemPtr<SysWindow> windows                                 ); // get list of all window handles in the System
-
-#if EE_PRIVATE
-Ptr WindowMonitor(SysWindow window); // return HMONITOR for 'window'
-#endif
 /******************************************************************************/

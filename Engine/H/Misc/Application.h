@@ -137,7 +137,9 @@ struct Application // Application Settings
    Bool create ();
    void update ();
    void loop   ();
-#if WINDOWS_NEW
+#if WINDOWS_OLD
+   HMONITOR hmonitor()C;
+#elif WINDOWS_NEW
    Windows::UI::Core::CoreWindow^& Window() {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(_window);}
    void wait(SyncEvent &event); // wait for async operation to complete
    static void ExecuteRecordedEvents();

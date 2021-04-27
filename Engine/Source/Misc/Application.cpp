@@ -463,6 +463,10 @@ Application& Application::icon(C Image &icon)
    return T;
 }
 /******************************************************************************/
+#if WINDOWS_OLD
+HMONITOR Application::hmonitor()C {return MonitorFromWindow(window(), MONITOR_DEFAULTTONULL);}
+#endif
+/******************************************************************************/
 Application& Application::lang(LANG_TYPE lang)
 {
    if(T._lang!=lang)

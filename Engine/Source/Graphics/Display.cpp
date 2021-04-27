@@ -808,7 +808,7 @@ C DisplayClass::Monitor* DisplayClass::curMonitor()
    if(App.window())
    {
    #if 1
-      if(HMONITOR hmonitor=(HMONITOR)WindowMonitor(App.window()))
+      if(HMONITOR hmonitor=App.hmonitor())
    #else
       RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
       POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
@@ -1840,12 +1840,12 @@ Bool DisplayClass::findMode()
          IDXGIOutput *output=null;
          if(SwapChain)SwapChain->GetContainingOutput(&output); // if we already have a swap chain, then reuse its output
          if(!output && Adapter) // if still unknown, then find in Adapter
-            if(Ptr monitor=WindowMonitor(App.window()))
+            if(HMONITOR hmonitor=App.hmonitor())
                for(Int i=0; ; i++) // iterate all outputs
          {
             Adapter->EnumOutputs(i, &output); if(output)
             {
-               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==monitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
                output->Release(); output=null; // release, clear and continue looking
             }else break; // no more outputs available
          }
