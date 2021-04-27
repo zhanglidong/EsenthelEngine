@@ -542,8 +542,8 @@ void Application::activeOrBackFullChanged()
       #endif
       }else // non-exclusive
       {
-         if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true );}
-         else                  {WindowMinimize(true); SetDisplayMode(     );}
+         if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true);}
+         else                  {WindowMinimize(true); SetDisplayMode(    );}
       }
    #elif MAC
       if(!activeOrBackFull())hide();
