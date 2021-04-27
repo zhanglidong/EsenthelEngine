@@ -165,7 +165,7 @@ private:
 #endif
 #elif WINDOWS_NEW
 #if EE_PRIVATE && JP_GAMEPAD_INPUT
-   Windows::Gaming::Input::Gamepad ^_gamepad;   ASSERT(SIZE(Windows::Gaming::Input::Gamepad^)==SIZE(Ptr));
+   Windows::Gaming::Input::Gamepad ^_gamepad;
 #else
    Ptr     _gamepad;
 #endif
