@@ -1921,102 +1921,112 @@ Image& Image::HSBToRGB()
    return T;
 }
 /******************************************************************************/
-Image& Image::tile(Int range, Bool horizontally, Bool vertically)
+Image& Image::tile(C VecI2 &range)
 {
    IMAGE_TYPE type;
    IMAGE_MODE mode;
    Int        mip_maps;
 
-   Clamp(range, 0, Min(w(), h()));
-   if(range && (horizontally || vertically) && Decompress(T, type, mode, mip_maps) && lock())
+   VecI2 r(Min(range.x, w()), Min(range.y, h()));
+   if((r.x>0 || r.y>0) && Decompress(T, type, mode, mip_maps) && lock())
    {
    #if 1
       if(highPrecision())
       {
-         const Flt mul=1.0f/(range+1);
-         if(horizontally)
-         FREPD(y, T.h())
-         FREPD(x, range)
+         if(r.x>0)
          {
-            Vec4 c0=colorF(        x, y),
-                 c1=colorF(T.w()-x-1, y);
-            colorF(T.w()-x-1, y, Lerp(c0, c1, (x+1)*mul));
+            const Flt mul=1.0f/(r.x+1);
+            FREPD(y, T.h())
+            FREPD(x, r.x)
+            {
+               Vec4 c0=colorF(        x, y),
+                    c1=colorF(T.w()-x-1, y);
+               colorF(T.w()-x-1, y, Lerp(c0, c1, (x+1)*mul));
+            }
          }
 
-         if(vertically)
-         FREPD(x, T.w())
-         FREPD(y, range)
+         if(r.y>0)
          {
-            Vec4 c0=colorF(x,         y),
-                 c1=colorF(x, T.h()-y-1);
-            colorF(x, T.h()-y-1, Lerp(c0, c1, (y+1)*mul));
+            const Flt mul=1.0f/(r.y+1);
+            FREPD(x, T.w())
+            FREPD(y, r.y)
+            {
+               Vec4 c0=colorF(x,         y),
+                    c1=colorF(x, T.h()-y-1);
+               colorF(x, T.h()-y-1, Lerp(c0, c1, (y+1)*mul));
+            }
          }
       }else
       {
-         const UInt div=range+1, div_2=(div+1)/2;
-         if(horizontally)
-         FREPD(y, T.h())
-         FREPD(x, range)
+         if(r.x>0)
          {
-            UInt  s0=range-x,
-                  s1=x+1;
-            Color c0=color(        x, y),
-                  c1=color(T.w()-x-1, y), c;
-            c.r=(c0.r*s0 + c1.r*s1 + div_2)/div;
-            c.g=(c0.g*s0 + c1.g*s1 + div_2)/div;
-            c.b=(c0.b*s0 + c1.b*s1 + div_2)/div;
-            c.a=(c0.a*s0 + c1.a*s1 + div_2)/div;
-            color(T.w()-x-1, y, c);
+            const UInt div=r.x+1, div_2=(div+1)/2;
+            FREPD(y, T.h())
+            FREPD(x, r.x)
+            {
+               UInt  s0=r.x-x,
+                     s1=x+1;
+               Color c0=color(        x, y),
+                     c1=color(T.w()-x-1, y), c;
+               c.r=(c0.r*s0 + c1.r*s1 + div_2)/div;
+               c.g=(c0.g*s0 + c1.g*s1 + div_2)/div;
+               c.b=(c0.b*s0 + c1.b*s1 + div_2)/div;
+               c.a=(c0.a*s0 + c1.a*s1 + div_2)/div;
+               color(T.w()-x-1, y, c);
+            }
          }
 
-         if(vertically)
-         FREPD(x, T.w())
-         FREPD(y, range)
+         if(r.y>0)
          {
-            UInt  s0=range-y,
-                  s1=y+1;
-            Color c0=color(x,         y),
-                  c1=color(x, T.h()-y-1), c;
-            c.r=(c0.r*s0 + c1.r*s1 + div_2)/div;
-            c.g=(c0.g*s0 + c1.g*s1 + div_2)/div;
-            c.b=(c0.b*s0 + c1.b*s1 + div_2)/div;
-            c.a=(c0.a*s0 + c1.a*s1 + div_2)/div;
-            color(x, T.h()-y-1, c);
+            const UInt div=r.y+1, div_2=(div+1)/2;
+            FREPD(x, T.w())
+            FREPD(y, r.y)
+            {
+               UInt  s0=r.y-y,
+                     s1=y+1;
+               Color c0=color(x,         y),
+                     c1=color(x, T.h()-y-1), c;
+               c.r=(c0.r*s0 + c1.r*s1 + div_2)/div;
+               c.g=(c0.g*s0 + c1.g*s1 + div_2)/div;
+               c.b=(c0.b*s0 + c1.b*s1 + div_2)/div;
+               c.a=(c0.a*s0 + c1.a*s1 + div_2)/div;
+               color(x, T.h()-y-1, c);
+            }
          }
       }
    #else
-      if(horizontally)
+      if(r.x>0)
       FREPD(y, T.h())
-      FREPD(x, range)
+      FREPD(x, r.x)
       {
          UInt  s0   =x+1,
-               s1   =range-x,
+               s1   =r.x-x,
                sum  =s0+s1,
                sum_2=(sum+1)/2;
-         Color c0   =color(            x, y),
-               c1   =color(T.w()-range+x, y), c;
+         Color c0   =color(          x, y),
+               c1   =color(T.w()-r.x+x, y), c;
          c.a=(c0.a*s0 + c1.a*s1 + sum_2)/sum;
          c.r=(c0.r*s0 + c1.r*s1 + sum_2)/sum;
          c.g=(c0.g*s0 + c1.g*s1 + sum_2)/sum;
          c.b=(c0.b*s0 + c1.b*s1 + sum_2)/sum;
-         color(T.w()-range+x, y, c);
+         color(T.w()-r.x+x, y, c);
       }
 
-      if(vertically)
+      if(r.y>0)
       FREPD(x, T.w())
-      FREPD(y, range)
+      FREPD(y, r.y)
       {
          UInt  s0   =y+1,
-               s1   =range-y,
+               s1   =r.y-y,
                sum  =s0+s1,
                sum_2=(sum+1)/2;
-         Color c0   =color(x,             y),
-               c1   =color(x, T.h()-range+y), c;
+         Color c0   =color(x,           y),
+               c1   =color(x, T.h()-r.y+y), c;
          c.a=(c0.a*s0 + c1.a*s1 + sum_2)/sum;
          c.r=(c0.r*s0 + c1.r*s1 + sum_2)/sum;
          c.g=(c0.g*s0 + c1.g*s1 + sum_2)/sum;
          c.b=(c0.b*s0 + c1.b*s1 + sum_2)/sum;
-         color(x, T.h()-range+y, c);
+         color(x, T.h()-r.y+y, c);
       }
    #endif
       unlock().updateMipMaps(FILTER_BEST, IC_WRAP);

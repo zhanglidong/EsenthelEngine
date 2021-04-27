@@ -960,7 +960,7 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
       if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
-         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="trim" && p.name!="extend" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorXY" && p.name!="mirrorX" && p.name!="mirrorY")file.params.remove(i, true); // allow only these transforms
+         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="trim" && p.name!="extend" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorXY" && p.name!="mirrorX" && p.name!="mirrorY" && p.name!="flipXY" && p.name!="flipX" && p.name!="flipY")file.params.remove(i, true); // allow only these transforms
       }
       if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
@@ -1301,7 +1301,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(Starts(param.name, "rotateScale")){Vec2 rs=param.asVec2(); image.rotateScale(image, DegToRad(rs.x         ), rs.y, GetFilter(param.name));}else
    if(Starts(param.name, "rotate"     ))                         image.rotate     (image, DegToRad(param.asFlt())      , GetFilter(param.name)); else
-   if(param.name=="tile")image.tile(param.asInt());else
+   if(param.name=="tile")image.tile(TextVecI2Ex(param.value));else
    if(param.name=="inverseRGB")
    {
       if(image.highPrecision())
@@ -1386,9 +1386,9 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       }
       Swap(temp, image);
    }else
-   if(param.name=="mirrorX" )image.mirrorX ();else
-   if(param.name=="mirrorY" )image.mirrorY ();else
-   if(param.name=="mirrorXY")image.mirrorXY();else
+   if(param.name=="mirrorX" || param.name=="flipX" )image.mirrorX ();else
+   if(param.name=="mirrorY" || param.name=="flipY" )image.mirrorY ();else
+   if(param.name=="mirrorXY"|| param.name=="flipXY")image.mirrorXY();else
    if(param.name=="normalize")image.normalize(true, true, true, true, &box);else
    if(param.name=="sat")
    {
