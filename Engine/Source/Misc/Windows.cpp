@@ -2188,6 +2188,7 @@ void Application::windowDel()
    if(_icon  ){DestroyIcon  (_icon  ); _icon  =null;}
    UnregisterClass((LPCWSTR)WindowClass, _hinstance);
 #elif WINDOWS_NEW
+   Window()=null;
 #elif MAC
    [OpenGLView release]; OpenGLView=null;
    [   _window release];    _window=null;
@@ -2197,9 +2198,8 @@ void Application::windowDel()
    if(_window        ){XDestroyWindow(XDisplay, _window        ); _window        =NULL;}
    if( WindowColormap){XFreeColormap (XDisplay,  WindowColormap);  WindowColormap=NULL;}
 #else
-   WindowClose(window());
+   WindowClose(window()); _window=null;
 #endif
-  _window=NULL;
 }
 #if !SWITCH
 NOINLINE void Application::windowMsg() // disable inline so we will don't use its stack memory, so we can have more memory for application

@@ -127,7 +127,7 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    virtual void SetWindow(CoreWindow^ window) // called before 'Load'
    {
-      App._window=reinterpret_cast<Ptr>(window);
+      App.Window()=window;
 
       DisplayInformation^ display_info = DisplayInformation::GetForCurrentView();
       ScreenScale=display_info->RawPixelsPerViewPixel;
