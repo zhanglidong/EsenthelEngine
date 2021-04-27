@@ -833,52 +833,6 @@ SysWindow WindowParentTop(SysWindow window)
    for(; SysWindow parent=WindowParent(window); )window=parent; return window;
 }
 /******************************************************************************/
-void WindowMsgBox(C Str &title, C Str &text, Bool error)
-{
-#if WINDOWS_OLD
-   MessageBox(null, text, title, MB_OK|MB_TOPMOST|(error ? MB_ICONERROR : 0));
-#elif WINDOWS_NEW
-   if(auto dialog=ref new Windows::UI::Popups::MessageDialog(ref new Platform::String(text), ref new Platform::String(title)))
-   {
-      dialog->Commands->Append(ref new Windows::UI::Popups::UICommand("OK"));
-      dialog->ShowAsync();
-   }
-#elif LINUX // TODO: what if zenity is not installed?
-   Str safe_title=          Str(title).replace('`', '\'').replace('"', '\'');
-   Str safe_text =XmlString(Str(text ).replace('`', '\''));
-   Run("zenity", S+(error ? "--error" : "--info")+" --title=\""+safe_title+"\" --text=\""+safe_text+"\"");
-#elif MAC
-   CFUserNotificationDisplayAlert(0, error ? kCFUserNotificationStopAlertLevel : kCFUserNotificationNoteAlertLevel, null, null, null, CFStringAuto(title), CFStringAuto(text), CFSTR("OK"), null, null, null);
-#elif IOS
-	if(NSString *ns_title=AppleString(title)) // have to use 'AppleString' because it will get copied in the local function below
-   {
-   	if(NSString *ns_text=AppleString(text)) // have to use 'AppleString' because it will get copied in the local function below
-      {
-         dispatch_async(dispatch_get_main_queue(), ^{ // this is needed in case we're calling from a secondary thread
-            if(UIAlertController *alert_controller=[UIAlertController alertControllerWithTitle:ns_title message:ns_text preferredStyle:UIAlertControllerStyleAlert])
-            {
-               [alert_controller addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-               [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert_controller animated:YES completion:nil];
-             //[alert_controller release]; release will crash
-            }
-         });
-         [ns_text release];
-      }
-      [ns_title release];
-   }
-#elif ANDROID
-   // we need to call the code on UI thread, so we need to call java that will do this
-   JNI jni;
-   if(jni && ActivityClass)
-   if(JMethodID messageBox=jni.staticFunc(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
-      if(JString ti=JString(jni, title))
-      if(JString te=JString(jni, text ))
-         jni->CallStaticVoidMethod(ActivityClass, messageBox, ti(), te(), jboolean(false));
-#elif WEB
-   JavaScriptRun(S+"alert(\""+CString(text)+"\")"); 
-#endif
-}
-/******************************************************************************/
 #if WINDOWS_OLD
 static void UpdateCandidates() // this function does not remove exising candidates unless it founds new ones (this is because candidates for "q6" keyboard input on QuanPin vista/7 would get cleared)
 {
