@@ -134,13 +134,7 @@ Bool WindowCapture::capture(Image &image, SysWindow window)
 #endif
 /******************************************************************************/
 #if WINDOWS_OLD
-static ITaskbarList3 *TaskbarList;
-
-void WindowSetText(C Str &text, SysWindow window)
-{
-   SetWindowText(window, text);
-}
-Str WindowGetText(SysWindow window)
+Str WindowText(SysWindow window)
 {
    wchar_t temp[16*1024]; temp[0]='\0'; GetWindowText(window, temp, Elms(temp)); return temp;
 }
@@ -189,36 +183,6 @@ void WindowShow(Bool activate, SysWindow window)
 void WindowClose(SysWindow window)
 {
    PostMessage(window, WM_SYSCOMMAND, SC_CLOSE, NULL);
-}
-void WindowFlash(SysWindow window)
-{
-   FlashWindow(window, true);
-}
-/******************************************************************************/
-void WindowSetNormal  (              SysWindow window) {if(TaskbarList) TaskbarList->SetProgressState(window, TBPF_NOPROGRESS   );}
-void WindowSetWorking (              SysWindow window) {if(TaskbarList) TaskbarList->SetProgressState(window, TBPF_INDETERMINATE);}
-void WindowSetProgress(Flt progress, SysWindow window) {if(TaskbarList){TaskbarList->SetProgressState(window, TBPF_NORMAL       ); TaskbarList->SetProgressValue(window, RoundU(Sat(progress)*65536), 65536);}}
-void WindowSetPaused  (Flt progress, SysWindow window) {if(TaskbarList){TaskbarList->SetProgressState(window, TBPF_PAUSED       ); TaskbarList->SetProgressValue(window, RoundU(Sat(progress)*65536), 65536);}}
-void WindowSetError   (Flt progress, SysWindow window) {if(TaskbarList){TaskbarList->SetProgressState(window, TBPF_ERROR        ); TaskbarList->SetProgressValue(window, RoundU(Sat(progress)*65536), 65536);}}
-/******************************************************************************/
-Byte WindowGetAlpha(SysWindow window)
-{
-   BYTE alpha; if(window && GetLayeredWindowAttributes(window, null, &alpha, null))return alpha;
-   return 255;
-}
-void WindowAlpha(Byte alpha, SysWindow window)
-{
-   if(window)
-   {
-      if(alpha==255)
-      {
-         SetWindowLong(window, GWL_EXSTYLE, GetWindowLong(window, GWL_EXSTYLE) & ~WS_EX_LAYERED);
-      }else
-      {
-         SetWindowLong(window, GWL_EXSTYLE, GetWindowLong(window, GWL_EXSTYLE) | WS_EX_LAYERED);
-         SetLayeredWindowAttributes(window, 0, alpha, LWA_ALPHA);
-      }
-   }
 }
 /******************************************************************************/
 void WindowMove(Int dx, Int dy, SysWindow window)
@@ -331,13 +295,7 @@ Ptr WindowMonitor(SysWindow window)
 /******************************************************************************/
 #elif MAC
 /******************************************************************************/
-void WindowSetText(C Str &text, SysWindow window)
-{
-   if(window)
-   if(NSStringAuto string=text)
-      [window setTitle:string];
-}
-Str WindowGetText(SysWindow window)
+Str WindowText(SysWindow window)
 {
    if(window)return [window title]; // do not release [window title] as it will crash
    return S;
@@ -483,21 +441,6 @@ SysWindow WindowParent(SysWindow window)
    if(window)return [window parentWindow];
    return null;
 }
-void WindowFlash(SysWindow window)
-{
-   if(window==App.window()) // on Mac OS only our window can be flashed
-      if(NSApplication *app=NSApp) // get current application id
-         [app requestUserAttention:NSInformationalRequest];
-}
-Byte WindowGetAlpha(SysWindow window)
-{
-   if(window)return FltToByte(window.alphaValue);
-   return 255;
-}
-void WindowAlpha(Byte alpha, SysWindow window)
-{
-   if(window)[window setAlphaValue:alpha/255.0f];
-}
 void WindowSendData(CPtr data, Int size, SysWindow window) {}
 SysWindow WindowActive() {return App.active() ? App.window() : null;}
 /******************************************************************************/
@@ -527,16 +470,7 @@ struct MotifWmHints2
    unsigned long status;
 };
 /******************************************************************************/
-void WindowSetText(C Str &text, SysWindow window)
-{
-   if(XDisplay && window)
-   {
-      Str8 utf=UTF8(text);
-                                     XStoreName     (XDisplay, window, Str8(text));
-      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window, _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf(), utf.length());
-   }
-}
-Str WindowGetText(SysWindow window)
+Str WindowText(SysWindow window)
 {
    Str s;
    if(XDisplay && window)
@@ -808,62 +742,6 @@ SysWindow WindowParent(SysWindow window)
    }
    return NULL;
 }
-void WindowFlash(SysWindow window)
-{
-   if(XDisplay && window && _NET_WM_STATE && _NET_WM_STATE_DEMANDS_ATTENTION)
-   {
-   #if 0 // this doesn't work at all
-      XClientMessageEvent event; Zero(event);
-      event.type        =ClientMessage;
-      event.message_type=_NET_WM_STATE;
-      event.display   =XDisplay;
-      event.serial    =0;
-      event.window    =window;
-      event.send_event=1;
-      event.format   =32;
-      event.data.l[0]=_NET_WM_STATE_ADD;
-      event.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
-      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, (XEvent*)&event);
-   #elif 0 // this doesn't work at all
-      XEvent e; Zero(e);
-      e.xclient.type        =ClientMessage;
-      e.xclient.window      =window;
-      e.xclient.message_type=_NET_WM_STATE;
-      e.xclient.format      =32;
-      e.xclient.data.l[0]=_NET_WM_STATE_ADD;
-      e.xclient.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
-      e.xclient.data.l[2]=0;
-      e.xclient.data.l[3]=1;
-      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
-   #else // more complex code but works
-      Atom           type=NULL;
-      int            format=0;
-      unsigned long  items=0, bytes_after=0;
-      unsigned char *data=null;
-      if(!XGetWindowProperty(XDisplay, window, _NET_WM_STATE, 0, 1024, false, XA_ATOM, &type, &format, &items, &bytes_after, &data))
-      {
-         Atom *atoms=(Atom*)data, temp[1024];
-         if(items<Elms(temp)-1) // room for '_NET_WM_STATE_DEMANDS_ATTENTION'
-         {
-            bool has=false;
-            for(unsigned long i=0; i<items; i++)
-            {
-               temp[i]=atoms[i];
-               if(temp[i]==_NET_WM_STATE_DEMANDS_ATTENTION)has=true;
-            }
-            if(!has)
-            {
-               temp[items++]=_NET_WM_STATE_DEMANDS_ATTENTION;
-               XChangeProperty(XDisplay, window, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char*)temp, items);
-            }
-         }
-      }
-      if(data)XFree(data);
-   #endif
-   }
-}
-Byte WindowGetAlpha(SysWindow window) {return 255;}
-void WindowAlpha(Byte alpha, SysWindow window) {}
 void WindowSendData(CPtr data, Int size, SysWindow window) {}
 SysWindow WindowActive()
 {
@@ -877,17 +755,7 @@ SysWindow WindowActive()
 /******************************************************************************/
 #else
 /******************************************************************************/
-void WindowSetText(C Str &text, SysWindow window)
-{
-   if(window==App.window())
-   {
-      App._name=text;
-   #if WINDOWS_NEW
-      Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->Title=ref new Platform::String(text);
-   #endif
-   }
-}
-Str WindowGetText(SysWindow window)
+Str WindowText(SysWindow window)
 {
    if(window==App.window())return App.name();
    return S;
@@ -984,28 +852,9 @@ SysWindow WindowParent(SysWindow window)
 {
    return null;
 }
-void WindowFlash(SysWindow window)
-{
-}
-Byte WindowGetAlpha(SysWindow window) {return 255;}
-void WindowAlpha(Byte alpha, SysWindow window) {}
 void WindowSendData(CPtr data, Int size, SysWindow window) {}
 SysWindow WindowActive() {return App.active() ? App.window() : null;}
 /******************************************************************************/
-#endif
-#if WINDOWS_NEW
-   // TODO: WINDOWS_NEW TaskBar Progress - check this in the future as right now this is not available in UWP
-void WindowSetNormal  (              SysWindow window) {}
-void WindowSetWorking (              SysWindow window) {}
-void WindowSetProgress(Flt progress, SysWindow window) {}
-void WindowSetPaused  (Flt progress, SysWindow window) {}
-void WindowSetError   (Flt progress, SysWindow window) {}
-#elif !WINDOWS
-void WindowSetNormal  (              SysWindow window) {}
-void WindowSetWorking (              SysWindow window) {}
-void WindowSetProgress(Flt progress, SysWindow window) {}
-void WindowSetPaused  (Flt progress, SysWindow window) {}
-void WindowSetError   (Flt progress, SysWindow window) {}
 #endif
 UInt WindowProc(SysWindow window)
 {
@@ -1833,7 +1682,7 @@ void Application::windowCreate()
    if(!(flag&APP_MAXIMIZABLE))[[window() standardWindowButton:NSWindowZoomButton       ] setHidden:true];
    if(  flag&APP_NO_CLOSE    )[[window() standardWindowButton:NSWindowCloseButton      ] setHidden:true];
 
-   WindowSetText(name());
+   name(name());
    [window() setAcceptsMouseMovedEvents:YES];
 
    // we can calculate bounds only after having a window
@@ -2041,7 +1890,7 @@ void Application::windowCreate()
 #elif LINUX
        _window=XCreateWindow(XDisplay, root_win, x, y, w, h, 0, vis_info->depth, InputOutput, vis_info->visual, CWBackPixmap|CWBorderPixel|CWColormap|CWEventMask, &win_attr);
    if(!_window)Exit("Can't create window");
-   WindowSetText(name());
+   name(name());
    XSetWindowBackground(XDisplay, window(), 0);
 
    if(FIND_ATOM(WM_PROTOCOLS))
@@ -2689,36 +2538,6 @@ void Application::loop()
    }
 }
 #endif
-/******************************************************************************/
-void InitWindow() // this is called again inside 'App.coInitialize' !!
-{
-#if WINDOWS_OLD
-   CoCreateInstance(CLSID_TaskbarList, null, CLSCTX_ALL, IID_ITaskbarList3, (Ptr*)&TaskbarList);
-   SetLastError(0); // clear error 2
-#elif LINUX
-   if(XDisplay)
-   {
-      FIND_ATOM(     WM_STATE);
-      FIND_ATOM(_NET_WM_STATE);
-      FIND_ATOM(_NET_WM_STATE_HIDDEN);
-      FIND_ATOM(_NET_WM_STATE_FOCUSED);
-      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
-      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
-      FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
-      FIND_ATOM(_NET_WM_STATE_DEMANDS_ATTENTION);
-      FIND_ATOM(_NET_FRAME_EXTENTS);
-      FIND_ATOM(_NET_WM_NAME);
-      FIND_ATOM(UTF8_STRING);
-      FIND_ATOM(_MOTIF_WM_HINTS);
-   }
-#endif
-}
-void ShutWindow() // this is called again inside 'App.coInitialize' !!
-{
-#if WINDOWS_OLD
-   RELEASE(TaskbarList);
-#endif
-}
 /******************************************************************************/
 }
 /******************************************************************************/

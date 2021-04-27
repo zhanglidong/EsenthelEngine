@@ -20,6 +20,7 @@ Bool LogInit=false;
 //ASSERT(SIZE(D3DXMATRIX )==SIZE(Matrix4)); // shaders
 
    static Bool ShutCOM=false;
+   static ITaskbarList3 *TaskbarList;
 #elif LINUX
    static Atom _NET_WM_ICON;
    static int (*OldErrorHandler)(::Display *d, XErrorEvent *e);
@@ -74,7 +75,25 @@ Application::Application()
   _thread_id=GetThreadId();
   _back_text="Running in background";
 }
-Application& Application::name(C Str &name) {T._name=name; return T;}
+Application& Application::name(C Str &name)
+{
+   T._name=name;
+#if WINDOWS_OLD
+   SetWindowText(window(), name);
+#elif WINDOWS_NEW
+   Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->Title=ref new Platform::String(name);
+#elif MAC
+   if(window())[window() setTitle:NSStringAuto(name)];
+#elif LINUX
+   if(XDisplay && window())
+   {
+      Str8 utf=UTF8(name);
+                                     XStoreName     (XDisplay, window, Str8(name));
+      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window, _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf(), utf.length());
+   }
+#endif
+   return T;
+}
 /******************************************************************************/
 Memx<Notification> Notifications;
 #if ANDROID
@@ -256,6 +275,109 @@ DIR_ENUM Application::orientation()C
    return _orientation;
 #endif
 }
+/******************************************************************************/
+Flt Application::opacity()C
+{
+#if WINDOWS_OLD
+   BYTE alpha; if(GetLayeredWindowAttributes(window(), null, &alpha, null))return alpha/255.0f;
+#elif MAC
+   if(window())return window().alphaValue;
+#endif
+   return 1;
+}
+Application& Application::opacity(Flt opacity)
+{
+#if WINDOWS_OLD
+   Byte alpha=FltToByte(opacity);
+   if(alpha==255)
+   {
+      SetWindowLong(window(), GWL_EXSTYLE, GetWindowLong(window(), GWL_EXSTYLE) & ~WS_EX_LAYERED);
+   }else
+   {
+      SetWindowLong(window(), GWL_EXSTYLE, GetWindowLong(window(), GWL_EXSTYLE) | WS_EX_LAYERED);
+      SetLayeredWindowAttributes(window(), 0, alpha, LWA_ALPHA);
+   }
+#elif MAC
+   if(window())[window() setAlphaValue:opacity];
+#endif
+   return T;
+}
+Application& Application::flash()
+{
+#if WINDOWS_OLD
+   FlashWindow(window(), true);
+#elif MAC
+   if(NSApplication *app=NSApp)[app requestUserAttention:NSInformationalRequest];
+#elif LINUX
+   if(XDisplay && window() && _NET_WM_STATE && _NET_WM_STATE_DEMANDS_ATTENTION)
+   {
+   #if 0 // this doesn't work at all
+      XClientMessageEvent event; Zero(event);
+      event.type        =ClientMessage;
+      event.message_type=_NET_WM_STATE;
+      event.display   =XDisplay;
+      event.serial    =0;
+      event.window    =window();
+      event.send_event=1;
+      event.format   =32;
+      event.data.l[0]=_NET_WM_STATE_ADD;
+      event.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
+      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, (XEvent*)&event);
+   #elif 0 // this doesn't work at all
+      XEvent e; Zero(e);
+      e.xclient.type        =ClientMessage;
+      e.xclient.window      =window();
+      e.xclient.message_type=_NET_WM_STATE;
+      e.xclient.format      =32;
+      e.xclient.data.l[0]=_NET_WM_STATE_ADD;
+      e.xclient.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
+      e.xclient.data.l[2]=0;
+      e.xclient.data.l[3]=1;
+      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
+   #else // more complex code but works
+      Atom           type=NULL;
+      int            format=0;
+      unsigned long  items=0, bytes_after=0;
+      unsigned char *data=null;
+      if(!XGetWindowProperty(XDisplay, window(), _NET_WM_STATE, 0, 1024, false, XA_ATOM, &type, &format, &items, &bytes_after, &data))
+      {
+         Atom *atoms=(Atom*)data, temp[1024];
+         if(items<Elms(temp)-1) // room for '_NET_WM_STATE_DEMANDS_ATTENTION'
+         {
+            bool has=false;
+            for(unsigned long i=0; i<items; i++)
+            {
+               temp[i]=atoms[i];
+               if(temp[i]==_NET_WM_STATE_DEMANDS_ATTENTION)has=true;
+            }
+            if(!has)
+            {
+               temp[items++]=_NET_WM_STATE_DEMANDS_ATTENTION;
+               XChangeProperty(XDisplay, window(), _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char*)temp, items);
+            }
+         }
+      }
+      if(data)XFree(data);
+   #endif
+   }
+#endif
+   return T;
+}
+/******************************************************************************/
+#if WINDOWS_OLD
+Application& Application::stateNormal  (            ) {if(TaskbarList) TaskbarList->SetProgressState(window(), TBPF_NOPROGRESS   ); return T;}
+Application& Application::stateWorking (            ) {if(TaskbarList) TaskbarList->SetProgressState(window(), TBPF_INDETERMINATE); return T;}
+Application& Application::stateProgress(Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_NORMAL       ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+Application& Application::statePaused  (Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_PAUSED       ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+Application& Application::stateError   (Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_ERROR        ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+#else
+// TODO: WINDOWS_NEW TaskBar Progress - check this in the future as right now this is not available in UWP
+Application& Application::stateNormal  (            ) {return T;}
+Application& Application::stateWorking (            ) {return T;}
+Application& Application::stateProgress(Flt progress) {return T;}
+Application& Application::statePaused  (Flt progress) {return T;}
+Application& Application::stateError   (Flt progress) {return T;}
+#endif
 /******************************************************************************/
 Application& Application::icon(C Image &icon)
 {
@@ -820,6 +942,8 @@ Bool Application::create0()
 {
 #if WINDOWS_OLD
    ShutCOM=OK(CoInitialize(null)); // required by: creating shortctuts - IShellLink, Unicode IME support, ITaskbarList3, Visual Studio Installation detection - SetupConfiguration, SHOpenFolderAndSelectItems
+   CoCreateInstance(CLSID_TaskbarList, null, CLSCTX_ALL, IID_ITaskbarList3, (Ptr*)&TaskbarList);
+   SetLastError(0); // clear error 2
    TouchesSupported=(GetSystemMetrics(SM_MAXIMUMTOUCHES)>0);
 #elif WINDOWS_NEW
    TouchesSupported=(Windows::Devices::Input::TouchCapabilities().TouchPresent>0);
@@ -832,7 +956,22 @@ Bool Application::create0()
    XInitThreads();
    XDisplay=XOpenDisplay(null);
    OldErrorHandler=XSetErrorHandler(ErrorHandler); // set custom error handler, since I've noticed that occasionally BadWindow errors get generated, so just ignore them
-   if(XDisplay)FIND_ATOM(_NET_WM_ICON);
+   if(XDisplay)
+   {
+      FIND_ATOM(     WM_STATE);
+      FIND_ATOM(_NET_WM_STATE);
+      FIND_ATOM(_NET_WM_STATE_HIDDEN);
+      FIND_ATOM(_NET_WM_STATE_FOCUSED);
+      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
+      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
+      FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
+      FIND_ATOM(_NET_WM_STATE_DEMANDS_ATTENTION);
+      FIND_ATOM(_NET_WM_ICON);
+      FIND_ATOM(_NET_WM_NAME);
+      FIND_ATOM(_NET_FRAME_EXTENTS);
+      FIND_ATOM(UTF8_STRING);
+      FIND_ATOM(_MOTIF_WM_HINTS);
+   }
 #endif
 
    T._thread_id   =GetThreadId(); // !! adjust the thread ID here, because on WINDOWS_NEW it will be a different value !!
@@ -850,7 +989,6 @@ Bool Application::create0()
    InitMesh  ();
    InitSRGB  ();
    InitSocket();
-   InitWindow();
    InitStream();
    InitState ();
       Kb.init();
@@ -880,7 +1018,7 @@ Bool Application::create1()
    if(_stay_awake){AWAKE_MODE temp=_stay_awake; _stay_awake=AWAKE_OFF; stayAwake(temp);} // on Android we need to apply this after window was created
 #endif
    if(LogInit)LogN("Init");
-   if(!Init        ())return false;
+   if(!Init())return false;
    return true;
 }
 Bool Application::create()
@@ -893,10 +1031,10 @@ static void FadeOut()
    if(App.flag&APP_FADE_OUT)
    {
       Bool fade_sound=PlayingAnySound(), fade_window=!D.full();
-      Byte alpha=WindowGetAlpha();
+      Flt  alpha=App.opacity();
    #if WINDOWS_OLD
       ANIMATIONINFO ai; ai.cbSize=SIZE(ai); SystemParametersInfo(SPI_GETANIMATION, SIZE(ai), &ai, 0); if(ai.iMinAnimate)fade_window=false; // if Windows has animations enabled, then don't fade manually
-   #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'WindowAlpha'
+   #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'App.opacity'
       fade_window=false;
    #endif
       if(!fade_window)WindowHide();
@@ -909,8 +1047,8 @@ static void FadeOut()
          {
             Flt remaining=end_time-Time.curTime(), frac=Max(0, remaining/length);
             if(fade_sound ){SoundVolume.global(vol*frac); UpdateSound();}
-            if(fade_window)WindowAlpha(Round(alpha*frac));
-         #if MAC // on Mac we have to update events, otherwise 'WindowAlpha' won't do anything. We have to do it even when not fading window (when exiting from fullscreen mode) because without it, the window will be drawn as a restored window
+            if(fade_window)App.opacity(alpha*frac);
+         #if MAC // on Mac we have to update events, otherwise 'App.opacity' won't do anything. We have to do it even when not fading window (when exiting from fullscreen mode) because without it, the window will be drawn as a restored window
             for(; NSEvent *event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES]; ) // 'distantPast' will not wait for any new events but return those that happened already
                [NSApp sendEvent:event];
          #endif
@@ -942,11 +1080,11 @@ void Application::del()
       ShutStream       ();
       ShutSocket       ();
       windowDel        ();
-      ShutWindow       ();
       Paks         .del(); // !! delete after deleting sound  !! because sound streaming can still use file data
       InputDevices .del(); // !! delete after deleting window !! because releasing some joypads may take some time and window would be left visible
       HideNotifications();
    #if WINDOWS_OLD
+      RELEASE(TaskbarList);
       if(ShutCOM){ShutCOM=false; CoUninitialize();} // required by 'CoInitialize'
    #elif LINUX
       if(XDisplay){XCloseDisplay(XDisplay); XDisplay=null;}
@@ -971,16 +1109,6 @@ void Application::update()
      _callbacks.update();
    if(!(UpdateState() && DrawState()))_close=true;
    InputDevices.clear();
-}
-/******************************************************************************/
-void Application::coInitialize(UInt dwCoInit)
-{
-#if WINDOWS_OLD
-   ShutWindow(); // close interfaces
-   if(ShutCOM)CoUninitialize(); // close COM
-   ShutCOM=OK(CoInitializeEx(null, dwCoInit)); // init COM
-   InitWindow(); // init interfaces
-#endif
 }
 /******************************************************************************/
 void Break()

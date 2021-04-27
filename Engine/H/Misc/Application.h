@@ -92,6 +92,14 @@ struct Application // Application Settings
    Bool         minimized     (               )C;                          // if  application is minimized
    Bool         maximized     (               )C;                          // if  application is maximized
    Bool         closed        (               )C {return _closed        ;} // if  application has finished closing, this is enabled at the very end of application life cycle, right before all global C++ destructors being called
+   Flt          opacity       (               )C;                          // get application window opacity, 0..1
+   Application& opacity       (Flt opacity    );                           // set application window opacity, 0..1
+   Application& flash         (               );                           // set application window to flash
+   Application& stateNormal   (               );                           // set application window to be displayed as normal                             (this will work only on Window 7 or newer)
+   Application& stateWorking  (               );                           // set application window to be displayed as working with unknown progress      (this will work only on Window 7 or newer)
+   Application& stateProgress (Flt progress   );                           // set application window to be displayed as working with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Application& statePaused   (Flt progress   );                           // set application window to be displayed as paused  with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Application& stateError    (Flt progress   );                           // set application window to be displayed as error   with 'progress' 0..1 value (this will work only on Window 7 or newer)
    DIR_ENUM     orientation   (               )C;                          // get device orientation, this is valid for mobile devices which support accelerometers, for those devices the method will return one of the following orientation: DIR_UP (default), DIR_DOWN (rotated down), DIR_LEFT (rotated left), DIR_RIGHT (rotated right), if the device doesn't support accelerometers then DIR_UP is returned
    Bool         mainThread    (               )C;                          // if  current thread is the main thread
    Application& icon          (C Image   &icon);                           // set custom application icon
@@ -116,9 +124,6 @@ struct Application // Application Settings
             void addFuncCall(void func(Ptr   user), Ptr   user) {_callbacks.add(func, user);}             // add custom function to the Application callback list to be automatically called during Application Update on the main thread
    T1(TYPE) void addFuncCall(void func(TYPE *user), TYPE *user) {addFuncCall((void(*)(Ptr))func,  user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
    T1(TYPE) void addFuncCall(void func(TYPE &user), TYPE &user) {addFuncCall((void(*)(Ptr))func, &user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
-
-   // advanced
-   void coInitialize(UInt dwCoInit); // this method is for Windows only, it allows to change initialization of the Windows COM library. By default the engine already initializes the COM library using "CoInitialize(null)" system function (which is called before 'InitPre' function), however if you require to initialize the COM library using 'CoInitializeEx' system function with custom settings, then you must call this method ('coInitialize') with 'dwCoInit' parameter which you would normally use for 'CoInitializeEx'. The engine will reinitialize the COM library and any interfaces it previously obtained. You should not attempt to manually uninitialize the COM library by using 'CoUninitialize' on the main thread, as the engine already manages initialization and uninitialization of the library. 'CoUninitialize' will be automatically called by the engine at the end of the application, after 'Shut' function.
 
 #if EE_PRIVATE
    static Bool Fullscreen();
