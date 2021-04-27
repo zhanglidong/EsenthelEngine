@@ -100,6 +100,9 @@ struct Application // Application Settings
    Application& stateProgress (Flt progress   );                           // set application window to be displayed as working with 'progress' 0..1 value (this will work only on Window 7 or newer)
    Application& statePaused   (Flt progress   );                           // set application window to be displayed as paused  with 'progress' 0..1 value (this will work only on Window 7 or newer)
    Application& stateError    (Flt progress   );                           // set application window to be displayed as error   with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Bool         hidden        (               )C;                          // if  application window is hidden
+   Application& hide          (               );                           // set application window to be hidden
+   Application& show          (Bool activate  );                           // set application window to be visible, 'activate'=if also activate
    DIR_ENUM     orientation   (               )C;                          // get device orientation, this is valid for mobile devices which support accelerometers, for those devices the method will return one of the following orientation: DIR_UP (default), DIR_DOWN (rotated down), DIR_LEFT (rotated left), DIR_RIGHT (rotated right), if the device doesn't support accelerometers then DIR_UP is returned
    Bool         mainThread    (               )C;                          // if  current thread is the main thread
    Application& icon          (C Image   &icon);                           // set custom application icon

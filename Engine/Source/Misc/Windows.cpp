@@ -168,18 +168,6 @@ void WindowActivate(SysWindow window)
    SetForegroundWindow(window);
    if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, false);
 }
-void WindowHide(SysWindow window)
-{
-   ShowWindow(window, SW_HIDE);
-}
-Bool WindowHidden(SysWindow window)
-{
-   return !IsWindowVisible(window);
-}
-void WindowShow(Bool activate, SysWindow window)
-{
-   ShowWindow(window, activate ? SW_SHOW : SW_SHOWNA);
-}
 void WindowClose(SysWindow window)
 {
    PostMessage(window, WM_SYSCOMMAND, SC_CLOSE, NULL);
@@ -352,18 +340,6 @@ void WindowToggle(Bool force, SysWindow window)
    {
       if([window isMiniaturized])WindowActivate(window);else
          [window performZoom:NSApp];
-   }
-}
-void WindowHide(SysWindow window)
-{
-   if(window && window==App.window())[NSApp hide:NSApp];
-}
-void WindowShow(Bool activate, SysWindow window)
-{
-   if(window && window==App.window())
-   {
-      if(activate)[NSApp unhide:NSApp];
-      else        [NSApp unhideWithoutActivation];
    }
 }
 static VecI2 GetWindowSize(Bool client, NSWindow *window)
@@ -654,18 +630,6 @@ void WindowToggle(Bool force, SysWindow window)
    if(WindowMaximized(window))WindowReset   (force, window);
    else                       WindowMaximize(force, window);
 }
-void WindowHide(SysWindow window)
-{
-   if(XDisplay && window)XUnmapWindow(XDisplay, window);
-}
-void WindowShow(Bool activate, SysWindow window)
-{
-   if(XDisplay && window)
-   {
-                  XMapWindow    (XDisplay, window);
-      if(activate)WindowActivate(window);
-   }
-}
 VecI2 WindowSize(Bool client, SysWindow window)
 {
    if(XDisplay && window)
@@ -789,7 +753,7 @@ void WindowMinimize(Bool force, SysWindow window)
       await resourceInfos[0].StartSuspendAsync();*/
    }
 #elif ANDROID
-   if(window==App.window() && AndroidApp && AndroidApp->activity)ANativeActivity_finish(AndroidApp->activity);
+   if(window==App.window())App.hide();
 #endif
 }
 void WindowMaximize(Bool force, SysWindow window)
@@ -800,14 +764,6 @@ void WindowReset(Bool force, SysWindow window)
 }
 void WindowToggle(Bool force, SysWindow window)
 {
-}
-void WindowHide(SysWindow window)
-{
-   WindowMinimize(false, window);
-}
-void WindowShow(Bool activate, SysWindow window)
-{
-   WindowReset(false, window);
 }
 VecI2 WindowSize(Bool client, SysWindow window)
 {

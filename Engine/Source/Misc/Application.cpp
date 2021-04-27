@@ -307,7 +307,7 @@ Application& Application::flash()
 #if WINDOWS_OLD
    FlashWindow(window(), true);
 #elif MAC
-   if(NSApplication *app=NSApp)[app requestUserAttention:NSInformationalRequest];
+   [NSApp requestUserAttention:NSInformationalRequest];
 #elif LINUX
    if(XDisplay && window() && _NET_WM_STATE && _NET_WM_STATE_DEMANDS_ATTENTION)
    {
@@ -378,6 +378,46 @@ Application& Application::stateProgress(Flt progress) {return T;}
 Application& Application::statePaused  (Flt progress) {return T;}
 Application& Application::stateError   (Flt progress) {return T;}
 #endif
+/******************************************************************************/
+Bool Application::hidden()C
+{
+#if WINDOWS_OLD
+   return !IsWindowVisible(window());
+#elif MAC
+   return NSApp.hidden;
+#else
+   return false;
+#endif
+}
+Application& Application::hide()
+{
+#if WINDOWS_OLD
+   ShowWindow(window(), SW_HIDE);
+#elif MAC
+   [NSApp hide:NSApp];
+#elif LINUX
+   if(XDisplay && window())XUnmapWindow(XDisplay, window());
+#elif ANDROID
+   if(AndroidApp && AndroidApp->activity)ANativeActivity_finish(AndroidApp->activity);
+#endif
+   return T;
+}
+Application& Application::show(Bool activate)
+{
+#if WINDOWS_OLD
+   ShowWindow(window(), activate ? SW_SHOW : SW_SHOWNA);
+#elif MAC
+   if(activate)[NSApp unhide:NSApp];
+   else        [NSApp unhideWithoutActivation];
+#elif LINUX
+   if(XDisplay && window())
+   {
+                  XMapWindow    (XDisplay, window());
+      if(activate)WindowActivate(window());
+   }
+#endif
+   return T;
+}
 /******************************************************************************/
 Application& Application::icon(C Image &icon)
 {
@@ -502,7 +542,7 @@ void Application::activeOrBackFullChanged()
          else                  {WindowMinimize(true); SetDisplayMode(     );}
       }
    #elif MAC
-      if(!activeOrBackFull())WindowHide();
+      if(!activeOrBackFull())hide();
       SetDisplayMode();
    #elif LINUX
       if(!activeOrBackFull())WindowMinimize();
@@ -670,7 +710,7 @@ void Application::showError(CChar *error)
    {
       if(D.full() && App.window())
       {
-         WindowHide();
+         hide();
       #if DX11 // hiding window on DX10+ is not enough, try disabling Fullscreen
        //ChangeDisplaySettings(null, 0); this didn't help
          if(SwapChain
@@ -1012,7 +1052,7 @@ Bool Application::create1()
    if(!InputDevices.create())Exit(MLTC(u"Can't create DirectInput", PL,u"Nie można utworzyć DirectInput"));
    if(!D           .create())return false;
 #if WINDOWS_OLD
-   if(!(flag&APP_HIDDEN) && WindowHidden())WindowShow(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
+   if(!(flag&APP_HIDDEN) && hidden())show(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
 #endif
 #if ANDROID
    if(_stay_awake){AWAKE_MODE temp=_stay_awake; _stay_awake=AWAKE_OFF; stayAwake(temp);} // on Android we need to apply this after window was created
@@ -1037,7 +1077,7 @@ static void FadeOut()
    #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'App.opacity'
       fade_window=false;
    #endif
-      if(!fade_window)WindowHide();
+      if(!fade_window)hide();
       if(fade_sound || fade_window)
       {
          const Int step=1;

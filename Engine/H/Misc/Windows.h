@@ -24,9 +24,6 @@ void      WindowMaximize (Bool force=false,            SysWindow window=App.wind
 void      WindowReset    (Bool force=false,            SysWindow window=App.window()); // reset    window from    maximized/minimized to normal state (maximized/minimized -> normal)
 void      WindowToggle   (Bool force=false,            SysWindow window=App.window()); // toggle   window between maximized          and normal state (maximized          <-> normal)
 void      WindowActivate (                             SysWindow window=App.window()); // activate window
-void      WindowHide     (                             SysWindow window=App.window()); // hide     window
-Bool      WindowHidden   (                             SysWindow window=App.window()); // if       window is hidden
-void      WindowShow     (Bool activate,               SysWindow window=App.window()); // show     window, 'activate'=if also activate
 void      WindowClose    (                             SysWindow window=App.window()); // close    window
 void      WindowMove     (Int dx, Int dy,              SysWindow window=App.window()); // move     window by delta
 void      WindowPos      (Int  x, Int  y,              SysWindow window=App.window()); // set      window position
