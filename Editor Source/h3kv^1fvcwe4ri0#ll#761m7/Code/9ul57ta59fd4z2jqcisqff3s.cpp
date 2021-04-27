@@ -69,7 +69,7 @@ void Resumed()
    && !(Projs.proj_list.contains(Gui.ms()) && Gui.ms().type()==GO_CHECKBOX)) // if we're activating application by clicking on a project list checkbox, then don't refresh, because it would lose focus and don't get toggled, or worse (another project would be toggled due to refresh)
       Projs.refresh(); // refresh list of project when window gets focused in case we've copied some projects to the Editor
 }
-void ReceiveData(cptr data, int size, ptr hwnd_sender)
+void ReceiveData(cptr data, int size, SysWindow sender_window)
 {
    File f; f.readMem(data, size);
    Str s=f.getStr();
@@ -110,11 +110,11 @@ void InitPre()
       {
          Str proc_name=GetBase(ProcName(proc[i]));
          if(proc_name=="Esenthel.exe")
-            if(ptr hwnd=ProcWindow(proc[i]))
+            if(SysWindow window=ProcWindow(proc[i]))
          {
             File f; f.writeMem().putStr(App.cmd_line[0]).pos(0);
             Memt<byte> temp; temp.setNum(f.left()); f.get(temp.data(), temp.elms());
-            WindowSendData(temp.data(), temp.elms(), hwnd);
+            WindowSendData(temp.data(), temp.elms(), window);
             App.flag=APP_EXIT_IMMEDIATELY;
             return;
          }
