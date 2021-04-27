@@ -40,8 +40,6 @@ void      WindowSendData (CPtr data, Int size,         SysWindow window         
 UInt      WindowProc     (                             SysWindow window             ); // get process ID of window
 void      WindowList     (MemPtr<SysWindow> windows                                 ); // get list of all window handles in the System
 
-void      WindowMsgBox(C Str &title, C Str &text, Bool error=false); // show OS message box, 'error'=if display as error or message
-
 #if EE_PRIVATE
 Ptr WindowMonitor(SysWindow window); // return HMONITOR for 'window'
 

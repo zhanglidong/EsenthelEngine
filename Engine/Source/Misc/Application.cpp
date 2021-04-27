@@ -735,12 +735,12 @@ void Application::showError(CChar *error)
    #if WINDOWS_OLD
     //SetCursor(LoadCursor(null, IDC_ARROW)); // reset cursor first, in case app had it disabled, actually this didn't help
       ClipCursor(null); // disable cursor clipping first
-      MessageBox(null, WChar(error), WChar(title), MB_OK|MB_TOPMOST|MB_ICONERROR); // use OS 'MessageBox' instead of EE 'WindowMsgBox' to avoid memory allocation when creating Str objects, because this may be called when out of memory
+      MessageBox(null, WChar(error), WChar(title), MB_OK|MB_TOPMOST|MB_ICONERROR); // use OS 'MessageBox' instead of EE 'OSMsgBox' to avoid memory allocation when creating Str objects, because this may be called when out of memory
    #elif WINDOWS_NEW
       Exiter(ref new Platform::String(WChar(title)), ref new Platform::String(WChar(error)));
    #elif LINUX // on Linux additionally display the error in the console in case the OS doesn't support displaying messages boxes
       fputs(UTF8(error), stdout); fputs("\n", stdout); fflush(stdout); // without the flush, messages won't be displayed immediately
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #elif ANDROID
       // first write to console, use '__android_log_write' with 'ANDROID_LOG_ERROR' instead of 'Log' which uses 'ANDROID_LOG_INFO'
       Memc<Str> lines; Split(lines, error, '\n'); // android has limit for too long messages
@@ -801,9 +801,9 @@ void Application::showError(CChar *error)
       [[NSRunLoop mainRunLoop] run];
    #elif WEB // on Web display the error as both console output and message box
       fputs(UTF8(error), stdout); // first write to console
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #else
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #endif
    }
 }
