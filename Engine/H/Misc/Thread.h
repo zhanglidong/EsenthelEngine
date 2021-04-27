@@ -763,7 +763,7 @@ T1(TYPE) Bool AtomicCAS(TYPE *&x, TYPE *compare, TYPE *new_value) {return Atomic
 
 // Thread functions
 UIntPtr GetThreadId          (                                             ); // get current thread id
-UIntPtr GetThreadIdFromWindow(Ptr hwnd                                     ); // get id of the thread which owns the OS window handle
+UIntPtr GetThreadIdFromWindow(SysWindow window                             ); // get ID of the thread which owns the window
 void    SetThreadName        (C Str8 &name, UIntPtr thread_id=GetThreadId()); // set custom thread name for debugging purpose
 
 void ThreadMayUseGPUData       (); // call    this from a secondary thread if you expect the thread to perform any operations on GPU data (like Mesh, Material, Image, Shaders, ..., this includes any operation like creating, editing, loading, saving, deleting, ...). This function is best called at the start of the thread, it needs to be called at least once, further calls are ignored. Once the function is called, the thread locks a secondary OpenGL context (if no context is available, then the function waits until other threads finish processing and release their context lock, amount of OpenGL contexts is specified in 'D.secondaryOpenGLContexts'). Context lock is automatically released once the thread exits. This call is required only for OpenGL renderer.
@@ -813,17 +813,17 @@ void ThreadFinishedUsingGPUData(); // calling this function is optional (it does
    T2(DATA, USER_DATA)   void MultiThreadedCall(Memx<DATA*> &data, void func(DATA &data, USER_DATA &user, Int thread_index), USER_DATA &user     , Int threads=Cpu.threads()) {_MultiThreadedCall(data                                    , (void (*)(Ptr data, Ptr user, Int thread_index))func, &user, threads, true );}
 
 // Process functions
-void ProcPriority(  Int  priority               ); // set   process priority (-2..2)
-void ProcClose   ( UInt  id                     ); // close process
-void ProcClose   (C Str &name                   ); // close process
-Bool ProcKill    ( UInt  id                     ); // kill  process, false on fail
-Bool ProcKill    (C Str &name                   ); // kill  process, false on fail
-Bool ProcWait    ( UInt  id, Int milliseconds=-1); // wait  for process to exit (<0 = infinite wait), false on timeout
-Ptr  ProcWindow  ( UInt  id                     ); // get   OS window handle of process
-Str  ProcName    ( UInt  id                     ); // get   process name
-UInt ProcFind    (C Str &name                   ); // find  process ID based on its executable name, name can be either a full path or just the base name
-void ProcList    (         MemPtr<UInt> id      ); // get   list of process ID's   , after calling this function the 'id'      will contain a list of process ID's
-void ProcModules (UInt id, MemPtr<Str > modules ); // get   list of process modules, after calling this function the 'modules' will contain a list of process modules
+void      ProcPriority(  Int  priority               ); // set   process priority (-2..2)
+void      ProcClose   ( UInt  id                     ); // close process
+void      ProcClose   (C Str &name                   ); // close process
+Bool      ProcKill    ( UInt  id                     ); // kill  process, false on fail
+Bool      ProcKill    (C Str &name                   ); // kill  process, false on fail
+Bool      ProcWait    ( UInt  id, Int milliseconds=-1); // wait  for process to exit (<0 = infinite wait), false on timeout
+SysWindow ProcWindow  ( UInt  id                     ); // get   system window of process
+Str       ProcName    ( UInt  id                     ); // get   process name
+UInt      ProcFind    (C Str &name                   ); // find  process ID based on its executable name, name can be either a full path or just the base name
+void      ProcList    (         MemPtr<UInt> id      ); // get   list of process ID's   , after calling this function the 'id'      will contain a list of process ID's
+void      ProcModules (UInt id, MemPtr<Str > modules ); // get   list of process modules, after calling this function the 'modules' will contain a list of process modules
 
 struct ProcessAccess
 {

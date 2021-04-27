@@ -600,7 +600,7 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
          IDirectInputDevice8 *did=null;
          if(OK(InputDevices.DI->CreateDevice(DIDevInst->guidInstance, &did, null)))
          if(OK(did->SetDataFormat      (&c_dfDIJoystick)))
-         if(OK(did->SetCooperativeLevel(App.Hwnd(), DISCL_EXCLUSIVE|DISCL_FOREGROUND)))
+         if(OK(did->SetCooperativeLevel(App.window(), DISCL_EXCLUSIVE|DISCL_FOREGROUND)))
          {
             Swap(joypad._device, did);
             joypad._name=DIDevInst->tszProductName;

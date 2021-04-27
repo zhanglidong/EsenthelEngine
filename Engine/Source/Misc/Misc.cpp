@@ -713,7 +713,7 @@ void LogConsole(Bool on)
       if(    LogConsoleOn= (AllocConsole()!=0))
       {
          SetConsoleCtrlHandler(null, true); // this disables closing the console via Ctrl+C
-         if(HWND hwnd=GetConsoleWindow())if(HMENU menu=GetSystemMenu(hwnd, false))DeleteMenu(menu, SC_CLOSE, MF_BYCOMMAND); // this disables the Close button on the console window because on Windows OS once it's clicked, then entire App gets terminated immediately
+         if(HWND console=GetConsoleWindow())if(HMENU menu=GetSystemMenu(console, false))DeleteMenu(menu, SC_CLOSE, MF_BYCOMMAND); // this disables the Close button on the console window because on Windows OS once it's clicked, then entire App gets terminated immediately
          FILE *f;
          f=null; freopen_s(&f, "CONIN$" , "rb", stdin );
          f=null; freopen_s(&f, "CONOUT$", "wb", stdout);
@@ -975,14 +975,14 @@ Bool ClipSet(C Str &text)
    return true;
 #elif LINUX
    // TODO: this text will disappear once the application gets closed
-   if(XDisplay && App.hwnd())
+   if(XDisplay && App.window())
       if(Atom FIND_ATOM(UTF8_STRING))
    {
       Atom FIND_ATOM(CLIPBOARD);
       Str8 utf=UTF8(text);
       int  ok=XChangeProperty(XDisplay, DefaultRootWindow(XDisplay), XA_CUT_BUFFER0, UTF8_STRING, 8, PropModeReplace, (const unsigned char*)utf(), utf.length());
-      if(CLIPBOARD && XGetSelectionOwner(XDisplay, CLIPBOARD )!=App.Hwnd())XSetSelectionOwner(XDisplay, CLIPBOARD , App.Hwnd(), CurrentTime);
-      if(             XGetSelectionOwner(XDisplay, XA_PRIMARY)!=App.Hwnd())XSetSelectionOwner(XDisplay, XA_PRIMARY, App.Hwnd(), CurrentTime);
+      if(CLIPBOARD && XGetSelectionOwner(XDisplay, CLIPBOARD )!=App.window())XSetSelectionOwner(XDisplay, CLIPBOARD , App.window(), CurrentTime);
+      if(             XGetSelectionOwner(XDisplay, XA_PRIMARY)!=App.window())XSetSelectionOwner(XDisplay, XA_PRIMARY, App.window(), CurrentTime);
       return ok==1;
    }
    return false;
@@ -1120,19 +1120,19 @@ Str ClipGet()
    {
       Atom    selection;
       XWindow owner=XGetSelectionOwner(XDisplay, CLIPBOARD);
-      if(!owner || owner==App.Hwnd() || !App.hwnd())
+      if(!owner || owner==App.window() || !App.window())
       {
          owner=DefaultRootWindow(XDisplay);
          selection=XA_CUT_BUFFER0;
       }else
       {
-         owner=App.Hwnd();
+         owner=App.window();
          Atom GET_ATOM(EE_SELECTION); selection=EE_SELECTION;
          XConvertSelection(XDisplay, CLIPBOARD, UTF8_STRING, EE_SELECTION, owner, CurrentTime);
          XSync(XDisplay, false);
          REP(1024) // attempts to check if window got selection, otherwise get window property will fail (this is still needed even though 'XSync' is used)
          {
-            XEvent event; if(XCheckTypedWindowEvent(XDisplay, App.Hwnd(), SelectionNotify, &event))break;
+            XEvent event; if(XCheckTypedWindowEvent(XDisplay, App.window(), SelectionNotify, &event))break;
             usleep(1);
          }
       }
@@ -1380,7 +1380,7 @@ static struct UserNameGetter
 
  C Str& get()
    {
-      if(!is && App.hwnd()) // !! we can call this only after window was created, because OS might ask for permission !!
+      if(!is && App.window()) // !! we can call this only after window was created, because OS might ask for permission !!
       {
          if(C auto &user=OSUser.get())
          {

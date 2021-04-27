@@ -36,7 +36,7 @@ struct AudioClientGetter : RuntimeClass<RuntimeClassFlags<ClassicCom>, FtmBase, 
    AudioClientGetter()
    {
       audio_client=null;
-      if(App.hwnd()) // can call methods only if app was initialized, otherwise it will crash
+      if(App.window()) // can call methods only if app was initialized, otherwise it will crash
       {
          IActivateAudioInterfaceAsyncOperation *audio_activate;
          auto device_name=MediaDevice::GetDefaultAudioCaptureId(AudioDeviceRole::Default); // this will be something like "\\?\SWD#MMDEVAPI#{0.0.1.00000000}.{5871ae83-5ebe-46cc-9bce-b486b524e679}#{2eef81be-33fa-4800-9670-1cd474972c3f}"

@@ -174,9 +174,9 @@ void RendererClass::create()
 #if 0 // convert DDS from SMAA source to Esenthel Image format
    Str in="D:/!/SMAA/", out="C:/Esenthel/Data/Img/";
    Image img;
-   img.Import(in+"SearchTex.dds", -1, IMAGE_2D); img._type=IMAGE_R8;
+   img.mustImport(in+"SearchTex.dds", -1, IMAGE_2D); img._type=IMAGE_R8;
    img.save(out+"SMAA Search.img");
-   img.Import(in+"AreaTexDX10.dds", IMAGE_R8G8, IMAGE_2D);
+   img.mustImport(in+"AreaTexDX10.dds", IMAGE_R8G8, IMAGE_2D);
    img.save(out+"SMAA Area.img");
 #endif
 

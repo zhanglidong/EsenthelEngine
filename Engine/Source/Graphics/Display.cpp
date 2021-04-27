@@ -353,7 +353,7 @@ void GLContext::lock()
 #elif MAC
    if(CGLSetCurrentContext(context)==kCGLNoError)
 #elif LINUX
-   if(glXMakeCurrent(XDisplay, App.Hwnd(), context))
+   if(glXMakeCurrent(XDisplay, App.window(), context))
 #elif ANDROID || SWITCH
    if(eglMakeCurrent(GLDisplay, surface, surface, context)==EGL_TRUE)
 #elif IOS
@@ -805,10 +805,10 @@ C DisplayClass::Monitor* DisplayClass::curMonitor()
    }
 #endif
 #if WINDOWS_OLD // try alternative method if above failed
-   if(App.hwnd())
+   if(App.window())
    {
    #if 1
-      if(HMONITOR hmonitor=(HMONITOR)WindowMonitor(App.Hwnd()))
+      if(HMONITOR hmonitor=(HMONITOR)WindowMonitor(App.window()))
    #else
       RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
       POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
@@ -1107,7 +1107,7 @@ void DisplayClass::del()
            MainContext .del();
 
    #if WINDOWS
-      if(hDC){ReleaseDC(App.Hwnd(), hDC); hDC=null;}
+      if(hDC){ReleaseDC(App.window(), hDC); hDC=null;}
       SetDisplayMode(0); // switch back to the desktop
    #elif MAC
       [OpenGLContext release]; OpenGLContext=null;
@@ -1253,10 +1253,10 @@ again:
       if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
       if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
    }
-   Factory->MakeWindowAssociation(App.Hwnd(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
+   Factory->MakeWindowAssociation(App.window(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
 again:
-	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App._hwnd, &SwapChainDesc, null, &SwapChain);
+	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App.window(), &SwapChainDesc, null, &SwapChain);
    if(!SwapChain)
    {
       if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
@@ -1302,7 +1302,7 @@ again:
       };
       Int PixelFormat;
 
-      if(!(hDC                =            GetDC(App.Hwnd()            )))Exit("Can't create an OpenGL Device Context.");
+      if(!(hDC                =            GetDC(App.window()          )))Exit("Can't create an OpenGL Device Context.");
       if(!(PixelFormat        =ChoosePixelFormat(hDC,              &pfd)))Exit("Can't find a suitable PixelFormat.");
       if(!(                       SetPixelFormat(hDC, PixelFormat, &pfd)))Exit("Can't set the PixelFormat.");
       if(!(MainContext.context= wglCreateContext(hDC                   )))Exit("Can't create an OpenGL Context.");
@@ -1386,7 +1386,7 @@ again:
       MainContext.lock();
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
-      [App.Hwnd() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
+      [App.window() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
    #elif LINUX
       if(XDisplay)
       {
@@ -1800,7 +1800,7 @@ Bool DisplayClass::findMode()
    Zero(SwapChainDesc);
    Bool sync=ActualSync();
    #if WINDOWS_OLD
-      SwapChainDesc.OutputWindow      =App.Hwnd();
+      SwapChainDesc.OutputWindow      =App.window();
       SwapChainDesc.Windowed          =(!exclusive() || !T.full());
       SwapChainDesc.BufferCount       =(sync ? 3 : 2); // if we're rendering to VR display, then it has its own swap chain, and it handles the most intense rendering, so we don't need to have more buffers here, so keep it low to reduce memory usage
       SwapChainDesc.BufferDesc.Width  =resW();
@@ -1840,7 +1840,7 @@ Bool DisplayClass::findMode()
          IDXGIOutput *output=null;
          if(SwapChain)SwapChain->GetContainingOutput(&output); // if we already have a swap chain, then reuse its output
          if(!output && Adapter) // if still unknown, then find in Adapter
-            if(Ptr monitor=WindowMonitor(App.Hwnd()))
+            if(Ptr monitor=WindowMonitor(App.window()))
                for(Int i=0; ; i++) // iterate all outputs
          {
             Adapter->EnumOutputs(i, &output); if(output)
@@ -2019,7 +2019,7 @@ again:
       case RESET_OK: return;
 
       case RESET_ERROR_SET_FULLSCREEN_STATE: // this can fail if Alt-Tabbing during startup
-         if(WindowActive()!=App.hwnd()) // if reset failed and we're not focused then wait a little and try again
+         if(WindowActive()!=App.window()) // if reset failed and we're not focused then wait a little and try again
       {
          Time.wait(100);
          goto again;
@@ -2279,7 +2279,7 @@ void DisplayClass::flip()
       #elif MAC
          CGLFlushDrawable(MainContext.context); // same as "[[OpenGLView openGLContext] flushBuffer];"
       #elif LINUX
-         glXSwapBuffers(XDisplay, App.Hwnd());
+         glXSwapBuffers(XDisplay, App.window());
       #elif ANDROID || SWITCH
          eglSwapBuffers(GLDisplay, MainContext.surface);
       #elif IOS
@@ -2340,16 +2340,16 @@ void DisplayClass::adjustWindow(Bool set)
 #if WINDOWS_OLD
    if(D.full()) // fullscreen
    {
-      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_full);
-      SetWindowPos (App.Hwnd(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
+      SetWindowLong(App.window(), GWL_STYLE, App._style_full);
+      SetWindowPos (App.window(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
    }else
    if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
    {
-      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_window_maximized);
+      SetWindowLong(App.window(), GWL_STYLE, App._style_window_maximized);
    #if 0 // this doesn't work as expected
-      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
+      SetWindowPos (App.window(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
    #else
-      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
+      SetWindowPos (App.window(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
    #endif
    }else // normal window
    {
@@ -2364,10 +2364,10 @@ void DisplayClass::adjustWindow(Bool set)
       if(!(App.flag&APP_NO_TITLE_BAR)) // has bar
       {
          Int size=GetSystemMetrics(SM_CXSIZE); // TODO: this should be OK because we're DPI-Aware, however it doesn't work OK
-       /*if(HDC hdc=GetDC(App.Hwnd()))
+       /*if(HDC hdc=GetDC(App.window()))
          {
             size=DivCeil(size*GetDeviceCaps(hdc, LOGPIXELSX), 96);
-            ReleaseDC(App.Hwnd(), hdc);
+            ReleaseDC(App.window(), hdc);
          }*/
          if(!(App.flag& APP_NO_CLOSE                   ))r+=size  ; // has close                button
          if(  App.flag&(APP_MINIMIZABLE|APP_MAXIMIZABLE))r+=size*2; // has minimize or maximize button (if any is enabled, then both will appear)
@@ -2376,18 +2376,27 @@ void DisplayClass::adjustWindow(Bool set)
       if(App._window_pos.x+b>work.max.x)App._window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=App._window_pos.x+w; if(p-r<work.min.x)App._window_pos.x=Min(work.min.x+r, work.max.x)-w;}
       if(App._window_pos.y+b>work.max.y)App._window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=App._window_pos.y+h; if(p-b<work.min.y)App._window_pos.y=Min(work.min.y+b, work.max.y)-h;}
 
-      SetWindowLong(App.Hwnd(), GWL_STYLE     , App._style_window);
-      SetWindowPos (App.Hwnd(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
+      SetWindowLong(App.window(), GWL_STYLE     , App._style_window);
+      SetWindowPos (App.window(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
    }
 #elif MAC
-   if(!D.full()) // on Mac don't adjust the window size/pos when in fullscreen because it's not needed, additionally it will cancel out original window position when later restoring
+   if(D.full()) // fullscreen
    {
+      if(!(App.flag&APP_NO_TITLE_BAR))[App.window() setStyleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView]; // need to toggle this only if window wants to have title bar, if it doesn't then we don't need to change anything. But if window wants title bar, then we can't just disable it here and use NSBorderlessWindowMask, because that will make content view (OpenGLView) disappear (some bug in Mac OS?), so have to use NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView which will make content overlap title bar, and in fullscreen title bar will be hidden
       WindowSize(resW(), resH(), true);
-      RectI r=WindowRect(false); WindowPos(r.min.x, r.min.y); // reset position because if Application was created in fullscreen mode, and then we've toggled to windowed mode, then because system MenuBar was hidden for fullscreen, App's window position could've gone underneath the menu bar, for the windowed mode the bar is unhidden, however just applying new window size doesn't reposition it so it doesn't collide with the MenuBar, that's why we need to trigger repositioning it manually, avoid calling "WindowMove(0, 0)" because that internally does nothing if the delta is zero
+      WindowPos (0, 0);
+   }else
+   {
+      if(App._window_pos.x==INT_MAX){Int w=resW(); if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w+App._bound.max.x-1;}
+      if(App._window_pos.y==INT_MAX){Int h=resH(); if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h+App._bound.max.y-1;}
+
+      if(!(App.flag&APP_NO_TITLE_BAR))[App.window() setStyleMask:App._style_window];
+      WindowSize(resW(), resH(), true);
+      WindowPos (App._window_pos.x, App._window_pos.y);
    }
 #elif LINUX
    // set window fullscreen state
-   if(App.hwnd())
+   if(App.window())
    {
       // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
       Bool set_resizable=(D.full() && !(App.flag&APP_RESIZABLE));
@@ -2399,7 +2408,7 @@ void DisplayClass::adjustWindow(Bool set)
       Atom FIND_ATOM(_NET_WM_STATE), FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
       XEvent e; Zero(e);
       e.xclient.type        =ClientMessage;
-      e.xclient.window      =App.Hwnd();
+      e.xclient.window      =App.window();
       e.xclient.message_type=_NET_WM_STATE;
       e.xclient.format      =32;
       e.xclient.data.l[0]   =(D.full() ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE);
@@ -2730,7 +2739,7 @@ void DisplayClass::setSync()
       #elif MAC
          Int value=sync; CGLSetParameter(MainContext.context, kCGLCPSwapInterval, &value);
       #elif LINUX
-         if(glXSwapInterval)glXSwapInterval(XDisplay, App.Hwnd(), sync);
+         if(glXSwapInterval)glXSwapInterval(XDisplay, App.window(), sync);
       #elif ANDROID || SWITCH
          eglSwapInterval(GLDisplay, sync);
       #elif WEB

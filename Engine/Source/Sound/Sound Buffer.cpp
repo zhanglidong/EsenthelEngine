@@ -1119,7 +1119,7 @@ void InitSound()
 
 #if DIRECT_SOUND
    if(OK(DirectSoundCreate(null, &DS, null)))
-   if(OK(DS->SetCooperativeLevel(App.Hwnd(), DSSCL_PRIORITY)))
+   if(OK(DS->SetCooperativeLevel(App.window(), DSSCL_PRIORITY)))
 #elif XAUDIO
    if(OK(XAudio2Create(&XAudio, XAUDIO_DEBUG ? XAUDIO2_DEBUG_ENGINE : 0)))
    if(OK(XAudio->CreateMasteringVoice(&XAudioMasteringVoice))) // even though it is not used for anything, it is still needed because sound buffer creation would fail without it

@@ -67,6 +67,9 @@ Application::Application()
 #if WINDOWS
   _icon=null;
 #endif
+#if MAC
+  _style_window=0;
+#endif
 #endif
   _thread_id=GetThreadId();
   _back_text="Running in background";
@@ -200,11 +203,11 @@ SYSTEM_BAR Application::   navBar()C {SYSTEM_BAR status, navigation; getSystemBa
 Bool Application::minimized()C {return _minimized;}
 Bool Application::maximized()C {return _maximized;}
 #elif LINUX
-Bool Application::minimized()C {return WindowMinimized(hwnd());}
+Bool Application::minimized()C {return WindowMinimized(window());}
 Bool Application::maximized()C {return _maximized;} // '_maximized' is obtained in 'ConfigureNotify' system message
 #elif MAC
 Bool Application::minimized()C {return _minimized;} // '_minimized' is obtained in 'windowDidMiniaturize, windowDidDeminiaturize'
-Bool Application::maximized()C {return WindowMaximized(hwnd());}
+Bool Application::maximized()C {return WindowMaximized(window());}
 #elif IOS
 Bool Application::minimized()C {return false;}
 Bool Application::maximized()C {return true ;}
@@ -258,14 +261,14 @@ Application& Application::icon(C Image &icon)
 {
 #if WINDOWS_OLD
    HICON hicon=CreateIcon(icon);
-   if(hwnd())
+   if(window())
    {
-      SendMessage(Hwnd(), WM_SETICON, ICON_BIG  , (LPARAM)hicon);
-      SendMessage(Hwnd(), WM_SETICON, ICON_SMALL, (LPARAM)hicon);
+      SendMessage(window(), WM_SETICON, ICON_BIG  , (LPARAM)hicon);
+      SendMessage(window(), WM_SETICON, ICON_SMALL, (LPARAM)hicon);
    }
    if(_icon)DestroyIcon(_icon); _icon=hicon;
 #elif LINUX
-   if(XDisplay && hwnd() && _NET_WM_ICON)
+   if(XDisplay && window() && _NET_WM_ICON)
    {
       Image temp; C Image *src=(icon.is() ? &icon : null);
       if(src && src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
@@ -281,11 +284,11 @@ Application& Application::icon(C Image &icon)
             VecB4 c(col.b, col.g, col.r, col.a);
             data[2+x+y*src->w()]=c.u;
          }
-         XChangeProperty(XDisplay, Hwnd(), _NET_WM_ICON, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data.data(), data.elms());
+         XChangeProperty(XDisplay, window(), _NET_WM_ICON, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data.data(), data.elms());
          src->unlock();
       }else
       {
-         XDeleteProperty(XDisplay, Hwnd(), _NET_WM_ICON);
+         XDeleteProperty(XDisplay, window(), _NET_WM_ICON);
       }
       XFlush(XDisplay);
      _icon.del(); // delete at end in case it's 'icon'
@@ -440,7 +443,7 @@ Bool Application::testInstance()
       {
          if(flag&APP_ON_RUN_WAIT)ProcWait(id[i]);else
          {
-            if(Ptr hwnd=ProcWindow(id[i]))WindowActivate(hwnd);
+            if(auto window=ProcWindow(id[i]))WindowActivate(window);
             return false;
          }
       }
@@ -543,7 +546,7 @@ void Application::showError(CChar *error)
 {
    if(Is(error))
    {
-      if(D.full() && App.hwnd())
+      if(D.full() && App.window())
       {
          WindowHide();
       #if DX11 // hiding window on DX10+ is not enough, try disabling Fullscreen

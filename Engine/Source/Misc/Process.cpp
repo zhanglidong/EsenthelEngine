@@ -28,9 +28,9 @@ void ProcPriority(Int priority)
 }
 /******************************************************************************/
 #if WINDOWS_OLD
-static BOOL CALLBACK EnumWindowClose(HWND hwnd, LPARAM process_id)
+static BOOL CALLBACK EnumWindowClose(HWND window, LPARAM process_id)
 {
-   if(WindowProc((Ptr)hwnd)==process_id)WindowClose((Ptr)hwnd);
+   if(WindowProc(window)==process_id)WindowClose(window);
    return true;
 }
 #endif
@@ -99,39 +99,39 @@ Bool ProcKill (C Str &name) {return ProcKill (ProcFind(name));}
 struct ProcWindowFind
 {
    UInt process_id;
-   HWND hwnd;
+   HWND window;
 };
-static BOOL CALLBACK EnumWindowFind(HWND hwnd, LPARAM proc_window_find)
+static BOOL CALLBACK EnumWindowFind(HWND window, LPARAM proc_window_find)
 {
    ProcWindowFind &pwf=*(ProcWindowFind*)proc_window_find;
-   DWORD id; if(GetWindowThreadProcessId(hwnd, &id) && id==pwf.process_id)
-   if(IsWindowVisible(hwnd) || IsIconic(hwnd))
+   DWORD id; if(GetWindowThreadProcessId(window, &id) && id==pwf.process_id)
+   if(IsWindowVisible(window) || IsIconic(window))
    {
-      pwf.hwnd=hwnd;
+      pwf.window=window;
       return false;
    }else
-   if(!pwf.hwnd) // if found a window but it is hidden, then set it only if previous was not set
+   if(!pwf.window) // if found a window but it is hidden, then set it only if previous was not set
    {
-      pwf.hwnd=hwnd;
+      pwf.window=window;
    }
    return true;
 }
 #endif
-Ptr ProcWindow(UInt id)
+SysWindow ProcWindow(UInt id)
 {
    if(id)
    {
    #if WINDOWS_OLD
       ProcWindowFind pwf;
       pwf.process_id=id;
-      pwf.hwnd      =null;
+      pwf.window    =null;
       EnumWindows(EnumWindowFind, LPARAM(&pwf));
-      return (Ptr)pwf.hwnd;
+      return pwf.window;
    #else
-      if(id==App.processID())return App.hwnd();
+      if(id==App.processID())return App.window();
    #endif
    }
-   return null;
+   return NULL;
 }
 /******************************************************************************/
 #if WINDOWS_OLD && SUPPORT_WINDOWS_XP

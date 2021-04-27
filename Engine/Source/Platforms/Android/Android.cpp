@@ -246,15 +246,18 @@ static void UpdateOrientation()
       case ROTATION_270: App._orientation=DIR_RIGHT; break;
    }
 }
-static void UpdateSize(ANativeWindow &window)
+static void UpdateSize()
 {
-   VecI2 res(ANativeWindow_getWidth (&window),
-             ANativeWindow_getHeight(&window));
-   if(D.res()!=res && res.x>0 && res.y>0)
+   if(App.window())
    {
-      LOG(S+"Resize: "+res.x+", "+res.y);
-      Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
-      D.modeSet(res.x, res.y);
+      VecI2 res(ANativeWindow_getWidth (App.window()),
+                ANativeWindow_getHeight(App.window()));
+      if(D.res()!=res && res.x>0 && res.y>0)
+      {
+         LOG(S+"Resize: "+res.x+", "+res.y);
+         Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
+         D.modeSet(res.x, res.y);
+      }
    }
 }
 /******************************************************************************/
@@ -600,7 +603,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
       case APP_CMD_INIT_WINDOW:
       {
          LOG("APP_CMD_INIT_WINDOW");
-         if(app->window)
+         if(App._window=app->window)
          {
             if(!Initialized)
             {
@@ -616,6 +619,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
       case APP_CMD_TERM_WINDOW:
       {
          LOG("APP_CMD_TERM_WINDOW");
+         App._window=null;
          D.androidClose();
       }break;
 
@@ -628,7 +632,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
          eglQuerySurface(display, surface, EGL_HEIGHT, &h);
          LOG(S+"EGL: w:"+w+", h:"+h);*/
          UpdateOrientation();
-       //if(app->window)UpdateSize(*app->window); // at this stage, old window size may occur, instead we need to check this every frame
+       //UpdateSize       (); // at this stage, old window size may occur, instead we need to check this every frame
       }break;
 
       case APP_CMD_WINDOW_REDRAW_NEEDED:
@@ -1236,8 +1240,7 @@ void android_main(android_app *app)
    #if DEBUG
       if(!eglGetCurrentContext())LOG("No current EGL Context available on the main thread");
    #endif
-      if(AndroidApp->window) // this may be unavailable if device is being (dis)connected to dock, or app is working in the background
-         UpdateSize(*AndroidApp->window);
+      UpdateSize();
       App.update();
    }
 

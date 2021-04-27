@@ -123,9 +123,9 @@ UIntPtr GetThreadId() {return _GetThreadId();}
 #define GetThreadId _GetThreadId
 
 #if WINDOWS_OLD
-UIntPtr GetThreadIdFromWindow(Ptr hwnd) {return GetWindowThreadProcessId((HWND)hwnd, null);}
+UIntPtr GetThreadIdFromWindow(SysWindow window) {return GetWindowThreadProcessId(window, null);}
 #else
-UIntPtr GetThreadIdFromWindow(Ptr hwnd) {return (hwnd==App.hwnd()) ? App.threadID() : 0;}
+UIntPtr GetThreadIdFromWindow(SysWindow window) {return (window==App.window()) ? App.threadID() : 0;}
 #endif
 /******************************************************************************/
 void SetThreadName(C Str8 &name, UIntPtr thread_id)

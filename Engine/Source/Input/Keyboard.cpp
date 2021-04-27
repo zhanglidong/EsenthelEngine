@@ -248,7 +248,7 @@ void KeyboardClass::del()
    rid[0].usUsagePage=0x01;
    rid[0].usUsage    =0x06; // keyboard
    rid[0].dwFlags    =RIDEV_REMOVE;
-   rid[0].hwndTarget =App.Hwnd();
+   rid[0].hwndTarget =App.window();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
 #elif KB_DIRECT_INPUT
@@ -266,7 +266,7 @@ void KeyboardClass::create()
    rid[0].usUsagePage=0x01;
    rid[0].usUsage    =0x06; // keyboard
    rid[0].dwFlags    =((KEYBOARD_MODE==BACKGROUND) ? RIDEV_INPUTSINK : 0)|(_exclusive ? RIDEV_NOHOTKEYS : 0);
-   rid[0].hwndTarget =App.Hwnd();
+   rid[0].hwndTarget =App.window();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
 #elif KB_DIRECT_INPUT
@@ -277,7 +277,7 @@ void KeyboardClass::create()
    if(OK(InputDevices.DI->CreateDevice(GUID_SysKeyboard, &_device, null)))
    {
       if(OK(_device->SetDataFormat(&c_dfDIKeyboard)))
-      if(OK(_device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
+      if(OK(_device->SetCooperativeLevel(App.window(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
       {
          DIPROPDWORD dipdw;
          dipdw.diph.dwSize      =SIZE(DIPROPDWORD );
@@ -964,8 +964,8 @@ void KeyboardClass::setLayout()
 void KeyboardClass::swapCtrlCmd(Bool swapped) {T._swap_ctrl_cmd=swapped;}
 /******************************************************************************/
 #if WINDOWS_OLD
-Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}
-void KeyboardClass::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.Hwnd(), enable ? _imc : null);}}
+Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.window()); if(imc)ImmReleaseContext(App.window(), imc); return imc!=null;}
+void KeyboardClass::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.window(), enable ? _imc : null);}}
 Bool KeyboardClass::immNative(           )C {return ImmGetOpenStatus(_imc)!=0;}
 void KeyboardClass::immNative(Bool native)
 {
@@ -1165,11 +1165,11 @@ void KeyboardClass::update()
    if(App.active()) // need to manually check for certain keys
    {
       // Shifts may get stuck when 2 pressed at the same time
-      if(Kb.b(KB_LSHIFT) && !FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey:: LeftShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_LSHIFT);
-      if(Kb.b(KB_RSHIFT) && !FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey::RightShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_RSHIFT);
+      if(Kb.b(KB_LSHIFT) && !FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey:: LeftShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_LSHIFT);
+      if(Kb.b(KB_RSHIFT) && !FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey::RightShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_RSHIFT);
 
       // not detected through system events
-      Bool print=FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
+      Bool print=FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
       if(  print!=b(KB_PRINT))
       {
          if(print)push(KB_PRINT, 0);else release(KB_PRINT);
@@ -1370,14 +1370,14 @@ void KeyboardClass::exclusive(Bool on)
    {
      _exclusive=on; // set this first because it affects 'KEYBOARD_MODE'
    #if KB_RAW_INPUT
-      if(App.hwnd())
+      if(App.window())
       {
          RAWINPUTDEVICE rid[1];
 
          rid[0].usUsagePage=0x01;
          rid[0].usUsage    =0x06; // keyboard
          rid[0].dwFlags    =((KEYBOARD_MODE==BACKGROUND) ? RIDEV_INPUTSINK : 0)|(_exclusive ? RIDEV_NOHOTKEYS : 0);
-         rid[0].hwndTarget =App.Hwnd();
+         rid[0].hwndTarget =App.window();
 
          RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
       }
@@ -1385,7 +1385,7 @@ void KeyboardClass::exclusive(Bool on)
       if(_device)
       {
         _device->Unacquire(); // this also resets the 'GetDeviceState' of any currently pressed keys, they need to be pushed again to activate their state
-        _device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
+        _device->SetCooperativeLevel(App.window(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
          if(KEYBOARD_MODE==BACKGROUND || App.active())_device->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
          // because calling 'Unacquire' resets the state, we need to remember if some keys are pressed, other keys don't have to be remembered because they are processed using WM_*KEY*
         _special=1*Kb.b(KB_LCTRL )
