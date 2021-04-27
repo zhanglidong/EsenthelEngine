@@ -34,9 +34,9 @@ Bool      WindowMaximized(                             SysWindow window=App.wind
 Bool      WindowMinimized(                             SysWindow window=App.window()); // if       window is minimized
 SysWindow WindowActive   (                                                          ); // get      window of active application
 SysWindow WindowMouse    (                                                          ); // get      window under mouse cursor
-SysWindow WindowParent   (                             SysWindow window             ); // get      window          parent
-SysWindow WindowParentTop(                             SysWindow window             ); // get      window most top parent
-UInt      WindowProc     (                             SysWindow window             ); // get      window process ID
+SysWindow WindowParent   (SysWindow window                                          ); // get      window          parent
+SysWindow WindowParentTop(SysWindow window                                          ); // get      window most top parent
+UInt      WindowProc     (SysWindow window                                          ); // get      window process ID
 void      WindowList     (MemPtr<SysWindow> windows                                 ); // get all  window handles in the System
-void      WindowSendData (CPtr data, Int size,         SysWindow window             ); // send binary data to application of the specified window, that application can receive the data using "App.receive_data" callback function
+void      WindowSendData (SysWindow window, CPtr data, Int size                     ); // send binary data to application of the specified window, that application can receive the data using "App.receive_data" callback function
 /******************************************************************************/

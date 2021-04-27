@@ -117,7 +117,7 @@ void InitPre()
          {
             File f; f.writeMem().putStr(App.cmd_line[0]).pos(0);
             Memt<byte> temp; temp.setNum(f.left()); f.get(temp.data(), temp.elms());
-            WindowSendData(temp.data(), temp.elms(), window);
+            WindowSendData(window, temp.data(), temp.elms());
             App.flag=APP_EXIT_IMMEDIATELY;
             return;
          }

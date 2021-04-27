@@ -240,7 +240,7 @@ Bool WindowMinimized(SysWindow window)
 {
    return IsIconic(window)!=0;
 }
-void WindowSendData(CPtr data, Int size, SysWindow window)
+void WindowSendData(SysWindow window, CPtr data, Int size)
 {
    if(window && size>=0)
    {
@@ -409,7 +409,7 @@ SysWindow WindowParent(SysWindow window)
 {
    return window ? [window parentWindow] : null;
 }
-void WindowSendData(CPtr data, Int size, SysWindow window) {}
+void WindowSendData(SysWindow window, CPtr data, Int size) {}
 SysWindow WindowActive() {return App.active() ? App.window() : null;}
 /******************************************************************************/
 #elif LINUX
@@ -698,7 +698,7 @@ SysWindow WindowParent(SysWindow window)
    }
    return NULL;
 }
-void WindowSendData(CPtr data, Int size, SysWindow window) {}
+void WindowSendData(SysWindow window, CPtr data, Int size) {}
 SysWindow WindowActive()
 {
    if(XDisplay)
@@ -800,7 +800,7 @@ SysWindow WindowParent(SysWindow window)
 {
    return null;
 }
-void WindowSendData(CPtr data, Int size, SysWindow window) {}
+void WindowSendData(SysWindow window, CPtr data, Int size) {}
 SysWindow WindowActive() {return App.active() ? App.window() : null;}
 /******************************************************************************/
 #endif
