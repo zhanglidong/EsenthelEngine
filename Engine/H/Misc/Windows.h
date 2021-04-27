@@ -42,7 +42,5 @@ void      WindowList     (MemPtr<SysWindow> windows                             
 
 #if EE_PRIVATE
 Ptr WindowMonitor(SysWindow window); // return HMONITOR for 'window'
-
-void PostEvent();
 #endif
 /******************************************************************************/

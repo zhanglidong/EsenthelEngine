@@ -1867,7 +1867,7 @@ static XClientMessageEvent WakeUpEvent;
 #endif
 #if WINDOWS_NEW
 static Windows::UI::Core::DispatchedHandler ^EventPostHandler=ref new Windows::UI::Core::DispatchedHandler([](){}); // dummy function
-void PostEvent() {Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, EventPostHandler);} // this posts an empty event so 'ProcessEvents/WaitForEvent' can resume immediatelly
+static void PostEvent() {Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, EventPostHandler);} // this posts an empty event so 'ProcessEvents/WaitForEvent' can resume immediatelly
 #endif
 static Int       EventPostWait;
 static SyncEvent EventPostEvent[2];
