@@ -1077,7 +1077,7 @@ static void FadeOut()
    #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'App.opacity'
       fade_window=false;
    #endif
-      if(!fade_window)hide();
+      if(!fade_window)App.hide();
       if(fade_sound || fade_window)
       {
          const Int step=1;
