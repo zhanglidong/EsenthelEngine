@@ -576,7 +576,7 @@ SysWindow WindowMouse()
       XQueryPointer(XDisplay, DefaultRootWindow(XDisplay), &root, &child, &rx, &ry, &x, &y, &mask);
       return XmuClientWindow(XDisplay, WindowParentTop(child));
    }
-   return null;
+   return NULL;
 }
 Bool WindowMaximized(SysWindow window)
 {
@@ -806,7 +806,7 @@ SysWindow WindowParent(SysWindow window)
       if(children)XFree(children);
       if(root!=parent)return parent;
    }
-   return null;
+   return NULL;
 }
 void WindowFlash(SysWindow window)
 {
@@ -872,7 +872,7 @@ SysWindow WindowActive()
       XWindow window; int revert_to;
       if(XGetInputFocus(XDisplay, &window, &revert_to)==True)return XmuClientWindow(XDisplay, WindowParentTop(window));
    }
-   return App.active() ? App.window() : null;
+   return App.active() ? App.window() : NULL;
 }
 /******************************************************************************/
 #else
