@@ -281,8 +281,7 @@ void WindowList(MemPtr<SysWindow> windows)
 /******************************************************************************/
 Str WindowText(SysWindow window)
 {
-   if(window)return [window title]; // do not release [window title] as it will crash
-   return S;
+   return window ? [window title] : S; // do not release [window title] as it will crash
 }
 void WindowActivate(SysWindow window)
 {
@@ -298,13 +297,11 @@ SysWindow WindowMouse()
 }
 Bool WindowMaximized(SysWindow window)
 {
-   if(window)return [window isZoomed];
-   return false;
+   return window ? [window isZoomed] : false;
 }
 Bool WindowMinimized(SysWindow window)
 {
-   if(window)return [window isMiniaturized];
-   return false;
+   return window ? [window isMiniaturized] : false;
 }
 void WindowClose(SysWindow window)
 {
@@ -410,8 +407,7 @@ void WindowSize(Int w, Int h, Bool client, SysWindow window)
 }
 SysWindow WindowParent(SysWindow window)
 {
-   if(window)return [window parentWindow];
-   return null;
+   return window ? [window parentWindow] : null;
 }
 void WindowSendData(CPtr data, Int size, SysWindow window) {}
 SysWindow WindowActive() {return App.active() ? App.window() : null;}
