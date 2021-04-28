@@ -887,8 +887,7 @@ void ShutPublish()
    PublishFileData    .del();
    PublishSkipOptimize.del();
    Proj.resume();
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
    if(!PublishOk)Gui.msgBox("Publishing Failed", PublishErrorMessage);
 }
 /******************************************************************************/
@@ -918,7 +917,7 @@ void PublishSuccess()
       PublishSuccess(PublishPath, text);
    }
 }
-void PublishCancel() {UpdateThread.stop(); Publish.progress.stop=true; WindowSetWorking();}
+void PublishCancel() {UpdateThread.stop(); Publish.progress.stop=true; App.stateWorking();}
 /******************************************************************************/
 bool UpdatePublish()
 {
@@ -949,14 +948,14 @@ bool UpdatePublish()
          if(PublishOk)PublishSuccess();
       }else
       UpdateProgress.set(Publish.progress.progress);
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
    }
    int sleep=1000/30;
-   if(!App.maximized())REPA(MT)if(MT.b(i))if(!MT.guiObj(i) || MT.guiObj(i)==Gui.desktop()){WindowMove(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
+   if(!App.maximized())REPA(MT)if(MT.b(i))if(!MT.guiObj(i) || MT.guiObj(i)==Gui.desktop()){App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
    Time.wait(sleep);
        Gui.update();
     Server.update(null, true); // it's very important to set 'busy' so no commands are processed during publishing
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    PublishSkipOptimize.visible(PublishStage==PUBLISH_TEX_OPTIMIZE && !Publish.progress.stop);
    return true;
 }

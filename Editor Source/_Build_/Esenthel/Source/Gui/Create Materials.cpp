@@ -18,8 +18,7 @@ void ShutCreateMaterials()
    REPA(CreateMtrls.data)WorkerThreads.wait  (CreateMtrls.data[i], CreateMtrls.Process);
    UpdateProgress.del();
    Proj.refresh().resume();
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 /******************************************************************************/
 bool UpdateCreateMaterials()
@@ -28,11 +27,11 @@ bool UpdateCreateMaterials()
    if(!WorkerThreads.busy())SetProjectState();
 
    UpdateProgress.set(CreateMtrls.data.elms()-WorkerThreads.queued(), CreateMtrls.data.elms());
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/

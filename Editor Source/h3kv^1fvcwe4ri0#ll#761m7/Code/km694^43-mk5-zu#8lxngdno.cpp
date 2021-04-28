@@ -12,7 +12,7 @@ void ShutProjectUpdate()
 {
    REPAO(ProjUpdate).stop(WorkerThreads); ProjUpdate.del(); // stop first
    UpdateProgress.del();
-   WindowSetNormal(); WindowFlash();
+   App.stateNormal().flash();
 }
 /******************************************************************************/
 bool UpdateProjectUpdate()
@@ -22,7 +22,7 @@ bool UpdateProjectUpdate()
    {
       REPA(Projects)if(Projects[i].needUpdate()) // if after updating, the project still needs an update, then it means that some error must have occured
       {
-         WindowMsgBox("Error", "Projects did not update completely"); // display OS message box
+         OSMsgBox("Error", "Projects did not update completely"); // display OS message box
          return false; // and exit
       }
       StateMain.set(StateFadeTime);
@@ -30,7 +30,7 @@ bool UpdateProjectUpdate()
 
    long total=0; REPA(ProjUpdate)total+=ProjUpdate[i].total();
    UpdateProgress.set(total-WorkerThreads.queued(), total);
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
  //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
    return true;

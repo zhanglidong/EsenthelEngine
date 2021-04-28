@@ -369,8 +369,7 @@ void ShutIDReplace()
    UpdateThread  .del();
    UpdateProgress.del();
    Proj.refresh().resume();
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 /******************************************************************************/
 bool UpdateIDReplace()
@@ -378,11 +377,11 @@ bool UpdateIDReplace()
    if(Kb.bp(KB_ESC)){SetProjectState(); Gui.msgBox(S, "Merging breaked on user request");}
    if(!UpdateThread.active())SetProjectState();
 
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/

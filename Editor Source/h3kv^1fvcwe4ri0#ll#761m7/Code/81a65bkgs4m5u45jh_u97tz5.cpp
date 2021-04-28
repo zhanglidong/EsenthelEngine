@@ -5334,7 +5334,7 @@ bool UpdateProject()
 
    // mouse maximize window
    if(Ms.bp(MS_MAXIMIZE))
-      if(!ObjEdit.contains(Gui.ms()) && !AnimEdit.contains(Gui.ms()) && !WorldEdit.contains(Gui.ms()) && !TexDownsize.contains(Gui.ms()))WindowToggle();
+      if(!ObjEdit.contains(Gui.ms()) && !AnimEdit.contains(Gui.ms()) && !WorldEdit.contains(Gui.ms()) && !TexDownsize.contains(Gui.ms()))App.window().toggle();
 
    // open element
    if(Kb.ctrl() && Ms.bp(0) && Gui.ms() && Gui.ms().type()==GO_TEXTLINE)

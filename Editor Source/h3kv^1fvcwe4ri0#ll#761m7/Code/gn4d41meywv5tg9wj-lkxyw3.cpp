@@ -705,18 +705,17 @@ void ShutCopyElms()
 
    Proj.resume();
    CompareProjs.changed(CopyElms.target.id);
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 bool UpdateCopyElms()
 {
    if(Kb.bp(KB_ESC)){SetProjectState(); Gui.msgBox(S, "Copying elements breaked on user request");}
    if(!UpdateThread.active())SetProjectState();
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
       Gui.update();
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 void DrawCopyElms()

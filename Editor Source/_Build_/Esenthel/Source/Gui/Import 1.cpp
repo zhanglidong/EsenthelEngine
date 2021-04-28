@@ -261,7 +261,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
        C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -426,7 +426,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
          C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -549,7 +549,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
          C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -691,7 +691,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
       if(ImportFiles[i].type==FSTD_FILE)
       {
@@ -892,7 +892,7 @@ void ShutImport()
    ImportObjMeshes .del();
    ImportObjMatrix .del();
    DataPath(S);
-   WindowSetNormal();
+   App.stateNormal();
 }
 /******************************************************************************/
 bool UpdateImport()
@@ -912,14 +912,14 @@ bool UpdateImport()
    }
    if(ImportPhase==IMPORT_FINISHED)
    {
-      WindowFlash();
+      App.flash();
       Proj.save();
       Str error; Proj.open(Proj.id, Proj.name, Proj.path, error); // reopen using 'ProjectEx' method
       SetProjectState();
    }
    Time.wait(1000/30); // limit to 30 fps
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/

@@ -356,8 +356,7 @@ void ShutMiniMap()
    UpdateProgress.del();
  //Proj.resume(); we're not resuming
    Proj.resumeServer(); // resume server
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
    MiniMapEdit.reloadAreas();
    /*if(MiniMapOk)if(MiniMapVer *ver=MiniMapEdit.ver()) // send new mini map to the server only after full completion (this is not needed since we're resuming the server above)
    {
@@ -399,10 +398,10 @@ bool UpdateMiniMap()
       Time.wait(1000/30);
    }
 
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
      //Gui.update(); do not update gui as it's not hidden
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/
@@ -417,7 +416,7 @@ void DrawMiniMap()
       for(uint start=Time.curTimeMs(); ; )
       {
          UpdateProgress.set(MiniMapEdit.progress, MiniMapEdit.totalImages());
-         WindowSetProgress(UpdateProgress());
+         App.stateProgress(UpdateProgress());
 
          if(MiniMapEdit.step())
          {

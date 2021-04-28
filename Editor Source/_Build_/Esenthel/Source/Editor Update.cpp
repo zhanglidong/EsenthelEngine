@@ -63,8 +63,8 @@ bool UpdateDo()
    }else // we won't run any app
    {
       Explore(Updater.path); // open folder so user can see what's happened there
-      WindowHide(); // hide window because 'WindowMsgBox' causes a pause
-      /*if(inside)*/WindowMsgBox("Success", InstallerMode ? "Esenthel has installed successfully." : "Esenthel has updated successfully."); // show confirmation using OS msg box
+      App.hide(); // hide window because 'OSMsgBox' causes a pause
+      /*if(inside)*/OSMsgBox("Success", InstallerMode ? "Esenthel has installed successfully." : "Esenthel has updated successfully."); // show confirmation using OS msg box
       //else        Gui.msgBox("Success", "Esenthel has updated properly.");
    }
    /*if(inside)*/return false; // close the application
@@ -76,7 +76,7 @@ Str   UpdateMessage;
 /******************************************************************************/
 bool InitUpdate()
 {
-   WindowSetWorking();
+   App.stateWorking();
    SetKbExclusive();
    Proj.close();
 
@@ -104,7 +104,7 @@ bool UpdateUpdate()
    Time.wait(1000/30);
    Gui.update();
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
 
    UpdateMessage.clear();
    Memc<uint> proc; ProcList(proc);
@@ -189,12 +189,12 @@ bool UpdateInstall()
       }else // failed
       {
          InstallIO.activate();
-         WindowSetError(Updater.progress());
+         App.stateError(Updater.progress());
       }
    }
-   if(!InstallIO.visible())WindowSetProgress(Updater.progress());
+   if(!InstallIO.visible())App.stateProgress(Updater.progress());
    UpdateProgress.set(Updater.progress());
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 void DrawInstall()

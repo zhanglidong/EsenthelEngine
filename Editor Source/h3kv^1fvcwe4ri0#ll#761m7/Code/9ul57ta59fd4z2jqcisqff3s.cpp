@@ -69,7 +69,7 @@ void Resumed()
    && !(Projs.proj_list.contains(Gui.ms()) && Gui.ms().type()==GO_CHECKBOX)) // if we're activating application by clicking on a project list checkbox, then don't refresh, because it would lose focus and don't get toggled, or worse (another project would be toggled due to refresh)
       Projs.refresh(); // refresh list of project when window gets focused in case we've copied some projects to the Editor
 }
-void ReceiveData(cptr data, int size, SysWindow sender_window)
+void ReceiveData(cptr data, int size, C SysWindow &sender_window)
 {
    File f; f.readMem(data, size);
    Str s=f.getStr();
@@ -80,7 +80,7 @@ void SetTitle()
    Str title;
    if(Mode()==MODE_CODE)title=CodeEdit.title();
    if(title.is())title=S+AppName+" - "+title;else title=AppName;
-   WindowSetText(title);
+   App.name(title);
 }
 void SetKbExclusive()
 {
@@ -109,12 +109,12 @@ void InitPre()
       REPA(proc)if(proc[i]!=App.processID())
       {
          Str proc_name=GetBase(ProcName(proc[i]));
-         if(proc_name=="Esenthel.exe")
+         if( proc_name=="Esenthel.exe")
             if(SysWindow window=ProcWindow(proc[i]))
          {
             File f; f.writeMem().putStr(App.cmd_line[0]).pos(0);
             Memt<byte> temp; temp.setNum(f.left()); f.get(temp.data(), temp.elms());
-            WindowSendData(window, temp.data(), temp.elms());
+            window.sendData(temp.data(), temp.elms());
             App.flag=APP_EXIT_IMMEDIATELY;
             return;
          }
