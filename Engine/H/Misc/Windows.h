@@ -68,15 +68,17 @@ struct SysWindow // Operating System Window
    typedef Windows::UI::Core::CoreWindow ^Type1;
  C Type1& operator()()C {return (Type1&)window;}
  C Type1& operator->()C {return (Type1&)window;}
-   void release(               )C {(Type1&)window=null  ;}
-   void set    (C Type1& window)C {(Type1&)window=window;}
+   void release(               )C {(Type1&)T.window=null  ;}
+   void set    (C Type1& window)C {(Type1&)T.window=window;}
 #endif
 #endif
 
    SysWindow(null_t=null) {T.window=NULL  ;}
    SysWindow(Type window) {T.window=window;}
 
+#if !EE_PRIVATE
 private:
+#endif
    Type window;
 };
 /******************************************************************************/
