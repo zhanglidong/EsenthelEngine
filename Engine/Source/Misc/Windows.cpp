@@ -292,7 +292,7 @@ void SysWindow::move(Int dx, Int dy)C
       if(window)
       {
          VecI2 pos=T.pos();
-         pos(pos.x+dx, pos.y+dy);
+         T.pos(pos.x+dx, pos.y+dy);
       }
    #elif LINUX
       if(XDisplay && window)
@@ -1529,11 +1529,11 @@ void Application::windowCreate()
 
    // we can calculate bounds only after having a window
    {
-      RectI w, c; GetWindowRect(false, window(), w); GetWindowRect(true, window(), c);
+      RectI w=window().rect(false), c=window().rect(true);
      _bound.set(w.min.x-c.min.x, w.min.y-c.min.y, w.max.x-c.max.x, w.max.y-c.max.y);
      _bound_maximized=_bound;
    }
-   if(D.full())D.adjustWindow();
+   if(D.full())windowAdjust();
 #elif LINUX
    if(!XDisplay)return;
 

@@ -588,7 +588,7 @@ Application& Application::backgroundFull(Bool on)
       if(D.full() && _initialized)
       {
          if(active_or_back_full!=activeOrBackFull())activeOrBackFullChanged();
-         D.adjustWindow();
+         windowAdjust();
       }
    }
    return T;
