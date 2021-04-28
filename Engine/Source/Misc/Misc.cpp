@@ -980,8 +980,8 @@ Bool ClipSet(C Str &text)
       Atom FIND_ATOM(CLIPBOARD);
       Str8 utf=UTF8(text);
       int  ok=XChangeProperty(XDisplay, DefaultRootWindow(XDisplay), XA_CUT_BUFFER0, UTF8_STRING, 8, PropModeReplace, (const unsigned char*)utf(), utf.length());
-      if(CLIPBOARD && XGetSelectionOwner(XDisplay, CLIPBOARD )!=App.window())XSetSelectionOwner(XDisplay, CLIPBOARD , App.window(), CurrentTime);
-      if(             XGetSelectionOwner(XDisplay, XA_PRIMARY)!=App.window())XSetSelectionOwner(XDisplay, XA_PRIMARY, App.window(), CurrentTime);
+      if(CLIPBOARD && App.window()!=XGetSelectionOwner(XDisplay, CLIPBOARD ))XSetSelectionOwner(XDisplay, CLIPBOARD , App.window(), CurrentTime);
+      if(             App.window()!=XGetSelectionOwner(XDisplay, XA_PRIMARY))XSetSelectionOwner(XDisplay, XA_PRIMARY, App.window(), CurrentTime);
       return ok==1;
    }
    return false;
@@ -1118,7 +1118,7 @@ Str ClipGet()
    {
       Atom    selection;
       XWindow owner=XGetSelectionOwner(XDisplay, CLIPBOARD);
-      if(!owner || owner==App.window() || !App.window())
+      if(!owner || App.window()==owner || !App.window())
       {
          owner=DefaultRootWindow(XDisplay);
          selection=XA_CUT_BUFFER0;

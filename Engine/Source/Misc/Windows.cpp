@@ -93,7 +93,7 @@ Str SysWindow::text()C
       return s;
    }
 #else
-   if(window==App.window())return App.name();
+   if(T==App.window())return App.name();
 #endif
    return S;
 }
@@ -104,7 +104,7 @@ void SysWindow::minimize(Bool force)C
    if(force)ShowWindow(window, SW_MINIMIZE);
    else    PostMessage(window, WM_SYSCOMMAND, SC_MINIMIZE, NULL);
 #elif WINDOWS_NEW
-   if(window==App.window())
+   if(T==App.window())
    {
       /* TODO:
       IList<AppDiagnosticInfo> infos=await AppDiagnosticInfo.RequestInfoForAppAsync();
@@ -116,7 +116,7 @@ void SysWindow::minimize(Bool force)C
 #elif LINUX
    if(XDisplay && window)XIconifyWindow(XDisplay, window, DefaultScreen(XDisplay));
 #elif ANDROID
-   if(window==App.window())App.hide();
+   if(T==App.window())App.hide();
 #endif
 }
 /******************************************************************************/
@@ -205,7 +205,7 @@ void SysWindow::reset(Bool force)C
       e.xclient.data.l[4]=0;
       XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
    #else // this doesn't work entirely correctly
-      if(window==App.window())
+      if(T==App.window())
       {
          Atom           type=null;
          int            format=0;
@@ -256,7 +256,7 @@ void SysWindow::activate()C
    SetForegroundWindow(window);
    if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, false);
 #elif MAC
-   if(window && window==App.window())
+   if(T==App.window())
    {
       ProcessSerialNumber psn;
       if(GetProcessForPID(App.processID(), &psn)==noErr)SetFrontProcess(&psn);
@@ -404,7 +404,7 @@ VecI2 SysWindow::size(Bool client)C
       }
    }
 #else
-   if(window==App.window())return D.res();
+   if(T==App.window())return D.res();
 #endif
    return 0;
 }
@@ -448,9 +448,10 @@ error:
 #elif LINUX
    if(XDisplay && window)
    {
+      SysWindow window=T;
       XWindowAttributes attr;
    #if 0
-      if(!client)window=WindowParentTop(window); // start straight from the top
+      if(!client)window=window.parentTop(); // start straight from the top
    #endif
       if(XGetWindowAttributes(XDisplay, window, &attr)==true)
       {
@@ -458,7 +459,7 @@ error:
       #if 0
          if(client) // we want just the client
       #endif
-            for(; window=WindowParent(window); )if(XGetWindowAttributes(XDisplay, window, &attr)==true)r+=VecI2(attr.x, attr.y);
+            for(; window=window.parent(); )if(XGetWindowAttributes(XDisplay, window, &attr)==true)r+=VecI2(attr.x, attr.y);
       #if 1
          if(!client){r.min+=App._bound.min; r.max+=App._bound.max;}
       #endif
@@ -466,7 +467,7 @@ error:
       }
    }
 #else
-   if(window==App.window())return RectI(0, 0, D.resW(), D.resH());
+   if(T==App.window())return RectI(0, 0, D.resW(), D.resH());
 #endif
    return RectI(0, 0, 0, 0);
 }
@@ -496,7 +497,7 @@ Bool SysWindow::maximized()C
       return flags==3;
    }
 #else
-   if(window==App.window())return App.maximized();
+   if(T==App.window())return App.maximized();
 #endif
    return false;
 }
@@ -526,7 +527,7 @@ Bool SysWindow::minimized()C
       return min;
    }
 #else
-   if(window==App.window())return App.minimized();
+   if(T==App.window())return App.minimized();
 #endif
    return false;
 }
@@ -536,7 +537,7 @@ UIntPtr SysWindow::threadID()C
 #if WINDOWS_OLD
    return GetWindowThreadProcessId(window, null);
 #else
-   if(window==App.window())return App.threadID();
+   if(T==App.window())return App.threadID();
 #endif
    return 0;
 }
@@ -546,7 +547,7 @@ UInt SysWindow::processID()C
 #if WINDOWS_OLD
    DWORD proc=0; GetWindowThreadProcessId(window, &proc); return proc;
 #else
-   if(window==App.window())return App.processID();
+   if(T==App.window())return App.processID();
 #endif
    return 0;
 }
@@ -572,7 +573,7 @@ SysWindow SysWindow::parent()C
 /******************************************************************************/
 SysWindow SysWindow::parentTop()C
 {
-   SysWindow cur=T; for(; SysWindow parent=cur.parent(); )cur=parent; return cur;
+   SysWindow window=T; for(; SysWindow parent=window.parent(); )window=parent; return window;
 }
 /******************************************************************************/
 void SysWindow::sendData(CPtr data, Int size)C
@@ -596,7 +597,7 @@ SysWindow WindowActive()
    if(XDisplay)
    {
       XWindow window; int revert_to;
-      if(XGetInputFocus(XDisplay, &window, &revert_to)==True)return XmuClientWindow(XDisplay, WindowParentTop(window));
+      if(XGetInputFocus(XDisplay, &window, &revert_to)==True)return XmuClientWindow(XDisplay, SysWindow(window).parentTop());
    }
 #endif
    return App.active() ? App.window() : null;
@@ -638,7 +639,7 @@ SysWindow WindowMouse()
       int rx, ry, x, y;
       unsigned int mask;
       XQueryPointer(XDisplay, DefaultRootWindow(XDisplay), &root, &child, &rx, &ry, &x, &y, &mask);
-      return XmuClientWindow(XDisplay, WindowParentTop(child));
+      return XmuClientWindow(XDisplay, SysWindow(child).parentTop());
    }
    return null;
 }
@@ -1895,7 +1896,7 @@ void Application::windowDel()
 #elif LINUX
    if( IC            ){XDestroyIC    (IC                       );  IC            =null;}
    if( IM            ){XCloseIM      (IM                       );  IM            =null;}
-   if(_window        ){XDestroyWindow(XDisplay, _window        ); _window        =NULL;}
+   if(_window        ){XDestroyWindow(XDisplay, _window        ); _window        =null;}
    if( WindowColormap){XFreeColormap (XDisplay,  WindowColormap);  WindowColormap=NULL;}
 #else
   _window=null;
@@ -1975,7 +1976,7 @@ again:
    {
    process:
       XEvent event; XNextEvent(XDisplay, &event);
-      if(event.xany.window==window())switch(event.type)
+      if(window()==event.xany.window)switch(event.type)
       {
          case MapNotify:
          {
@@ -2001,7 +2002,7 @@ again:
          case ConfigureNotify:
          {
            _window_resized.set(event.xconfigure.width, event.xconfigure.height);
-           _maximized     =WindowMaximized();
+           _maximized     =window().maximized();
             // minimized is not available here
          }break;
 
@@ -2115,7 +2116,7 @@ again:
                m.window =event.xclient.data.l[0];
                m.message_type=XdndStatus;
                m.format   =32;
-               m.data.l[0]=window();
+               m.data.l[0]=window()();
                m.data.l[1]=(xdnd_req!=NULL);
                m.data.l[2]=0;
                m.data.l[3]=0;
@@ -2139,7 +2140,7 @@ again:
                   m.window      =event.xclient.data.l[0];
                   m.message_type=XdndFinished;
                   m.format      =32;
-                  m.data.l[0]   =window();
+                  m.data.l[0]   =window()();
                   m.data.l[1]   =0;
                   m.data.l[2]   =0;
                   XSendEvent(XDisplay, event.xclient.data.l[0], false, NoEventMask, (XEvent*)&m);
@@ -2190,7 +2191,7 @@ again:
                m.window      =xdnd_source;
                m.message_type=XdndFinished;
                m.format      =32;
-               m.data.l[0]=window();
+               m.data.l[0]=window()();
                m.data.l[1]=1;
                m.data.l[2]=XdndActionCopy;
                XSendEvent(XDisplay, xdnd_source, false, NoEventMask, (XEvent*)&m);
