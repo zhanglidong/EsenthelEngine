@@ -327,8 +327,8 @@ void MouseClass::pos(C Vec2 &pos)
 #elif WINDOWS_NEW
    if(App.window())
    {
-      Windows::Foundation::Rect bounds=App.Window()->Bounds;
-      App.Window()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(window_pixel_i.x), bounds.Y+PixelsToDips(window_pixel_i.y));
+      Windows::Foundation::Rect bounds=App.window()->Bounds;
+      App.window()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(window_pixel_i.x), bounds.Y+PixelsToDips(window_pixel_i.y));
    }
 #elif MAC
    RectI   client=WindowRect(true);
@@ -364,16 +364,16 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
 #elif WINDOWS_NEW
  /*if(App.window()) // this only prevents any action taken on the title bar, like move window, minimize/maximize/close, but the cursor can still move outside the window and activate other apps on click
    {
-      if(rect)App.Window()->    SetPointerCapture();
-      else    App.Window()->ReleasePointerCapture();
+      if(rect)App.window()->    SetPointerCapture();
+      else    App.window()->ReleasePointerCapture();
    }*/
    if(rect && !Cuts(Ms._window_pixeli, *rect) && App.window())
    {
       VecI2 pixeli=Ms._window_pixeli; Ms._window_pixeli&=*rect; pixeli-=Ms._window_pixeli;
       Ms._desktop_pixeli    -=pixeli;
       Ms.  _delta_pixeli_clp+=pixeli;
-      Windows::Foundation::Rect bounds=App.Window()->Bounds;
-      App.Window()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_pixeli.x), bounds.Y+PixelsToDips(Ms._window_pixeli.y));
+      Windows::Foundation::Rect bounds=App.window()->Bounds;
+      App.window()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(Ms._window_pixeli.x), bounds.Y+PixelsToDips(Ms._window_pixeli.y));
    }
 #elif MAC
    if(rect)MouseClipRect=*rect;
@@ -489,8 +489,8 @@ void MouseClass::resetCursor()
 #elif WINDOWS_NEW
    if(App.window())
    {
-      App.Window()->PointerCursor=((cur<0) ? ref new CoreCursor(CoreCursorType::Arrow, 0) : (cur==0) ? null : _cursor->_hw._cursor);
-     _locked=(App.Window()->PointerCursor==null);
+      App.window()->PointerCursor=((cur<0) ? ref new CoreCursor(CoreCursorType::Arrow, 0) : (cur==0) ? null : _cursor->_hw._cursor);
+     _locked=(App.window()->PointerCursor==null);
    }
 #elif MAC
    if(cur)[((cur>0) ? _cursor->_hw._cursor : [NSCursor arrowCursor]) set];
@@ -648,10 +648,10 @@ void MouseClass::updatePos()
 #elif WINDOWS_NEW
    if(App.window())
    {
-      VecI2 desktop_pixeli(DipsToPixelsI(App.Window()->PointerPosition.X), DipsToPixelsI(App.Window()->PointerPosition.Y));
+      VecI2 desktop_pixeli(DipsToPixelsI(App.window()->PointerPosition.X), DipsToPixelsI(App.window()->PointerPosition.Y));
        _delta_pixeli_clp+=desktop_pixeli-_desktop_pixeli; // calc based on desktop position and not window position
      _desktop_pixeli     =desktop_pixeli;
-      Windows::Foundation::Rect bounds=App.Window()->Bounds;
+      Windows::Foundation::Rect bounds=App.window()->Bounds;
      _window_pixeli.set(desktop_pixeli.x-DipsToPixelsI(bounds.X),
                         desktop_pixeli.y-DipsToPixelsI(bounds.Y));
    }

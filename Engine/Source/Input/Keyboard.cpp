@@ -1165,11 +1165,11 @@ void KeyboardClass::update()
    if(App.active()) // need to manually check for certain keys
    {
       // Shifts may get stuck when 2 pressed at the same time
-      if(Kb.b(KB_LSHIFT) && !FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey:: LeftShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_LSHIFT);
-      if(Kb.b(KB_RSHIFT) && !FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey::RightShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_RSHIFT);
+      if(Kb.b(KB_LSHIFT) && !FlagTest((Int)App.window()->GetKeyState(Windows::System::VirtualKey:: LeftShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_LSHIFT);
+      if(Kb.b(KB_RSHIFT) && !FlagTest((Int)App.window()->GetKeyState(Windows::System::VirtualKey::RightShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_RSHIFT);
 
       // not detected through system events
-      Bool print=FlagTest((Int)App.Window()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
+      Bool print=FlagTest((Int)App.window()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
       if(  print!=b(KB_PRINT))
       {
          if(print)push(KB_PRINT, 0);else release(KB_PRINT);

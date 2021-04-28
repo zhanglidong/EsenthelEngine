@@ -65,7 +65,11 @@ struct SysWindow // Operating System Window
    operator Type()C {return window;} // auto cast
 
 #if WINDOWS_NEW
-   Windows::UI::Core::CoreWindow^& operator->()C {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(window);}
+   typedef Windows::UI::Core::CoreWindow ^Type1;
+ C Type1& operator()()C {return (Type1&)window;}
+ C Type1& operator->()C {return (Type1&)window;}
+   void release(               )C {(Type1&)window=null  ;}
+   void set    (C Type1& window)C {(Type1&)window=window;}
 #endif
 #endif
 

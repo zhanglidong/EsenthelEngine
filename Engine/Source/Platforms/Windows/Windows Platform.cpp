@@ -127,7 +127,7 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    virtual void SetWindow(CoreWindow^ window) // called before 'Load'
    {
-      App.Window()=window;
+      App.window().set(window);
 
       DisplayInformation^ display_info = DisplayInformation::GetForCurrentView();
       ScreenScale=display_info->RawPixelsPerViewPixel;
@@ -727,7 +727,7 @@ ref struct FrameworkView sealed : IFrameworkView
    void setMode()
    {
       if(App._closed)return; // do nothing if app called 'Exit'
-      VecI2 mode(DipsToPixelsI(App.Window()->Bounds.Width), DipsToPixelsI(App.Window()->Bounds.Height));
+      VecI2 mode(DipsToPixelsI(App.window()->Bounds.Width), DipsToPixelsI(App.window()->Bounds.Height));
       D.modeSet(mode.x, mode.y, -1);
    }
 };

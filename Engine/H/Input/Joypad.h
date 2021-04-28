@@ -167,7 +167,7 @@ private:
 #if EE_PRIVATE && JP_GAMEPAD_INPUT
    Windows::Gaming::Input::Gamepad ^_gamepad;
 #else
-   Ptr     _gamepad;
+   Ptr     _gamepad=null;
 #endif
 #elif MAC
    Ptr     _device=null;

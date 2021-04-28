@@ -1587,7 +1587,7 @@ void Application::windowCreate()
 
 #if WINDOWS_NEW
    if(flag&APP_NO_TITLE_BAR)Windows::ApplicationModel::Core::CoreApplication::GetCurrentView()->TitleBar->ExtendViewIntoTitleBar=true;
-  _window_size=WindowSize(true); // we can't specify a custom '_window_size' because here the Window has already been created, instead obtain what we've got
+  _window_size=window().size(true); // we can't specify a custom '_window_size' because here the Window has already been created, instead obtain what we've got
    Bool change_size=(D.res()!=_window_size);
    RequestDisplayMode(change_size ? D.resW() : -1, change_size ? D.resH() : -1, (D.full()!=T.Fullscreen()) ? D.full() : -1);
 #elif SWITCH
@@ -1877,7 +1877,7 @@ void Application::windowDel()
    if(_icon  ){DestroyIcon  (_icon  ); _icon  =null;}
    UnregisterClass((LPCWSTR)WindowClass, _hinstance);
 #elif WINDOWS_NEW
-   Window()=null;
+   window().release();
 #elif MAC
    [OpenGLView release]; OpenGLView=null;
    [   _window release];    _window=null;

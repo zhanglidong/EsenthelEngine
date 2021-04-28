@@ -1256,7 +1256,7 @@ again:
    Factory->MakeWindowAssociation(App.window(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
 again:
-	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App.window(), &SwapChainDesc, null, &SwapChain);
+	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App.window()(), &SwapChainDesc, null, &SwapChain);
    if(!SwapChain)
    {
       if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
@@ -1760,7 +1760,7 @@ Bool DisplayClass::findMode()
    SyncLocker locker(_lock);
 
 #if WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
-  _res =WindowSize(true);
+  _res =App.window().size(true);
   _full=App.Fullscreen();
 #elif IOS
    // '_res' will be set in 'mapMain'
