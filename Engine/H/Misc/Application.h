@@ -231,5 +231,8 @@ inline CChar* MLTC(CChar* english, LANG_TYPE l0, CChar* t0, LANG_TYPE l1, CChar*
 /******************************************************************************/
 #if EE_PRIVATE
 extern Bool LogInit;
+#if LINUX
+extern Atom _NET_WM_STATE, _NET_WM_NAME, UTF8_STRING;
+#endif
 #endif
 /******************************************************************************/

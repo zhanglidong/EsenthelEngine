@@ -975,8 +975,7 @@ Bool ClipSet(C Str &text)
    return true;
 #elif LINUX
    // TODO: this text will disappear once the application gets closed
-   if(XDisplay && App.window())
-      if(Atom FIND_ATOM(UTF8_STRING))
+   if(XDisplay && App.window() && UTF8_STRING)
    {
       Atom FIND_ATOM(CLIPBOARD);
       Str8 utf=UTF8(text);
@@ -1114,9 +1113,8 @@ Str ClipGet()
       }
    #endif
 #elif LINUX
-   if(XDisplay)
+   if(XDisplay && UTF8_STRING)
       if(Atom FIND_ATOM(CLIPBOARD))
-      if(Atom FIND_ATOM(UTF8_STRING))
    {
       Atom    selection;
       XWindow owner=XGetSelectionOwner(XDisplay, CLIPBOARD);

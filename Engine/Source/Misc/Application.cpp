@@ -22,7 +22,8 @@ Bool LogInit=false;
    static Bool ShutCOM=false;
    static ITaskbarList3 *TaskbarList;
 #elif LINUX
-   static Atom _NET_WM_ICON;
+          Atom _NET_WM_STATE, _NET_WM_NAME, UTF8_STRING;
+   static Atom _NET_WM_STATE_FULLSCREEN, _NET_WM_STATE_DEMANDS_ATTENTION, _NET_WM_ICON;
    static int (*OldErrorHandler)(::Display *d, XErrorEvent *e);
    static int      ErrorHandler (::Display *d, XErrorEvent *e)
    {
@@ -88,8 +89,8 @@ Application& Application::name(C Str &name)
    if(XDisplay && window())
    {
       Str8 utf=UTF8(name);
-                                     XStoreName     (XDisplay, window, Str8(name));
-      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window, _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf(), utf.length());
+                                     XStoreName     (XDisplay, window(), Str8(name));
+      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window(), _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf(), utf.length());
    }
 #endif
    return T;
@@ -281,7 +282,7 @@ Flt Application::opacity()C
 #if WINDOWS_OLD
    BYTE alpha; if(GetLayeredWindowAttributes(window(), null, &alpha, null))return alpha/255.0f;
 #elif MAC
-   if(window())return window()->alphaValue;
+   if(window())return window()().alphaValue;
 #endif
    return 1;
 }
@@ -412,8 +413,8 @@ Application& Application::show(Bool activate)
 #elif LINUX
    if(XDisplay && window())
    {
-                  XMapWindow    (XDisplay, window());
-      if(activate)WindowActivate(window());
+      XMapWindow(XDisplay, window());
+      if(activate)window().activate();
    }
 #endif
    return T;
@@ -912,7 +913,6 @@ void Application::windowAdjust(Bool set)
          #define _NET_WM_STATE_REMOVE 0
          #define _NET_WM_STATE_ADD    1
          #define _NET_WM_STATE_TOGGLE 2
-         Atom FIND_ATOM(_NET_WM_STATE), FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
          XEvent e; Zero(e);
          e.xclient.type        =ClientMessage;
          e.xclient.window      =window();
@@ -1101,19 +1101,12 @@ Bool Application::create0()
    OldErrorHandler=XSetErrorHandler(ErrorHandler); // set custom error handler, since I've noticed that occasionally BadWindow errors get generated, so just ignore them
    if(XDisplay)
    {
-      FIND_ATOM(     WM_STATE);
       FIND_ATOM(_NET_WM_STATE);
-      FIND_ATOM(_NET_WM_STATE_HIDDEN);
-      FIND_ATOM(_NET_WM_STATE_FOCUSED);
-      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
-      FIND_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
       FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
       FIND_ATOM(_NET_WM_STATE_DEMANDS_ATTENTION);
       FIND_ATOM(_NET_WM_ICON);
       FIND_ATOM(_NET_WM_NAME);
-      FIND_ATOM(_NET_FRAME_EXTENTS);
       FIND_ATOM(UTF8_STRING);
-      FIND_ATOM(_MOTIF_WM_HINTS);
    }
 #endif
 

@@ -42,7 +42,7 @@ static HPOWERNOTIFY PowerNotify;
 #define _NET_WM_STATE_ADD    1
 #define _NET_WM_STATE_TOGGLE 2
 
-static Atom     xdnd_req, WM_PROTOCOLS, WM_DELETE_WINDOW, XdndDrop, XdndActionCopy, XdndPosition, XdndEnter, XdndStatus, XdndTypeList, XdndFinished, XdndSelection, PRIMARY, WM_STATE, _NET_WM_STATE, _NET_WM_STATE_HIDDEN, _NET_WM_STATE_FOCUSED, _NET_WM_STATE_MAXIMIZED_VERT, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_FULLSCREEN, _NET_WM_STATE_DEMANDS_ATTENTION, _NET_WM_NAME, _NET_FRAME_EXTENTS, UTF8_STRING, _MOTIF_WM_HINTS;
+static Atom     xdnd_req, WM_PROTOCOLS, WM_DELETE_WINDOW, XdndDrop, XdndActionCopy, XdndPosition, XdndEnter, XdndStatus, XdndTypeList, XdndFinished, XdndSelection, PRIMARY, WM_STATE, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, _NET_FRAME_EXTENTS, _MOTIF_WM_HINTS;
 static XWindow  xdnd_source;
 static long     xdnd_version;
 static VecI2    xdnd_pos;
@@ -1537,6 +1537,13 @@ void Application::windowCreate()
 #elif LINUX
    if(!XDisplay)return;
 
+   FIND_ATOM(PRIMARY);
+   FIND_ATOM(WM_STATE);
+   FIND_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
+   FIND_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
+   FIND_ATOM(_NET_FRAME_EXTENTS);
+   FIND_ATOM(_MOTIF_WM_HINTS);
+
    ClassName=S+"Esenthel|"+name()+'|'+DateTime().getUTC().asText()+'|'+Random(); // create a unique class name in case it is needed
 
    // GL Config
@@ -1754,7 +1761,6 @@ void Application::windowCreate()
    FIND_ATOM(XdndTypeList);
    FIND_ATOM(XdndFinished);
    FIND_ATOM(XdndSelection);
-   FIND_ATOM(PRIMARY);
 
    CChar8 *class_name=ClassName();
    if(IM=XOpenIM(XDisplay, null, (char*)class_name, (char*)class_name))
