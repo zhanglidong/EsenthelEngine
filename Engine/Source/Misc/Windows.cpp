@@ -1023,6 +1023,7 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
                case RIM_TYPEKEYBOARD:
                {
                   KB_KEY key;
+               #if 1 // search by VKey (fewer checks)
                   switch(raw.data.keyboard.VKey)
                   {
                      case VK_CONTROL : if(raw.data.keyboard.MakeCode!=29)goto def; key=((raw.data.keyboard.Flags&RI_KEY_E0) ? KB_RCTRL  : KB_LCTRL ); break; // 29=KB_LCTRL and KB_RCTRL (this must be checked because VK_CONTROL also gets triggered by AltGr)
@@ -1031,6 +1032,16 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
                    //case 255        : if(raw.data.keyboard.MakeCode==42 && (raw.data.keyboard.Flags&(RI_KEY_E0|RI_KEY_E1))==RI_KEY_E0){key=KB_PRINT; break;} goto def; detect KB_PRINT because in 'Kb.exclusive', WM_HOTKEY isn't called, however this is also called when pressing "Insert" when NumLock is off so it can't be used
                      default         : goto def;
                   }
+               #else // search by MakeCode (slower)
+                  switch(raw.data.keyboard.MakeCode)
+                  {
+                     case 29: if(raw.data.keyboard.VKey!=VK_CONTROL )goto def; key=((raw.data.keyboard.Flags&RI_KEY_E0) ? KB_RCTRL : KB_LCTRL); break; // this is also called for PauseBreak
+                     case 42: if(raw.data.keyboard.VKey!=VK_SHIFT   )goto def; key=KB_LSHIFT                                                  ; break; // this is also called for Ins,Del,Home,End,PgUp,PgDn,PrintScr,Arrows
+                     case 54: if(raw.data.keyboard.VKey!=VK_SHIFT   )goto def; key=KB_RSHIFT                                                  ; break;
+                     case 55: if(raw.data.keyboard.VKey!=VK_SNAPSHOT)goto def; key=KB_PRINT                                                   ; break; // this is also called for NumPad*
+                     default: goto def;
+                  }
+               #endif
                   if(raw.data.keyboard.Flags&RI_KEY_BREAK)Kb.release(key);else Kb.push(key, raw.data.keyboard.MakeCode);
                   return 0;
                }break;
