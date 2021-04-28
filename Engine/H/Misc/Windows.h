@@ -69,6 +69,7 @@ struct SysWindow // Operating System Window
    void set    (C Type1& window)C {(Type1&)T.window=window;}
 #else
    Type operator()()C {return window;}
+   Type operator->()C {return window;}
 #endif
 #endif
 

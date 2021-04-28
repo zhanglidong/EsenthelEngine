@@ -281,7 +281,7 @@ Flt Application::opacity()C
 #if WINDOWS_OLD
    BYTE alpha; if(GetLayeredWindowAttributes(window(), null, &alpha, null))return alpha/255.0f;
 #elif MAC
-   if(window())return window().alphaValue;
+   if(window())return window()->alphaValue;
 #endif
    return 1;
 }

@@ -411,7 +411,7 @@ VecI2 SysWindow::size(Bool client)C
 /******************************************************************************/
 RectI SysWindow::rect(Bool client)C
 {
-#if WINDOWS_OLD // !! Warning: 'WindowRect' can return weird position when the window is minimized !!
+#if WINDOWS_OLD // !! Warning: 'SysWindow.rect' can return weird position when the window is minimized !!
    RECT rect;
    if(client)
    {
@@ -425,7 +425,7 @@ RectI SysWindow::rect(Bool client)C
       if(!GetWindowRect(window, &rect))goto error;
    }
 #if DEBUG && 0
-   LogN(S+"WindowRect("+client+")="+RectI(rect.left, rect.top, rect.right, rect.bottom).asText());
+   LogN(S+"SysWindow.rect("+client+")="+RectI(rect.left, rect.top, rect.right, rect.bottom).asText());
 #endif
    return RectI(rect.left, rect.top, rect.right, rect.bottom);
 error:

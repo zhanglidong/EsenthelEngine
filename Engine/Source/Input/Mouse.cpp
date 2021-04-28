@@ -331,7 +331,7 @@ void MouseClass::pos(C Vec2 &pos)
       App.window()->PointerPosition=Windows::Foundation::Point(bounds.X+PixelsToDips(window_pixel_i.x), bounds.Y+PixelsToDips(window_pixel_i.y));
    }
 #elif MAC
-   RectI   client=WindowRect(true);
+   RectI   client=App.window().rect(true);
    CGPoint point; point.x=window_pixel_i.x+client.min.x; point.y=window_pixel_i.y+client.min.y;
    CGWarpMouseCursorPosition(point);
 #elif LINUX
@@ -658,7 +658,7 @@ void MouseClass::updatePos()
    // '_on_client' is managed through 'OnPointerEntered' and 'OnPointerExited' callbacks
 #elif MAC
    VecI2 screen=D.screen();
-   RectI client=WindowRect(true);
+   RectI client=App.window().rect(true);
    VecI2 desktop_pixeli;
 
    if(MouseClipOn) // clipping
