@@ -37,6 +37,7 @@ struct SysWindow // Operating System Window
    void      activate (                           )C; // activate window
    void      close    (                           )C; // close    window
    void      move     (Int dx, Int dy             )C; // move     window by delta
+   VecI2     pos      (                           )C; // get      window position
    void      pos      (Int  x, Int  y             )C; // set      window position
    void      size     (Int  w, Int  h, Bool client)C; // set      window size
    VecI2     size     (                Bool client)C; // get      window size     , 'client'=if take only the client size      (not including the borders)

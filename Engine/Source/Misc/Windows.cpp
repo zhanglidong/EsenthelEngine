@@ -291,17 +291,22 @@ void SysWindow::move(Int dx, Int dy)C
    #elif MAC
       if(window)
       {
-         VecI2 pos=rect(false).min;
+         VecI2 pos=T.pos();
          pos(pos.x+dx, pos.y+dy);
       }
    #elif LINUX
       if(XDisplay && window)
       {
-         VecI2 pos=rect(false).min;
+         VecI2 pos=T.pos();
          XMoveWindow(XDisplay, window, pos.x+dx, pos.y+dy);
       }
    #endif
    }
+}
+/******************************************************************************/
+VecI2 SysWindow::pos()C
+{
+   return rect(false).min;
 }
 /******************************************************************************/
 void SysWindow::pos(Int x, Int y)C
@@ -925,7 +930,7 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
        //VecI2 client((short)LOWORD(lParam), (short)HIWORD(lParam));
          SysWindow sys_win(window); // use 'window' instead of 'App.window' because WM_MOVE is being called while window is being created "_window=CreateWindowEx(..)" and pointer wasn't set yet
          if(!sys_win.minimized() && !sys_win.maximized() && !D.full()) // need to check for 'SysWindow.minimized' and 'SysWindow.maximized' instead of 'App.minimized' and 'App.maximized' because these are not yet available
-            App._window_pos=sys_win.rect(false).min; // remember window position for later restoring
+            App._window_pos=sys_win.pos(); // remember window position for later restoring
       }break;
 
       case WM_SIZE: // called when resized (resized by edge/corner, snapped by User/OS, maximized, minimized)

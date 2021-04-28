@@ -222,11 +222,11 @@ SYSTEM_BAR Application::   navBar()C {SYSTEM_BAR status, navigation; getSystemBa
 Bool Application::minimized()C {return _minimized;}
 Bool Application::maximized()C {return _maximized;}
 #elif LINUX
-Bool Application::minimized()C {return WindowMinimized(window());}
+Bool Application::minimized()C {return window().minimized();}
 Bool Application::maximized()C {return _maximized;} // '_maximized' is obtained in 'ConfigureNotify' system message
 #elif MAC
 Bool Application::minimized()C {return _minimized;} // '_minimized' is obtained in 'windowDidMiniaturize, windowDidDeminiaturize'
-Bool Application::maximized()C {return WindowMaximized(window());}
+Bool Application::maximized()C {return window().maximized();}
 #elif IOS
 Bool Application::minimized()C {return false;}
 Bool Application::maximized()C {return true ;}
@@ -549,7 +549,7 @@ void Application::activeOrBackFullChanged()
       if(!activeOrBackFull())hide();
       SetDisplayMode();
    #elif LINUX
-      if(!activeOrBackFull())WindowMinimize();
+      if(!activeOrBackFull())window().minimize();
       SetDisplayMode();
    #endif
    }

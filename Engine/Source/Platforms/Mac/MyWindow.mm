@@ -29,7 +29,7 @@ Bool PreventResizing;
 }
 -(void)windowDidMiniaturize  :(NSNotification*)notification {App._minimized=true ; SetActive();}
 -(void)windowDidDeminiaturize:(NSNotification*)notification {App._minimized=false; SetActive();}
--(void)windowDidMove         :(NSNotification*)notification {if(!WindowMinimized() && !WindowMaximized() && !D.full())App._window_pos=WindowRect(false).min;}
+-(void)windowDidMove         :(NSNotification*)notification {if(!App.window().minimized() && !App.window().maximized() && !D.full())App._window_pos=App.window().pos();}
 @end
 /******************************************************************************/
 // WINDOW
