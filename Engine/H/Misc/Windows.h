@@ -5,10 +5,85 @@
    Use 'Window' functions to handle OS window management.
 
 /******************************************************************************/
+struct SysWindow // Operating System Window
+{
+#if EE_PRIVATE
+   #if WINDOWS_OLD
+      typedef HWND           Type;
+ /*#elif WINDOWS_NEW fails to compile
+      typedef Windows::UI::Core::CoreWindow ^Type;*/
+   #elif MAC
+      typedef NSWindow      *Type;
+   #elif LINUX
+      typedef XWindow        Type; ASSERT(SIZE(Type)==SIZE(unsigned long));
+   #elif ANDROID
+      typedef ANativeWindow *Type;
+   #else
+      typedef Ptr            Type;
+   #endif
+#else
+#if LINUX
+   typedef unsigned long Type;
+#else
+   typedef Ptr           Type;
+#endif
+#endif
+
+   Str       text     (                           )C; // get      window title text
+   void      minimize (Bool force=false           )C; // minimize window
+   void      maximize (Bool force=false           )C; // maximize window
+   void      reset    (Bool force=false           )C; // reset    window from    maximized/minimized to normal state (maximized/minimized -> normal)
+   void      toggle   (Bool force=false           )C; // toggle   window between maximized          and normal state (maximized          <-> normal)
+   void      activate (                           )C; // activate window
+   void      close    (                           )C; // close    window
+   void      move     (Int dx, Int dy             )C; // move     window by delta
+   void      pos      (Int  x, Int  y             )C; // set      window position
+   void      size     (Int  w, Int  h, Bool client)C; // set      window size
+   VecI2     size     (                Bool client)C; // get      window size     , 'client'=if take only the client size      (not including the borders)
+   RectI     rect     (                Bool client)C; // get      window rectangle, 'client'=if take only the client rectangle (not including the borders)
+   Bool      maximized(                           )C; // if       window is maximized
+   Bool      minimized(                           )C; // if       window is minimized
+   UIntPtr    threadID(                           )C; // get      window thread  ID
+   UInt      processID(                           )C; // get      window process ID
+   SysWindow parent   (                           )C; // get      window          parent
+   SysWindow parentTop(                           )C; // get      window most top parent
+   void      sendData (CPtr data, Int size        )C; // send binary data to application of the specified window, that application can receive the data using "App.receive_data" callback function
+
+   operator Bool()C {return window!=NULL;} // if window is valid
+
+   Bool operator ==(C SysWindow &w)C {return T.window==w.window;} // if pointers are equal
+   Bool operator !=(C SysWindow &w)C {return T.window!=w.window;} // if pointers are different
+
+#if EE_PRIVATE
+   Bool operator ==(C Type &w)C {return T.window==w;} // if pointers are equal
+   Bool operator !=(C Type &w)C {return T.window!=w;} // if pointers are different
+
+   //Type operator ()()C {return window;}
+   //Type operator ->()C {return window;}
+   //Type operator * ()C {return window;}
+
+   operator Type()C {return window;} // auto cast
+
+#if WINDOWS_NEW
+   Windows::UI::Core::CoreWindow^& operator->()C {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(window);}
+#endif
+#endif
+
+   SysWindow(null_t=null) {T.window=NULL  ;}
+   SysWindow(Type window) {T.window=window;}
+
+private:
+   Type window;
+};
+/******************************************************************************/
+SysWindow WindowActive(                         ); // get     window of active application
+SysWindow WindowMouse (                         ); // get     window under mouse cursor
+void      WindowList  (MemPtr<SysWindow> windows); // get all window handles in the System
+/******************************************************************************/
 struct WindowCapture // System Window Image Capture
 {
-   void del    (                                   ); // delete manually
-   Bool capture(Image &image, SysWindow window=NULL); // capture 'window' client screen to 'image' (use null for 'window' to capture full desktop), false on fail
+   void del    (                                      ); // delete manually
+   Bool capture(Image &image, C SysWindow &window=null); // capture 'window' client screen to 'image' (use null for 'window' to capture full desktop), false on fail
 
   ~WindowCapture() {del();}
    WindowCapture() {data=null;}
@@ -17,26 +92,4 @@ private:
    Ptr data;
    NO_COPY_CONSTRUCTOR(WindowCapture);
 };
-/******************************************************************************/
-Str       WindowText     (                             SysWindow window=App.window()); // get      window title text
-void      WindowMinimize (Bool force=false,            SysWindow window=App.window()); // minimize window
-void      WindowMaximize (Bool force=false,            SysWindow window=App.window()); // maximize window
-void      WindowReset    (Bool force=false,            SysWindow window=App.window()); // reset    window from    maximized/minimized to normal state (maximized/minimized -> normal)
-void      WindowToggle   (Bool force=false,            SysWindow window=App.window()); // toggle   window between maximized          and normal state (maximized          <-> normal)
-void      WindowActivate (                             SysWindow window=App.window()); // activate window
-void      WindowClose    (                             SysWindow window=App.window()); // close    window
-void      WindowMove     (Int dx, Int dy,              SysWindow window=App.window()); // move     window by delta
-void      WindowPos      (Int  x, Int  y,              SysWindow window=App.window()); // set      window position
-void      WindowSize     (Int  w, Int  h, Bool client, SysWindow window=App.window()); // set      window size
-VecI2     WindowSize     (                Bool client, SysWindow window=App.window()); // get      window size     , 'client'=if take only the client size      (not including the borders)
-RectI     WindowRect     (                Bool client, SysWindow window=App.window()); // get      window rectangle, 'client'=if take only the client rectangle (not including the borders)
-Bool      WindowMaximized(                             SysWindow window=App.window()); // if       window is maximized
-Bool      WindowMinimized(                             SysWindow window=App.window()); // if       window is minimized
-SysWindow WindowActive   (                                                          ); // get      window of active application
-SysWindow WindowMouse    (                                                          ); // get      window under mouse cursor
-SysWindow WindowParent   (SysWindow window                                          ); // get      window          parent
-SysWindow WindowParentTop(SysWindow window                                          ); // get      window most top parent
-UInt      WindowProc     (SysWindow window                                          ); // get      window process ID
-void      WindowList     (MemPtr<SysWindow> windows                                 ); // get all  window handles in the System
-void      WindowSendData (SysWindow window, CPtr data, Int size                     ); // send binary data to application of the specified window, that application can receive the data using "App.receive_data" callback function
 /******************************************************************************/

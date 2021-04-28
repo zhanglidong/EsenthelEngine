@@ -501,7 +501,7 @@ UInt NewJoypadID(UInt id)
 #if JP_DIRECT_INPUT
 static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: this might trigger calling 'WindowMsg' !!
 {
-   Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
+   Bool xinput=false;
 
    // Create WMI
    IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
@@ -562,7 +562,6 @@ static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: t
       }
       pIWbemLocator->Release();
    }
-   if(cleanupCOM)CoUninitialize();
    return xinput;
 }
 static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)

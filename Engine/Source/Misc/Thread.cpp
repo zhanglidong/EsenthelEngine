@@ -121,12 +121,6 @@ Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value) {return __sync_bool_com
 UIntPtr Thread::id()C {return PLATFORM(::GetThreadId(_handle), (UIntPtr)_handle);}
 UIntPtr GetThreadId() {return _GetThreadId();}
 #define GetThreadId _GetThreadId
-
-#if WINDOWS_OLD
-UIntPtr GetThreadIdFromWindow(SysWindow window) {return GetWindowThreadProcessId(window, null);}
-#else
-UIntPtr GetThreadIdFromWindow(SysWindow window) {return (window==App.window()) ? App.threadID() : 0;}
-#endif
 /******************************************************************************/
 void SetThreadName(C Str8 &name, UIntPtr thread_id)
 {

@@ -718,7 +718,7 @@ void LogConsole(Bool on)
          f=null; freopen_s(&f, "CONIN$" , "rb", stdin );
          f=null; freopen_s(&f, "CONOUT$", "wb", stdout);
          f=null; freopen_s(&f, "CONOUT$", "wb", stderr);
-         if(active)WindowActivate(); // opening console switches focus to it, so if the app was active, then reactivate it so we won't lose the focus
+         if(active)App.window().activate(); // opening console switches focus to it, so if the app was active, then reactivate it so we won't lose the focus
       }
    }
 #endif

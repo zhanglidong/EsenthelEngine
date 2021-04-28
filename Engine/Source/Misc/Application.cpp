@@ -535,15 +535,15 @@ void Application::activeOrBackFullChanged()
                SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc);
             }else
             {
-               WindowMinimize(true);
+               window().minimize(true);
                SwapChain->SetFullscreenState(false, null);
             }
          }
       #endif
       }else // non-exclusive
       {
-         if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true);}
-         else                  {WindowMinimize(true); SetDisplayMode(    );}
+         if(activeOrBackFull()){SetDisplayMode(); window().reset(true);}
+         else                  {window().minimize(true); SetDisplayMode();}
       }
    #elif MAC
       if(!activeOrBackFull())hide();
@@ -609,7 +609,7 @@ Bool Application::testInstance()
       {
          if(flag&APP_ON_RUN_WAIT)ProcWait(id[i]);else
          {
-            if(auto window=ProcWindow(id[i]))WindowActivate(window);
+            if(auto window=ProcWindow(id[i]))window.activate();
             return false;
          }
       }
@@ -985,7 +985,7 @@ void LoadEmbeddedPaks(Cipher *cipher)
 Bool Application::create0()
 {
 #if WINDOWS_OLD
-   ShutCOM=OK(CoInitialize(null)); // required by: creating shortctuts - IShellLink, Unicode IME support, ITaskbarList3, Visual Studio Installation detection - SetupConfiguration, SHOpenFolderAndSelectItems
+   ShutCOM=OK(CoInitialize(null)); // required by: creating shortctuts - IShellLink, Unicode IME support, ITaskbarList3, Visual Studio Installation detection - SetupConfiguration, SHOpenFolderAndSelectItems, anything that calls 'CoCreateInstance'
    CoCreateInstance(CLSID_TaskbarList, null, CLSCTX_ALL, IID_ITaskbarList3, (Ptr*)&TaskbarList);
    SetLastError(0); // clear error 2
    TouchesSupported=(GetSystemMetrics(SM_MAXIMUMTOUCHES)>0);

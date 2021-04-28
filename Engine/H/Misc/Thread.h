@@ -762,9 +762,8 @@ Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value); // set value of 'x' to
 T1(TYPE) Bool AtomicCAS(TYPE *&x, TYPE *compare, TYPE *new_value) {return AtomicCAS((UIntPtr&)x, UIntPtr(compare), UIntPtr(new_value));}
 
 // Thread functions
-UIntPtr GetThreadId          (                                             ); // get current thread id
-UIntPtr GetThreadIdFromWindow(SysWindow window                             ); // get ID of the thread which owns the window
-void    SetThreadName        (C Str8 &name, UIntPtr thread_id=GetThreadId()); // set custom thread name for debugging purpose
+UIntPtr GetThreadId  (                                             ); // get current thread ID
+void    SetThreadName(C Str8 &name, UIntPtr thread_id=GetThreadId()); // set custom thread name for debugging purpose
 
 void ThreadMayUseGPUData       (); // call    this from a secondary thread if you expect the thread to perform any operations on GPU data (like Mesh, Material, Image, Shaders, ..., this includes any operation like creating, editing, loading, saving, deleting, ...). This function is best called at the start of the thread, it needs to be called at least once, further calls are ignored. Once the function is called, the thread locks a secondary OpenGL context (if no context is available, then the function waits until other threads finish processing and release their context lock, amount of OpenGL contexts is specified in 'D.secondaryOpenGLContexts'). Context lock is automatically released once the thread exits. This call is required only for OpenGL renderer.
 void ThreadFinishedUsingGPUData(); // calling this function is optional (it does not need to be called manually), call it if you wish to manually release a thread from locking an OpenGL context. Threads automatically call this function at end of their life, which means that they automatically release any locked contexts, however in some scenarios you may want to manually release any locked context if you wish to provide more contexts for background processing on other threads. This call is used only for OpenGL renderer.

@@ -61,7 +61,7 @@ struct Application // Application Settings
        background_wait; // amount of milliseconds the application should wait before making 'Update' calls when in background mode and with APP_WORK_IN_BACKGROUND enabled, -1=unlimited (app will wait until it's activated), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until activated    before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when it gets activated, unlike 'Time.wait' which waits without stopping.
    Mems<Str>  cmd_line; // command line arguments
 
-   void (*receive_data       )(CPtr data, Int size, SysWindow sender_window           ); // pointer to custom function called when the application has received binary data sent using 'WindowSendData' function, the application may not access 'data' memory after the callback function returns, 'sender_window'=system window of the sender, default=null
+   void (*receive_data       )(CPtr data, Int size, C SysWindow &sender_window        ); // pointer to custom function called when application has received binary data sent using 'SysWindow.sendData' function, application may not access 'data' memory after the callback function returns, 'sender_window'=system window of the sender, default=null
    void (*save_state         )(                                                       ); // pointer to custom function called when application is being put into background or will be terminated, in this function you should save current state of data which you may want to restore at next application startup, this function is used only on mobile platforms where the Operating System may close the application for any reason, default=null
    void (* paused            )(                                                       ); // pointer to custom function called when application is being  paused (lost   focus), default=null
    void (*resumed            )(                                                       ); // pointer to custom function called when application is being resumed (gained focus), default=null
@@ -83,7 +83,7 @@ struct Application // Application Settings
    UInt   parentProcessID     (               )C;                          // get application parent process ID
    UInt         processID     (               )C {return _process_id    ;} // get application        process ID
    UIntPtr       threadID     (               )C {return _thread_id     ;} // get application main   thread  ID
-   SysWindow    window        (               )C {return _window        ;} // get application system window
+ C SysWindow&   window        (               )C {return _window        ;} // get application system window
  C RectI&       desktopArea   (               )C {return _desktop_area  ;} // get available desktop area (not covered by windows taskbar or other desktop toolbars)
  C VecI2&       desktop       (               )C {return _desktop_size  ;} // get screen size   at the moment of application start (desktop size  )
    Int          desktopW      (               )C {return _desktop_size.x;} // get screen width  at the moment of application start (desktop width )
@@ -140,7 +140,6 @@ struct Application // Application Settings
 #if WINDOWS_OLD
    HMONITOR hmonitor()C;
 #elif WINDOWS_NEW
-   Windows::UI::Core::CoreWindow^& Window() {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(_window);}
    void wait(SyncEvent &event); // wait for async operation to complete
    static void ExecuteRecordedEvents();
 #elif LINUX

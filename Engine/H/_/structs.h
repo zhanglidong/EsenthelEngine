@@ -241,6 +241,7 @@ struct Object;
 struct DataCallback;
 struct Notification;
 struct IndexWeight;
+struct SysWindow;
 /******************************************************************************/
 // SOUND
 /******************************************************************************/

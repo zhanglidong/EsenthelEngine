@@ -582,26 +582,6 @@ extern Memx<Notification> Notifications; // list of active notifications
 void HideNotifications();
 #endif
 /******************************************************************************/
-#if EE_PRIVATE
-   #if WINDOWS_OLD
-      typedef HWND           SysWindow;
-   #elif MAC
-      typedef NSWindow      *SysWindow;
-   #elif LINUX
-      typedef XWindow        SysWindow; ASSERT(SIZE(SysWindow)==SIZE(ULong));
-   #elif ANDROID
-      typedef ANativeWindow *SysWindow;
-   #else
-      typedef Ptr            SysWindow;
-   #endif
-#else
-#if LINUX
-   typedef ULong SysWindow;
-#else
-   typedef Ptr   SysWindow;
-#endif
-#endif
-/******************************************************************************/
 enum LANG_TYPE : Byte
 {
 #ifndef _WINNT_

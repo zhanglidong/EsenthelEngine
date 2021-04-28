@@ -30,7 +30,7 @@ void ProcPriority(Int priority)
 #if WINDOWS_OLD
 static BOOL CALLBACK EnumWindowClose(HWND window, LPARAM process_id)
 {
-   if(WindowProc(window)==process_id)WindowClose(window);
+   SysWindow sys_win(window); if(sys_win.processID()==process_id)sys_win.close();
    return true;
 }
 #endif
@@ -131,7 +131,7 @@ SysWindow ProcWindow(UInt id)
       if(id==App.processID())return App.window();
    #endif
    }
-   return NULL;
+   return null;
 }
 /******************************************************************************/
 #if WINDOWS_OLD && SUPPORT_WINDOWS_XP

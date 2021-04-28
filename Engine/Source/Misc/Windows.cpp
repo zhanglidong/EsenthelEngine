@@ -7,12 +7,6 @@
  
 /******************************************************************************/
 #include "stdafx.h"
-#if MAC
-   #include "../Platforms/Mac/MyWindow.h"
-   #include "../Platforms/Mac/MyOpenGLView.h"
-#endif
-namespace EE{
-/******************************************************************************/
 #if WINDOWS_OLD
 
 #include <windowsx.h>
@@ -27,6 +21,7 @@ namespace EE{
 #define WM_POINTERCAPTURECHANGED 0x024C
 #define WM_DPICHANGED            0x02E0
 
+#if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
 typedef enum tagPOINTER_INPUT_TYPE
 {
    PT_POINTER=0x00000001,
@@ -36,384 +31,13 @@ typedef enum tagPOINTER_INPUT_TYPE
 }POINTER_INPUT_TYPE;
 
 static BOOL (WINAPI *GetPointerType)(UINT32 pointerId, POINTER_INPUT_TYPE *pointerType);
+#endif
 
 static HPOWERNOTIFY PowerNotify;
-
-struct WindowCaptureEx
-{
-   HDC     dc;
-   HBITMAP bitmap;
-   VecI2   size;
-
-   WindowCaptureEx() {dc=null; bitmap=null; size.zero();}
-  ~WindowCaptureEx() {del();}
-
-   void del()
-   {
-      if(bitmap){DeleteObject(bitmap); bitmap=null;}
-      if(dc    ){DeleteDC    (dc    ); dc    =null;}
-      size.zero();
-   }
-
-   Bool capture(Image &image, SysWindow window=null)
-   {
-      Bool ok=false;
-   #if DX11
-      if(window==App.window() && SwapChainDesc.SwapEffect!=DXGI_SWAP_EFFECT_DISCARD) // on DX10+ when swap chain flip mode is enabled, using 'GetDC' will result in a black image
-      {
-         Renderer.capture(image, -1, -1, -1, -1, 1, false);
-      }else
-   #endif
-      if(HDC src_dc=GetDC(window))
-      {
-       //if(HBITMAP src_bitmap=(HBITMAP)GetCurrentObject(src_dc, OBJ_BITMAP))
-         {
-          //BITMAP bmp; if(GetObject(src_bitmap, SIZE(bmp), &bmp))
-            {
-             //Int width=bmp.bmWidth, height=bmp.bmHeight; don't use bitmap size because it returns full window size (including borders, not client only)
-               Int width, height;
-               if(window)
-               {
-                  VecI2 size=WindowSize(true, window);
-                  width =size.x;
-                  height=size.y;
-               }else
-               {
-                  width =D.screenW();
-                  height=D.screenH();
-               }
-
-               if(width!=size.x || height!=size.y)
-               {
-                  if(!dc)dc=CreateCompatibleDC(src_dc);
-                  if(bitmap){DeleteObject(bitmap); bitmap=null;}
-                  if(bitmap=CreateCompatibleBitmap(src_dc, width, height)){size.set(width, height); SelectObject(dc, bitmap);}else size.zero();
-               }
-               
-               if(bitmap && BitBlt(dc, 0, 0, size.x, size.y, src_dc, 0, 0, SRCCOPY))
-               {
-                  if(image.hwType()!=IMAGE_B8G8R8A8_SRGB || image.size()!=size || image.d()!=1 || image.pitch()!=image.w()*image.bytePP())image.createSoftTry(size.x, size.y, 1, IMAGE_B8G8R8A8_SRGB);
-                  if(image.is() && image.lock(LOCK_WRITE))
-                  {
-                     BITMAPINFO bi; Zero(bi);
-                     bi.bmiHeader.biSize  =SIZE(bi.bmiHeader); 
-                     bi.bmiHeader.biWidth = image.w();
-                     bi.bmiHeader.biHeight=-image.h(); // positive height would flip the image
-                     bi.bmiHeader.biPlanes=1;
-                     bi.bmiHeader.biBitCount=32;
-                     bi.bmiHeader.biCompression=BI_RGB;
-                     ok=(GetDIBits(dc, bitmap, 0, image.h(), image.data(), &bi, DIB_RGB_COLORS)>0);
-                     image.unlock();
-                  }
-               }
-            }
-         }
-         ReleaseDC(window, src_dc);
-      }
-      return ok;
-   }
-};
-void WindowCapture::del()
-{
-   Delete((WindowCaptureEx*&)data);
-}
-Bool WindowCapture::capture(Image &image, SysWindow window)
-{
-   WindowCaptureEx* &wc=(WindowCaptureEx*&)data;
-   if(!wc)New(wc);
-   return wc->capture(image, window);
-}
-#else
-void WindowCapture::del()
-{
-}
-Bool WindowCapture::capture(Image &image, SysWindow window)
-{
-   return false;
-}
-#endif
-/******************************************************************************/
-#if WINDOWS_OLD
-Str WindowText(SysWindow window)
-{
-   wchar_t temp[16*1024]; temp[0]='\0'; GetWindowText(window, temp, Elms(temp)); return temp;
-}
-void WindowMinimize(Bool force, SysWindow window)
-{
-   if(force)ShowWindow(window, SW_MINIMIZE);
-   else    PostMessage(window, WM_SYSCOMMAND, SC_MINIMIZE, NULL);
-}
-void WindowMaximize(Bool force, SysWindow window)
-{
-   if(force)ShowWindow(window, SW_MAXIMIZE);
-   else    PostMessage(window, WM_SYSCOMMAND, SC_MAXIMIZE, NULL);
-}
-void WindowReset(Bool force, SysWindow window)
-{
-   if(force)ShowWindow(window, SW_RESTORE);
-   else    PostMessage(window, WM_SYSCOMMAND, SC_RESTORE, NULL);
-}
-void WindowToggle(Bool force, SysWindow window)
-{
-   if(WindowMaximized(window))WindowReset   (force, window);
-   else                       WindowMaximize(force, window);
-}
-void WindowActivate(SysWindow window)
-{
-   if(WindowMinimized(window))WindowReset(false, window);
-   UIntPtr act_thread=GetThreadIdFromWindow(WindowActive()),
-           cur_thread=GetThreadId          (              );
-   if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, true);
-   BringWindowToTop   (window);
-   SetForegroundWindow(window);
-   if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, false);
-}
-void WindowClose(SysWindow window)
-{
-   PostMessage(window, WM_SYSCOMMAND, SC_CLOSE, NULL);
-}
-/******************************************************************************/
-void WindowMove(Int dx, Int dy, SysWindow window)
-{
-   if(dx || dy)
-   {
-      RECT rect; GetWindowRect(window, &rect);
-      MoveWindow(window, rect.left+dx, rect.top+dy, rect.right-rect.left, rect.bottom-rect.top, true);
-   }
-}
-void WindowPos(Int x, Int y, SysWindow window)
-{
-   RECT rect; GetWindowRect(window, &rect);
-   MoveWindow(window, x, y, rect.right-rect.left, rect.bottom-rect.top, true);
-}
-void WindowSize(Int w, Int h, Bool client, SysWindow window)
-{
-   RECT rect; GetWindowRect(window, &rect);
-   if(client)
-   {
-      RECT client; GetClientRect(window, &client);
-      w+=(rect.right -rect.left)-(client.right -client.left);
-      h+=(rect.bottom-rect.top )-(client.bottom-client.top );
-   }
-   MoveWindow(window, rect.left, rect.top, w, h, true);
-}
-VecI2 WindowSize(Bool client, SysWindow window)
-{
-   RECT rect;
-   if(!client)
-   {
-      if(!GetWindowRect(window, &rect))goto error;
-   }else
-   {
-      if(!GetClientRect(window, &rect))goto error;
-   }
-   return VecI2(rect.right-rect.left, rect.bottom-rect.top);
-error:
-   return 0;
-}
-RectI WindowRect(Bool client, SysWindow window) // !! 'WindowRect' can return weird position when the window is minimized !!
-{
-   RECT rect;
-   if(!client)
-   {
-      if(!GetWindowRect(window, &rect))goto error;
-   }else
-   {
-      POINT pos={0, 0};
-      if(!GetClientRect (window, &rect))goto error;
-          ClientToScreen(window, &pos );
-      rect.left +=pos.x; rect.top   +=pos.y;
-      rect.right+=pos.x; rect.bottom+=pos.y;
-   }
-#if DEBUG && 0
-   LogN(S+"WindowRect("+client+")="+RectI(rect.left, rect.top, rect.right, rect.bottom).asText());
-#endif
-   return RectI(rect.left, rect.top, rect.right, rect.bottom);
-error:
-   return RectI(0, 0, 0, 0);
-}
-Bool WindowMaximized(SysWindow window)
-{
-   return IsZoomed(window)!=0;
-}
-Bool WindowMinimized(SysWindow window)
-{
-   return IsIconic(window)!=0;
-}
-void WindowSendData(SysWindow window, CPtr data, Int size)
-{
-   if(window && size>=0)
-   {
-      COPYDATASTRUCT ds;
-      ds.dwData=0; // custom ID, not used
-      ds.lpData=Ptr(data);
-      ds.cbData=size;
-      SendMessage(window, WM_COPYDATA, (WPARAM)App.window(), (LPARAM)&ds);
-   }
-}
-/******************************************************************************/
-SysWindow WindowActive()
-{
-   return GetForegroundWindow();
-}
-SysWindow WindowMouse()
-{
-   POINT cur; if(GetCursorPos(&cur))return WindowFromPoint(cur); return null;
-}
-SysWindow WindowParent(SysWindow window)
-{
-   return GetParent(window);
-}
-/******************************************************************************/
-static BOOL CALLBACK EnumWindowList(HWND window, LPARAM windows_ptr)
-{
-   MemPtr<SysWindow> &windows=*(MemPtr<SysWindow>*)windows_ptr;
-   windows.add(window);
-   return true;
-}
-void WindowList(MemPtr<SysWindow> windows)
-{
-   windows.clear();
-   EnumWindows(EnumWindowList, LPARAM(&windows));
-}
-/******************************************************************************/
 #elif MAC
-/******************************************************************************/
-Str WindowText(SysWindow window)
-{
-   return window ? [window title] : S; // do not release [window title] as it will crash
-}
-void WindowActivate(SysWindow window)
-{
-   if(window && window==App.window())
-   {
-      ProcessSerialNumber psn;
-      if(GetProcessForPID(App.processID(), &psn)==noErr)SetFrontProcess(&psn);
-   }
-}
-SysWindow WindowMouse()
-{
-   return Ms._on_client ? App.window() : null;
-}
-Bool WindowMaximized(SysWindow window)
-{
-   return window ? [window isZoomed] : false;
-}
-Bool WindowMinimized(SysWindow window)
-{
-   return window ? [window isMiniaturized] : false;
-}
-void WindowClose(SysWindow window)
-{
-   if(window)[window performClose:NSApp];
-}
-void WindowMinimize(Bool force, SysWindow window)
-{
-   if(window)[window performMiniaturize:NSApp];
-}
-void WindowMaximize(Bool force, SysWindow window)
-{
-   if(window)
-   {
-      if( [window isMiniaturized])WindowActivate(window);
-      if(![window isZoomed      ])[window performZoom:NSApp];
-   }
-}
-void WindowReset(Bool force, SysWindow window)
-{
-   if(window)
-   {
-      if([window isMiniaturized])WindowActivate(window);else
-      if([window isZoomed      ])[window performZoom:NSApp];
-   }
-}
-void WindowToggle(Bool force, SysWindow window)
-{
-   if(window)
-   {
-      if([window isMiniaturized])WindowActivate(window);else
-         [window performZoom:NSApp];
-   }
-}
-static VecI2 GetWindowSize(Bool client, NSWindow *window)
-{
-   NSRect    rect=[window frame];
-   if(client)rect=[window contentRectForFrameRect:rect];
-   return VecI2(Round(rect.size.width), Round(rect.size.height));
-}
-static void GetWindowRect(Bool client, NSWindow *window, RectI &r)
-{
-   NSRect    rect=[window frame];
-   if(client)rect=[window contentRectForFrameRect:rect];
-   r.min.x=            Round(rect.origin.x); r.max.x=r.min.x+Round(rect.size.width );
-   r.max.y=D.screenH()-Round(rect.origin.y); r.min.y=r.max.y-Round(rect.size.height);
-}
-VecI2 WindowSize(Bool client, SysWindow window)
-{
-   if(window)
-   {
-      if(window==App.window() && D.full())return D.res();
-      return GetWindowSize(client, window);
-   }
-   return 0;
-}
-RectI WindowRect(Bool client, SysWindow window)
-{
-   RectI r;
-   if(window)
-   {
-      if(window==App.window() && D.full())r.set(0, 0, D.resW(), D.resH());
-      else                               GetWindowRect(client, window, r);
-   }else r.zero();
-   return r;
-}
-void WindowMove(Int dx, Int dy, SysWindow window)
-{
-   if((dx || dy) && window)
-   {
-      RectI r=WindowRect(false, window);
-      WindowPos(r.min.x+dx, r.min.y+dy, window);
-   }
-}
-void WindowPos(Int x, Int y, SysWindow window)
-{
-   if(window)
-   {
-      NSPoint p; p.x=x; p.y=D.screenH()-y;
-      [window setFrameTopLeftPoint:p];
-   }
-}
-void WindowSize(Int w, Int h, Bool client, SysWindow window)
-{
-   if(window)
-   {
-      // don't use [window setContentSize:NSSize] as it will resize while preserving the bottom left window position
-      NSRect rect=[window frame];
-      auto rect_h=rect.size.height;
-      rect.size.width =w;
-      rect.size.height=h;
-      if(client)
-      {
-      #if 0 // this might break in fullscreen?
-         rect.size.width +=App._bound.w();
-         rect.size.height+=App._bound.h();
-      #else
-         rect.size=[window frameRectForContentRect:rect].size;
-      #endif
-      }
-      rect.origin.y+=rect_h-rect.size.height; // 'origin' is bottom-left window position
-      [window setFrame:rect display:true]; // 'setFrame' includes borders
-   }
-}
-SysWindow WindowParent(SysWindow window)
-{
-   return window ? [window parentWindow] : null;
-}
-void WindowSendData(SysWindow window, CPtr data, Int size) {}
-SysWindow WindowActive() {return App.active() ? App.window() : null;}
-/******************************************************************************/
+   #include "../Platforms/Mac/MyWindow.h"
+   #include "../Platforms/Mac/MyOpenGLView.h"
 #elif LINUX
-/******************************************************************************/
 #define _NET_WM_STATE_REMOVE 0
 #define _NET_WM_STATE_ADD    1
 #define _NET_WM_STATE_TOGGLE 2
@@ -437,12 +61,21 @@ struct MotifWmHints2
             long input_mode;
    unsigned long status;
 };
+#endif
+namespace EE{
 /******************************************************************************/
-Str WindowText(SysWindow window)
+// SYSTEM WINDOW
+/******************************************************************************/
+Str SysWindow::text()C
 {
-   Str s;
+#if WINDOWS_OLD
+   wchar_t temp[16*1024]; temp[0]='\0'; GetWindowText(window, temp, Elms(temp)); return temp;
+#elif MAC
+   if(window)return [window title]; // do not release [window title] as it will crash
+#elif LINUX
    if(XDisplay && window)
    {
+      Str s;
       if(_NET_WM_NAME && UTF8_STRING)
       {
          Atom           type=NULL;
@@ -457,81 +90,48 @@ Str WindowText(SysWindow window)
          char *name=null; XFetchName(XDisplay, window, &name);
          if(name){s=name; XFree(name);}
       }
+      return s;
    }
-   return s;
+#else
+   if(window==App.window())return App.name();
+#endif
+   return S;
 }
-void WindowActivate(SysWindow window)
+/******************************************************************************/
+void SysWindow::minimize(Bool force)C
 {
-   if(XDisplay && window)
+#if WINDOWS_OLD
+   if(force)ShowWindow(window, SW_MINIMIZE);
+   else    PostMessage(window, WM_SYSCOMMAND, SC_MINIMIZE, NULL);
+#elif WINDOWS_NEW
+   if(window==App.window())
    {
-      XRaiseWindow  (XDisplay, window);
-      XSetInputFocus(XDisplay, window, RevertToParent, CurrentTime);
+      /* TODO:
+      IList<AppDiagnosticInfo> infos=await AppDiagnosticInfo.RequestInfoForAppAsync();
+      IList<AppResourceGroupInfo> resourceInfos=infos[0].GetResourceGroups();
+      await resourceInfos[0].StartSuspendAsync();*/
    }
-}
-SysWindow WindowMouse()
-{
-   if(XDisplay)
-   {
-      XWindow root, child;
-      int rx, ry, x, y;
-      unsigned int mask;
-      XQueryPointer(XDisplay, DefaultRootWindow(XDisplay), &root, &child, &rx, &ry, &x, &y, &mask);
-      return XmuClientWindow(XDisplay, WindowParentTop(child));
-   }
-   return NULL;
-}
-Bool WindowMaximized(SysWindow window)
-{
-   if(XDisplay && window && _NET_WM_STATE)
-   {
-      UInt           flags=0;
-      Atom           type=NULL;
-      int            format=0;
-      unsigned long  items=0, bytes_after=0;
-      unsigned char *data=null;
-      if(!XGetWindowProperty(XDisplay, window, _NET_WM_STATE, 0, 1024, false, XA_ATOM, &type, &format, &items, &bytes_after, &data))
-         if(Atom *atoms=(Atom*)data)
-            for(unsigned long i=0; i<items; i++)
-            {
-               if(atoms[i]==_NET_WM_STATE_MAXIMIZED_HORZ)flags|=1;else
-               if(atoms[i]==_NET_WM_STATE_MAXIMIZED_VERT)flags|=2;
-            }
-      if(data)XFree(data);
-      return flags==3;
-   }
-   return false;
-}
-Bool WindowMinimized(SysWindow window)
-{
-   if(XDisplay && window && WM_STATE)
-   {
-      struct State
-      {
-         CARD32 state;
-         XID    icon;
-      };
-      bool           min=false;
-      Atom           type=NULL;
-      int            format=0;
-      unsigned long  items=0, bytes_after=0;
-      unsigned char *data=null;
-      if(!XGetWindowProperty(XDisplay, window, WM_STATE, 0, SIZE(State)/4, false, WM_STATE, &type, &format, &items, &bytes_after, &data))
-         if(State *state=(State*)data)min=(state->state==IconicState);
-      if(data)XFree(data);
-      return min;
-   }
-   return false;
-}
-void WindowClose(SysWindow window)
-{
-   if(XDisplay && window)XDestroyWindow(XDisplay, window);
-}
-void WindowMinimize(Bool force, SysWindow window)
-{
+#elif MAC
+   if(window)[window performMiniaturize:NSApp];
+#elif LINUX
    if(XDisplay && window)XIconifyWindow(XDisplay, window, DefaultScreen(XDisplay));
+#elif ANDROID
+   if(window==App.window())App.hide();
+#endif
 }
-void WindowMaximize(Bool force, SysWindow window)
+/******************************************************************************/
+void SysWindow::maximize(Bool force)C
 {
+#if WINDOWS_OLD
+   if(force)ShowWindow(window, SW_MAXIMIZE);
+   else    PostMessage(window, WM_SYSCOMMAND, SC_MAXIMIZE, NULL);
+#elif MAC
+   if(window)
+   {
+      if( [window isMiniaturized])activate();
+      if(![window isZoomed      ])[window performZoom:NSApp];
+   }
+#elif LINUX
    if(XDisplay && window && _NET_WM_STATE && _NET_WM_STATE_MAXIMIZED_HORZ && _NET_WM_STATE_MAXIMIZED_VERT)
    {
    #if 1
@@ -575,9 +175,21 @@ void WindowMaximize(Bool force, SysWindow window)
       XMoveResizeWindow(XDisplay, window, 0, 0, App.desktopArea().w(), App.desktopArea().h()); // 'XMoveResizeWindow' accepts client size
    #endif
    }
+#endif
 }
-void WindowReset(Bool force, SysWindow window)
+/******************************************************************************/
+void SysWindow::reset(Bool force)C
 {
+#if WINDOWS_OLD
+   if(force)ShowWindow(window, SW_RESTORE);
+   else    PostMessage(window, WM_SYSCOMMAND, SC_RESTORE, NULL);
+#elif MAC
+   if(window)
+   {
+      if([window isMiniaturized])activate();
+      if([window isZoomed      ])[window performZoom:NSApp];
+   }
+#elif LINUX
    if(XDisplay && window && _NET_WM_STATE && _NET_WM_STATE_MAXIMIZED_HORZ && _NET_WM_STATE_MAXIMIZED_VERT)
    {
    #if 1
@@ -616,14 +228,168 @@ void WindowReset(Bool force, SysWindow window)
       }
    #endif
    }
+#endif
 }
-void WindowToggle(Bool force, SysWindow window)
+/******************************************************************************/
+void SysWindow::toggle(Bool force)C
 {
-   if(WindowMaximized(window))WindowReset   (force, window);
-   else                       WindowMaximize(force, window);
+#if MAC
+   if(window)
+   {
+      if(  [window isMiniaturized])activate();
+      else [window performZoom:NSApp];
+   }
+#else
+   if(maximized())reset   (force);
+   else           maximize(force);
+#endif
 }
-VecI2 WindowSize(Bool client, SysWindow window)
+/******************************************************************************/
+void SysWindow::activate()C
 {
+#if WINDOWS_OLD
+   if(minimized())reset(false);
+   UIntPtr act_thread=WindowActive().threadID(),
+           cur_thread=            GetThreadId();
+   if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, true);
+   BringWindowToTop   (window);
+   SetForegroundWindow(window);
+   if(cur_thread!=act_thread)AttachThreadInput(act_thread, cur_thread, false);
+#elif MAC
+   if(window && window==App.window())
+   {
+      ProcessSerialNumber psn;
+      if(GetProcessForPID(App.processID(), &psn)==noErr)SetFrontProcess(&psn);
+   }
+#elif LINUX
+   if(XDisplay && window)
+   {
+      XRaiseWindow  (XDisplay, window);
+      XSetInputFocus(XDisplay, window, RevertToParent, CurrentTime);
+   }
+#endif
+}
+/******************************************************************************/
+void SysWindow::close()C
+{
+#if WINDOWS_OLD
+   PostMessage(window, WM_SYSCOMMAND, SC_CLOSE, NULL);
+#elif MAC
+   if(window)[window performClose:NSApp];
+#elif LINUX
+   if(XDisplay && window)XDestroyWindow(XDisplay, window);
+#endif
+}
+/******************************************************************************/
+void SysWindow::move(Int dx, Int dy)C
+{
+   if(dx || dy)
+   {
+   #if WINDOWS_OLD
+         RECT rect; GetWindowRect(window, &rect);
+         MoveWindow(window, rect.left+dx, rect.top+dy, rect.right-rect.left, rect.bottom-rect.top, true);
+   #elif MAC
+      if(window)
+      {
+         VecI2 pos=rect(false).min;
+         pos(pos.x+dx, pos.y+dy);
+      }
+   #elif LINUX
+      if(XDisplay && window)
+      {
+         VecI2 pos=rect(false).min;
+         XMoveWindow(XDisplay, window, pos.x+dx, pos.y+dy);
+      }
+   #endif
+   }
+}
+/******************************************************************************/
+void SysWindow::pos(Int x, Int y)C
+{
+#if WINDOWS_OLD
+   RECT rect; GetWindowRect(window, &rect);
+   MoveWindow(window, x, y, rect.right-rect.left, rect.bottom-rect.top, true);
+#elif MAC
+   if(window)
+   {
+      NSPoint p; p.x=x; p.y=D.screenH()-y;
+      [window setFrameTopLeftPoint:p];
+   }
+#elif LINUX
+   if(XDisplay && window)XMoveWindow(XDisplay, window, x, y);
+#endif
+}
+/******************************************************************************/
+void SysWindow::size(Int w, Int h, Bool client)C
+{
+#if WINDOWS_OLD
+   RECT rect; GetWindowRect(window, &rect);
+   if(client)
+   {
+      RECT client; GetClientRect(window, &client);
+      w+=(rect.right -rect.left)-(client.right -client.left);
+      h+=(rect.bottom-rect.top )-(client.bottom-client.top );
+   }
+   MoveWindow(window, rect.left, rect.top, w, h, true);
+#elif MAC
+   if(window)
+   {
+      // don't use [window setContentSize:NSSize] as it will resize while preserving the bottom left window position
+      NSRect rect=[window frame];
+      auto rect_h=rect.size.height;
+      rect.size.width =w;
+      rect.size.height=h;
+      if(client)
+      {
+      #if 0 // TODO: this might break in fullscreen?
+         rect.size.width +=App._bound.w();
+         rect.size.height+=App._bound.h();
+      #else
+         rect.size=[window frameRectForContentRect:rect].size;
+      #endif
+      }
+      rect.origin.y+=rect_h-rect.size.height; // 'origin' is bottom-left window position
+      [window setFrame:rect display:true]; // 'setFrame' includes borders
+   }
+#elif LINUX
+   if(XDisplay && window)
+   {
+      if(!client)
+      {
+      #if 1
+         VecI2 border=App._bound.size();
+      #else
+         VecI2 border=WindowSize(false, window)-WindowSize(true, window);
+      #endif
+         w-=border.x;
+         h-=border.y;
+      }
+      XResizeWindow(XDisplay, window, w, h); // 'XResizeWindow' accepts client size
+   }
+#endif
+}
+/******************************************************************************/
+VecI2 SysWindow::size(Bool client)C
+{
+#if WINDOWS_OLD
+   RECT rect;
+   if(client ? GetClientRect(window, &rect)
+             : GetWindowRect(window, &rect))
+      return VecI2(rect.right-rect.left, rect.bottom-rect.top);
+#elif WINDOWS_NEW
+   if(window)
+   {
+      Windows::Foundation::Rect rect=T->Bounds; // this returns the client rect
+      return VecI2(DipsToPixelsI(rect.Width), DipsToPixelsI(rect.Height));
+   }
+#elif MAC
+   if(window)
+   {
+      NSRect    rect=[window frame];
+      if(client)rect=[window contentRectForFrameRect:rect];
+      return VecI2(Round(rect.size.width), Round(rect.size.height));
+   }
+#elif LINUX
    if(XDisplay && window)
    {
       XWindowAttributes attr; if(XGetWindowAttributes(XDisplay, window, &attr)==true)
@@ -632,10 +398,49 @@ VecI2 WindowSize(Bool client, SysWindow window)
          return VecI2(attr.width, attr.height);
       }
    }
+#else
+   if(window==App.window())return D.res();
+#endif
    return 0;
 }
-RectI WindowRect(Bool client, SysWindow window)
+/******************************************************************************/
+RectI SysWindow::rect(Bool client)C
 {
+#if WINDOWS_OLD // !! Warning: 'WindowRect' can return weird position when the window is minimized !!
+   RECT rect;
+   if(client)
+   {
+      POINT pos={0, 0};
+      if(!GetClientRect (window, &rect))goto error;
+          ClientToScreen(window, &pos );
+      rect.left +=pos.x; rect.top   +=pos.y;
+      rect.right+=pos.x; rect.bottom+=pos.y;
+   }else
+   {
+      if(!GetWindowRect(window, &rect))goto error;
+   }
+#if DEBUG && 0
+   LogN(S+"WindowRect("+client+")="+RectI(rect.left, rect.top, rect.right, rect.bottom).asText());
+#endif
+   return RectI(rect.left, rect.top, rect.right, rect.bottom);
+error:
+#elif WINDOWS_NEW
+   if(window)
+   {
+      Windows::Foundation::Rect rect=T->Bounds; // this returns the client rect
+      return RectI(DipsToPixelsI(rect.X), DipsToPixelsI(rect.Y), DipsToPixelsI(rect.X+rect.Width), DipsToPixelsI(rect.Y+rect.Height));
+   }
+#elif MAC
+   if(window)
+   {
+      NSRect    rect=[window frame];
+      if(client)rect=[window contentRectForFrameRect:rect];
+      RectI r;
+      r.min.x=            Round(rect.origin.x); r.max.x=r.min.x+Round(rect.size.width );
+      r.max.y=D.screenH()-Round(rect.origin.y); r.min.y=r.max.y-Round(rect.size.height);
+      return r;
+   }
+#elif LINUX
    if(XDisplay && window)
    {
       XWindowAttributes attr;
@@ -655,39 +460,99 @@ RectI WindowRect(Bool client, SysWindow window)
          return r;
       }
    }
+#else
+   if(window==App.window())return RectI(0, 0, D.resW(), D.resH());
+#endif
    return RectI(0, 0, 0, 0);
 }
-void WindowMove(Int dx, Int dy, SysWindow window)
+/******************************************************************************/
+Bool SysWindow::maximized()C
 {
-   if(XDisplay && window && (dx || dy))
+#if WINDOWS_OLD
+   return IsZoomed(window)!=0;
+#elif MAC
+   if(window)return [window isZoomed];
+#elif LINUX
+   if(XDisplay && window && _NET_WM_STATE)
    {
-      VecI2 pos=WindowRect(false, window).min;
-      XMoveWindow(XDisplay, window, pos.x+dx, pos.y+dy);
+      UInt           flags=0;
+      Atom           type=NULL;
+      int            format=0;
+      unsigned long  items=0, bytes_after=0;
+      unsigned char *data=null;
+      if(!XGetWindowProperty(XDisplay, window, _NET_WM_STATE, 0, 1024, false, XA_ATOM, &type, &format, &items, &bytes_after, &data))
+         if(Atom *atoms=(Atom*)data)
+            for(unsigned long i=0; i<items; i++)
+            {
+               if(atoms[i]==_NET_WM_STATE_MAXIMIZED_HORZ)flags|=1;else
+               if(atoms[i]==_NET_WM_STATE_MAXIMIZED_VERT)flags|=2;
+            }
+      if(data)XFree(data);
+      return flags==3;
    }
+#else
+   if(window==App.window())return App.maximized();
+#endif
+   return false;
 }
-void WindowPos(Int x, Int y, SysWindow window)
+/******************************************************************************/
+Bool SysWindow::minimized()C
 {
-   if(XDisplay && window)XMoveWindow(XDisplay, window, x, y);
-}
-void WindowSize(Int w, Int h, Bool client, SysWindow window)
-{
-   if(XDisplay && window)
+#if WINDOWS_OLD
+   return IsIconic(window)!=0;
+#elif MAC
+   if(window)return [window isMiniaturized];
+#elif LINUX
+   if(XDisplay && window && WM_STATE)
    {
-      if(!client)
+      struct State
       {
-      #if 1
-         VecI2 border=App._bound.size();
-      #else
-         VecI2 border=WindowSize(false, window)-WindowSize(true, window);
-      #endif
-         w-=border.x;
-         h-=border.y;
-      }
-      XResizeWindow(XDisplay, window, w, h); // 'XResizeWindow' accepts client size
+         CARD32 state;
+         XID    icon;
+      };
+      bool           min=false;
+      Atom           type=NULL;
+      int            format=0;
+      unsigned long  items=0, bytes_after=0;
+      unsigned char *data=null;
+      if(!XGetWindowProperty(XDisplay, window, WM_STATE, 0, SIZE(State)/4, false, WM_STATE, &type, &format, &items, &bytes_after, &data))
+         if(State *state=(State*)data)min=(state->state==IconicState);
+      if(data)XFree(data);
+      return min;
    }
+#else
+   if(window==App.window())return App.minimized();
+#endif
+   return false;
 }
-SysWindow WindowParent(SysWindow window)
+/******************************************************************************/
+UIntPtr SysWindow::threadID()C
 {
+#if WINDOWS_OLD
+   return GetWindowThreadProcessId(window, null);
+#else
+   if(window==App.window())return App.threadID();
+#endif
+   return 0;
+}
+/******************************************************************************/
+UInt SysWindow::processID()C
+{
+#if WINDOWS_OLD
+   DWORD proc=0; GetWindowThreadProcessId(window, &proc); return proc;
+#else
+   if(window==App.window())return App.processID();
+#endif
+   return 0;
+}
+/******************************************************************************/
+SysWindow SysWindow::parent()C
+{
+#if WINDOWS_OLD
+   return GetParent(window);
+#elif MAC
+   if(window)return [window parentWindow];
+#elif LINUX
    if(XDisplay && window)
    {
       XWindow root=NULL, parent=NULL, *children=null;
@@ -696,123 +561,91 @@ SysWindow WindowParent(SysWindow window)
       if(children)XFree(children);
       if(root!=parent)return parent;
    }
-   return NULL;
+#endif
+   return null;
 }
-void WindowSendData(SysWindow window, CPtr data, Int size) {}
+/******************************************************************************/
+SysWindow SysWindow::parentTop()C
+{
+   SysWindow cur=T; for(; SysWindow parent=cur.parent(); )cur=parent; return cur;
+}
+/******************************************************************************/
+void SysWindow::sendData(CPtr data, Int size)C
+{
+#if WINDOWS_OLD
+   if(window && size>=0)
+   {
+      COPYDATASTRUCT ds;
+      ds.dwData=0; // custom ID, not used
+      ds.lpData=Ptr(data);
+      ds.cbData=size;
+      SendMessage(window, WM_COPYDATA, (WPARAM)App.window(), (LPARAM)&ds);
+   }
+#endif
+}
 SysWindow WindowActive()
 {
+#if WINDOWS_OLD
+   return GetForegroundWindow();
+#elif LINUX
    if(XDisplay)
    {
       XWindow window; int revert_to;
       if(XGetInputFocus(XDisplay, &window, &revert_to)==True)return XmuClientWindow(XDisplay, WindowParentTop(window));
    }
-   return App.active() ? App.window() : NULL;
+#endif
+   return App.active() ? App.window() : null;
+}
+/******************************************************************************/
+#if WINDOWS_OLD
+/******************************************************************************/
+SysWindow WindowMouse()
+{
+   POINT cur; if(GetCursorPos(&cur))return WindowFromPoint(cur); return null;
+}
+/******************************************************************************/
+static BOOL CALLBACK EnumWindowList(HWND window, LPARAM windows_ptr)
+{
+   MemPtr<SysWindow> &windows=*(MemPtr<SysWindow>*)windows_ptr;
+   windows.add(window);
+   return true;
+}
+void WindowList(MemPtr<SysWindow> windows)
+{
+   windows.clear();
+   EnumWindows(EnumWindowList, LPARAM(&windows));
+}
+/******************************************************************************/
+#elif MAC
+/******************************************************************************/
+SysWindow WindowMouse()
+{
+   return Ms._on_client ? App.window() : null;
+}
+/******************************************************************************/
+#elif LINUX
+/******************************************************************************/
+SysWindow WindowMouse()
+{
+   if(XDisplay)
+   {
+      XWindow root, child;
+      int rx, ry, x, y;
+      unsigned int mask;
+      XQueryPointer(XDisplay, DefaultRootWindow(XDisplay), &root, &child, &rx, &ry, &x, &y, &mask);
+      return XmuClientWindow(XDisplay, WindowParentTop(child));
+   }
+   return null;
 }
 /******************************************************************************/
 #else
 /******************************************************************************/
-Str WindowText(SysWindow window)
-{
-   if(window==App.window())return App.name();
-   return S;
-}
-void WindowActivate(SysWindow window)
-{
-}
 SysWindow WindowMouse()
 {
    return (App.active() && !App.minimized()) ? App.window() : null;
 }
-Bool WindowMaximized(SysWindow window)
-{
-   return window==App.window() && App.maximized();
-}
-Bool WindowMinimized(SysWindow window)
-{
-   return window==App.window() && App.minimized();
-}
-void WindowClose(SysWindow window)
-{
-}
-void WindowMinimize(Bool force, SysWindow window)
-{
-#if WINDOWS_NEW
-   if(window==App.window())
-   {
-      /* TODO:
-      IList<AppDiagnosticInfo> infos=await AppDiagnosticInfo.RequestInfoForAppAsync();
-      IList<AppResourceGroupInfo> resourceInfos=infos[0].GetResourceGroups();
-      await resourceInfos[0].StartSuspendAsync();*/
-   }
-#elif ANDROID
-   if(window==App.window())App.hide();
-#endif
-}
-void WindowMaximize(Bool force, SysWindow window)
-{
-}
-void WindowReset(Bool force, SysWindow window)
-{
-}
-void WindowToggle(Bool force, SysWindow window)
-{
-}
-VecI2 WindowSize(Bool client, SysWindow window)
-{
-   if(window==App.window())
-   {
-   #if WINDOWS_NEW
-      if(App.window())
-      {
-         Windows::Foundation::Rect rect=App.Window()->Bounds; // this returns the client rect
-         return VecI2(DipsToPixelsI(rect.Width), DipsToPixelsI(rect.Height));
-      }
-   #endif
-      return D.res();
-   }
-   return 0;
-}
-RectI WindowRect(Bool client, SysWindow window)
-{
-   if(window==App.window())
-   {
-   #if WINDOWS_NEW
-      if(App.window())
-      {
-         Windows::Foundation::Rect rect=App.Window()->Bounds; // this returns the client rect
-         return RectI(DipsToPixelsI(rect.X), DipsToPixelsI(rect.Y), DipsToPixelsI(rect.X+rect.Width), DipsToPixelsI(rect.Y+rect.Height));
-      }
-   #endif
-      return RectI(0, 0, D.resW(), D.resH());
-   }
-   return RectI(0, 0, 0, 0);
-}
-void WindowMove(Int dx, Int dy, SysWindow window)
-{
-}
-void WindowPos(Int x, Int y, SysWindow window)
-{
-}
-void WindowSize(Int w, Int h, Bool client, SysWindow window)
-{
-}
-SysWindow WindowParent(SysWindow window)
-{
-   return null;
-}
-void WindowSendData(SysWindow window, CPtr data, Int size) {}
-SysWindow WindowActive() {return App.active() ? App.window() : null;}
 /******************************************************************************/
 #endif
-UInt WindowProc(SysWindow window)
-{
-#if WINDOWS_OLD
-   DWORD proc=0; GetWindowThreadProcessId(window, &proc); return proc;
-#else
-   if(window==App.window())return App.processID();
-   return 0;
-#endif
-}
 #if !WINDOWS_OLD
 void WindowList(MemPtr<SysWindow> windows)
 {
@@ -820,10 +653,104 @@ void WindowList(MemPtr<SysWindow> windows)
 }
 #endif
 /******************************************************************************/
-SysWindow WindowParentTop(SysWindow window)
+// WINDOW CAPTURE
+/******************************************************************************/
+#if WINDOWS_OLD
+struct WindowCaptureEx
 {
-   for(; SysWindow parent=WindowParent(window); )window=parent; return window;
+   HDC     dc;
+   HBITMAP bitmap;
+   VecI2   size;
+
+   WindowCaptureEx() {dc=null; bitmap=null; size.zero();}
+  ~WindowCaptureEx() {del();}
+
+   void del()
+   {
+      if(bitmap){DeleteObject(bitmap); bitmap=null;}
+      if(dc    ){DeleteDC    (dc    ); dc    =null;}
+      size.zero();
+   }
+
+   Bool capture(Image &image, C SysWindow &window=null)
+   {
+      Bool ok=false;
+   #if DX11
+      if(window==App.window() && SwapChainDesc.SwapEffect!=DXGI_SWAP_EFFECT_DISCARD) // on DX10+ when swap chain flip mode is enabled, using 'GetDC' will result in a black image
+      {
+         Renderer.capture(image, -1, -1, -1, -1, 1, false);
+      }else
+   #endif
+      if(HDC src_dc=GetDC(window))
+      {
+       //if(HBITMAP src_bitmap=(HBITMAP)GetCurrentObject(src_dc, OBJ_BITMAP))
+         {
+          //BITMAP bmp; if(GetObject(src_bitmap, SIZE(bmp), &bmp))
+            {
+             //Int width=bmp.bmWidth, height=bmp.bmHeight; don't use bitmap size because it returns full window size (including borders, not client only)
+               Int width, height;
+               if(window)
+               {
+                  VecI2 size=window.size(true);
+                  width =size.x;
+                  height=size.y;
+               }else
+               {
+                  width =D.screenW();
+                  height=D.screenH();
+               }
+
+               if(width!=size.x || height!=size.y)
+               {
+                  if(!dc)dc=CreateCompatibleDC(src_dc);
+                  if(bitmap){DeleteObject(bitmap); bitmap=null;}
+                  if(bitmap=CreateCompatibleBitmap(src_dc, width, height)){size.set(width, height); SelectObject(dc, bitmap);}else size.zero();
+               }
+               
+               if(bitmap && BitBlt(dc, 0, 0, size.x, size.y, src_dc, 0, 0, SRCCOPY))
+               {
+                  if(image.hwType()!=IMAGE_B8G8R8A8_SRGB || image.size()!=size || image.d()!=1 || image.pitch()!=image.w()*image.bytePP())image.createSoftTry(size.x, size.y, 1, IMAGE_B8G8R8A8_SRGB);
+                  if(image.is() && image.lock(LOCK_WRITE))
+                  {
+                     BITMAPINFO bi; Zero(bi);
+                     bi.bmiHeader.biSize  =SIZE(bi.bmiHeader); 
+                     bi.bmiHeader.biWidth = image.w();
+                     bi.bmiHeader.biHeight=-image.h(); // positive height would flip the image
+                     bi.bmiHeader.biPlanes=1;
+                     bi.bmiHeader.biBitCount=32;
+                     bi.bmiHeader.biCompression=BI_RGB;
+                     ok=(GetDIBits(dc, bitmap, 0, image.h(), image.data(), &bi, DIB_RGB_COLORS)>0);
+                     image.unlock();
+                  }
+               }
+            }
+         }
+         ReleaseDC(window, src_dc);
+      }
+      return ok;
+   }
+};
+void WindowCapture::del()
+{
+   Delete((WindowCaptureEx*&)data);
 }
+Bool WindowCapture::capture(Image &image, C SysWindow &window)
+{
+   WindowCaptureEx* &wc=(WindowCaptureEx*&)data;
+   if(!wc)New(wc);
+   return wc->capture(image, window);
+}
+#else
+void WindowCapture::del()
+{
+}
+Bool WindowCapture::capture(Image &image, C SysWindow &window)
+{
+   return false;
+}
+#endif
+/******************************************************************************/
+// APPLICATION SYSTEM WINDOW
 /******************************************************************************/
 #if WINDOWS_OLD
 static void UpdateCandidates() // this function does not remove exising candidates unless it founds new ones (this is because candidates for "q6" keyboard input on QuanPin vista/7 would get cleared)
@@ -994,10 +921,11 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
       case WM_EXITSIZEMOVE   : Pause(false); D.setColorLUT(); break; // called when (finished dragging by title bar or resizing by edge/corner, snapped by User), NOT called when (maximized, snapped by OS), call 'setColorLUT' in case moved to another monitor with different color profile
 
       case WM_MOVE: // called when moved (dragged by title bar, snapped by User/OS, maximized, minimized)
-         if(!WindowMinimized(window) && !WindowMaximized(window) && !D.full()) // use 'window' instead of 'App.window' because WM_MOVE is being called while window is being created "_window=CreateWindowEx(..)" and pointer wasn't set yet, need to check for 'WindowMinimized' and 'WindowMaximized' instead of 'App.minimized' and 'App.maximized' because these are not yet available
       {
        //VecI2 client((short)LOWORD(lParam), (short)HIWORD(lParam));
-         App._window_pos=WindowRect(false, window).min; // remember window position for later restoring
+         SysWindow sys_win(window); // use 'window' instead of 'App.window' because WM_MOVE is being called while window is being created "_window=CreateWindowEx(..)" and pointer wasn't set yet
+         if(!sys_win.minimized() && !sys_win.maximized() && !D.full()) // need to check for 'SysWindow.minimized' and 'SysWindow.maximized' instead of 'App.minimized' and 'App.maximized' because these are not yet available
+            App._window_pos=sys_win.rect(false).min; // remember window position for later restoring
       }break;
 
       case WM_SIZE: // called when resized (resized by edge/corner, snapped by User/OS, maximized, minimized)
@@ -1272,7 +1200,13 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
          POINT  point={GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)}; VecI2 pixeli(point.x, point.y); ScreenToClient(App.window(), &point);
          UInt   id=GET_POINTERID_WPARAM(wParam);
          CPtr  pid=CPtr(id);
-         Bool   stylus=false; if(GetPointerType){POINTER_INPUT_TYPE type=PT_POINTER; if(GetPointerType(id, &type))if(type==PT_PEN)stylus=true;}
+         Bool   stylus=false;
+
+      #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
+         if(GetPointerType)
+      #endif
+            {POINTER_INPUT_TYPE type; if(GetPointerType(id, &type) && type==PT_PEN)stylus=true;}
+
          Vec2   pos=D.windowPixelToScreen(VecI2(point.x, point.y));
          Touch *touch=FindTouchByHandle(pid);
          if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
@@ -1379,7 +1313,7 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
       // RECEIVE DATA
       case WM_COPYDATA: if(App.receive_data)
       {
-         if(COPYDATASTRUCT *ds=(COPYDATASTRUCT*)lParam)App.receive_data(ds->lpData, ds->cbData, (SysWindow)wParam);
+         if(COPYDATASTRUCT *ds=(COPYDATASTRUCT*)lParam)App.receive_data(ds->lpData, ds->cbData, (HWND)wParam);
       }break;
 
       // DEVICES
@@ -1533,6 +1467,7 @@ void Application::setWindowFlags(Bool force_resizable)
    }
 }
 #endif
+/******************************************************************************/
 void Application::windowCreate()
 {
    if(LogInit)LogN("Application.windowCreate");
@@ -1682,7 +1617,7 @@ void Application::windowCreate()
       if(!D.resW())D._res.x=_window_size.x;
       if(!D.resH())D._res.y=_window_size.y;
       if( D.resW()>=Min(maximized_win_client_size.x, max_normal_win_client_size.x+1)
-       && D.resH()>=Min(maximized_win_client_size.y, max_normal_win_client_size.y+1) && !(flag&APP_HIDDEN)) // if exceeds the limits of a normal window (and is not going to be hidden, we can't create hidden maximized window, because maximizing requires separate call to 'WindowMaximize' which shows window)
+       && D.resH()>=Min(maximized_win_client_size.y, max_normal_win_client_size.y+1)) // if exceeds the limits of a normal window
       {
          maximize=true;
          D._res.x=maximized_win_client_size.x;
@@ -1759,7 +1694,9 @@ void Application::windowCreate()
    // allow drag and drop when ran as admin (without this, drag and drop won't work for admin)
    if(HMODULE user=GetModuleHandle(L"User32.dll"))
    {
+   #if SUPPORT_WINDOWS_XP || SUPPORT_WINDOWS_7
       GetPointerType=(decltype(GetPointerType))GetProcAddress(user, "GetPointerType"); // available on Windows 8+
+   #endif
    #if SUPPORT_WINDOWS_XP
       if(BOOL (WINAPI *ChangeWindowMessageFilter)(UINT message, DWORD dwFlag)=(decltype(ChangeWindowMessageFilter))GetProcAddress(user, "ChangeWindowMessageFilter")) // available on Vista+
    #endif
@@ -1921,6 +1858,7 @@ static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
    return select(conn+1, &fd, null, null, &tv)>0; // got event
 }
 #endif
+/******************************************************************************/
 void Application::windowDel()
 {
 #if CUSTOM_WAIT_FOR_EVENT
@@ -1949,9 +1887,10 @@ void Application::windowDel()
    if(_window        ){XDestroyWindow(XDisplay, _window        ); _window        =NULL;}
    if( WindowColormap){XFreeColormap (XDisplay,  WindowColormap);  WindowColormap=NULL;}
 #else
-   WindowClose(window()); _window=null;
+  _window=null;
 #endif
 }
+/******************************************************************************/
 #if !SWITCH
 NOINLINE void Application::windowMsg() // disable inline so we will don't use its stack memory, so we can have more memory for application
 {
