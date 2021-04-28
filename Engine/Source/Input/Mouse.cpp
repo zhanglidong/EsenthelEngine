@@ -392,7 +392,7 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
                XMoveResizeWindow(XDisplay, Grab, rect->min.x+pos.x, rect->min.y+pos.y, rect->w(), rect->h());
          }else XMoveResizeWindow(XDisplay, Grab, -1, -1, 1, 1); // move outside of desktop area
          XFlush(XDisplay);
-         XGrabPointer(XDisplay, App.window(), false, ButtonPressMask|ButtonReleaseMask|EnterWindowMask|LeaveWindowMask, GrabModeAsync, GrabModeAsync, custom ? Grab : App.window(), NULL, CurrentTime);
+         XGrabPointer(XDisplay, App.window(), false, ButtonPressMask|ButtonReleaseMask|EnterWindowMask|LeaveWindowMask, GrabModeAsync, GrabModeAsync, custom ? Grab : App.window()(), NULL, CurrentTime);
       }
    }
 #elif WEB

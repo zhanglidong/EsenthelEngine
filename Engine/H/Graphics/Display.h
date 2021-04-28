@@ -622,7 +622,6 @@ private:
           Bool initialized   ()C {return _initialized;}
    static void flip          ();
    static void finish        ();
-          void adjustWindow  (Bool set=false);
           void screenChanged (Flt old_width, Flt old_height);
           void   sizeChanged ();
           void validateCoords(Int eye=-1);

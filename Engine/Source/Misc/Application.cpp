@@ -834,6 +834,105 @@ void Application::lowMemory()
    Images      .delayRemoveNow();
 }
 /******************************************************************************/
+void Application::windowAdjust(Bool set)
+{
+   RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
+  D.getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
+
+#if DEBUG && 0
+   LogN(S+"full:"+full.asText()+", work:"+work.asText()+", App._window_pos:"+_window_pos+", D.res:"+D.res());
+#endif
+
+#if WINDOWS_OLD
+   if(D.full()) // fullscreen
+   {
+      SetWindowLong(window(), GWL_STYLE, _style_full);
+      SetWindowPos (window(), (backgroundFull() && !D.exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, D.resW(), D.resH(), 0);
+   }else
+   if(D.resW()>=maximized_win_client_size.x && D.resH()>=maximized_win_client_size.y) // maximized
+   {
+      SetWindowLong(window(), GWL_STYLE, _style_window_maximized);
+   #if 0 // this doesn't work as expected
+      SetWindowPos (window(), HWND_TOP , work.min.x+_bound_maximized.min.x, work.min.y-_bound_maximized.max.y, D.resW()+_bound_maximized.w(), D.resH()+_bound_maximized.h(), SWP_NOACTIVATE); 
+   #else
+      SetWindowPos (window(), HWND_TOP , work.min.x+_bound_maximized.min.x, work.min.y-_bound_maximized.max.y, D.resW()+_bound_maximized.max.x, D.resH()-_bound_maximized.min.y, SWP_NOACTIVATE);
+   #endif
+   }else // normal window
+   {
+      Int w=D.resW()+_bound.w(),
+          h=D.resH()+_bound.h();
+
+      if(_window_pos.x==INT_MAX){if(x<=-1)_window_pos.x=work.min.x;else if(!x)_window_pos.x=work.centerXI()-w/2;else _window_pos.x=work.max.x-w+_bound.max.x-1;}
+      if(_window_pos.y==INT_MAX){if(y>= 1)_window_pos.y=work.min.y;else if(!y)_window_pos.y=work.centerYI()-h/2;else _window_pos.y=work.max.y-h+_bound.max.y-1;}
+
+      // make sure the window is not completely outside of working area
+      const Int b=32; Int r=b;
+      if(!(flag&APP_NO_TITLE_BAR)) // has bar
+      {
+         Int size=GetSystemMetrics(SM_CXSIZE); // TODO: this should be OK because we're DPI-Aware, however it doesn't work OK
+       /*if(HDC hdc=GetDC(window()))
+         {
+            size=DivCeil(size*GetDeviceCaps(hdc, LOGPIXELSX), 96);
+            ReleaseDC(window(), hdc);
+         }*/
+         if(!(flag& APP_NO_CLOSE                   ))r+=size  ; // has close                button
+         if(  flag&(APP_MINIMIZABLE|APP_MAXIMIZABLE))r+=size*2; // has minimize or maximize button (if any is enabled, then both will appear)
+      }
+
+      if(_window_pos.x+b>work.max.x)_window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=_window_pos.x+w; if(p-r<work.min.x)_window_pos.x=Min(work.min.x+r, work.max.x)-w;}
+      if(_window_pos.y+b>work.max.y)_window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=_window_pos.y+h; if(p-b<work.min.y)_window_pos.y=Min(work.min.y+b, work.max.y)-h;}
+
+      SetWindowLong(window(), GWL_STYLE     , _style_window);
+      SetWindowPos (window(), HWND_NOTOPMOST, _window_pos.x, _window_pos.y, w, h, SWP_NOACTIVATE);
+   }
+#elif MAC
+   if(D.full()) // fullscreen
+   {
+      if(!(flag&APP_NO_TITLE_BAR))[window() setStyleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView]; // need to toggle this only if window wants to have title bar, if it doesn't then we don't need to change anything. But if window wants title bar, then we can't just disable it here and use NSBorderlessWindowMask, because that will make content view (OpenGLView) disappear (some bug in Mac OS?), so have to use NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView which will make content overlap title bar, and in fullscreen title bar will be hidden
+      window().size(D.resW(), D.resH(), true);
+      window().pos (0, 0);
+   }else
+   {
+      if(_window_pos.x==INT_MAX){Int w=D.resW(); if(x<=-1)_window_pos.x=work.min.x;else if(!x)_window_pos.x=work.centerXI()-w/2;else _window_pos.x=work.max.x-w+_bound.max.x-1;}
+      if(_window_pos.y==INT_MAX){Int h=D.resH(); if(y>= 1)_window_pos.y=work.min.y;else if(!y)_window_pos.y=work.centerYI()-h/2;else _window_pos.y=work.max.y-h+_bound.max.y-1;}
+
+      if(!(flag&APP_NO_TITLE_BAR))[window() setStyleMask:_style_window];
+      window().size(D.resW(), D.resH(), true);
+      window().pos (_window_pos.x, _window_pos.y);
+   }
+#elif LINUX
+   if(window())
+   {
+      // set window fullscreen state
+      {
+         // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
+         Bool set_resizable=(D.full() && !(flag&APP_RESIZABLE));
+         if(  set_resizable)setWindowFlags(true);
+
+         #define _NET_WM_STATE_REMOVE 0
+         #define _NET_WM_STATE_ADD    1
+         #define _NET_WM_STATE_TOGGLE 2
+         Atom FIND_ATOM(_NET_WM_STATE), FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
+         XEvent e; Zero(e);
+         e.xclient.type        =ClientMessage;
+         e.xclient.window      =window();
+         e.xclient.message_type=_NET_WM_STATE;
+         e.xclient.format      =32;
+         e.xclient.data.l[0]   =(D.full() ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE);
+         e.xclient.data.l[1]   =_NET_WM_STATE_FULLSCREEN;
+         e.xclient.data.l[2]   =0;
+         e.xclient.data.l[3]   =1;
+         XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
+         XSync(XDisplay, false);
+
+         if(set_resizable)setWindowFlags();
+      }
+      // set window size
+      if(!D.full() && !set)window().size(D.resW(), D.resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
+   }
+#endif
+}
+/******************************************************************************/
 static RectI GetDesktopArea()
 {
    RectI recti(0, 0, App.desktopW(), App.desktopH());

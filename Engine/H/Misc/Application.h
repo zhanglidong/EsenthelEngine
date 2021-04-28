@@ -153,6 +153,7 @@ struct Application // Application Settings
    void windowCreate  ();
    void windowDel     ();
    void windowMsg     ();
+   void windowAdjust  (Bool set=false);
    void deleteSelf    ();
    void detectMemLeaks();
    void showError     (CChar *error);

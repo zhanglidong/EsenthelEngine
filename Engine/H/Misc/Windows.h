@@ -58,10 +58,6 @@ struct SysWindow // Operating System Window
    Bool operator ==(C Type &w)C {return T.window==w;} // if pointers are equal
    Bool operator !=(C Type &w)C {return T.window!=w;} // if pointers are different
 
-   //Type operator ()()C {return window;}
-   //Type operator ->()C {return window;}
-   //Type operator * ()C {return window;}
-
    operator Type()C {return window;} // auto cast
 
 #if WINDOWS_NEW
@@ -70,6 +66,8 @@ struct SysWindow // Operating System Window
  C Type1& operator->()C {return (Type1&)window;}
    void release(               )C {(Type1&)T.window=null  ;}
    void set    (C Type1& window)C {(Type1&)T.window=window;}
+#else
+   Type operator()()C {return window;}
 #endif
 #endif
 

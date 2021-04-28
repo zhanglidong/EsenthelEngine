@@ -359,7 +359,7 @@ void SysWindow::size(Int w, Int h, Bool client)C
       #if 1
          VecI2 border=App._bound.size();
       #else
-         VecI2 border=WindowSize(false, window)-WindowSize(true, window);
+         VecI2 border=size(false)-size(true);
       #endif
          w-=border.x;
          h-=border.y;
@@ -1712,8 +1712,8 @@ void Application::windowCreate()
    }
    RegisterHotKey(window(), 0, 0, VK_SNAPSHOT); // allows KB_PRINT detection through WM_HOTKEY, and disable system shortcut, WM_KEYDOWN does not detect KB_PRINT, however WM_KEYUP does detect it. WM_HOTKEY won't work in KB_RAW_INPUT 'Kb.exclusive', but still call this, in case exclusive==false, to disable system screenshot slow downs
 #elif MAC
-   WindowPos (x, y);
-   WindowSize(w, h, true);
+   window().pos (x, y);
+   window().size(w, h, true);
 
    // get rect after setting final window size
    rect=[window() contentRectForFrameRect:[window() frame]];

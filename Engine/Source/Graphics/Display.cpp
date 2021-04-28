@@ -810,7 +810,7 @@ C DisplayClass::Monitor* DisplayClass::curMonitor()
    #if 1
       if(HMONITOR hmonitor=App.hmonitor())
    #else
-      RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
+      RectI win_rect=App.window().rect(false); // watch out because 'SysWindow.rect' can return weird position when the window is minimized
       POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
       if(HMONITOR hmonitor=MonitorFromPoint(p, MONITOR_DEFAULTTONEAREST))
    #endif
@@ -1243,7 +1243,7 @@ void DisplayClass::createDevice()
    // init
    if(!findMode())Exit("Valid display mode not found.");
 #if WINDOWS_OLD
-   if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
+   if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); App.windowAdjust();}
 again:
    Factory->CreateSwapChain(D3D, &SwapChainDesc, &SwapChain);
    if(!SwapChain)
@@ -1581,11 +1581,11 @@ again:
    glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
 
 	#if WINDOWS
-      if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
+      if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); App.windowAdjust();}
    #elif MAC
       if(!SetDisplayMode(2))Exit("Can't set display mode.");
    #elif LINUX
-      if(full()){if(!SetDisplayMode(2))Exit("Can't set display mode."); adjustWindow();} // 'adjustWindow' because we need to set fullscreen state
+      if(full()){if(!SetDisplayMode(2))Exit("Can't set display mode."); App.windowAdjust();} // 'App.windowAdjust' because we need to set fullscreen state
    #elif IOS
       glGenFramebuffers(1, &FBO1); if(!FBO1)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
       fbo(FBO); // set custom frame buffer, on iOS there's only one FBO and one FBO change, and it is here, this is because there's no default(0) FBO on this platform
@@ -2003,7 +2003,7 @@ DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 
    getCaps();
    if(!Renderer.rtCreate())return RESET_ERROR_RENDER_TARGET_CREATE;
-   adjustWindow(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
+   App.windowAdjust(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
    after(true);
    resetEyeAdaptation(); // this potentially may use drawing
 
@@ -2328,103 +2328,6 @@ void DisplayClass::finish()
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-void DisplayClass::adjustWindow(Bool set)
-{
-   RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-    getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-
-#if DEBUG && 0
-   LogN(S+"full:"+full.asText()+", work:"+work.asText()+", App._window_pos:"+App._window_pos+", D.res:"+D.res());
-#endif
-
-#if WINDOWS_OLD
-   if(D.full()) // fullscreen
-   {
-      SetWindowLong(App.window(), GWL_STYLE, App._style_full);
-      SetWindowPos (App.window(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
-   }else
-   if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
-   {
-      SetWindowLong(App.window(), GWL_STYLE, App._style_window_maximized);
-   #if 0 // this doesn't work as expected
-      SetWindowPos (App.window(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
-   #else
-      SetWindowPos (App.window(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
-   #endif
-   }else // normal window
-   {
-      Int w=resW()+App._bound.w(),
-          h=resH()+App._bound.h();
-
-      if(App._window_pos.x==INT_MAX){if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w+App._bound.max.x-1;}
-      if(App._window_pos.y==INT_MAX){if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h+App._bound.max.y-1;}
-
-      // make sure the window is not completely outside of working area
-      const Int b=32; Int r=b;
-      if(!(App.flag&APP_NO_TITLE_BAR)) // has bar
-      {
-         Int size=GetSystemMetrics(SM_CXSIZE); // TODO: this should be OK because we're DPI-Aware, however it doesn't work OK
-       /*if(HDC hdc=GetDC(App.window()))
-         {
-            size=DivCeil(size*GetDeviceCaps(hdc, LOGPIXELSX), 96);
-            ReleaseDC(App.window(), hdc);
-         }*/
-         if(!(App.flag& APP_NO_CLOSE                   ))r+=size  ; // has close                button
-         if(  App.flag&(APP_MINIMIZABLE|APP_MAXIMIZABLE))r+=size*2; // has minimize or maximize button (if any is enabled, then both will appear)
-      }
-
-      if(App._window_pos.x+b>work.max.x)App._window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=App._window_pos.x+w; if(p-r<work.min.x)App._window_pos.x=Min(work.min.x+r, work.max.x)-w;}
-      if(App._window_pos.y+b>work.max.y)App._window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=App._window_pos.y+h; if(p-b<work.min.y)App._window_pos.y=Min(work.min.y+b, work.max.y)-h;}
-
-      SetWindowLong(App.window(), GWL_STYLE     , App._style_window);
-      SetWindowPos (App.window(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
-   }
-#elif MAC
-   if(D.full()) // fullscreen
-   {
-      if(!(App.flag&APP_NO_TITLE_BAR))[App.window() setStyleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView]; // need to toggle this only if window wants to have title bar, if it doesn't then we don't need to change anything. But if window wants title bar, then we can't just disable it here and use NSBorderlessWindowMask, because that will make content view (OpenGLView) disappear (some bug in Mac OS?), so have to use NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView which will make content overlap title bar, and in fullscreen title bar will be hidden
-      WindowSize(resW(), resH(), true);
-      WindowPos (0, 0);
-   }else
-   {
-      if(App._window_pos.x==INT_MAX){Int w=resW(); if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w+App._bound.max.x-1;}
-      if(App._window_pos.y==INT_MAX){Int h=resH(); if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h+App._bound.max.y-1;}
-
-      if(!(App.flag&APP_NO_TITLE_BAR))[App.window() setStyleMask:App._style_window];
-      WindowSize(resW(), resH(), true);
-      WindowPos (App._window_pos.x, App._window_pos.y);
-   }
-#elif LINUX
-   // set window fullscreen state
-   if(App.window())
-   {
-      // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
-      Bool set_resizable=(D.full() && !(App.flag&APP_RESIZABLE));
-      if(  set_resizable)App.setWindowFlags(true);
-
-      #define _NET_WM_STATE_REMOVE 0
-      #define _NET_WM_STATE_ADD    1
-      #define _NET_WM_STATE_TOGGLE 2
-      Atom FIND_ATOM(_NET_WM_STATE), FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
-      XEvent e; Zero(e);
-      e.xclient.type        =ClientMessage;
-      e.xclient.window      =App.window();
-      e.xclient.message_type=_NET_WM_STATE;
-      e.xclient.format      =32;
-      e.xclient.data.l[0]   =(D.full() ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE);
-      e.xclient.data.l[1]   =_NET_WM_STATE_FULLSCREEN;
-      e.xclient.data.l[2]   =0;
-      e.xclient.data.l[3]   =1;
-      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
-      XSync(XDisplay, false);
-
-      if(set_resizable)App.setWindowFlags();
-   }
-
-   // set window size
-   if(!D.full() && !set)WindowSize(resW(), resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
-#endif
-}
 DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool set)
 {
          if(w   <=0)w= T.resW();
