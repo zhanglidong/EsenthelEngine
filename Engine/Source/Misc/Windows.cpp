@@ -1025,8 +1025,8 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
                   KB_KEY key;
                   switch(raw.data.keyboard.VKey)
                   {
-                     case VK_CONTROL : key=((raw.data.keyboard.Flags&RI_KEY_E0) ? KB_RCTRL  : KB_LCTRL ); break;
-                     case VK_SHIFT   : key=((raw.data.keyboard.MakeCode==42   ) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
+                     case VK_CONTROL : if(raw.data.keyboard.MakeCode!=29)goto def; key=((raw.data.keyboard.Flags&RI_KEY_E0) ? KB_RCTRL  : KB_LCTRL ); break; // 29=KB_LCTRL and KB_RCTRL (this must be checked because VK_CONTROL also gets triggered by AltGr)
+                     case VK_SHIFT   :                                             key=((raw.data.keyboard.MakeCode==42   ) ? KB_LSHIFT : KB_RSHIFT); break; // 42=KB_LSHIFT, 54=KB_RSHIFT
                      case VK_SNAPSHOT: key=KB_PRINT; break; // needed for exclusive mode
                    //case 255        : if(raw.data.keyboard.MakeCode==42 && (raw.data.keyboard.Flags&(RI_KEY_E0|RI_KEY_E1))==RI_KEY_E0){key=KB_PRINT; break;} goto def; detect KB_PRINT because in 'Kb.exclusive', WM_HOTKEY isn't called, however this is also called when pressing "Insert" when NumLock is off so it can't be used
                      default         : goto def;

@@ -555,7 +555,8 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    void OnKeyUp(CoreWindow^ sender, KeyEventArgs^ args) // mouse buttons are not passed here
    {
-      KB_KEY key=KB_KEY(args->VirtualKey);
+      Int    scan_code=args->KeyStatus.ScanCode;
+      KB_KEY key      =KB_KEY(args->VirtualKey);
       //LogN(S+"OnKeyUp: scan_code:"+(args->KeyStatus.ScanCode)+' '+key+'('+Kb.keyName(key)+"), ext:"+args->KeyStatus.IsExtendedKey+", released:"+args->KeyStatus.IsKeyReleased+", wasDown:"+args->KeyStatus.WasKeyDown+", repeat:"+args->KeyStatus.RepeatCount);
       switch(key)
       {
