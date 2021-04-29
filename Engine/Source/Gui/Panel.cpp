@@ -117,13 +117,13 @@ void Panel::extendedRect(C Rect &rect, Rect &extended)C
 void Panel::defaultInnerPadding(Rect &padding)C
 {
    if(panel_image)padding=panel_image->defaultInnerPadding();else padding.zero();
-   padding.max.y+=bar_size;
+   MAX(padding.max.y, bar_size);
    // border is not included
 }
 void Panel::innerPadding(C Rect &rect, Rect &padding)C
 {
    if(panel_image)panel_image->innerPadding(rect, padding);else padding.zero();
-   padding.max.y+=bar_size;
+   MAX(padding.max.y, bar_size);
    // border is not included
 }
 void Panel::defaultInnerPaddingSize(Vec2 &padd_size)C
