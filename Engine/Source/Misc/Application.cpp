@@ -88,9 +88,12 @@ Application& Application::name(C Str &name)
 #elif LINUX
    if(XDisplay && window())
    {
-      Str8 utf=UTF8(name);
-                                     XStoreName     (XDisplay, window(), Str8(name));
-      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window(), _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf(), utf.length());
+      Str8 utf8=UTF8(name), name8=name;
+      XClassHint class_hint; Zero(class_hint); // this is needed to display name on the taskbar, without this, name can be displayed as "Unknown"
+      class_hint.res_name=class_hint.res_class=(char*)name8();
+      XSetClassHint(XDisplay, window(), &class_hint);
+                                     XStoreName     (XDisplay, window(), name8); // this is needed in case _NET_WM_NAME/UTF8_STRING are not available
+      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window(), _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf8(), utf8.length());
    }
 #endif
    return T;
