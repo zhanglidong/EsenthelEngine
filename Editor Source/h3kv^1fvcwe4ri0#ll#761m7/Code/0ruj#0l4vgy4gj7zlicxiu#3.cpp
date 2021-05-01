@@ -997,7 +997,7 @@ bool ChannelMonoTransform(C Str &value)
 bool PartialTransform   (C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
 bool  ResizeTransformAny(C Str       &name) {return Starts(name, "resize") || Starts(name, "maxSize");}
 bool  ResizeTransform   (C Str       &name) {return ResizeTransformAny(name) && !Contains(name, "NoStretch");} // skip "NoStretch" because it's more like "crop"
-bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value));} // if result is always mono
+bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value)) || p.name=="getSat";} // if result is always mono
 bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
 {
    int values=Occurrences(p.value, ',');
@@ -1659,6 +1659,18 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case 1: {flt v=TextFlt(vals[0]); MulRGBHS(image, v, v, v, v, v, v, box);} break;
          case 3: {Vec v(TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2])); MulRGBHS(image, v.x, Avg(v.x, v.y), v.y, Avg(v.y, v.z), v.z, Avg(v.z, v.x), box);} break;
          case 6: MulRGBHS(image, TextFlt(vals[0]), TextFlt(vals[1]), TextFlt(vals[2]), TextFlt(vals[3]), TextFlt(vals[4]), TextFlt(vals[5]), box); break;
+      }
+   }else
+   if(param.name=="getSat")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt  sat=RgbToHsb(c.xyz).y;
+         c.xyz=sat; c.w=1;
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="gamma")
