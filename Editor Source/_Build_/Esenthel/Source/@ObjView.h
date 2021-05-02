@@ -250,6 +250,8 @@ public:
    static void Draw(Viewport &viewport);        
           void draw(Edit::Viewport4::View&view);
 
+   void setLodTabsPos();
+
    static void       LodChanged(ObjView &editor);
    static void VariationChanged(ObjView &editor);
    static void      ModeChanged(ObjView &editor);

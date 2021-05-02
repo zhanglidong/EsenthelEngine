@@ -52,7 +52,7 @@ ObjView ObjEdit;
       "Normal",
       "UV"    ,
       "All"   ,
-      "UV1"   ,
+    //"UV1"   ,
     //"UV2"   ,
     //"UV3"   ,
    };
@@ -63,8 +63,8 @@ ObjView ObjEdit;
       S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+3",
       S+"This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+4",
       S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #1\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+5",
-    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #2\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+6",
-    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #3\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+7",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #2\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+6",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #3\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+7",
    };
    cchar8 *ObjView::slot_desc[]=
    {
@@ -741,6 +741,17 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       D.lineSmooth(line_smooth);
    }
+   void ObjView::setLodTabsPos()
+   {
+      if(mode()==GROUP     ){lod_tabs.move(goto_group.rect().down()-Vec2(0, 0.01f)-lod_tabs.rect().up());}
+      if(mode()==VARIATIONS
+      || mode()==REMOVE
+      || mode()==MESH  
+      || mode()==SKIN      ){lod_tabs.move(mode      .rect().down()-Vec2(0, 0.01f)-lod_tabs.rect().up());}
+      
+      if(mode()==MESH && lod_tabs.rect().min.x<mesh_ops.rect().max.x)lod_tabs.pos(mesh_ops.rect().ru());
+      if(mode()==SKIN && lod_tabs.rect().min.x<skin_ops.rect().max.x)lod_tabs.pos(skin_ops.rect().ru());
+   }
    void       ObjView::LodChanged(ObjView &editor) {editor.selLod      (editor.      lod_tabs());}
    void ObjView::VariationChanged(ObjView &editor) {editor.selVariation(editor.variation_tabs());}
    void      ObjView::ModeChanged(ObjView &editor)
@@ -764,17 +775,22 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(editor.mode()==MESH
       || editor.mode()==SKIN)editor.mode.tab(editor.mode())+=editor.mesh_parts;
 
+      if(editor.mode()==GROUP && OpObj==OP_OBJ_NONE && editor.group.getSetGroup()>=0)SetObjOp(OP_OBJ_SET_GROUP);
+
+      if(editor.mode()==REMOVE
+      || editor.mode()==MESH  
+      || editor.mode()==SKIN)SetObjOp(OP_OBJ_NONE);
+
+      // lod_tabs
       if(editor.mode()==GROUP 
       || editor.mode()==REMOVE
       || editor.mode()==MESH  
       || editor.mode()==VARIATIONS
-      || editor.mode()==SKIN  )editor.mode.tab(editor.mode())+=editor.lod_tabs;
-
-      if(editor.mode()==GROUP     ){editor.lod_tabs.move(editor.goto_group.rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up()); if(OpObj==OP_OBJ_NONE && editor.group.getSetGroup()>=0)SetObjOp(OP_OBJ_SET_GROUP);}
-      if(editor.mode()==VARIATIONS){editor.lod_tabs.move(editor.mode      .rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up());}
-      if(editor.mode()==REMOVE
-      || editor.mode()==MESH  
-      || editor.mode()==SKIN      ){editor.lod_tabs.move(editor.mode      .rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up()); SetObjOp(OP_OBJ_NONE);}
+      || editor.mode()==SKIN)
+      {
+         editor.mode.tab(editor.mode())+=editor.lod_tabs;
+         editor.setLodTabsPos();
+      }
 
       if(editor.mode()==MESH
       || editor.mode()==VARIATIONS)
@@ -1429,8 +1445,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       // keep to the left because LOD tabs may be visible
       mode.tab(MESH)+=vtx_face_sel_text.create(Rect(mesh_undo.rect().ld()-Vec2(0, 0.01f+ts.size.y/2)), "Vertex/Face Selection:", &ts).visible(mesh_parts.edit_selected());
-      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.47f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
-      REP(Min(Elms(vfs_desc), Elms(vfs_modes)))vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
+      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.39f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
+      REP(Min(Elms(vfs_desc), vtx_face_sel_mode.tabs()))vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
 
       {
          Node<MenuElm> n;
@@ -2793,7 +2809,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          for(; lod_tabs.tabs()>mesh.lods(); )lod_tabs.remove(lod_tabs.tabs()-1);
          for(; lod_tabs.tabs()<mesh.lods(); )lod_tabs.New(S+"Lod "+lod_tabs.tabs());
-         lod_tabs.rect(Rect_U(lod_tabs.rect().up(), lod_tabs.tabs()*0.13f, 0.055f));
+         lod_tabs.size(Vec2(lod_tabs.tabs()*0.13f, 0.055f));
+         setLodTabsPos();
          lod_tabs.set(selLod(), QUIET).visible(lod_tabs.tabs()>=2);
       }
 
