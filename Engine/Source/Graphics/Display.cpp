@@ -190,6 +190,7 @@ void RequestDisplayMode(Int w, Int h, Int full)
 {
    if(full> 0)Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->TryEnterFullScreenMode();else
    if(full==0)Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->ExitFullScreenMode    ();
+
    if(w>0 || h>0)
    {
       if(w<=0)w=D.resW();
@@ -1755,7 +1756,7 @@ static DXGI_FORMAT SwapChainFormat()
    return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 }
 #endif
-Bool DisplayClass::findMode()
+Bool DisplayClass::findMode(Bool auto_full)
 {
    SyncLocker locker(_lock);
 
@@ -1770,7 +1771,7 @@ Bool DisplayClass::findMode()
 #else
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-   if(resW()>=full.w() && resH()>=full.h())_full=true; // force fullscreen only if both dimensions are equal-bigger because on Windows it's perfectly fine to have a window as wide as the whole desktop
+   if(auto_full && resW()>=full.w() && resH()>=full.h())_full=true; // force fullscreen only if both dimensions are equal-bigger because on Windows it's perfectly fine to have a window as wide as the whole desktop
    if(D.full())
    {
       Int   nearest=-1; Int desired_area=res().mul(), area_error;
@@ -2328,7 +2329,7 @@ void DisplayClass::finish()
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool set)
+DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool auto_full, Bool set)
 {
          if(w   <=0)w= T.resW();
          if(h   <=0)h= T.resH();
@@ -2346,7 +2347,7 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
    #if SWITCH || WEB
       Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
    #endif
-      if(!findMode())return RESET_ERROR_NOT_CREATED;
+      if(!findMode(auto_full))return RESET_ERROR_NOT_CREATED;
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values
       RESET_RESULT result=ResetTry(set);      if(result!=RESET_OK)return result  ; // reset the device
 
@@ -2362,10 +2363,10 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
 }
 void DisplayClass::modeSet(Int w, Int h, Int full)
 {
-   RESET_RESULT result=modeTry(w, h, full, true);
+   RESET_RESULT result=modeTry(w, h, full, false, true);
    if(result!=RESET_OK)ResetFailed(result, result);
 }
-DisplayClass& DisplayClass::mode(Int w, Int h, Int full)
+DisplayClass& DisplayClass::mode(Int w, Int h, Int full, Bool auto_full)
 {
 #if WINDOWS_NEW // on WindowsNew we can only request a change on the window
    if(created())
@@ -2412,10 +2413,10 @@ DisplayClass& DisplayClass::mode(Int w, Int h, Int full)
    Int cur_w   =T.resW(),
        cur_h   =T.resH(),
        cur_full=T.full();
-   RESET_RESULT result0=modeTry(w, h, full); // try to set new mode
+   RESET_RESULT result0=modeTry(w, h, full, auto_full); // try to set new mode
    if(result0!=RESET_OK)
    {
-      RESET_RESULT result1=modeTry(cur_w, cur_h, cur_full); // try to set old mode
+      RESET_RESULT result1=modeTry(cur_w, cur_h, cur_full, false); // try to set old mode
       if(result1!=RESET_OK)ResetFailed(result0, result1);
    }
    return T;
@@ -2424,12 +2425,12 @@ DisplayClass& DisplayClass::toggle(Bool window_size)
 {
    if(!created())_full^=1;else
    {
-      if(full()     )mode(App._window_size.x, App._window_size.y, false);else // if app was in fullscreen then set windowed mode based on last known window size
-      if(window_size)mode(App._window_size.x, App._window_size.y, true );else // if set        fullscreen using                           last known window size
+      if(full()     )mode(App._window_size.x, App._window_size.y, false, false);else // if app was in fullscreen then set windowed mode based on last known window size
+      if(window_size)mode(App._window_size.x, App._window_size.y, true , false);else // if set        fullscreen using                           last known window size
       {  // set full screen based on resolution of the monitor
          RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
           getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-         mode(full.w(), full.h(), true);
+         mode(full.w(), full.h(), true, false);
       }
    }
    return T;
