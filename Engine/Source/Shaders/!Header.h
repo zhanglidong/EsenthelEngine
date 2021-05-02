@@ -808,7 +808,7 @@ Vec ViewMatrixPrevZ  (UInt mtrx=0) {return ViewMatrixPrev[mtrx][2];}
 Vec ViewMatrixPrevPos(UInt mtrx=0) {return ViewMatrixPrev[mtrx][3];}
 
 Matrix GetViewMatrix() {return ViewMatrix[0];}
-#else // Mac currently has no known workaround and must use this. Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3 however a workaround was found to declare layout additionally for struct instead of just member.
+#else // Mac currently has no known workaround and must use this
 #include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Vec4 ViewMatrix[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
