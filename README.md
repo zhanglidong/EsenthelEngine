@@ -35,7 +35,7 @@ GAME ENGINES
 You may NOT integrate the source code into other game engines, that are not based on Esenthel Engine. 
 You can create your own game engines based on Esenthel, however they must clearly state that they're
 "based on Esenthel Engine" with the name linking to:
-http://esenthel.com or https://github.com/Esenthel/EsenthelEngine and 30% of income generated from
+http://esenthel.com or https://github.com/Esenthel/EsenthelEngine and 15% of income generated from
 your engine and engine related services (including but not limited to: donations, license sales,
 adding features, providing support) must be shared with Esenthel Engine creator.
 
