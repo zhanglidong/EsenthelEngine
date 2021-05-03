@@ -868,6 +868,7 @@ Bool EditorInterface::worldTerrainSet(C UID &world_id, C VecI2 &area_xy, C Image
 /******************************************************************************/
 Bool EditorInterface::worldObjCreate(C UID &world_id, C CMemPtr<WorldObjParams> &objs)
 {
+   if(!objs.elms())return true;
    if(world_id.valid() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_NEW_WORLD_OBJ).putUID(world_id); objs.save(f); f.pos(0);
@@ -880,7 +881,7 @@ Bool EditorInterface::worldObjCreate(C UID &world_id, C CMemPtr<WorldObjParams> 
 }
 Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed)
 {
-   if(world_id.valid() && connected())
+   if(world_id.valid() && world_obj_instance_ids.elms() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_GET_WORLD_OBJ_BASIC).putUID(world_id).putBool(areas!=null); if(areas)f<<*areas; f<<only_selected<<include_removed; world_obj_instance_ids.saveRaw(f); f.pos(0);
       if(_conn.send(f))
@@ -893,11 +894,11 @@ Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs
       disconnect();
    }
 fail:
-   objs.clear(); return !world_id.valid();
+   objs.clear(); return !(world_id.valid() && world_obj_instance_ids.elms());
 }
 Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed, Bool include_removed_params)
 {
-   if(world_id.valid() && connected())
+   if(world_id.valid() && world_obj_instance_ids.elms() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_GET_WORLD_OBJ_FULL).putUID(world_id).putBool(areas!=null); if(areas)f<<*areas; f<<only_selected<<include_removed<<include_removed_params; world_obj_instance_ids.saveRaw(f); f.pos(0);
       if(_conn.send(f))
@@ -910,7 +911,7 @@ Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs
       disconnect();
    }
 fail:
-   objs.clear(); return !world_id.valid();
+   objs.clear(); return !(world_id.valid() && world_obj_instance_ids.elms());
 }
 // !! when sending object data - HANDLE CORRECT REL PATH FOR OBJ PARAM ENUMS !!
 /******************************************************************************/
@@ -1399,6 +1400,7 @@ fail:
 }
 Bool EditorInterface::modifyObject(C UID &elm_id, C CMemPtr<ObjChange> &changes)
 {
+   if(!changes.elms())return true;
    if(elm_id.valid() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_MODIFY_OBJ).putUID(elm_id); changes.save(f); f.pos(0);
