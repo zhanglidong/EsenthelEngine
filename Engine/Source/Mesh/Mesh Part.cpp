@@ -721,24 +721,24 @@ MeshPart& MeshPart::move         (              C Vec &move) {base.     move(   
 MeshPart& MeshPart::scale        (C Vec &scale             ) {base.scale    (scale      ); render.scaleMove(scale       ); scaleParams(Abs(scale).max()); return T;}
 MeshPart& MeshPart::scaleMove    (C Vec &scale, C Vec &move) {base.scaleMove(scale, move); render.scaleMove(scale , move); scaleParams(Abs(scale).max()); return T;}
 MeshPart& MeshPart::scaleMoveBase(C Vec &scale, C Vec &move) {base.scaleMove(scale, move);                                 scaleParams(Abs(scale).max()); return T;}
-MeshPart& MeshPart::transform    (C Matrix3 &matrix        )
+MeshPart& MeshPart::transform    (C Matrix3 &matrix, Bool scale_normals)
 {
    Bool base_is=base.is();
    if(! base_is)base.create(render);
 
-   base.transform(matrix);
+   base.transform(matrix, scale_normals);
    scaleParams   (matrix.maxScale());
 
    if(render.is())render.create(base);
    if(! base_is  )delBase();
    return T;
 }
-MeshPart& MeshPart::transform(C Matrix &matrix)
+MeshPart& MeshPart::transform(C Matrix &matrix, Bool scale_normals)
 {
    Bool base_is=base.is();
    if(! base_is)base.create(render);
 
-   base.transform(matrix);
+   base.transform(matrix, scale_normals);
    scaleParams   (matrix.maxScale());
 
    if(render.is())render.create(base);

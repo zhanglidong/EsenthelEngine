@@ -705,10 +705,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                       C VecI4 &v=part.base.quad.ind(f); // draw as 2 tris so that VI uses tris everywhere (mixed 'tri' and 'quad' calls at the same time may not be supported)
                         Tri a(pos[v.x], pos[v.y], pos[v.w]),
                             b(pos[v.y], pos[v.z], pos[v.w]);
-                        if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
+                        if(trans_mesh.move_along_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
-                           a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.w]*trans_mesh.trans_normal;
-                           b.p[1]+=nrm[v.z]*trans_mesh.trans_normal; b.p[0]=a.p[1]; b.p[2]=a.p[2];
+                           a.p[0]+=nrm[v.x]*trans_mesh.move_along_normal; a.p[1]+=nrm[v.y]*trans_mesh.move_along_normal; a.p[2]+=nrm[v.w]*trans_mesh.move_along_normal;
+                           b.p[1]+=nrm[v.z]*trans_mesh.move_along_normal; b.p[0]=a.p[1]; b.p[2]=a.p[2];
                         }
                         VI.tri(a);
                         VI.tri(b);
@@ -719,9 +719,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      {
                       C VecI &v=part.base.tri.ind(f);
                         Tri a(pos[v.x], pos[v.y], pos[v.z]);
-                        if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
+                        if(trans_mesh.move_along_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
-                           a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.z]*trans_mesh.trans_normal;
+                           a.p[0]+=nrm[v.x]*trans_mesh.move_along_normal; a.p[1]+=nrm[v.y]*trans_mesh.move_along_normal; a.p[2]+=nrm[v.z]*trans_mesh.move_along_normal;
                         }
                         VI.tri(a);
                      }
@@ -741,7 +741,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                {
                 C Vec &pos=part.base.vtx.pos(v.y);
                   if(!vtxs_front() || frontFace(pos, part.base.vtx.nrm() ? &part.base.vtx.nrm(v.y) : null, cam))
-                     VI.dot((trans_mesh.trans_normal && part.base.vtx.nrm()) ? pos+trans_mesh.trans_normal*part.base.vtx.nrm(v.y) : pos, 0.005);
+                     VI.dot((trans_mesh.move_along_normal && part.base.vtx.nrm()) ? pos+trans_mesh.move_along_normal*part.base.vtx.nrm(v.y) : pos, 0.005);
                }
             }
          }
@@ -2740,7 +2740,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if( Kb.ctrl())
          {
             if(trans_mesh.move_p[0])multiplier=trans_mesh.move_p[0].mouse_edit_speed;
-            trans_mesh.trans_normal+=Ms.d().sum()*multiplier*posScale()*0.5;
+            trans_mesh.move_along_normal+=Ms.d().sum()*multiplier*posScale()*0.5;
          }else
          switch(trans_tabs())
          {

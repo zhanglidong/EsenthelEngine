@@ -26,7 +26,7 @@ class TransformRegion : Region
       "Camera Target",
    };
 
-   bool           full=false;
+   bool           full=false, scale_normal=true;
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
@@ -34,7 +34,7 @@ class TransformRegion : Region
                   rot[3][2]; // [xyz][dec/inc]
    TextLine       rescale_width_value, rescale_height_value, rescale_depth_value;
    Pose           trans;
-   flt            trans_normal=0;
+   flt            move_along_normal=0;
    Vec            trans_scale=1, anchor_pos=0;
    Vec2           move_uv=0, scale_uv=1;
    Matrix         matrix(1);
@@ -197,9 +197,10 @@ class TransformRegion : Region
    void resetDo()
    {
       trans.reset();
-      trans_normal=0;
+      move_along_normal=0;
       trans_scale=1;
       move_uv=0; scale_uv=1;
+      scale_normal=true;
       toGui();
    }
    void hideDo()
@@ -213,17 +214,16 @@ class TransformRegion : Region
    }
    void apply()
    {
-      if(trans!=PoseIdentity || trans_scale!=Vec(1) || trans_normal || move_uv.any() || scale_uv!=1)
+      if(trans!=PoseIdentity || trans_scale!=Vec(1) || move_along_normal || move_uv.any() || scale_uv!=1)
       {
          if(full)
          {
             ObjEdit.mesh_undos.set("transform");
             MeshLod &lod=ObjEdit.getLod();
-            Matrix matrix=ObjEdit.mesh_matrix*T.matrix/ObjEdit.mesh_matrix; // "edit mesh" is in 'MatrixIdentity' however we're expecting it to be in 'mesh_matrix'
-
+            Matrix  matrix=ObjEdit.mesh_matrix*T.matrix/ObjEdit.mesh_matrix; // "edit mesh" is in 'MatrixIdentity' however we're expecting it to be in 'mesh_matrix'
+            Matrix3 matrix_nrm=matrix; if(scale_normal)matrix_nrm.inverseScale();else matrix_nrm.normalize();
             if(ObjEdit.mesh_parts.edit_selected())
             {
-               Matrix3     matrix_n=matrix; matrix_n.inverseScale();
                Memt<int  > parts;
                Memt<VecI2> vtxs;
                if(ObjEdit.sel_face.elms())
@@ -254,13 +254,13 @@ class TransformRegion : Region
                      MeshBase &base=part.base; if(InRange(v.y, base.vtx))
                      {
                         parts.binaryInclude(v.x);
-                        if(trans_normal && base.vtx.pos() && base.vtx.nrm())base.vtx.pos(v.y)+=base.vtx.nrm(v.y)*trans_normal; // transform before transforming by matrix
+                        if(move_along_normal && base.vtx.pos() && base.vtx.nrm())base.vtx.pos(v.y)+=base.vtx.nrm(v.y)*move_along_normal; // transform before transforming by matrix
                         if(base.vtx.pos())base.vtx.pos(v.y)*=matrix;
                         if(base.vtx.hlp())base.vtx.hlp(v.y)*=matrix;
-                        if(base.vtx.nrm())base.vtx.nrm(v.y)*=matrix_n;
+                        if(base.vtx.nrm())base.vtx.nrm(v.y)*=matrix_nrm;
                      #if 0 // we'll just recalc tan/bin later
-                        if(base.vtx.tan())base.vtx.tan(v.y)*=matrix_n;
-                        if(base.vtx.bin())base.vtx.bin(v.y)*=matrix_n;
+                        if(base.vtx.tan())base.vtx.tan(v.y)*=matrix_nrm;
+                        if(base.vtx.bin())base.vtx.bin(v.y)*=matrix_nrm;
                      #endif
                         if(base.vtx.tex0()){Vec2 &t=base.vtx.tex0(v.y); t=t*scale_uv+move_uv;}
                      }
@@ -282,9 +282,9 @@ class TransformRegion : Region
             REPA(lod)if(ObjEdit.partOp(i))
             {
                MeshPart &part=lod.parts[i];
-               part.transform(matrix);
-               part.texScale(scale_uv);
-               part.texMove ( move_uv);
+               part.transform(matrix, scale_normal);
+               part.texScale (scale_uv);
+               part.texMove  ( move_uv);
             }
 
             ObjEdit.mesh.setBox();
@@ -311,7 +311,7 @@ class TransformRegion : Region
    TransformRegion& create(bool full)
    {
       super.create().skin(&TransparentSkin, false); kb_lit=false; T.full=full; if(full)hide();
-      Property *anchor_p=null, *rot_p[3];
+      Property *anchor_p=null, *rot_p[3], *scale_normal=null;
                   props.New().create("Scale"   , MemberDesc(MEMBER(TransformRegion, trans.scale))).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).real_precision=4;
                if(full)
                {
@@ -332,6 +332,7 @@ if(full)
       props.New().create("Move V" , MemberDesc(MEMBER(TransformRegion,  move_uv.y))).mouseEditSpeed(0.1).real_precision=4;
       props.New().create("Scale U", MemberDesc(MEMBER(TransformRegion, scale_uv.x))).mouseEditSpeed(1.0);
       props.New().create("Scale V", MemberDesc(MEMBER(TransformRegion, scale_uv.y))).mouseEditSpeed(1.0);
+      scale_normal=&props.New().create(S, MemberDesc(MEMBER(TransformRegion, scale_normal))).desc("If scale vertex normals.\nIf this is disabled then vertex normals will only be rotated.");
 }
       REPAO(move_p).real_precision=4;
       ts.reset(); ts.size=0.038; ts.align.set(1, 0);
@@ -339,6 +340,7 @@ if(full)
       Rect prop_rect=AddProperties(props, T, Vec2(0.01, -0.01), prop_height, 0.18, &ts); REPAO(props).autoData(this).changed(Changed); prop_rect.min.y-=0.01;
       if(anchor_p)anchor_p.combobox.resize(Vec2(0.11, 0));
       REPD(a, 3)REPD(i, 2)T+=rot[a][i].create(Rect_LU(rot_p[a].button.rect().ru()+Vec2(0.01+prop_height*i, 0), prop_height)).setImage(i ? "Gui/arrow_right_big.img" : "Gui/arrow_left_big.img").func(i ? Inc90 : Dec90, *rot_p[a]);
+      if(scale_normal){scale_normal.name.set("Scale Normal"); scale_normal.moveValue(Vec2(0.09, 0));}
       if(!full)
       {
          T+=rescale_width    .create(Rect_LU(prop_rect.min.x, prop_rect.min.y, 0.29, elm_height), "Rescale Width to:").func(RescaleWidth  , T); T+=rescale_width_value .create(Rect_LU(rescale_width .rect().max.x+e, prop_rect.min.y, 0.09, elm_height), "1"); prop_rect.min.y-=prop_height;

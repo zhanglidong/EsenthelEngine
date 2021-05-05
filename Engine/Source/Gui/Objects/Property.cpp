@@ -574,12 +574,10 @@ Property& Property::visible      (Bool on)  {return on ? show() : hide();}
 Bool      Property::visible      (       )C {return name.visible();}
 Property& Property::visibleToggle(       )  {return name.visible() ? hide() : show();}
 /******************************************************************************/
-Property& Property::pos (C Vec2 &pos  ) {return move(pos-name.pos());}
-Property& Property::move(C Vec2 &delta)
+Property& Property::moveValue(C Vec2 &delta)
 {
    if(delta.any())
    {
-      name    .move(delta);
       checkbox.move(delta);
       textline.move(delta);
       button  .move(delta);
@@ -589,6 +587,16 @@ Property& Property::move(C Vec2 &delta)
    }
    return T;
 }
+Property& Property::move(C Vec2 &delta)
+{
+   if(delta.any())
+   {
+      name.move(delta);
+      moveValue(delta);
+   }
+   return T;
+}
+Property& Property::pos(C Vec2 &pos) {return move(pos-name.pos());}
 Property& Property::close()
 {
    if(_cp)_cp->hide();

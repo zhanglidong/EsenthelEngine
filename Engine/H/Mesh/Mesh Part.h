@@ -91,15 +91,15 @@ struct MeshPart // Mesh Base + Mesh Render
    Bool      heightmap()C {return FlagTest(part_flag, MSHP_HEIGHTMAP);} // if this is a heightmap
 
    // transform
-   MeshPart& move         (              C Vec &move         ); //           move
-   MeshPart& scale        (C Vec &scale                      ); // scale
-   MeshPart& scaleMove    (C Vec &scale, C Vec &move         ); // scale and move
-   MeshPart& scaleMoveBase(C Vec &scale, C Vec &move         ); // scale and move (including the 'MeshBase' but without 'MeshRender')
-   MeshPart& transform    (C Matrix3               &matrix   ); // transform by matrix
-   MeshPart& transform    (C Matrix                &matrix   ); // transform by matrix
-   MeshPart& animate      (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
-   MeshPart& animate      (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
-   MeshPart& animate      (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
+   MeshPart& move         (              C Vec &move                               ); //           move
+   MeshPart& scale        (C Vec &scale                                            ); // scale
+   MeshPart& scaleMove    (C Vec &scale, C Vec &move                               ); // scale and move
+   MeshPart& scaleMoveBase(C Vec &scale, C Vec &move                               ); // scale and move (including the 'MeshBase' but without 'MeshRender')
+   MeshPart& transform    (C Matrix3               &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshPart& transform    (C Matrix                &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshPart& animate      (C MemPtrN<Matrix , 256> &matrixes                       ); // animate   by matrixes
+   MeshPart& animate      (C MemPtrN<MatrixM, 256> &matrixes                       ); // animate   by matrixes
+   MeshPart& animate      (C AnimatedSkeleton      &anim_skel                      ); // animate   by skeleton
 
    // texture transform
    MeshPart& texMove  (C Vec2 &move , Byte tex_index=0); // move   texture UV's

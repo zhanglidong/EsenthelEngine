@@ -85,8 +85,9 @@ const_mem_addr struct Property // Class Member Gui Control !! must be stored in 
    Property& visible      (Bool on);   Bool visible()C; // set/get visibility
    Property& visibleToggle(       );                    // toggle  visibility
 
-   Property& pos (C Vec2 &pos  ); // set position
-   Property& move(C Vec2 &delta); // move by delta
+   Property& pos      (C Vec2 &pos  ); // set position
+   Property& move     (C Vec2 &delta); // move by delta
+   Property& moveValue(C Vec2 &delta); // move by delta gui objects related to property value, but keep property name position as is
 
    Property& close(); // will hide any visible windows (including Color Picker)
 

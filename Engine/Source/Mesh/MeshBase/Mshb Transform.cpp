@@ -15,37 +15,37 @@ MeshBase& MeshBase::setSize  (C Box &box               )
        move=box.min-b.min*scale;
    return scaleMove(scale, move);
 }
-MeshBase& MeshBase::transform(C Matrix3 &matrix)
+MeshBase& MeshBase::transform(C Matrix3 &matrix, Bool scale_normals)
 {
    Int     n;
-   Matrix3 matrix_n=matrix; matrix_n.inverseScale();
+   Matrix3 matrix_nrm=matrix; if(scale_normals)matrix_nrm.inverseScale();else matrix_nrm.normalize();
 
-   n=vtxs (); Transform(vtx .pos(), matrix  , n);
-              Transform(vtx .hlp(), matrix  , n);
-              Transform(vtx .nrm(), matrix_n, n); Normalize(vtx .nrm(), n);
-              Transform(vtx .tan(), matrix_n, n); Normalize(vtx .tan(), n);
-              Transform(vtx .bin(), matrix_n, n); Normalize(vtx .bin(), n);
+   n=vtxs (); Transform(vtx .pos(), matrix    , n);
+              Transform(vtx .hlp(), matrix    , n);
+              Transform(vtx .nrm(), matrix_nrm, n); Normalize(vtx .nrm(), n);
+              Transform(vtx .tan(), matrix_nrm, n); Normalize(vtx .tan(), n);
+              Transform(vtx .bin(), matrix_nrm, n); Normalize(vtx .bin(), n);
 
-   n=edges(); Transform(edge.nrm(), matrix_n, n); Normalize(edge.nrm(), n);
-   n=tris (); Transform(tri .nrm(), matrix_n, n); Normalize(tri .nrm(), n);
-   n=quads(); Transform(quad.nrm(), matrix_n, n); Normalize(quad.nrm(), n);
+   n=edges(); Transform(edge.nrm(), matrix_nrm, n); Normalize(edge.nrm(), n);
+   n=tris (); Transform(tri .nrm(), matrix_nrm, n); Normalize(tri .nrm(), n);
+   n=quads(); Transform(quad.nrm(), matrix_nrm, n); Normalize(quad.nrm(), n);
 
    return T;
 }
-MeshBase& MeshBase::transform(C Matrix &matrix)
+MeshBase& MeshBase::transform(C Matrix &matrix, Bool scale_normals)
 {
    Int     n;
-   Matrix3 matrix_n=matrix; matrix_n.inverseScale();
+   Matrix3 matrix_nrm=matrix; if(scale_normals)matrix_nrm.inverseScale();else matrix_nrm.normalize();
 
-   n=vtxs (); Transform(vtx .pos(), matrix  , n);
-              Transform(vtx .hlp(), matrix  , n);
-              Transform(vtx .nrm(), matrix_n, n); Normalize(vtx .nrm(), n);
-              Transform(vtx .tan(), matrix_n, n); Normalize(vtx .tan(), n);
-              Transform(vtx .bin(), matrix_n, n); Normalize(vtx .bin(), n);
+   n=vtxs (); Transform(vtx .pos(), matrix    , n);
+              Transform(vtx .hlp(), matrix    , n);
+              Transform(vtx .nrm(), matrix_nrm, n); Normalize(vtx .nrm(), n);
+              Transform(vtx .tan(), matrix_nrm, n); Normalize(vtx .tan(), n);
+              Transform(vtx .bin(), matrix_nrm, n); Normalize(vtx .bin(), n);
 
-   n=edges(); Transform(edge.nrm(), matrix_n, n); Normalize(edge.nrm(), n);
-   n=tris (); Transform(tri .nrm(), matrix_n, n); Normalize(tri .nrm(), n);
-   n=quads(); Transform(quad.nrm(), matrix_n, n); Normalize(quad.nrm(), n);
+   n=edges(); Transform(edge.nrm(), matrix_nrm, n); Normalize(edge.nrm(), n);
+   n=tris (); Transform(tri .nrm(), matrix_nrm, n); Normalize(tri .nrm(), n);
+   n=quads(); Transform(quad.nrm(), matrix_nrm, n); Normalize(quad.nrm(), n);
 
    return T;
 }

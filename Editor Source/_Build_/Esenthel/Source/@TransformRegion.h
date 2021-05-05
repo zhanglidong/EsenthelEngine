@@ -17,7 +17,7 @@ class TransformRegion : Region
    static cchar8 *AnchorName[]
 ;
 
-   bool           full;
+   bool           full, scale_normal;
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
@@ -25,7 +25,7 @@ class TransformRegion : Region
                   rot[3][2]; // [xyz][dec/inc]
    TextLine       rescale_width_value, rescale_height_value, rescale_depth_value;
    Pose           trans;
-   flt            trans_normal;
+   flt            move_along_normal;
    Vec            trans_scale, anchor_pos;
    Vec2           move_uv, scale_uv;
    Matrix         matrix;
