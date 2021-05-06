@@ -1018,6 +1018,9 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="contrast" && TextVecEx(p.value).anyDifferent()
        || p.name=="contrastAlphaWeight" && TextVecEx(p.value).anyDifferent()
        || p.name=="addSat"
+       || p.name=="addSatPhoto"
+       || p.name=="mulAddSat"
+       || p.name=="mulAddSatPhoto"
        || p.name=="addHueSat"
        || p.name=="setHueSat"
        || p.name=="setHueSatPhoto"
@@ -1048,7 +1051,7 @@ bool HighPrecTransform(C Str &name)
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
        || name=="avgHue" || name=="avgHuePhoto" || name=="avgHueAlphaWeight" || name=="avgHuePhotoAlphaWeight" || name=="medHue" || name=="medHueAlphaWeight" || name=="medHuePhoto" || name=="medHuePhotoAlphaWeight" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
+       || name=="addSat" || name=="addSatPhoto" || name=="mulSat" || name=="mulSatPhoto" || name=="mulAddSat" || name=="mulAddSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -1318,9 +1321,9 @@ void GammaSat(Image &image, flt gamma, C BoxI &box, bool photo=false)
       image.unlock();
    }   
 }
-void MulSat(Image &image, flt mul, C BoxI &box, bool photo=false)
+void MulAddSat(Image &image, flt mul, flt add, C BoxI &box, bool photo=false)
 {
-   if(mul!=1 && image.lock())
+   if((mul!=1 || add!=0) && image.lock())
    {
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
@@ -1331,7 +1334,7 @@ void MulSat(Image &image, flt mul, C BoxI &box, bool photo=false)
          flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
 
          c.xyz=RgbToHsb(c.xyz);
-         c.y*=mul;
+         c.y=c.y*mul+add;
          c.xyz=HsbToRgb(c.xyz);
          if(photo)
          {
@@ -1954,34 +1957,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.unlock();
       }
    }else
-   if(param.name=="addSat")
-   {
-      flt sat=param.asFlt(); if(sat && image.lock())
-      {
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-            c.xyz=RgbToHsb(c.xyz);
-            c.y+=sat;
-            c.xyz=HsbToRgb(c.xyz);
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
-      }
-   }else
    if(param.name=="gammaSat"     )GammaSat(image, param.asFlt(), box);else
    if(param.name=="gammaSatPhoto")GammaSat(image, param.asFlt(), box, true);else
-   if(param.name=="mulSat"     )MulSat(image, param.asFlt(), box);else
-   if(param.name=="mulSatPhoto")MulSat(image, param.asFlt(), box, true);else
+   if(param.name=="mulSat"        )MulAddSat(image, param.asFlt(), 0, box);else
+   if(param.name=="mulSatPhoto"   )MulAddSat(image, param.asFlt(), 0, box, true);else
+   if(param.name=="mulAddSat"     ){Vec2 ma=param.asVec2(); MulAddSat(image, ma.x, ma.y, box);}else
+   if(param.name=="mulAddSatPhoto"){Vec2 ma=param.asVec2(); MulAddSat(image, ma.x, ma.y, box, true);}else
+   if(param.name=="addSat"        )MulAddSat(image, 1, param.asFlt(), box);else
+   if(param.name=="addSatPhoto"   )MulAddSat(image, 1, param.asFlt(), box, true);else
    if(param.name=="avgSat" || param.name=="avgSatPhoto")
    {
-      flt avg; if(image.statsSat(null, null, &avg, null, null, null, null, &box))if(avg)MulSat(image, param.asFlt()/avg, box, param.name=="avgSatPhoto");
+      flt avg; if(image.statsSat(null, null, &avg, null, null, null, null, &box))if(avg)MulAddSat(image, param.asFlt()/avg, 0, box, param.name=="avgSatPhoto");
    }else
    if(param.name=="medSat" || param.name=="medSatPhoto")
    {
-      flt med; if(image.statsSat(null, null, null, &med, null, null, null, &box))if(med)MulSat(image, param.asFlt()/med, box, param.name=="medSatPhoto");
+      flt med; if(image.statsSat(null, null, null, &med, null, null, null, &box))if(med)MulAddSat(image, param.asFlt()/med, 0, box, param.name=="medSatPhoto");
    }else
    if(param.name=="mulSatH"
    || param.name=="mulSatHS")
