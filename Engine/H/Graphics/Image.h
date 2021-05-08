@@ -571,7 +571,8 @@ struct Image // Image (Texture)
    void drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center=null)C;
 
    // draw masked
-   void drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C;
+   void drawMask        (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C;
+   void drawMaskNoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C; // uses FILTER_NONE for this image, but FILTER_LINEAR for 'mask'
 
    // draw faded
    void drawFadeLR(C Color &color, C Rect &rect, Flt trans_l, Flt opaque_l, Flt opaque_r, Flt trans_r)C; // draw and fade out left/right sides, 'trans_l'=X screen coordinate where left part is fully transparent, 'opaque_l'=X screen coordinate where left part is fully opaque, 'opaque_r'=X screen coordinate where right part is fully opaque, 'trans_r'=X screen coordinate where right part is fully transparent

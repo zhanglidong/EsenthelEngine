@@ -232,9 +232,12 @@ void DrawMask_VS(VtxInput vtx,
 VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
                   NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
 {
-   VecH4  col   =Tex(Img , inTexC)*Color[0]+Color[1];
-          col.a*=Tex(Img1, inTexM).a;
-   return col;
+   return Tex(Img, inTexC)*Tex(Img1, inTexM)*Color[0]+Color[1];
+}
+VecH4 DrawMaskPoint_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
+                       NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
+{
+   return TexPoint(Img, inTexC)*Tex(Img1, inTexM)*Color[0]+Color[1];
 }
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,

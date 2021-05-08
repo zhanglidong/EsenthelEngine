@@ -171,6 +171,7 @@ struct MainShaderClass
       *Simple                 ,
 
       *DrawMask,
+      *DrawMaskPoint,
       *DrawCubeFace,
 
       *FontCur,
