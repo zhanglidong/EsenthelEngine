@@ -1892,14 +1892,26 @@ static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma, Int max_mip
             if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return 0;}
             Int blocks_y=Min(ImageBlocksY(src .hwW(), src .hwH(), i+mip, src .hwType()),
                              ImageBlocksY(dest.hwW(), dest.hwH(),   mip, dest.hwType()));
-            REPD(z, dest.ld())
+            FREPD(z, dest.ld())
             {
              C Byte * src_data= src.data() + z* src.pitch2();
                Byte *dest_data=dest.data() + z*dest.pitch2();
-               if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));else
+               if(dest.pitch()==src.pitch())
                {
-                  Int pitch=Min(dest.pitch(), src.pitch());
-                  REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), pitch);
+                  Int copy_size=Min(dest.pitch2(), src.pitch2());
+                  CopyFast(dest_data, src_data, copy_size);
+                  ZeroFast(dest_data+copy_size, dest.pitch2()-copy_size); // zero unwritten data
+               }else
+               {
+                  Int copy_size=Min(dest.pitch(), src.pitch()), zero=dest.pitch()-copy_size;
+                  FREPD(y, blocks_y)
+                  {
+                     Byte *dest_data_y=dest_data + y*dest.pitch();
+                             CopyFast(dest_data_y, src_data + y*src.pitch(), copy_size);
+                     if(zero)ZeroFast(dest_data_y+copy_size, zero); // zero unwritten data
+                  }
+                  copy_size=dest.pitch()*blocks_y;
+                  ZeroFast(dest_data+copy_size, dest.pitch2()-copy_size); // zero unwritten data
                }
             }
             dest.unlock();
