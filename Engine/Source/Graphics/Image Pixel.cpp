@@ -5277,15 +5277,26 @@ struct CopyContext
             if(CanDoRawCopy(src, dest, ignore_gamma)) // no retype
             {
                Int valid_blocks_y=ImageBlocksY(src.w(), src.h(), mip, src.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
-               REPD(z, src.ld())
+               FREPD(z, src.ld())
                {
                 C Byte *s=src .data() + z*src .pitch2();
                   Byte *d=dest.data() + z*dest.pitch2();
-                  if(src.pitch()==dest.pitch())CopyFast(d, s, Min(src.pitch2(), dest.pitch2()));else
+                  if(src.pitch()==dest.pitch())
                   {
-                     Int pitch=Min(src.pitch(), dest.pitch());
-                     REPD(y, valid_blocks_y)CopyFast(d + y*dest.pitch(), s + y*src.pitch(), pitch);
-                     // TODO: we could zero remaining data to avoid garbage
+                     Int copy_size=Min(src.pitch2(), dest.pitch2());
+                     CopyFast(d, s, copy_size);
+                     ZeroFast(d+copy_size, dest.pitch2()-copy_size); // zero unwritten data
+                  }else
+                  {
+                     Int copy_size=Min(src.pitch(), dest.pitch()), zero=dest.pitch()-copy_size;
+                     FREPD(y, valid_blocks_y)
+                     {
+                        Byte *dy=d + y*dest.pitch();
+                                CopyFast(dy, s + y*src.pitch(), copy_size);
+                        if(zero)ZeroFast(dy+copy_size, zero); // zero unwritten data
+                     }
+                     copy_size=dest.pitch()*valid_blocks_y;
+                     ZeroFast(d+copy_size, dest.pitch2()-copy_size); // zero unwritten data
                   }
                }
             }else // retype
