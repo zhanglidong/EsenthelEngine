@@ -1117,16 +1117,15 @@ Bool Update()
       {
          App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
          done++; // start with small progress
-         WindowSetProgress(Flt(done)/(Todo.elms()+done));
+         App.stateProgress(Flt(done)/(Todo.elms()+done));
          if(TaskBase *t=Todo.lockedPopFirst())t->call();
       }
    }
    if(done && !build_threads.queued() && !Todo.elms()) // finished all tasks
    {
       done=0;
-      WindowSetNormal();
-      WindowFlash    ();
-      App.stayAwake  (AWAKE_OFF); // allow sleeping
+      App.stateNormal().flash();
+      App.stayAwake(AWAKE_OFF); // allow sleeping
    }
 
    if(data_new.elms())
