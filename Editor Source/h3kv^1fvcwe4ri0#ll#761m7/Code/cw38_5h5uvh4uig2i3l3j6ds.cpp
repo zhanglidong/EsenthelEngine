@@ -955,7 +955,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    static void MeshSetNormalP   (ObjView &editor) {editor.meshSetNrm     (VTX_POS  );}
    static void MeshSetNormalT   (ObjView &editor) {editor.meshSetNrm     (VTX_TEX0 );}
    static void MeshSetNormal    (ObjView &editor) {editor.meshSetNrm     (MESH_NONE);}
-   static void MeshSetNormalH   (ObjView &editor) {editor.meshSetNrmH    (         );}   void meshSetNrmH();
+   static void MeshCopyNormal   (ObjView &editor) {editor.meshCopyNrm    (         );}   void meshCopyNrm();
    static void MeshNormalY      (ObjView &editor) {editor.meshNrmY       (         );}   void meshNrmY   ();
    static void MeshSetVtxAO     (ObjView &editor) {MeshAO.activate();}
    static void MeshCreateFace   (ObjView &editor) {editor.meshCreateFace   ();}   void meshCreateFace   ();
@@ -1585,7 +1585,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Set Normals (Face Normal)"     , MeshSetNormalFa  , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on face normals");
          n.New().create("Set Normals (UV)"              , MeshSetNormalT   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
          n.New().create("Set Normals (None)"            , MeshSetNormal    , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL                    )).desc("This option will set normals of selected vertexes/faces");
-         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH   , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
+         n.New().create("Copy Normals"                  , MeshCopyNormal   , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
          n.New().create("Align Normals Up"              , MeshNormalY      , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
          n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ      , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");
          n.New().create("Align To Vertex Round"         , MeshAlign        , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align the object so that the highlighted vertex position will be an integer.");

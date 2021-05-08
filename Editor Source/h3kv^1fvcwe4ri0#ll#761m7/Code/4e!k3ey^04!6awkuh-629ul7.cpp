@@ -292,7 +292,7 @@ void ObjView.meshSetNrm(MESH_FLAG vtx_test)
    }
    if(changed)setChangedMesh(true, false);
 }
-void ObjView.meshSetNrmH()
+void ObjView.meshCopyNrm()
 {
    bool changed=false;
    MeshLod &lod=getLod();
