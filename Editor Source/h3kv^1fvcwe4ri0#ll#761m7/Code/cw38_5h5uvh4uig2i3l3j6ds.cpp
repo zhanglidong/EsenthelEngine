@@ -2791,7 +2791,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          if(Ms.b(0) && v4.getView(Gui.ms()))
          {
-            if(transMesh())trans_mesh.close.push();else switch(mesh_parts.list.selMode())
+            if(transMesh()) // if transforming
+            {
+               trans_mesh.close.push(); // apply
+               Gui.ms(null); // clear current mouse focus, to make sure that continued press of this button will not change selection as long as the button is pressed
+            }else
+            switch(mesh_parts.list.selMode())
             {
                case LSM_SET    : if(Ms.bp(0)){selUndo(); selVFDo();} break;
                case LSM_TOGGLE : if(Ms.bp(0)){selUndo(); selVFDo();} break;
