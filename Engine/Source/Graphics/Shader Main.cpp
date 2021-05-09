@@ -528,8 +528,9 @@ void MainShaderClass::getTechniques()
  //DrawTexNrm   =get("DrawTexNrm"); used by Editor
  //DrawTexDetNrm=get("DrawTexDetNrm"); used by Editor
 
-   DrawMask     =get("DrawMask");
-   DrawMaskPoint=get("DrawMaskPoint");
+   // MASK
+   REPD(red  , 2)
+   REPD(point, 2)DrawMask[red][point]=get(S8+"DrawMask"+red+point);
 
    // POINT (these can be null if failed to load)
    DrawTexPoint =find("DrawTexPoint");

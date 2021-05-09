@@ -229,15 +229,19 @@ void DrawMask_VS(VtxInput vtx,
    outTexM=vtx.tex1();
    outVtx =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
-                  NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
+VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0, NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
 {
-   return Tex(Img, inTexC)*Tex(Img1, inTexM)*Color[0]+Color[1];
-}
-VecH4 DrawMaskPoint_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
-                       NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
-{
-   return TexPoint(Img, inTexC)*Tex(Img1, inTexM)*Color[0]+Color[1];
+#if POINT
+   VecH4 c=TexPoint(Img, inTexC);
+#else
+   VecH4 c=Tex(Img, inTexC);
+#endif
+#if RED
+   c.a*=Tex(Img1, inTexM).r;
+#else
+   c*=Tex(Img1, inTexM);
+#endif
+   return c*Color[0]+Color[1];
 }
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,

@@ -1594,7 +1594,7 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
       case VI_2D_COL          : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
       case VI_2D_TEX          : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.Draw2DTexC : Sh.Draw2DTex)                                                   ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
       case VI_2D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=null                                                                                                ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
       case VI_2D_FONT         : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.FontCur                                                                                          ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
       case VI_2D_DEPTH_TEX    : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.Draw2DDepthTex[FlagTest(VI._user_flag, VI_ALPHA_TEST)][0]                                        ; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(false); break;
       case VI_2D_DEPTH_TEX_COL: VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.Draw2DDepthTex[FlagTest(VI._user_flag, VI_ALPHA_TEST)][1]                                        ; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(false); break;
@@ -1708,31 +1708,11 @@ void VtxIndBuf::alphaTest (Bool on  ) {FlagSet(VI._user_flag, VI_ALPHA_TEST, on 
 void VtxIndBuf::fog       (Bool on  ) {FlagSet(VI._user_flag, VI_FOG       , on  );}
 void VtxIndBuf::depthWrite(Bool on  ) {if(!(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)){VI._depth_write=D._depth_write; VI._user_flag|=VI_CUSTOM_DEPTH_WRITE;} D.depthWrite(on);}
 
-void VtxIndBuf::clamp()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
-   SamplerLinearClamp.setPS(SSI_DEFAULT);
-}
-void VtxIndBuf::wrap()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
-   SamplerLinearWrap.setPS(SSI_DEFAULT);
-}
-void VtxIndBuf::wrapX()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
-   SamplerLinearWCC.setPS(SSI_DEFAULT);
-}
-void VtxIndBuf::wrapY()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
-   SamplerLinearCWC.setPS(SSI_DEFAULT);
-}
-void VtxIndBuf::clampAniso()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER);
-   SamplerAnisotropicClamp.setPS(SSI_DEFAULT);
-}
+void VtxIndBuf::clamp     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearClamp     .setPS(SSI_DEFAULT);}
+void VtxIndBuf::wrap      () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWrap      .setPS(SSI_DEFAULT);}
+void VtxIndBuf::wrapX     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWCC       .setPS(SSI_DEFAULT);}
+void VtxIndBuf::wrapY     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearCWC       .setPS(SSI_DEFAULT);}
+void VtxIndBuf::clampAniso() {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerAnisotropicClamp.setPS(SSI_DEFAULT);}
 /******************************************************************************/
 void VtxIndBuf::flush()
 {

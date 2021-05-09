@@ -162,8 +162,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
        //src.New("DetectMSNrm", "DrawPixel_VS", "DetectMSNrm_PS");
       }
 
-      src.New("DrawMask"     , "DrawMask_VS", "DrawMask_PS");
-      src.New("DrawMaskPoint", "DrawMask_VS", "DrawMaskPoint_PS");
+      REPD(red  , 2)
+      REPD(point, 2)src.New("DrawMask", "DrawMask_VS", "DrawMask_PS")("RED", red, "POINT", point);
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
       src.New("Simple", "Simple_VS", "Simple_PS");
 

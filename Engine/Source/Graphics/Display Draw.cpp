@@ -394,16 +394,17 @@ void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec
    VI.end();
 }
 /******************************************************************************/
-void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C
+static void DrawMask(C Image &image, C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect, C Shader *shader)
 {
    Rect r=rect&mask_rect;
    if(  r.valid())
    {
       VI.color (color    );
       VI.color1(color_add);
-      VI.image (this     );
-      Sh.Img[1]->set(mask);
+      Sh.Img[0]->set(image);
+      Sh.Img[1]->set(mask );
       VI.setType(VI_2D_TEX2, VI_STRIP);
+      VI.shader (shader);
       if(Vtx2DTex2 *v=(Vtx2DTex2*)VI.addVtx(4))
       {
          v[0].pos.set(r.min.x, r.max.y);
@@ -421,12 +422,12 @@ void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &
          v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.max.y); // min y
          v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.min.y); // max y
 
-         if(partial())
+         if(image.partial())
          {
-            v[0].tex[0]*=_part.xy;
-            v[1].tex[0]*=_part.xy;
-            v[2].tex[0]*=_part.xy;
-            v[3].tex[0]*=_part.xy;
+            v[0].tex[0]*=image._part.xy;
+            v[1].tex[0]*=image._part.xy;
+            v[2].tex[0]*=image._part.xy;
+            v[3].tex[0]*=image._part.xy;
          }
          if(mask.partial())
          {
@@ -439,52 +440,10 @@ void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &
       VI.end();
    }
 }
-void Image::drawMaskNoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C
-{
-   Rect r=rect&mask_rect;
-   if(  r.valid())
-   {
-      VI.color (color    );
-      VI.color1(color_add);
-      VI.image (this     );
-      Sh.Img[1]->set(mask);
-      VI.setType(VI_2D_TEX2, VI_STRIP);
-      VI.shader(Sh.DrawMaskPoint);
-      if(Vtx2DTex2 *v=(Vtx2DTex2*)VI.addVtx(4))
-      {
-         v[0].pos.set(r.min.x, r.max.y);
-         v[1].pos.set(r.max.x, r.max.y);
-         v[2].pos.set(r.min.x, r.min.y);
-         v[3].pos.set(r.max.x, r.min.y);
-
-         v[0].tex[0].x=v[2].tex[0].x=LerpR(rect.min.x, rect.max.x, r.min.x); // min x
-         v[1].tex[0].x=v[3].tex[0].x=LerpR(rect.min.x, rect.max.x, r.max.x); // max x
-         v[0].tex[0].y=v[1].tex[0].y=LerpR(rect.max.y, rect.min.y, r.max.y); // min y
-         v[2].tex[0].y=v[3].tex[0].y=LerpR(rect.max.y, rect.min.y, r.min.y); // max y
-
-         v[0].tex[1].x=v[2].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.min.x); // min x
-         v[1].tex[1].x=v[3].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.max.x); // max x
-         v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.max.y); // min y
-         v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.min.y); // max y
-
-         if(partial())
-         {
-            v[0].tex[0]*=_part.xy;
-            v[1].tex[0]*=_part.xy;
-            v[2].tex[0]*=_part.xy;
-            v[3].tex[0]*=_part.xy;
-         }
-         if(mask.partial())
-         {
-            v[0].tex[1]*=mask._part.xy;
-            v[1].tex[1]*=mask._part.xy;
-            v[2].tex[1]*=mask._part.xy;
-            v[3].tex[1]*=mask._part.xy;
-         }
-      }
-      VI.end();
-   }
-}
+void Image::drawMask         (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][0]);}
+void Image::drawMaskNoFilter (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][1]);}
+void Image::drawMaskR        (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][0]);}
+void Image::drawMaskRNoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][1]);}
 /******************************************************************************/
 void Image::drawTile(C Rect &rect, Flt tex_scale)C
 {
