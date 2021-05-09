@@ -396,8 +396,10 @@ void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec
 /******************************************************************************/
 static void DrawMask(C Image &image, C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect, C Shader *shader)
 {
-   Rect r=rect&mask_rect;
-   if(  r.valid())
+   Rect r; r.from(     rect.min,      rect.max); // needed in case      'rect' is flipped
+   Rect m; m.from(mask_rect.min, mask_rect.max); // needed in case 'mask_rect' is flipped
+   Rect rm=r&m;
+   if(  rm.valid())
    {
       VI.color (color    );
       VI.color1(color_add);
@@ -407,20 +409,20 @@ static void DrawMask(C Image &image, C Color &color, C Color &color_add, C Rect 
       VI.shader (shader);
       if(Vtx2DTex2 *v=(Vtx2DTex2*)VI.addVtx(4))
       {
-         v[0].pos.set(r.min.x, r.max.y);
-         v[1].pos.set(r.max.x, r.max.y);
-         v[2].pos.set(r.min.x, r.min.y);
-         v[3].pos.set(r.max.x, r.min.y);
+         v[0].pos.set(rm.min.x, rm.max.y);
+         v[1].pos.set(rm.max.x, rm.max.y);
+         v[2].pos.set(rm.min.x, rm.min.y);
+         v[3].pos.set(rm.max.x, rm.min.y);
 
-         v[0].tex[0].x=v[2].tex[0].x=LerpR(rect.min.x, rect.max.x, r.min.x); // min x
-         v[1].tex[0].x=v[3].tex[0].x=LerpR(rect.min.x, rect.max.x, r.max.x); // max x
-         v[0].tex[0].y=v[1].tex[0].y=LerpR(rect.max.y, rect.min.y, r.max.y); // min y
-         v[2].tex[0].y=v[3].tex[0].y=LerpR(rect.max.y, rect.min.y, r.min.y); // max y
+         v[0].tex[0].x=v[2].tex[0].x=LerpR(rect.min.x, rect.max.x, rm.min.x); // min x
+         v[1].tex[0].x=v[3].tex[0].x=LerpR(rect.min.x, rect.max.x, rm.max.x); // max x
+         v[0].tex[0].y=v[1].tex[0].y=LerpR(rect.max.y, rect.min.y, rm.max.y); // min y
+         v[2].tex[0].y=v[3].tex[0].y=LerpR(rect.max.y, rect.min.y, rm.min.y); // max y
 
-         v[0].tex[1].x=v[2].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.min.x); // min x
-         v[1].tex[1].x=v[3].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.max.x); // max x
-         v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.max.y); // min y
-         v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.min.y); // max y
+         v[0].tex[1].x=v[2].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, rm.min.x); // min x
+         v[1].tex[1].x=v[3].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, rm.max.x); // max x
+         v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, rm.max.y); // min y
+         v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, rm.min.y); // max y
 
          if(image.partial())
          {
