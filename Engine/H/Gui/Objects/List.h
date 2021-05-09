@@ -89,12 +89,12 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
 
    // misc
    LIST_CUR_MODE cur_mode   ; // cursor    mode       , default=LCM_DEFAULT
-   LIST_SEL_MODE sel_mode   ; // selection mode       , default=LSM_SET  affects the default action for handling selection of an element upon its clicking for lists with LIST_MULTI_SEL option enabled
+   LIST_SEL_MODE sel_mode   ; // selection mode       , default=LSM_SET, affects the default action for handling selection of an element upon its clicking for lists with LIST_MULTI_SEL option enabled
    ALPHA_MODE    image_alpha; // images alpha blending, default=ALPHA_BLEND
    UInt          flag       ; // LIST_FLAG            , default=LIST_SORTABLE|LIST_SEARCHABLE
    Flt           zoom_min   , // minimum zoom         , default=0.58
                  zoom_max   ; // maximum zoom         , default=1.44
-   Vec2          padding    ; // list padding         , default=(0, 0)  amount of padding applied to the list size
+   Vec2          padding    ; // list padding         , default=(0, 0), amount of padding applied to the list size
 
    // manage
    virtual _List& del   (                                                            )override;                                                       // delete
