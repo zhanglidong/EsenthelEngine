@@ -236,11 +236,13 @@ VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0, NOPERSP Vec2 inTexM:TEXCOORD1):
 #else
    VecH4 c=Tex(Img, inTexC);
 #endif
-#if RED
-   c.a*=Tex(Img1, inTexM).r;
+
+#if ALPHA
+   c.a*=Tex(Img1, inTexM).a;
 #else
    c*=Tex(Img1, inTexM);
 #endif
+
    return c*Color[0]+Color[1];
 }
 /******************************************************************************/

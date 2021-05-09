@@ -170,7 +170,7 @@ struct MainShaderClass
       *DrawXC[2][2]           , // [Dither] [Gamma]
       *Simple                 ,
 
-      *DrawMask[2][2], // [Red][Point]
+      *DrawMask[2][2], // [Alpha][Point]
       *DrawCubeFace,
 
       *FontCur,

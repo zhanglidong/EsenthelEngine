@@ -442,8 +442,8 @@ static void DrawMask(C Image &image, C Color &color, C Color &color_add, C Rect 
 }
 void Image::drawMask         (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][0]);}
 void Image::drawMaskNoFilter (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][1]);}
-void Image::drawMaskR        (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][0]);}
-void Image::drawMaskRNoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][1]);}
+void Image::drawMaskA        (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][0]);}
+void Image::drawMaskANoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][1]);}
 /******************************************************************************/
 void Image::drawTile(C Rect &rect, Flt tex_scale)C
 {
