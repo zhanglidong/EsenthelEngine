@@ -2547,7 +2547,7 @@ void DisplayClass::validateCoords(Int eye)
 /******************************************************************************/
 void DisplayClass::sizeChanged()
 {
-   D._rect.min=-D._rect.max=D._unscaled_size/D._scale;
+   D._rect.min=-(D._rect.max=D._unscaled_size/D._scale);
    D._size2=D.size()*2;
 
  C VecI2 &res=((VR.active() && D._allow_stereo) ? VR.guiRes() : D.res());
